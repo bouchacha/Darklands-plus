@@ -1,5 +1,5 @@
 /* ammo.c - arrows, quarrels and balls that never run out (assist.infinite_ammo, on by default;
- * "Play the original game" turns it off).
+ * the Full Original preset turns it off).
  *
  * In a battle a shot (s014 0e76, the loose) records an arrow or a bolt to be found after the
  * battle 7 times in 10 (missile_spent, s018 1ef8:03ae; balls never), then use_ammo takes one

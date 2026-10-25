@@ -65,7 +65,7 @@ enum { SV_WHO = 1, SV_READY, SV_PUTAWAY, SV_GIVE, SV_DROP, SV_DRINK, SV_LEADER, 
 extern int sheetview_dragging;        /* the view drags a thing: a release over the party panel is a give, not a click there */
 
 void sheetview_init(void);
-int sheetview_shared(void);           /* inventory.shared (on by default; not with "Play the original game") */
+int sheetview_shared(void);           /* inventory.shared (on by default; not in the Full Original preset) */
 int sheetview_is_on(void);
 void sheetview_set(int on);
 

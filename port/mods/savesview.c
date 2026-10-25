@@ -1,5 +1,5 @@
-/* savesview.c - the game's Save and Load as native dialogs (display.native_saves; "Play the original
- * game" keeps the game's). The view is ui/savesview.cpp.
+/* savesview.c - the game's Save and Load as native dialogs (display.native_saves; the Full Original
+ * preset keeps the game's). The view is ui/savesview.cpp.
  *
  * The original saves with a one-line comment prompt (save_game, s037 1462:2a68, into a new
  * saves\dksaveN.sav each time) and loads from a list of comments, nine at a time, after

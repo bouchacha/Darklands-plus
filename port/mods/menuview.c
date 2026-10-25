@@ -1,6 +1,6 @@
 /* menuview.c - the game's menu bar (Game, Orders, Attack, Party on the battle field; the menus of
- * the map and the cards) drawn and used by Darklands+ (display.native_menu; "Play the original
- * game" keeps the game's). The view is ui/menuview.cpp.
+ * the map and the cards) drawn and used by Darklands+ (display.native_menu; the Full
+ * Original preset keeps the game's). The view is ui/menuview.cpp.
  *
  * The original (menu_bar_run, root 0000:0000, called by every screen's loop) shows the bar only
  * while the right button is held: the player drags to an entry and lets go on it (or presses F10

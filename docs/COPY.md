@@ -246,52 +246,53 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:229` | in percent: at 100, each is as likely as any one of the original encounters for that terrain. |
 | `mods/options.c:230` | Button prompts |
 | `mods/options.c:230` | the controller's buttons on screen: 0 the device in use, 1 keys and mouse, 2 Xbox, 3 PlayStation, 4 Nintendo. |
-| `mods/options.c:231` | Back up saves |
-| `mods/options.c:231` | a copy of each save before it is overwritten. |
-| `mods/options.c:232` | Autosaves kept |
-| `mods/options.c:232` | how many autosaves are kept. |
-| `mods/options.c:233` | Quick saves kept |
-| `mods/options.c:233` | how many quick saves are kept. |
-| `mods/options.c:234` | Music volume |
-| `mods/options.c:235` | Effects volume |
-| `mods/options.c:236` | Music in the menus |
-| `mods/options.c:236` | the music goes on while Darklands+'s menus are open. |
-| `mods/options.c:237` | MT-32 display |
-| `mods/options.c:237` | the MT-32's little display shown at the top right when the game puts a message on it. |
-| `mods/options.c:238` | Quests sorted by |
-| `mods/options.c:238` | the margin's quests: 0 by deadline, 1 nearest first, 2 as taken. |
-| `mods/options.c:240` | Replacement art |
-| `mods/options.c:241` | Battle sounds from a sound pack |
-| `mods/options.c:242` | Side margins |
-| `mods/options.c:243` | Names in full |
-| `mods/options.c:244` | Where armor is worn |
-| `mods/options.c:245` | Quick saves and autosaves |
-| `mods/options.c:246` | Autosave on arriving |
-| `mods/options.c:247` | Autosave before a battle |
-| `mods/options.c:248` | Back to the start screen when the journey ends |
-| `mods/options.c:250` | "Fehde!" ambush |
-| `mods/options.c:250` | a road ambush by soldiers of a private feud, written as a variant of the mercenaries' ambush and never used: half the time that ambush comes up, the Fehde comes instead, with its own texts but the same odds and battle (Soldiers led by a Knight). |
-| `mods/options.c:251` | Town hospice |
-| `mods/options.c:251` | a town's hospice by day, written but never made playable: give alms, work a day beside the nuns (Healing), have the party's wounds tended for a fee, or beg to be tended for nothing. The church district leads there, and Go to (G) lists it. |
-| `mods/options.c:252` | Cities at war |
-| `mods/options.c:252` | coded and never switched on. Now and then a city prepares for war for a few weeks, and some then stand a siege: prices rise, the news tells of it, Soldiers' Road and its market open, the docks are guarded or barricaded, and the gate turns travelers away (talk, bluff, sneak, a farmer's hay cart, or the walls, where patrols take you for spies). A save made during a war carries the war on if loaded in the original game. |
-| `mods/options.c:253` | City politics |
-| `mods/options.c:253` | the campaign written and never switched on. Now and then a city has a season of unrest: rumors in the news and the guild quarters lead to the rebels' leader or the government's man, the party takes a side, posts handbills, sways the guilds, and a war council sets the day of a march on the town hall or of the arrests. |
-| `mods/options.c:254` | Black Cloud in battle |
-| `mods/options.c:254` | the party can throw Black Cloud in a battle too. The manual left it out ("the screen takes too long" on the machines of 1992), but the battle rules handle its smoke: shots through it hit a fifth as often, and fighting from inside it gives -15 to hit. Enemies and cards already use it. |
-| `mods/options.c:255` | Honor Roll of Glory (hall of fame) |
-| `mods/options.c:255` | the hall of fame left unfinished in the game (its picture and table were in the files, never used): a party enters it when its journey ends, and F12 > Journal > Honor Roll shows it. |
-| `mods/options.c:276` | Takes effect when the next new game starts. |
-| `mods/options.c:281` | Fixes for bugs of the original |
-| `mods/options.c:328` | Full Original |
-| `mods/options.c:328` | Darklands as it was in 1993 (version 483.07), bugs and all: everything Darklands+ adds is off, and the original game's sound setup is used. |
-| `mods/options.c:329` | Saves load in the original game and back. |
-| `mods/options.c:330` | The original game with its bugs fixed: its own screens, rules and graphics. |
-| `mods/options.c:331` | Saves load in the original game and back. |
-| `mods/options.c:332` | The original rules with the original's bugs fixed, the new screens, on screen what the original keeps behind keys or only in its manual, and less busywork: auto-travel, Go to, easier battle controls, one shared pack, one store room for every inn, endless ammunition. Easier play is offered separately, as built-in mods (F12 > Mods). |
-| `mods/options.c:333` | Saves load in the original game and back, unless a member uses an enemy sprite. |
-| `mods/options.c:455` | # Darklands+ switches  Every switch: its key (its name for good: never renamed, never reused), what it does, why it exists, the group switch that sets it (if any), its class (what kind of change: fix, show, ease, plus, easy, experiment, taste, tool) and its value in the original game / Darklands+ / for easy play (the column of the former Easy preset). Made by the game itself (`DL_DUMP_SWITCHES=docs/SWITCHES.md`, from `port/mods/options.c` and `port/mods/optwhy.c`); `tools/check_switches.py` fails if a key disappears without being listed as retired.   |
-| `mods/options.c:480` |  ## Retired keys  No longer offered; not to be used for anything else.   |
+| `mods/options.c:231` | the next new game keeps one save, saved over by the game itself as it goes (every card, each arrival, before each battle, on quitting); no loading back while it runs; when the party's journey ends, its save is deleted. |
+| `mods/options.c:232` | Back up saves |
+| `mods/options.c:232` | a copy of each save before it is overwritten. |
+| `mods/options.c:233` | Autosaves kept |
+| `mods/options.c:233` | how many autosaves are kept. |
+| `mods/options.c:234` | Quick saves kept |
+| `mods/options.c:234` | how many quick saves are kept. |
+| `mods/options.c:235` | Music volume |
+| `mods/options.c:236` | Effects volume |
+| `mods/options.c:237` | Music in the menus |
+| `mods/options.c:237` | the music goes on while Darklands+'s menus are open. |
+| `mods/options.c:238` | MT-32 display |
+| `mods/options.c:238` | the MT-32's little display shown at the top right when the game puts a message on it. |
+| `mods/options.c:239` | Quests sorted by |
+| `mods/options.c:239` | the margin's quests: 0 by deadline, 1 nearest first, 2 as taken. |
+| `mods/options.c:241` | Replacement art |
+| `mods/options.c:242` | Battle sounds from a sound pack |
+| `mods/options.c:243` | Side margins |
+| `mods/options.c:244` | Names in full |
+| `mods/options.c:245` | Where armor is worn |
+| `mods/options.c:246` | Quick saves and autosaves |
+| `mods/options.c:247` | Autosave on arriving |
+| `mods/options.c:248` | Autosave before a battle |
+| `mods/options.c:249` | Back to the start screen when the journey ends |
+| `mods/options.c:251` | "Fehde!" ambush |
+| `mods/options.c:251` | a road ambush by soldiers of a private feud, written as a variant of the mercenaries' ambush and never used: half the time that ambush comes up, the Fehde comes instead, with its own texts but the same odds and battle (Soldiers led by a Knight). |
+| `mods/options.c:252` | Town hospice |
+| `mods/options.c:252` | a town's hospice by day, written but never made playable: give alms, work a day beside the nuns (Healing), have the party's wounds tended for a fee, or beg to be tended for nothing. The church district leads there, and Go to (G) lists it. |
+| `mods/options.c:253` | Cities at war |
+| `mods/options.c:253` | coded and never switched on. Now and then a city prepares for war for a few weeks, and some then stand a siege: prices rise, the news tells of it, Soldiers' Road and its market open, the docks are guarded or barricaded, and the gate turns travelers away (talk, bluff, sneak, a farmer's hay cart, or the walls, where patrols take you for spies). A save made during a war carries the war on if loaded in the original game. |
+| `mods/options.c:254` | City politics |
+| `mods/options.c:254` | the campaign written and never switched on. Now and then a city has a season of unrest: rumors in the news and the guild quarters lead to the rebels' leader or the government's man, the party takes a side, posts handbills, sways the guilds, and a war council sets the day of a march on the town hall or of the arrests. |
+| `mods/options.c:255` | Black Cloud in battle |
+| `mods/options.c:255` | the party can throw Black Cloud in a battle too. The manual left it out ("the screen takes too long" on the machines of 1992), but the battle rules handle its smoke: shots through it hit a fifth as often, and fighting from inside it gives -15 to hit. Enemies and cards already use it. |
+| `mods/options.c:256` | Honor Roll of Glory (hall of fame) |
+| `mods/options.c:256` | the hall of fame left unfinished in the game (its picture and table were in the files, never used): a party enters it when its journey ends, and F12 > Journal > Honor Roll shows it. |
+| `mods/options.c:277` | Takes effect when the next new game starts. |
+| `mods/options.c:282` | Fixes for bugs of the original |
+| `mods/options.c:329` | Full Original |
+| `mods/options.c:329` | Darklands as it was in 1993 (version 483.07), bugs and all: everything Darklands+ adds is off, and the original game's sound setup is used. |
+| `mods/options.c:330` | Saves load in the original game and back. |
+| `mods/options.c:331` | The original game with its bugs fixed: its own screens, rules and graphics. |
+| `mods/options.c:332` | Saves load in the original game and back. |
+| `mods/options.c:333` | The original rules with the original's bugs fixed, the new screens, on screen what the original keeps behind keys or only in its manual, and less busywork: auto-travel, Go to, easier battle controls, one shared pack, one store room for every inn, endless ammunition. Easier play is offered separately, as built-in mods (F12 > Mods). |
+| `mods/options.c:334` | Saves load in the original game and back, unless a member uses an enemy sprite. |
+| `mods/options.c:456` | # Darklands+ switches  Every switch: its key (its name for good: never renamed, never reused), what it does, why it exists, the group switch that sets it (if any), its class (what kind of change: fix, show, ease, plus, easy, experiment, taste, tool) and its value in the original game / Darklands+ / for easy play (the column of the former Easy preset). Made by the game itself (`DL_DUMP_SWITCHES=docs/SWITCHES.md`, from `port/mods/options.c` and `port/mods/optwhy.c`); `tools/check_switches.py` fails if a key disappears without being listed as retired.   |
+| `mods/options.c:481` |  ## Retired keys  No longer offered; not to be used for anything else.   |
 
 ## Settings: why each switch (mods/optwhy.c)
 
@@ -396,17 +397,18 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/optwhy.c:113` | The original cut names short to fit its screens. |
 | `mods/optwhy.c:114` | V:/L: prefixes are cryptic. |
 | `mods/optwhy.c:115` | Saving took several menus. |
-| `mods/optwhy.c:116` | A crash or a bad fight cost hours. |
-| `mods/optwhy.c:117` | A lost battle cost what came before it. |
-| `mods/optwhy.c:118` | The original quits to DOS at the end. |
-| `mods/optwhy.c:120` | Written by MicroProse and never used. |
-| `mods/optwhy.c:121` | Written by MicroProse and never made playable. |
-| `mods/optwhy.c:122` | Coded by MicroProse and never switched on. |
-| `mods/optwhy.c:123` | Written by MicroProse and never switched on. |
-| `mods/optwhy.c:124` | Left out in 1992 for the machines' speed; the rules handle it. |
-| `mods/optwhy.c:125` | Left unfinished in the game's files. |
-| `mods/optwhy.c:150` | Puts right a bug of the original (the description says which). |
-| `mods/optwhy.c:151` | A matter of taste, or of the computer it runs on; no preset touches it. |
+| `mods/optwhy.c:116` | Players asked for a game where every choice stands. |
+| `mods/optwhy.c:117` | A crash or a bad fight cost hours. |
+| `mods/optwhy.c:118` | A lost battle cost what came before it. |
+| `mods/optwhy.c:119` | The original quits to DOS at the end. |
+| `mods/optwhy.c:121` | Written by MicroProse and never used. |
+| `mods/optwhy.c:122` | Written by MicroProse and never made playable. |
+| `mods/optwhy.c:123` | Coded by MicroProse and never switched on. |
+| `mods/optwhy.c:124` | Written by MicroProse and never switched on. |
+| `mods/optwhy.c:125` | Left out in 1992 for the machines' speed; the rules handle it. |
+| `mods/optwhy.c:126` | Left unfinished in the game's files. |
+| `mods/optwhy.c:151` | Puts right a bug of the original (the description says which). |
+| `mods/optwhy.c:152` | A matter of taste, or of the computer it runs on; no preset touches it. |
 
 ## Fixes (mods/fixes.c)
 
@@ -680,28 +682,32 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/cardhints.cpp:23` | Needs a rope. |
 | `ui/cardhints.cpp:26` | Not for about three weeks after a sewer grate here defeated you. |
 | `ui/cardhints.cpp:28` | Not for two days after a guard refused your bribe here, nor if you cannot pay it. |
-| `ui/cardview.cpp:305` | not possible |
-| `ui/cardview.cpp:363` | Nobody in the party knows a saint who can help here. |
-| `ui/cardview.cpp:363` | Nobody in the party carries anything that helps here. |
-| `ui/cardview.cpp:390` | knows it already |
-| `ui/cardview.cpp:398` | knows the formula but carries none |
-| `ui/cardview.cpp:399` | at the easiest difficulty, the leader need not know the saint |
-| `ui/cardview.cpp:399` | at the easiest difficulty, the leader needs none |
-| `ui/cardview.cpp:400` | knows this saint already |
-| `ui/cardview.cpp:439` | Brings a teacher to the inn |
-| `ui/cardview.cpp:443` | Hired here now: %s. |
-| `ui/cardview.cpp:444` | Not possible now |
-| `ui/cardview.cpp:451` | Not possible now |
-| `ui/cardview.cpp:480` | nobody knows it yet |
-| `ui/cardview.cpp:493` | nobody knows this saint |
-| `ui/cardview.cpp:493` | nobody carries one |
-| `ui/cardview.cpp:498` | Saints who help here |
-| `ui/cardview.cpp:498` | Formulae for sale |
-| `ui/cardview.cpp:498` | Items that help here |
-| `ui/cardview.cpp:503` | Not possible now |
-| `ui/cardview.cpp:507` | (click to choose who learns one; point at a formula there for its details) |
-| `ui/cardview.cpp:508` | (click to choose who) |
-| `ui/cardview.cpp:524` | ..., for 3 groschen. |
+| `ui/cardview.cpp:322` | not possible |
+| `ui/cardview.cpp:408` | Nobody in the party knows a saint who can help here. |
+| `ui/cardview.cpp:408` | Nobody in the party carries anything that helps here. |
+| `ui/cardview.cpp:435` | knows it already |
+| `ui/cardview.cpp:443` | knows the formula but carries none |
+| `ui/cardview.cpp:444` | at the easiest difficulty, the leader need not know the saint |
+| `ui/cardview.cpp:444` | at the easiest difficulty, the leader needs none |
+| `ui/cardview.cpp:445` | knows this saint already |
+| `ui/cardview.cpp:483` | Each member tries it |
+| `ui/cardview.cpp:486` | the town's opinion of the party (its reputation here) |
+| `ui/cardview.cpp:487` | the party's fame |
+| `ui/cardview.cpp:493` | It rests on:  |
+| `ui/cardview.cpp:504` | Brings a teacher to the inn |
+| `ui/cardview.cpp:508` | Hired here now: %s. |
+| `ui/cardview.cpp:509` | Not possible now |
+| `ui/cardview.cpp:516` | Not possible now |
+| `ui/cardview.cpp:545` | nobody knows it yet |
+| `ui/cardview.cpp:558` | nobody knows this saint |
+| `ui/cardview.cpp:558` | nobody carries one |
+| `ui/cardview.cpp:563` | Saints who help here |
+| `ui/cardview.cpp:563` | Formulae for sale |
+| `ui/cardview.cpp:563` | Items that help here |
+| `ui/cardview.cpp:568` | Not possible now |
+| `ui/cardview.cpp:572` | (click to choose who learns one; point at a formula there for its details) |
+| `ui/cardview.cpp:573` | (click to choose who) |
+| `ui/cardview.cpp:589` | ..., for 3 groschen. |
 | `ui/citynav.cpp:135` | Market stalls: everyday goods to buy and sell. |
 | `ui/citynav.cpp:136` | Foreign trader |
 | `ui/citynav.cpp:136` | Pavilions of traders from distant lands: goods to buy and sell. |
@@ -771,38 +777,38 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/citynav.cpp:527` | Walking to the city gate |
 | `ui/citynav.cpp:527` | Walking to: %s |
 | `ui/citynav.cpp:540` | Any key or click stops the walk. |
-| `ui/citynav.cpp:681` | Point at a place to read about it here: what it offers, its quests, its teachers. |
-| `ui/citynav.cpp:692` | Click the tile and the party walks there. |
-| `ui/citynav.cpp:731` | Pick a place and the party walks there through the streets. Press any key or click to stop them. |
-| `ui/citynav.cpp:733` | Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out. |
-| `ui/citynav.cpp:761` | Closed until 5:00 |
-| `ui/citynav.cpp:761` | Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same. |
-| `ui/citynav.cpp:765` | Turned away until %d %s |
-| `ui/citynav.cpp:765` | The alchemists turned the party away; they will see you again from %d %s, %d:00. |
-| `ui/citynav.cpp:766` | Library shut until %d %s |
-| `ui/citynav.cpp:766` | The monks' library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:767` | Prayers again from %d %s |
-| `ui/citynav.cpp:767` | The party prayed with the monks; they may again from %d %s, %d:00. |
-| `ui/citynav.cpp:768` | Library shut until %d %s |
-| `ui/citynav.cpp:768` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:786` | Quest chance %d%% |
-| `ui/citynav.cpp:787` | A merchant may offer a quest after you have bought or sold something. |
-| `ui/citynav.cpp:788` | No quests until %d %s |
-| `ui/citynav.cpp:789` | On a quest for them |
-| `ui/citynav.cpp:790` | Your reward is waiting |
-| `ui/citynav.cpp:791` | No quests: reputation too low |
-| `ui/citynav.cpp:796` |  Until %d %s, %d:00. |
-| `ui/citynav.cpp:804` | Your quest:  |
-| `ui/citynav.cpp:804` | see the world map (M) |
-| `ui/citynav.cpp:826` | Wares %dq, better than most |
-| `ui/citynav.cpp:828` | Wares of %dq (most shops sell about 25q). |
-| `ui/citynav.cpp:838` | Raises a Philosopher's Stone to |
-| `ui/citynav.cpp:838` | No better stone than the party's |
-| `ui/citynav.cpp:841` | What you learned |
-| `ui/citynav.cpp:841` | The physician:  |
-| `ui/citynav.cpp:841` | The alchemist:  |
-| `ui/citynav.cpp:913` | A teacher to hire (faint: not available now) |
-| `ui/citynav.cpp:914` | A quest of yours leads here |
+| `ui/citynav.cpp:657` | Point at a place to read about it here: what it offers, its quests, its teachers. |
+| `ui/citynav.cpp:668` | Click the tile and the party walks there. |
+| `ui/citynav.cpp:707` | Pick a place and the party walks there through the streets. Press any key or click to stop them. |
+| `ui/citynav.cpp:709` | Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out. |
+| `ui/citynav.cpp:737` | Closed until 5:00 |
+| `ui/citynav.cpp:737` | Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same. |
+| `ui/citynav.cpp:741` | Turned away until %d %s |
+| `ui/citynav.cpp:741` | The alchemists turned the party away; they will see you again from %d %s, %d:00. |
+| `ui/citynav.cpp:742` | Library shut until %d %s |
+| `ui/citynav.cpp:742` | The monks' library (where saints are learned) is shut to the party until %d %s, %d:00. |
+| `ui/citynav.cpp:743` | Prayers again from %d %s |
+| `ui/citynav.cpp:743` | The party prayed with the monks; they may again from %d %s, %d:00. |
+| `ui/citynav.cpp:744` | Library shut until %d %s |
+| `ui/citynav.cpp:744` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
+| `ui/citynav.cpp:762` | Quest chance %d%% |
+| `ui/citynav.cpp:763` | A merchant may offer a quest after you have bought or sold something. |
+| `ui/citynav.cpp:764` | No quests until %d %s |
+| `ui/citynav.cpp:765` | On a quest for them |
+| `ui/citynav.cpp:766` | Your reward is waiting |
+| `ui/citynav.cpp:767` | No quests: reputation too low |
+| `ui/citynav.cpp:772` |  Until %d %s, %d:00. |
+| `ui/citynav.cpp:780` | Your quest:  |
+| `ui/citynav.cpp:780` | see the world map (M) |
+| `ui/citynav.cpp:802` | Wares %dq, better than most |
+| `ui/citynav.cpp:804` | Wares of %dq (most shops sell about 25q). |
+| `ui/citynav.cpp:814` | Raises a Philosopher's Stone to |
+| `ui/citynav.cpp:814` | No better stone than the party's |
+| `ui/citynav.cpp:817` | What you learned |
+| `ui/citynav.cpp:817` | The physician:  |
+| `ui/citynav.cpp:817` | The alchemist:  |
+| `ui/citynav.cpp:889` | A teacher to hire (faint: not available now) |
+| `ui/citynav.cpp:890` | A quest of yours leads here |
 | `ui/createview.cpp:109` | A new character |
 | `ui/createview.cpp:110` | %s, called %s, age %d |
 | `ui/createview.cpp:111` | %s, called %s |
@@ -1563,7 +1569,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/partypanel.cpp:238` | is berserk: attacks without thought of defense |
 | `ui/partypanel.cpp:240` | picks the lock of the door given |
 | `ui/partypanel.cpp:241` | picks the lock of the chest given |
-| `ui/partypanel.cpp:242` | parries: defends and does not strike |
+| `ui/partypanel.cpp:242` | parries: mostly defends, hard to hit, striking back slower and less surely |
 | `ui/partypanel.cpp:243` | shoots at the target given |
 | `ui/partypanel.cpp:244` | throws a potion at the target given |
 | `ui/partypanel.cpp:245` | walks to the spot given |
@@ -1825,23 +1831,27 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/settings.cpp:387` | your own choices:  |
 | `ui/settings.cpp:400` |  and %d more |
 | `ui/settings.cpp:407` | your own choices from before you picked a preset, kept: click to restore them. |
-| `ui/settings.cpp:411` | Saved games stay compatible with the original game both ways, whatever the preset. |
-| `ui/settings.cpp:413` | Darklands+ saves in the original game's format: its saves load in the original (on DOS too), and the original's saves load here; what Darklands+ records on top (what the party has learned of the witches' Sabbats, items marked Keep, sprites and colors) goes into separate files of its own. Switching presets or single switches at any time is safe. |
-| `ui/settings.cpp:417` | One exception: |
-| `ui/settings.cpp:419` | a save with a member using an enemy sprite or an added crest (Darklands+ offers both) loads only in Darklands+. |
-| `ui/settings.cpp:425` | The band around the windows |
-| `ui/settings.cpp:427` | The clock while hours pass |
-| `ui/settings.cpp:432` | Frames and clock |
-| `ui/settings.cpp:495` | Everything Darklands+ adds is off, and its switches are hidden: pick another preset to change single switches. |
-| `ui/settings.cpp:510` | The original game's bugs put right (%d of %d on). Each is its own switch, since what counts as a bug (and how to mend it) is open to argument; they are sorted from the plainly broken to the arguable. |
-| `ui/settings.cpp:545` | Reconstructed Content |
-| `ui/settings.cpp:548` | What MicroProse wrote or coded for Darklands and never switched on, put back by Darklands+. Nobody played it in 1992: expect rough edges. Every switch here is off unless you tick it, and every preset turns them off again. |
-| `ui/settings.cpp:550` | What each one was in the game's files, and what Darklands+ had to add or put right, is in docs/cut_content.md (and docs/cut_politics.md). |
-| `ui/settings.cpp:552` | Off while playing the original game (Full Original): pick another preset to tick these. |
-| `ui/settings.cpp:557` | Written, but never finished |
-| `ui/settings.cpp:557` | Finished, but never switched on |
-| `ui/settings.cpp:558` | The texts or pictures are in the game's files, but the game never shows them: Darklands+ supplies the missing pieces. |
-| `ui/settings.cpp:559` | Written and coded by MicroProse, only never turned on (or, for Black Cloud, left out of a menu): Darklands+ turns it on. |
+| `ui/settings.cpp:416` | Ironman, for your next new game |
+| `ui/settings.cpp:416` | one save, kept by the game itself: saved over on every card, on arriving at a place, before each battle and when you quit.  |
+| `ui/settings.cpp:416` | No loading back while that game runs, and when the party's journey ends, its save is deleted. Any preset. |
+| `ui/settings.cpp:419` | The game under way is an Ironman game. |
+| `ui/settings.cpp:423` | Saved games stay compatible with the original game both ways, whatever the preset. |
+| `ui/settings.cpp:425` | Darklands+ saves in the original game's format: its saves load in the original (on DOS too), and the original's saves load here; what Darklands+ records on top (what the party has learned of the witches' Sabbats, items marked Keep, sprites and colors) goes into separate files of its own. Switching presets or single switches at any time is safe. |
+| `ui/settings.cpp:429` | One exception: |
+| `ui/settings.cpp:431` | a save with a member using an enemy sprite or an added crest (Darklands+ offers both) loads only in Darklands+. |
+| `ui/settings.cpp:437` | The band around the windows |
+| `ui/settings.cpp:439` | The clock while hours pass |
+| `ui/settings.cpp:444` | Frames and clock |
+| `ui/settings.cpp:507` | Everything Darklands+ adds is off, and its switches are hidden: pick another preset to change single switches. |
+| `ui/settings.cpp:522` | The original game's bugs put right (%d of %d on). Each is its own switch, since what counts as a bug (and how to mend it) is open to argument; they are sorted from the plainly broken to the arguable. |
+| `ui/settings.cpp:557` | Reconstructed Content |
+| `ui/settings.cpp:560` | What MicroProse wrote or coded for Darklands and never switched on, put back by Darklands+. Nobody played it in 1992: expect rough edges. Every switch here is off unless you tick it, and every preset turns them off again. |
+| `ui/settings.cpp:562` | What each one was in the game's files, and what Darklands+ had to add or put right, is in docs/cut_content.md (and docs/cut_politics.md). |
+| `ui/settings.cpp:564` | Off while playing the original game (Full Original): pick another preset to tick these. |
+| `ui/settings.cpp:569` | Written, but never finished |
+| `ui/settings.cpp:569` | Finished, but never switched on |
+| `ui/settings.cpp:570` | The texts or pictures are in the game's files, but the game never shows them: Darklands+ supplies the missing pieces. |
+| `ui/settings.cpp:571` | Written and coded by MicroProse, only never turned on (or, for Black Cloud, left out of a menu): Darklands+ turns it on. |
 | `ui/settings_look.cpp:91` | A potion's grade, on its flask |
 | `ui/settings_look.cpp:93` | Chevrons on a badge |
 | `ui/settings_look.cpp:93` | Dots on a strip |
@@ -1858,75 +1868,84 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/settings_look.cpp:209` | Frames (tooltips, the card text, the new screens' pages) |
 | `ui/settings_look.cpp:231` | The band around the windows, after the original's own: the cards' plaited copper, the party sheet's walnut and brass, the illuminated capitals' vermilion and gold, the stone niche around the figure on the character sheet. With any of them, the lines and corners are gilt and the frames and buttons are as chosen here. |
 | `ui/settings_look.cpp:264` | Shown while hours pass (at the inn, waiting, traveling on a card). The tower dial follows the great clocks of about 1400 (Wells, Prague); the copper astrolabe is the game's own clock, drawn anew so that it stays sharp. |
-| `ui/settings_setup.cpp:71` | Connected: %s (%s style) |
-| `ui/settings_setup.cpp:72` | No controller connected now: plug one in at any time. The buttons below can be set up beforehand. |
-| `ui/settings_setup.cpp:75` | Show the buttons as: |
-| `ui/settings_setup.cpp:77` | Right-click (the menus) |
-| `ui/settings_setup.cpp:77` | Tab (the level map) |
-| `ui/settings_setup.cpp:77` | Space (pause) |
-| `ui/settings_setup.cpp:77` | F12 (the Darklands+ window) |
-| `ui/settings_setup.cpp:77` | M (the world map) |
-| `ui/settings_setup.cpp:77` | F11 (keys and clicks) |
-| `ui/settings_setup.cpp:98` | the pointer (the left trigger held: slowly) |
-| `ui/settings_setup.cpp:98` | scrolls lists; pressed: Z (fast-forward) |
-| `ui/settings_setup.cpp:99` | the arrow keys |
-| `ui/settings_setup.cpp:99` | held: Ctrl (Ctrl+click in the overland view travels there) |
-| `ui/settings_setup.cpp:104` | Back to the usual buttons |
-| `ui/settings_setup.cpp:106` | Match the device in use |
-| `ui/settings_setup.cpp:106` | Keys and mouse always |
-| `ui/settings_setup.cpp:106` | PlayStation always |
-| `ui/settings_setup.cpp:106` | Nintendo always |
-| `ui/settings_setup.cpp:110` | While a controller is in use, the hints and on-screen buttons show its buttons. The "always" choices are for a Steam Deck played with its trackpads, which count as a mouse. |
-| `ui/settings_setup.cpp:118` | Sharp pixels |
-| `ui/settings_setup.cpp:118` | Rounded edges |
-| `ui/settings_setup.cpp:134` | (no picture yet) |
-| `ui/settings_setup.cpp:139` | Every pixel a crisp square, as the game drew it. |
-| `ui/settings_setup.cpp:140` | The stair-steps of diagonal edges rounded off, without blurring. On a computer without a proper graphics card, the game slows down with this. |
-| `ui/settings_setup.cpp:141` | Blurred a little, as an old monitor would. |
-| `ui/settings_setup.cpp:151` | text size in the margins, tooltips and place names |
-| `ui/settings_setup.cpp:160` | automatic (the system's scale) |
-| `ui/settings_setup.cpp:169` | Full screen (Alt+Enter) |
-| `ui/settings_setup.cpp:174` | None: straight to the start screen |
-| `ui/settings_setup.cpp:174` | Only the last scene: the lady of the Darklands and her welcome |
-| `ui/settings_setup.cpp:174` | The whole intro |
-| `ui/settings_setup.cpp:177` | Shown each time the game starts (the very first start plays it whole). A key or a click skips ahead. |
-| `ui/settings_setup.cpp:197` | Preview: Battle Sounds |
-| `ui/settings_setup.cpp:198` | Preview: Music |
-| `ui/settings_setup.cpp:203` | Preview: Music |
-| `ui/settings_setup.cpp:212` | Preview: Battle Sounds |
-| `ui/settings_setup.cpp:218` | A preview needs a game under way, outside a battle. |
-| `ui/settings_setup.cpp:230` | Roland MT-32 |
-| `ui/settings_setup.cpp:230` | Roland's synthesizer of 1987, the one Darklands was written for. Music and battle sounds alike are notes played on it: the music as composed, the blows as near to steel as a synthesizer gets. |
-| `ui/settings_setup.cpp:238` | MT-32 ROMs not found (click to close) |
-| `ui/settings_setup.cpp:238` | MT-32 ROMs not found (click for how to get it working) |
-| `ui/settings_setup.cpp:238` | MT-32 ROMs not found (click for how to get it working) |
-| `ui/settings_setup.cpp:241` | MT-32 details |
-| `ui/settings_setup.cpp:245` | The MT-32 was a Roland synthesizer of 1987; Darklands' music and battle sounds were written for it (both are notes played on it), and every other choice here is a lesser version. Darklands+ has it built in (Munt's imitation of it) and only needs two files copied from a real one's memory (its ROM files), which belong to Roland and can't be included. If you have used Munt or DOSBox with an MT-32 you already have them. Until they are found, the Sound Blaster plays. |
-| `ui/settings_setup.cpp:248` | Where to find them... |
-| `ui/settings_setup.cpp:255` | Look again##mt32 |
-| `ui/settings_setup.cpp:256` | Darklands+ finds them by their contents, whatever their names, in that folder and in: |
-| `ui/settings_setup.cpp:265` | midiA synthesizer outside Darklands+ (MIDI)For a real MT-32 connected to the computer, or Munt (an MT-32 imitation) installed on its own. An ordinary synthesizer, such as the one built into Windows, plays the wrong instruments.midi |
-| `ui/settings_setup.cpp:270` | No MIDI outputs (connections to a synthesizer) on this computer. |
-| `ui/settings_setup.cpp:273` | the system's default |
-| `ui/settings_setup.cpp:286` | For history's sake |
-| `ui/settings_setup.cpp:291` | A change is heard from the next battle, or the next start. |
-| `ui/settings_setup.cpp:301` | Custom sound packs |
-| `ui/settings_setup.cpp:302` | Recordings that replace the synthesizer's music or battle sounds. A battle sounds pack comes with Darklands+ as a mod (F12 > Mods); no music pack does. The previews above play them when ticked. |
-| `ui/settings_setup.cpp:305` | Music from a music pack (recordings in a "music" folder) |
-| `ui/settings_setup.cpp:311` | No music pack found: a mod's music folder, or %s%smusic, with a recording for each piece named by its number (10.ogg, "11 market.ogg"). |
-| `ui/settings_setup.cpp:313` | A recording replaces a piece when its file name starts with the number (up to four for one number, played in turn: "27 a.ogg", "27 b.ogg" ...). Pieces that loop in the game loop in the pack; while a piece of the pack is on, the synthesizer is silent. |
-| `ui/settings_setup.cpp:319` |   %s and %d more, in turn |
-| `ui/settings_setup.cpp:321` | Look again##music |
-| `ui/settings_setup.cpp:327` | Ordinary hits make a sound |
-| `ui/settings_setup.cpp:328` | Battle sounds from a sound pack (the "sounds" folder) |
-| `ui/settings_setup.cpp:330` | %d sound%s in %s%ssounds; the game's own sounds for the rest. |
-| `ui/settings_setup.cpp:331` | Recorded blows, parries and cries in place of the synthesizer's: a pack in %s%ssounds, or the "Battle sounds" mod (F12 > Mods). |
-| `ui/settings_setup.cpp:336` | Volume of the pack |
-| `ui/settings_setup.cpp:338` | Look again##sfx |
-| `ui/settings_setup.cpp:338` | %d sound%s found. |
-| `ui/settings_setup.cpp:342` | File names for a sound pack |
-| `ui/settings_setup.cpp:343` | %s.wav or .ogg: %s |
-| `ui/settings_setup.cpp:344` | Several versions of one sound (parry1.wav, parry2.wav ...) are played in turn at random. |
+| `ui/settings_setup.cpp:72` | Connected: %s (%s style) |
+| `ui/settings_setup.cpp:73` | No controller connected now: plug one in at any time. The buttons below can be set up beforehand. |
+| `ui/settings_setup.cpp:76` | Show the buttons as: |
+| `ui/settings_setup.cpp:78` | Right-click (the menus) |
+| `ui/settings_setup.cpp:78` | Tab (the level map) |
+| `ui/settings_setup.cpp:78` | Space (pause) |
+| `ui/settings_setup.cpp:78` | F12 (the Darklands+ window) |
+| `ui/settings_setup.cpp:78` | M (the world map) |
+| `ui/settings_setup.cpp:78` | F11 (keys and clicks) |
+| `ui/settings_setup.cpp:99` | the pointer (the left trigger held: slowly) |
+| `ui/settings_setup.cpp:99` | scrolls lists; pressed: Z (fast-forward) |
+| `ui/settings_setup.cpp:100` | the arrow keys |
+| `ui/settings_setup.cpp:100` | held: Ctrl (Ctrl+click in the overland view travels there) |
+| `ui/settings_setup.cpp:105` | Back to the usual buttons |
+| `ui/settings_setup.cpp:107` | Match the device in use |
+| `ui/settings_setup.cpp:107` | Keys and mouse always |
+| `ui/settings_setup.cpp:107` | PlayStation always |
+| `ui/settings_setup.cpp:107` | Nintendo always |
+| `ui/settings_setup.cpp:111` | While a controller is in use, the hints and on-screen buttons show its buttons. The "always" choices are for a Steam Deck played with its trackpads, which count as a mouse. |
+| `ui/settings_setup.cpp:119` | Sharp pixels |
+| `ui/settings_setup.cpp:119` | Rounded edges |
+| `ui/settings_setup.cpp:135` | (no picture yet) |
+| `ui/settings_setup.cpp:140` | Every pixel a crisp square, as the game drew it. |
+| `ui/settings_setup.cpp:141` | The stair-steps of diagonal edges rounded off, without blurring. On a computer without a proper graphics card, the game slows down with this. |
+| `ui/settings_setup.cpp:142` | Blurred a little, as an old monitor would. |
+| `ui/settings_setup.cpp:152` | text size in the margins, tooltips and place names |
+| `ui/settings_setup.cpp:161` | automatic (the system's scale) |
+| `ui/settings_setup.cpp:170` | Full screen (Alt+Enter) |
+| `ui/settings_setup.cpp:175` | None: straight to the start screen |
+| `ui/settings_setup.cpp:175` | Only the last scene: the lady of the Darklands and her welcome |
+| `ui/settings_setup.cpp:175` | The whole intro |
+| `ui/settings_setup.cpp:178` | Shown each time the game starts (the very first start plays it whole). A key or a click skips ahead. |
+| `ui/settings_setup.cpp:198` | Preview: Battle Sounds |
+| `ui/settings_setup.cpp:199` | Preview: Music |
+| `ui/settings_setup.cpp:204` | Preview: Music |
+| `ui/settings_setup.cpp:213` | Preview: Battle Sounds |
+| `ui/settings_setup.cpp:219` | A preview needs a game under way, outside a battle. |
+| `ui/settings_setup.cpp:231` | Roland MT-32 |
+| `ui/settings_setup.cpp:231` | Roland's synthesizer of 1987, the one Darklands was written for. Music and battle sounds alike are notes played on it: the music as composed, the blows as near to steel as a synthesizer gets. |
+| `ui/settings_setup.cpp:239` | MT-32 ROMs not found (click to close) |
+| `ui/settings_setup.cpp:239` | MT-32 ROMs not found (click for how to get it working) |
+| `ui/settings_setup.cpp:239` | MT-32 ROMs not found (click for how to get it working) |
+| `ui/settings_setup.cpp:242` | MT-32 details |
+| `ui/settings_setup.cpp:246` | The MT-32 was a Roland synthesizer of 1987; Darklands' music and battle sounds were written for it (both are notes played on it), and every other choice here is a lesser version. Darklands+ has it built in (Munt's imitation of it) and only needs two files copied from a real one's memory (its ROM files), which belong to Roland and can't be included. If you have used Munt or DOSBox with an MT-32 you already have them. Until they are found, the Sound Blaster plays. |
+| `ui/settings_setup.cpp:249` | Where to find them... |
+| `ui/settings_setup.cpp:256` | Look again##mt32 |
+| `ui/settings_setup.cpp:257` | Darklands+ finds them by their contents, whatever their names, in that folder and in: |
+| `ui/settings_setup.cpp:266` | midiA synthesizer outside Darklands+ (MIDI)For a real MT-32 connected to the computer, or Munt (an MT-32 imitation) installed on its own. An ordinary synthesizer, such as the one built into Windows, plays the wrong instruments.midi |
+| `ui/settings_setup.cpp:271` | No MIDI outputs (connections to a synthesizer) on this computer. |
+| `ui/settings_setup.cpp:274` | the system's default |
+| `ui/settings_setup.cpp:287` | For history's sake |
+| `ui/settings_setup.cpp:292` | A change is heard from the next battle, or the next start. |
+| `ui/settings_setup.cpp:305` | Every piece of the game's music, played through the device chosen above. Click a piece to hear it. |
+| `ui/settings_setup.cpp:306` | Every piece of the game's music, played through the device chosen above: it needs a game under way, outside a battle. |
+| `ui/settings_setup.cpp:331` | finding its length (silent, a few seconds) |
+| `ui/settings_setup.cpp:332` | , then again |
+| `ui/settings_setup.cpp:333` | no piece playing |
+| `ui/settings_setup.cpp:342` | (a piece without a known place) |
+| `ui/settings_setup.cpp:359` | Custom sound packs |
+| `ui/settings_setup.cpp:360` | Recordings that replace the synthesizer's music or battle sounds. A battle sounds pack comes with Darklands+ as a mod (F12 > Mods); no music pack does. The previews above play them when ticked. |
+| `ui/settings_setup.cpp:363` | Music from a music pack (recordings in a "music" folder) |
+| `ui/settings_setup.cpp:369` | No music pack found: a mod's music folder, or %s%smusic, with a recording for each piece named by its number (10.ogg, "11 market.ogg"). |
+| `ui/settings_setup.cpp:371` | The game's music now: piece %d%s%s%s, %s (silent while Settings is open). |
+| `ui/settings_setup.cpp:371` | from the pack |
+| `ui/settings_setup.cpp:371` | by the synthesizer |
+| `ui/settings_setup.cpp:373` | A recording replaces a piece when its file name starts with the number (up to four for one number, played in turn: "27 a.ogg", "27 b.ogg" ...). Pieces that loop in the game loop in the pack; while a piece of the pack is on, the synthesizer is silent. |
+| `ui/settings_setup.cpp:379` |   %s and %d more, in turn |
+| `ui/settings_setup.cpp:381` | Look again##music |
+| `ui/settings_setup.cpp:387` | Ordinary hits make a sound |
+| `ui/settings_setup.cpp:388` | Battle sounds from a sound pack (the "sounds" folder) |
+| `ui/settings_setup.cpp:390` | %d sound%s in %s%ssounds; the game's own sounds for the rest. |
+| `ui/settings_setup.cpp:391` | Recorded blows, parries and cries in place of the synthesizer's: a pack in %s%ssounds, or the "Battle sounds" mod (F12 > Mods). |
+| `ui/settings_setup.cpp:396` | Volume of the pack |
+| `ui/settings_setup.cpp:398` | Look again##sfx |
+| `ui/settings_setup.cpp:398` | %d sound%s found. |
+| `ui/settings_setup.cpp:402` | File names for a sound pack |
+| `ui/settings_setup.cpp:403` | %s.wav or .ogg: %s |
+| `ui/settings_setup.cpp:404` | Several versions of one sound (parry1.wav, parry2.wav ...) are played in turn at random. |
 | `ui/sheetview.cpp:159` | Light load (up to half of Endurance + Strength): no hindrance at all. Only what is equipped counts (weapons, armor, shield); items merely carried weigh nothing. |
 | `ui/sheetview.cpp:160` | Normal load (up to Endurance + Strength): blows hand to hand come about a fifth slower, and past 5/8 of it the Agility used to dodge falls to two thirds. |
 | `ui/sheetview.cpp:161` | Heavy load (up to half as much again): the Agility used to dodge falls to two thirds, and to a third past 1 1/4 times Endurance + Strength. Blows are no slower than with a normal load (an oversight in the original game). |
@@ -1995,15 +2014,43 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/sheetview.cpp:991` | No alchemist sells it: it is traded for or found. |
 | `ui/sheetview.cpp:992` | No alchemist the party has been to sells it. |
 | `ui/sheetview.cpp:997` | Sold by the alchemist of  |
-| `ui/skillicons.cpp:284` | Frames and clock |
-| `ui/skillicons.cpp:288` | Cards and towns |
-| `ui/skillicons.cpp:293` | The party and its items |
-| `ui/skillicons.cpp:309` | Fixes for bugs of the original |
-| `ui/skillicons.cpp:359` | Frames and clock |
-| `ui/skillicons.cpp:359` | Cards and towns |
-| `ui/skillicons.cpp:359` | The party and its items |
-| `ui/skillicons.cpp:360` | Fixes for bugs of the original |
-| `ui/skillicons.cpp:390` | Drawn in color (no disc) |
+| `ui/skillicons.cpp:365` | Frames and clock |
+| `ui/skillicons.cpp:369` | Cards and towns |
+| `ui/skillicons.cpp:374` | The party and its items |
+| `ui/skillicons.cpp:390` | Fixes for bugs of the original |
+| `ui/skillicons.cpp:442` | Frames and clock |
+| `ui/skillicons.cpp:442` | Cards and towns |
+| `ui/skillicons.cpp:442` | The party and its items |
+| `ui/skillicons.cpp:443` | Fixes for bugs of the original |
+| `ui/skillicons.cpp:466` | Spring, lake |
+| `ui/skillicons.cpp:467` | 1. Not visited: cold grey wax; visited: warm wax |
+| `ui/skillicons.cpp:467` | 2. Not visited: the ribbon of a letter still unopened |
+| `ui/skillicons.cpp:467` | 3. Visited: the party's ring pressed into the wax |
+| `ui/skillicons.cpp:470` | The places, as now, castles in the villages' colour (the towns on wax below) |
+| `ui/skillicons.cpp:481` | visited: small, medium, large |
+| `ui/skillicons.cpp:481` | not visited: small, medium, large |
+| `ui/skillicons.cpp:493` | Now: coloured discs, the picture painted |
+| `ui/skillicons.cpp:493` | 1. Red wax, the picture pressed in |
+| `ui/skillicons.cpp:493` | 2. Wax by kind of place, the picture pressed in |
+| `ui/skillicons.cpp:493` | 3. Wax by kind of place, the picture painted on it |
+| `ui/skillicons.cpp:494` | Spring, lake |
+| `ui/skillicons.cpp:546` | The four bases |
+| `ui/skillicons.cpp:546` | the elements' triangles |
+| `ui/skillicons.cpp:547` | Metals and their ores |
+| `ui/skillicons.cpp:547` | the planets' signs |
+| `ui/skillicons.cpp:548` | Sulphurs, salts and poisons |
+| `ui/skillicons.cpp:548` | their own signs |
+| `ui/skillicons.cpp:549` | Waters, oils and vapours |
+| `ui/skillicons.cpp:549` | their own signs |
+| `ui/skillicons.cpp:550` | no sign: a drawing in the same line |
+| `ui/skillicons.cpp:551` | E. Black Bean |
+| `ui/skillicons.cpp:551` | White Cinnabar |
+| `ui/skillicons.cpp:553` | Choleric Base |
+| `ui/skillicons.cpp:553` | Phlegmatic Base |
+| `ui/skillicons.cpp:553` | Sanguine Base |
+| `ui/skillicons.cpp:553` | Melancholic Base |
+| `ui/skillicons.cpp:573` | Herbs: three tries each |
+| `ui/skillicons.cpp:601` | Drawn in color (no disc) |
 | `ui/teachersui.cpp:47` | Missile Devices |
 | `ui/teachersui.cpp:48` | Speak Common |
 | `ui/teachersui.cpp:48` | Read & Write |
@@ -2029,15 +2076,19 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/tips.cpp:142` | A member with a bow, crossbow, gun or thrown weapon keeps shooting; when the target falls, at the nearest enemy in sight. |
 | `ui/tips.cpp:143` | With no clear line (a wall, a tree or a friend in the way), a shooter steps a few paces aside to find one. |
 | `ui/tips.cpp:144` | Shooters draw a melee weapon once an enemy is close, or to help a friend nearby who is set upon or badly hurt. |
-| `ui/tips.cpp:145` | A member whose enemy falls turns on another close by. Parry, Berserk and Vulnerable stay as you ordered. |
+| `ui/tips.cpp:145` | A member whose enemy falls turns on another close by; one with no orders joins a fight beside it, unless told to hold. |
 | `ui/tips.cpp:147` | {START} > New Player Guide > Battle explains the rest; F11 on a keyboard lists the keys. |
 | `ui/tips.cpp:148` | Space pauses and resumes. Orders can be given while paused. |
 | `ui/tips.cpp:150` | Click a member, then an enemy, a spot or a menu choice; Enter gives the order. |
-| `ui/tips.cpp:151` | An attack on an enemy whose armor the weapon cannot pierce is aimed at the gaps in it (a Vulnerable attack). |
+| `ui/tips.cpp:151` | A click on an enemy lets your member choose the attack: a Vulnerable one, aimed at the gaps, when only that gets through the enemy's armor; else a standard one. An attack you pick from the orders yourself (Std Attack, Vulnerable, Berserk, Parry) is kept. |
 | `ui/tips.cpp:152` | F11 lists every key |
 | `ui/tips.cpp:153` | ; Tab, the level map |
-| `ui/tips.cpp:157` | Improved combat can be switched off in F12 > Settings > Battles. |
-| `ui/tips.cpp:159` |   To battle   |
+| `ui/tips.cpp:157` | Std Attack: blows and guard in balance. |
+| `ui/tips.cpp:158` | Vulnerable: slow blows aimed at the gaps in the armor; they pierce more (1 to 4 more penetration), but come far less often and land a little less. For armor the weapon cannot get through. |
+| `ui/tips.cpp:159` | Berserk: quick, sure blows, without thought of defense. To finish a foe fast. |
+| `ui/tips.cpp:160` | Parry: mostly defends; hard to hit, striking back slower and less surely. To hold a foe off while help comes, or to spare a wounded member. |
+| `ui/tips.cpp:162` | Improved combat can be switched off in F12 > Settings > Battles. |
+| `ui/tips.cpp:164` |   To battle   |
 | `ui/titleview.cpp:26` | saved today at %d:%02d |
 | `ui/titleview.cpp:27` | saved yesterday at %d:%02d |
 | `ui/titleview.cpp:28` | saved %d %s %d |
@@ -2078,202 +2129,203 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui.cpp:428` | Items (for a mod) |
 | `ui/ui.cpp:473` | Darklands+: the potions and the alchemical ingredients |
 | `ui/ui.cpp:475` | Potions, grades 1, 2 and 3 (the gold dots on the neck) |
-| `ui/ui.cpp:585` | New Player Guide |
 | `ui/ui.cpp:586` | New Player Guide |
-| `ui/ui.cpp:586` | Reconstructed Content |
-| `ui/ui.cpp:590` | Reconstructed Content |
-| `ui/ui.cpp:591` | New Player Guide |
-| `ui/ui.cpp:612` |              |
-| `ui/ui.cpp:704` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
-| `ui/ui.cpp:710` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
-| `ui/ui_windows.cpp:70` | Darklands (c) 1992 MicroProse. This is the original game, rebuilt to run directly on today's computers, with the game files of your own copy; everything Darklands+ adds can be switched off (F12 > Settings: the Full Original preset is the game as it was). |
-| `ui/ui_windows.cpp:73` | F11: the keys for the current screen.  F12: this window (the game waits while it is open).  Alt+Enter: full screen.  Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities). |
-| `ui/ui_windows.cpp:77` | saved games, and every other file the game writes: %s (Darklands+ cannot write to the game folder; the saved games in its SAVES folder can still be loaded) |
-| `ui/ui_windows.cpp:79` | saved games: the SAVES folder of the game folder, as in the original |
-| `ui/ui_windows.cpp:82` | the game: %s |
-| `ui/ui_windows.cpp:83` | settings: darklands_port.ini in %s |
-| `ui/ui_windows.cpp:83` | the game folder |
-| `ui/ui_windows.cpp:85` | mods, replacement art and sounds: the mods, art and sounds folders in %s |
-| `ui/ui_windows.cpp:85` | the game folder |
-| `ui/ui_windows.cpp:86` | screenshots (Ctrl+F12, the window as you see it): the screenshots folder in %s |
-| `ui/ui_windows.cpp:86` | the game folder |
-| `ui/ui_windows.cpp:87` | the session log: darklands_port.log (Windows) in %s; send it along when you report a problem |
+| `ui/ui.cpp:587` | New Player Guide |
+| `ui/ui.cpp:587` | Reconstructed Content |
+| `ui/ui.cpp:591` | Reconstructed Content |
+| `ui/ui.cpp:592` | New Player Guide |
+| `ui/ui.cpp:613` |              |
+| `ui/ui.cpp:705` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
+| `ui/ui.cpp:711` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
+| `ui/ui_windows.cpp:74` | Darklands (c) 1992 MicroProse. This is the original game, rebuilt to run directly on today's computers, with the game files of your own copy. F12 > Settings has the Full Original preset, the game as it was, and switches for most of what Darklands+ adds. |
+| `ui/ui_windows.cpp:77` | F11: the keys for the current screen.  F12: this window (the game waits while it is open).  Alt+Enter: full screen.  Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities). |
+| `ui/ui_windows.cpp:81` | saved games, and every other file the game writes: %s (Darklands+ cannot write to the game folder; the saved games in its SAVES folder can still be loaded) |
+| `ui/ui_windows.cpp:83` | saved games: the SAVES folder of the game folder, as in the original |
+| `ui/ui_windows.cpp:86` | the game: %s |
+| `ui/ui_windows.cpp:87` | settings: darklands_port.ini in %s |
 | `ui/ui_windows.cpp:87` | the game folder |
-| `ui/ui_windows.cpp:89` | the game's program, made from your DARKLAND.EXE on the first start: %s (delete it to have it made again) |
-| `ui/ui_windows.cpp:98` | Dear ImGui (MIT license); Nuked OPL3, the Sound Blaster FM synthesis (LGPL 2.1); Munt's libmt32emu, the Roland MT-32 (LGPL 2.1); stb_image, stb_image_write, stb_vorbis (public domain); SDL2 (zlib license); fonts EB Garamond, Alegreya, Atkinson Hyperlegible, IM Fell English, MedievalSharp, UnifrakturMaguntia, Grenze Gotisch and Comic Neue (SIL Open Font License 1.1). |
-| `ui/ui_windows.cpp:101` | Darklands was designed by Arnold Hendrick and made by MicroProse; everything here stands on their game. |
-| `ui/ui_windows.cpp:102` | With thanks to the Darklands community: vvendigo's tools, Merle's and Joel "Quadko" McIntyre's documentation of the file formats, the Darklands Companion, and Arkana Mechanika (Darklands Restoration) for bug reports. |
-| `ui/ui_windows.cpp:117` | Welcome to Darklands+ |
-| `ui/ui_windows.cpp:120` | This is Darklands (MicroProse, 1992), rebuilt to run directly on today's computers, with the game files of your own copy. Windows does not let programs write to the game folder where it is installed, so your saved games go to %s (the ones already in the game folder can be loaded as always). |
-| `ui/ui_windows.cpp:124` | This is Darklands (MicroProse, 1992), rebuilt to run directly on today's computers, with the game files of your own copy. Your saved games stay in the game folder as always. |
-| `ui/ui_windows.cpp:127` | Darklands+ adds what players have long wished for: crisp text, chances on the cards, a character sheet for the whole party, journals, a world map, a battle log, quick saves and fixes for old bugs. Choose how much of it below; most of it can also be switched on or off one by one. |
-| `ui/ui_windows.cpp:132` | How would you like to play? |
-| `ui/ui_windows.cpp:137` |  (recommended) |
-| `ui/ui_windows.cpp:143` | Saved games stay compatible with the original game whichever you choose. |
-| `ui/ui_windows.cpp:144` | Change it at any time, or turn single features on or off: {START} > Settings. {LSTICK} moves the pointer, {A} clicks. |
-| `ui/ui_windows.cpp:145` | Change it at any time, or turn single features on or off: F12 > Settings. |
-| `ui/ui_windows.cpp:150` |   Read the New Player Guide first   |
-| `ui/ui_windows.cpp:155` | F12: the Darklands+ window (the game waits while it is open) |
-| `ui/ui_windows.cpp:156` | F11: the keys and clicks for the current screen, including the game's hidden ones |
-| `ui/ui_windows.cpp:157` | F12 > New Player Guide: how Darklands works, for a new player |
-| `ui/ui_windows.cpp:158` | Click a party member on the left: their character sheet, with the whole party's saints and formulae |
-| `ui/ui_windows.cpp:159` | M: the world map, to find a place and travel there |
-| `ui/ui_windows.cpp:160` | Right-click: the game's menu bar (save, load, orders in battle) |
-| `ui/ui_windows.cpp:161` | Alt+Enter: full screen   Ctrl+S: quick save   F9: quick load |
-| `ui/ui_windows.cpp:187` | New in Darklands+  |
-| `ui/ui_windows.cpp:190` | City politics (experimental, off by default): the campaign MicroProse wrote and never switched on, reconstructed by Darklands+. Take the rebels' side or the rulers' in a city in turmoil, sway the guilds, march on the town hall or arrest the ringleaders. F12 > Reconstructed Content. |
-| `ui/ui_windows.cpp:192` | More of what MicroProse left unused, on a page of its own (F12 > Reconstructed Content, experimental, all off by default): cities preparing for war or under siege, "Fehde!", soldiers of a private war waiting in ambush on the road, and a town's hospice. |
-| `ui/ui_windows.cpp:194` | With a controller, the screens show its buttons, drawn as an Xbox, PlayStation or Nintendo controller has them. |
-| `ui/ui_windows.cpp:195` | M: the world map. Choose a place on it to see what it offers, with a Travel there button at the top. |
-| `ui/ui_windows.cpp:196` | Calling on a saint says why the chance is zero: too little Virtue, or too little Divine Favor. |
-| `ui/ui_windows.cpp:197` | Your saved games are copied into "Darklands+ save backups" the first time each new version starts. |
-| `ui/ui_windows.cpp:198` | Click a party member on the left: the character sheet, the one place for the party's items, skills, saints and formulae. |
-| `ui/ui_windows.cpp:202` | Changes can be switched off in F12 > Settings (the Full Original preset turns them all off). F12 > New Player Guide explains the game; F11 lists the keys for the current screen. |
-| `ui/ui_windows.cpp:205` |   Back to the game   |
-| `ui/ui_windows.cpp:222` | Darklands sounds best on a Roland MT-32 |
-| `ui/ui_windows.cpp:223` | Darklands was written for the Roland MT-32, a synthesizer of 1987 (or its sibling the LAPC-I, a card inside the computer). Everything the game plays goes through it as notes, the battle sounds too. The game first loads instruments of its own into it, so the music comes out as composed, with flutes, strings and horns, and the battles sound like swords and shields... sort of: each blow is still a synthesizer playing a note. |
-| `ui/ui_windows.cpp:227` | Every other sound setting is a stand-in. The Sound Blaster, the usual sound card of the time, plays simpler versions of the music and rougher imitations of the battle sounds; an ordinary synthesizer, such as the one built into Windows, plays the wrong instruments altogether. |
-| `ui/ui_windows.cpp:231` | Darklands+ has an MT-32 built in (Munt's imitation of it). It only needs two files copied from a real one's memory, its ROM files: control and PCM, of an MT-32 or of the later CM-32L (either works; a CM-32L turns the battle sounds into chimes, so with both, play on the MT-32). They belong to Roland, so they cannot come with this download. If you play other games with Munt or DOSBox and an MT-32, you have them already: show Darklands+ the folder. |
-| `ui/ui_windows.cpp:243` | Choose the folder with the ROM files... |
-| `ui/ui_windows.cpp:245` | The folder with the MT-32 or CM-32L ROM files (control and PCM): |
-| `ui/ui_windows.cpp:247` | No MT-32 or CM-32L ROM files in that folder. |
-| `ui/ui_windows.cpp:255` | No ROM files found there yet. |
-| `ui/ui_windows.cpp:257` | Darklands+ also looks in Munt's ROM folder, DOSBox Staging's mt32-roms folder, and a "roms" folder in the Darklands+ folder or the game folder. |
-| `ui/ui_windows.cpp:262` | Restart with the MT-32 |
-| `ui/ui_windows.cpp:268` | F12 > Settings > Sound has all of this too. |
-| `ui/ui_windows.cpp:284` | Keys and clicks (F11) |
-| `ui/ui_windows.cpp:297` | Now: loading a game |
-| `ui/ui_windows.cpp:297` | Now: saving the game |
-| `ui/ui_windows.cpp:298` | Double-click a save |
-| `ui/ui_windows.cpp:298` | load it (or click it, then Load) |
-| `ui/ui_windows.cpp:298` | Up, Down, Enter |
-| `ui/ui_windows.cpp:298` | choose a save, load it |
-| `ui/ui_windows.cpp:299` | a name for the save (22 characters at most; Backspace deletes one) |
-| `ui/ui_windows.cpp:299` | Enter or Save |
-| `ui/ui_windows.cpp:300` | Esc or Cancel |
-| `ui/ui_windows.cpp:300` | back to the game as it was |
-| `ui/ui_windows.cpp:302` | Now: a stay at the inn |
-| `ui/ui_windows.cpp:303` | A member, or 1 ... 5 |
-| `ui/ui_windows.cpp:303` | choose the member whose day you are planning |
-| `ui/ui_windows.cpp:304` | J R P A E G T |
-| `ui/ui_windows.cpp:304` | Regain Endurance (Just Relax), Regain Strength, Pray, Alchemy work, Earn a little money, Guard the camp, Train or study (the original's keys) |
-| `ui/ui_windows.cpp:305` | one day passes; A week: seven days; Until rested: members short of Strength who only relax switch to Regain Strength, then days pass until nobody is regaining Strength or praying |
-| `ui/ui_windows.cpp:306` | L, Esc or Leave |
-| `ui/ui_windows.cpp:309` | Click an option |
-| `ui/ui_windows.cpp:309` | or press its number, 1 to 9 |
-| `ui/ui_windows.cpp:310` | Hold Shift over an option |
-| `ui/ui_windows.cpp:310` | the chance of success as the original game shows it (Darklands+'s badges show every option's chance) |
-| `ui/ui_windows.cpp:311` | go to a place in this city (Darklands+) |
-| `ui/ui_windows.cpp:312` | the world map (Darklands+) |
-| `ui/ui_windows.cpp:313` | (in the right margin) what this town has that most towns lack, and its notable shops: point at one to see what it offers |
-| `ui/ui_windows.cpp:315` | Now: the overland view |
-| `ui/ui_windows.cpp:316` | walk towards that spot |
-| `ui/ui_windows.cpp:317` | travel there along the roads (Darklands+; any key or click stops) |
-| `ui/ui_windows.cpp:318` | the world map (Darklands+): find a place, double-click to travel there |
-| `ui/ui_windows.cpp:319` | Point at a quest's icon |
-| `ui/ui_windows.cpp:319` | the quest that leads there (a portcullis or a pillory beside a town: the town bars the party, or its watch wants the party) |
-| `ui/ui_windows.cpp:320` | A quest in the left margin |
-| `ui/ui_windows.cpp:320` | click to open it, then Travel there |
-| `ui/ui_windows.cpp:321` | (in the right margin, near a town) what that town has that most towns lack, and its notable shops (point at one to see what it offers) |
-| `ui/ui_windows.cpp:323` | Now: a battle |
-| `ui/ui_windows.cpp:324` | pause / resume; orders can be given while paused |
-| `ui/ui_windows.cpp:326` | Click a member |
-| `ui/ui_windows.cpp:326` | then click an enemy (attack) or a spot (walk there): that click gives the order |
-| `ui/ui_windows.cpp:327` | select a member; Esc: cancel the order being given |
-| `ui/ui_windows.cpp:330` | The right margin's buttons |
-| `ui/ui_windows.cpp:330` | the other orders (Vulnerable, Berserk, Parry, Use Missile, Halt ...); for a member already fighting, an attack is given against that enemy at once |
-| `ui/ui_windows.cpp:332` | Click a member |
-| `ui/ui_windows.cpp:332` | then click an enemy, a spot or a menu choice; Enter gives the order |
-| `ui/ui_windows.cpp:333` | Ctrl+click a member |
-| `ui/ui_windows.cpp:333` | make that member the active one: the view follows them (scrolling at an edge stops it) |
-| `ui/ui_windows.cpp:334` | Point at anyone |
-| `ui/ui_windows.cpp:334` | who it is and how badly hurt |
-| `ui/ui_windows.cpp:335` | a map of the level as far as the party has seen it (Darklands+) |
-| `ui/ui_windows.cpp:337` | The battle log |
-| `ui/ui_windows.cpp:337` | every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal > Battle log keeps it all |
-| `ui/ui_windows.cpp:339` | Now: the loot |
-| `ui/ui_windows.cpp:340` | Take / Put back |
-| `ui/ui_windows.cpp:340` | on the row under the pointer: the whole stack (1: just one) |
-| `ui/ui_windows.cpp:341` | everything into the party's pack |
-| `ui/ui_windows.cpp:341` | go to the member shown above the right list (each member's own); the rest into the party's pack |
-| `ui/ui_windows.cpp:342` | Take all / Share out |
-| `ui/ui_windows.cpp:342` | everything to the member shown / to whoever has some already, else whoever has the most room (A / S) |
-| `ui/ui_windows.cpp:343` | Names above the right list, D |
-| `ui/ui_windows.cpp:343` | switch to another member |
-| `ui/ui_windows.cpp:344` | L, Esc or Leave |
-| `ui/ui_windows.cpp:344` | leave (what is left stays behind) |
-| `ui/ui_windows.cpp:346` | Now: the loot |
-| `ui/ui_windows.cpp:347` | get the chosen item from the pile / put one back (the cursor's list) |
-| `ui/ui_windows.cpp:348` | switch to the next member (the one who gets what you take) |
-| `ui/ui_windows.cpp:349` | take the whole pile for the member shown |
-| `ui/ui_windows.cpp:349` | share the pile out: each item to whoever has some already, else whoever has the most room |
-| `ui/ui_windows.cpp:350` | leave (what is left stays behind) |
-| `ui/ui_windows.cpp:353` | on the row under the pointer; with Shift: ten / the whole stack |
-| `ui/ui_windows.cpp:354` | Names above your list |
-| `ui/ui_windows.cpp:354` | whose items are listed (B: the next member); right-click a name: that member holds the purse |
-| `ui/ui_windows.cpp:355` | Wheel, Up, Down |
-| `ui/ui_windows.cpp:355` | scroll the list under the pointer |
-| `ui/ui_windows.cpp:356` | L, Esc or Leave |
-| `ui/ui_windows.cpp:359` | buy the merchant's chosen item / sell your chosen item (one at a time) |
-| `ui/ui_windows.cpp:360` | buy ten of the merchant's chosen item (while the money lasts) |
-| `ui/ui_windows.cpp:360` | sell the whole stack of your chosen item |
-| `ui/ui_windows.cpp:361` | barter for the next member |
-| `ui/ui_windows.cpp:364` | Now: the store room |
-| `ui/ui_windows.cpp:365` | on the row under the pointer: the whole stack (1: just one) |
-| `ui/ui_windows.cpp:366` | every item not equipped (with the party's pack, Darklands+: except kept items and potions) |
-| `ui/ui_windows.cpp:367` | a potion taken goes to the member shown above the right list; the rest into the party's pack |
-| `ui/ui_windows.cpp:368` | The store room |
-| `ui/ui_windows.cpp:368` | the same at every inn (Darklands+; F12 > Settings > New screens) |
-| `ui/ui_windows.cpp:369` | L, Esc or Leave |
-| `ui/ui_windows.cpp:371` | Now: a character sheet |
-| `ui/ui_windows.cpp:372` | Equip / Unequip / Drink / Keep / Drop |
-| `ui/ui_windows.cpp:372` | on the row under the pointer on the Items page: with the shared pack (Darklands+) the spare items are in the party's pack, and Equip moves the item from the pack to this member and equips it (Drop with Shift: all of them) |
-| `ui/ui_windows.cpp:373` | each member's own: drag one onto someone at the left to give it |
-| `ui/ui_windows.cpp:374` | marks an item never to be sold or dropped (a small seal on its row) |
-| `ui/ui_windows.cpp:375` | only equipped items count toward the load, as in the original |
-| `ui/ui_windows.cpp:376` | Equip / Unequip / Drink / Give / Drop |
-| `ui/ui_windows.cpp:376` | on the row under the pointer on the Items page (Give and Drop with Shift: the whole stack) |
-| `ui/ui_windows.cpp:377` | Items, Skills, Saints, Formulae |
-| `ui/ui_windows.cpp:377` | the pages at the top (Tab or Right: next page; Shift+Tab or Left: previous page) |
-| `ui/ui_windows.cpp:378` | Portraits, F1 ... F5 |
-| `ui/ui_windows.cpp:378` | another member's sheet; this member's own portrait, Esc or Close: back |
-| `ui/ui_windows.cpp:379` | Ctrl+F1 ... Ctrl+F5 |
-| `ui/ui_windows.cpp:379` | make member 1 ... 5 the leader (or Make leader) |
-| `ui/ui_windows.cpp:380` | Wheel, Up, Down |
-| `ui/ui_windows.cpp:380` | scroll the list |
-| `ui/ui_windows.cpp:382` | Now: a character sheet |
-| `ui/ui_windows.cpp:383` | Ctrl+F1 ... Ctrl+F5 |
-| `ui/ui_windows.cpp:383` | make member 1 ... 5 the leader (or Make leader at the top) |
-| `ui/ui_windows.cpp:384` | Up, Down, PgUp, PgDn |
-| `ui/ui_windows.cpp:384` | move in a list (the mouse wheel too) |
-| `ui/ui_windows.cpp:385` | in the equipment list: give the chosen item to member 1 ... 5 (with Shift: all of them) |
-| `ui/ui_windows.cpp:386` | in the equipment list: ready or wear the chosen item |
-| `ui/ui_windows.cpp:387` | in the equipment list: drop the chosen item (with Shift: all of them) |
-| `ui/ui_windows.cpp:389` | Keys of the original game |
-| `ui/ui_windows.cpp:390` | the menu bar: click an entry (or hold the button and let go on it); a click elsewhere or any key closes it; F10 with the keyboard |
-| `ui/ui_windows.cpp:391` | Right mouse button |
-| `ui/ui_windows.cpp:391` | the menu bar, while it is held: let go on an entry (F10 with the keyboard) |
-| `ui/ui_windows.cpp:392` | Alt+S / Alt+L |
-| `ui/ui_windows.cpp:392` | save / load, with a comment (the original's screens list nine saves) |
-| `ui/ui_windows.cpp:393` | the marching order |
-| `ui/ui_windows.cpp:394` | difficulty    Alt+M music    Alt+F sound effects |
-| `ui/ui_windows.cpp:395` | messages about saints' changes on / off |
-| `ui/ui_windows.cpp:397` | quit to the desktop |
-| `ui/ui_windows.cpp:399` | the Darklands+ window (pauses the game) |
-| `ui/ui_windows.cpp:400` | Ctrl+S / F9 or Ctrl+L |
-| `ui/ui_windows.cpp:400` | quick save / quick load |
-| `ui/ui_windows.cpp:401` | full screen    Ctrl+F12 screenshot |
-| `ui/ui_windows.cpp:404` | The controller |
-| `ui/ui_windows.cpp:410` | moves the pointer (slowly while the left trigger is held) |
-| `ui/ui_windows.cpp:411` | the mouse wheel; pressed: Z (fast forward in a battle) |
-| `ui/ui_windows.cpp:412` | click / right-click (the menu bar) |
-| `ui/ui_windows.cpp:414` | the arrow keys |
-| `ui/ui_windows.cpp:415` | Tab (the level map) / Space (pause) |
-| `ui/ui_windows.cpp:416` | {START} {BACK} |
-| `ui/ui_windows.cpp:416` | F12 (the Darklands+ window) / M (the world map) |
-| `ui/ui_windows.cpp:417` | held: Ctrl (in the overland view: Ctrl+click travels there) |
-| `ui/ui_windows.cpp:418` | pressed: F11 (this list) |
-| `ui/ui_windows.cpp:420` | F11, Esc or a click closes this. |
+| `ui/ui_windows.cpp:89` | mods, replacement art and sounds: the mods, art and sounds folders in %s |
+| `ui/ui_windows.cpp:89` | the game folder |
+| `ui/ui_windows.cpp:90` | screenshots (Ctrl+F12, the window as you see it): the screenshots folder in %s |
+| `ui/ui_windows.cpp:90` | the game folder |
+| `ui/ui_windows.cpp:91` | the session log: darklands_port.log (Windows) in %s; send it along when you report a problem |
+| `ui/ui_windows.cpp:91` | the game folder |
+| `ui/ui_windows.cpp:93` | the game's program, made from your DARKLAND.EXE on the first start: %s (delete it to have it made again) |
+| `ui/ui_windows.cpp:102` | Dear ImGui (MIT license); Nuked OPL3, the Sound Blaster FM synthesis (LGPL 2.1); Munt's libmt32emu, the Roland MT-32 (LGPL 2.1); stb_image, stb_image_write, stb_vorbis (public domain); SDL2 (zlib license); fonts EB Garamond, Alegreya, Atkinson Hyperlegible, IM Fell English, MedievalSharp, UnifrakturMaguntia, Grenze Gotisch and Comic Neue (SIL Open Font License 1.1). |
+| `ui/ui_windows.cpp:105` | Darklands was designed by Arnold Hendrick and made by MicroProse; everything here stands on their game. |
+| `ui/ui_windows.cpp:106` | With thanks to the Darklands community: vvendigo's tools, Merle's and Joel "Quadko" McIntyre's documentation of the file formats, the Darklands Companion, and Arkana Mechanika (Darklands Restoration) for bug reports. |
+| `ui/ui_windows.cpp:121` | Welcome to Darklands+ |
+| `ui/ui_windows.cpp:124` | This is Darklands (MicroProse, 1992), rebuilt to run directly on today's computers, with the game files of your own copy. Windows does not let programs write to the game folder where it is installed, so your saved games go to %s (the ones already in the game folder can be loaded as always). |
+| `ui/ui_windows.cpp:128` | This is Darklands (MicroProse, 1992), rebuilt to run directly on today's computers, with the game files of your own copy. Your saved games stay in the game folder as always. |
+| `ui/ui_windows.cpp:131` | Darklands+ adds what players have long wished for: crisp text, chances on the cards, a character sheet for the whole party, journals, a world map, a battle log, quick saves and fixes for old bugs. Choose how much of it below; most of it can also be switched on or off one by one. |
+| `ui/ui_windows.cpp:136` | How would you like to play? |
+| `ui/ui_windows.cpp:141` |  (recommended) |
+| `ui/ui_windows.cpp:147` | Saved games stay compatible with the original game whichever you choose. |
+| `ui/ui_windows.cpp:148` | Change it at any time, or turn single features on or off: {START} > Settings. {LSTICK} moves the pointer, {A} clicks. |
+| `ui/ui_windows.cpp:149` | Change it at any time, or turn single features on or off: F12 > Settings. |
+| `ui/ui_windows.cpp:154` |   Read the New Player Guide first   |
+| `ui/ui_windows.cpp:159` | F12: the Darklands+ window (the game waits while it is open) |
+| `ui/ui_windows.cpp:160` | F11: the keys and clicks for the current screen, including the game's hidden ones |
+| `ui/ui_windows.cpp:161` | F12 > New Player Guide: how Darklands works, for a new player |
+| `ui/ui_windows.cpp:162` | Click a party member on the left: their character sheet, with the whole party's saints and formulae |
+| `ui/ui_windows.cpp:163` | M: the world map, to find a place and travel there |
+| `ui/ui_windows.cpp:164` | Right-click: the game's menu bar (save, load, orders in battle) |
+| `ui/ui_windows.cpp:165` | Alt+Enter: full screen   Ctrl+S: quick save   F9: quick load |
+| `ui/ui_windows.cpp:191` | New in Darklands+  |
+| `ui/ui_windows.cpp:194` | The Darklands+ window (F12) has fewer, clearer tabs: Journal, Settings, Reconstructed Content, Mods, Editor, New Player Guide, About. Settings is one page, its sections listed on the left. |
+| `ui/ui_windows.cpp:196` | The quests are on the world map (M), grouped by kind and nearest first, with a button for where to buy ingredients and wares. |
+| `ui/ui_windows.cpp:197` | Saving and loading happen in the game's own Save and Load screens, drawn anew, with their options there. |
+| `ui/ui_windows.cpp:198` | Improved combat: between your orders, shooters keep shooting, step aside for a clear line, and fight hand to hand to help a friend set upon. |
+| `ui/ui_windows.cpp:199` | More screens drawn anew: the inn and the camp, the alchemist's desk, Party Info, the marching order (drag the members into place), enemy info. |
+| `ui/ui_windows.cpp:200` | City politics, cities at war and other things MicroProse wrote and never switched on, reconstructed by Darklands+ (experimental, all off until you tick them): F12 > Reconstructed Content. |
+| `ui/ui_windows.cpp:202` | A controller's buttons are shown on screen and can be changed: F12 > Settings > Controller. |
+| `ui/ui_windows.cpp:203` | Your saved games are copied into "Darklands+ save backups" the first time each new version starts. |
+| `ui/ui_windows.cpp:207` | Most changes can be switched off in F12 > Settings (the Full Original preset turns them all off). F12 > New Player Guide explains the game; F11 lists the keys for the current screen. |
+| `ui/ui_windows.cpp:210` |   Back to the game   |
+| `ui/ui_windows.cpp:227` | Darklands sounds best on a Roland MT-32 |
+| `ui/ui_windows.cpp:228` | Darklands was written for the Roland MT-32, a synthesizer of 1987 (or its sibling the LAPC-I, a card inside the computer). Everything the game plays goes through it as notes, the battle sounds too. The game first loads instruments of its own into it, so the music comes out as composed, with flutes, strings and horns, and the battles sound like swords and shields... sort of: each blow is still a synthesizer playing a note. |
+| `ui/ui_windows.cpp:232` | Every other sound setting is a stand-in. The Sound Blaster, the usual sound card of the time, plays simpler versions of the music and rougher imitations of the battle sounds; an ordinary synthesizer, such as the one built into Windows, plays the wrong instruments altogether. |
+| `ui/ui_windows.cpp:236` | Darklands+ has an MT-32 built in (Munt's imitation of it). It only needs two files copied from a real one's memory, its ROM files: control and PCM, of an MT-32 or of the later CM-32L (either works; a CM-32L turns the battle sounds into chimes, so with both, play on the MT-32). They belong to Roland, so they cannot come with this download. If you play other games with Munt or DOSBox and an MT-32, you have them already: show Darklands+ the folder. |
+| `ui/ui_windows.cpp:248` | Choose the folder with the ROM files... |
+| `ui/ui_windows.cpp:250` | The folder with the MT-32 or CM-32L ROM files (control and PCM): |
+| `ui/ui_windows.cpp:252` | No MT-32 or CM-32L ROM files in that folder. |
+| `ui/ui_windows.cpp:260` | No ROM files found there yet. |
+| `ui/ui_windows.cpp:262` | Darklands+ also looks in Munt's ROM folder, DOSBox Staging's mt32-roms folder, and a "roms" folder in the Darklands+ folder or the game folder. |
+| `ui/ui_windows.cpp:267` | Restart with the MT-32 |
+| `ui/ui_windows.cpp:273` | F12 > Settings > Sound has all of this too. |
+| `ui/ui_windows.cpp:289` | Keys and clicks (F11) |
+| `ui/ui_windows.cpp:302` | Now: loading a game |
+| `ui/ui_windows.cpp:302` | Now: saving the game |
+| `ui/ui_windows.cpp:303` | Double-click a save |
+| `ui/ui_windows.cpp:303` | load it (or click it, then Load) |
+| `ui/ui_windows.cpp:303` | Up, Down, Enter |
+| `ui/ui_windows.cpp:303` | choose a save, load it |
+| `ui/ui_windows.cpp:304` | a name for the save (22 characters at most; Backspace deletes one) |
+| `ui/ui_windows.cpp:304` | Enter or Save |
+| `ui/ui_windows.cpp:305` | Esc or Cancel |
+| `ui/ui_windows.cpp:305` | back to the game as it was |
+| `ui/ui_windows.cpp:307` | Now: a stay at the inn |
+| `ui/ui_windows.cpp:308` | A member, or 1 ... 5 |
+| `ui/ui_windows.cpp:308` | choose the member whose day you are planning |
+| `ui/ui_windows.cpp:309` | J R P A E G T |
+| `ui/ui_windows.cpp:309` | Regain Endurance (Just Relax), Regain Strength, Pray, Alchemy work, Earn a little money, Guard the camp, Train or study (the original's keys) |
+| `ui/ui_windows.cpp:310` | one day passes; A week: seven days; Until rested: members short of Strength who only relax switch to Regain Strength, then days pass until nobody is regaining Strength or praying |
+| `ui/ui_windows.cpp:311` | L, Esc or Leave |
+| `ui/ui_windows.cpp:314` | Click an option |
+| `ui/ui_windows.cpp:314` | or press its number, 1 to 9 |
+| `ui/ui_windows.cpp:315` | Hold Shift over an option |
+| `ui/ui_windows.cpp:315` | the chance of success as the original game shows it (Darklands+'s badges show every option's chance) |
+| `ui/ui_windows.cpp:316` | go to a place in this city (Darklands+) |
+| `ui/ui_windows.cpp:317` | the world map (Darklands+) |
+| `ui/ui_windows.cpp:318` | (in the right margin) what this town has that most towns lack, and its notable shops: point at one to see what it offers |
+| `ui/ui_windows.cpp:320` | Now: the overland view |
+| `ui/ui_windows.cpp:321` | walk towards that spot |
+| `ui/ui_windows.cpp:322` | travel there along the roads (Darklands+; any key or click stops) |
+| `ui/ui_windows.cpp:323` | the world map (Darklands+): find a place, double-click to travel there |
+| `ui/ui_windows.cpp:324` | Point at a quest's icon |
+| `ui/ui_windows.cpp:324` | the quest that leads there (a portcullis or a pillory beside a town: the town bars the party, or its watch wants the party) |
+| `ui/ui_windows.cpp:325` | A quest in the left margin |
+| `ui/ui_windows.cpp:325` | click to open it, then Travel there |
+| `ui/ui_windows.cpp:326` | (in the right margin, near a town) what that town has that most towns lack, and its notable shops (point at one to see what it offers) |
+| `ui/ui_windows.cpp:328` | Now: a battle |
+| `ui/ui_windows.cpp:329` | pause / resume; orders can be given while paused |
+| `ui/ui_windows.cpp:331` | Click a member |
+| `ui/ui_windows.cpp:331` | then click an enemy (attack) or a spot (walk there): that click gives the order |
+| `ui/ui_windows.cpp:332` | select a member; Esc: cancel the order being given |
+| `ui/ui_windows.cpp:335` | The right margin's buttons |
+| `ui/ui_windows.cpp:335` | the other orders (Vulnerable, Berserk, Parry, Use Missile, Halt ...); for a member already fighting, an attack is given against that enemy at once |
+| `ui/ui_windows.cpp:337` | Click a member |
+| `ui/ui_windows.cpp:337` | then click an enemy, a spot or a menu choice; Enter gives the order |
+| `ui/ui_windows.cpp:338` | Ctrl+click a member |
+| `ui/ui_windows.cpp:338` | make that member the active one: the view follows them (scrolling at an edge stops it) |
+| `ui/ui_windows.cpp:339` | Point at anyone |
+| `ui/ui_windows.cpp:339` | who it is and how badly hurt |
+| `ui/ui_windows.cpp:340` | a map of the level as far as the party has seen it (Darklands+) |
+| `ui/ui_windows.cpp:342` | The battle log |
+| `ui/ui_windows.cpp:342` | every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal > Battle log keeps it all |
+| `ui/ui_windows.cpp:344` | Now: the loot |
+| `ui/ui_windows.cpp:345` | Take / Put back |
+| `ui/ui_windows.cpp:345` | on the row under the pointer: the whole stack (1: just one) |
+| `ui/ui_windows.cpp:346` | everything into the party's pack |
+| `ui/ui_windows.cpp:346` | go to the member shown above the right list (each member's own); the rest into the party's pack |
+| `ui/ui_windows.cpp:347` | Take all / Share out |
+| `ui/ui_windows.cpp:347` | everything to the member shown / to whoever has some already, else whoever has the most room (A / S) |
+| `ui/ui_windows.cpp:348` | Names above the right list, D |
+| `ui/ui_windows.cpp:348` | switch to another member |
+| `ui/ui_windows.cpp:349` | L, Esc or Leave |
+| `ui/ui_windows.cpp:349` | leave (what is left stays behind) |
+| `ui/ui_windows.cpp:351` | Now: the loot |
+| `ui/ui_windows.cpp:352` | get the chosen item from the pile / put one back (the cursor's list) |
+| `ui/ui_windows.cpp:353` | switch to the next member (the one who gets what you take) |
+| `ui/ui_windows.cpp:354` | take the whole pile for the member shown |
+| `ui/ui_windows.cpp:354` | share the pile out: each item to whoever has some already, else whoever has the most room |
+| `ui/ui_windows.cpp:355` | leave (what is left stays behind) |
+| `ui/ui_windows.cpp:358` | on the row under the pointer; with Shift: ten / the whole stack |
+| `ui/ui_windows.cpp:359` | Names above your list |
+| `ui/ui_windows.cpp:359` | whose items are listed (B: the next member); right-click a name: that member holds the purse |
+| `ui/ui_windows.cpp:360` | Wheel, Up, Down |
+| `ui/ui_windows.cpp:360` | scroll the list under the pointer |
+| `ui/ui_windows.cpp:361` | L, Esc or Leave |
+| `ui/ui_windows.cpp:364` | buy the merchant's chosen item / sell your chosen item (one at a time) |
+| `ui/ui_windows.cpp:365` | buy ten of the merchant's chosen item (while the money lasts) |
+| `ui/ui_windows.cpp:365` | sell the whole stack of your chosen item |
+| `ui/ui_windows.cpp:366` | barter for the next member |
+| `ui/ui_windows.cpp:369` | Now: the store room |
+| `ui/ui_windows.cpp:370` | on the row under the pointer: the whole stack (1: just one) |
+| `ui/ui_windows.cpp:371` | every item not equipped (with the party's pack, Darklands+: except kept items and potions) |
+| `ui/ui_windows.cpp:372` | a potion taken goes to the member shown above the right list; the rest into the party's pack |
+| `ui/ui_windows.cpp:373` | The store room |
+| `ui/ui_windows.cpp:373` | the same at every inn (Darklands+; F12 > Settings > New screens) |
+| `ui/ui_windows.cpp:374` | L, Esc or Leave |
+| `ui/ui_windows.cpp:376` | Now: a character sheet |
+| `ui/ui_windows.cpp:377` | Equip / Unequip / Drink / Keep / Drop |
+| `ui/ui_windows.cpp:377` | on the row under the pointer on the Items page: with the shared pack (Darklands+) the spare items are in the party's pack, and Equip moves the item from the pack to this member and equips it (Drop with Shift: all of them) |
+| `ui/ui_windows.cpp:378` | each member's own: drag one onto someone at the left to give it |
+| `ui/ui_windows.cpp:379` | marks an item never to be sold or dropped (a small seal on its row) |
+| `ui/ui_windows.cpp:380` | only equipped items count toward the load, as in the original |
+| `ui/ui_windows.cpp:381` | Equip / Unequip / Drink / Give / Drop |
+| `ui/ui_windows.cpp:381` | on the row under the pointer on the Items page (Give and Drop with Shift: the whole stack) |
+| `ui/ui_windows.cpp:382` | Items, Skills, Saints, Formulae |
+| `ui/ui_windows.cpp:382` | the pages at the top (Tab or Right: next page; Shift+Tab or Left: previous page) |
+| `ui/ui_windows.cpp:383` | Portraits, F1 ... F5 |
+| `ui/ui_windows.cpp:383` | another member's sheet; this member's own portrait, Esc or Close: back |
+| `ui/ui_windows.cpp:384` | Ctrl+F1 ... Ctrl+F5 |
+| `ui/ui_windows.cpp:384` | make member 1 ... 5 the leader (or Make leader) |
+| `ui/ui_windows.cpp:385` | Wheel, Up, Down |
+| `ui/ui_windows.cpp:385` | scroll the list |
+| `ui/ui_windows.cpp:387` | Now: a character sheet |
+| `ui/ui_windows.cpp:388` | Ctrl+F1 ... Ctrl+F5 |
+| `ui/ui_windows.cpp:388` | make member 1 ... 5 the leader (or Make leader at the top) |
+| `ui/ui_windows.cpp:389` | Up, Down, PgUp, PgDn |
+| `ui/ui_windows.cpp:389` | move in a list (the mouse wheel too) |
+| `ui/ui_windows.cpp:390` | in the equipment list: give the chosen item to member 1 ... 5 (with Shift: all of them) |
+| `ui/ui_windows.cpp:391` | in the equipment list: ready or wear the chosen item |
+| `ui/ui_windows.cpp:392` | in the equipment list: drop the chosen item (with Shift: all of them) |
+| `ui/ui_windows.cpp:394` | Keys of the original game |
+| `ui/ui_windows.cpp:395` | the menu bar: click an entry (or hold the button and let go on it); a click elsewhere or any key closes it; F10 with the keyboard |
+| `ui/ui_windows.cpp:396` | Right mouse button |
+| `ui/ui_windows.cpp:396` | the menu bar, while it is held: let go on an entry (F10 with the keyboard) |
+| `ui/ui_windows.cpp:397` | Alt+S / Alt+L |
+| `ui/ui_windows.cpp:397` | save / load, with a comment (the original's screens list nine saves) |
+| `ui/ui_windows.cpp:398` | the marching order |
+| `ui/ui_windows.cpp:399` | difficulty    Alt+M music    Alt+F sound effects |
+| `ui/ui_windows.cpp:400` | messages about saints' changes on / off |
+| `ui/ui_windows.cpp:402` | quit to the desktop |
+| `ui/ui_windows.cpp:404` | the Darklands+ window (pauses the game) |
+| `ui/ui_windows.cpp:405` | Ctrl+S / F9 or Ctrl+L |
+| `ui/ui_windows.cpp:405` | quick save / quick load |
+| `ui/ui_windows.cpp:406` | full screen    Ctrl+F12 screenshot |
+| `ui/ui_windows.cpp:409` | The controller |
+| `ui/ui_windows.cpp:415` | moves the pointer (slowly while the left trigger is held) |
+| `ui/ui_windows.cpp:416` | the mouse wheel; pressed: Z (fast forward in a battle) |
+| `ui/ui_windows.cpp:417` | click / right-click (the menu bar) |
+| `ui/ui_windows.cpp:419` | the arrow keys |
+| `ui/ui_windows.cpp:420` | Tab (the level map) / Space (pause) |
+| `ui/ui_windows.cpp:421` | {START} {BACK} |
+| `ui/ui_windows.cpp:421` | F12 (the Darklands+ window) / M (the world map) |
+| `ui/ui_windows.cpp:422` | held: Ctrl (in the overland view: Ctrl+click travels there) |
+| `ui/ui_windows.cpp:423` | pressed: F11 (this list) |
+| `ui/ui_windows.cpp:425` | F11, Esc or a click closes this. |
 | `ui/worldmap.cpp:86` | a university |
 | `ui/worldmap.cpp:86` | an alchemist |
 | `ui/worldmap.cpp:87` | docks (boats) |
@@ -2294,67 +2346,67 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/worldmap.cpp:251` | Boat routes between the towns' docks |
 | `ui/worldmap.cpp:251` | Each place as an icon of its kind (else a dot) |
 | `ui/worldmap.cpp:252` | The days of travel from the party to every town, under its name (off at first: it crowds the map) |
-| `ui/worldmap.cpp:457` | Towns with ... |
-| `ui/worldmap.cpp:535` | the marked spot |
-| `ui/worldmap.cpp:551` | Click for what it offers, and to travel there |
-| `ui/worldmap.cpp:553` | Unwelcome here |
-| `ui/worldmap.cpp:553` | Wanted by the watch here |
-| `ui/worldmap.cpp:587` | No way there from here |
-| `ui/worldmap.cpp:588` | Travel there |
-| `ui/worldmap.cpp:593` | Travel there |
-| `ui/worldmap.cpp:596` | Leave town and travel there |
-| `ui/worldmap.cpp:601` | To travel, be in the overland view or in a town's streets |
-| `ui/worldmap.cpp:607` | Walk out of %s's gate and travel to %s? |
-| `ui/worldmap.cpp:608` | The party walks through the streets to a gate and out; in the overland view the journey begins. |
-| `ui/worldmap.cpp:609` | Leave and travel |
-| `ui/worldmap.cpp:628` | The wares noted here (%d shop%s) |
-| `ui/worldmap.cpp:651` | Boats leaving here for: |
-| `ui/worldmap.cpp:652` | Its docks have no boats leaving (the original game has none either). |
-| `ui/worldmap.cpp:653` | Boats arriving here from: |
-| `ui/worldmap.cpp:654` | Not every boat sails every day; the docks say which leave today. |
-| `ui/worldmap.cpp:657` | Unwelcome here |
-| `ui/worldmap.cpp:657` | Wanted by the watch here |
-| `ui/worldmap.cpp:676` | The Holy Roman Empire |
-| `ui/worldmap.cpp:677` | {LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes the world map. |
-| `ui/worldmap.cpp:678` | Drag to move, wheel to zoom. M or Esc closes. |
-| `ui/worldmap.cpp:680` | Traveling to %s |
-| `ui/worldmap.cpp:704` | Collect your reward |
-| `ui/worldmap.cpp:704` | Robber knights |
-| `ui/worldmap.cpp:704` | Treasures to fetch |
-| `ui/worldmap.cpp:704` | Papers to get in a town |
-| `ui/worldmap.cpp:704` | City politics |
-| `ui/worldmap.cpp:704` | Cities at war |
-| `ui/worldmap.cpp:704` | The Wild Hunt |
-| `ui/worldmap.cpp:704` | Other quests |
-| `ui/worldmap.cpp:722` | %s (%d)###qg |
-| `ui/worldmap.cpp:728` | Sorted %s first: click for %s first. |
-| `ui/worldmap.cpp:728` | the soonest due |
-| `ui/worldmap.cpp:737` | No quests or rumors yet. |
-| `ui/worldmap.cpp:780` | cave near Köln |
-| `ui/worldmap.cpp:786` | and %d more: type more of the name to narrow the list |
-| `ui/worldmap.cpp:787` | No place of that name. |
-| `ui/worldmap.cpp:817` | Where to buy ingredients and wares |
-| `ui/worldmap.cpp:823` | Places on the map |
-| `ui/worldmap.cpp:825` | Click a kind to show or hide it. |
-| `ui/worldmap.cpp:846` | Click to find the party on the map. |
-| `ui/worldmap.cpp:850` | A town not visited yet |
-| `ui/worldmap.cpp:858` | Click one to circle those towns on the map. |
-| `ui/worldmap.cpp:870` |  the party has been to: |
-| `ui/worldmap.cpp:874` | ... and %d more (circled on the map) |
-| `ui/worldmap.cpp:875` | %s %dq##tl%d |
-| `ui/worldmap.cpp:886` | Show on the map |
-| `ui/worldmap.cpp:892` | Show on the map |
-| `ui/worldmap.cpp:914` | shown (click to hide) |
-| `ui/worldmap.cpp:914` | hidden (click to show) |
-| `ui/worldmap.cpp:985` | faded: leaves later this week |
-| `ui/worldmap.cpp:1049` | Click to take the boat. |
+| `ui/worldmap.cpp:461` | Towns with ... |
+| `ui/worldmap.cpp:539` | the marked spot |
+| `ui/worldmap.cpp:555` | Click for what it offers, and to travel there |
+| `ui/worldmap.cpp:557` | Unwelcome here |
+| `ui/worldmap.cpp:557` | Wanted by the watch here |
+| `ui/worldmap.cpp:591` | No way there from here |
+| `ui/worldmap.cpp:592` | Travel there |
+| `ui/worldmap.cpp:597` | Travel there |
+| `ui/worldmap.cpp:600` | Leave town and travel there |
+| `ui/worldmap.cpp:605` | To travel, be in the overland view or in a town's streets |
+| `ui/worldmap.cpp:611` | Walk out of %s's gate and travel to %s? |
+| `ui/worldmap.cpp:612` | The party walks through the streets to a gate and out; in the overland view the journey begins. |
+| `ui/worldmap.cpp:613` | Leave and travel |
+| `ui/worldmap.cpp:632` | The wares noted here (%d shop%s) |
+| `ui/worldmap.cpp:655` | Boats leaving here for: |
+| `ui/worldmap.cpp:656` | Its docks have no boats leaving (the original game has none either). |
+| `ui/worldmap.cpp:657` | Boats arriving here from: |
+| `ui/worldmap.cpp:658` | Not every boat sails every day; the docks say which leave today. |
+| `ui/worldmap.cpp:661` | Unwelcome here |
+| `ui/worldmap.cpp:661` | Wanted by the watch here |
+| `ui/worldmap.cpp:680` | The Holy Roman Empire |
+| `ui/worldmap.cpp:681` | {LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes the world map. |
+| `ui/worldmap.cpp:682` | Drag to move, wheel to zoom. M or Esc closes. |
+| `ui/worldmap.cpp:684` | Traveling to %s |
+| `ui/worldmap.cpp:708` | Collect your reward |
+| `ui/worldmap.cpp:708` | Robber knights |
+| `ui/worldmap.cpp:708` | Treasures to fetch |
+| `ui/worldmap.cpp:708` | Papers to get in a town |
+| `ui/worldmap.cpp:708` | City politics |
+| `ui/worldmap.cpp:708` | Cities at war |
+| `ui/worldmap.cpp:708` | The Wild Hunt |
+| `ui/worldmap.cpp:708` | Other quests |
+| `ui/worldmap.cpp:726` | %s (%d)###qg |
+| `ui/worldmap.cpp:732` | Sorted %s first: click for %s first. |
+| `ui/worldmap.cpp:732` | the soonest due |
+| `ui/worldmap.cpp:741` | No quests or rumors yet. |
+| `ui/worldmap.cpp:784` | cave near Köln |
+| `ui/worldmap.cpp:790` | and %d more: type more of the name to narrow the list |
+| `ui/worldmap.cpp:791` | No place of that name. |
+| `ui/worldmap.cpp:821` | Where to buy ingredients and wares |
+| `ui/worldmap.cpp:827` | Places on the map |
+| `ui/worldmap.cpp:829` | Click a kind to show or hide it. |
+| `ui/worldmap.cpp:850` | Click to find the party on the map. |
+| `ui/worldmap.cpp:854` | A town not visited yet |
+| `ui/worldmap.cpp:862` | Click one to circle those towns on the map. |
+| `ui/worldmap.cpp:874` |  the party has been to: |
+| `ui/worldmap.cpp:878` | ... and %d more (circled on the map) |
+| `ui/worldmap.cpp:879` | %s %dq##tl%d |
+| `ui/worldmap.cpp:890` | Show on the map |
+| `ui/worldmap.cpp:896` | Show on the map |
+| `ui/worldmap.cpp:918` | shown (click to hide) |
+| `ui/worldmap.cpp:918` | hidden (click to show) |
+| `ui/worldmap.cpp:989` | faded: leaves later this week |
+| `ui/worldmap.cpp:1053` | Click to take the boat. |
 | `ui/worldmap_draw.cpp:78` | ruined castle |
 | `ui/worldmap_draw.cpp:80` | ruined village |
 | `ui/worldmap_draw.cpp:81` | standing stone |
 | `ui/worldmap_draw.cpp:81` | witches' meeting place |
 | `ui/worldmap_draw.cpp:110` | Spring or lake |
-| `ui/worldmap_draw.cpp:298` | Map of Greater Germany |
-| `ui/worldmap_draw.cpp:429` | About %s of travel |
+| `ui/worldmap_draw.cpp:390` | Map of Greater Germany |
+| `ui/worldmap_draw.cpp:521` | About %s of travel |
 
 ## The game side (mods/)
 
@@ -2364,7 +2416,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/aging.c:84` | These losses are permanent, as with aging at character creation: from age 30, a little each month, and more as the years go by. (Aging during play is a Darklands+ switch: F12 > Settings > The party and its items.) |
 | `mods/alchemyview.c:171` | Choose a formula and at least one batch first. |
 | `mods/alchemyview.c:173` | %s starts %d batch%s. |
-| `mods/assist.c:342` | keys %d depth %d polled %u ms ago ee41 %d ee42 %d options %d |
+| `mods/assist.c:421` | keys %d depth %d polled %u ms ago ee41 %d ee42 %d options %d |
 | `mods/autopause.c:73` | Paused: enemies come out to fight |
 | `mods/autopause.c:88` | Paused: %s has fallen |
 | `mods/autopause.c:88` | Paused: %s is badly hurt |
@@ -2640,20 +2692,20 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/offices.c:92` | Each request for an audience with the lord has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's Charisma and Speak Common). An audience brings a robber knight to hunt. After a request the chance is 1%% for a week. |
 | `mods/offices.c:95` | No quests for three days: at your last visit none came, one was turned down, or a reward was paid. |
 | `mods/offices.c:97` | The offer comes after shopping: as the party leaves the stalls, about one time in seven a trader takes it aside with a purse and a job (mostly an item to fetch, sometimes a robber knight to hunt). If none comes, there is no other offer for three days. |
-| `mods/orders.c:553` | Click: throw here |
-| `mods/orders.c:553` | Click: flee here |
-| `mods/orders.c:554` | No clear throw |
-| `mods/orders.c:554` | Can't walk there |
-| `mods/orders.c:555` | No clear shot |
-| `mods/orders.c:555` | No clear throw |
-| `mods/orders.c:555` | No way there |
-| `mods/orders.c:562` | Click: shoot (moves for a clear line) |
-| `mods/orders.c:563` | Click: shoot |
-| `mods/orders.c:565` | Click: throw |
-| `mods/orders.c:566` | Click: attack (Vulnerable) |
-| `mods/orders.c:567` | Click: attack (Berserk) |
-| `mods/orders.c:568` | Click: parry its blows |
-| `mods/orders.c:572` | No clear shot: walks up to fight |
+| `mods/orders.c:595` | Click: throw here |
+| `mods/orders.c:595` | Click: flee here |
+| `mods/orders.c:596` | No clear throw |
+| `mods/orders.c:596` | Can't walk there |
+| `mods/orders.c:597` | No clear shot |
+| `mods/orders.c:597` | No clear throw |
+| `mods/orders.c:597` | No way there |
+| `mods/orders.c:604` | Click: shoot (moves for a clear line) |
+| `mods/orders.c:605` | Click: shoot |
+| `mods/orders.c:607` | Click: throw |
+| `mods/orders.c:608` | Click: attack (Vulnerable) |
+| `mods/orders.c:609` | Click: attack (Berserk) |
+| `mods/orders.c:610` | Click: parry its blows |
+| `mods/orders.c:614` | No clear shot: walks up to fight |
 | `mods/pathfix.c:448` |  (stuck: around everyone) |
 | `mods/pathfix.c:628` | cells unreachable |
 | `mods/pathfix.c:628` | search gave up |
@@ -2909,24 +2961,32 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/sainttexts.c:298` | a modest increase to Charisma, a good increase to all weapons skills |
 | `mods/sainttexts.c:305` | Enhances ALL skills by a small amount plus one for every five points of virtue |
 | `mods/sainttexts.c:310` | every skill by a modest amount |
-| `mods/saves.c:167` | Could not save. |
-| `mods/saves.c:212` | The game does not allow saving while staying at an inn or camping: leave first (the days already spent are not given back). |
-| `mods/saves.c:213` | The game does not allow saving during a battle. |
-| `mods/saves.c:214` | The game does not allow saving on this screen: leave it first (saving works on a card, in the overland view or in a town). |
-| `mods/saves.c:226` | The game does not allow loading here. |
-| `mods/saves.c:235` | Difficulty is now set to ... |
-| `mods/saves.c:248` | Loading is irreversable. Proceed? |
-| `mods/saves.c:291` | That save could not be read. |
-| `mods/saves.c:306` | Loaded %s: a battle, paused (Space resumes it) |
-| `mods/saves.c:331` | Saved: %s (%s), in place of the old save |
-| `mods/saves.c:332` | Saved: %s (%s) |
-| `mods/saves.c:354` | use your horses |
-| `mods/saves.c:370` | Autosave: battle |
-| `mods/saves.c:391` | Start or load a game first. |
-| `mods/saves.c:397` | Loading from here works once a game is running; until then, load from the start screen. |
-| `mods/saves.c:399` | Buffer dealloc error |
-| `mods/saves.c:401` | That save could not be read. |
-| `mods/saves.c:420` | No quicksave yet (Ctrl+S makes one). |
+| `mods/saves.c:64` | Ironman 3f2a |
+| `mods/saves.c:67` | An Ironman game cannot go back to a save. To load another game, quit to the start screen. |
+| `mods/saves.c:182` | Could not save. |
+| `mods/saves.c:185` | Saved (an Ironman game keeps one save, saved over as you go) |
+| `mods/saves.c:228` | The game does not allow saving while staying at an inn or camping: leave first (the days already spent are not given back). |
+| `mods/saves.c:229` | The game does not allow saving during a battle. |
+| `mods/saves.c:230` | The game does not allow saving on this screen: leave it first (saving works on a card, in the overland view or in a town). |
+| `mods/saves.c:248` | The game does not allow loading here. |
+| `mods/saves.c:257` | Difficulty is now set to ... |
+| `mods/saves.c:270` | Loading is irreversable. Proceed? |
+| `mods/saves.c:313` | That save could not be read. |
+| `mods/saves.c:328` | Loaded %s: a battle, paused (Space resumes it) |
+| `mods/saves.c:347` | Saved (an Ironman game keeps one save, saved over as you go) |
+| `mods/saves.c:363` | Saved: %s (%s), in place of the old save |
+| `mods/saves.c:364` | Saved: %s (%s) |
+| `mods/saves.c:387` | use your horses |
+| `mods/saves.c:403` | Autosave: battle |
+| `mods/saves.c:435` | Ironman %04x |
+| `mods/saves.c:437` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
+| `mods/saves.c:469` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:470` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:491` | Start or load a game first. |
+| `mods/saves.c:498` | Loading from here works once a game is running; until then, load from the start screen. |
+| `mods/saves.c:500` | Buffer dealloc error |
+| `mods/saves.c:502` | That save could not be read. |
+| `mods/saves.c:522` | No quicksave yet (Ctrl+S makes one). |
 | `mods/savesview.c:51` | %.14s %d %.3s |
 | `mods/sfx.c:50` | an attack that misses |
 | `mods/sfx.c:50` | a parried or blocked blow |

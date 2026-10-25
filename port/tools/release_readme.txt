@@ -10,9 +10,10 @@ success on card options, a town journal, a battle log, better battle pathfinding
 and autosaves, fixes for bugs of the original game, and mod folders for items, card texts,
 pictures, sounds and rules. What is new since 1.0: CHANGELOG.md on the GitHub page.
 
-Everything new can be switched off. The first start asks how you would like to play, from
-"Buggy Purist" (the game exactly as it was) and "Purist" (its bugs fixed) to "Darklands+" and
-"Easy"; F12 > Settings > Helpers changes it, or any switch one by one.
+Most of what is new can be switched off. The first start asks how you would like to play:
+"Darklands+" (recommended), "Purist" (the original game with its bugs fixed) or "Full Original"
+(the game exactly as it was); F12 > Settings > Preset changes it, or any switch one by one.
+Easier play is offered separately, as built-in mods (F12 > Mods).
 
 WHAT YOU NEED
 Your own copy of Darklands, version 483.07 (as GOG and Steam sell it). This download does not

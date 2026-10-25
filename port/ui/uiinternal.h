@@ -45,7 +45,7 @@ void ui_hint(const char *fmt, ...);      /* a line of explanation under a settin
 /* a switch's words as one paragraph: the title in bold, a colon, what it does in grey, wrapped
    together; true when they are clicked */
 bool ui_title_desc(const char *title, const char *desc, bool dim = false, const char *id = "##td");
-int ui_original_mode(void);              /* "Play the original game" */
+int ui_original_mode(void);              /* the Full Original preset (config "original") */
 bool ui_modding(void);                   /* the editing tools shown (F12 > Settings > Editor): the Editor tab, and changing weapons, items and foes in Records */
 void ui_set_original(bool on);
 void tab_mods(void);

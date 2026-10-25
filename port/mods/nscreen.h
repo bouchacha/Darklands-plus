@@ -74,7 +74,7 @@ void ns_defer(NsDeferFn fn, int a, int b, int c, int d);
 void nscreen_init(void);
 void ns_defer_frame_end(int game_held);   /* (ui/ui.cpp, after drawing) */
 
-int ns_active(void);                  /* native screens in use: a window, not "Play the original game" */
+int ns_active(void);                  /* native screens in use: a window, not the Full Original preset */
 
 #ifdef __cplusplus
 }

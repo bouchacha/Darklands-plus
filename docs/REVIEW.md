@@ -71,3 +71,10 @@ covered and found, and what it could not check.
 - 2026-10-24 (afternoon): pictures compared across every family: inn, reward, trade, Latin, Streetwise,
   Charisma redrawn; Settings split in three files; two bundles. Missed: the one-time windows (hidden in test
   sessions): the welcome still said every addition could be switched off; its keys ran off the window's edge.
+- 2026-10-24 (evening): words searched for retired names: "Play the original game" (gone since the presets) was
+  still in file headers, NATIVE_SCREENS.md and port/README.md, and the players' readme in the zip still named
+  "Buggy Purist", "Easy" and a Helpers tab; Fame's new picture repeated Speak Common's trumpet (caught only by
+  the large sheet, uiconstyles:8: compare new pictures there, across families); the ingredient signs' corners
+  notched (strokes drawn apart: look at new line art large, uiconstyles:7). Open: whether the Journal, New
+  Player Guide and Editor keep sub-tabs (asked). Not checked: an Ironman save deleted at the party's death
+  (no death screen could be brought about in a test).

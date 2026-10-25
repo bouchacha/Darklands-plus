@@ -59,7 +59,7 @@ anything made from the game), and `.github/workflows/release.yml` does all of it
 tag `v...`. The zip's contents go into the Darklands folder; `port/tools/release_readme.txt` is
 the players' README.
 
-## What it adds (all can be switched off; F12 > Settings > "Play the original game" turns everything off)
+## What it adds (most can be switched off; F12 > Settings > Preset > Full Original turns everything off)
 
 On the first start a short welcome names the keys that matter and offers the original game untouched.
 
@@ -92,16 +92,18 @@ On the first start a short welcome names the keys that matter and offers the ori
 * **Figures:** Select Character Image also offers the 14 human enemy figures (`mods/looks.c`): their
   sprites from E00C.CAT with the enemy colours moved onto the member's 8, portraits and battle-bar
   figures made from the sprites, a picker showing all of them (`ui/figures.cpp`), colour keys with dyes, the nearest animation for a weapon the
-  figure has none for. Off in "Play the original game" (a party with them keeps working).
+  figure has none for. Off in the Full Original preset (a party with them keeps working).
 * **Saves:** quick save / load, autosaves on arrival and before battles, a save browser; after
   the party's end the title comes back instead of the program closing.
 * **Screenshots:** Ctrl+F12 saves the window as it is seen (crisp text, margins) as a PNG in the
   screenshots folder.
 * **Fixes** for bugs of 483.07 (weapon potions, vanishing items, quests off the map, garish
   colours, Save/Load greyed out, robbers corrupting the item count - a crash when that
-  character later dies in battle, ...), see the Helpers tab.
-* **Restored:** the Honor Roll of Glory (hall of fame), drawn and half-written by MicroProse but
-  never reachable; parties enter it at their journey's end (`ui/halloffame.cpp`).
+  character later dies in battle, ...), each listed in F12 > Settings > Fixes.
+* **Restored** (F12 > Reconstructed Content, off unless ticked): the Honor Roll of Glory (hall of
+  fame), drawn and half-written by MicroProse but never reachable, which parties enter at their
+  journey's end (`ui/halloffame.cpp`); city politics, cities at war, "Fehde!", the hospice and
+  Black Cloud in battle.
 * **Built-in mods** (off by default): swift travel, half-price inns, quick learning, heavy blows,
   a strong Quickstart party, a rich start.
 * **Modding:** mod folders (data files, single card files, card texts as text, menu texts,

@@ -164,7 +164,7 @@ void datamods_set(int i, int on)
     mods_changed();
 }
 int datamods_generation(void) { return generation; }
-/* "Play the original game" (F12 > Settings) leaves the mods out too */
+/* the Full Original preset (F12 > Settings > Preset) leaves the mods out too */
 int datamods_enabled(void) { return !config_get_int("original", 0); }
 int datamods_active(void) { if (!datamods_enabled()) return 0; for (int i = 0; i < datamods_n; i++) if (datamods[i].on) return 1; return 0; }
 

@@ -369,10 +369,10 @@ extern "C" void cardview_draw(void)
             if (who >= 0 && who < 5 && members > 1) { char nm[24]; g_str(G_DGROUP, (u16)(G_MEMBER(who) + G_M_SHORTNAME), nm, sizeof nm); snprintf(sub, sizeof sub, "%s", game_text(nm, strlen(nm)).c_str()); }
             else if (who == -2 && members > 1) snprintf(sub, sizeof sub, "all");
             float ms = size * 0.82f, ss = size * 0.66f;
-            float hsz = ms * 1.18f, isz = ms * 1.05f, gap = 0.28f * ms;
+            float hsz = ms * 1.4f, isz = ms * 0.95f, gap = 0.28f * ms;          /* (a head large enough to tell who; a shield is 1.44 sizes tall) */
             if (nh) sub[0] = 0;                                     /* (the heads say who: no name) */
             ImVec2 mt = fs->CalcTextSizeA(ms, FLT_MAX, 0, main), st = sub[0] ? fs->CalcTextSizeA(ss, FLT_MAX, 0, sub) : ImVec2(0, 0);
-            float bw = mt.x + (sub[0] ? st.x + 0.3f * ms : 0) + 0.6f * ms + (nh ? gap + nh * hsz * 0.92f : 0) + (ni ? gap + ni * (isz + 0.12f * ms) : 0), bh = fmaxf(ms * 1.02f, (nh || ni) ? hsz * 1.12f : 0);
+            float bw = mt.x + (sub[0] ? st.x + 0.3f * ms : 0) + 0.6f * ms + (nh ? gap + nh * hsz * 0.92f : 0) + (ni ? gap + ni * (isz + 0.12f * ms) : 0), bh = fmaxf(ms * 1.02f, fmaxf(nh ? hsz * 1.06f : 0, ni ? isz * 1.56f : 0));
             /* beside the box, level with the option's first line: a tab on the card's edge */
             float cy = (la.lines.empty() ? y0 : la.lines[0].y - shift) + size * 0.52f;
             float bxl = X1 + 4.5f * k, bxr = bxl + bw;
@@ -385,14 +385,14 @@ extern "C" void cardview_draw(void)
             if (sub[0]) dl->AddText(fs, ss, ImVec2(q0.x + 0.3f * ms + mt.x + 0.3f * ms, cy - st.y * 0.5f), IM_COL32(215, 195, 160, 240), sub);
             float hx = q0.x + 0.3f * ms + mt.x + gap;
             for (int h = 0; h < nh; h++, hx += hsz * 0.92f)
-                if (!member_head(dl, heads[h], ImVec2(hx, cy - hsz * 0.55f), hsz)) {   /* (no figure: the initial) */
+                if (!member_head(dl, heads[h], ImVec2(hx, cy - hsz * 0.5f), hsz)) {   /* (no figure: the initial) */
                     char nm[24]; g_str(G_DGROUP, (u16)(G_MEMBER(heads[h]) + G_M_SHORTNAME), nm, sizeof nm); nm[1] = 0;
                     dl->AddText(fs, ss, ImVec2(hx + hsz * 0.25f, cy - ss * 0.5f), IM_COL32(215, 195, 160, 240), game_text(nm, 1).c_str());
                 }
             if (nh) hx += gap * 0.5f;
             ui_icon_heraldic_here = 1;
             for (int q = 0; q < ni; q++, hx += isz + 0.12f * ms) {
-                ImVec2 ic(hx + isz * 0.5f, cy);
+                ImVec2 ic(hx + isz * 0.5f, cy - isz * 0.03f);
                 if (icons[q] < 100) ui_skill_icon(dl, ic, isz, icons[q]);
                 else if (icons[q] < 200) ui_attr_icon(dl, ic, isz, icons[q] - 100);
                 else ui_standing_icon(dl, ic, isz, icons[q] - 200);

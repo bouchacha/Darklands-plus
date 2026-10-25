@@ -1,5 +1,5 @@
 /* orders.c - in a battle, a member who is not yet fighting can be sent at an enemy with a click
- * on it (F12 > Settings; "Play the original game" leaves the game's way).
+ * on it (F12 > Settings; the Full Original preset leaves the game's way).
  *
  * The game's way: click a member (order mode), choose an attack in the order menu (Std Attack,
  * Vulnerable, Berserk, Parry), then click the enemy. A member whose standing order is only to walk

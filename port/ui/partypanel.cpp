@@ -1,5 +1,5 @@
-// partypanel.cpp - the party panel drawn by Darklands+ (display.native_panel; "Play the original
-// game" keeps the game's). Wherever the game shows its panel (the five boxes left of the
+// partypanel.cpp - the party panel drawn by Darklands+ (display.native_panel; the Full
+// Original preset keeps the game's). Wherever the game shows its panel (the five boxes left of the
 // picture), each member's box is drawn anew over it: the name (gold for the leader, grey for
 // one out of action), a picture, and Endurance, Strength and Divine Favor as labelled bars with
 // their numbers; in a battle the order being carried out. The picture is the member's own
