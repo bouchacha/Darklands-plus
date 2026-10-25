@@ -475,22 +475,32 @@ extern "C" void travelmap_labels(void)
         int n = 0;                                            /* the town bars the party, or its watch wants it */
         for (const TownMark &t : tmarks)
             if (t.loc == k) { float is = size * 1.15f; ui_draw_quest_icon(dl, ImVec2(tp.x + ts.x + is * (0.65f + 1.05f * n), tp.y + ts.y * 0.5f), is, t.cat); n++; }
-        {                                                     /* a quest that leads here: its picture above the place */
-            int nq = 0, iq = 0;
-            for (size_t i = 0; i < qmarks.size(); i++) if (qmarks[i].first == k) nq++;
-            for (size_t i = 0; i < qmarks.size(); i++)
-                if (qmarks[i].first == k) {
-                    float is = base * 1.3f;
-                    ImVec2 top; plat_game_to_win(sx, sy - 6, &top.x, &top.y);
-                    ImVec2 c(top.x + (iq - (nq - 1) * 0.5f) * is * 1.05f, top.y - is * 0.55f);
-                    quest_glow(dl, c, is);
-                    ui_draw_quest_icon(dl, c, is, i < qcats.size() ? qcats[i] : 0);
-                    ImVec2 m = ImGui::GetIO().MousePos;             /* (the pointer on it: the task) */
-                    if (fabsf(m.x - c.x) < is * 0.5f && fabsf(m.y - c.y) < is * 0.5f && !ImGui::GetIO().WantCaptureMouse) {
-                        ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22); ImGui::TextUnformatted(qmarks[i].second.c_str()); ImGui::PopTextWrapPos(); ImGui::EndTooltip();
-                    }
-                    iq++;
+        {   /* a quest that leads here: its picture above the place; several: on an arc of fixed size over the
+               place, so a place many quests lead to grows crowded, not wide */
+            std::vector<size_t> qs;
+            for (size_t i = 0; i < qmarks.size(); i++) if (qmarks[i].first == k) qs.push_back(i);
+            if (!qs.empty()) {
+                float is = base * 1.3f;
+                ImVec2 top; plat_game_to_win(sx, sy - 6, &top.x, &top.y);
+                ImVec2 mid; plat_game_to_win(sx, sy, &mid.x, &mid.y);
+                int nq = (int)qs.size();
+                std::vector<ImVec2> at(nq);
+                for (int j = 0; j < nq; j++) {
+                    if (nq == 1) { at[j] = ImVec2(top.x, top.y - is * 0.55f); continue; }
+                    float span = fminf(240.0f, 60.0f * (nq - 1)), a = (270.0f - span * 0.5f + span * j / (nq - 1)) * 0.0174533f, R = is * 1.15f;   /* (an arc over it, open below where its name is) */
+                    at[j] = ImVec2(mid.x + cosf(a) * R, mid.y + sinf(a) * R);
                 }
+                ImVec2 m = ImGui::GetIO().MousePos;              /* (the pointer on one: the topmost, the last drawn) */
+                int hov = -1;
+                if (!ImGui::GetIO().WantCaptureMouse)
+                    for (int j = nq - 1; j >= 0 && hov < 0; j--) if (fabsf(m.x - at[j].x) < is * 0.5f && fabsf(m.y - at[j].y) < is * 0.5f) hov = j;
+                for (int j = 0; j < nq; j++) quest_glow(dl, at[j], is);   /* (the halos under all the pictures) */
+                for (int j = 0; j < nq; j++) if (j != hov) ui_draw_quest_icon(dl, at[j], is, qs[j] < qcats.size() ? qcats[qs[j]] : 0);
+                if (hov >= 0) {                                  /* (the one pointed at over the others, and its task) */
+                    ui_draw_quest_icon(dl, at[hov], is * 1.12f, qs[hov] < qcats.size() ? qcats[qs[hov]] : 0);
+                    ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22); ImGui::TextUnformatted(qmarks[qs[hov]].second.c_str()); ImGui::PopTextWrapPos(); ImGui::EndTooltip();
+                }
+            }
         }
     }
 }

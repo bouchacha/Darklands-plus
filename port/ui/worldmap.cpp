@@ -180,7 +180,8 @@ static std::string fold_name(const std::string &s, bool umlaut_e)
 extern "C" void ui_toggle_map(void);
 
 static char wm_find[48];                                   /* the Find box's text */
-static int wm_test_enter;                                   /* (test command ufind: the text, then Enter) */
+static int wm_test_enter;
+static float wm_layers_bottom, wm_layers_left;                             /* the switches' box's foot (last frame), from the window's top */                                   /* (test command ufind: the text, then Enter) */
 extern "C" void worldmap_test_find(const char *t) { snprintf(wm_find, sizeof wm_find, "%s", t); wm_test_enter = 1; }
 /* Esc on the map: a name being looked for is cleared first (1: by the box itself while typing in
    it), the map closed only then */
@@ -498,25 +499,42 @@ extern "C" void worldmap_draw(void)
             for (int vi = v_fade; vi < dl->VtxBuffer.Size; vi++) { ImU32 &cc = dl->VtxBuffer[vi].col; int al = (int)((cc >> IM_COL32_A_SHIFT) & 255); cc = (cc & ~IM_COL32_A_MASK) | ((ImU32)(al * fade) << IM_COL32_A_SHIFT); }
     }
     // quest marks
-    if (show_quests)                                         /* the quest's picture on a pin above the place (several: side by side) */
+    if (show_quests) {                                       /* the quest's picture on a pin above the place; several: round the place
+                                                                on an arc of fixed size over it (many quests there: a crowded arc,
+                                                                never a long row) */
+        std::vector<int> done;
         for (size_t i = 0; i < marks.size(); i++) {
-            auto &m = marks[i];
-            u32 r = g_location(m.first);
+            int loc = marks[i].first;
+            if (std::find(done.begin(), done.end(), loc) != done.end()) continue;
+            done.push_back(loc);
+            u32 r = g_location(loc);
             if (!r) continue;
-            int nth = 0, n = 0;
-            for (size_t j = 0; j < marks.size(); j++) if (marks[j].first == m.first) { if (j < i) nth++; n++; }
+            std::vector<size_t> qs; for (size_t j = 0; j < marks.size(); j++) if (marks[j].first == loc) qs.push_back(j);
+            int n = (int)qs.size();
             float x, y; tile_px((s16)rw((u16)(r >> 16), (u16)(r + 4)), (s16)rw((u16)(r >> 16), (u16)(r + 6)), &x, &y);
             float k = fmaxf(ks, 1.0f), is = 22 * k;
-            ImVec2 s = to_scr(x, y); s.y -= 10 * k;
-            ImVec2 c(s.x + (nth - (n - 1) * 0.5f) * is * 1.05f, s.y - is * 0.55f);
-            dl->AddTriangleFilled(ImVec2(c.x - 4 * k, c.y + is * 0.3f), ImVec2(c.x + 4 * k, c.y + is * 0.3f), ImVec2(s.x, s.y + 2 * k), IM_COL32(20, 14, 8, 230));
-            quest_glow(dl, c, is);
-            ui_draw_quest_icon(dl, c, is, i < mark_cats.size() ? mark_cats[i] : 0);
-            /* the pin is the place too: pointed at, clicked (the place chosen), double-clicked (travel there),
-               even with the places' icons hidden */
-            float qd = (io.MousePos.x - c.x) * (io.MousePos.x - c.x) + (io.MousePos.y - c.y) * (io.MousePos.y - c.y);
-            if (hovered && qd < is * is * 0.36f) { hd = 0; hover = m.first; }
+            ImVec2 mid = to_scr(x, y), s = mid; s.y -= 10 * k;
+            std::vector<ImVec2> at(n);
+            for (int j = 0; j < n; j++) {
+                if (n == 1) { at[j] = ImVec2(s.x, s.y - is * 0.55f); continue; }
+                /* (an arc over the place, open below where its name is: up to 60 degrees apart, 240 in all) */
+                float span = fminf(240.0f, 60.0f * (n - 1)), a = (270.0f - span * 0.5f + span * j / (n - 1)) * 0.0174533f, R = is * 1.2f;
+                at[j] = ImVec2(mid.x + cosf(a) * R, mid.y + sinf(a) * R);
+            }
+            int hv = -1;                                     /* (the pointer on one: the topmost) */
+            for (int j = n - 1; j >= 0 && hv < 0; j--) {
+                float qd = (io.MousePos.x - at[j].x) * (io.MousePos.x - at[j].x) + (io.MousePos.y - at[j].y) * (io.MousePos.y - at[j].y);
+                if (hovered && qd < is * is * 0.36f) hv = j;
+            }
+            if (n == 1) dl->AddTriangleFilled(ImVec2(at[0].x - 4 * k, at[0].y + is * 0.3f), ImVec2(at[0].x + 4 * k, at[0].y + is * 0.3f), ImVec2(s.x, s.y + 2 * k), IM_COL32(20, 14, 8, 230));
+            for (int j = 0; j < n; j++) quest_glow(dl, at[j], is);
+            for (int j = 0; j < n; j++) if (j != hv) ui_draw_quest_icon(dl, at[j], is, qs[j] < mark_cats.size() ? mark_cats[qs[j]] : 0);
+            if (hv >= 0) ui_draw_quest_icon(dl, at[hv], is * 1.12f, qs[hv] < mark_cats.size() ? mark_cats[qs[hv]] : 0);
+            /* each picture is the place too: pointed at, clicked (the place chosen), double-clicked (travel
+               there), even with the places' icons hidden */
+            if (hv >= 0) { hd = 0; hover = loc; }
         }
+    }
     // the party
     {
         int px, py; party_tile(&px, &py);
@@ -873,7 +891,10 @@ extern "C" void worldmap_draw(void)
             float bw = ImGui::CalcTextSize(lb).x * pk + ImGui::GetStyle().FramePadding.x * 2 + ImGui::GetStyle().WindowPadding.x * 2;
             float fw = foot_h > 0 ? fminf(sz.x - 2 * pad, UIS(820) * pk) : 0;
             bool under = foot_h > 0 && (sz.x + fw) * 0.5f > sz.x - pad - bw - pad;   /* (the place chosen at the foot reaches this far: above it) */
-            ImGui::SetNextWindowPos(ImVec2(o.x + sz.x - pad, o.y + sz.y - pad - (under ? foot_h + pad : 0)), ImGuiCond_Always, ImVec2(1, 1));
+            float by = sz.y - pad - (under ? foot_h + pad : 0), bh = ImGui::GetFrameHeight() * pk + ImGui::GetStyle().WindowPadding.y * 2;
+            float bx = sz.x - pad;
+            if (under && by - bh < wm_layers_bottom + pad) bx = wm_layers_left - pad;   /* (no room under the switches: beside them, above the foot) */
+            ImGui::SetNextWindowPos(ImVec2(o.x + bx, o.y + by), ImGuiCond_Always, ImVec2(1, 1));
             ImGui::SetNextWindowBgAlpha(0.97f);
             ImGui::Begin("##wmsnap", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing);
             ImGui::SetWindowFontScale(pk);
@@ -899,6 +920,7 @@ extern "C" void worldmap_draw(void)
         ImGui::Begin("##wmlayers", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
         ImGui::PopStyleVar();
         ImDrawList *bl = ImGui::GetWindowDrawList();
+        wm_layers_bottom = y0 + NLAYER * (bs + gap) - o.y; wm_layers_left = wx0 - gap * 0.5f - o.x;   /* (the button back to the party keeps clear of it) */
         bl->AddRectFilled(ImVec2(wx0 - gap * 0.5f, y0 - hh - gap * 0.5f), ImVec2(x0 + bs + gap * 0.5f, y0 + NLAYER * (bs + gap)), IM_COL32(244, 234, 210, 215), bs * 0.2f);
         bl->AddRect(ImVec2(wx0 - gap * 0.5f, y0 - hh - gap * 0.5f), ImVec2(x0 + bs + gap * 0.5f, y0 + NLAYER * (bs + gap)), IM_COL32(150, 96, 44, 200), bs * 0.2f, 0, 1.2f);
         bl->AddText(lf, lfs, ImVec2(x0 + bs - hw, y0 - hh), IM_COL32(110, 60, 24, 255), head);
