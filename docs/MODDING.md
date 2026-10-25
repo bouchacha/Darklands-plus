@@ -20,9 +20,9 @@ A mod is a folder in the game folder's `mods` folder:
     music/                  recordings that replace the game's pieces of music (below)
 ```
 
-Tick the mod in F12 > Mods. Several mods can be on at once; where two change the same file the
-folder that comes later in the alphabet wins (name them `10 base`, `20 tweaks` ... to set the
-order). Only reading is redirected: saves and settings stay in the game folder.
+Tick the mod in F12 > Mods. Several mods can be on at once; where two change the same file, the
+one lower in F12 > Mods' list wins (drag a mod by its handle, or use its arrows, to set the order;
+the order is kept). Only reading is redirected: saves and settings stay in the game folder.
 
 When the game folder cannot be written (Windows: under Program Files, where GOG Galaxy installs
 games), the `mods`, `art` and `sounds` folders are in `%LOCALAPPDATA%\Darklands+` instead, and
