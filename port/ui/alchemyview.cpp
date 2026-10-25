@@ -166,8 +166,9 @@ extern "C" void alchemyview_draw(void)
             const AvIngr &q = a.ingr[kk];
             P.icon(RX0 + 3.3f, y + 3.3f, 5.4f, q.item);   /* (a gap between the medallions, and before the name) */
             P.text(fo, NsDraw::FS_BODY, RX0 + 8.5f, y + 0.6f, ink, ns_item_name(q.item), -1, RX1 - 14);
-            char v[16]; snprintf(v, sizeof v, "%d / %d", q.have, q.need);
-            P.text(fo, NsDraw::FS_BODY, 0, y + 0.6f, q.have >= q.need ? green : red, v, RX1);
+            int hv = q.item >= 0 && q.item < 200 ? have[q.item] : q.have;   /* (what the party carries, as the chest's tags and the batches a row can make: the game's own count leaves out the batches already set) */
+            char v[16]; snprintf(v, sizeof v, "%d / %d", hv, q.need);
+            P.text(fo, NsDraw::FS_BODY, 0, y + 0.6f, hv >= q.need ? green : red, v, RX1);
             y += 7;
         }
     }

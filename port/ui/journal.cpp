@@ -371,12 +371,14 @@ static std::string chron_text_now(void)
 /* text_expand has just put a block into msg_buf: it is what the card shows next (kept aside,
  * as msg_buf is also where option help such as "Success is assured." is written) */
 static std::string chron_next;
+static int chron_next_seed = -1;                   /* (the party it was shown to: a block of the game left by loading another is not that one's) */
 static std::vector<std::string> chron_next_opts, chron_cur_opts;
 static void chronicle_expanded(void)
 {
     if (!chron_on()) return;
     chron_next = chron_text_now();
     chron_next_opts = chron_opts_parsed;
+    chron_next_seed = g_rw(G_PARTY_SEED);
 }
 
 /* the block on show is read: into the chronicle (once) */
@@ -387,6 +389,7 @@ extern "C" void chronicle_capture(void)
     if (seed != chron_seed) chron_load(seed);
     std::string t; t.swap(chron_next);
     chron_cur_opts.swap(chron_next_opts); chron_next_opts.clear();
+    if (chron_next_seed != seed) return;               /* (the last card of a game left for a saved one: not in the saved one's chronicle) */
     if (getenv("DL_CHRON_LOG")) fprintf(stderr, "chronicle: %d bytes: %.60s\n", (int)t.size(), t.c_str());
     if (t.size() < 8 || (!chron.empty() && chron.back().text == t)) return;
     chron_flush();
@@ -1066,8 +1069,10 @@ extern "C" int journal_buy_window(bool *open, int what)
     ensure_game();
     int pick = -1;
     ImGuiIO &io = ImGui::GetIO();
-    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-    ImGui::SetNextWindowSize(ImVec2(fminf(io.DisplaySize.x * 0.8f, UIS(1000)), fminf(io.DisplaySize.y * 0.8f, UIS(760))), ImGuiCond_Appearing);
+    /* (at the left, over the quests, so the town a click shows stays in sight on the map) */
+    float ww = what == 0 ? fminf(io.DisplaySize.x * 0.8f, UIS(1000)) : fminf(io.DisplaySize.x * 0.6f, UIS(800));
+    ImGui::SetNextWindowPos(ImVec2(fminf(UIS(24), io.DisplaySize.x * 0.02f), io.DisplaySize.y * 0.5f), ImGuiCond_Appearing, ImVec2(0, 0.5f));
+    ImGui::SetNextWindowSize(ImVec2(ww, fminf(io.DisplaySize.y * 0.8f, UIS(what == 0 ? 760 : 560))), ImGuiCond_Appearing);
     if (!ImGui::Begin(what == 0 ? "Find alchemical ingredients###wtb0" : "Find any ware###wtb1", open, ImGuiWindowFlags_NoCollapse)) { ImGui::End(); return -1; }
     int px = 0, py = 0; bool here = party_where(&px, &py);
     size_t nshops = 0; for (auto &kv : towns) nshops += kv.second.shops.size();

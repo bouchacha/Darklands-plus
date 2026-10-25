@@ -157,7 +157,11 @@ static void order_button(ImDrawList *dl, ImVec2 a, const OrderEntry &e, bool ena
     else if (oi != OI_NONE) ui_draw_order_icon(dl, ImVec2(a.x + pad + iw * 0.42f, a.y + h * 0.5f), iw * 0.95f, oi);
     dl->AddText(ImVec2(a.x + pad + iw, a.y + pad * 0.5f), enabled ? IM_COL32(244, 232, 204, 255) : IM_COL32(160, 146, 120, 255), e.label.c_str());
     if (enabled) order_btns.push_back({ a, b, e.j, e.k, e.s2 });
-    if (hov && order_tip(e.kind)) margin_tip(order_tip(e.kind));
+    if (hov && order_tip(e.kind)) {   /* (beside the button; in the strip at the field's foot, above the whole strip, not over its buttons) */
+        if (a.y > ImGui::GetIO().DisplaySize.y * 0.5f) ImGui::SetNextWindowPos(ImVec2(a.x, ImGui::GetWindowPos().y - lh * 0.3f), ImGuiCond_Always, ImVec2(0, 1));
+        else ui_tip_beside(a, b);
+        margin_tip(order_tip(e.kind));
+    }
 }
 /* the group of an order: 0 attacks, 1 moving, 2 things on the field, 3 potions and items, 4 the rest */
 static int order_group(const OrderEntry &e)
@@ -216,8 +220,9 @@ static void order_buttons(float width, bool with_resume)
         }
         rowh = fmaxf(rowh, by + bh - y);
         x = gx - gap + ggap;
+        if (by > y + cap) { y += rowh + gap; x = x0; rowh = 0; }   /* (a group that wrapped: the next one starts below it, not beside its first row) */
     }
-    ImGui::SetCursorScreenPos(ImVec2(x0, y + rowh + gap));
+    ImGui::SetCursorScreenPos(ImVec2(x0, y + (rowh > 0 ? rowh + gap : 0)));
     ImGui::Dummy(ImVec2(xmax - x0, 1));                    /* (the strip as wide as its buttons: the field shows round it) */
     order_btns_frame = bar_frame = ImGui::GetFrameCount();
 }
@@ -253,7 +258,7 @@ static void top_buttons(void)
         order_button(dl, ImVec2(bx, p.y), r, ok);
         if (ok) order_btns_frame = ImGui::GetFrameCount();
         ImVec2 rs = order_button_size(r);
-        if (!ok && mp.x >= bx && mp.x < bx + rs.x && mp.y >= p.y && mp.y < p.y + rs.y) margin_tip("The battle is running: Space pauses it, or click one of the party.");
+        if (!ok && mp.x >= bx && mp.x < bx + rs.x && mp.y >= p.y && mp.y < p.y + rs.y) ui_tip_beside(ImVec2(bx, p.y), ImVec2(bx + rs.x, p.y + rs.y)), margin_tip("The battle is running: Space pauses it, or click one of the party.");
         p.y += rs.y + gap;
     }
     ImGui::SetCursorScreenPos(ImVec2(bx, p.y));

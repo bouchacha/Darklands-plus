@@ -793,6 +793,12 @@ static void run_script(void)
             ev.key.keysym.sym = SDL_GetKeyFromScancode(ev.key.keysym.scancode);
             SDL_PushEvent(&ev); ev.type = SDL_KEYUP; ev.key.state = SDL_RELEASED; SDL_PushEvent(&ev);
         }
+        else if (!strcmp(s->cmd, "utype")) {               /* test: text typed into the field that has the keyboard (a text input event): utype:plate */
+            SDL_Event ev; memset(&ev, 0, sizeof ev);
+            ev.type = SDL_TEXTINPUT; ev.text.windowID = win ? SDL_GetWindowID(win) : 0;
+            snprintf(ev.text.text, sizeof ev.text.text, "%s", s->arg);
+            SDL_PushEvent(&ev);
+        }
         else if (!strcmp(s->cmd, "uopt")) {                /* test: click the line of crisp text containing arg */
             
             int found = 0;
