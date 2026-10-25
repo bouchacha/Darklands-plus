@@ -41,7 +41,16 @@ Then:
   where pictures of different families are on screen together and must be told apart, and then one frame per
   family on that screen;
 - within a family: the same size, line weight, outline ink and color rule (the ingredients are the model);
-- one value for each shared color (the lectern ink, the blue of Darklands+ additions, the rubric red).
+- one value for each shared color (the lectern ink, the blue of Darklands+ additions, the rubric red);
+- a sign (the ingredients) is abstract, made of the tables' vocabulary (rings, strokes, crosses, forks,
+  triangles), not a small drawing of the thing; taken from the period's tables where one exists (looked up
+  first, never invented while a real one is there);
+- new line art looked at large (uiconstyles:7, 8, 1000+id): one stroke for every line that turns a
+  corner (no notches), curves smooth (no facets), ends cut square, gaps even.
+
+**Layout.** In F12, a section with a long list (a table of weapons, of enemies, of items, a chronicle) is a
+tab of its own; short sections among other short ones are a list at the left that jumps to them (as
+Settings and the New Player Guide).
 
 **Words.** `python3 port/tools/copy_catalog.py > docs/COPY.md`, read as a player who never played the original:
 literal verbs (what really happens), no technical talk, jargon explained once where it first appears, names
