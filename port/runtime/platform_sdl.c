@@ -784,6 +784,7 @@ static void run_script(void)
         else if (!strcmp(s->cmd, "usdlkey")) {             /* test: a key as an SDL event (through Darklands+'s own keys, ui_event): usdlkey:z */
             SDL_Event ev; memset(&ev, 0, sizeof ev);
             ev.type = SDL_KEYDOWN; ev.key.state = SDL_PRESSED; ev.key.keysym.scancode = SDL_GetScancodeFromName(s->arg);
+            ev.key.windowID = win ? SDL_GetWindowID(win) : 0;          /* (ImGui's backend drops key events of no window) */
             ev.key.keysym.sym = SDL_GetKeyFromScancode(ev.key.keysym.scancode);
             SDL_PushEvent(&ev); ev.type = SDL_KEYUP; ev.key.state = SDL_RELEASED; SDL_PushEvent(&ev);
         }

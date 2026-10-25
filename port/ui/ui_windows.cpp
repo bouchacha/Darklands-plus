@@ -144,6 +144,15 @@ void welcome_window(void)
                 if (ui_title_desc(nm.c_str(), PRESETS[p].desc)) pick = p;
                 ImGui::PopID();
             }
+            {   /* Ironman, as on Settings' Preset page (its home): for the next new game, whatever the preset */
+                ImGui::PushID("iron");
+                bool im = config_get_int("saves.ironman", 0) != 0, click = false;
+                if (ImGui::Checkbox("##iron", &im)) click = true;
+                ImGui::SameLine();
+                if (ui_title_desc("Ironman", "one save, kept by the game itself as you go; no loading back. For your next new game, with any of the three.")) { im = !im; click = true; }
+                if (click) { config_set_int("saves.ironman", im); config_save(); }
+                ImGui::PopID();
+            }
             ImGui::TextColored(ImVec4(0.18f, 0.40f, 0.16f, 1), "Saved games stay compatible with the original game whichever you choose.");
             if (ui_pad_prompts()) ui_pad_text("Change it at any time, or turn single features on or off: {START} > Settings. {LSTICK} moves the pointer, {A} clicks.", true);
             else ImGui::TextDisabled("Change it at any time, or turn single features on or off: F12 > Settings.");

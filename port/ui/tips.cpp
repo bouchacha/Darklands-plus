@@ -141,7 +141,7 @@ static void battle_tip(void)
         ImGui::PushFont(font_head); orn_septext("Your people fight on between orders"); ImGui::PopFont();
         bullet("A member with a bow, crossbow, gun or thrown weapon keeps shooting; when the target falls, at the nearest enemy in sight.");
         bullet("With no clear line (a wall, a tree or a friend in the way), a shooter steps a few paces aside to find one.");
-        bullet("Shooters draw a melee weapon once an enemy is close, or to help a friend nearby who is set upon or badly hurt.");
+        bullet("Shooters draw a melee weapon once an enemy is close, when nothing is left to shoot, or to help a friend nearby who is set upon or badly hurt.");
         bullet("A member whose enemy falls turns on another close by; one with no orders joins a fight beside it, unless told to hold.");
         ImGui::PushFont(font_head); orn_septext("Your orders"); ImGui::PopFont();
         if (ui_pad_prompts()) ui_pad_text("{START} > New Player Guide > Battle explains the rest; F11 on a keyboard lists the keys.", true);
