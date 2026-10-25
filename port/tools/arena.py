@@ -210,7 +210,8 @@ def check(s, log):
         for m, n in s.get('shots', []):
             if m == i and nshots < n:
                 probs.append('member %d loosed %d shots (expected at least %d)' % (i, nshots, n))
-        if worst_stuck >= 150:
+        held = any(o == 'uhold:%d,1' % i for o in s['orders'])          # (one told to hold: its walk toward a foe out of reach goes nowhere, as in the original)
+        if worst_stuck >= 150 and not held:
             probs.append('member %d walking without moving for %d ticks' % (i, worst_stuck))
         # flip-flop: more than 6 changes between shooting and not within 600 ticks
         for k in range(len(flips)):
