@@ -267,11 +267,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--game', required=True); ap.add_argument('--exe'); ap.add_argument('--only'); ap.add_argument('--out', default='/tmp/arena')
     ap.add_argument('--seeds', type=int, default=1, help='run each scenario with this many battle seeds')
+    ap.add_argument('--first-seed', type=int, default=0, help='the first of them (0: the scenario\'s own; k: its k-th other, as --seeds counts them)')
     a = ap.parse_args()
     todo = [s for s in S if not a.only or s['name'] in a.only.split(',')]
     total = 0
     for s in todo:
-        for k in range(a.seeds):
+        for k in range(a.first_seed, a.first_seed + a.seeds):
             s2 = dict(s, seed=s['seed'] + k * 7, name=s['name'] + ('' if k == 0 else '_%d' % k))
             probs, dt = run(s2, a.game, a.exe, a.out)
             for retry in range(2):                         # (a layout that walls the foes off: another seed)
