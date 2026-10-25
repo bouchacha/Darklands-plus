@@ -843,7 +843,7 @@ extern "C" void ui_margins(void)
         {   /* the hints, at the foot of the margin (always in the same place) */
             const bool pad = ui_pad_prompts();             /* (a controller in use: its buttons, padglyphs.h) */
             char h1[96]; snprintf(h1, sizeof h1, pad ? "{B} the menus (save, load, party%s)." : "Right-click or F10: the menus (save, load, party%s).", menuview_is_on() && !config_get_int("original", 0) ? ", Darklands+" : "");
-            const char *h2 = config_get_int("guide.seen", 0) ? nullptr : pad ? "New to Darklands? {START} > New Player Guide." : "New to Darklands? F12 > New Player Guide.";
+            const char *h2 = nullptr;                      /* (the hint to the New Player Guide: withdrawn with it) */
             const char *h3 = pad ? nullptr : "F11: the keys and clicks of this screen.";
             float ww = ImGui::GetContentRegionAvail().x, sp = ImGui::GetStyle().ItemSpacing.y;
             float hh = ImGui::CalcTextSize(h1, nullptr, false, ww).y + (h2 ? sp + ImGui::CalcTextSize(h2, nullptr, false, ww).y : 0)

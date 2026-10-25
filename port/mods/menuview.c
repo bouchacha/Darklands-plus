@@ -168,7 +168,7 @@ static void build_into(u16 mp, MenuModel *M, MvFn *fn)
     static const struct { const char *name, *key; int act; } DP[] = {
         { "Darklands+ window", "F12", NA_WINDOW }, { "Quests (world map)", "", NA_QUESTS }, { "World map", "M", NA_MAP },
         { "Quick save", "Ctrl+S", NA_QSAVE }, { "Quick load", "F9", NA_QLOAD },
-        { "Settings", "", NA_HELPERS }, { "New Player Guide", "", NA_GUIDE }, { "Keys and clicks on this screen", "F11", NA_HELP },
+        { "Settings", "", NA_HELPERS }, { "Keys and clicks on this screen", "F11", NA_HELP },   /* (the New Player Guide: withdrawn) */
     };
     int nd = (int)(sizeof DP / sizeof DP[0]);
     if (M->nmenus < 7 && M->nitems + nd <= 96) {

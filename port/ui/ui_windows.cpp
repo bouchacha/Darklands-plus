@@ -158,17 +158,12 @@ void welcome_window(void)
             if (ui_pad_prompts()) ui_pad_text("Change it at any time, or turn single features on or off: {START} > Settings. {LSTICK} moves the pointer, {A} clicks.", true);
             else ImGui::TextDisabled("Change it at any time, or turn single features on or off: F12 > Settings.");
             ImGui::Spacing();
-            bool guide = false;
             if (ImGui::Button("  Play  ") || ImGui::IsKeyPressed(ImGuiKey_Enter)) { if (pick != preset_current()) preset_apply(pick); done = true; }
-            ImGui::SameLine();
-            if (ImGui::Button("  Read the New Player Guide first  ")) { if (pick != preset_current()) preset_apply(pick); done = guide = true; }
-            if (guide) ui_open_tab(UI_PAGE_GUIDE);
         }
         ImGui::Spacing();
         ImGui::PushFont(font_head); orn_septext("Keys"); ImGui::PopFont();
         { ImGui::Bullet(); ImGui::TextWrapped("%s", "F12: the Darklands+ window (the game waits while it is open)"); }
         { ImGui::Bullet(); ImGui::TextWrapped("%s", "F11: the keys and clicks for the current screen, including the game's hidden ones"); }
-        { ImGui::Bullet(); ImGui::TextWrapped("%s", "F12 > New Player Guide: how Darklands works, for a new player"); }
         { ImGui::Bullet(); ImGui::TextWrapped("%s", "Click a party member on the left: their character sheet, with the whole party's saints and formulae"); }
         { ImGui::Bullet(); ImGui::TextWrapped("%s", "M: the world map, to find a place and travel there"); }
         { ImGui::Bullet(); ImGui::TextWrapped("%s", "Right-click: the game's menu bar (save, load, orders in battle)"); }
@@ -201,8 +196,8 @@ void news_window(void)
     std::string title = "New in Darklands+ " + news_key();
     if (ImGui::Begin(title.c_str(), nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
         static const char *NEWS[] = {
-            "The Darklands+ window (F12) has fewer, clearer tabs: Journal, Settings, Reconstructed Content, Mods, Editor, New Player Guide, About. "
-            "Settings and the New Player Guide list their sections on the left.",
+            "The Darklands+ window (F12) has fewer, clearer tabs: Journal, Settings, Reconstructed Content, Mods, Editor, Appendices, About. "
+            "Settings lists its sections on the left.",
             "The quests are on the world map (M), grouped by kind and nearest first, with a button for where to buy ingredients and wares.",
             "Saving and loading happen in the game's own Save and Load screens, drawn anew, with their options there.",
             "Improved combat: between your orders, shooters keep shooting, step aside for a clear line, and fight hand to hand to help a friend set upon; "
@@ -218,7 +213,7 @@ void news_window(void)
         for (const char *t : NEWS) { ImGui::Bullet(); ImGui::TextWrapped("%s", t); }
         ImGui::Spacing();
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-        ImGui::TextWrapped("Most changes can be switched off in F12 > Settings (the Full Original preset turns them all off). F12 > New Player Guide explains the game; F11 lists the keys for the current screen.");
+        ImGui::TextWrapped("Most changes can be switched off in F12 > Settings (the Full Original preset turns them all off). F11 lists the keys for the current screen.");
         ImGui::PopStyleColor();
         ImGui::Spacing();
         bool done = ImGui::Button("  Back to the game  ") || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_Escape);

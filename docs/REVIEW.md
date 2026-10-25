@@ -66,8 +66,9 @@ on x,y. Every tooltip that belongs to a thing on screen opens beside it, never o
 (`ui_tip_beside`, ui/tipplace.cpp; the item tooltips' `show_tip` in ui/overlay.cpp; the battle's
 `place_by_pointer`); a hand-placed `SetNextWindowPos` before a tooltip is a finding.
 
-**The New Player Guide.** Every statement in ui/guide.cpp checked against the game's code (the decompiled
-source in src/, the card texts), each wrong or misleading one rewritten; a Darklands+ feature starts with "+".
+**The New Player Guide** (ui/guide.cpp) is withdrawn: reading the code was not enough (its first line, a new
+party's 200 florins, came from MicroProse's "Initial Card for Testing Only"). It returns only when every
+statement has been seen to hold in a test session of the game itself, the session's log kept beside it.
 
 **Switches.** Ask of every switch in docs/SWITCHES.md:
 1. Would anyone ever turn it off? If not, it is always on (retire the key in `mods/optwhy.c`).

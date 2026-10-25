@@ -1,3 +1,6 @@
+// WITHDRAWN (not shown since 2026-10-25): ui_guide_tab is called from nowhere. Its statements were checked
+// by reading the code, and that was not enough (a new party's 200 florins were a test card's). It comes
+// back only when each statement has been seen to hold in the game itself (a test session per claim).
 // guide.cpp - F12 > New Player Guide: how Darklands works, in short, for a new player (the game was sold
 // with a thick manual and does not explain itself). The game's own rules as Darklands+ reads them
 // from the program (Endurance and Strength, the inn's numbers, alchemy's chance, armor against

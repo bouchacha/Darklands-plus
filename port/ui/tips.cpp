@@ -1,6 +1,6 @@
-// tips.cpp - the first words of advice, each in a window the game waits behind (ui_is_open): on the
-// start screen, the way to the New Player Guide (the welcome instead, the very first time); at the
-// first battle of a session with Improved combat, how the party fights now. Each shows at every
+// tips.cpp - the first words of advice, each in a window the game waits behind (ui_is_open): at the
+// first battle of a session with Improved combat, how the party fights now (the start screen's note
+// pointing to the New Player Guide went with the guide; the welcome, the very first time, stays). Each shows at every
 // start until "Never show again" is ticked, which a player can only do from the fourth start
 // (ui.launches counts them; the box says how many more times it comes first), so a new player sees them a few times. The MT-32 window before the
 // intro (ui/ui_windows.cpp) takes the same box. Not in the test sessions (DL_CTL, DL_SCRIPT)
@@ -73,10 +73,10 @@ static void title_check(void)
     title_at = 0;
     fprintf(stderr, "tips: the start screen's note\n");
     if (!config_get_int("ui.welcome_seen", 0)) { open_welcome = true; return; }   /* (the first start: the welcome, which says it too) */
-    if (config_get_int("tips.guide", 1)) open_tip = TIP_GUIDE;
+    /* (the note pointing to the New Player Guide: withdrawn with the guide, ui/ui.cpp tab_guide_all) */
 }
 
-extern "C" void tips_show(int which) { if (which == 3) open_welcome = true; else if (which == 1 || which == 2) open_tip = which; }   /* (utip:N) */
+extern "C" void tips_show(int which) { if (which == 3) open_welcome = true; else if (which == 2) open_tip = which; }   /* (utip:N: 2 the battle tips, 3 the welcome) */
 
 static bool foes_up(void)
 {
@@ -111,31 +111,6 @@ static bool begin_tip(const char *title, float width)
 }
 static void end_tip(void) { ImGui::End(); ImGui::PopFont(); }
 
-static void guide_tip(void)
-{
-    static bool never;
-    bool done = false, guide = false;
-    if (begin_tip("New to Darklands?", 620)) {
-        ImGui::TextWrapped("Darklands came with a thick manual and explains little by itself. The New Player Guide sums up how it works: "
-                           "the first steps, the party, money, towns, healing, alchemy, saints, battle, travel and saving, with the advice players have long given one another.");
-        ImGui::Spacing();
-        if (ui_pad_prompts()) ui_pad_text("It is in the Darklands+ window: {START} > New Player Guide.", true);
-        else ui_hint("It is in the Darklands+ window at any time: F12 > New Player Guide. F11 lists the keys of the screen in view.");
-        ImGui::Spacing();
-        if (ImGui::Button("  Read the New Player Guide  ")) guide = done = true;
-        ImGui::SameLine();
-        if (ImGui::Button("  Not now  ") || ImGui::IsKeyPressed(ImGuiKey_Escape) || ImGui::IsKeyPressed(ImGuiKey_Enter)) done = true;
-        tips_never_box(&never);
-    }
-    end_tip();
-    if (done) {
-        open_tip = TIP_NONE;
-        if (never) config_set_int("tips.guide", 0);
-        config_save();
-        if (guide) ui_open_tab(UI_PAGE_GUIDE);
-    }
-}
-
 static void battle_tip(void)
 {
     static bool never;
@@ -147,7 +122,7 @@ static void battle_tip(void)
         bullet("Shooters draw a melee weapon once an enemy is close, when nothing is left to shoot, or to help a friend nearby who is set upon or badly hurt.");
         bullet("A member whose enemy falls turns on another close by; one with no orders joins a fight beside it, unless told to hold.");
         ImGui::PushFont(font_head); orn_septext("Your orders"); ImGui::PopFont();
-        if (ui_pad_prompts()) ui_pad_text("{START} > New Player Guide > Battle explains the rest; F11 on a keyboard lists the keys.", true);
+        if (ui_pad_prompts()) ui_pad_text("F11 on a keyboard lists the keys.", true);
         bullet("Space pauses and resumes. Orders can be given while paused.");
         if (!ui_original_mode() && config_get_int("battle.quick_orders", 1)) bullet("Click a member, then an enemy (attack) or a spot (walk there).");
         else bullet("Click a member, then an enemy, a spot or a menu choice; Enter gives the order.");
@@ -176,6 +151,5 @@ void tips_frame(void)
 {
     title_check();
     battle_check();
-    if (open_tip == TIP_GUIDE) guide_tip();
-    else if (open_tip == TIP_BATTLE) battle_tip();
+    if (open_tip == TIP_BATTLE) battle_tip();
 }

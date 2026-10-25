@@ -142,18 +142,6 @@ void fast_forward(const S &s)
     }
     s.text(64, 8, 5.4f, CREAM, "Z");
 }
-void member_down(const S &s, int kind)
-{
-    s.ground();
-    if (kind == 0) {   /* a member fallen */
-        s.rect(30, 44, 56, 50, OURS, 1); s.dl->AddCircleFilled(s.p(60, 47), 3.6f * s.k, IM_COL32(230, 190, 150, 255), 12);
-        s.figure(80, 52, FOE);
-    } else {           /* enemies coming out of a door */
-        s.rect(4, 8, 30, 52, IM_COL32(70, 60, 50, 255)); s.rect(8, 14, 26, 52, IM_COL32(20, 14, 10, 255));
-        s.figure(40, 54, FOE); s.figure(56, 50, FOE);
-    }
-    s.rect(62, 4, 96, 16, IM_COL32(244, 232, 200, 240), 1); s.text(64, 5, 4.8f, INK, "Paused");
-}
 void level_map(const S &s)
 {
     s.rect(0, 0, 100, 60, IM_COL32(28, 22, 16, 255));
@@ -176,7 +164,6 @@ int ui_option_pics(const char *key, const char **caps)
     static const E T[] = {
         { "battle.helpers", 4, { "Pointing at an enemy", "The line of a shot", "Skill gains, reloading", "The battle log" } },
         { "battle.controls", 4, { "One click to attack", "Shoot or fight", "Order buttons", "Z: fast-forward" } },
-        { "battle.pauses", 2, { "A member falls", "Enemies come out" } },
         { "assist.level_map", 1, { "Tab: the level map; a click walks there" } },
         { "assist.card_helpers", 1, { "Chances, and who would try" } },
     };
@@ -189,7 +176,6 @@ void ui_option_pic(const char *key, int i, ImDrawList *dl, ImVec2 a, ImVec2 b)
     dl->PushClipRect(a, b, true);
     if (!strcmp(key, "battle.helpers")) { if (i == 0) battle_info(s, true); else if (i == 1) los_line(s); else if (i == 2) skill_gain(s); else battle_log(s); }
     else if (!strcmp(key, "battle.controls")) { if (i == 0) click_hint(s, true); else if (i == 1) shoot_switch(s); else if (i == 2) order_bar(s); else fast_forward(s); }
-    else if (!strcmp(key, "battle.pauses")) member_down(s, i);
     else if (!strcmp(key, "assist.level_map")) level_map(s);
     else if (!strcmp(key, "assist.card_helpers")) card_helpers(s, true);
     else if (!strcmp(key, "map.names")) map_scene(s, true, false);

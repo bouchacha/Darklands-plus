@@ -407,11 +407,12 @@ static void item_name(int id, char *out, int n)
     g_str((u16)(d >> 16), (u16)d, out, n);
 }
 
-/* F12 > New Player Guide: how the game works, then the reference tables (the weapons, the enemies) */
+/* F12 > Appendices: the tables read from the game's own data (the weapons, the enemies). The New Player
+   Guide's text (ui/guide.cpp, "How Darklands works") is withdrawn until each statement in it is checked in
+   the game itself, not only read from the code: its first line was wrong in 1.3-RC24 */
 static void tab_guide_all(void)
 {
     if (!ui_subtabs_begin("guide")) return;
-    if (ui_subtab("How Darklands works")) { ui_guide_tab(); ImGui::EndTabItem(); }
     if (ui_subtab("Weapons")) { rules_tab(); ImGui::EndTabItem(); }
     if (ui_subtab("Enemies")) { void bestiary_tab(void); bestiary_tab(); ImGui::EndTabItem(); }
     ImGui::EndTabBar();
@@ -589,13 +590,13 @@ extern "C" void ui_draw(SDL_Renderer *ren)
                it lays them out) */
             struct Page { const char *name; void (*fn)(void); };
             static const Page pages[UI_PAGE_N] = { { "Journal", tab_journal }, { "Saves", tab_saves },   /* (Saves, Records: no tab of their own now: the game's Save and Load, the right-click menu; the Guide and the Editor) */
-                { "Settings", tab_helpers }, { "Mods", tab_mods }, { "Settings", tab_helpers }, { "New Player Guide", tab_guide_all },
-                { "About", tab_about }, { "Editor", tab_editor_all }, { "New Player Guide", tab_guide_all }, { "Reconstructed Content", tab_restored } };
+                { "Settings", tab_helpers }, { "Mods", tab_mods }, { "Settings", tab_helpers }, { "Appendices", tab_guide_all },
+                { "About", tab_about }, { "Editor", tab_editor_all }, { "Appendices", tab_guide_all }, { "Reconstructed Content", tab_restored } };
             struct Group { const char *name; int icon; int page[5]; int n; };
             static const Group groups[] = {      /* (one page each: no tabs under tabs) */
                 { "Journal", UI_PAGE_JOURNAL, { UI_PAGE_JOURNAL }, 1 }, { "Settings", UI_PAGE_HELPERS, { UI_PAGE_HELPERS }, 1 },
                 { "Reconstructed Content", UI_PAGE_RESTORED, { UI_PAGE_RESTORED }, 1 }, { "Mods", UI_PAGE_MODS, { UI_PAGE_MODS }, 1 },
-                { "Editor", UI_PAGE_EDITOR, { UI_PAGE_EDITOR }, 1 }, { "New Player Guide", UI_PAGE_GUIDE, { UI_PAGE_GUIDE }, 1 },
+                { "Editor", UI_PAGE_EDITOR, { UI_PAGE_EDITOR }, 1 }, { "Appendices", UI_PAGE_GUIDE, { UI_PAGE_GUIDE }, 1 },
                 { "About", UI_PAGE_ABOUT, { UI_PAGE_ABOUT }, 1 } };
             const int NG = (int)(sizeof groups / sizeof groups[0]);
             auto shown = [](const Group &g) { return g.page[0] != UI_PAGE_EDITOR || !ui_original_mode(); };

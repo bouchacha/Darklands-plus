@@ -66,7 +66,7 @@ change their words. The text form converts back byte-for-byte (all 419 files wer
 
 ## Weapon numbers (rules.ini)
 
-F12 > New Player Guide > Weapons lists the battle numbers of every weapon; "Write these numbers into a
+F12 > Appendices > Weapons lists the battle numbers of every weapon; "Write these numbers into a
 mod folder" makes a `rules.ini` with all of them to start from.
 
 ```ini
@@ -108,7 +108,7 @@ list as the mod's `DARKLAND.LST`. The game reads the list when it starts.
 
 ## Foes
 
-F12 > New Player Guide > Enemies lists every foe of `DARKLAND.ENM` (71 kinds, 82 named foes) with
+F12 > Appendices > Enemies lists every foe of `DARKLAND.ENM` (71 kinds, 82 named foes) with
 its attributes, weapon skills, armor, shield and weapons, and which weapons pierce its armor. The
 attributes, skills and armor quality can be changed there; "Save the enemies into this mod folder"
 writes the whole file as the mod's `DARKLAND.ENM`. Foes of one kind share their numbers. The file's

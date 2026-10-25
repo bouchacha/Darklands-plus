@@ -334,7 +334,7 @@ void ui_tab_icon(ImDrawList *dl, ImVec2 c, float s, int tab)
         dl->AddLine(P(-6, 9), P(-6.6f, 10.5f), ink, 0.9f * u); dl->AddLine(P(6, 9), P(6.6f, 10.5f), ink, 0.9f * u);
         dl->AddLine(P(-3.5f, 2), P(3.5f, 2), C(150, 120, 80), 1.0f * u);                 /* the arc that holds them */
         dl->AddCircleFilled(P(0, -8), 2.2f * u, gold); dl->AddCircle(P(0, -8), 2.2f * u, ink, 12, 0.7f * u); break; }
-    case UI_PAGE_GUIDE: { /* New Player Guide: a lantern, to see one's way (not a book: the university's) */
+    case UI_PAGE_GUIDE: { /* Appendices (the weapons and enemies tables): a lantern, to see one's way (not a book: the university's) */
         dl->AddLine(P(0, -11), P(0, -8), ink, 1.0f * u); dl->AddCircle(P(0, -12), 1.4f * u, ink, 10, 0.8f * u);
         dl->AddTriangleFilled(P(-6, -5), P(6, -5), P(0, -9), C(90, 70, 40));
         dl->AddRectFilled(P(-5.5f, -5), P(5.5f, 8), C(255, 214, 110)); dl->AddCircleFilled(P(0, 2), 2.6f * u, C(255, 246, 200));
