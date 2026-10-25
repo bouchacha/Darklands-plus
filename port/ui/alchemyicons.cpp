@@ -259,12 +259,16 @@ static bool draw_ingredient_signs(Pen &p, int id)
         const Pen &p; ImVector<ImVec2> pts; float lx = 0, ly = 0;
         Stroke &to(float x, float y) { ImVec2 q = p.P(x, y); lx = x; ly = y;
             if (!pts.Size || fabsf(pts.back().x - q.x) > 0.05f || fabsf(pts.back().y - q.y) > 0.05f) pts.push_back(q); return *this; }
-        Stroke &quad(float cx, float cy, float x, float y, int n = 12) { float x0 = lx, y0 = ly;
+        static int segs(float units, const Pen &p) { int n = (int)(units * p.u / 2.5f); return n < 10 ? 10 : n > 96 ? 96 : n; }   /* (smooth at any size: a point every few pixels) */
+        Stroke &quad(float cx, float cy, float x, float y, int n = 0) { float x0 = lx, y0 = ly;
+            if (!n) n = segs(hypotf(cx - x0, cy - y0) + hypotf(x - cx, y - cy), p);
             for (int i = 1; i <= n; i++) { float t = (float)i / n, a = (1 - t) * (1 - t), b = 2 * t * (1 - t), c = t * t; to(a * x0 + b * cx + c * x, a * y0 + b * cy + c * y); } return *this; }
-        Stroke &cubic(float c1x, float c1y, float c2x, float c2y, float x, float y, int n = 16) { float x0 = lx, y0 = ly;
+        Stroke &cubic(float c1x, float c1y, float c2x, float c2y, float x, float y, int n = 0) { float x0 = lx, y0 = ly;
+            if (!n) n = segs(hypotf(c1x - x0, c1y - y0) + hypotf(c2x - c1x, c2y - c1y) + hypotf(x - c2x, y - c2y), p);
             for (int i = 1; i <= n; i++) { float t = (float)i / n, u = 1 - t;
                 to(u * u * u * x0 + 3 * u * u * t * c1x + 3 * u * t * t * c2x + t * t * t * x, u * u * u * y0 + 3 * u * u * t * c1y + 3 * u * t * t * c2y + t * t * t * y); } return *this; }
-        Stroke &arc(float cx, float cy, float r, float a0, float a1, int n = 18) {
+        Stroke &arc(float cx, float cy, float r, float a0, float a1, int n = 0) {
+            if (!n) n = segs(fabsf(a1 - a0) * r, p);
             for (int i = 0; i <= n; i++) { float a = a0 + (a1 - a0) * i / n; to(cx + cosf(a) * r, cy + sinf(a) * r); } return *this; }
         void done(ImU32 k, float w, bool closed = false) {
             if (closed && pts.Size > 2 && fabsf(pts.back().x - pts[0].x) < 0.05f && fabsf(pts.back().y - pts[0].y) < 0.05f) pts.pop_back();
@@ -301,52 +305,44 @@ static bool draw_ingredient_signs(Pen &p, int id)
         S.to(2.0f, -4.7f).to(3.0f, -4.7f).cubic(6.8f, -4.7f, 6.8f, 0.2f, 3.0f, 0.2f).to(0.1f, 0.2f).done(water, w2);   //   the bowl, from the top out and back to the stem
         L(3.4f, 0.2f, 6.7f, 4.9f, water, w2); break; }                                                          //   the leg
     case 74: p.ring(0, -3.4f, 2.4f, oil, W); p.ring(-3.6f, 2.8f, 2.4f, oil, W); p.ring(3.6f, 2.8f, 2.4f, oil, W); break;   // Naptha: oil's sign (a rock oil)
-    case 83: for (int k = 0; k < 2; k++) { float x = k ? 3.6f : -3.6f;                                    // Gum: gum's sign (two esses, a loop between): each ess one stroke,
-            S.to(x + 2.4f, -5.2f).quad(x - 3.8f, -5.2f, x, 0.2f).quad(x + 3.8f, 5.6f, x - 2.4f, 5.6f).done(amber, W); }   //   level at its ends (cut upright) and smooth through its middle
-        p.ring(0, -4.6f, 1.2f, amber, 1.1f); L(0, -3.4f, 0, 0.8f, amber, 1.1f); break;
+    case 83: for (int k = 0; k < 2; k++) { float x = k ? 4.4f : -4.4f;                                    // Gum: gum's sign (two esses, a loop between): each ess two half
+            S.arc(x, -2.4f, 2.4f, -0.35f, -4.7124f).arc(x, 2.4f, 2.4f, -1.5708f, 2.79f).done(amber, W); }        //   circles in one stroke (round and smooth at any size)
+        p.ring(0, -5.0f, 1.0f, amber, 1.0f); L(0, -4.0f, 0, 0.6f, amber, 1.1f); break;
     case 75: L(0, -6.8f, 0, 7.2f, marsh);                                                                    // Marsh Vapor: putrefaction's sign (the gas of rot): the stem,
         S.to(-4.6f, -6.2f).cubic(-4.6f, 0.4f, 4.4f, 0.4f, 4.4f, -5.0f).done(marsh, W);                       //   the cup one stroke round its foot,
         p.tri(4.4f, -7.8f, 2.6f, -4.6f, 6.2f, -4.6f, marsh); break;                                          //   its right arm ending in a solid point
-    /* the herbs: no sign in the alchemists' tables; a small emblem in the same green line (three tries each, herb_variant) */
+    /* the herbs: no sign in the alchemists' tables; one made as the tables make theirs (rings, strokes, a
+       cross, a fork), abstract, in the same green line (three tries each, herb_variant) */
     case 76:                                                                                                  // Eastern Black Bean
-        if (herb_variant == 0) { ellipse_line(-3.0f, -2.8f, 3.2f, 2.1f, -0.45f, herb); p.arc(-2.7f, -1.2f, 1.9f, 3.7f, 5.5f, herb, 1.1f);   /* two beans */
-            ellipse_line(3.0f, 3.0f, 3.2f, 2.1f, 0.45f, herb); p.arc(3.2f, 4.6f, 1.9f, 3.9f, 5.7f, herb, 1.1f); }
-        else if (herb_variant == 1) { ellipse_line(0, 0, 5.6f, 3.6f, -0.35f, herb); S.to(-4.2f, 0.8f).quad(0, -2.6f, 4.2f, -1.6f).done(herb, 1.2f); }   /* one bean, its seam */
-        else { ellipse_line(0, 0, 7.4f, 3.2f, -0.3f, herb);                                                   /* a pod and its three beans */
-            for (int k = -1; k <= 1; k++) p.disc(k * 3.6f, k * 1.12f, 1.5f, herb); }
+        if (herb_variant == 0) { p.ring(-3.4f, -3.4f, 2.2f, herb, W); p.ring(3.4f, 3.4f, 2.2f, herb, W);       /* two seeds, joined */
+            L(-1.8f, -1.8f, 1.8f, 1.8f, herb); }
+        else if (herb_variant == 1) { p.ring(-3.6f, -3.6f, 2.0f, herb, W); p.ring(3.6f, 3.6f, 2.0f, herb, W);  /* two seeds, a stroke between */
+            L(4.4f, -5.2f, -4.4f, 5.2f, herb); }
+        else { p.ring(-2.9f, -0.8f, 2.3f, herb, W); p.ring(2.9f, -0.8f, 2.3f, herb, W);                       /* a pair, on a bar */
+            L(-5.8f, 3.6f, 5.8f, 3.6f, herb); }
         break;
     case 81:                                                                                                  // Solanaceae (nightshade)
-        if (herb_variant == 0) { p.ring(0, 2.4f, 3.4f, herb, W);                                                /* the berry under its starred calyx (one stroke round) */
-            for (int k = 0; k < 5; k++) { float a = -1.5708f + k * 1.2566f, b = a + 0.6283f;
-                S.to(cosf(a) * 4.6f, -3.0f + sinf(a) * 3.2f).to(cosf(b) * 1.8f, -3.0f + sinf(b) * 1.3f); }
-            S.done(herb, 1.2f, true); }
-        else if (herb_variant == 1) {                                                                         /* a bell of a flower (one stroke round), and its berry */
-            S.to(-4.2f, -5.2f).quad(0, -7.6f, 4.2f, -5.2f).to(5.2f, 2.6f).quad(0, 0.6f, -5.2f, 2.6f).done(herb, W, true);
-            L(0, 1.4f, 0, 4.8f, herb, 1.1f); p.disc(0, 6.2f, 1.8f, herb); }
-        else { S.to(-5.6f, -6.4f).quad(1.0f, -6.0f, 1.6f, 1.6f).done(herb, W);                                   /* a sprig: the stem bowed, a leaf off it, the berry hanging */
-            ellipse_line(-2.6f, -2.2f, 2.8f, 1.3f, 0.9f, herb, 1.2f); L(-0.5f, -4.3f, -2.6f, -2.2f, herb, 1.0f);
-            p.ring(1.6f, 4.4f, 3.0f, herb, W); }
+        if (herb_variant == 0) { p.ring(0, 2.4f, 3.2f, herb, W);                                               /* the berry, its calyx three strokes */
+            for (int r = 0; r < 3; r++) { float a = 3.6652f + r * 1.0472f; L(cosf(a) * 0.6f, -0.8f + sinf(a) * 0.6f, cosf(a) * 4.2f, -0.8f + sinf(a) * 4.2f, herb, W); } }
+        else if (herb_variant == 1) { p.ring(0, 0, 4.4f, herb, W);                                              /* the berry crossed out: a poison */
+            L(-3.1f, -3.1f, 3.1f, 3.1f, herb); L(-3.1f, 3.1f, 3.1f, -3.1f, herb); }
+        else { p.ring(0, 0, 4.4f, herb, W); p.ring(0, 0, 1.6f, herb, W); }                                     /* the berry and its gleam */
         break;
     case 84:                                                                                                  // Mondragora (mandrake)
-        if (herb_variant == 0) { p.ring(0, -2.6f, 1.7f, herb, W); L(0, -0.9f, 0, 3.9f, herb);                   /* the little man of root: head, body, */
-            S.to(-3.8f, 2.6f).to(0, 0.6f).to(3.8f, 2.6f).done(herb, W);                                         /*   the arms, the legs (one stroke each), */
-            S.to(-2.6f, 7.6f).to(0, 3.4f).to(2.6f, 7.6f).done(herb, W);
-            S.to(-2.4f, -8.0f).to(0, -4.3f).to(2.4f, -8.0f).done(herb, 1.2f); L(0, -4.3f, 0, -8.0f, herb, 1.2f); }   /*   the leaves */
-        else if (herb_variant == 1) {                                                                         /* the root's head only: a fat root (one stroke round), its crown of leaves */
-            S.to(-4.2f, -1.0f).quad(0, -4.2f, 4.2f, -1.0f).quad(4.6f, 6.2f, 0, 6.8f).quad(-4.6f, 6.2f, -4.2f, -1.0f).done(herb, W, true);
-            L(0, 6.8f, 0, 8.6f, herb, 1.2f);
-            for (int l = -1; l <= 1; l++) S.to(0, -2.6f).quad(l * 1.6f, -6.0f, l * 3.6f, -8.2f).done(herb, 1.2f); }
-        else { L(0, -8.4f, 0, 1.8f, herb);                                                                       /* the forked root (the stem runs up into the middle leaf), */
-            S.to(-3.6f, 7.8f).quad(-1.0f, 4.6f, 0, 1.0f).quad(1.0f, 4.6f, 3.6f, 7.8f).done(herb, W);            /*   the two legs one stroke, */
-            S.to(-5.4f, -8.0f).quad(-4.6f, -4.6f, 0, -4.0f).quad(4.6f, -4.6f, 5.4f, -8.0f).done(herb, 1.2f); }   /*   the side leaves one stroke */
+        if (herb_variant == 0) { S.to(-2.6f, -8.0f).to(0, -5.0f).to(2.6f, -8.0f).done(herb, W);                /* leaves, head and forked root: a V, a ring, a fork */
+            p.ring(0, -2.6f, 2.0f, herb, W); L(0, -5.4f, 0, -4.6f, herb);
+            S.to(-3.0f, 6.6f).to(0, -0.6f).to(3.0f, 6.6f).done(herb, W); }
+        else if (herb_variant == 1) { S.to(-3.0f, -7.0f).to(0, -3.0f).to(3.0f, -7.0f).done(herb, W);          /* the root forked at both ends: leaves and legs */
+            L(0, -3.6f, 0, 3.0f, herb); S.to(-3.0f, 7.0f).to(0, 2.4f).to(3.0f, 7.0f).done(herb, W); }
+        else { p.ring(0, -3.6f, 2.4f, herb, W); S.to(-3.4f, 6.8f).to(0, -1.2f).to(3.4f, 6.8f).done(herb, W); }   /* a head on a forked root */
         break;
     case 86:                                                                                                  // Camomile
-        if (herb_variant == 0) { for (int k = 0; k < 12; k++) { float a = k * 0.5236f; L(cosf(a) * 1.8f, sinf(a) * 1.8f, cosf(a) * 6.6f, sinf(a) * 6.6f, herb, 1.2f); }   /* the flower: its rays from a full heart */
-            p.disc(0, 0, 2.5f, herb); }
-        else if (herb_variant == 1) { for (int k = 0; k < 8; k++) { float a = k * 0.7854f; ellipse_line(cosf(a) * 4.3f, sinf(a) * 4.3f, 2.3f, 1.2f, a, herb, 1.2f); }   /* petals round a full heart */
-            p.disc(0, 0, 2.0f, herb); }
-        else { for (int k = 0; k < 5; k++) { float a = -1.5708f + k * 1.2566f; p.ring(cosf(a) * 3.9f, sinf(a) * 3.9f, 2.6f, herb, W); }   /* a cinquefoil, the heralds' flower */
-            p.disc(0, 0, 1.9f, herb); }
+        if (herb_variant == 0) { p.ring(0, 0, 2.8f, herb, W);                                                  /* the flower's heart, its petals six dots */
+            for (int r = 0; r < 6; r++) { float a = -1.5708f + r * 1.0472f; p.disc(cosf(a) * 5.4f, sinf(a) * 5.4f, 1.1f, herb); } }
+        else if (herb_variant == 1) { p.ring(0, 0, 1.5f, herb, 1.1f);                                           /* a heart and four petals, as rings */
+            for (int r = 0; r < 4; r++) { float a = r * 1.5708f; p.ring(cosf(a) * 3.8f, sinf(a) * 3.8f, 1.5f, herb, 1.1f); } }
+        else { p.ring(0, 0, 4.8f, herb, W);                                                                     /* a star in a ring */
+            for (int r = 0; r < 3; r++) { float a = r * 1.0472f; L(cosf(a) * -2.9f, sinf(a) * -2.9f, cosf(a) * 2.9f, sinf(a) * 2.9f, herb, 1.3f); } }
         break;
     /* the bases: the elements, as before */
     default: return false;

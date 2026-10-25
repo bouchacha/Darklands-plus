@@ -510,6 +510,14 @@ extern "C" void ui_icon_styles_draw(void)
         }
         return;
     }
+    if (sheet_on >= 1000) {   /* one ingredient's sign as large as the window allows (uiconstyles:1000+id; +100 per herb try) */
+        extern int herb_variant;
+        int id = (sheet_on - 1000) % 100, v = (sheet_on - 1000) / 100;
+        herb_variant = v; ingredient_style_preview = 1;
+        ui_draw_ingredient(dl, ImVec2(ds.x * 0.5f, ds.y * 0.5f), ds.y * 0.8f, id);
+        ingredient_style_preview = 0; herb_variant = 0;
+        return;
+    }
     if (sheet_on == 8) {   /* the attributes, skills and the party's standing large (uiconstyles:8): in colour, and heraldic beside */
         ImFont *f = ImGui::GetFont(); float cw = ds.x / 7, sz = fminf(cw * 0.36f, ds.y / 11.5f), fs = sz * 0.32f; int n = 0;
         auto cell = [&](int kind, int k, const char *name) {
