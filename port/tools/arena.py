@@ -28,6 +28,7 @@ START = ('QUICKSTART; key Return; wait 12; key Return; wait 3; key Return; wait 
 CLEARING, WILDS, SURROUNDED = 0x2e, 0x2f, 0x30
 # enemies: 7 bandit, 2 archer, 0x0c thug, 0x0f mercenary, 0x2a wolf, 0x16 robber captain, 3 guard
 BANDIT, ARCHER, THUG, MERC, WOLF, CAPTAIN, GUARD = 7, 2, 0x0c, 0x0f, 0x2a, 0x16, 3
+QUICK_PARTY = ['Gretch', 'Gunther', 'Hans', 'Ebhard']          # (Quickstart's party, members 0-3, as the battle log names them)
 BOW, LONGBOW, XBOW, ARBALEST, GUN, JAVELIN, KNIFE = 28, 27, 30, 29, 31, 24, 1
 
 # a scenario: name, what it pushes, battlefield, seed, groups (type, quality, number) x3, arms
@@ -205,8 +206,10 @@ def check(s, log):
             probs.append('member %d idle with a shooting order for %d ticks' % (i, worst_idle))
         if worst_blank >= 60:
             probs.append('member %d kept a shooting order with a foe beside it for %d ticks' % (i, worst_blank))
-        if worst_bowidle >= 150 and s['name'] != 'original':
+        if worst_bowidle >= 150 and re.sub(r'_\d+$', '', s['name']) != 'original':   # (the seeds' runs too: original_1 ...)
             probs.append('member %d stood with its missile weapon and no orders for %d ticks' % (i, worst_bowidle))
+        # (a shot's draw and loosing can fall between two samples: the battle log's "<name>'s shot" lines count too)
+        if i < len(QUICK_PARTY): nshots = max(nshots, len(re.findall(r"battle: %s's shot" % QUICK_PARTY[i], log)))
         for m, n in s.get('shots', []):
             if m == i and nshots < n:
                 probs.append('member %d loosed %d shots (expected at least %d)' % (i, nshots, n))
