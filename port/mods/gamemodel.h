@@ -67,6 +67,7 @@ int gm_item_in_use(int m, int i);                 /* equipped, or (shared pack) 
 int gm_is_potion(int id);                         /* a potion (items 95-116): each member's own, never the shared pack's */
 int gm_is_ammo(int id);                           /* arrows, quarrels, balls (items 33-35) */
 int gm_ammo_hidden(void);                         /* they never run out (assist.infinite_ammo): not shown anywhere */
+int gm_member_own(int id, int type);              /* with the shared pack, each member's own (potions; ammunition and thrown weapons that run out) */
 int gm_room_for(int m, int id, int qual);         /* one more fits: a free record (64 at most) or one it stacks onto */
 /* the shared pack (inventory.shared): a member's spares of record i (its count, less the one in use);
    who carries a spare (id, qual) - `prefer` first, else whoever has the most - 0 if nobody */
@@ -99,6 +100,8 @@ const char *gm_skill_short(int k);                /* the same, "Edged", "Impact"
 
 /* item definitions (DARKLAND.LST, as the game holds it) */
 void gm_itemdef_name(int id, char *out, int n);   /* game charset */
+int gm_itemdef_type(int id);                       /* its type (+0x1e): a weapon's number, 0x40-0x42 arrows, quarrels, balls ... */
+int gm_member_uses(int m, int id);                /* m's missile weapon looses it (its ammunition, or the thrown weapon itself) */
 int gm_itemdef_weight(int id);
 int gm_itemdef_no_trade(int id);                  /* flag 0x80: not sold or bought */
 int gm_itemdef_cats(int id, unsigned long *cats); /* shop categories (+0x20) */

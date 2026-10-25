@@ -98,11 +98,11 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:146` | Thrown weapons picked up after a battle |
 | `mods/options.c:146` | when the loot screen opens after a battle, the javelins, throwing axes, throwing knives and darts each member threw are taken from the pile and given back to them. |
 | `mods/options.c:147` | Endless ammunition and thrown weapons |
-| `mods/options.c:147` | arrows, quarrels and balls, and javelins, throwing axes, throwing knives and darts, never run out (one is enough to shoot or throw); enemies still use up theirs. When off: each shot uses one, and about 7 in 10 arrows and quarrels can be picked up in the loot afterwards. |
+| `mods/options.c:147` | arrows, quarrels and balls, and javelins, throwing axes, throwing knives and darts, never run out (one is enough to shoot or throw); enemies still use up theirs. When off: each shot uses one, and about 7 in 10 arrows and quarrels can be picked up in the loot afterwards; with the shared pack they are then each member's own, listed with them like potions (picked-up ones go to whoever shoots them; drag them onto another member to hand them over). |
 | `mods/options.c:148` | Endless ammunition |
-| `mods/options.c:148` | arrows, quarrels and balls never run out (one is enough to shoot); enemies still use up theirs. When off: each shot uses one, and about 7 in 10 arrows and quarrels can be picked up in the loot afterwards. |
+| `mods/options.c:148` | arrows, quarrels and balls never run out (one is enough to shoot); enemies still use up theirs. When off: each shot uses one, and about 7 in 10 arrows and quarrels can be picked up in the loot afterwards; with the shared pack they are then each member's own, listed with them like potions. |
 | `mods/options.c:149` | Endless thrown weapons |
-| `mods/options.c:149` | javelins, throwing axes, throwing knives and darts never run out either (one is enough to throw). |
+| `mods/options.c:149` | javelins, throwing axes, throwing knives and darts never run out either (one is enough to throw). When off, with the shared pack they are each member's own, listed with them like potions. |
 | `mods/options.c:150` | Aging during play |
 | `mods/options.c:150` | characters go on aging during play (Darklands+ only; the original ages them only during character creation): from thirty on, a little each month, more with age (by seventy, a total loss of 25 Endurance, 21 Strength and Agility each, 10 Perception and Charisma each, and 5 Intelligence). |
 | `mods/options.c:151` | Warn about permanent losses |
@@ -1516,13 +1516,13 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ordericons.cpp:250` | dissolve lock |
 | `ui/ordericons.cpp:251` | exit battlefield |
 | `ui/ordericons.cpp:252` | cancel giving order |
-| `ui/ornament.cpp:396` | Plaited copper |
-| `ui/ornament.cpp:396` | Walnut and brass |
-| `ui/ornament.cpp:396` | Gothic stone |
-| `ui/ornament.cpp:518` | Pen flourishes |
-| `ui/ornament.cpp:518` | Blind tooling |
-| `ui/ornament.cpp:519` | Metal plaque |
-| `ui/ornament.cpp:526` | Heals 8 to 15 Endurance |
+| `ui/ornament.cpp:397` | Plaited copper |
+| `ui/ornament.cpp:397` | Walnut and brass |
+| `ui/ornament.cpp:397` | Gothic stone |
+| `ui/ornament.cpp:519` | Pen flourishes |
+| `ui/ornament.cpp:519` | Blind tooling |
+| `ui/ornament.cpp:520` | Metal plaque |
+| `ui/ornament.cpp:527` | Heals 8 to 15 Endurance |
 | `ui/overlay.cpp:126` |   (replaced) |
 | `ui/overlay.cpp:164` | A new encounter: %s (from a mod, not the original game) |
 | `ui/overlay.cpp:176` | Darklands+ %s (build %s) |
@@ -2131,8 +2131,11 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui.cpp:594` | Reconstructed Content |
 | `ui/ui.cpp:598` | Reconstructed Content |
 | `ui/ui.cpp:620` |              |
-| `ui/ui.cpp:712` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
-| `ui/ui.cpp:718` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
+| `ui/ui.cpp:723` | an index past the vertices |
+| `ui/ui.cpp:723` | not a number |
+| `ui/ui.cpp:723` | far past the window |
+| `ui/ui.cpp:754` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
+| `ui/ui.cpp:760` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
 | `ui/ui_windows.cpp:74` | Darklands+ is made by Yassine Meskhout. |
 | `ui/ui_windows.cpp:75` | Darklands (c) 1992 MicroProse. This is the original game, rebuilt to run directly on today's computers, with the game files of your own copy. F12 > Settings has the Full Original preset, the game as it was, and switches for most of what Darklands+ adds. |
 | `ui/ui_windows.cpp:78` | F11: the keys for the current screen.  F12: this window (the game waits while it is open).  Alt+Enter: full screen.  Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities). |
@@ -2335,70 +2338,70 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/worldmap.cpp:89` | Artificer 30q+ |
 | `ui/worldmap.cpp:107` | everyone knows the swordsmiths of Nuremberg |
 | `ui/worldmap.cpp:143` | Route planned: the party sets off once it is in the overland view. |
-| `ui/worldmap.cpp:207` | Its saints, formulae and teachers: known once the party has been there. |
-| `ui/worldmap.cpp:209` | The saints its library teaches: known once the party has been there. |
-| `ui/worldmap.cpp:219` | Saints taught here: |
-| `ui/worldmap.cpp:226` | Formulae sold here: |
-| `ui/worldmap.cpp:235` | Teachers to be hired: |
-| `ui/worldmap.cpp:239` | Not visited yet |
-| `ui/worldmap.cpp:251` | Quest markers |
-| `ui/worldmap.cpp:251` | Boat routes between the towns' docks |
-| `ui/worldmap.cpp:251` | Each place as an icon of its kind (else a dot) |
-| `ui/worldmap.cpp:252` | The days of travel from the party to every town, under its name (off at first: it crowds the map) |
-| `ui/worldmap.cpp:461` | Towns with ... |
-| `ui/worldmap.cpp:539` | the marked spot |
-| `ui/worldmap.cpp:555` | Click for what it offers, and to travel there |
-| `ui/worldmap.cpp:557` | Unwelcome here |
-| `ui/worldmap.cpp:557` | Wanted by the watch here |
-| `ui/worldmap.cpp:591` | No way there from here |
-| `ui/worldmap.cpp:592` | Travel there |
-| `ui/worldmap.cpp:597` | Travel there |
-| `ui/worldmap.cpp:600` | Leave town and travel there |
-| `ui/worldmap.cpp:605` | To travel, be in the overland view or in a town's streets |
-| `ui/worldmap.cpp:611` | Walk out of %s's gate and travel to %s? |
-| `ui/worldmap.cpp:612` | The party walks through the streets to a gate and out; in the overland view the journey begins. |
-| `ui/worldmap.cpp:613` | Leave and travel |
-| `ui/worldmap.cpp:632` | The wares noted here (%d shop%s) |
-| `ui/worldmap.cpp:655` | Boats leaving here for: |
-| `ui/worldmap.cpp:656` | Its docks have no boats leaving (the original game has none either). |
-| `ui/worldmap.cpp:657` | Boats arriving here from: |
-| `ui/worldmap.cpp:658` | Not every boat sails every day; the docks say which leave today. |
-| `ui/worldmap.cpp:661` | Unwelcome here |
-| `ui/worldmap.cpp:661` | Wanted by the watch here |
-| `ui/worldmap.cpp:680` | The Holy Roman Empire |
-| `ui/worldmap.cpp:681` | {LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes the world map. |
-| `ui/worldmap.cpp:682` | Drag to move, wheel to zoom. M or Esc closes. |
-| `ui/worldmap.cpp:684` | Traveling to %s |
-| `ui/worldmap.cpp:708` | Collect your reward |
-| `ui/worldmap.cpp:708` | Robber knights |
-| `ui/worldmap.cpp:708` | Treasures to fetch |
-| `ui/worldmap.cpp:708` | Papers to get in a town |
-| `ui/worldmap.cpp:708` | City politics |
-| `ui/worldmap.cpp:708` | Cities at war |
-| `ui/worldmap.cpp:708` | The Wild Hunt |
-| `ui/worldmap.cpp:708` | Other quests |
-| `ui/worldmap.cpp:726` | %s (%d)###qg |
-| `ui/worldmap.cpp:732` | Sorted %s first: click for %s first. |
-| `ui/worldmap.cpp:732` | the soonest due |
-| `ui/worldmap.cpp:741` | No quests or rumors yet. |
-| `ui/worldmap.cpp:755` | Find alchemical ingredients |
-| `ui/worldmap.cpp:756` | Find any ware |
-| `ui/worldmap.cpp:793` | cave near Köln |
-| `ui/worldmap.cpp:799` | and %d more: type more of the name to narrow the list |
-| `ui/worldmap.cpp:800` | No place of that name. |
-| `ui/worldmap.cpp:830` | Click one to circle those towns on the map. |
-| `ui/worldmap.cpp:842` |  the party has been to: |
-| `ui/worldmap.cpp:846` | ... and %d more (circled on the map) |
-| `ui/worldmap.cpp:847` | %s %dq##tl%d |
-| `ui/worldmap.cpp:858` | Click a kind to show or hide it. |
-| `ui/worldmap.cpp:872` | Snap to party |
-| `ui/worldmap.cpp:881` | Center the map on the party. |
-| `ui/worldmap.cpp:886` | Show on the map |
-| `ui/worldmap.cpp:892` | Show on the map |
-| `ui/worldmap.cpp:914` | shown (click to hide) |
-| `ui/worldmap.cpp:914` | hidden (click to show) |
-| `ui/worldmap.cpp:985` | faded: leaves later this week |
-| `ui/worldmap.cpp:1049` | Click to take the boat. |
+| `ui/worldmap.cpp:208` | Its saints, formulae and teachers: known once the party has been there. |
+| `ui/worldmap.cpp:210` | The saints its library teaches: known once the party has been there. |
+| `ui/worldmap.cpp:220` | Saints taught here: |
+| `ui/worldmap.cpp:227` | Formulae sold here: |
+| `ui/worldmap.cpp:236` | Teachers to be hired: |
+| `ui/worldmap.cpp:240` | Not visited yet |
+| `ui/worldmap.cpp:252` | Quest markers |
+| `ui/worldmap.cpp:252` | Boat routes between the towns' docks |
+| `ui/worldmap.cpp:252` | Each place as an icon of its kind (else a dot) |
+| `ui/worldmap.cpp:253` | The days of travel from the party to every town, under its name (off at first: it crowds the map) |
+| `ui/worldmap.cpp:462` | Towns with ... |
+| `ui/worldmap.cpp:557` | the marked spot |
+| `ui/worldmap.cpp:573` | Click for what it offers, and to travel there |
+| `ui/worldmap.cpp:575` | Unwelcome here |
+| `ui/worldmap.cpp:575` | Wanted by the watch here |
+| `ui/worldmap.cpp:609` | No way there from here |
+| `ui/worldmap.cpp:610` | Travel there |
+| `ui/worldmap.cpp:615` | Travel there |
+| `ui/worldmap.cpp:618` | Leave town and travel there |
+| `ui/worldmap.cpp:623` | To travel, be in the overland view or in a town's streets |
+| `ui/worldmap.cpp:629` | Walk out of %s's gate and travel to %s? |
+| `ui/worldmap.cpp:630` | The party walks through the streets to a gate and out; in the overland view the journey begins. |
+| `ui/worldmap.cpp:631` | Leave and travel |
+| `ui/worldmap.cpp:650` | The wares noted here (%d shop%s) |
+| `ui/worldmap.cpp:673` | Boats leaving here for: |
+| `ui/worldmap.cpp:674` | Its docks have no boats leaving (the original game has none either). |
+| `ui/worldmap.cpp:675` | Boats arriving here from: |
+| `ui/worldmap.cpp:676` | Not every boat sails every day; the docks say which leave today. |
+| `ui/worldmap.cpp:679` | Unwelcome here |
+| `ui/worldmap.cpp:679` | Wanted by the watch here |
+| `ui/worldmap.cpp:698` | The Holy Roman Empire |
+| `ui/worldmap.cpp:699` | {LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes the world map. |
+| `ui/worldmap.cpp:700` | Drag to move, wheel to zoom. M or Esc closes. |
+| `ui/worldmap.cpp:702` | Traveling to %s |
+| `ui/worldmap.cpp:726` | Collect your reward |
+| `ui/worldmap.cpp:726` | Robber knights |
+| `ui/worldmap.cpp:726` | Treasures to fetch |
+| `ui/worldmap.cpp:726` | Papers to get in a town |
+| `ui/worldmap.cpp:726` | City politics |
+| `ui/worldmap.cpp:726` | Cities at war |
+| `ui/worldmap.cpp:726` | The Wild Hunt |
+| `ui/worldmap.cpp:726` | Other quests |
+| `ui/worldmap.cpp:744` | %s (%d)###qg |
+| `ui/worldmap.cpp:750` | Sorted %s first: click for %s first. |
+| `ui/worldmap.cpp:750` | the soonest due |
+| `ui/worldmap.cpp:759` | No quests or rumors yet. |
+| `ui/worldmap.cpp:773` | Find alchemical ingredients |
+| `ui/worldmap.cpp:774` | Find any ware |
+| `ui/worldmap.cpp:811` | cave near Köln |
+| `ui/worldmap.cpp:817` | and %d more: type more of the name to narrow the list |
+| `ui/worldmap.cpp:818` | No place of that name. |
+| `ui/worldmap.cpp:848` | Click one to circle those towns on the map. |
+| `ui/worldmap.cpp:860` |  the party has been to: |
+| `ui/worldmap.cpp:864` | ... and %d more (circled on the map) |
+| `ui/worldmap.cpp:865` | %s %dq##tl%d |
+| `ui/worldmap.cpp:876` | Click a kind to show or hide it. |
+| `ui/worldmap.cpp:890` | Snap to party |
+| `ui/worldmap.cpp:902` | Center the map on the party. |
+| `ui/worldmap.cpp:907` | Show on the map |
+| `ui/worldmap.cpp:913` | Show on the map |
+| `ui/worldmap.cpp:936` | shown (click to hide) |
+| `ui/worldmap.cpp:936` | hidden (click to show) |
+| `ui/worldmap.cpp:1007` | faded: leaves later this week |
+| `ui/worldmap.cpp:1071` | Click to take the boat. |
 | `ui/worldmap_draw.cpp:78` | ruined castle |
 | `ui/worldmap_draw.cpp:80` | ruined village |
 | `ui/worldmap_draw.cpp:81` | standing stone |
@@ -2447,21 +2450,21 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/builtin.c:107` | Strong Quickstart party |
 | `mods/builtin.c:107` | The four members of the Quickstart party start with 60 in every attribute and 75 in every skill. |
 | `mods/builtin.c:108` | A party made with Create a New World starts with 5000 florins instead of 200. |
-| `mods/cacheview.c:144` | %d %s to %s (to give it to another member, drag it from the character sheet onto them in the party panel). |
-| `mods/cacheview.c:145` | %d %s into the party's pack. |
-| `mods/cacheview.c:146` | No room: every member already carries 64 kinds of items. |
-| `mods/cacheview.c:148` | %s takes %d %s. |
-| `mods/cacheview.c:149` | %s has no room for another kind of item (64 at most). |
-| `mods/cacheview.c:174` | %s stores %d %s. |
-| `mods/cacheview.c:175` | The %s stays with %s. |
-| `mods/cacheview.c:200` | %d %s stored. |
-| `mods/cacheview.c:201` | The store room is full: the %s stays in the party's pack. |
-| `mods/cacheview.c:218` | Stored %d item%s (%d kind%s); potions%s and equipped items are not stored. |
-| `mods/cacheview.c:218` | , items marked Keep |
-| `mods/cacheview.c:219` | Nothing to store: the party's pack holds only items marked Keep. |
-| `mods/cacheview.c:219` | Nothing to store: the party's pack is empty. |
-| `mods/cacheview.c:230` | %s stores %d item%s (%d kind%s); equipped items stay with them. |
-| `mods/cacheview.c:231` | Nothing to store: everything %s carries is equipped. |
+| `mods/cacheview.c:145` | %d %s to %s (to give it to another member, drag it from the character sheet onto them in the party panel). |
+| `mods/cacheview.c:146` | %d %s into the party's pack. |
+| `mods/cacheview.c:147` | No room: every member already carries 64 kinds of items. |
+| `mods/cacheview.c:149` | %s takes %d %s. |
+| `mods/cacheview.c:150` | %s has no room for another kind of item (64 at most). |
+| `mods/cacheview.c:175` | %s stores %d %s. |
+| `mods/cacheview.c:176` | The %s stays with %s. |
+| `mods/cacheview.c:201` | %d %s stored. |
+| `mods/cacheview.c:202` | The store room is full: the %s stays in the party's pack. |
+| `mods/cacheview.c:219` | Stored %d item%s (%d kind%s); potions%s and equipped items are not stored. |
+| `mods/cacheview.c:219` | , items marked Keep |
+| `mods/cacheview.c:220` | Nothing to store: the party's pack holds only items marked Keep. |
+| `mods/cacheview.c:220` | Nothing to store: the party's pack is empty. |
+| `mods/cacheview.c:231` | %s stores %d item%s (%d kind%s); equipped items stay with them. |
+| `mods/cacheview.c:232` | Nothing to store: everything %s carries is equipped. |
 | `mods/cardview.c:125` | You gather around the comfortable fire at the |
 | `mods/cardview.c:400` | \x81<name>\xff  |
 | `mods/cutcards.c:68` | name     The hospice  |
@@ -2563,14 +2566,14 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixgroups.c:13` | Bugs players have long used to their advantage (invulnerability from fire protection, confession's clock turned back, the same bounty again and again). Leave these off to keep the old tricks. |
 | `mods/fixgroups.c:14` | Left over from 1992 |
 | `mods/fixgroups.c:14` | Not bugs, but nobody misses them: the question from the printed manual before the party first sets out. |
-| `mods/gamemodel.c:258` | Divine Favor |
-| `mods/gamemodel.c:263` | Edged Weapons |
-| `mods/gamemodel.c:263` | Impact Weapons |
-| `mods/gamemodel.c:263` | Thrown Weapons |
-| `mods/gamemodel.c:263` | Missile Devices |
-| `mods/gamemodel.c:264` | Speak Common |
-| `mods/gamemodel.c:264` | Read & Write |
-| `mods/gamemodel.c:283` | Missile Devices |
+| `mods/gamemodel.c:281` | Divine Favor |
+| `mods/gamemodel.c:286` | Edged Weapons |
+| `mods/gamemodel.c:286` | Impact Weapons |
+| `mods/gamemodel.c:286` | Thrown Weapons |
+| `mods/gamemodel.c:286` | Missile Devices |
+| `mods/gamemodel.c:287` | Speak Common |
+| `mods/gamemodel.c:287` | Read & Write |
+| `mods/gamemodel.c:306` | Missile Devices |
 | `mods/hdart.c:779` | Create a New World |
 | `mods/hdart.c:780` | The Story Continues |
 | `mods/hdart.c:992` | %d pictures written to %s%s |
@@ -2623,22 +2626,22 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/loot.c:288` | Bought none: not enough money, or no room. |
 | `mods/loot.c:290` | Point at one of your own items first (the lower list). |
 | `mods/loot.c:306` | This merchant does not buy that. |
-| `mods/lootview.c:149` | %d %s to %s (to give it to another member, drag it from the character sheet onto them in the party panel). |
-| `mods/lootview.c:150` | %d %s into the party's pack. |
-| `mods/lootview.c:151` | No room: every member already carries 64 kinds of items. |
-| `mods/lootview.c:153` | %s takes %d %s. |
-| `mods/lootview.c:154` | %s has no room for another kind of item (64 at most). |
-| `mods/lootview.c:164` | The %s is marked Keep on the character sheet: it stays in the party's pack. |
-| `mods/lootview.c:178` | %d %s back into the pile. |
-| `mods/lootview.c:179` | The %s stays in the party's pack. |
-| `mods/lootview.c:202` | %s puts %d %s into the pile. |
-| `mods/lootview.c:203` | The %s stays with %s. |
-| `mods/lootview.c:280` | Took what fits. |
-| `mods/lootview.c:280` | Took everything. |
-| `mods/lootview.c:284` | Took what fits. |
-| `mods/lootview.c:284` | Took everything. |
-| `mods/lootview.c:285` | Shared out what fits. |
-| `mods/lootview.c:285` | Shared out everything. |
+| `mods/lootview.c:150` | %d %s to %s (to give it to another member, drag it from the character sheet onto them in the party panel). |
+| `mods/lootview.c:151` | %d %s into the party's pack. |
+| `mods/lootview.c:152` | No room: every member already carries 64 kinds of items. |
+| `mods/lootview.c:154` | %s takes %d %s. |
+| `mods/lootview.c:155` | %s has no room for another kind of item (64 at most). |
+| `mods/lootview.c:165` | The %s is marked Keep on the character sheet: it stays in the party's pack. |
+| `mods/lootview.c:179` | %d %s back into the pile. |
+| `mods/lootview.c:180` | The %s stays in the party's pack. |
+| `mods/lootview.c:203` | %s puts %d %s into the pile. |
+| `mods/lootview.c:204` | The %s stays with %s. |
+| `mods/lootview.c:281` | Took what fits. |
+| `mods/lootview.c:281` | Took everything. |
+| `mods/lootview.c:285` | Took what fits. |
+| `mods/lootview.c:285` | Took everything. |
+| `mods/lootview.c:286` | Shared out what fits. |
+| `mods/lootview.c:286` | Shared out everything. |
 | `mods/losses.c:96` | Lost for good |
 | `mods/losses.c:96` | The maximum of an attribute, or a skill, is lower now, and will not come back by itself. |
 | `mods/losses.c:119` | worn to nothing and gone (it was %dq). |

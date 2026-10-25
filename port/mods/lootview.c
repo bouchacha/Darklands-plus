@@ -62,7 +62,7 @@ static void build(void)
         for (int m = 0; m < 5; m++) {
             if (!gm_member_present(m) || gm_member_status(m) == 5) continue;
             for (int i = 0; i < gm_item_count(m) && l->nitems < 200; i++) {
-                GmItem g; if (!gm_item(m, i, &g) || !gm_is_potion(g.id)) continue;
+                GmItem g; if (!gm_item(m, i, &g) || !gm_member_own(g.id, g.type) || gm_item_in_use(m, i)) continue;   /* (one's own: potions, and ammunition that runs out; not what is in hand) */
                 LvItem *it = &l->item[l->nitems++];
                 it->idx = i; it->id = g.id; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
                 it->equipped = 0; it->kept = keep_is(g.id, g.qual); it->potion = 1; it->owner = m;
@@ -74,7 +74,7 @@ static void build(void)
             if (able(m) && gm_item_count(m) < 64) l->room = 1;
             for (int i = 0; i < gm_item_count(m); i++) {
                 GmItem g; int spare = gm_item_spare(m, i);
-                if (spare <= 0 || !gm_item(m, i, &g) || gm_is_potion(g.id) || (gm_ammo_hidden() && gm_is_ammo(g.id))) continue;
+                if (spare <= 0 || !gm_item(m, i, &g) || gm_member_own(g.id, g.type) || (gm_ammo_hidden() && gm_is_ammo(g.id))) continue;
                 int k = first;
                 while (k < l->nitems && !(l->item[k].id == g.id && l->item[k].qual == g.qual)) k++;
                 if (k < l->nitems) { l->item[k].count += spare; continue; }
@@ -118,6 +118,7 @@ static int pack_target(int id, int q)
         int stacks = 0;
         for (int j = 0; j < gm_item_count(k) && !stacks; j++) { GmItem g; if (gm_item(k, j, &g) && g.id == (id & 0xfff) && g.qual == q && g.count < 255) stacks = 1; }
         int score = stacks ? 1000 : 2 * (64 - gm_item_count(k)) + (k == cur);
+        if (gm_member_own(id & 0xfff, gm_itemdef_type(id & 0xfff)) && gm_member_uses(k, id & 0xfff)) score += 5000;   /* (arrows that run out: to the one who shoots them) */
         if (score > best) { best = score; bm = k; }
     }
     return bm;

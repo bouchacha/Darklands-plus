@@ -70,6 +70,19 @@ int gm_is_potion(int id) { id &= 0xfff; return id >= 95 && id <= 116; }
 int gm_is_ammo(int id) { id &= 0xfff; return id >= 33 && id <= 35; }
 extern int ammo_infinite;
 int gm_ammo_hidden(void) { return ammo_infinite && !config_get_int("original", 0); }
+/* a thing each member keeps for themselves with the shared pack, listed with them and never in the
+   party's pack: potions; arrows, quarrels and balls when they run out (assist.infinite_ammo off);
+   javelins, throwing axes, darts and throwing knives when those run out (assist.infinite_thrown off) -
+   a shooter's are their own to spend */
+extern int thrown_infinite;
+int gm_member_own(int id, int type)
+{
+    if (gm_is_potion(id)) return 1;
+    if (config_get_int("original", 0)) return 0;
+    if (!ammo_infinite && gm_is_ammo(id)) return 1;
+    if (!thrown_infinite && type >= 0x17 && type <= 0x1a) return 1;
+    return 0;
+}
 int gm_item_spare(int m, int i)
 {
     GmItem g;
@@ -118,6 +131,16 @@ int gm_room_for(int m, int id, int qual)
 
 static u32 itemdef(int id) { return g_itemdef(id & 0xfff); }
 void gm_itemdef_name(int id, char *out, int n) { u32 d = itemdef(id); if (!d) { out[0] = 0; return; } g_str((u16)(d >> 16), (u16)d, out, n); }
+int gm_itemdef_type(int id) { u32 d = itemdef(id); return d ? rb((u16)(d >> 16), (u16)((u16)d + 0x1e)) : -1; }
+/* member m's missile weapon looses thing id: the arrows of its bow, the quarrels of its crossbow, the
+   balls of its gun (far 20a5:7822[weapon]), or the thrown weapon itself */
+int gm_member_uses(int m, int id)
+{
+    GmEquip e; gm_member_equip(m, &e);
+    int t = gm_itemdef_type(id);
+    if (e.missile < 0 || e.missile > 0x3f || t < 0) return 0;
+    return e.missile == t || rb(G_FAR20A5, (u16)(0x7822 + e.missile)) == t;
+}
 int gm_itemdef_weight(int id) { u32 d = itemdef(id); return d ? rb((u16)(d >> 16), (u16)((u16)d + 0x25)) : 0; }
 int gm_itemdef_no_trade(int id) { u32 d = itemdef(id); return d ? (rb((u16)(d >> 16), (u16)((u16)d + 0x24)) & 0x80) != 0 : 1; }
 int gm_itemdef_cats(int id, unsigned long *cats)
