@@ -206,6 +206,13 @@ static const Rule RULES[] = {
     { H_SIDE, "city marketplace", 100 + H_MARKET }, { H_SIDE, "central city square", 100 + H_SQUARE }, { H_SIDE, "spires", 100 + H_CHURCHES },
     { H_SIDE, "crafts district", 100 + H_CRAFTS }, { H_SIDE, "docks", D_DOCKS }, { H_SIDE, "central fortress", D_FORTRESS },
     { H_MAIN, "crafts district", 100 + H_CRAFTS }, { H_MAIN, "side streets and alleys", 100 + H_SIDE },
+    /* (other wordings of the same ways, in other text blocks of the same cards: by night, or a hub's
+       other card; every hub card's every block is checked against this table - a line none of these
+       phrases matches, the walk cannot take: "not found in this city") */
+    { H_CIVIL, "alchemical symbols", D_ALCHEMIST }, { H_MAIN, "great churches", 100 + H_CHURCHES }, { H_MARKET, "$pawnshop", D_PAWN },
+    { H_SIDE, "$citysquare", 100 + H_SQUARE }, { H_SIDE, "$fortress", D_FORTRESS }, { H_SIDE, "$marketplace", 100 + H_MARKET },
+    { H_SIDE, "great churches", 100 + H_CHURCHES }, { H_SIDE, "common districts", 100 + H_CRAFTS }, { H_SIDE, "merchant and craft districts", 100 + H_CRAFTS },
+    { H_SIDE, "gates leading out", D_LEAVE },
     { H_SQUARE, "posted notices", D_SQUARE },
     { H_SQUARE, "$councilhall", D_TOWNHALL }, { H_SQUARE, "prison", D_PRISON }, { H_SQUARE, "$citybarracks", D_BARRACKS },
     { H_SQUARE, "$university", D_UNIVERSITY }, { H_SQUARE, "spires", 100 + H_CHURCHES }, { H_SQUARE, "$marketplace", 100 + H_MARKET },
@@ -225,6 +232,25 @@ static int rule_for(int hub, const std::string &text)
     if (hub == H_CHURCHES && text.empty() && cutcards_hospice_on()) return D_HOSPITAL;   /* ($Churc00's empty line: the hospice, mods/cutcards.c) */
     for (const Rule &r : RULES) if (r.hub == hub && text.find(r.key) != std::string::npos) return r.to;
     return -1;
+}
+
+/* test (ucitylines): every option line of every hub card, every text block, through rule_for;
+   the lines no rule takes are logged, with a count at the end */
+extern "C" void citynav_check_lines(void)
+{
+    if (!cards_loaded) load_cards();
+    int n = 0, bad = 0;
+    for (auto &c : cards) {
+        int hub = hub_of(c.first); if (hub == H_NONE) continue;
+        for (size_t b = 0; b < c.second.size(); b++) {
+            std::vector<std::string> o = block_options(c.second[b]);
+            for (size_t i = 0; i < o.size(); i++) {
+                n++;
+                if (rule_for(hub, o[i]) < 0) { bad++; fprintf(stderr, "citylines: %s/%d/%d unmatched: %s\n", c.first.c_str(), (int)b, (int)i, o[i].c_str()); }
+            }
+        }
+    }
+    fprintf(stderr, "citylines: %d lines, %d unmatched\n", n, bad);
 }
 
 /* steps from each hub to a place, through the hubs (side streets cost more: more encounters) */
