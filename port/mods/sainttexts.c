@@ -56,7 +56,7 @@ static int here(void)                       /* the town the party is in, or the 
 }
 static int in_town(void) { int l = cur_loc(); return l >= 0 && l < 0x5c; }
 static int present(int m) { return m >= 0 && m < 5 && g_rb(G_MEMBER(m)) != 0; }
-static int armoured(int m) { return (s8)g_rb((u16)(G_MEMBER(m) + 0x37)) >= 0 || (s8)g_rb((u16)(G_MEMBER(m) + 0x38)) >= 0; }   /* (body or legs worn) */
+static int armoured(int m) { return (s8)g_rb((u16)(G_MEMBER(m) + G_M_ARMOR_BODY)) >= 0 || (s8)g_rb((u16)(G_MEMBER(m) + G_M_ARMOR_LEGS)) >= 0; }   /* (body or legs worn) */
 static void record(int who, int type0, int v, int hours)
 {
     ns_call(GF_event_new, 10, who, cur_loc(), 0x63, 0x4a, type0, v, 6, hours, 1, 0);

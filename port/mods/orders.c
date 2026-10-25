@@ -48,7 +48,7 @@ static int topmost(int x, int y)
         if (x < x0 || x > x1 || y < y0 || y > y1) continue;
         int c = g_rb((u16)(D_HOT_CBT + k));
         if (c >= 13) continue;
-        int cy = (s16)g_rw((u16)(D_CBT + c * 0x80 + 6));
+        int cy = (s16)g_rw(CBF(c, CB_Y));
         if (by < cy) { m = c; by = cy; }
     }
     return m;
@@ -64,7 +64,7 @@ static int near_foe(int x, int y, int *cx, int *cy)
     int n = (s8)g_rb(D_HOT_N), best = -1; long bd = 1L << 30;
     for (int k = 0; k < n; k++) {
         int c = g_rb((u16)(D_HOT_CBT + k));
-        if (c < 5 || c >= 13 || g_rb((u16)(D_CBT + c * 0x80 + 0x14)) != 1) continue;
+        if (c < 5 || c >= 13 || g_rb(CBF(c, CB_STATUS)) != 1) continue;
         int x0 = (s16)g_rw((u16)(D_HOT_X0 + 2 * k)), x1 = (s16)g_rw((u16)(D_HOT_X1 + 2 * k));
         int y0 = (s16)g_rw((u16)(D_HOT_Y0 + 2 * k)), y1 = (s16)g_rw((u16)(D_HOT_Y1 + 2 * k));
         if (x < x0 - 5 || x > x1 + 5 || y < y0 - 5 || y > y1 + 6) continue;    /* (beside, the head, the feet) */
@@ -84,7 +84,7 @@ static void snap_to_foe(void)
     if (m >= 0) return;                                  /* (on someone already) */
     int act = (s16)g_rw(D_ORDER_ACTION), i = (s8)g_rb(D_SELECTED);
     if (i < 0 || i > 4) return;
-    int f = (s16)g_rw((u16)(D_CBT + i * 0x80 + 0x10));
+    int f = (s16)g_rw(CBF(i, CB_ORDER));
     int attack = act == -1 ? (f == 0 || f == 1 || (f & 2) || f == 0x80) : ((act & 2) || act == 0x80);
     int cx, cy;
     if (attack && near_foe(x, y, &cx, &cy)) { ww(SS, (u16)(SP + 4), (u16)cx); ww(SS, (u16)(SP + 6), (u16)cy); }
@@ -107,7 +107,7 @@ int orders_member_mode(int m)                   /* 1 shoot, 0 melee, -1 no missi
 {
     if (m < 0 || m > 4) return -1;
     u16 c = (u16)(D_CBT + m * 0x80);
-    int wm = (s8)g_rb((u16)(c + 0x22)), wd = (s8)g_rb((u16)(c + 0x51));
+    int wm = (s8)g_rb((u16)(c + CB_MISSILE)), wd = (s8)g_rb((u16)(c + CB_MELEE));
     if (wm < 0 || wm > 62) return -1;
     char key[48]; member_key(m, key, sizeof key);
     int v = config_get_int(key, -1);
@@ -123,7 +123,7 @@ int orders_member_mode(int m)                   /* 1 shoot, 0 melee, -1 no missi
 static int melee_kind(int i, int t)
 {
     if (!combat_improved() || t < 5 || t >= 13) return STD_ATTACK;
-    int w = (s8)g_rb((u16)(D_CBT + i * 0x80 + 0x51)), at = g_rb((u16)(D_CBT + t * 0x80 + 0x4b));
+    int w = (s8)g_rb(CBF(i, CB_MELEE)), at = g_rb(CBF(t, CB_BODY_ARMOR));
     if (w < 0 || w > 62 || at == 0xff) return STD_ATTACK;
     int pen = rb(G_FAR20A5, (u16)(0x76a8 + w)) & 15, h = rb(G_FAR20A5, (u16)(0x781e + at));
     return pen <= h && pen + 4 >= h ? 0x0a : STD_ATTACK;
@@ -133,8 +133,8 @@ static int melee_kind(int i, int t)
 #define NEAR_PX 56
 static int near_foe_of(int i, int m)
 {
-    int dx = (s16)g_rw((u16)(D_CBT + m * 0x80 + 4)) - (s16)g_rw((u16)(D_CBT + i * 0x80 + 4));
-    int dy = 2 * ((s16)g_rw((u16)(D_CBT + m * 0x80 + 6)) - (s16)g_rw((u16)(D_CBT + i * 0x80 + 6)));
+    int dx = (s16)g_rw(CBF(m, CB_X)) - (s16)g_rw(CBF(i, CB_X));
+    int dy = 2 * ((s16)g_rw(CBF(m, CB_Y)) - (s16)g_rw(CBF(i, CB_Y)));
     return (long)dx * dx + (long)dy * dy <= (long)NEAR_PX * NEAR_PX;
 }
 void orders_member_mode_set(int m, int shoot)
@@ -159,10 +159,10 @@ static int best_attack(int i, int m)
     if (mode == 0 || (!combat_improved() && near_foe_of(i, m))) {   /* (improved combat: a shooter shoots until the foe is beside it) */
         /* hand to hand, unless there is no way to the foe at all (hemmed in by others): then a shot,
            if the member has a missile weapon and something to loose */
-        u16 tx = g_rw((u16)(c + 8)), ty = g_rw((u16)(c + 0x0a));
-        g_ww((u16)(c + 8), g_rw((u16)(D_CBT + m * 0x80 + 4))); g_ww((u16)(c + 0x0a), g_rw((u16)(D_CBT + m * 0x80 + 6)));
+        u16 tx = g_rw((u16)(c + CB_TO_X)), ty = g_rw((u16)(c + CB_TO_Y));
+        g_ww((u16)(c + CB_TO_X), g_rw(CBF(m, CB_X))); g_ww((u16)(c + CB_TO_Y), g_rw(CBF(m, CB_Y)));
         int way = ns_call(GF_path_find, 1, i) == 1;
-        g_ww((u16)(c + 8), tx); g_ww((u16)(c + 0x0a), ty);
+        g_ww((u16)(c + CB_TO_X), tx); g_ww((u16)(c + CB_TO_Y), ty);
         if (way) return melee;
         if (!line_clear(i, m)) return melee;                         /* (no way found, nor a line: the game's own attack, which walks round as it can) */
         if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d has no way to %d: a shot instead\n", i, m);
@@ -171,8 +171,8 @@ static int best_attack(int i, int m)
     /* a clear line from where the member stands (line_blocked, s014 1d69:000c, as the order's pointer
        tests it): else the member closes in instead */
     u16 l[4] = { g_rw(GV_los_x0), g_rw(GV_los_y0), g_rw(GV_los_x1), g_rw(GV_los_y1) };
-    g_ww(GV_los_x0, g_rw((u16)(c + 4))); g_ww(GV_los_y0, g_rw((u16)(c + 6)));
-    g_ww(GV_los_x1, g_rw((u16)(D_CBT + m * 0x80 + 4))); g_ww(GV_los_y1, g_rw((u16)(D_CBT + m * 0x80 + 6)));
+    g_ww(GV_los_x0, g_rw((u16)(c + CB_X))); g_ww(GV_los_y0, g_rw((u16)(c + CB_Y)));
+    g_ww(GV_los_x1, g_rw(CBF(m, CB_X))); g_ww(GV_los_y1, g_rw(CBF(m, CB_Y)));
     int blocked = ns_call(GF_line_blocked, 3, i, m, 0x80);
     g_ww(GV_los_x0, l[0]); g_ww(GV_los_y0, l[1]); g_ww(GV_los_x1, l[2]); g_ww(GV_los_y1, l[3]);
     if (blocked && getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d has no clear line to %d\n", i, m);
@@ -201,7 +201,7 @@ static void leave_hook(void)                    /* s014 19cd:0738 order_mode_lea
     int i = (s8)g_rb(D_SELECTED);
     hook_call_original();
     if (ns_unwinding || i < 0 || i > 4) return;
-    int f = (s16)g_rw((u16)(D_CBT + i * 0x80 + 0x10));
+    int f = (s16)g_rw(CBF(i, CB_ORDER));
     player_melee[i] = f != MISSILE && f != 0x100 && f != 0 && f != 1;
     by_volley[i] = 0; bow_given[i] = bow_hold[i] = 0; bow_flips[i] = 0;
 }     /* put the missile weapon away for a foe beside it (improved combat): the bow again once none is */
@@ -209,16 +209,16 @@ static void to_melee(int i, int t, int beside)
 {
     u16 c = (u16)(D_CBT + i * 0x80);
     by_volley[i] = 1;
-    ns_call(GF_weapon_ready, 3, i, (s8)g_rb((u16)(c + 0x51)), 0);
-    g_wb((u16)(c + 0x4a), (u8)t);
+    ns_call(GF_weapon_ready, 3, i, (s8)g_rb((u16)(c + CB_MELEE)), 0);
+    g_wb((u16)(c + CB_TARGET), (u8)t);
     int kind = melee_kind(i, t);
-    if (beside) { g_ww((u16)(c + 0x10), (u16)kind); g_wb((u16)(GV_cbt_action + i), 7); }
+    if (beside) { g_ww((u16)(c + CB_ORDER), (u16)kind); g_wb((u16)(GV_cbt_action + i), 7); }
     else {
-        g_ww((u16)(c + 8), g_rw((u16)(D_CBT + t * 0x80 + 4))); g_ww((u16)(c + 0x0a), g_rw((u16)(D_CBT + t * 0x80 + 6)));
-        if (ns_call(GF_path_find, 1, i) != 1) { g_ww((u16)(c + 0x10), (u16)kind); g_wb((u16)(GV_cbt_action + i), 7); return; }   /* (no way: it fights when the foe comes) */
+        g_ww((u16)(c + CB_TO_X), g_rw(CBF(t, CB_X))); g_ww((u16)(c + CB_TO_Y), g_rw(CBF(t, CB_Y)));
+        if (ns_call(GF_path_find, 1, i) != 1) { g_ww((u16)(c + CB_ORDER), (u16)kind); g_wb((u16)(GV_cbt_action + i), 7); return; }   /* (no way: it fights when the foe comes) */
         ns_call(GF_path_give, 1, i);
         g_wb((u16)(GV_cbt_moving + i), 1); g_wb((u16)(GV_cbt_path_step + i), 0);
-        g_ww((u16)(c + 0x10), 1);
+        g_ww((u16)(c + CB_ORDER), 1);
         ns_call(GF_order_queue, 2, i, kind);
     }
     g_wb((u16)(GV_cbt_state + i), 0);
@@ -232,8 +232,8 @@ static int line_clear(int i, int j)
 {
     u16 c = (u16)(D_CBT + i * 0x80);
     u16 l[4] = { g_rw(GV_los_x0), g_rw(GV_los_y0), g_rw(GV_los_x1), g_rw(GV_los_y1) };
-    g_ww(GV_los_x0, g_rw((u16)(c + 4))); g_ww(GV_los_y0, g_rw((u16)(c + 6)));
-    g_ww(GV_los_x1, g_rw((u16)(D_CBT + j * 0x80 + 4))); g_ww(GV_los_y1, g_rw((u16)(D_CBT + j * 0x80 + 6)));
+    g_ww(GV_los_x0, g_rw((u16)(c + CB_X))); g_ww(GV_los_y0, g_rw((u16)(c + CB_Y)));
+    g_ww(GV_los_x1, g_rw(CBF(j, CB_X))); g_ww(GV_los_y1, g_rw(CBF(j, CB_Y)));
     int blocked = ns_call(GF_line_blocked, 3, i, j, 0x80);
     g_ww(GV_los_x0, l[0]); g_ww(GV_los_y0, l[1]); g_ww(GV_los_x1, l[2]); g_ww(GV_los_y1, l[3]);
     return !blocked;
@@ -247,15 +247,15 @@ static void retarget_shooters(void)
     if (!combat_improved()) return;
     for (int i = 0; i < 5; i++) {
         u16 c = (u16)(D_CBT + i * 0x80);
-        int ord = g_rw((u16)(c + 0x10)), t = (s8)g_rb((u16)(c + 0x4a));
-        if (g_rb((u16)(c + 0x14)) != 1) { shot_at[i] = -1; continue; }
+        int ord = g_rw((u16)(c + CB_ORDER)), t = (s8)g_rb((u16)(c + CB_TARGET));
+        if (g_rb((u16)(c + CB_STATUS)) != 1) { shot_at[i] = -1; continue; }
         if (getenv("DL_SHOT_LOG") && ord != 0) fprintf(stderr, "shots: %d order %#x target %d\n", i, ord, t);
-        if (ord == MISSILE && t >= 5 && t < 13 && g_rb((u16)(D_CBT + t * 0x80 + 0x14)) == 1) { shot_at[i] = (signed char)t; continue; }
+        if (ord == MISSILE && t >= 5 && t < 13 && g_rb(CBF(t, CB_STATUS)) == 1) { shot_at[i] = (signed char)t; continue; }
         if (ord == MISSILE && shot_at[i] < 5) shot_at[i] = 5;                 /* (the order kept, its mark gone (-1, or fallen): a new mark now, below) */
         if (shot_at[i] < 5) continue;
         {   /* its last loosed (the game drops the order, its mark still standing): the melee weapon, at the nearest foe,
                once the shot is done (not for an order of the player's since) */
-            int wm = (s8)g_rb((u16)(c + 0x22)), act = g_rb((u16)(GV_cbt_action + i));
+            int wm = (s8)g_rb((u16)(c + CB_MISSILE)), act = g_rb((u16)(GV_cbt_action + i));
             if ((ord == 0 || ord == MISSILE) && wm >= 0 && wm <= 62 && !has_ammo(i, wm)) {
                 if (act != 0 && act != 7) continue;                          /* (still loosing it: the next tick) */
                 int clear = 0, best = shot_target(i, &clear);
@@ -268,8 +268,8 @@ static void retarget_shooters(void)
         if (ord != MISSILE && g_rb((u16)(D_CBT + shot_at[i] * 0x80 + 0x14)) == 1) { shot_at[i] = -1; continue; }   /* (its mark stands: the order changed for another reason) */
         /* its mark has just fallen: whatever the game's AI gave it instead (to walk at someone, to
            fight hand to hand), it shoots again */
-        { int wm = (s8)g_rb((u16)(c + 0x22)); if (wm < 0 || wm > 62) { shot_at[i] = -1; continue; } }   /* (no missile weapon now) */
-        { int beside = 0; for (int j = 5; j < 13; j++) if (g_rb((u16)(D_CBT + j * 0x80 + 0x14)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j))) beside = 1;
+        { int wm = (s8)g_rb((u16)(c + CB_MISSILE)); if (wm < 0 || wm > 62) { shot_at[i] = -1; continue; } }   /* (no missile weapon now) */
+        { int beside = 0; for (int j = 5; j < 13; j++) if (g_rb(CBF(j, CB_STATUS)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j))) beside = 1;
           if (beside) { shot_at[i] = -1; continue; } }                       /* (a foe beside it: hand to hand first, the bow after: back_to_bow) */
         /* the nearest foe on its floor with a clear line from where it stands; none: the nearest (the
            stepping aside finds a spot to shoot it from, mods/battlerules.c) */
@@ -277,7 +277,7 @@ static void retarget_shooters(void)
         if (ns_unwinding) return;
         shot_at[i] = -1;
         if (best < 0) continue;
-        g_ww((u16)(c + 0x10), MISSILE); g_wb((u16)(c + 0x4a), (u8)best); g_wb((u16)(GV_cbt_state + i), 0);
+        g_ww((u16)(c + CB_ORDER), MISSILE); g_wb((u16)(c + CB_TARGET), (u8)best); g_wb((u16)(GV_cbt_state + i), 0);
         if (g_rb((u16)(GV_cbt_action + i)) == 0) g_wb((u16)(GV_cbt_action + i), 7);   /* (idle: "ready", so the shooting starts) */
         shot_at[i] = (signed char)best;
         fprintf(stderr, "orders: member %d's mark fell: now shoots at %d (%s)\n", i, best, best_clear ? "a clear line" : "no clear line: steps aside for one");
@@ -288,11 +288,11 @@ static int shot_target(int i, int *clear_out)
 {
     u16 c = (u16)(D_CBT + i * 0x80);
     int best = -1, best_clear = 0; long bd = 0;
-    int x = (s16)g_rw((u16)(c + 4)), y = (s16)g_rw((u16)(c + 6));
+    int x = (s16)g_rw((u16)(c + CB_X)), y = (s16)g_rw((u16)(c + CB_Y));
     for (int j = 5; j < 13; j++) {
         u16 d = (u16)(D_CBT + j * 0x80);
-        if (g_rb((u16)(d + 0x14)) != 1 || g_rb((u16)(GV_cbt_floor + j)) != g_rb((u16)(GV_cbt_floor + i))) continue;
-        long dx = (s16)g_rw((u16)(d + 4)) - x, dy = ((s16)g_rw((u16)(d + 6)) - y) * 2, dd = dx * dx + dy * dy;
+        if (g_rb((u16)(d + CB_STATUS)) != 1 || g_rb((u16)(GV_cbt_floor + j)) != g_rb((u16)(GV_cbt_floor + i))) continue;
+        long dx = (s16)g_rw((u16)(d + CB_X)) - x, dy = ((s16)g_rw((u16)(d + CB_Y)) - y) * 2, dd = dx * dx + dy * dy;
         int clear = line_clear(i, j);
         if (ns_unwinding) return -1;
         if (best < 0 || clear > best_clear || (clear == best_clear && dd < bd)) { best = j; bd = dd; best_clear = clear; }
@@ -308,24 +308,24 @@ static int rescue_target(int i)
 {
     int fl = g_rb((u16)(GV_cbt_floor + i)), best = -1; long bs = 0;
     for (int j = 5; j < 13; j++) {
-        if (g_rb((u16)(D_CBT + j * 0x80 + 0x14)) != 1 || g_rb((u16)(GV_cbt_floor + j)) != fl || !near_foe_of(i, j)) continue;
-        long dx = (s16)g_rw((u16)(D_CBT + j * 0x80 + 4)) - (s16)g_rw((u16)(D_CBT + i * 0x80 + 4));
-        long dy = 2 * ((s16)g_rw((u16)(D_CBT + j * 0x80 + 6)) - (s16)g_rw((u16)(D_CBT + i * 0x80 + 6)));
+        if (g_rb(CBF(j, CB_STATUS)) != 1 || g_rb((u16)(GV_cbt_floor + j)) != fl || !near_foe_of(i, j)) continue;
+        long dx = (s16)g_rw(CBF(j, CB_X)) - (s16)g_rw(CBF(i, CB_X));
+        long dy = 2 * ((s16)g_rw(CBF(j, CB_Y)) - (s16)g_rw(CBF(i, CB_Y)));
         long dd = dx * dx + dy * dy;
         int on_it = 0;
         long sc = -1;
         for (int p = 0; p < 5; p++) {
-            if (p == i || g_rb((u16)(D_CBT + p * 0x80 + 0x14)) != 1 || !rb(G_FAR20A5, (u16)(0x7900 + p * 13 + j))) continue;
+            if (p == i || g_rb(CBF(p, CB_STATUS)) != 1 || !rb(G_FAR20A5, (u16)(0x7900 + p * 13 + j))) continue;
             on_it++;
             int n = 0;
-            for (int k = 5; k < 13; k++) if (g_rb((u16)(D_CBT + k * 0x80 + 0x14)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + p * 13 + k))) n++;
+            for (int k = 5; k < 13; k++) if (g_rb(CBF(k, CB_STATUS)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + p * 13 + k))) n++;
             int cur = 0, mx = 0; gm_member_attr(p, 0, &cur, &mx);           /* (Endurance: the share left) */
             long v = (long)n * 1000 + (mx > 0 ? 999 - 999L * (cur < 0 ? 0 : cur > mx ? mx : cur) / mx : 0);
             if (v > sc) sc = v;
         }
         for (int p = 0; p < 5; p++)                                           /* (and those on their way to it) */
-            if (p != i && g_rb((u16)(D_CBT + p * 0x80 + 0x14)) == 1 && !rb(G_FAR20A5, (u16)(0x7900 + p * 13 + j))
-                && (s8)g_rb((u16)(D_CBT + p * 0x80 + 0x4a)) == j && g_rb((u16)(GV_cbt_moving + p)) && g_rw((u16)(D_CBT + p * 0x80 + 0x10)) != MISSILE) on_it++;
+            if (p != i && g_rb(CBF(p, CB_STATUS)) == 1 && !rb(G_FAR20A5, (u16)(0x7900 + p * 13 + j))
+                && (s8)g_rb(CBF(p, CB_TARGET)) == j && g_rb((u16)(GV_cbt_moving + p)) && g_rw(CBF(p, CB_ORDER)) != MISSILE) on_it++;
         if (sc < 0) continue;
         sc = (sc * 10 - on_it) * 10000 - dd / 32;   /* (fits a 32-bit long: sc under 5000, dd / 32 under 10000) */
         if (best < 0 || sc > bs) { best = j; bs = sc; }
@@ -343,11 +343,11 @@ static void idle_shooters(void)
     for (int i = 0; i < 5; i++) {
         u16 c = (u16)(D_CBT + i * 0x80);
         int act = g_rb((u16)(GV_cbt_action + i));             /* (0: the battle's start; 7: "ready", an order carried out. Halt keeps its order, 0x400) */
-        if (g_rb((u16)(c + 0x14)) != 1 || g_rw((u16)(c + 0x10)) != 0 || g_rb((u16)(GV_cbt_moving + i)) || (act != 0 && act != 7)) continue;
+        if (g_rb((u16)(c + CB_STATUS)) != 1 || g_rw((u16)(c + CB_ORDER)) != 0 || g_rb((u16)(GV_cbt_moving + i)) || (act != 0 && act != 7)) continue;
         if (g_rb((u16)(GV_cbt_mods + 0x12 * i + 9)) == 1 || orders_member_mode(i) != 1 || player_melee[i]) continue;   /* (held; set to fight hand to hand; sent to by the player) */
-        int wm = (s8)g_rb((u16)(c + 0x22)), beside = 0;
+        int wm = (s8)g_rb((u16)(c + CB_MISSILE)), beside = 0;
         if (wm < 0 || wm > 62) continue;
-        for (int j = 5; j < 13; j++) if (g_rb((u16)(D_CBT + j * 0x80 + 0x14)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j))) beside = 1;
+        for (int j = 5; j < 13; j++) if (g_rb(CBF(j, CB_STATUS)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j))) beside = 1;
         if (beside) continue;
         { int r = volley_on() ? rescue_target(i) : -1;                       /* (a friend fighting a few paces off: help it, not the bow) */
           if (r >= 0) { to_melee(i, r, 0); if (ns_unwinding) return; fprintf(stderr, "orders: member %d had no orders: goes to help: %d fights one of the party a few paces off\n", i, r); continue; } }
@@ -356,7 +356,7 @@ static void idle_shooters(void)
         if (ns_unwinding) return;
         if (t < 0) continue;
         ns_call(GF_weapon_ready, 3, i, wm, 0x80);
-        g_wb((u16)(c + 0x4a), (u8)t); g_ww((u16)(c + 0x10), MISSILE);
+        g_wb((u16)(c + CB_TARGET), (u8)t); g_ww((u16)(c + CB_ORDER), MISSILE);
         g_wb((u16)(GV_cbt_state + i), 0);
         g_ww((u16)(GV_cbt_flags + 2 * i), (u16)(g_rw((u16)(GV_cbt_flags + 2 * i)) | 2));
         g_ww((u16)(GV_cbt_engage_time + 2 * i), g_rw(GV_combat_clock));
@@ -382,19 +382,19 @@ static void idle_fighters(void)
     for (int i = 0; i < 5; i++) {
         u16 c = (u16)(D_CBT + i * 0x80);
         int act = g_rb((u16)(GV_cbt_action + i));
-        if (g_rb((u16)(c + 0x14)) != 1 || g_rw((u16)(c + 0x10)) != 0 || g_rb((u16)(GV_cbt_moving + i)) || (act != 0 && act != 7)) continue;
+        if (g_rb((u16)(c + CB_STATUS)) != 1 || g_rw((u16)(c + CB_ORDER)) != 0 || g_rb((u16)(GV_cbt_moving + i)) || (act != 0 && act != 7)) continue;
         if (g_rb((u16)(GV_cbt_mods + 0x12 * i + 9)) == 1) continue;                  /* (told to hold) */
-        int wm = (s8)g_rb((u16)(c + 0x22));
+        int wm = (s8)g_rb((u16)(c + CB_MISSILE));
         if (wm >= 0 && wm <= 62 && orders_member_mode(i) == 1 && !player_melee[i] && has_ammo(i, wm)) continue;   /* (a shooter with something to loose: idle_shooters' and the volley's) */
         int fl = g_rb((u16)(GV_cbt_floor + i)), best = -1, beside = 0; long bd = 0;
         for (int j = 5; j < 13; j++) {
             u16 d = (u16)(D_CBT + j * 0x80);
-            if (g_rb((u16)(d + 0x14)) != 1 || g_rb((u16)(GV_cbt_floor + j)) != fl) continue;
+            if (g_rb((u16)(d + CB_STATUS)) != 1 || g_rb((u16)(GV_cbt_floor + j)) != fl) continue;
             int on_me = rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j)) != 0, on_friend = 0;
             for (int p = 0; p < 5; p++)
-                if (p != i && g_rb((u16)(D_CBT + p * 0x80 + 0x14)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + p * 13 + j))) on_friend = 1;
+                if (p != i && g_rb(CBF(p, CB_STATUS)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + p * 13 + j))) on_friend = 1;
             if (!on_me && (!on_friend || !near_foe_of(i, j))) continue;
-            long dx = (s16)g_rw((u16)(d + 4)) - (s16)g_rw((u16)(c + 4)), dy = 2 * ((s16)g_rw((u16)(d + 6)) - (s16)g_rw((u16)(c + 6))), dd = dx * dx + dy * dy;
+            long dx = (s16)g_rw((u16)(d + CB_X)) - (s16)g_rw((u16)(c + CB_X)), dy = 2 * ((s16)g_rw((u16)(d + CB_Y)) - (s16)g_rw((u16)(c + CB_Y))), dd = dx * dx + dy * dy;
             if (best < 0 || (on_me && !beside) || (on_me == beside && dd < bd)) { best = j; bd = dd; beside = on_me; }
         }
         if (best < 0) continue;
@@ -410,21 +410,21 @@ static void back_to_bow(void)
 {
     for (int i = 0; i < 5; i++) {
         u16 c = (u16)(D_CBT + i * 0x80);
-        int f = (s16)g_rw((u16)(c + 0x10)), wm = (s8)g_rb((u16)(c + 0x22));
+        int f = (s16)g_rw((u16)(c + CB_ORDER)), wm = (s8)g_rb((u16)(c + CB_MISSILE));
         /* hand to hand by our doing (by_volley) or the game's (its AI turns a shooter set upon to Parry or a
            Std Attack), not the player's */
         int melee = f == STD_ATTACK || f == 0x0a || f == 0x22 || f == 6;
         if (f == MISSILE) player_melee[i] = 0;
         if (!by_volley[i] && !(melee && !player_melee[i])) continue;
-        if (g_rb((u16)(c + 0x14)) != 1 || !melee || wm < 0 || wm > 62 || orders_member_mode(i) != 1 || g_rb((u16)(GV_cbt_moving + i))) { if (!melee) by_volley[i] = 0; continue; }   /* (fallen, shooting, walking where sent, set to fight, on its way) */
+        if (g_rb((u16)(c + CB_STATUS)) != 1 || !melee || wm < 0 || wm > 62 || orders_member_mode(i) != 1 || g_rb((u16)(GV_cbt_moving + i))) { if (!melee) by_volley[i] = 0; continue; }   /* (fallen, shooting, walking where sent, set to fight, on its way) */
         int beside = 0;
-        for (int j = 5; j < 13; j++) if (g_rb((u16)(D_CBT + j * 0x80 + 0x14)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j))) beside = 1;
+        for (int j = 5; j < 13; j++) if (g_rb(CBF(j, CB_STATUS)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j))) beside = 1;
         if (beside) continue;
         /* a foe within a few paces coming at it: the fight is about to reach it, the bow would only be
            put away again (each change of weapon starts the reloading over: a shooter switched back and
            forth never shoots) */
         { int coming = 0;
-          for (int j = 5; j < 13; j++) if (g_rb((u16)(D_CBT + j * 0x80 + 0x14)) == 1 && near_foe_of(i, j) && (s8)g_rb((u16)(D_CBT + j * 0x80 + 0x4a)) == i) coming = 1;
+          for (int j = 5; j < 13; j++) if (g_rb(CBF(j, CB_STATUS)) == 1 && near_foe_of(i, j) && (s8)g_rb(CBF(j, CB_TARGET)) == i) coming = 1;
           if (coming) continue; }
         if (rescue_target(i) >= 0) continue;              /* (a friend set upon close by: stays to help, rescue_target) */
         /* the game took the bow away again just after it was given back: let the game have its way
@@ -438,7 +438,7 @@ static void back_to_bow(void)
         by_volley[i] = 0;
         if (t < 0) continue;
         ns_call(GF_weapon_ready, 3, i, wm, 0x80);
-        g_wb((u16)(c + 0x4a), (u8)t); g_ww((u16)(c + 0x10), MISSILE);
+        g_wb((u16)(c + CB_TARGET), (u8)t); g_ww((u16)(c + CB_ORDER), MISSILE);
         g_wb((u16)(GV_cbt_moving + i), 0); g_wb((u16)(GV_cbt_state + i), 0);
         g_ww((u16)(GV_cbt_flags + 2 * i), (u16)(g_rw((u16)(GV_cbt_flags + 2 * i)) | 2));
         g_ww((u16)(GV_cbt_engage_time + 2 * i), g_rw(GV_combat_clock));
@@ -468,10 +468,10 @@ void orders_test_shoot(int i, int t)
 {
     if (i < 0 || i > 4 || t < 5 || t > 12) return;
     u16 c = (u16)(D_CBT + i * 0x80);
-    int wm = (s8)g_rb((u16)(c + 0x22));
+    int wm = (s8)g_rb((u16)(c + CB_MISSILE));
     if (wm < 0 || wm > 62) { fprintf(stderr, "orders: test: %d has no missile weapon\n", i); return; }
     ns_call(GF_weapon_ready, 3, i, wm, 0x80);
-    g_wb((u16)(c + 0x4a), (u8)t); g_ww((u16)(c + 0x10), MISSILE);
+    g_wb((u16)(c + CB_TARGET), (u8)t); g_ww((u16)(c + CB_ORDER), MISSILE);
     g_wb((u16)(GV_cbt_moving + i), 0); g_wb((u16)(GV_cbt_state + i), 0);
     g_ww((u16)(GV_cbt_flags + 2 * i), (u16)(g_rw((u16)(GV_cbt_flags + 2 * i)) | 2));
     g_ww((u16)(GV_cbt_engage_time + 2 * i), g_rw(GV_combat_clock));
@@ -505,9 +505,9 @@ static void keep_kinds(void)
     for (int i = 0; i < 5; i++) {
         if (kept_kind[i] < 0) continue;
         u16 c = (u16)(D_CBT + i * 0x80);
-        if (g_rb((u16)(c + 0x14)) != 1) { kept_kind[i] = -1; continue; }
-        int f = (s16)g_rw((u16)(c + 0x10));
-        if (f == STD_ATTACK) { g_ww((u16)(c + 0x10), (u16)kept_kind[i]); if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d keeps its %#x\n", i, kept_kind[i]); }
+        if (g_rb((u16)(c + CB_STATUS)) != 1) { kept_kind[i] = -1; continue; }
+        int f = (s16)g_rw((u16)(c + CB_ORDER));
+        if (f == STD_ATTACK) { g_ww((u16)(c + CB_ORDER), (u16)kept_kind[i]); if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d keeps its %#x\n", i, kept_kind[i]); }
         else if (f == MISSILE || f == 0) kept_kind[i] = -1;                 /* (another kind of order now) */
     }
 }
@@ -522,9 +522,9 @@ static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchange
         u16 now = g_rw(GV_combat_clock);
         for (int i = 0; i < 5; i++) {
             u16 c = (u16)(D_CBT + i * 0x80);
-            int t = (s8)g_rb((u16)(c + 0x4a));
-            int idle = g_rb((u16)(c + 0x14)) == 1 && g_rw((u16)(c + 0x10)) == MISSILE && g_rb((u16)(GV_cbt_action + i)) == 0
-                        && !g_rb((u16)(GV_cbt_moving + i)) && g_rb((u16)(GV_cbt_state + i)) == 0 && t >= 5 && t < 13 && g_rb((u16)(D_CBT + t * 0x80 + 0x14)) == 1;
+            int t = (s8)g_rb((u16)(c + CB_TARGET));
+            int idle = g_rb((u16)(c + CB_STATUS)) == 1 && g_rw((u16)(c + CB_ORDER)) == MISSILE && g_rb((u16)(GV_cbt_action + i)) == 0
+                        && !g_rb((u16)(GV_cbt_moving + i)) && g_rb((u16)(GV_cbt_state + i)) == 0 && t >= 5 && t < 13 && g_rb(CBF(t, CB_STATUS)) == 1;
             if (!idle) { idle_since[i] = 0; continue; }
             if (!idle_since[i]) { idle_since[i] = now ? now : 1; continue; }
             if ((u16)(now - idle_since[i]) < 40) continue;
@@ -541,17 +541,17 @@ static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchange
     if (!volley_on()) return;
     for (int i = 0; i < 5; i++) {
         u16 c = (u16)(D_CBT + i * 0x80);
-        if (g_rb((u16)(c + 0x14)) != 1 || g_rw((u16)(c + 0x10)) != MISSILE || g_rb((u16)(GV_cbt_moving + i))) continue;
+        if (g_rb((u16)(c + CB_STATUS)) != 1 || g_rw((u16)(c + CB_ORDER)) != MISSILE || g_rb((u16)(GV_cbt_moving + i))) continue;
         if (g_rb((u16)(GV_cbt_mods + 0x12 * i + 9)) == 1) continue;           /* (told to hold) */
-        int t = (s8)g_rb((u16)(c + 0x4a)), near = -1;
+        int t = (s8)g_rb((u16)(c + CB_TARGET)), near = -1;
         for (int j = 5; j < 13; j++)
-            if (g_rb((u16)(D_CBT + j * 0x80 + 0x14)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j))) { if (near < 0 || j == t) near = j; }
+            if (g_rb(CBF(j, CB_STATUS)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j))) { if (near < 0 || j == t) near = j; }
         if (near >= 0) { to_melee(i, near, 1); continue; }
         { int r = rescue_target(i);                                       /* a friend fighting a few paces off: help it */
           if (ns_unwinding) return;
           if (r >= 0) { fprintf(stderr, "orders: member %d goes to help: %d fights one of the party a few paces off\n", i, r); to_melee(i, r, 0); continue; } }
         /* (a foe some paces off, coming: the shooter goes on shooting it, and fights hand to hand once it is beside) */
-        if (t < 5 || t >= 13 || g_rb((u16)(D_CBT + t * 0x80 + 0x14)) != 1) continue;
+        if (t < 5 || t >= 13 || g_rb(CBF(t, CB_STATUS)) != 1) continue;
         int st = g_rb((u16)(GV_cbt_state + i)), engaged = 0;
         for (int p = 0; p < 5; p++) if (p != i && rb(G_FAR20A5, (u16)(0x7900 + p * 13 + t))) engaged = 1;
         if (st == 2) to_melee(i, t, 0);                                  /* (nothing left to shoot; a line blocked is the stepping aside's: mods/battlerules.c) */
@@ -571,8 +571,8 @@ static int aim_of(int *who, int *foe)
     if (mx < 0 || mx >= 0x104 || i < 0 || i > 4) return 0;
     int m = topmost(mx, my), cx, cy;
     if ((m < 5 || m >= 13) && near_foe(mx, my, &cx, &cy)) m = topmost(cx, cy);
-    if (m < 5 || m >= 13 || g_rb((u16)(D_CBT + m * 0x80 + 0x14)) != 1) return 0;
-    int act = (s16)g_rw(D_ORDER_ACTION), f = (s16)g_rw((u16)(D_CBT + i * 0x80 + 0x10)), mode = 0;
+    if (m < 5 || m >= 13 || g_rb(CBF(m, CB_STATUS)) != 1) return 0;
+    int act = (s16)g_rw(D_ORDER_ACTION), f = (s16)g_rw(CBF(i, CB_ORDER)), mode = 0;
     if (act == MISSILE || act == 0x100) mode = act;
     else if (act == -1) {
         if (f == MISSILE || f == 0x100) mode = f;
@@ -591,9 +591,9 @@ static int wants_attack(int x, int y)
     if (g_rb(D_ORDER_MODE) != 1 || (s16)g_rw(D_ORDER_ACTION) != -1) return 0;
     int i = (s8)g_rb(D_SELECTED);
     if (i < 0 || i > 4) return 0;
-    int f = (s16)g_rw((u16)(D_CBT + i * 0x80 + 0x10));
+    int f = (s16)g_rw(CBF(i, CB_ORDER));
     int m = topmost(x, y);
-    if (m < 5 || m >= 13 || g_rb((u16)(D_CBT + m * 0x80 + 0x14)) != 1) return 0;
+    if (m < 5 || m >= 13 || g_rb(CBF(m, CB_STATUS)) != 1) return 0;
     if (f == 0 || f == 1) return best_attack(i, m);
     /* already fighting: the game's own way (the same kind of attack, at the foe clicked), unless the
        weapon changes - a shooter sent at a foe beside it (or who opens with the melee weapon), or a
@@ -611,7 +611,7 @@ static int hint_sel = -1, hint_act, hint_ct;
 static void hint_note(int act)
 {
     int i = (s8)g_rb(D_SELECTED), ct = (s8)g_rb(GV_cursor_target);
-    if (act == -1) act = (s16)g_rw((u16)(D_CBT + i * 0x80 + 0x10));
+    if (act == -1) act = (s16)g_rw(CBF(i, CB_ORDER));
     if (ct >= 5 && g_rw(D_BOX_COLOUR) == g_rw(D_REFUSED)) ct = -4;      /* (a foe it cannot reach or shoot at) */
     hint_sel = i; hint_act = act; hint_ct = ct;
     if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: pointer test: member %d, order %#x, target %d\n", i, act, ct);
@@ -746,8 +746,8 @@ static void attack_hook(void)                   /* s016 1ef8:156e (kind): an att
     int a = (s16)g_rw(D_ORDER_ACTION);
     if (!quick_on() || !selected_ok() || (a != 6 && a != 0x0a && a != STD_ATTACK && a != 0x22)) return;
     u16 c = (u16)(D_CBT + (s8)g_rb(D_SELECTED) * 0x80);
-    int t = (s8)g_rb((u16)(c + 0x4a)), f = (s16)g_rw((u16)(c + 0x10));
-    if (t >= 5 && t < 13 && ((f & 2) || f == 1) && g_rb((u16)(D_CBT + t * 0x80 + 0x14)) == 1) foe_pending = t;   /* (fighting it, or walking to it to fight) */
+    int t = (s8)g_rb((u16)(c + CB_TARGET)), f = (s16)g_rw((u16)(c + CB_ORDER));
+    if (t >= 5 && t < 13 && ((f & 2) || f == 1) && g_rb(CBF(t, CB_STATUS)) == 1) foe_pending = t;   /* (fighting it, or walking to it to fight) */
 }
 /* a point of foe t's hot spot where t is the topmost (a click there takes t), or 0 */
 static int point_on(int t, int *px, int *py)
@@ -774,7 +774,7 @@ static int next_waiting(int i)
     for (int d = 1; d < 5; d++) {
         int m = (i + d) % 5;
         u16 c = (u16)(D_CBT + m * 0x80);
-        if (g_rb((u16)(c + 0x14)) != 1 || g_rw((u16)(c + 0x10)) != 0 || g_rb((u16)(GV_cbt_state + m)) || g_rb((u16)(GV_cbt_floor + m)) != g_rb(GV_floor_shown)) continue;
+        if (g_rb((u16)(c + CB_STATUS)) != 1 || g_rw((u16)(c + CB_ORDER)) != 0 || g_rb((u16)(GV_cbt_state + m)) || g_rb((u16)(GV_cbt_floor + m)) != g_rb(GV_floor_shown)) continue;
         return m;
     }
     return -1;

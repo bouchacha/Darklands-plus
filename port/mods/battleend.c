@@ -83,7 +83,7 @@ void battleend_frame(void)
     if (!in_battle) { in_battle = 1; decided_t = 0; seen_foes = 0; }   /* (a new battle: not decided, whatever the last was) */
     u32 now = plat_ticks_ms();
     int foes = 0, ours = 0;                                 /* decided: no foe left standing (once there were some), or none of the party */
-    for (int i = 0; i < 13; i++) if (g_rb((u16)(0x9c55 + 0x80 * i + 0x14)) == 1) { if (i < 5) ours++; else foes++; }
+    for (int i = 0; i < 13; i++) if (g_rb(CBF(i, CB_STATUS)) == 1) { if (i < 5) ours++; else foes++; }
     if (foes) seen_foes = 1;                                /* (at a battle's start the foes not yet on the field count as down: a paused start was set going) */
     int decided = (seen_foes && foes == 0) || ours == 0 || (decided_t && now - decided_t < 20000);
     if (!decided) { still_since = 0; return; }

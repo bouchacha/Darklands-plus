@@ -166,7 +166,7 @@ static void use_ammo_hook(void)
     int i = (s16)rw(SS, (u16)(SP + 4));
     if (sheetview_shared() && i >= 0 && i < 5 && gm_party_size() > 1 && !config_get_int("original", 0)) {
         u16 cb = (u16)(0x9c55 + 0x80 * i);
-        int wt = (s8)g_rb((u16)(cb + 0x22));
+        int wt = (s8)g_rb((u16)(cb + CB_MISSILE));
         int at = wt >= 0 && wt < 0x40 ? rb(G_FAR20A5, (u16)(0x7822 + wt)) : 0;
         int t = at ? at : wt, q = at ? -1 : g_rb((u16)(cb + 0x5a));
         int infinite = at ? ammo_infinite : thrown_infinite;

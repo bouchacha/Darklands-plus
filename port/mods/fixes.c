@@ -629,7 +629,7 @@ static void offmap_frame(void)                 /* locations below or right of th
 /* ---------------------------------------------------------------- itemcount */
 static int clamp_items(int i)              /* combatant i's item count into 0..64 (enemies 0..16) */
 {
-    u16 a = (u16)(0x9c55 + 0x80 * i + 0x7e);  /* = party member i + 0x6a */
+    u16 a = CBF(i, CB_NITEMS);  /* = party member i + 0x6a */
     int n = (s8)g_rb(a), max = i < 5 ? 64 : 16;
     if (n >= 0 && n <= max) return 0;
     fprintf(stderr, "fix itemcount: %s %d had %d items: %d\n", i < 5 ? "member" : "combatant", i, n, n < 0 ? 0 : max);
@@ -651,7 +651,7 @@ static void falls_hook(void)               /* s014 0e76:2324 (i, ...): a combata
 static int idx_missing(int who, int idx)   /* who (0..12) has no item idx */
 {
     if (who < 0 || who > 12) return 0;
-    int n = (s8)g_rb((u16)(GV_combatants + 0x80 * who + 0x7e));
+    int n = (s8)g_rb(CBF(who, CB_NITEMS));
     if (idx >= 0 && idx < n) return 0;
     if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix itemcount: %d has no item %d (%d items): nothing removed\n", who, idx, n);
     return 1;
@@ -1173,10 +1173,9 @@ static void teachers_next_hook(void)       /* event_next(k, i), s029 0e76:324c *
 }
 
 /* ---------------------------------------------------------------- armourwear */
-#define CB_NITEMS(i) ((u16)(GV_combatants + (i) * 0x80 + 0x7e))
 static int inv_find(int i, int type, int q)
 {
-    int n = (s8)g_rb(CB_NITEMS(i));
+    int n = (s8)g_rb(CBF(i, CB_NITEMS));
     for (int k = 0; k < n && k < 64; k++)
         if (rb(G_FAR2E38, (u16)(G_ITEM(i, k) + 2)) == type && rb(G_FAR2E38, (u16)(G_ITEM(i, k) + 3)) == q) return k;
     return -1;
@@ -1185,7 +1184,7 @@ static void armourwear_hook(void)          /* s019 1ef8:0968 (i, type, quality, 
 {
     int i = (s16)rw(SS, (u16)(SP + 4)), type = rw(SS, (u16)(SP + 6)) & 0xff, q = rw(SS, (u16)(SP + 8)) & 0xff, amt = (s16)rw(SS, (u16)(SP + 10));
     if (i < 0 || i >= 5) { hook_call_original(); return; }
-    int k = inv_find(i, type, q), n = (s8)g_rb(CB_NITEMS(i));
+    int k = inv_find(i, type, q), n = (s8)g_rb(CBF(i, CB_NITEMS));
     if (k < 0) { hook_call_original(); return; }
     u16 o = G_ITEM(i, k);
     int cnt = rb(G_FAR2E38, (u16)(o + 4));
@@ -1202,7 +1201,7 @@ static void armourwear_hook(void)          /* s019 1ef8:0968 (i, type, quality, 
         u16 p = G_ITEM(i, n);
         for (int b = 0; b < 6; b++) wb(G_FAR2E38, (u16)(p + b), rb(G_FAR2E38, (u16)(o + b)));
         wb(G_FAR2E38, (u16)(p + 3), nq); wb(G_FAR2E38, (u16)(p + 4), 1);
-        g_wb(CB_NITEMS(i), (u8)(n + 1));
+        g_wb(CBF(i, CB_NITEMS), (u8)(n + 1));
     } else { hook_call_original(); return; }                 /* (a full pack: as the original) */
     wb(G_FAR2E38, (u16)(o + 4), (u8)(cnt - 1));
     if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armorwear: member %d, one of %d (type %d, q%d) worn to q%d alone\n", i, cnt, type, q, (s8)nq);
@@ -1218,11 +1217,11 @@ static void wornout_hook(void)             /* s019 1ef8:0914 (i): throw away wor
         int k = inv_find(i, g_rb((u16)(cb + 0x4b + s)), g_rb((u16)(cb + 0x4f + s)));
         if (k >= 0) {                                       /* one of it (consume_item, s014 18bf:0db4) */
             u16 o = G_ITEM(i, k);
-            int cnt = rb(G_FAR2E38, (u16)(o + 4)), n = (s8)g_rb(CB_NITEMS(i));
+            int cnt = rb(G_FAR2E38, (u16)(o + 4)), n = (s8)g_rb(CBF(i, CB_NITEMS));
             if (cnt > 1) wb(G_FAR2E38, (u16)(o + 4), (u8)(cnt - 1));
             else {
                 for (int j = k; j < n - 1; j++) for (int b = 0; b < 6; b++) wb(G_FAR2E38, (u16)(G_ITEM(i, j) + b), rb(G_FAR2E38, (u16)(G_ITEM(i, j + 1) + b)));
-                g_wb(CB_NITEMS(i), (u8)(n - 1));
+                g_wb(CBF(i, CB_NITEMS), (u8)(n - 1));
             }
             if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix armorwear: member %d's worn-out armor thrown away (%d left of it)\n", i, cnt - 1);
         }

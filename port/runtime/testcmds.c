@@ -59,7 +59,7 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "uset")) { char k[64]; int v = 0; if (sscanf(arg, "%63[^=]=%d", k, &v) == 2) { config_set_int(k, v); fprintf(stderr, "set %s = %d\n", k, v); } }   /* test: a setting */
         else if (!strcmp(cmd, "uenemyinv")) {          /* test: enemy i's items (far 2e38:0dbe [i-5][16], count at +7e) */
             int i = atoi(arg); if (i < 5 || i > 12) i = 5;
-            int n = (s8)g_rb((u16)(0x9c55 + i * 0x80 + 0x7e));
+            int n = (s8)g_rb(CBF(i, CB_NITEMS));
             fprintf(stderr, "enemyinv %d (%d):", i, n);
             for (int k = 0; k < 16; k++) { u16 o = (u16)(0x0dbe + (i - 5) * 96 + k * 6); fprintf(stderr, " [%d] %d/%d q%d x%d", k, rw(G_FAR2E38, o), rb(G_FAR2E38, (u16)(o + 2)), rb(G_FAR2E38, (u16)(o + 3)), rb(G_FAR2E38, (u16)(o + 4))); }
             fprintf(stderr, "\n");
@@ -87,15 +87,15 @@ int testcmd_run(const char *cmd, const char *arg)
             typedef LosBox B;
             int ns_call(int, u16, u16, int, ...); int agree = 0, differ = 0, blocked = 0;
             for (int w = 0; w < 5; w++) for (int f = 5; f < 13; f++) {
-                if (g_rb((u16)(0x9c55 + w * 0x80 + 0x14)) != 1 || g_rb((u16)(0x9c55 + f * 0x80 + 0x14)) != 1) continue;
+                if (g_rb(CBF(w, CB_STATUS)) != 1 || g_rb(CBF(f, CB_STATUS)) != 1) continue;
                 for (int md = 0x80; md <= 0x100; md += 0x80) {
                     B bx[24]; int n = los_trace(w, f, md, bx, 24);
                     u16 l[4] = { g_rw(GV_los_x0), g_rw(GV_los_y0), g_rw(GV_los_x1), g_rw(GV_los_y1) };
-                    g_ww(GV_los_x0, g_rw((u16)(0x9c55 + w * 0x80 + 4))); g_ww(GV_los_y0, g_rw((u16)(0x9c55 + w * 0x80 + 6)));
-                    g_ww(GV_los_x1, g_rw((u16)(0x9c55 + f * 0x80 + 4))); g_ww(GV_los_y1, g_rw((u16)(0x9c55 + f * 0x80 + 6)));
+                    g_ww(GV_los_x0, g_rw(CBF(w, CB_X))); g_ww(GV_los_y0, g_rw(CBF(w, CB_Y)));
+                    g_ww(GV_los_x1, g_rw(CBF(f, CB_X))); g_ww(GV_los_y1, g_rw(CBF(f, CB_Y)));
                     int bl = ns_call(GF_line_blocked, 3, w, f, md) != 0;
                     g_ww(GV_los_x0, l[0]); g_ww(GV_los_y0, l[1]); g_ww(GV_los_x1, l[2]); g_ww(GV_los_y1, l[3]);
-                    if (bl == (n > 0)) agree++; else { differ++; fprintf(stderr, "losall: differ %d->%d mode %#x game %d boxes %d:", w, f, md, bl, n); for (int j = 0; j < n; j++) fprintf(stderr, " k%d id%d %d,%d-%d,%d", bx[j].kind, bx[j].id, bx[j].x0, bx[j].y0, bx[j].x1, bx[j].y1); fprintf(stderr, " | %d,%d -> %d,%d h59 %d\n", (s16)g_rw((u16)(0x9c55 + w * 0x80 + 4)), (s16)g_rw((u16)(0x9c55 + w * 0x80 + 6)), (s16)g_rw((u16)(0x9c55 + f * 0x80 + 4)), (s16)g_rw((u16)(0x9c55 + f * 0x80 + 6)), (s8)g_rb((u16)(0x9c55 + w * 0x80 + 0x59))); }
+                    if (bl == (n > 0)) agree++; else { differ++; fprintf(stderr, "losall: differ %d->%d mode %#x game %d boxes %d:", w, f, md, bl, n); for (int j = 0; j < n; j++) fprintf(stderr, " k%d id%d %d,%d-%d,%d", bx[j].kind, bx[j].id, bx[j].x0, bx[j].y0, bx[j].x1, bx[j].y1); fprintf(stderr, " | %d,%d -> %d,%d h59 %d\n", (s16)g_rw(CBF(w, CB_X)), (s16)g_rw(CBF(w, CB_Y)), (s16)g_rw(CBF(f, CB_X)), (s16)g_rw(CBF(f, CB_Y)), (s8)g_rb((u16)(0x9c55 + w * 0x80 + 0x59))); }
                     blocked += bl;
                 }
             }
@@ -107,15 +107,15 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "uiconstyles")) { void ui_icon_styles_sheet(int); ui_icon_styles_sheet(atoi(arg)); }   /* test: the pictures of the skills in each look */
         else if (!strcmp(cmd, "uaim")) {               /* test: who shoots, and the aim under the pointer */
             extern int orders_member_mode(int m); extern int orders_aim(int *who, int *foe);
-            for (int m = 0; m < 5; m++) fprintf(stderr, "aim: member %d mode %d weapon %d order %#x\n", m, orders_member_mode(m), (s8)g_rb((u16)(0x9c55 + m * 0x80 + 0x22)), g_rw((u16)(0x9c55 + m * 0x80 + 0x10)));
+            for (int m = 0; m < 5; m++) fprintf(stderr, "aim: member %d mode %d weapon %d order %#x\n", m, orders_member_mode(m), (s8)g_rb(CBF(m, CB_MISSILE)), g_rw(CBF(m, CB_ORDER)));
             int w = -1, f = -1, md = orders_aim(&w, &f);
             fprintf(stderr, "aim: %#x member %d foe %d selected %d\n", md, w, f, (s8)g_rb(GV_selected_member));
             if (md) {
                 LosBox bx[24]; int n = los_trace(w, f, md, bx, 24);
                 for (int j = 0; j < n; j++) fprintf(stderr, "aim: box kind %d id %d %d,%d-%d,%d\n", bx[j].kind, bx[j].id, bx[j].x0, bx[j].y0, bx[j].x1, bx[j].y1);
                 u16 l[4] = { g_rw(GV_los_x0), g_rw(GV_los_y0), g_rw(GV_los_x1), g_rw(GV_los_y1) };
-                g_ww(GV_los_x0, g_rw((u16)(0x9c55 + w * 0x80 + 4))); g_ww(GV_los_y0, g_rw((u16)(0x9c55 + w * 0x80 + 6)));
-                g_ww(GV_los_x1, g_rw((u16)(0x9c55 + f * 0x80 + 4))); g_ww(GV_los_y1, g_rw((u16)(0x9c55 + f * 0x80 + 6)));
+                g_ww(GV_los_x0, g_rw(CBF(w, CB_X))); g_ww(GV_los_y0, g_rw(CBF(w, CB_Y)));
+                g_ww(GV_los_x1, g_rw(CBF(f, CB_X))); g_ww(GV_los_y1, g_rw(CBF(f, CB_Y)));
                 int ns_call(int, u16, u16, int, ...); int bl = ns_call(GF_line_blocked, 3, w, f, md);
                 g_ww(GV_los_x0, l[0]); g_ww(GV_los_y0, l[1]); g_ww(GV_los_x1, l[2]); g_ww(GV_los_y1, l[3]);
                 fprintf(stderr, "aim: game says %d, boxes %d\n", bl, n);
@@ -214,7 +214,7 @@ int testcmd_run(const char *cmd, const char *arg)
             int m = 0, w = 27, n = 20; sscanf(arg, "%d,%d,%d", &m, &w, &n);
             int ammo = w >= 26 && w <= 28 ? 33 : w >= 29 && w <= 30 ? 34 : w >= 31 && w <= 32 ? 35 : w;
             if (m >= 0 && m < 5) {
-                g_wb((u16)(G_MEMBER(m) + 0x0e), (u8)w);
+                g_wb((u16)(G_MEMBER(m) + G_M_MISSILE), (u8)w);
                 for (int k = 0; k < 2; k++) {
                     int code = k ? ammo : w, cnt = k ? n : 1, ni = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
                     if (k && ammo == w) break;
@@ -246,7 +246,7 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "uitems")) {             /* test: member m's item records: code, type, quality, count (and the missile weapon's ammunition type) */
             int m = atoi(arg);
             if (m >= 0 && m < 5) {
-                int n = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS)), w = (s8)g_rb((u16)(G_MEMBER(m) + 0x0e));
+                int n = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS)), w = (s8)g_rb((u16)(G_MEMBER(m) + G_M_MISSILE));
                 fprintf(stderr, "items of %d: missile weapon %d (its ammunition type %#x)\n", m, w, w >= 0 && w < 64 ? rb(G_FAR20A5, (u16)(0x7822 + w)) : -1);
                 for (int k = 0; k < n && k < 64; k++) { u16 o = G_ITEM(m, k); u32 d = g_itemdef(rw(G_FAR2E38, o) & 0xfff);
                     fprintf(stderr, "  %d: code %d type %#x quality %d count %d (definition +0x1e: %#x)\n", k, rw(G_FAR2E38, o) & 0xfff, rb(G_FAR2E38, (u16)(o + 2)), rb(G_FAR2E38, (u16)(o + 3)), rb(G_FAR2E38, (u16)(o + 4)), d ? rb((u16)(d >> 16), (u16)((u16)d + 0x1e)) : -1); }
@@ -263,7 +263,7 @@ int testcmd_run(const char *cmd, const char *arg)
             int x0 = (s16)g_rw((u16)(GV_combatants + 4)), y0 = (s16)g_rw((u16)(GV_combatants + 6));
             for (const char *q = arg; *q; ) {
                 int i = 0, dx = 0, dy = 0;
-                if (sscanf(q, "%d,%d,%d", &i, &dx, &dy) == 3 && i >= 0 && i < 13 && g_rb((u16)(GV_combatants + i * 0x80 + 0x14)) == 1) {
+                if (sscanf(q, "%d,%d,%d", &i, &dx, &dy) == 3 && i >= 0 && i < 13 && g_rb(CBF(i, CB_STATUS)) == 1) {
                     u16 c = (u16)(GV_combatants + i * 0x80);
                     g_ww((u16)(c + 4), (u16)(x0 + dx)); g_ww((u16)(c + 6), (u16)(y0 + dy)); g_ww((u16)(c + 8), (u16)(x0 + dx)); g_ww((u16)(c + 0x0a), (u16)(y0 + dy));
                     g_wb((u16)(GV_cbt_moving + i), 0);
@@ -284,7 +284,7 @@ int testcmd_run(const char *cmd, const char *arg)
                 const struct Option *o = options_find(k); if (o) { option_set(o, v); fprintf(stderr, "option %s = %d\n", k, v); } else fprintf(stderr, "option %s: none\n", k); }
         }
         else if (!strcmp(cmd, "uremove")) {            /* test (in battle): combatant i taken off the field (as fallen, without the fall) */
-            int i = atoi(arg); if (i >= 0 && i < 13) { g_wb((u16)(GV_combatants + i * 0x80 + 0x14), 0); fprintf(stderr, "arena: %d removed\n", i); }
+            int i = atoi(arg); if (i >= 0 && i < 13) { g_wb(CBF(i, CB_STATUS), 0); fprintf(stderr, "arena: %d removed\n", i); }
         }
         else if (!strcmp(cmd, "uarenalog")) { extern int arena_log_every; arena_log_every = atoi(arg); }   /* test: the combatants' state every N ticks (orders.c melee_hook) */
         else if (!strcmp(cmd, "uhit")) {                /* test (in battle): hit_damage(a, t, r, loc), s014 18bf:0778 */
@@ -371,7 +371,7 @@ int testcmd_run(const char *cmd, const char *arg)
                 fprintf(stderr, "\n");
             }
             fprintf(stderr, "combatants:");
-            for (int i = 5; i < 13; i++) fprintf(stderr, " %d:st%d,fl%d", i, g_rb((u16)(GV_combatants + 0x80 * i + 0x14)), (s8)g_rb((u16)(GV_cbt_floor + i)));
+            for (int i = 5; i < 13; i++) fprintf(stderr, " %d:st%d,fl%d", i, g_rb(CBF(i, CB_STATUS)), (s8)g_rb((u16)(GV_cbt_floor + i)));
             fprintf(stderr, " shown floor %d real %d\n", (s8)g_rb(GV_floor_shown), g_rb(GV_real_combat));
         }
         else if (!strcmp(cmd, "ucg")) {                 /* test: character creation: the professions, and the ones offered now */
@@ -442,7 +442,7 @@ int testcmd_run(const char *cmd, const char *arg)
             fprintf(stderr, "cbt target %d\n", (s16)g_rw(0xd845));
             for (int i = 0; i < 13; i++) { u16 b = (u16)(0x9c55 + i * 0x80); char n[26]; g_str(G_DGROUP, (u16)(b + 0x25), n, sizeof n);
                 fprintf(stderr, "  %d st %d %s end %d/%d str %d/%d w %d c23 %d c51 %d c4b %d rec3d %d rec0e %d rec37 %d atk %d def %d xy %d,%d order %#x target %d act %d moving %d to %d,%d q %d (%d/%d) arm %02x\n", i, g_rb((u16)(b + 0x14)), n, (s8)g_rb((u16)(b + 0x5d)), (s8)g_rb((u16)(b + 0x64)),
-                        (s8)g_rb((u16)(b + 0x5e)), (s8)g_rb((u16)(b + 0x65)), (s8)g_rb((u16)(b + 0x22)), (s8)g_rb((u16)(b + 0x23)), (s8)g_rb((u16)(b + 0x51)), (s8)g_rb((u16)(b + 0x4b)), (s8)g_rb((u16)(G_MEMBER(i) + 0x3d)), (s8)g_rb((u16)(G_MEMBER(i) + 0x0e)), (s8)g_rb((u16)(G_MEMBER(i) + 0x37)), g_rb((u16)(b + 0x21)), g_rb((u16)(b + 0x20)), (s16)g_rw((u16)(b + 4)), (s16)g_rw((u16)(b + 6)),
+                        (s8)g_rb((u16)(b + 0x5e)), (s8)g_rb((u16)(b + 0x65)), (s8)g_rb((u16)(b + 0x22)), (s8)g_rb((u16)(b + 0x23)), (s8)g_rb((u16)(b + 0x51)), (s8)g_rb((u16)(b + 0x4b)), (s8)g_rb((u16)(G_MEMBER(i) + G_M_MELEE)), (s8)g_rb((u16)(G_MEMBER(i) + G_M_MISSILE)), (s8)g_rb((u16)(G_MEMBER(i) + G_M_ARMOR_BODY)), g_rb((u16)(b + 0x21)), g_rb((u16)(b + 0x20)), (s16)g_rw((u16)(b + 4)), (s16)g_rw((u16)(b + 6)),
                         g_rw((u16)(b + 0x10)), (s8)g_rb((u16)(b + 0x4a)), g_rb((u16)(GV_cbt_action + i)), g_rb((u16)(GV_cbt_moving + i)), (s16)g_rw((u16)(b + 8)), (s16)g_rw((u16)(b + 10)),
                         (s8)g_rb((u16)(b + 0x0d)), (s8)g_rb((u16)(b + 0x58)), (s8)g_rb((u16)(b + 0x5a)), g_rb((u16)(b + 0x55))); }
         }
@@ -472,6 +472,9 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "umark")) { u32 plat_ticks_ms(void); fprintf(stderr, "mark %s %u\n", arg, plat_ticks_ms()); }   /* test: a line in the log at this moment (with the time), to find a test's steps in it */
         else if (!strcmp(cmd, "uwhere")) { void journal_test_where(int); journal_test_where(atoi(arg)); }   /* test: where item N is sold, days to some towns */
         else if (!strcmp(cmd, "usabbat")) { void quests_test_learn(int); quests_test_learn(atoi(arg)); }   /* test: as if a card told of the next Sabbat (1 place, 2 night) */
+        else if (!strcmp(cmd, "ucityplaces")) { void citynav_check_places(void); citynav_check_places(); }   /* test: every place card's option lists through Go to's way out */
+        else if (!strcmp(cmd, "ugotoplaces")) { void citynav_test_places(void); citynav_test_places(); }   /* test: the places of this town (Go to's list) */
+        else if (!strcmp(cmd, "ulivecard")) { void citynav_test_live(void); citynav_test_live(); }   /* test: the card's text as loaded against MSGFILES */
         else if (!strcmp(cmd, "ucitylines")) { void citynav_check_lines(void); citynav_check_lines(); }   /* test: every hub card line through the Go to rules; unmatched ones logged */
         else if (!strcmp(cmd, "ugoto")) { void citynav_go(int); citynav_go(atoi(arg)); }   /* test: Go to place N in the city */
         else if (!strcmp(cmd, "uhelp")) { void ui_toggle_help(void); ui_toggle_help(); }
@@ -510,7 +513,7 @@ void arena_tick(void)
     for (int i = 0; i < 13; i++) {
         u16 c = (u16)(GV_combatants + i * 0x80);
         if (g_rb((u16)(c + 0x14)) != 1) continue;
-        int beside = 0; for (int j = 0; j < 13; j++) if (j != i && (i < 5) != (j < 5) && g_rb((u16)(GV_combatants + j * 0x80 + 0x14)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j))) beside++;
+        int beside = 0; for (int j = 0; j < 13; j++) if (j != i && (i < 5) != (j < 5) && g_rb(CBF(j, CB_STATUS)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j))) beside++;
         fprintf(stderr, " |%d:%d,%d o%x t%d a%d s%d m%d w%d e%d b%d", i, (s16)g_rw((u16)(c + 4)), (s16)g_rw((u16)(c + 6)), g_rw((u16)(c + 0x10)), (s8)g_rb((u16)(c + 0x4a)),
                 g_rb((u16)(GV_cbt_action + i)), i < 5 ? g_rb((u16)(GV_cbt_state + i)) : 0, g_rb((u16)(GV_cbt_moving + i)), (s8)g_rb((u16)(c + 0x22)), (s8)g_rb((u16)(c + 0x5d)), beside);
     }

@@ -109,6 +109,32 @@ extern "C" int citynav_card_block_has(const char *card, int block, const char *w
     return it->second[block].find(word) != std::string::npos;
 }
 
+/* the text blocks of the card on show, as the game loaded them (msg_file, DGROUP a895, by msg_load:
+   the .msg as in MSGFILES - the mods' and the restored cards' too, which MSGFILES on disk may not
+   hold); empty when none is loaded */
+static std::vector<std::string> live_blocks(void)
+{
+    std::vector<std::string> blocks;
+    const u16 MSG = 0xa895, MAXLEN = 6000;
+    unsigned nb = g_rb(MSG), pos = 1;
+    if (nb == 0 || nb > 64) return blocks;
+    for (unsigned b = 0; b < nb && pos + 5 < MAXLEN; b++) {
+        pos += 5;
+        std::string t;
+        while (pos < MAXLEN) { char c = (char)g_rb((u16)(MSG + pos)); pos++; if (!c) break; t += c; }
+        blocks.push_back(t);
+    }
+    return blocks;
+}
+extern "C" void citynav_test_live(void)                    /* (test ulivecard: the loaded card against MSGFILES) */
+{
+    if (!cards_loaded) load_cards();
+    char n[13]; g_str(G_DGROUP, 0xe3d4, n, sizeof n); std::string k(n); for (char &c : k) c = (char)toupper((unsigned char)c);
+    std::vector<std::string> lb = live_blocks(); auto it = cards.find(k);
+    fprintf(stderr, "livecard %s: %d blocks in memory, %d in MSGFILES, %s\n", k.c_str(), (int)lb.size(), it == cards.end() ? -1 : (int)it->second.size(),
+            it != cards.end() && it->second == lb ? "the same" : "different");
+}
+
 static std::string card_now(void)
 {
     char n[13]; g_str(G_DGROUP, 0xe3d4, n, sizeof n);
@@ -217,6 +243,12 @@ static const Rule RULES[] = {
     { H_SQUARE, "$councilhall", D_TOWNHALL }, { H_SQUARE, "prison", D_PRISON }, { H_SQUARE, "$citybarracks", D_BARRACKS },
     { H_SQUARE, "$university", D_UNIVERSITY }, { H_SQUARE, "spires", 100 + H_CHURCHES }, { H_SQUARE, "$marketplace", 100 + H_MARKET },
     { H_SQUARE, "main street", 100 + H_MAIN }, { H_SQUARE, "side street", 100 + H_SIDE },
+    /* lines that lead nowhere Go to goes (-2: known, not a way): a quest's own house, the night
+       market's ways upstairs (stopped there with what to do), placeholders the game hides */
+    { H_MARKET, "upstairs", -2 }, { H_MARKET, "avoiding them", -2 }, { H_MARKET, "attack the guards", -2 },
+    { H_ARMS, "specific", -2 }, { H_SIDE, "specific", -2 }, { H_SIDE, "other locations you remember", -2 },
+    { H_SIDE, "connecting to important districts", -2 }, { H_SIDE, "$poorhouse", -2 }, { H_SIDE, "to be determined", -2 },
+    { H_ARMS, "not used", -2 }, { H_CIVIL, "not used", -2 },
 };
 /* a hub that is itself a place to go to (the square: its notices and gossip) */
 static const int HUB_PLACE[H_N] = { -1, -1, -1, -1, -1, -1, -1, D_SQUARE };
@@ -233,6 +265,16 @@ static int rule_for(int hub, const std::string &text)
     for (const Rule &r : RULES) if (r.hub == hub && text.find(r.key) != std::string::npos) return r.to;
     return -1;
 }
+/* a line that is no way at all: empty, a number or an "x" the game puts for an option it never
+   shows (the card files' placeholders) */
+static bool placeholder_line(const std::string &t)
+{
+    size_t k = 0; while (k < t.size() && (t[k] == ' ' || t[k] == '.')) k++;
+    std::string u = t.substr(k); while (!u.empty() && (u.back() == ' ' || u.back() == '.')) u.pop_back();
+    if (u.empty() || u == "x") return true;
+    for (char c : u) if (c < '0' || c > '9') return false;
+    return true;
+}
 
 /* test (ucitylines): every option line of every hub card, every text block, through rule_for;
    the lines no rule takes are logged, with a count at the end */
@@ -246,11 +288,41 @@ extern "C" void citynav_check_lines(void)
             std::vector<std::string> o = block_options(c.second[b]);
             for (size_t i = 0; i < o.size(); i++) {
                 n++;
-                if (rule_for(hub, o[i]) < 0) { bad++; fprintf(stderr, "citylines: %s/%d/%d unmatched: %s\n", c.first.c_str(), (int)b, (int)i, o[i].c_str()); }
+                if (rule_for(hub, o[i]) == -1 && !placeholder_line(o[i])) { bad++; fprintf(stderr, "citylines: %s/%d/%d unmatched: %s\n", c.first.c_str(), (int)b, (int)i, o[i].c_str()); }
             }
         }
     }
     fprintf(stderr, "citylines: %d lines, %d unmatched\n", n, bad);
+}
+static int choose_leave(const std::vector<std::string> &line);
+/* test (ucityplaces): every option list of every card that is not a hub, through choose_leave - the
+   way out that Go to takes from a place; a card some of whose lists have a way out and others none
+   (a place where the walk could be stuck) is logged with those lists */
+extern "C" void citynav_check_places(void)
+{
+    if (!cards_loaded) load_cards();
+    int ncards = 0, partial = 0;
+    for (auto &c : cards) {
+        if (hub_of(c.first) != H_NONE) continue;
+        std::vector<int> out, none;
+        for (size_t b = 0; b < c.second.size(); b++) {
+            std::vector<std::string> o = block_options(c.second[b]);
+            if (o.empty()) continue;
+            bool ph = true; for (auto &x : o) if (!placeholder_line(x)) ph = false;
+            if (ph) continue;
+            (choose_leave(o) >= 0 ? out : none).push_back((int)b);
+        }
+        if (out.empty()) continue;                        /* (no way out anywhere: not a place of the streets) */
+        ncards++;
+        if (none.empty()) continue;
+        partial++;
+        for (int b : none) {
+            std::vector<std::string> o = block_options(c.second[b]);
+            std::string all; for (auto &x : o) all += " | " + x.substr(0, 60);
+            fprintf(stderr, "cityplaces: %s/%d no way out:%s\n", c.first.c_str(), b, all.c_str());
+        }
+    }
+    fprintf(stderr, "cityplaces: %d cards with a way out, %d with lists that have none\n", ncards, partial);
 }
 
 /* steps from each hub to a place, through the hubs (side streets cost more: more encounters) */
@@ -364,6 +436,9 @@ static int choose_leave(const std::vector<std::string> &line)
             && line[i].find("alley") == std::string::npos) return (int)i;
     for (size_t i = 0; i < line.size(); i++)                 /* the only way out may be a side street (the slums) or a step back */
         if (line[i].find("leave") != std::string::npos || line[i].find("fall back") != std::string::npos || line[i].find("reconsider") != std::string::npos) return (int)i;
+    /* a polite way out of a place's second list (every place card's every list is checked: ucityplaces) */
+    static const char *const BACK[] = { "think better of it", "apologizes for disturbing", "not to get involved", "come back in the morning", "go on." };
+    for (const char *b : BACK) for (size_t i = 0; i < line.size(); i++) if (line[i].find(b) != std::string::npos) return (int)i;
     return -1;
 }
 
@@ -402,9 +477,10 @@ static void leaving_tick(void)
     if (g_rb(GV_card_box_shown)) return;
     std::string card = card_now();
     int blk = (s16)g_rw(GV_options_block);
-    auto it = cards.find(card);
-    if (it == cards.end() || blk < 0 || blk >= (int)it->second.size()) return;
-    std::vector<std::string> opts = block_options(it->second[blk]);
+    std::vector<std::string> blocks = live_blocks();
+    if (blocks.empty()) { auto it = cards.find(card); if (it != cards.end()) blocks = it->second; }
+    if (blk < 0 || blk >= (int)blocks.size()) return;
+    std::vector<std::string> opts = block_options(blocks[blk]);
     int n = (s8)g_rb(GV_card_layout);
     if (n <= 0 || n > 20) return;
     for (int i = 0; i < n; i++) {
@@ -449,12 +525,15 @@ extern "C" void citynav_tick(void)
     }
     if (now - phase_t < 120) return;                       /* the option list fading in (at once while walking) */
     if (kb == last_key) { if (++same_count > 3) { stop("the way is blocked."); return; } } else { last_key = kb; same_count = 0; }
-    auto it = cards.find(card);
-    if (it == cards.end() || blk < 0 || blk >= (int)it->second.size()) {
-        LOG("%s: %s (%d cards known)\n", kb, it == cards.end() ? "a card not among the game's" : "its option block not in the card", (int)cards.size());
+    /* the card's text as the game loaded it (a mod's card, a restored one, the game's own: what is on
+       show), else as MSGFILES has it */
+    std::vector<std::string> blocks = live_blocks();
+    if (blocks.empty()) { auto it = cards.find(card); if (it != cards.end()) blocks = it->second; }
+    if (blk < 0 || blk >= (int)blocks.size()) {
+        LOG("%s: its option block %d not among the card's %d\n", kb, blk, (int)blocks.size());
         stop("cannot find the way from this card."); return;
     }
-    std::vector<std::string> opts = block_options(it->second[blk]);
+    std::vector<std::string> opts = block_options(blocks[blk]);
     int n = (s8)g_rb(GV_card_layout);
     if (n <= 0 || n > 20) return;
     if (g_rb(GV_card_box_shown)) return;                              /* a skill-check box is up */
@@ -465,14 +544,14 @@ extern "C" void citynav_tick(void)
            that has them */
         bool none = true; for (const std::string &l : line) if (!l.empty()) none = false;
         if (none)
-            for (size_t b = 0; b < it->second.size(); b++) {
-                std::vector<std::string> o2 = block_options(it->second[b]);
+            for (size_t b = 0; b < blocks.size(); b++) {
+                std::vector<std::string> o2 = block_options(blocks[b]);
                 std::vector<std::string> l2(n); bool ok = true;
                 for (int i = 0; i < n; i++) { int o = (s8)g_rb((u16)(GV_card_layout_opt + i)); if (o < 0 || o >= (int)o2.size() || o2[o].empty()) { ok = false; break; } l2[i] = o2[o]; }
                 if (ok) { LOG("block %d has no options for these lines: block %d's taken\n", blk, (int)b); line = l2; break; }
             }
     }
-    { LOG("%s hub %d visited %x, line %d of %d:\n", kb, hub, visited, (int)g_rb(GV_card_layout_opt), (int)it->second.size()); for (int i = 0; i < n; i++) LOG("  %d: %s -> %d\n", i, line[i].c_str(), hub >= 0 ? rule_for(hub, line[i]) : -1); }
+    { LOG("%s hub %d visited %x, line %d of %d:\n", kb, hub, visited, (int)g_rb(GV_card_layout_opt), (int)blocks.size()); for (int i = 0; i < n; i++) LOG("  %d: %s -> %d\n", i, line[i].c_str(), hub >= 0 ? rule_for(hub, line[i]) : -1); }
     if (card == "$INSID00" && blk == 0) {                   /* the offices above the marketplace by night: the one wanted, else out by the window */
         static const struct { int d; const char *key; } OFF[] = { { D_MERCHANT, "leading merchant" }, { D_FUGGER, "fugger" }, { D_MEDICI, "medici" }, { D_HANSE, "hanseatic" } };
         for (auto &o : OFF) if (o.d == goal) for (int i = 0; i < n; i++) if (line[i].find(o.key) != std::string::npos) { click_line(i); goal = -1; return; }
@@ -611,6 +690,12 @@ static bool present_at(int d, int cur)
     return true;
 }
 static bool present(int d) { return present_at(d, (s16)g_rw(G_CUR_LOC)); }
+extern "C" void citynav_test_places(void)                  /* (test ugotoplaces: the places of this town, as Go to's list greys them) */
+{
+    fprintf(stderr, "gotoplaces:");
+    for (int d = 0; d < D_N; d++) if (present(d)) fprintf(stderr, " %d", d);
+    fprintf(stderr, "\n");
+}
 /* the marketplace by night ($Marke01, is_daylight: 5:00 to 18:59) offers no stall or office, only a
    sneak upstairs: the places reached through it are shut until 5:00 */
 static bool is_night(void) { int h = (s16)g_rw(GV_cur_hour); return h >= 19 || h < 5; }

@@ -62,7 +62,7 @@ std::string ui_enemy_name(int floor, u16 b)
         }
     }
     fclose(f);
-    int endm = (s8)g_rb((u16)(b + 0x64)), strm = (s8)g_rb((u16)(b + 0x65)), def = g_rb((u16)(b + 0x20)), atk = g_rb((u16)(b + 0x21));
+    int endm = (s8)g_rb((u16)(b + CB_END_MAX)), strm = (s8)g_rb((u16)(b + CB_STR_MAX)), def = g_rb((u16)(b + CB_MELEE_RATING)), atk = g_rb((u16)(b + CB_AIM));
     for (const EnmRec &e : recs[floor]) if (e.endm == endm && e.strm == strm && e.def == def && e.atk == atk) return e.name;
     for (const EnmRec &e : recs[floor]) if (e.endm == endm && e.strm == strm) return e.name;
     return "";
@@ -123,8 +123,8 @@ static void draw_aim(ImDrawList *dl)
     if (!mode) return;
     LosBox bx[24];
     int n = los_trace(i, m, mode, bx, 24);
-    float x0 = (s16)g_rw((u16)(GV_combatants + i * 0x80 + 4)), y0 = (s16)g_rw((u16)(GV_combatants + i * 0x80 + 6));
-    float x1 = (s16)g_rw((u16)(GV_combatants + m * 0x80 + 4)), y1 = (s16)g_rw((u16)(GV_combatants + m * 0x80 + 6));
+    float x0 = (s16)g_rw(CBF(i, CB_X)), y0 = (s16)g_rw(CBF(i, CB_Y));
+    float x1 = (s16)g_rw(CBF(m, CB_X)), y1 = (s16)g_rw(CBF(m, CB_Y));
     float k = g2w(0, 1).y - g2w(0, 0).y, lw = fmaxf(1.5f, 0.55f * k);
     const ImU32 RED = IM_COL32(235, 60, 40, 255), RED_F = IM_COL32(235, 60, 40, 90), CLEAR = IM_COL32(250, 214, 110, 230), EDGE = IM_COL32(20, 10, 4, 170);
     float t = 1;
@@ -181,7 +181,7 @@ void ui_draw_battle_bars(void)
         if (m >= 13 || done[m]) continue;
         done[m] = true;
         u16 b = (u16)(GV_combatants + m * 0x80);
-        int st = g_rb((u16)(b + 0x14)), end = (s8)g_rb((u16)(b + 0x5d)), endm = (s8)g_rb((u16)(b + 0x64));
+        int st = g_rb((u16)(b + CB_STATUS)), end = (s8)g_rb((u16)(b + CB_END)), endm = (s8)g_rb((u16)(b + CB_END_MAX));
         if (st != 1 || endm <= 0) continue;
         int x0 = (s16)g_rw((u16)(0xd8f1 + 2 * i)), x1 = (s16)g_rw((u16)(0xd8d7 + 2 * i)), y0 = (s16)g_rw((u16)(0xd8bd + 2 * i));
         if (x1 <= x0 || x1 - x0 > 60) continue;
@@ -274,7 +274,7 @@ static void foe_arrow(void)
     if (!config_get_int("battle.foe_arrow", 1) || !g_rb(GV_real_combat)) return;
     int fl = (s8)g_rb(GV_floor_shown), n = (s8)g_rb(GV_hotspot_count);
     if (n < 0 || n > 40) return;
-    for (int k = 0; k < n; k++) { int c = g_rb((u16)(GV_hotspot_cbt + k)); if (c >= 5 && c < 13 && g_rb((u16)(GV_combatants + 0x80 * c + 0x14)) == 1) { if (getenv("DL_ARROW_LOG")) fprintf(stderr, "arrow: %d in sight (of %d spots)\n", c, n); return; } }   /* (one in sight) */
+    for (int k = 0; k < n; k++) { int c = g_rb((u16)(GV_hotspot_cbt + k)); if (c >= 5 && c < 13 && g_rb(CBF(c, CB_STATUS)) == 1) { if (getenv("DL_ARROW_LOG")) fprintf(stderr, "arrow: %d in sight (of %d spots)\n", c, n); return; } }   /* (one in sight) */
     float vx = 0, vy = 0; int nv = 0;
     int ox = (s8)g_rb(0xc866), oy = (s8)g_rb(0xc886);
     for (int k = 0; k < 140; k++) { vx += ox + (s8)g_rb((u16)(0x1fc6 + k)) + 0.5f; vy += oy + (s8)g_rb((u16)(0x2052 + k)) + 0.5f; nv++; }
@@ -282,8 +282,8 @@ static void foe_arrow(void)
     int best = -1; float bd = 1e9f, bdx = 0, bdy = 0;
     for (int c = 5; c < 13; c++) {
         u16 b = (u16)(GV_combatants + 0x80 * c);
-        if (g_rb((u16)(b + 0x14)) != 1 || (s8)g_rb((u16)(GV_cbt_floor + c)) != fl) continue;
-        float X = (s16)g_rw((u16)(b + 4)) / 32.0f - vx, Y = (s16)g_rw((u16)(b + 6)) / 16.0f - vy;
+        if (g_rb((u16)(b + CB_STATUS)) != 1 || (s8)g_rb((u16)(GV_cbt_floor + c)) != fl) continue;
+        float X = (s16)g_rw((u16)(b + CB_X)) / 32.0f - vx, Y = (s16)g_rw((u16)(b + CB_Y)) / 16.0f - vy;
         float d = X * X + Y * Y;
         if (d < bd) { bd = d; best = c; bdx = X * 1.0f + Y * -0.5f; bdy = Y * 0.6f; }
     }
@@ -330,7 +330,7 @@ void ui_draw_battle_info(void)
         int x0 = (s16)g_rw((u16)(0xd8f1 + 2 * k)), x1 = (s16)g_rw((u16)(0xd8d7 + 2 * k)), y0 = (s16)g_rw((u16)(0xd8bd + 2 * k)), y1 = (s16)g_rw((u16)(0xd8a3 + 2 * k));
         int m = g_rb((u16)(GV_hotspot_cbt + k));
         if (m >= 13 || mx < x0 || mx > x1 || my < y0 || my > y1) continue;
-        int cyy = (s16)g_rw((u16)(GV_combatants + m * 0x80 + 6));
+        int cyy = (s16)g_rw(CBF(m, CB_Y));
         if (cyy > by) { by = cyy; best = m; }
     }
     if (best < 0) {
@@ -346,12 +346,12 @@ void ui_draw_battle_info(void)
         return;
     }
     u16 b = (u16)(0x9c55 + best * 0x80);
-    int st = g_rb((u16)(b + 0x14)), end = (s8)g_rb((u16)(b + 0x5d)), endm = (s8)g_rb((u16)(b + 0x64)), str = (s8)g_rb((u16)(b + 0x5e)), strm = (s8)g_rb((u16)(b + 0x65));
+    int st = g_rb((u16)(b + CB_STATUS)), end = (s8)g_rb((u16)(b + CB_END)), endm = (s8)g_rb((u16)(b + CB_END_MAX)), str = (s8)g_rb((u16)(b + CB_STR)), strm = (s8)g_rb((u16)(b + CB_STR_MAX));
     /* +0x22 the missile weapon's type (0xff none), +0x51 the melee weapon's (as the member record's +0x3d) */
-    int atk = g_rb((u16)(b + 0x21)), def = g_rb((u16)(b + 0x20)), wm = (s8)g_rb((u16)(b + 0x22)), w = (s8)g_rb((u16)(b + 0x51));
+    int atk = g_rb((u16)(b + CB_AIM)), def = g_rb((u16)(b + CB_MELEE_RATING)), wm = (s8)g_rb((u16)(b + CB_MISSILE)), w = (s8)g_rb((u16)(b + CB_MELEE));
     const bool human = enemyview_human(best);
     std::string name;
-    if (best < 5) { char nm[26]; g_str(G_DGROUP, (u16)(b + 0x25), nm, sizeof nm); name = game_text(nm, sizeof nm); }
+    if (best < 5) { char nm[26]; g_str(G_DGROUP, (u16)(b + CB_NAME), nm, sizeof nm); name = game_text(nm, sizeof nm); }
     else name = enemy_name(g_rb((u16)(GV_cbt_floor + best)), b);
     if (name.empty()) name = best < 5 ? "?" : "Enemy";
     const char *cond = st == 3 ? "dead" : st == 2 ? "unconscious" : endm <= 0 ? "" : end * 4 <= endm ? "badly hurt" : end * 2 <= endm ? "hurt" : end < endm ? "a little hurt" : "unhurt";
@@ -381,7 +381,7 @@ void ui_draw_battle_info(void)
             /* its body armour against the party's weapons (the game's rule, as in the armour
                tooltips: penetration below the hardness deflects most of the blow, equal halves it,
                above pierces and wounds strength) */
-            int at = g_rb((u16)(b + 0x4b)), h = at == 0xff ? 0 : rb(G_FAR20A5, (u16)(0x781e + at));
+            int at = g_rb((u16)(b + CB_BODY_ARMOR)), h = at == 0xff ? 0 : rb(G_FAR20A5, (u16)(0x781e + at));
             static const char *HN[6] = { "no armor", "soft armor", "stiff armor", "scale armor", "mail", "plate" };
             if (h >= 0 && h < 6) {
                 if (human) ImGui::Text("%s (hardness %d)", HN[h], h);
@@ -390,7 +390,7 @@ void ui_draw_battle_info(void)
                 int size = (s16)g_rw(G_PARTY_SIZE); if (size < 0 || size > 5) size = 0;
                 for (int m = 0; m < size; m++) {
                     u16 mb = (u16)(0x9c55 + m * 0x80);
-                    if (g_rb((u16)(mb + 0x14)) != 1) continue;
+                    if (g_rb((u16)(mb + CB_STATUS)) != 1) continue;
                     char nm[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), nm, sizeof nm);
                     /* each weapon in its own colour: green pierces, amber does half damage, red is mostly deflected */
                     std::vector<std::pair<std::string, ImVec4>> seg;

@@ -95,13 +95,13 @@ static int ncoll;
 static int collide_game(int x, int y, int others)
 {
     u16 c = CBT(self_i);
-    u16 sx = g_rw((u16)(c + 4)), sy = g_rw((u16)(c + 6));
+    u16 sx = g_rw((u16)(c + CB_X)), sy = g_rw((u16)(c + CB_Y));
     u8 s_c600 = g_rb(0xc600);
-    g_ww((u16)(c + 4), (u16)x); g_ww((u16)(c + 6), (u16)y);
+    g_ww((u16)(c + CB_X), (u16)x); g_ww((u16)(c + CB_Y), (u16)y);
     if (!others) g_wb(0xc600, 1);
     u16 arg = c;
     int r = (s16)game_call_native(f_collide, 1, &arg);
-    g_ww((u16)(c + 4), sx); g_ww((u16)(c + 6), sy); g_wb(0xc600, s_c600);
+    g_ww((u16)(c + CB_X), sx); g_ww((u16)(c + CB_Y), sy); g_wb(0xc600, s_c600);
     return r;
 }
 
@@ -125,9 +125,9 @@ static void others_setup(void)           /* who blocks, by the current D_d697 / 
     ob_n = 0;
     for (int i = 0; i < 13; i++) {
         u16 c = CBT(i);
-        if (i == self_k || g_rb((u16)(c + 0x14)) != 1 || g_rb((u16)(GV_cbt_floor + i)) != fl) continue;
+        if (i == self_k || g_rb((u16)(c + CB_STATUS)) != 1 || g_rb((u16)(GV_cbt_floor + i)) != fl) continue;
         if (d697 && d6cd != i && g_rb((u16)(GV_cbt_moving + i)) && !(also_block >> i & 1)) continue;
-        ob[ob_n].x = (s16)g_rw((u16)(c + 4)); ob[ob_n].y = (s16)g_rw((u16)(c + 6));
+        ob[ob_n].x = (s16)g_rw((u16)(c + CB_X)); ob[ob_n].y = (s16)g_rw((u16)(c + CB_Y));
         ob[ob_n].w = (s8)g_rb((u16)(GV_cbt_half_w + i)); ob[ob_n].h = (s8)g_rb((u16)(GV_cbt_half_h + i));
         ob[ob_n].bit = (s16)g_rw((u16)(0x01e4 + 2 * i));                   /* D_01e4[i]: 1 << i */
         ob_n++;
@@ -380,9 +380,9 @@ static void path_find_hook(void)
     { static int done; const char *e = getenv("DL_PATH_SWEEP"); if (!e) e = getenv("DL_PATH_SWEEP_FAR"); if (e && !done && i < 5) { done = 1; sweep(i, atoi(e)); } }
     if (i < 0 || i >= 13 || !(i < 5 ? pathfix_party : pathfix_enemies) || !f_collide || !f_set) { hook_call_original(); return; }
     u16 c = CBT(i);
-    int x = (s16)g_rw((u16)(c + 4)), y = (s16)g_rw((u16)(c + 6));
-    int tx = (s16)g_rw((u16)(c + 8)), ty = (s16)g_rw((u16)(c + 0x0a));
-    int target = (s8)g_rb((u16)(c + 0x4a));
+    int x = (s16)g_rw((u16)(c + CB_X)), y = (s16)g_rw((u16)(c + CB_Y));
+    int tx = (s16)g_rw((u16)(c + CB_TO_X)), ty = (s16)g_rw((u16)(c + CB_TO_Y));
+    int target = (s8)g_rb((u16)(c + CB_TARGET));
     if (target >= 13) target = -1;
     if (target >= 0 && g_rb((u16)(GV_cbt_floor + target)) != g_rb((u16)(GV_cbt_floor + i))) { hook_call_original(); return; }
 
@@ -500,10 +500,10 @@ static void crowd_step_hook(void)        /* cbt_step (i, set), s014 0e76:1624 (a
     if (!crowd_on(i)) { hook_call_original(); return; }
     u16 c = CBT(i);
     u8 next = g_rb((u16)(D_NEXTSTEP + i));
-    u16 x = g_rw((u16)(c + 4)), y = g_rw((u16)(c + 6));
+    u16 x = g_rw((u16)(c + CB_X)), y = g_rw((u16)(c + CB_Y));
     hook_call_original();
     if (ns_unwinding || next == 0xff || g_rb((u16)(D_NEXTSTEP + i)) != 0xff || !g_rb((u16)(GV_cbt_moving + i))) return;
-    if (g_rw((u16)(c + 4)) != x || g_rw((u16)(c + 6)) != y || !g_rw((u16)(D_BLOCKER + 2 * i))) return;
+    if (g_rw((u16)(c + CB_X)) != x || g_rw((u16)(c + CB_Y)) != y || !g_rw((u16)(D_BLOCKER + 2 * i))) return;
     u16 due = (u16)(g_rw(GV_combat_clock) + 12 + rand() % 13);   /* blocked by somebody: ask again soon */
     if (g_rw((u16)(D_REPLAN + 2 * i)) > due) g_ww((u16)(D_REPLAN + 2 * i), due);
 }
@@ -512,10 +512,10 @@ static void crowd_approach_hook(void)    /* the approach (i), s014 0e76:2cca: ev
     int i = (s16)rw(SS, (u16)(SP + 4));
     if (!crowd_on(i)) { hook_call_original(); return; }
     u16 c = CBT(i), now = g_rw(GV_combat_clock);
-    int t = (s8)g_rb((u16)(c + 0x4a));
-    if (t >= 0 && t < 13 && g_rb((u16)(CBT(t) + 0x14)) == 1 && g_rb((u16)(GV_cbt_floor + t)) == g_rb((u16)(GV_cbt_floor + i))
+    int t = (s8)g_rb((u16)(c + CB_TARGET));
+    if (t >= 0 && t < 13 && g_rb(CBF(t, CB_STATUS)) == 1 && g_rb((u16)(GV_cbt_floor + t)) == g_rb((u16)(GV_cbt_floor + i))
         && (u16)(now - plan_clock[i]) >= 30 && g_rw((u16)(D_REPLAN + 2 * i)) > now
-        && (abs((s16)g_rw((u16)(CBT(t) + 4)) - (s16)g_rw((u16)(c + 8))) > 12 || abs((s16)g_rw((u16)(CBT(t) + 6)) - (s16)g_rw((u16)(c + 0xa))) > 8))
+        && (abs((s16)g_rw(CBF(t, CB_X)) - (s16)g_rw((u16)(c + CB_TO_X))) > 12 || abs((s16)g_rw(CBF(t, CB_Y)) - (s16)g_rw((u16)(c + CB_TO_Y))) > 8))
         g_ww((u16)(D_REPLAN + 2 * i), now);               /* the foe has moved on: a new route now */
     u8 n0 = plan_count[i];
     hook_call_original();
@@ -545,7 +545,7 @@ static void trackers_hook(void)          /* path_trackers (rec), a copy of the c
     u16 rec = rw(SS, (u16)(SP + 4));
     int x = (s16)g_rw((u16)(rec + 4)), y = (s16)g_rw((u16)(rec + 6)), tx = (s16)g_rw((u16)(rec + 8)), ty = (s16)g_rw((u16)(rec + 0xa));
     int target = (s8)g_rb((u16)(rec + 0x4a));
-    if (target < 0 || target >= 13 || x != (s16)g_rw((u16)(CBT(i) + 4)) || y != (s16)g_rw((u16)(CBT(i) + 6))) { hook_call_original(); return; }
+    if (target < 0 || target >= 13 || x != (s16)g_rw(CBF(i, CB_X)) || y != (s16)g_rw(CBF(i, CB_Y))) { hook_call_original(); return; }
     load_steps(i);
     u8 s_e0a2 = g_rb(GV_path_formation), s_e13c = g_rb(0xe13c), s_c600 = g_rb(0xc600), s_d6cd = g_rb(0xd6cd); u16 s_d708 = g_rw(0xd708);
     u8 s_e11c[32]; for (int k = 0; k < 32; k++) s_e11c[k] = g_rb((u16)(0xe11c + k));
@@ -576,8 +576,8 @@ static void trackers_hook(void)          /* path_trackers (rec), a copy of the c
 static void sweep(int i, int n)
 {
     u16 c = CBT(i);
-    int x = (s16)g_rw((u16)(c + 4)), y = (s16)g_rw((u16)(c + 6));
-    u16 stx = g_rw((u16)(c + 8)), sty = g_rw((u16)(c + 0x0a)); u8 star = g_rb((u16)(c + 0x4a));
+    int x = (s16)g_rw((u16)(c + CB_X)), y = (s16)g_rw((u16)(c + CB_Y));
+    u16 stx = g_rw((u16)(c + CB_TO_X)), sty = g_rw((u16)(c + CB_TO_Y)); u8 star = g_rb((u16)(c + CB_TARGET));
     int valid = 0, nat = 0, orig = 0, onlyn = 0, onlyo = 0; uint64_t tn = 0, to = 0;
     long steps_n = 0, steps_o = 0; int both = 0;
     load_steps(i);
@@ -601,7 +601,7 @@ static void sweep(int i, int n)
         int tx = far ? dlx[k * nd / n] : x + rand() % 800 - 400, ty = far ? dly[k * nd / n] : y + rand() % 400 - 200;
         int bucket = far ? (dld[k * nd / n] <= 5 ? 0 : dld[k * nd / n] <= 10 ? 1 : dld[k * nd / n] <= 20 ? 2 : 3) : 0;
         if (tx < 16 || tx > MAPW - 16 || ty < 16 || ty > MAPH - 16) continue;
-        g_ww((u16)(c + 8), (u16)tx); g_ww((u16)(c + 0x0a), (u16)ty); g_wb((u16)(c + 0x4a), 0xff);
+        g_ww((u16)(c + CB_TO_X), (u16)tx); g_ww((u16)(c + CB_TO_Y), (u16)ty); g_wb((u16)(c + CB_TARGET), 0xff);
         self_i = i; target_i = -1; bounded = 0;
         u8 s_e0a2 = g_rb(GV_path_formation), s_d697 = g_rb(GV_path_target_only);
         g_wb(GV_path_formation, 0); g_wb(GV_path_target_only, 1); g_wb(0xd6cd, 0xff);
@@ -628,7 +628,7 @@ static void sweep(int i, int n)
                                        x, y, tx, ty, unreach ? "cells unreachable" : "search gave up", e, lo);
         if (ln >= 0 && ro == 1) { both++; steps_n += ln; steps_o += lo; }
     }
-    g_ww((u16)(c + 8), stx); g_ww((u16)(c + 0x0a), sty); g_wb((u16)(c + 0x4a), star);
+    g_ww((u16)(c + CB_TO_X), stx); g_ww((u16)(c + CB_TO_Y), sty); g_wb((u16)(c + CB_TARGET), star);
     if (far) {
         static const char *BN[4] = { "1-5 cells", "6-10 cells", "11-20 cells", "over 20 cells" };
         for (int b = 0; b < 4; b++) if (bv[b]) fprintf(stderr, "pathfix sweep: %s away: %d destinations, new planner %d, original %d\n", BN[b], bv[b], bn[b], bo[b]);
@@ -729,10 +729,10 @@ static void tick_trace_hook(void)
     unsigned long long us = (unsigned long long)plat_ticks_us();
     for (int i = 0; i < 13; i++) {
         u16 c = CBT(i);
-        if (g_rb((u16)(c + 0x14)) != 1) continue;
-        fprintf(f, "T %u %d %d %d %d %d %d %d %d %d %d %llu %u %u %d\n", clk, i, (s16)g_rw((u16)(c + 4)), (s16)g_rw((u16)(c + 6)),
-                (s16)g_rw((u16)(c + 0x10)), g_rb((u16)(GV_cbt_moving + i)), (s8)g_rb((u16)(c + 0x4a)), (s8)g_rb((u16)(GV_cbt_action + i)),
-                (s8)g_rb((u16)(GV_cbt_anim + i)), (s16)g_rw((u16)(c + 8)), (s16)g_rw((u16)(c + 0x0a)), us,
+        if (g_rb((u16)(c + CB_STATUS)) != 1) continue;
+        fprintf(f, "T %u %d %d %d %d %d %d %d %d %d %d %llu %u %u %d\n", clk, i, (s16)g_rw((u16)(c + CB_X)), (s16)g_rw((u16)(c + CB_Y)),
+                (s16)g_rw((u16)(c + CB_ORDER)), g_rb((u16)(GV_cbt_moving + i)), (s8)g_rb((u16)(c + CB_TARGET)), (s8)g_rb((u16)(GV_cbt_action + i)),
+                (s8)g_rb((u16)(GV_cbt_anim + i)), (s16)g_rw((u16)(c + CB_TO_X)), (s16)g_rw((u16)(c + CB_TO_Y)), us,
                 g_rw((u16)(0xd5f6 + 2 * i)), g_rw((u16)(0xd97c + 2 * i)), g_rb((u16)(GV_cbt_path_step + i)));
     }
     fflush(f);
@@ -743,7 +743,7 @@ void pathfix_test_walk(int i, int x, int y)
 {
     if (i < 0 || i >= 13) return;
     u16 c = CBT(i);
-    g_ww((u16)(c + 8), (u16)x); g_ww((u16)(c + 0xa), (u16)y); g_wb((u16)(c + 0x4a), 0xff);
+    g_ww((u16)(c + CB_TO_X), (u16)x); g_ww((u16)(c + CB_TO_Y), (u16)y); g_wb((u16)(c + CB_TARGET), 0xff);
     int r = ns_call(GF_path_find, 1, i);
     if (ns_unwinding) return;
     if (r != 1) { fprintf(stderr, "walk: %d finds no way to %d,%d\n", i, x, y); return; }
@@ -752,10 +752,10 @@ void pathfix_test_walk(int i, int x, int y)
     ns_call(GF_path_give, 1, i);
     if (ns_unwinding) return;
     g_wb((u16)(GV_cbt_moving + i), 1);
-    g_ww((u16)(c + 0x10), 1);
+    g_ww((u16)(c + CB_ORDER), 1);
     g_wb((u16)(GV_cbt_path_step + i), 0);
     g_ww((u16)(D_REPLAN + 2 * i), (u16)(g_rw(GV_combat_clock) + 30));
-    fprintf(stderr, "walk: %d from %d,%d to %d,%d\n", i, (s16)g_rw((u16)(c + 4)), (s16)g_rw((u16)(c + 6)), x, y);
+    fprintf(stderr, "walk: %d from %d,%d to %d,%d\n", i, (s16)g_rw((u16)(c + CB_X)), (s16)g_rw((u16)(c + CB_Y)), x, y);
 }
 
 void pathfix_init(void)

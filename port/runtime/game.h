@@ -30,6 +30,34 @@ extern "C" {
 #define G_M_LOAD       0x35      /* weight of the equipped items (capacity END + STR) */
 #define G_M_SKILLS     0x57      /* 19 skills */
 #define G_M_NITEMS     0x6a      /* number of inventory records */
+#define G_M_MISSILE    0x0e      /* char: the missile weapon's type (-1 none) */
+#define G_M_ARMOR_BODY 0x37      /* char: the body armor's type (-1 none) */
+#define G_M_ARMOR_LEGS 0x38      /* char: the leg armor's type (-1 none) */
+#define G_M_MELEE      0x3d      /* char: the melee weapon's type (-1 none) */
+#define G_M_SHIELD     0x48      /* char: the shield's type (-1 none) */
+
+/* a combatant's record in a battle: 13 x 128 bytes at DS:9c55 (0..4 the party, 5..12 the foes),
+   the fields named here as the code reads them; the rest stay numbers where they are used */
+#define CB_REC(i)      ((u16)(0x9c55 + (i) * 0x80))
+#define CBF(i, f)      ((u16)(CB_REC(i) + (f)))
+#define CB_X           0x04      /* int: map x (pixels) */
+#define CB_Y           0x06      /* int: map y */
+#define CB_TO_X        0x08      /* int: where it walks, x */
+#define CB_TO_Y        0x0a      /* int: where it walks, y */
+#define CB_ORDER       0x10      /* int: the order (1 walk, 0x80 shoot, 0x12 Std Attack ...) */
+#define CB_STATUS      0x14      /* char: 1 standing, 2 unconscious, 3 dead */
+#define CB_MELEE_RATING 0x20     /* byte: both ways hand to hand */
+#define CB_AIM         0x21      /* byte: for a shot or a throw */
+#define CB_MISSILE     0x22      /* char: the missile weapon's type (-1 none) */
+#define CB_NAME        0x25      /* char[]: a party member's name */
+#define CB_TARGET      0x4a      /* char: the combatant it is ordered against (-1 none) */
+#define CB_BODY_ARMOR  0x4b      /* byte: the body armor's type (0xff none) */
+#define CB_MELEE       0x51      /* char: the melee weapon's type, as the member record's G_M_MELEE (-1 none) */
+#define CB_END         0x5d      /* char: Endurance now */
+#define CB_STR         0x5e      /* char: Strength now */
+#define CB_END_MAX     0x64      /* char: Endurance at most */
+#define CB_STR_MAX     0x65      /* char: Strength at most */
+#define CB_NITEMS      0x7e      /* char: number of item records */
 
 /* purse: florins, groschen, pfennigs (DS:906b) */
 #define G_MONEY        0x906b

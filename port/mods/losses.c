@@ -104,7 +104,6 @@ void losses_frame(void)
 }
 
 /* ---------------------------------------------------------------- armour worn down */
-#define CB_NITEMS(i) ((u16)(GV_combatants + (i) * 0x80 + 0x7e))
 static char worn[1200]; static size_t worn_len;
 static void wear_hook(void)                  /* s019 1ef8:0968 (i, type, quality, amount): wear an armour down */
 {

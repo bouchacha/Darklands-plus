@@ -62,8 +62,8 @@ static int add(LosBox *out, int n, int max, int kind, int id)
 int los_trace(int a, int b, int mode, LosBox *out, int max)
 {
     if (a < 0 || a >= 13 || b < 0 || b >= 13) return 0;
-    lx0 = (s16)g_rw((u16)(GV_combatants + a * 0x80 + 4)); ly0 = (s16)g_rw((u16)(GV_combatants + a * 0x80 + 6));
-    lx1 = (s16)g_rw((u16)(GV_combatants + b * 0x80 + 4)); ly1 = (s16)g_rw((u16)(GV_combatants + b * 0x80 + 6));
+    lx0 = (s16)g_rw(CBF(a, CB_X)); ly0 = (s16)g_rw(CBF(a, CB_Y));
+    lx1 = (s16)g_rw(CBF(b, CB_X)); ly1 = (s16)g_rw(CBF(b, CB_Y));
     int n = 0;
     int y1 = ly1 / 16, y0 = ly0 / 16, x1 = lx1 / 32, x0 = lx0 / 32;
     int dy = abs(y0 - y1), dx = abs(x0 - x1), xmin = x1 > x0 ? x0 : x1, ymin = y1 > y0 ? y0 : y1;
@@ -94,10 +94,10 @@ int los_trace(int a, int b, int mode, LosBox *out, int max)
     if (h >= 90) return n;
     for (int i = 0; i < 13; i++) {
         u16 c = (u16)(GV_combatants + i * 0x80);
-        if (g_rb((u16)(c + 0x14)) != 1 || g_rb((u16)(GV_cbt_floor + i)) != g_rb(GV_floor_shown) || i == a || i == b) continue;
+        if (g_rb((u16)(c + CB_STATUS)) != 1 || g_rb((u16)(GV_cbt_floor + i)) != g_rb(GV_floor_shown) || i == a || i == b) continue;
         int hw = (s8)g_rb((u16)(GV_cbt_half_w + i)), hh = (s8)g_rb((u16)(GV_cbt_half_h + i));
         int ax = hw + hw * h / -90, ay = hh + hh * h / -90;
-        int cx = (s16)g_rw((u16)(c + 4)), cy = (s16)g_rw((u16)(c + 6));
+        int cx = (s16)g_rw((u16)(c + CB_X)), cy = (s16)g_rw((u16)(c + CB_Y));
         bx0 = cx - ax; by0 = cy - ay; bx1 = ax + cx; by1 = ay + cy;
         n = add(out, n, max, LOS_PERSON, i);
     }

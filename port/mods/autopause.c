@@ -42,7 +42,7 @@ void autopause_frame(void)
         static int pe[13], ps[13], pt[13];
         for (int i = 0; i < 13; i++) {
             u16 b = (u16)(0x9c55 + 0x80 * i);
-            int e = (s8)g_rb((u16)(b + 0x5d)), s = (s8)g_rb((u16)(b + 0x5e)), t = g_rb((u16)(b + 0x14));
+            int e = (s8)g_rb((u16)(b + CB_END)), s = (s8)g_rb((u16)(b + CB_STR)), t = g_rb((u16)(b + CB_STATUS));
             if (e != pe[i] || s != ps[i] || t != pt[i]) fprintf(stderr, "frame %u: %d end %d -> %d str %d -> %d status %d -> %d\n", plat_ticks_ms(), i, pe[i], e, ps[i], s, pt[i], t);
             pe[i] = e; ps[i] = s; pt[i] = t;
         }

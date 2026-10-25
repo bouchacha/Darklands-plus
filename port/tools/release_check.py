@@ -56,6 +56,7 @@ STEPS = [
     ('a room at the inn (native lodging)', 'ucmd urand:7; ucmd ugoto:23; wait 18; key 3; wait 5; wshot 16_inn', [r'lodging: open']),
     ('a day there, then leave', 'ucmd unspush:4; wait 6; wshot 17_day; ucmd unspush:6; wait 4', [r'lodging: closed \(1 days\)']),
     ('F12 > New Player Guide', 'key F12; wait 2; ucmd utab:8; wait 2; wshot 18_guide; key F12; wait 2', [r'.']),
+    ('Go to knows every street line', 'ucmd ucitylines:; wait 1', [r'citylines: \d+ lines, 0 unmatched']),   # (every option of every hub card, every text block)
     ('the world map (M), Find a town', 'ucmd ukey:M; wait 2; ucmd ufind:Koln; wait 2; wshot 19_map; ucmd ukey:M; wait 2', [r'world map: open', r'world map: found K', r'world map: closed']),
 ]
 

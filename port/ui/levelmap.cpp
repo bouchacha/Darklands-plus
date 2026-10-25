@@ -207,10 +207,10 @@ extern "C" void levelmap_draw(void)
     float r = fmaxf(5.0f, s * 0.32f);
     auto shown = [&](int i, ImVec2 *at) {            /* combatant i on this map: active or down, on this floor, an enemy only in sight */
         u16 b = (u16)(0x9c55 + 0x80 * i);
-        int st = g_rb((u16)(b + 0x14));
+        int st = g_rb((u16)(b + CB_STATUS));
         if (st != 1 && st != 2) return false;
         if ((s8)g_rb((u16)(GV_cbt_floor + i)) != fl) return false;
-        float X = (s16)g_rw((u16)(b + 4)) / 32.0f, Y = (s16)g_rw((u16)(b + 6)) / 16.0f;
+        float X = (s16)g_rw((u16)(b + CB_X)) / 32.0f, Y = (s16)g_rw((u16)(b + CB_Y)) / 16.0f;
         if (i >= 5 && !in_view_now((int)X, (int)Y)) return false;
         *at = P(X, Y);
         return true;
@@ -218,9 +218,9 @@ extern "C" void levelmap_draw(void)
     /* who is going for whom (combatant +0x4a): the party's in blue, the enemies' in red */
     for (int i = 0; i < 13; i++) {
         ImVec2 a, b;
-        int t = (s8)g_rb((u16)(GV_combatants + 0x80 * i + 0x4a));
+        int t = (s8)g_rb(CBF(i, CB_TARGET));
         if (t < 0 || t > 12 || t == i || !shown(i, &a) || !shown(t, &b)) continue;
-        if (g_rb((u16)(GV_combatants + 0x80 * i + 0x14)) != 1) continue;
+        if (g_rb(CBF(i, CB_STATUS)) != 1) continue;
         ImU32 lc = i < 5 ? IM_COL32(90, 170, 250, 220) : IM_COL32(230, 80, 60, 220);
         float dx = b.x - a.x, dy = b.y - a.y, len = sqrtf(dx * dx + dy * dy);
         if (len < r * 2.2f) continue;
@@ -232,10 +232,10 @@ extern "C" void levelmap_draw(void)
     }
     for (int i = 12; i >= 0; i--) {
         u16 b = (u16)(0x9c55 + 0x80 * i);
-        int st = g_rb((u16)(b + 0x14));
+        int st = g_rb((u16)(b + CB_STATUS));
         if (st != 1 && st != 2) continue;
         if ((s8)g_rb((u16)(GV_cbt_floor + i)) != fl) continue;
-        float X = (s16)g_rw((u16)(b + 4)) / 32.0f, Y = (s16)g_rw((u16)(b + 6)) / 16.0f;
+        float X = (s16)g_rw((u16)(b + CB_X)) / 32.0f, Y = (s16)g_rw((u16)(b + CB_Y)) / 16.0f;
         if (i >= 5 && !in_view_now((int)X, (int)Y)) continue;
         ImVec2 m = P(X, Y);
         ImU32 col = i < 5 ? (st == 1 ? IM_COL32(70, 150, 230, 255) : IM_COL32(60, 90, 120, 255)) : (st == 1 ? IM_COL32(210, 60, 50, 255) : IM_COL32(110, 50, 45, 255));

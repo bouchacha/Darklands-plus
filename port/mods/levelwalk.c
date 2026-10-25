@@ -49,10 +49,10 @@ static void input_hook(void)                 /* s014 0e76:3166 combat_input () *
     int was_mode = g_rb(GV_move_mode);
     if (was_mode != 2) { ns_call(16, 0x1ef8, 0x0cdc, 0); if (ns_unwinding) return; }
     int lead = (s8)g_rb(GV_marching_order);
-    if (lead < 0 || lead > 4 || g_rb((u16)(CBT(lead) + 0x14)) != 1) { hook_call_original(); return; }
+    if (lead < 0 || lead > 4 || g_rb(CBF(lead, CB_STATUS)) != 1) { hook_call_original(); return; }
     /* the place itself, else the nearest the leader can reach (a cell under a wall, or one
        a door still shut keeps apart) */
-    int otx = (s16)g_rw((u16)(CBT(lead) + 8)), oty = (s16)g_rw((u16)(CBT(lead) + 0xa));
+    int otx = (s16)g_rw(CBF(lead, CB_TO_X)), oty = (s16)g_rw(CBF(lead, CB_TO_Y));
     int mx = -1, my = -1;
     for (int r = 0; r <= 2 && mx < 0; r++)
         for (int dy = -r; dy <= r && mx < 0; dy++)
@@ -60,20 +60,20 @@ static void input_hook(void)                 /* s014 0e76:3166 combat_input () *
                 if (r && dx > -r && dx < r && dy > -r && dy < r) continue;      /* (the ring at distance r) */
                 int px = tx + dx * 32, py = ty + dy * 16;
                 if (px < 0 || py < 0 || px >= 40 * 32 || py >= 40 * 16) continue;
-                g_ww((u16)(CBT(lead) + 8), (u16)px); g_ww((u16)(CBT(lead) + 0xa), (u16)py);
+                g_ww(CBF(lead, CB_TO_X), (u16)px); g_ww(CBF(lead, CB_TO_Y), (u16)py);
                 if (ns_call(GF_path_find, 1, lead) == 1) { mx = px; my = py; }
                 if (ns_unwinding) return;
             }
     if (mx < 0) {
-        g_ww((u16)(CBT(lead) + 8), (u16)otx); g_ww((u16)(CBT(lead) + 0xa), (u16)oty);
+        g_ww(CBF(lead, CB_TO_X), (u16)otx); g_ww(CBF(lead, CB_TO_Y), (u16)oty);
         ui_notice("The party cannot get there from where it stands.");
         hook_call_original(); return;
     }
-    for (int i = 0; i < 5; i++) if (g_rb((u16)(CBT(i) + 0x14)) == 1) g_wb((u16)(GV_cbt_moving + i), 1);
+    for (int i = 0; i < 5; i++) if (g_rb(CBF(i, CB_STATUS)) == 1) g_wb((u16)(GV_cbt_moving + i), 1);
     ns_call(GF_path_give, 1, lead);                             /* (the path found last: to mx, my) */
     if (ns_unwinding) return;
-    g_ww((u16)(CBT(lead) + 0x10), 1);
-    g_wb((u16)(CBT(lead) + 0x4a), 0xff);
+    g_ww(CBF(lead, CB_ORDER), 1);
+    g_wb(CBF(lead, CB_TARGET), 0xff);
     g_wb((u16)(0xd6fb + lead), 0);
     if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: map %d,%d -> %d,%d for %d (move mode %d, was %d)\n", tx, ty, mx, my, lead, g_rb(GV_move_mode), was_mode);
     if (g_rb(GV_ai_paused) == 1) ui_notice(was_mode != 2 ? "The party will walk there in single file (press G to move as a group again); Space resumes the battle."
@@ -102,7 +102,7 @@ static void take_exit_hook(void)           /* take_exit (n, who) */
     if (ns_unwinding || !explore) return;
     following = 1;
     for (int i = 0; i < 5 && !ns_unwinding; i++) {
-        if (i == who || g_rb((u16)(CBT(i) + 0x14)) != 1 || (s8)g_rb((u16)(GV_cbt_floor + i)) != from) continue;
+        if (i == who || g_rb(CBF(i, CB_STATUS)) != 1 || (s8)g_rb((u16)(GV_cbt_floor + i)) != from) continue;
         ns_call(GF_take_exit, 2, n, i);
         if (!ns_unwinding) ns_call(GF_cbt_cancel_action, 1, i);
     }
@@ -110,7 +110,7 @@ static void take_exit_hook(void)           /* take_exit (n, who) */
 }
 static int stairs_under(int i)
 {
-    int ns = (s8)rb(G_FAR20A5, FLR_NSTAIRS), x = (s16)g_rw((u16)(CBT(i) + 4)), y = (s16)g_rw((u16)(CBT(i) + 6));
+    int ns = (s8)rb(G_FAR20A5, FLR_NSTAIRS), x = (s16)g_rw(CBF(i, CB_X)), y = (s16)g_rw(CBF(i, CB_Y));
     for (int k = 0; k < ns && k < 6; k++) {
         u16 o = (u16)(FLR_STAIRS + 14 * k);
         int rx = (s16)rw(G_FAR20A5, o), ry = (s16)rw(G_FAR20A5, (u16)(o + 2)), w = rb(G_FAR20A5, (u16)(o + 4)), h = rb(G_FAR20A5, (u16)(o + 5));
@@ -127,10 +127,10 @@ static void keys_hook(void)                /* combat_keys (): U with nobody on t
     if (k != 0x1655 && k != 0x1675) { hook_call_original(); return; }
     int fl = (s8)g_rb(GV_floor_shown), lead = (s8)g_rb(GV_marching_order);
     for (int i = 0; i < 5; i++)
-        if (g_rb((u16)(CBT(i) + 0x14)) == 1 && (s8)g_rb((u16)(GV_cbt_floor + i)) == fl && on_stairs(i)) { hook_call_original(); return; }
-    if (lead < 0 || lead > 4 || g_rb((u16)(CBT(lead) + 0x14)) != 1 || (s8)g_rb((u16)(GV_cbt_floor + lead)) != fl) { hook_call_original(); return; }
+        if (g_rb(CBF(i, CB_STATUS)) == 1 && (s8)g_rb((u16)(GV_cbt_floor + i)) == fl && on_stairs(i)) { hook_call_original(); return; }
+    if (lead < 0 || lead > 4 || g_rb(CBF(lead, CB_STATUS)) != 1 || (s8)g_rb((u16)(GV_cbt_floor + lead)) != fl) { hook_call_original(); return; }
     int ns = (s8)rb(G_FAR20A5, FLR_NSTAIRS), best = -1, bd = 0x7fffffff, bx = 0, by = 0;
-    int x = (s16)g_rw((u16)(CBT(lead) + 4)), y = (s16)g_rw((u16)(CBT(lead) + 6));
+    int x = (s16)g_rw(CBF(lead, CB_X)), y = (s16)g_rw(CBF(lead, CB_Y));
     for (int s = 0; s < ns && s < 6; s++) {
         u16 o = (u16)(FLR_STAIRS + 14 * s);
         int cx = (s16)rw(G_FAR20A5, o) + rb(G_FAR20A5, (u16)(o + 4)) / 2, cy = (s16)rw(G_FAR20A5, (u16)(o + 2)) + rb(G_FAR20A5, (u16)(o + 5)) / 2;
