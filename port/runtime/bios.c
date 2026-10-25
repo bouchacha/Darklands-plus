@@ -494,7 +494,8 @@ void hle_out8(u16 port, u8 v)
     /* an evaluation (gamecall.c) is thrown away with the memory it changed: the sound chips
        must not change either (a note started there would hang, the driver's idea of the chip
        and the chip would differ) */
-    if (in_game_call && ((port >= 0x220 && port <= 0x22f) || (port >= 0x388 && port <= 0x38b) || port == 0x330 || port == 0x331 || port == 0x42 || port == 0x61)) return;
+    { extern int game_call_sound_live;               /* (mods/soundpreview.c: a sound driver changed for a preview: its setup must be heard) */
+      if (in_game_call && !game_call_sound_live && ((port >= 0x220 && port <= 0x22f) || (port >= 0x388 && port <= 0x38b) || port == 0x330 || port == 0x331 || port == 0x42 || port == 0x61)) return; }
     void spk_out(u16, u8);
     switch (port) {
     case 0x3c8: dac_w = v; dac_wc = 0; break;
@@ -506,7 +507,7 @@ void hle_out8(u16 port, u8 v)
         if (++dac_wc == 3) { dac_wc = 0; dac_w = (dac_w + 1) & 255; }
         break;
     case 0x43:
-        if ((v >> 6) == 2) { if (!in_game_call) spk_out(port, v); break; }    /* (channel 2: the speaker's note) */
+        if ((v >> 6) == 2) { extern int game_call_sound_live; if (!in_game_call || game_call_sound_live) spk_out(port, v); break; }    /* (channel 2: the speaker's note) */
         if ((v & 0x30) == 0) { pit_latch = pit_count(); pit_latch_hi = 0; }
         else if ((v >> 6) == 0) pit_write_hi = 0;
         break;

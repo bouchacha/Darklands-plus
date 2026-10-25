@@ -14,9 +14,9 @@
  * do not come with Darklands+. They are looked for, by their contents (any file names), in
  * mt32_dirs(): the folder set in F12 > Settings, "roms" folders of Darklands+ and of the game,
  * Munt's own ROM folder (its registry setting, or %USERPROFILE%\roms) and DOSBox Staging's
- * mt32-roms folder. An MT-32 pair is preferred by default: on a CM-32L / LAPC-I the battle sounds'
- * notes reach its extra sound-effect samples and come out as chimes instead of blows and grunts;
- * F12 > Settings can prefer the CM-32L. */
+ * mt32-roms folder. An MT-32 pair is preferred when both are there (the game was written for the
+ * MT-32); a CM-32L / LAPC-I pair alone plays too. (F12 > Settings offered a choice between them
+ * until 1.3; heard side by side they did not differ enough to keep it.) */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -120,13 +120,13 @@ static int in_list(const char *id, const char **ids, size_t n)
     return 0;
 }
 
-/* the machines in order of preference: the MT-32s (the older first), or the CM-32L / LAPC-I first
- * when the player chose it, then whatever else the library knows */
+/* the machines in order of preference: the MT-32s (the older first), then the CM-32L / LAPC-I,
+ * then whatever else the library knows */
 static int machine_rank(const char *m)
 {
     static const char *pref[] = { "cm32l_1_02", "cm32l_1_00", "cm32ln_1_00", "mt32_1_07", "mt32_1_06", "mt32_1_05", "mt32_1_04",
                                   "mt32_bluer", "mt32_2_04", "mt32_2_07", "mt32_2_06", "mt32_2_03" };
-    int mt_first = !strcmp(config_get("sound.mt32_model", "mt32"), "mt32");     /* the MT-32 first (the default), or the CM-32L */
+    int mt_first = 1;                    /* the MT-32 first, the CM-32L when only its ROMs are there (they sound alike: no choice offered since 1.3) */
     for (size_t i = 0; i < sizeof pref / sizeof pref[0]; i++)
         if (!strcmp(pref[i], m)) return (int)i + (mt_first && !strncmp(m, "cm32l", 5) ? 50 : 0);
     return 100;
@@ -300,7 +300,9 @@ void mt32_msg(const unsigned char *m, int n)
     if ((int32_t)(ts - last_ts) < 0) ts = last_ts;
     last_ts = ts;
     { static int lg = -1; if (lg < 0) lg = getenv("DL_MIDI_LOG") != 0;    /* (a test: each note's tick and where it was placed, for the timing) */
-      if (lg && (m[0] & 0xf0) == 0x90 && n > 2 && m[2]) { extern volatile uint32_t music_ticks; fprintf(stderr, "midi note %u %u %u %llu ch %d key %d\n", music_ticks, ts, (unsigned)(plat_ticks_us() / 1000), (unsigned long long)(plat_ticks_us() - sound_tick_late_us), (m[0] & 15) + 1, m[1]); } }
+      if (lg && (m[0] & 0xf0) == 0x90 && n > 2 && m[2]) { extern volatile uint32_t music_ticks; fprintf(stderr, "midi note %u %u %u %llu ch %d key %d\n", music_ticks, ts, (unsigned)(plat_ticks_us() / 1000), (unsigned long long)(plat_ticks_us() - sound_tick_late_us), (m[0] & 15) + 1, m[1]); }
+      if (lg && (m[0] & 0xf0) == 0xc0 && n > 1) fprintf(stderr, "midi program %u ch %d prog %d\n", (unsigned)(plat_ticks_us() / 1000), (m[0] & 15) + 1, m[1]);
+      if (lg && m[0] == 0xf0 && n > 8) fprintf(stderr, "midi sysex %u addr %02x%02x%02x len %d\n", (unsigned)(plat_ticks_us() / 1000), m[5], m[6], m[7], n); }
     /* the queue full (a burst: several songs started at once, each uploading its timbres): the
        message goes in at once rather than being lost (a lost timbre upload would leave an
        instrument wrong for the session). (Safe here: the lock keeps the renderer out.) */

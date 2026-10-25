@@ -44,6 +44,7 @@ static int nvar[NSONG], turn[NSONG];
 static char from[NSONG][96];                     /* and the folder (mod) it came from */
 static int nfiles;
 static int logon, in_battle, last_song = -1, last_from_pack;
+static u32 last_song_ticks;                 /* music_ticks when it began (runtime/bios.c) */
 static volatile int owns;                        /* the piece the game is playing is the pack's: the synthesizer is silenced */
 
 static int is_overlay(int n) { return n == 33 || n == 34; }
@@ -363,7 +364,7 @@ void musicpack_cmd(int n)
     if (logon) { u32 plat_ticks_ms(void); fprintf(stderr, "music %u: %d%s\n", plat_ticks_ms(), n, in_battle ? " (battle driver)" : ""); }
     if (in_battle) return;
     { extern int musicpack_held; if (musicpack_held) return; }   /* (a sound device heard on its own: mods/soundpreview.c) */
-    if (n >= 8 && n <= LAST_PIECE && !is_overlay(n)) { last_song = n; last_from_pack = musicpack_on && nvar[n] > 0; }
+    if (n >= 8 && n <= LAST_PIECE && !is_overlay(n)) { extern volatile u32 music_ticks; last_song = n; last_from_pack = musicpack_on && nvar[n] > 0; last_song_ticks = music_ticks; }
     else if (n == 0 || n == 1 || n == 6) last_song = -1;
     if (!musicpack_on || !nfiles) { if (owns || st[0].on || st[1].on || st[2].on) stop_all(0.3f, 1); return; }
     switch (n) {
@@ -396,6 +397,22 @@ void musicpack_driver(const char *filename)
 
 /* the last piece the game started, and whether the pack played it */
 int musicpack_now(int *from_pack) { if (from_pack) *from_pack = last_from_pack; return last_song; }
+/* the piece started last still playing: its length on the device in force (mods/playlist.c, measured
+   beforehand) not yet run out in the timer's ticks delivered since it began; a piece that repeats, or
+   of no length known, counts as playing */
+int musicpack_still_playing(void)
+{
+    if (last_song < 0) return 0;
+    const char *c = config_get("sound.device", "auto");
+    int mt32_available(void);
+    const char *dev = !strcmp(c, "auto") || !strcmp(c, "game") ? (mt32_available() ? "mt32" : "fm") : c;
+    int playlist_length_dev_ms(const char *dev, int n); double bios_tick_us(void);
+    extern volatile u32 music_ticks;
+    int len = playlist_length_dev_ms(dev, last_song);
+    if (len < 0) return 1;
+    double ms = (double)(music_ticks - last_song_ticks) * bios_tick_us() / 1000.0;
+    return ms < len;
+}
 
 void musicpack_hold(int on) { if (on) stop_all(0.2f, 1); }
 /* the settings' preview of the pack: piece n from its recording for a while (n < 0: stop) */

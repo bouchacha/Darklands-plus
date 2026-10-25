@@ -33,6 +33,9 @@ void driver_register(const char *filename, u16 seg, u32 size, unsigned hash)
                 if (j != i && active[j]) { u32 a0 = (u32)*DRIVER_SEGS[j] << 4, a1 = a0 + drv_size[j], b0 = (u32)seg << 4, b1 = b0 + size;
                     if (a0 < b1 && b0 < a1) active[j] = 0; }
             fprintf(stderr, "driver %s (%s) loaded at %04x\n", DRIVERS[i]->name, filename, seg);
+            { void ovl_area(u32 *, u32 *); u32 a0, a1; ovl_area(&a0, &a1); a0 += (u32)LOADSEG << 4; a1 += (u32)LOADSEG << 4;
+              u32 d0 = (u32)seg << 4, d1 = d0 + size;
+              if (d0 < a1 && a0 < d1) fprintf(stderr, "warning: driver %s at %04x lies in the overlay area (%05x-%05x)\n", DRIVERS[i]->name, seg, a0, a1); }
             { void musicpack_driver(const char *); musicpack_driver(filename); }
             return;
         }

@@ -15,6 +15,7 @@ const char *musicpack_from(int n);
 const char *musicpack_desc(int n);
 int musicpack_loops(int n);
 int musicpack_now(int *from_pack);
+int musicpack_still_playing(void);          /* the piece started last has not yet come to its end */
 void musicpack_cmd(int n);
 void musicpack_driver(const char *filename);
 void musicpack_mix(short *out, int frames);

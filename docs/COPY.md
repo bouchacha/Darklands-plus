@@ -1951,42 +1951,39 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/settings_setup.cpp:256` | Where to find them... |
 | `ui/settings_setup.cpp:263` | Look again##mt32 |
 | `ui/settings_setup.cpp:264` | Darklands+ finds them by their contents, whatever their names: in that folder, in the game's folder and its "roms" folder, and where Munt and DOSBox keep them. |
-| `ui/settings_setup.cpp:274` | the battle sounds as blows and grunts, as composed. |
-| `ui/settings_setup.cpp:275` | CM-32L / LAPC-I |
-| `ui/settings_setup.cpp:275` | later Roland models: much the same sound, some battle sounds a little different (Darklands was written for the MT-32). |
-| `ui/settings_setup.cpp:281` | The MT-32's display |
-| `ui/settings_setup.cpp:281` | its little screen at the top right, when the game puts a message on it. |
-| `ui/settings_setup.cpp:284` | midiA synthesizer outside Darklands+ (MIDI)For a real MT-32 connected to the computer, or Munt (an MT-32 imitation) installed on its own. An ordinary synthesizer, such as the one built into Windows, plays the wrong instruments.midi |
-| `ui/settings_setup.cpp:289` | No MIDI outputs (connections to a synthesizer) on this computer. |
-| `ui/settings_setup.cpp:292` | the system's default |
-| `ui/settings_setup.cpp:305` | For history's sake |
-| `ui/settings_setup.cpp:310` | A change is heard from the next battle, or the next start. |
-| `ui/settings_setup.cpp:323` | Every piece of the game's music, played through the device chosen above. Click a piece to hear it. |
-| `ui/settings_setup.cpp:324` | Every piece of the game's music, played through the device chosen above: it needs a game under way, outside a battle. |
-| `ui/settings_setup.cpp:349` | finding its length (silent, a few seconds) |
-| `ui/settings_setup.cpp:350` | , then again |
-| `ui/settings_setup.cpp:351` | no piece playing |
-| `ui/settings_setup.cpp:360` | (a piece without a known place) |
-| `ui/settings_setup.cpp:377` | Custom sound packs |
-| `ui/settings_setup.cpp:378` | Recordings that replace the synthesizer's music or battle sounds. A battle sounds pack comes with Darklands+ as a mod (F12 > Mods); no music pack does. The previews above play them when ticked. |
-| `ui/settings_setup.cpp:381` | Music from a music pack (recordings in a "music" folder) |
-| `ui/settings_setup.cpp:387` | No music pack found: a mod's music folder, or %s%smusic, with a recording for each piece named by its number (10.ogg, "11 market.ogg"). |
-| `ui/settings_setup.cpp:389` | The game's music now: piece %d%s%s%s, %s (silent while Settings is open). |
-| `ui/settings_setup.cpp:389` | from the pack |
-| `ui/settings_setup.cpp:389` | by the synthesizer |
-| `ui/settings_setup.cpp:391` | A recording replaces a piece when its file name starts with the number (up to four for one number, played in turn: "27 a.ogg", "27 b.ogg" ...). Pieces that loop in the game loop in the pack; while a piece of the pack is on, the synthesizer is silent. |
-| `ui/settings_setup.cpp:397` |   %s and %d more, in turn |
-| `ui/settings_setup.cpp:399` | Look again##music |
-| `ui/settings_setup.cpp:405` | Ordinary hits make a sound |
-| `ui/settings_setup.cpp:406` | Battle sounds from a sound pack (the "sounds" folder) |
-| `ui/settings_setup.cpp:408` | %d sound%s in %s%ssounds; the game's own sounds for the rest. |
-| `ui/settings_setup.cpp:409` | Recorded blows, parries and cries in place of the synthesizer's: a pack in %s%ssounds, or the "Battle sounds" mod (F12 > Mods). |
-| `ui/settings_setup.cpp:414` | Volume of the pack |
-| `ui/settings_setup.cpp:416` | Look again##sfx |
-| `ui/settings_setup.cpp:416` | %d sound%s found. |
-| `ui/settings_setup.cpp:420` | File names for a sound pack |
-| `ui/settings_setup.cpp:421` | %s.wav or .ogg: %s |
-| `ui/settings_setup.cpp:422` | Several versions of one sound (parry1.wav, parry2.wav ...) are played in turn at random. |
+| `ui/settings_setup.cpp:269` | The MT-32's display |
+| `ui/settings_setup.cpp:269` | its little screen at the top right, when the game puts a message on it. |
+| `ui/settings_setup.cpp:278` | midiMIDIThe music and battle sounds sent out of Darklands+ as MIDI: for a real MT-32 or CM-32L connected to the computer, or Munt (an MT-32 imitation) installed on its own. An ordinary synthesizer, such as the one built into Windows, plays the wrong instruments.midi |
+| `ui/settings_setup.cpp:283` | No MIDI outputs (connections to a synthesizer) on this computer. |
+| `ui/settings_setup.cpp:286` | the system's default |
+| `ui/settings_setup.cpp:293` | For history's sake |
+| `ui/settings_setup.cpp:298` | A change is heard from the next battle, or the next start. |
+| `ui/settings_setup.cpp:311` | Every piece of the game's music, played through the device chosen above. Click a piece to hear it. |
+| `ui/settings_setup.cpp:312` | Every piece of the game's music, played through the device chosen above: it needs a game under way, outside a battle. |
+| `ui/settings_setup.cpp:337` | finding its length (silent, a few seconds) |
+| `ui/settings_setup.cpp:338` | , then again |
+| `ui/settings_setup.cpp:339` | no piece playing |
+| `ui/settings_setup.cpp:348` | (a piece without a known place) |
+| `ui/settings_setup.cpp:365` | Custom sound packs |
+| `ui/settings_setup.cpp:366` | Recordings that replace the synthesizer's music or battle sounds. A battle sounds pack comes with Darklands+ as a mod (F12 > Mods); no music pack does. The previews above play them when ticked. |
+| `ui/settings_setup.cpp:369` | Music from a music pack (recordings in a "music" folder) |
+| `ui/settings_setup.cpp:375` | No music pack found: a mod's music folder, or %s%smusic, with a recording for each piece named by its number (10.ogg, "11 market.ogg"). |
+| `ui/settings_setup.cpp:377` | The game's music now: piece %d%s%s%s, %s (silent while Settings is open). |
+| `ui/settings_setup.cpp:377` | from the pack |
+| `ui/settings_setup.cpp:377` | by the synthesizer |
+| `ui/settings_setup.cpp:379` | A recording replaces a piece when its file name starts with the number (up to four for one number, played in turn: "27 a.ogg", "27 b.ogg" ...). Pieces that loop in the game loop in the pack; while a piece of the pack is on, the synthesizer is silent. |
+| `ui/settings_setup.cpp:385` |   %s and %d more, in turn |
+| `ui/settings_setup.cpp:387` | Look again##music |
+| `ui/settings_setup.cpp:393` | Ordinary hits make a sound |
+| `ui/settings_setup.cpp:394` | Battle sounds from a sound pack (the "sounds" folder) |
+| `ui/settings_setup.cpp:396` | %d sound%s in %s%ssounds; the game's own sounds for the rest. |
+| `ui/settings_setup.cpp:397` | Recorded blows, parries and cries in place of the synthesizer's: a pack in %s%ssounds, or the "Battle sounds" mod (F12 > Mods). |
+| `ui/settings_setup.cpp:402` | Volume of the pack |
+| `ui/settings_setup.cpp:404` | Look again##sfx |
+| `ui/settings_setup.cpp:404` | %d sound%s found. |
+| `ui/settings_setup.cpp:408` | File names for a sound pack |
+| `ui/settings_setup.cpp:409` | %s.wav or .ogg: %s |
+| `ui/settings_setup.cpp:410` | Several versions of one sound (parry1.wav, parry2.wav ...) are played in turn at random. |
 | `ui/sheetview.cpp:159` | Light load (up to half of Endurance + Strength): no hindrance at all. Only what is equipped counts (weapons, armor, shield); items merely carried weigh nothing. |
 | `ui/sheetview.cpp:160` | Normal load (up to Endurance + Strength): blows hand to hand come about a fifth slower, and past 5/8 of it the Agility used to dodge falls to two thirds. |
 | `ui/sheetview.cpp:161` | Heavy load (up to half as much again): the Agility used to dodge falls to two thirds, and to a third past 1 1/4 times Endurance + Strength. Blows are no slower than with a normal load (an oversight in the original game). |
@@ -2651,29 +2648,29 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/menuview.c:169` | Darklands+ window |
 | `mods/menuview.c:169` | Quests (world map) |
 | `mods/menuview.c:171` | Keys and clicks on this screen |
-| `mods/musicpack.c:123` | the inn (one of the two at random) |
-| `mods/musicpack.c:125` | praying to a saint |
-| `mods/musicpack.c:126` | the guilds and craftsmen |
-| `mods/musicpack.c:127` | the city square |
-| `mods/musicpack.c:128` | the university |
-| `mods/musicpack.c:129` | the shell game |
-| `mods/musicpack.c:130` | the fortress |
-| `mods/musicpack.c:131` | the party's end |
-| `mods/musicpack.c:132` | the overland view (one of two at random) |
-| `mods/musicpack.c:133` | the overland view (one of two at random); making the party |
-| `mods/musicpack.c:135` | a grove in town by day |
-| `mods/musicpack.c:136` | the dragon's lair |
-| `mods/musicpack.c:137` | before a city by day (four tunes in turn) |
-| `mods/musicpack.c:138` | before a city by night |
-| `mods/musicpack.c:139` | a grove in town by night |
-| `mods/musicpack.c:140` | an ambush, or something hidden ahead |
-| `mods/musicpack.c:141` | the wild hunt |
-| `mods/musicpack.c:142` | the woodwife |
-| `mods/musicpack.c:144` | a dream in camp |
-| `mods/musicpack.c:145` | the manor by the misty lake |
-| `mods/musicpack.c:147` | the Templars |
-| `mods/musicpack.c:151` | a short sound played over the current piece |
-| `mods/musicpack.c:285` | RLND DrkLand03-16-93 |
+| `mods/musicpack.c:124` | the inn (one of the two at random) |
+| `mods/musicpack.c:126` | praying to a saint |
+| `mods/musicpack.c:127` | the guilds and craftsmen |
+| `mods/musicpack.c:128` | the city square |
+| `mods/musicpack.c:129` | the university |
+| `mods/musicpack.c:130` | the shell game |
+| `mods/musicpack.c:131` | the fortress |
+| `mods/musicpack.c:132` | the party's end |
+| `mods/musicpack.c:133` | the overland view (one of two at random) |
+| `mods/musicpack.c:134` | the overland view (one of two at random); making the party |
+| `mods/musicpack.c:136` | a grove in town by day |
+| `mods/musicpack.c:137` | the dragon's lair |
+| `mods/musicpack.c:138` | before a city by day (four tunes in turn) |
+| `mods/musicpack.c:139` | before a city by night |
+| `mods/musicpack.c:140` | a grove in town by night |
+| `mods/musicpack.c:141` | an ambush, or something hidden ahead |
+| `mods/musicpack.c:142` | the wild hunt |
+| `mods/musicpack.c:143` | the woodwife |
+| `mods/musicpack.c:145` | a dream in camp |
+| `mods/musicpack.c:146` | the manor by the misty lake |
+| `mods/musicpack.c:148` | the Templars |
+| `mods/musicpack.c:152` | a short sound played over the current piece |
+| `mods/musicpack.c:286` | RLND DrkLand03-16-93 |
 | `mods/offices.c:60` | You finished a quest for them: your reward is waiting. |
 | `mods/offices.c:61` | You are on a quest for them. They offer no other until it is done. |
 | `mods/offices.c:65` | You asked lately, or were paid a reward: no new quest for three days. |

@@ -468,6 +468,8 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "uquests")) { void quests_test_dump(void); quests_test_dump(); }   /* test: the tasks, printed */
         else if (!strcmp(cmd, "udlg")) { extern int cardview_dialog, game_dialog_kind; extern char game_dialog_text[600]; snprintf(game_dialog_text, sizeof game_dialog_text, "%s", arg); for (char *q = game_dialog_text; *q; q++) if (*q == '_') *q = ' '; game_dialog_kind = *arg ? 2 : 0; cardview_dialog = *arg ? 1 : 0; }   /* test: the native box for a game message (udlg:Title_-_text; udlg: off) */
         else if (!strcmp(cmd, "ushops")) { void journal_test_shops(int); journal_test_shops(atoi(arg)); }   /* test: the shops noted in town N (-1 here) and their wares */
+        else if (!strcmp(cmd, "usnddrv")) { void soundpreview_test_load(int); soundpreview_test_load(atoi(arg)); }   /* test: the game's sound driver loaded again as the preview does (0 the towns', 1 the battles') */
+        else if (!strcmp(cmd, "umark")) { u32 plat_ticks_ms(void); fprintf(stderr, "mark %s %u\n", arg, plat_ticks_ms()); }   /* test: a line in the log at this moment (with the time), to find a test's steps in it */
         else if (!strcmp(cmd, "uwhere")) { void journal_test_where(int); journal_test_where(atoi(arg)); }   /* test: where item N is sold, days to some towns */
         else if (!strcmp(cmd, "usabbat")) { void quests_test_learn(int); quests_test_learn(atoi(arg)); }   /* test: as if a card told of the next Sabbat (1 place, 2 night) */
         else if (!strcmp(cmd, "ucitylines")) { void citynav_check_lines(void); citynav_check_lines(); }   /* test: every hub card line through the Go to rules; unmatched ones logged */

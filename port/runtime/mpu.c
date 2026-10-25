@@ -29,7 +29,7 @@ static void midi_open(void)
 {
     midi_ok = 0;
     if (getenv("DL_NOSOUND")) return;
-    const char *lg = getenv("DL_MIDI_LOG");
+    const char *lg = getenv("DL_MIDI_RAW");                  /* (a file: every byte sent, raw; DL_MIDI_LOG is mt32.c's note log) */
     if (lg && !midi_log && (midi_log = fopen(lg, "wb"))) setvbuf(midi_log, NULL, _IONBF, 0);
     if (sound_use_mt32() && mt32_open(44100)) { midi_ok = 2; return; }
 #ifdef _WIN32
@@ -147,6 +147,7 @@ static void midi_byte(u8 v)
 
 void mpu_out(u16 port, u8 v)
 {
+    { static int tr = -1; if (tr < 0) tr = getenv("DL_MPU_TRACE") != 0; if (tr && (port & 1)) fprintf(stderr, "mpu command %02x\n", v); }
     if (port & 1) {            /* command: reset, UART mode, ... - all acknowledged */
         if (v == 0xff) { inq_n = 0; in_sysex = 0; msg_len = 0; running = 0; }
         if (inq_n < 16) inq[inq_n++] = 0xfe;

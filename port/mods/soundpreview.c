@@ -20,10 +20,18 @@ static char over[16];                    /* the device heard during a preview ("
 const char *sound_device_override(void) { return over[0] ? over : 0; }
 int musicpack_held;                      /* (mods/musicpack.c: the pack quiet while a device is heard) */
 
+/* (a game call drops what the game writes to the sound ports, so an evaluation makes no sound
+   (runtime/bios.c); here the writes are the point - a driver's start sets up the device: the MT-32's
+   timbres, the FM chip's instruments. Without them the music after a preview played on the wrong
+   instruments and the previews themselves sounded wrong) */
+int game_call_sound_live;
 static int call(u16 off, int n, u16 a0, u16 a1, u16 a2, u16 a3, u16 a4, u16 a5, u16 a6)
 {
     u16 a[7] = { a0, a1, a2, a3, a4, a5, a6 };
-    return (s16)game_call_far(-1, 0x047c, off, n, a);
+    game_call_sound_live++;
+    int r = (s16)game_call_far(-1, 0x047c, off, n, a);
+    game_call_sound_live--;
+    return r;
 }
 /* the game's sound driver changed for the one of the device now in force: the towns' (0) or the battles' (1) */
 static void load_driver(int battle)
@@ -43,6 +51,8 @@ static void load_driver(int battle)
     call(0x0066, 0, 0, 0, 0, 0, 0, 0, 0);
     for (int i = 0; i < 16; i++) g_wb((u16)(GV_msg_buf + i), keep[i]);
 }
+static void test_load(int b, int c, int d, int e) { (void)c; (void)d; (void)e; load_driver(b); fprintf(stderr, "sound preview test: driver %d loaded\n", b); }
+void soundpreview_test_load(int battle) { ns_defer(test_load, battle, 0, 0, 0); }   /* (test: usnddrv) */
 static void play(int n) { call(0x078a, 1, (u16)n, 0, 0, 0, 0, 0, 0); }
 void opl_silence(void); void mpu_all_notes_off(void); void opl_keys_off(void);
 static void hush(void) { opl_silence(); mpu_all_notes_off(); }   /* (no note left hanging from the driver let go) */
@@ -87,6 +97,7 @@ static void begin(int dev, int w, int c, int d)
     (void)d;
     if (game_mode() == GM_BATTLE || dev < 0 || dev >= NDEVS || !g_rw(0x9417)) return;
     int fp; prev = musicpack_now(&fp);
+    { int musicpack_still_playing(void); if (!musicpack_still_playing()) prev = -1; }   /* (a piece over before the preview is not started again after it: no music out of nowhere in the menu) */
     snprintf(over, sizeof over, "%s", DEV[dev]);
     musicpack_hold(1);
     play(1); hush();

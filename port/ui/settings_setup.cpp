@@ -262,18 +262,6 @@ void setup_sound(void)
             ImGui::SameLine();
             if (ImGui::Button("Look again##mt32")) { mt32_rescan(); mt32_switch(); }
             ui_hint("Darklands+ finds them by their contents, whatever their names: in that folder, in the game's folder and its \"roms\" folder, and where Munt and DOSBox keep them.");
-            if (mt32_families() == 3) {                /* both: which one */
-                const char *m = config_get("sound.mt32_model", "mt32");
-                auto model = [&](const char *id, const char *title, const char *what) {   /* (the words wrapped beside the button) */
-                    ImGui::PushID(id);
-                    bool pick = ImGui::RadioButton("##m", !strcmp(m, id));
-                    ImGui::SameLine();
-                    if (ui_title_desc(title, what) || pick) { config_set("sound.mt32_model", id); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
-                    ImGui::PopID();
-                };
-                model("mt32", "MT-32", "the battle sounds as blows and grunts, as composed.");
-                model("cm32l", "CM-32L / LAPC-I", "later Roland models: much the same sound, some battle sounds a little different (Darklands was written for the MT-32).");
-            }
             {   bool lcd = config_get_int("sound.mt32_lcd", 1), click = false;
                 ImGui::PushID("lcd");
                 if (ImGui::Checkbox("##lcd", &lcd)) click = true;
@@ -281,27 +269,27 @@ void setup_sound(void)
                 if (ui_title_desc("The MT-32's display", "its little screen at the top right, when the game puts a message on it.")) { lcd = !lcd; click = true; }
                 if (click) { config_set_int("sound.mt32_lcd", lcd); ui_dirty_config = 1; }
                 ImGui::PopID(); }
-            device("midi", "A synthesizer outside Darklands+ (MIDI)", "For a real MT-32 connected to the computer, or Munt (an MT-32 imitation) installed on its own. "
-                   "An ordinary synthesizer, such as the one built into Windows, plays the wrong instruments.", !strcmp(cur, "midi"));
-            if (!strcmp(cur, "midi")) {
-                int n = mpu_out_count();
-                const char *out = config_get("sound.midi_out", "");
-                if (!n) ui_hint("No MIDI outputs (connections to a synthesizer) on this computer.");
-                else {
-                    ImGui::SetNextItemWidth(UIS(420));
-                    if (ImGui::BeginCombo("MIDI output", out[0] ? out : "the system's default")) {
-                        if (ImGui::Selectable("the system's default", !out[0])) { config_set("sound.midi_out", ""); ui_dirty_config = 1; }
-                        for (int i = 0; i < n; i++) { const char *nm = mpu_out_name(i); if (nm[0] && ImGui::Selectable(nm, !strcmp(nm, out))) { config_set("sound.midi_out", nm); ui_dirty_config = 1; } }
-                        ImGui::EndCombo();
-                    }
-                }
-            }
             ImGui::Unindent(UIS(14));
         }
         ImGui::Unindent(UIS(30));
     }
     tier("OK");
     device("fm", "Sound Blaster Pro", "The sound card most players had in 1992: the music arranged for its simpler synthesizer, thinner and buzzier than the MT-32.", !strcmp(cur, "fm"));
+    device("midi", "MIDI", "The music and battle sounds sent out of Darklands+ as MIDI: for a real MT-32 or CM-32L connected to the computer, or Munt (an MT-32 imitation) installed on its own. "
+           "An ordinary synthesizer, such as the one built into Windows, plays the wrong instruments.", !strcmp(cur, "midi"));
+    if (!strcmp(cur, "midi")) {
+        int n = mpu_out_count();
+        const char *out = config_get("sound.midi_out", "");
+        if (!n) ui_hint("No MIDI outputs (connections to a synthesizer) on this computer.");
+        else {
+            ImGui::SetNextItemWidth(UIS(420));
+            if (ImGui::BeginCombo("MIDI output", out[0] ? out : "the system's default")) {
+                if (ImGui::Selectable("the system's default", !out[0])) { config_set("sound.midi_out", ""); ui_dirty_config = 1; }
+                for (int i = 0; i < n; i++) { const char *nm = mpu_out_name(i); if (nm[0] && ImGui::Selectable(nm, !strcmp(nm, out))) { config_set("sound.midi_out", nm); ui_dirty_config = 1; } }
+                ImGui::EndCombo();
+            }
+        }
+    }
     tier("For history's sake");
     device("adlib", "AdLib (an older sound card)", "Much the same music; the battle sounds are rough imitations too.", !strcmp(cur, "adlib"));
     device("speaker", "PC speaker", "Beeps for the battle sounds; the game plays no music on it.", !strcmp(cur, "speaker"));
