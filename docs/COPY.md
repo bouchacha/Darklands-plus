@@ -2174,7 +2174,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui_windows.cpp:159` | Change it at any time, or turn single features on or off: F12 > Settings. |
 | `ui/ui_windows.cpp:165` | F12: the Darklands+ window (the game waits while it is open) |
 | `ui/ui_windows.cpp:166` | F11: the keys and clicks for the current screen, including the game's hidden ones |
-| `ui/ui_windows.cpp:167` | Click a party member on the left: their character sheet, with the whole party's saints and formulae |
+| `ui/ui_windows.cpp:167` | Click a party member on the left (in a battle, right-click: a click there selects them for orders): their character sheet, with the whole party's saints and formulae |
 | `ui/ui_windows.cpp:168` | M: the world map, to find a place and travel there |
 | `ui/ui_windows.cpp:169` | Right-click: the game's menu bar (save, load, orders in battle) |
 | `ui/ui_windows.cpp:170` | Alt+Enter: full screen   Ctrl+S: quick save   F9: quick load |

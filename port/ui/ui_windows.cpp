@@ -164,7 +164,7 @@ void welcome_window(void)
         ImGui::PushFont(font_head); orn_septext("Keys"); ImGui::PopFont();
         { ImGui::Bullet(); ImGui::TextWrapped("%s", "F12: the Darklands+ window (the game waits while it is open)"); }
         { ImGui::Bullet(); ImGui::TextWrapped("%s", "F11: the keys and clicks for the current screen, including the game's hidden ones"); }
-        { ImGui::Bullet(); ImGui::TextWrapped("%s", "Click a party member on the left: their character sheet, with the whole party's saints and formulae"); }
+        { ImGui::Bullet(); ImGui::TextWrapped("%s", "Click a party member on the left (in a battle, right-click: a click there selects them for orders): their character sheet, with the whole party's saints and formulae"); }
         { ImGui::Bullet(); ImGui::TextWrapped("%s", "M: the world map, to find a place and travel there"); }
         { ImGui::Bullet(); ImGui::TextWrapped("%s", "Right-click: the game's menu bar (save, load, orders in battle)"); }
         { ImGui::Bullet(); ImGui::TextWrapped("%s", "Alt+Enter: full screen   Ctrl+S: quick save   F9: quick load"); }
