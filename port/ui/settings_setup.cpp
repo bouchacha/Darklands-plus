@@ -204,7 +204,8 @@ void setup_sound(void)
         float bm = ImGui::CalcTextSize("Preview: Music").x + ImGui::GetStyle().FramePadding.x * 2;
         float x = ImGui::GetContentRegionMax().x - bw - bm - ImGui::GetStyle().ItemSpacing.x;
         ImGui::SetCursorPosX(x);
-        ImGui::BeginDisabled(off || (!can_hear && !pack_music));
+        bool spk = !strcmp(dev, "speaker") && !pack_music;            /* (the game plays no music on the PC speaker: its driver only beeps the battle sounds) */
+        ImGui::BeginDisabled(off || spk || (!can_hear && !pack_music));
         bool mon = pack_music ? pack_on : soundpreview_playing(dev, 0) != 0;
         if (ImGui::Button(mon ? "Stop##pm" : "Preview: Music", ImVec2(bm, 0))) {
             if (mon) { if (pack_on) { musicpack_preview(-1); pack_on = false; } else soundpreview_stop(); }
@@ -212,6 +213,7 @@ void setup_sound(void)
             else soundpreview_start(dev, 0);
         }
         ImGui::EndDisabled();
+        if (spk && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("The game plays no music on the PC speaker, only the battle sounds.");
         ImGui::SameLine();
         ImGui::BeginDisabled(off || (!can_hear && !pack_sfx));
         bool bon = pack_sfx ? seq_k >= 0 : soundpreview_playing(dev, 1) != 0;
@@ -303,7 +305,7 @@ void setup_sound(void)
     device("fm", "Sound Blaster Pro", "The sound card most players had in 1992: the music arranged for its simpler synthesizer, thinner and buzzier than the MT-32.", !strcmp(cur, "fm"));
     tier("For history's sake");
     device("adlib", "AdLib (an older sound card)", "Much the same music; the battle sounds are rough imitations too.", !strcmp(cur, "adlib"));
-    device("speaker", "PC speaker", "Beeps.", !strcmp(cur, "speaker"));
+    device("speaker", "PC speaker", "Beeps for the battle sounds; the game plays no music on it.", !strcmp(cur, "speaker"));
     device("game", "As set in the original game's INSTALL program", 0, !strcmp(cur, "game"));
     device("off", "Off", 0, !strcmp(cur, "off"));
     ui_hint("A change is heard from the next battle, or the next start.");

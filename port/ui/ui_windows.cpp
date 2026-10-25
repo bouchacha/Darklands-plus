@@ -71,6 +71,7 @@ void tab_about(void)
 {
     ImGui::PushFont(font_head); ImGui::Text("Darklands+"); ImGui::PopFont();
     ImGui::SameLine(); ImGui::TextDisabled("build %s", dlp_version);
+    ImGui::TextWrapped("Darklands+ is made by Yassine Meskhout.");
     ImGui::TextWrapped("Darklands (c) 1992 MicroProse. This is the original game, rebuilt to run directly on today's computers, with the "
                        "game files of your own copy. F12 > Settings has the Full Original preset, the game as it was, and switches for most of what Darklands+ adds.");
     ImGui::Spacing();

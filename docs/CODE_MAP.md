@@ -10,7 +10,7 @@ The runtime: the CPU and DOS the game runs on, the window, sound, saves, the con
 
 | File | Lines | What it is |
 |---|---:|---|
-| `runtime/bios.c` | 765 | interrupts, BIOS services and the PC hardware the game talks to (VGA DAC, PIT, keyboard controller, PIC), plus the safe-point dl_poll() that delivers timer and keyboard interrupts to the game's own handlers and refreshes the screen. |
+| `runtime/bios.c` | 769 | interrupts, BIOS services and the PC hardware the game talks to (VGA DAC, PIT, keyboard controller, PIC), plus the safe-point dl_poll() that delivers timer and keyboard interrupts to the game's own handlers and refreshes the screen. |
 | `runtime/config.c` | 78 | settings kept in darklands_port.ini next to the game (key = value lines) |
 | `runtime/cpu.c` | 202 | flags and arithmetic helpers for recompiled code |
 | `runtime/dispatch.c` | 192 | calls and jumps to computed addresses |
@@ -32,8 +32,9 @@ The runtime: the CPU and DOS the game runs on, the window, sound, saves, the con
 | `runtime/platform_sdl.c` | 1373 | window, screen, input and time on SDL2. |
 | `runtime/prepare_run.c` | 154 | the first start of a release (DL_RTSPLIT): the game module is made from the player's DARKLAND.EXE by port/tools/prepare.py (the bundled Python and TinyCC), with a progress window. |
 | `runtime/sb.c` | 218 | the digital half of a Sound Blaster Pro: DSP (ports base+6/A/C/E), 8237 DMA controller and the transfer-complete interrupt. |
-| `runtime/sound.c` | 158 | AdLib / OPL music through an emulated OPL chip (Nuked OPL3) on SDL audio. |
+| `runtime/sound.c` | 159 | AdLib / OPL music through an emulated OPL chip (Nuked OPL3) on SDL audio. |
 | `runtime/sounddev.c` | 128 | which sound driver the game gets. |
+| `runtime/speaker.c` | 75 | the PC speaker, which the port had not made at all ("PC speaker" in F12 > Settings > Sound played nothing). |
 | `runtime/stb_impl.c` | 16 | the stb image reader and PNG writer (public domain, third_party/stb) for replacement art (mods/hdart.c, platform_sdl.c) |
 | `runtime/testcmds.c` | 513 | the test commands that look at or change the game's state, for the scripted sessions (port/tools/nctl.py "ucmd NAME:ARGS", release_check.py, monkey.py): a battle at the next card, hits, items, saves, the native screens' actions, dumps of what the game holds ... |
 
@@ -173,9 +174,9 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/saves.cpp` | 123 | the saves' preferences (F12 > Settings); the old list of saves (tab_saves, no longer a tab: the game's Load does it), the party in it and its comment, newest first; load or delete any of them; quick save / quick load and the autosave settings (mods/saves.c does the work through the game's own routines). |
 | `ui/savesview.cpp` | 171 | the game's Save and Load drawn by Darklands+ (mods/savesview.c runs them): the comment to save under, and the saves there are, newest first, each with its comment, where and when in the game, who, the purse and how long ago it was written. |
 | `ui/screenpics.cpp` | 210 | pictures of the new screens from the player's own game, for the settings' "New screens" switch: the first time a card, a shop, a character sheet, the inn and the alchemy screen have stood still on screen for a moment (no window of Darklands+'s over them), the whole window is kept, small, in <data>/previews/<name>.png. |
-| `ui/settings.cpp` | 580 | the Darklands+ window's Settings page (F12), and its Mods and Reconstructed Content tabs. |
-| `ui/settings_look.cpp` | 269 | the Settings page's sections on what things look like (ui/settings.cpp draws the page): Text (the original lettering or the new text, the typeface, the coins) and Frames and clock (the band around the windows, the frames, the buttons, the clock, the potions' grade marks). |
-| `ui/settings_setup.cpp` | 412 | the Settings page's sections on the game on this computer (ui/settings.cpp draws the page): Screen, Intro, Sound and Controller. |
+| `ui/settings.cpp` | 603 | the Darklands+ window's Settings page (F12), and its Mods and Reconstructed Content tabs. |
+| `ui/settings_look.cpp` | 274 | the Settings page's sections on what things look like (ui/settings.cpp draws the page): Text (the original lettering or the new text, the typeface, the coins) and Frames and clock (the band around the windows, the frames, the buttons, the clock, the potions' grade marks). |
+| `ui/settings_setup.cpp` | 431 | the Settings page's sections on the game on this computer (ui/settings.cpp draws the page): Screen, Intro, Sound and Controller. |
 | `ui/sheetview.cpp` | 1039 |  |
 | `ui/skillicons.cpp` | 441 | the skills', attributes' and F12 tabs' pictures, drawn with ImGui shapes so they read at any size (the character sheet, character creation, the roster, card chances, the tabs). |
 | `ui/teachersui.cpp` | 143 | the teachers a town can offer, as shown (ui/teachersui.h). |
@@ -184,7 +185,7 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/townicons.cpp` | 384 | see townicons.h. Drawn with ImGui's shapes (pen.h) in the manner of the quests' pictures: bold shapes with an ink outline, readable at the size of a line of text. |
 | `ui/travel.cpp` | 37 | the route of auto-travel drawn over the overland map (mods/travel.c walks it; the world map, ui/worldmap.cpp, is where a journey is chosen). |
 | `ui/ui.cpp` | 720 | the native port's own interface, drawn over the game: the Darklands+ window (F12) and its pages (the settings pages in settings.cpp), help, notices. |
-| `ui/ui_windows.cpp` | 445 | the interface's side windows: About, the welcome on the first start, the news of a new version, getting the MT-32 working, and F11's keys and clicks for the screen in view. |
+| `ui/ui_windows.cpp` | 446 | the interface's side windows: About, the welcome on the first start, the news of a new version, getting the MT-32 working, and F11's keys and clicks for the screen in view. |
 | `ui/worldmap.cpp` | 1071 | the world map: the whole of the Holy Roman Empire as the travel screen draws it (mods/worldmap.c), to pan and zoom, with towns and places named, the party, the route of auto-travel and the places the quest log points to. |
 | `ui/worldmap_draw.cpp` | 518 | the world map's pictures (the places' seals and painted icons, the frame, the compass rose, the boats' red ink and ships, the layer buttons' glyphs, a quest's halo), its list of places, the names over the game's own travel map, and a test sheet of the pictures. |
 
@@ -195,7 +196,7 @@ Tools: tests, checks, the harness.
 | File | Lines | What it is |
 |---|---:|---|
 | `tools/aiart.py` | 610 | repaint the game's pictures with an image model, as a replacement-art mod. |
-| `tools/arena.py` | 262 | a combat test arena: battles set up to push Improved combat (battle.improved, mods/orders.c, mods/battlerules.c) to its limits, run in the game (nctl, X11), logged and checked. |
+| `tools/arena.py` | 266 | a combat test arena: battles set up to push Improved combat (battle.improved, mods/orders.c, mods/battlerules.c) to its limits, run in the game (nctl, X11), logged and checked. |
 | `tools/artpack.py` | 204 | make a replacement-art mod from the game's own pictures. |
 | `tools/battletrace.py` | 156 | stress tests of battle movement (pathfinding in a melee crowd), on your own game files. |
 | `tools/bin2c.py` | 13 | bin2c.py OUT.c NAME=FILE ...: embed files as const byte arrays (NAME, NAME_SIZE). |

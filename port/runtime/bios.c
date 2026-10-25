@@ -458,7 +458,7 @@ u8 hle_in8(u16 port)
     case 0x3c7: return 3;
     case 0x3c8: return (u8)dac_w;
     case 0x60: return port60;
-    case 0x61: return 0x20;
+    case 0x61: { u8 spk_in61(void); return spk_in61(); }   /* (the speaker's gate bits as written: runtime/speaker.c) */
     case 0x64: return 0x1c;     /* input buffer empty, output buffer empty */
     case 0x40:
         if (!pit_latch_hi) { pit_latch_hi = 1; return (u8)pit_latch; }
@@ -480,7 +480,8 @@ void hle_out8(u16 port, u8 v)
     /* an evaluation (gamecall.c) is thrown away with the memory it changed: the sound chips
        must not change either (a note started there would hang, the driver's idea of the chip
        and the chip would differ) */
-    if (in_game_call && ((port >= 0x220 && port <= 0x22f) || (port >= 0x388 && port <= 0x38b) || port == 0x330 || port == 0x331)) return;
+    if (in_game_call && ((port >= 0x220 && port <= 0x22f) || (port >= 0x388 && port <= 0x38b) || port == 0x330 || port == 0x331 || port == 0x42 || port == 0x61)) return;
+    void spk_out(u16, u8);
     switch (port) {
     case 0x3c8: dac_w = v; dac_wc = 0; break;
     case 0x3c7: dac_r = v; dac_rc = 0; break;
@@ -491,15 +492,18 @@ void hle_out8(u16 port, u8 v)
         if (++dac_wc == 3) { dac_wc = 0; dac_w = (dac_w + 1) & 255; }
         break;
     case 0x43:
+        if ((v >> 6) == 2) { if (!in_game_call) spk_out(port, v); break; }    /* (channel 2: the speaker's note) */
         if ((v & 0x30) == 0) { pit_latch = pit_count(); pit_latch_hi = 0; }
         else if ((v >> 6) == 0) pit_write_hi = 0;
         break;
+    case 0x42: spk_out(port, v); break;
     case 0x40:
         if (!pit_write_hi) { pit_new = v; pit_write_hi = 1; }
         else { pit_new |= (u16)(v << 8); pit_div = pit_new; pit_write_hi = 0;
                if (bios_trace) fprintf(stderr, "PIT divisor %u\n", pit_div); }
         break;
-    case 0x20: case 0x21: case 0x61: case 0x60: case 0x64: break;
+    case 0x61: spk_out(port, v); break;
+    case 0x20: case 0x21: case 0x60: case 0x64: break;
     case 0x388: case 0x389: case 0x38a: case 0x38b: opl_out(port, v); break;
     case 0x330: case 0x331: mpu_out(port, v); break;
     case 0x228: case 0x229: opl_out((u16)(port - 0x228 + 0x388), v); break;

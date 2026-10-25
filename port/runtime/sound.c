@@ -31,6 +31,7 @@ static void callback(void *u, Uint8 *stream, int len)
     if (paused && !fade) { memset(stream, 0, (size_t)len); return; }
     OPL3_GenerateStream(&chip, s16, (uint32_t)n);
     { void mt32_mix(short *, int); mt32_mix((short *)stream, n); }
+    { void spk_mix(int16_t *, int); spk_mix(s16, n); }        /* the PC speaker (runtime/speaker.c) */
     if (musicpack_mutes() || sound_music_hushed) memset(stream, 0, (size_t)len);   /* a music pack's piece plays instead; or the settings are open */
     else if (sound_music_volume != 100)                      /* the music (FM or MT-32), before the effects go in */
         for (int i = 0; i < 2 * n; i++) {
