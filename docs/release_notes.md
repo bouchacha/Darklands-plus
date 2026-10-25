@@ -19,7 +19,7 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 - **Screens redrawn in period style:** alchemy as an alchemist's workbench with the Philosopher's Stone pictured; the inn and camp as a ledger that names the potions made and shows the hours going by (1.2's page looked frozen); the shop at its counter, the store room in a cellar, Party Info, Save and Load, marching order and enemy info.
 - **Shops and the character sheet:** items in sections; the load a weapon or armor would bring before you buy it; ingredients ten at a time, with how many the party has; a spare horse given to a member with Ride, a drag, or their number.
 - **Ammunition that runs out** (with the shared pack): each member's arrows, quarrels, balls and thrown weapons are their own.
-- **"Lost for good"** no longer shows after a battle for a member whose skill a saint has raised for a while (1.2 took the end of the boost for a loss).
+- **"Lost for good"** no longer shows after a battle for a member whose skill a saint has raised for a while (1.2 showed it after every battle, the boosted skills "lowered").
 - **Go to** works by night, says why a place is shut, and shows the party walking instead of flashing the cards on the way.
 - **Calling on a saint:** the favor to spend on a bar with the best chance marked, the reason when there is no chance, and prayers from the character sheet.
 - **Docks:** a small map of where the boats go, with each fare. **More day jobs:** nine jobs the original never offers turn up in towns with the right places.
