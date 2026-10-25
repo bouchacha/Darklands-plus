@@ -103,6 +103,10 @@ sc('idle_join', 'a friend set upon a few paces off, two members with no orders n
    arms=[(2, BOW, 30)], groups=(BANDIT, 2, 2, 0, 1, 0, -1, 0, 0),
    place=[(0, 0, 0), (1, -30, 10), (3, -30, -10), (2, -70, 0), (5, 14, 0), (6, 14, 8)], orders=['uhold:3,1'], end=False,
    expect=[r'orders: member 1 had no orders: joins the fight'], forbid=[r'orders: member 3 had no orders: joins'])
+sc('wolf_pack', 'eight wolves on four swords in the open: fast foes swarming, nobody stuck walking in place, no stutter',
+   groups=(WOLF, 2, 8, 0, 1, 0, -1, 0, 0), secs=90)
+sc('big_brawl', 'eight mercenaries and a captain against the party in the trees, two of ours shooting: a long crowded melee, routes round trunks and bodies',
+   arms=[(1, XBOW, 30), (2, BOW, 30)], groups=(MERC, 3, 8, CAPTAIN, 3, 1, -1, 0, 0), bf=WILDS, secs=120)
 sc('original', 'Improved combat off: the game\'s own way, as a check that nothing of ours runs (no crash, no orders of ours)',
    arms=[(2, BOW, 30)], set=['battle.improved=0'], end=False)
 
