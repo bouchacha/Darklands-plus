@@ -14,8 +14,6 @@ struct IconPath {
         for (int i = 1; i <= n; i++) { float t = (float)i / n, w = 1 - t; v.push_back(ImVec2(w * w * a.x + 2 * w * t * c.x + t * t * p.x, w * w * a.y + 2 * w * t * c.y + t * t * p.y)); } return *this; }
     void fill(ImDrawList *dl, ImU32 k, ImU32 edge, float w) { dl->AddConcavePolyFilled(v.Data, v.Size, k); if (w > 0) dl->AddPolyline(v.Data, v.Size, edge, ImDrawFlags_Closed, w); }
 };
-/* Charisma's picture, while the choice is open (uiconstyles:9 shows them all) */
-int ui_charisma_look = 0;
 
 static void skill_body(ImDrawList *dl, ImVec2 c, float s, int k)
 {
@@ -78,7 +76,7 @@ static void skill_body(ImDrawList *dl, ImVec2 c, float s, int k)
         dl->AddRectFilled(P(-7.4f, -10.6f), P(7.4f, -8.4f), stone); dl->AddRect(P(-7.4f, -10.6f), P(7.4f, -8.4f), ink, 0, 0, 0.7f * u);   /* the slab on top */
         break; }
     case 12: { /* read & write: a quill on a blank sheet (its vane, barbs and shaft, the nib cut; not a blade) */
-        ImU32 vane = C(228, 216, 186), paper = C(248, 244, 232);
+        ImU32 vane = C(228, 216, 186), paper = C(232, 222, 198);   /* (the sheet filled in, heraldic: gold, the quill on it edged in ink) */
         { const float ca = cosf(-0.14f), sa = sinf(-0.14f), cx = -2.6f, cy = 2.2f, hw = 5.4f, hh = 7.0f;            /* the sheet, a little askew */
           ImVec2 q[4]; const float X[4] = { -hw, hw, hw, -hw }, Y[4] = { -hh, -hh, hh, hh };
           for (int i = 0; i < 4; i++) q[i] = P(cx + X[i] * ca - Y[i] * sa, cy + X[i] * sa + Y[i] * ca);
@@ -171,48 +169,21 @@ static void attr_body(ImDrawList *dl, ImVec2 c, float s, int k)
         dl->AddLine(P(0, -2), P(0, -4), ink, 0.8f * u);
         dl->AddTriangleFilled(P(-2.4f, -4.5f), P(2.4f, -4.5f), P(0, -11), C(255, 200, 70));
         dl->AddCircleFilled(P(0, -5.2f), 2.4f * u, C(255, 200, 70)); dl->AddCircleFilled(P(0, -5.5f), 1.1f * u, C(255, 250, 210)); break;
-    case 5: { /* charisma, the options (ui_charisma_look): 0 a rose, the heralds' (grace, charm); 1 lips; 2 a laurel wreath, large.
-                 (Not a crown: the nobility's; not a heart: Endurance's) */
-        ImU32 red = C(190, 40, 46), leafc = C(84, 150, 62), stem = C(60, 100, 36), seed = C(226, 182, 64);
+    case 5: { /* charisma: a rose, the heralds' (grace, charm): five petals, five within, the seeds, the barbs between.
+                 (Not a crown: the nobility's; not a heart: Endurance's; not lips: they read as speaking, Speak Common's) */
+        ImU32 red = C(190, 40, 46), leafc = C(84, 150, 62), seed = C(226, 182, 64);
         auto leaf = [&](float x, float y, float dx, float dy, float L, float w, ImU32 k) { ImVec2 q[16]; int n = 0; float nx = -dy, ny = dx;
             for (int i = 0; i <= 8; i++) { float t = -1 + i / 4.0f, h = 0.5f * w * (1 - t * t); q[n++] = P(x + dx * t * L * 0.5f + nx * h, y + dy * t * L * 0.5f + ny * h); }
             for (int i = 7; i >= 1; i--) { float t = -1 + i / 4.0f, h = 0.5f * w * (1 - t * t); q[n++] = P(x + dx * t * L * 0.5f - nx * h, y + dy * t * L * 0.5f - ny * h); }
             dl->AddConvexPolyFilled(q, n, k); dl->AddPolyline(q, n, ink, ImDrawFlags_Closed, 0.55f * u); };
-        if (ui_charisma_look == 0) {
-            for (int i = 0; i < 5; i++) { float a = -1.5708f + 0.6283f + i * 1.2566f;                                  /* the barbs, between the petals */
-                leaf(cosf(a) * 7.6f, sinf(a) * 7.6f, cosf(a), sinf(a), 4.2f, 1.7f, leafc); }
-            for (int i = 0; i < 5; i++) { float a = -1.5708f + i * 1.2566f;                                           /* the outer petals */
-                dl->AddCircleFilled(P(cosf(a) * 5.0f, sinf(a) * 5.0f), 4.2f * u, red); dl->AddCircle(P(cosf(a) * 5.0f, sinf(a) * 5.0f), 4.2f * u, ink, 0, 0.7f * u); }
-            dl->AddCircleFilled(P(0, 0), 5.4f * u, red);                                                            /* (their inner edges hidden) */
-            for (int i = 0; i < 5; i++) { float a = -1.5708f + 0.6283f + i * 1.2566f;                                  /* the inner petals */
-                dl->AddCircleFilled(P(cosf(a) * 2.6f, sinf(a) * 2.6f), 2.5f * u, red); dl->AddCircle(P(cosf(a) * 2.6f, sinf(a) * 2.6f), 2.5f * u, ink, 0, 0.6f * u); }
-            dl->AddCircleFilled(P(0, 0), 2.2f * u, seed); dl->AddCircle(P(0, 0), 2.2f * u, ink, 0, 0.6f * u);       /* the seeds */
-        } else if (ui_charisma_look == 1) {
-            IconPath up; up.to(P(-10.0f, 0.6f)).quad(P(-6.4f, -5.6f), P(-2.6f, -4.6f), 8).quad(P(-1.0f, -4.2f), P(0, -2.8f), 4).quad(P(1.0f, -4.2f), P(2.6f, -4.6f), 4)
-                .quad(P(6.4f, -5.6f), P(10.0f, 0.6f), 8).quad(P(0, -0.6f), P(-10.0f, 0.6f), 10);
-            up.fill(dl, red, ink, 0.8f * u);                                                                       /* the upper lip, its bow */
-            IconPath lo; lo.to(P(-10.0f, 0.6f)).quad(P(0, 1.2f), P(10.0f, 0.6f), 10).quad(P(7.0f, 7.8f), P(0, 7.6f), 10).quad(P(-7.0f, 7.8f), P(-10.0f, 0.6f), 10);
-            lo.fill(dl, red, ink, 0.8f * u);                                                                       /* the lower */
-            dl->AddEllipseFilled(P(2.6f, 4.0f), ImVec2(2.2f * u, 0.9f * u), C(236, 150, 150), -0.1f);               /* its gleam (in colour) */
-        } else {
-            const float R = 8.3f;
-            for (int sd = -1; sd <= 1; sd += 2) {
-                auto ang = [&](float t) { return 1.5708f - sd * (0.10f + t * (3.1416f - 0.75f)); };                 /* from the knot below, up round the side */
-                dl->PathArcTo(P(0, 0.4f), R * u, ang(-0.05f), ang(1.0f), 24); dl->PathStroke(stem, 0, 1.3f * u);
-                for (int i = 0; i <= 6; i++) {
-                    float t = i < 6 ? 0.08f + i * 0.152f : 1.0f, a = ang(t), bx = cosf(a) * R, by = 0.4f + sinf(a) * R;
-                    float tx = sd * sinf(a), ty = -sd * cosf(a), ox = cosf(a), oy = sinf(a);
-                    if (i == 6) { leaf(bx + tx * 2.0f, by + ty * 2.0f, tx, ty, 4.2f, 2.0f, leafc); break; }
-                    for (int side = -1; side <= 1; side += 2) {
-                        float dx = tx * 0.74f + side * ox * 0.67f, dy = ty * 0.74f + side * oy * 0.67f;
-                        leaf(bx + dx * 2.0f, by + dy * 2.0f, dx, dy, side > 0 ? 4.4f : 3.8f, 1.9f, leafc); }
-                }
-            }
-            for (int sd = -1; sd <= 1; sd += 2) {                                                                  /* the ribbon */
-                ImVec2 t3[3] = { P(sd * 0.3f, R + 0.6f), P(sd * 3.0f, R + 3.0f), P(sd * 1.2f, R + 3.2f) };
-                dl->AddTriangleFilled(t3[0], t3[1], t3[2], red); dl->AddTriangle(t3[0], t3[1], t3[2], ink, 0.5f * u); }
-            dl->AddCircleFilled(P(0, R + 0.4f), 1.1f * u, red); dl->AddCircle(P(0, R + 0.4f), 1.1f * u, ink, 0, 0.5f * u);
-        }
+        for (int i = 0; i < 5; i++) { float a = -1.5708f + 0.6283f + i * 1.2566f;                                      /* the barbs, between the petals */
+            leaf(cosf(a) * 7.6f, sinf(a) * 7.6f, cosf(a), sinf(a), 4.2f, 1.7f, leafc); }
+        for (int i = 0; i < 5; i++) { float a = -1.5708f + i * 1.2566f;                                               /* the outer petals */
+            dl->AddCircleFilled(P(cosf(a) * 5.0f, sinf(a) * 5.0f), 4.2f * u, red); dl->AddCircle(P(cosf(a) * 5.0f, sinf(a) * 5.0f), 4.2f * u, ink, 0, 0.7f * u); }
+        dl->AddCircleFilled(P(0, 0), 5.4f * u, red);                                                                /* (their inner edges hidden) */
+        for (int i = 0; i < 5; i++) { float a = -1.5708f + 0.6283f + i * 1.2566f;                                      /* the inner petals */
+            dl->AddCircleFilled(P(cosf(a) * 2.6f, sinf(a) * 2.6f), 2.5f * u, red); dl->AddCircle(P(cosf(a) * 2.6f, sinf(a) * 2.6f), 2.5f * u, ink, 0, 0.6f * u); }
+        dl->AddCircleFilled(P(0, 0), 2.2f * u, seed); dl->AddCircle(P(0, 0), 2.2f * u, ink, 0, 0.6f * u);           /* the seeds */
         break; }
     case 6: /* divine favor: a chalice */
         dl->AddBezierQuadratic(P(-7, -9), P(-6, 2), P(0, 2), gold, 2.2f * u); dl->AddBezierQuadratic(P(7, -9), P(6, 2), P(0, 2), gold, 2.2f * u);
@@ -506,26 +477,6 @@ extern "C" void ui_icon_styles_draw(void)
     }
     if (sheet_on >= 1000) {   /* one ingredient's sign as large as the window allows (uiconstyles:1000+id) */
         ui_draw_ingredient(dl, ImVec2(ds.x * 0.5f, ds.y * 0.5f), ds.y * 0.8f, (sheet_on - 1000) % 100);
-        return;
-    }
-    if (sheet_on == 9) {   /* Charisma's options large (uiconstyles:9): in colour, and heraldic beside; then small */
-        static const char *CH[3] = { "A. A rose", "B. Lips", "C. A laurel wreath, larger" };
-        ImFont *f = ImGui::GetFont(); float cw = ds.x / 3, sz = fminf(cw * 0.3f, ds.y / 4.0f), fs = sz * 0.2f; const ImU32 INK = IM_COL32(60, 40, 20, 255);
-        int keep = ui_charisma_look;
-        dl->AddText(f, fs * 1.3f, ImVec2(fs, fs * 0.4f), INK, "Charisma");
-        for (int v = 0; v < 3; v++) {
-            ui_charisma_look = v;
-            ImVec2 a2(cw * v + cw * 0.28f, ds.y * 0.36f), b2(cw * v + cw * 0.72f, ds.y * 0.36f);
-            ui_icon_style_preview(0); ui_attr_icon(dl, a2, sz, 5);
-            ui_icon_style_preview(2); ui_attr_icon(dl, b2, sz, 5);
-            for (int sm = 0; sm < 3; sm++) {                                                       /* and small, as on the sheet and a card */
-                ImVec2 c3(cw * v + cw * 0.38f + sm * sz * 0.36f, ds.y * 0.36f + sz * 1.1f); ui_icon_style_preview(sm == 2 ? 0 : 2);
-                ui_attr_icon(dl, c3, sm == 0 ? sz * 0.22f : sz * 0.16f, 5); }
-            ui_icon_style_preview(-1);
-            float w = f->CalcTextSizeA(fs, 1e9f, 0, CH[v]).x;
-            dl->AddText(f, fs, ImVec2(cw * v + cw * 0.5f - w * 0.5f, ds.y * 0.36f + sz * 1.45f), INK, CH[v]);
-        }
-        ui_charisma_look = keep;
         return;
     }
     if (sheet_on == 8) {   /* the attributes, skills and the party's standing large (uiconstyles:8): in colour, and heraldic beside */
