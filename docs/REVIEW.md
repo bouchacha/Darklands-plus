@@ -59,6 +59,16 @@ map". For every switch removed, merged or renamed since the last pass: search ev
 the welcome, the tips, README) for anything that still calls it optional or uses its old name. Long lines are
 wrapped (ImGui's BulletText and TextDisabled do not wrap).
 
+**Pointer and tooltips.** One pointer at a time: over a window of Darklands+ the system's, and the game's hand
+not drawn (`windows_up` in ui/ui.cpp lists those windows: a new one goes there). Where the hand is drawn, its
+point is where a click lands: with `DL_LIVE_POINTER=1`, `uhover:x,y` and a window shot, the hand's corner sits
+on x,y. Every tooltip that belongs to a thing on screen opens beside it, never over it nor over the pointer
+(`ui_tip_beside`, ui/tipplace.cpp; the item tooltips' `show_tip` in ui/overlay.cpp; the battle's
+`place_by_pointer`); a hand-placed `SetNextWindowPos` before a tooltip is a finding.
+
+**The New Player Guide.** Every statement in ui/guide.cpp checked against the game's code (the decompiled
+source in src/, the card texts), each wrong or misleading one rewritten; a Darklands+ feature starts with "+".
+
 **Switches.** Ask of every switch in docs/SWITCHES.md:
 1. Would anyone ever turn it off? If not, it is always on (retire the key in `mods/optwhy.c`).
 2. Is it useless without another? Then it sits under that one, or both become one.
@@ -99,3 +109,10 @@ covered and found, and what it could not check.
   Guide a list at the left). The arena's misses were its own: a shot's draw and loosing between two samples
   (now counted from the battle log too), a held member "walking" toward a foe out of reach (the game's Hold),
   the seeds' runs of 'original' not exempt as the first.
+- 2026-10-25: from a player's reports on RC23. The New Player Guide audited statement by statement against the
+  code (clothing not sellable, the watch, camping's risk, saving, prices, armor, saints, which places most
+  towns have); the town icons cut to what most towns lack (counted: `utownoffers`); one pointer over
+  windows (the tips window drew the hand too, off the click point); tooltips beside their thing; skills and
+  attributes heraldic everywhere; the sheet's hidden game text no longer drawn. Not checkable here: the music's
+  timing on a real sound card and display (this machine renders in software); the CM-32L's battle sounds
+  differ from the MT-32's only slightly in the recordings, where its settings line promises more.
