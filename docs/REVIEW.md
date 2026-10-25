@@ -133,3 +133,14 @@ covered and found, and what it could not check.
   vertices, every screen under 60k; a picture costs up to ~70 ms once at 4K (spread, ~12 ms a frame). Not checkable here: Go to University's "cannot find the way from this card" (not reproduced from the
   player's save at any of 30 places, nor after the university's own cards; the log now names the card, and the last
   session's log is kept as darklands_port_previous.log).
+- 2026-10-25 (evening): optimization pass. Measured with perfcheck (2560x1440), strace (the system calls of each
+  screen, 3 s each: tools in the scratchpad's fsprof.sh) and gdb stack samples of the main thread. Found and fixed:
+  settings looked up along a list of ~150-300 keys thousands of times a frame (an index now: interface build time
+  down a third to a half); a battle reading overlay code from DARKLAND.EXE ~3,300 times a second (each section
+  read once and kept: 20,670 system calls in 3 s of battle to 885); after each card-chance evaluation every open
+  file sought back whether moved or not; the portraits folder checked 40 times several times a second; the plaited
+  bands as pictures (above). Every screen within budget now (build 0.3-1.1 ms average, at most 41k vertices,
+  85 draw calls). Left as they are: the card chances re-evaluated once a second (a 1.1 MB copy each, ~2 ms/s);
+  large sparse drawings (the alchemy desk, the shop counter: 33-41k vertices) kept as triangles, since a
+  processor-drawn picture of them costs ~170 ms at 1600x900; the opening's PAN files left open by the game when
+  a key ends them (the original's own; 64 handles to spare). Startup to the title is mostly the game's own waits.
