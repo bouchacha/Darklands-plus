@@ -301,13 +301,12 @@ static bool draw_ingredient_signs(Pen &p, int id)
         S.to(2.0f, -4.7f).to(3.0f, -4.7f).cubic(6.8f, -4.7f, 6.8f, 0.2f, 3.0f, 0.2f).to(0.1f, 0.2f).done(water, w2);   //   the bowl, from the top out and back to the stem
         L(3.4f, 0.2f, 6.7f, 4.9f, water, w2); break; }                                                          //   the leg
     case 74: p.ring(0, -3.4f, 2.4f, oil, W); p.ring(-3.6f, 2.8f, 2.4f, oil, W); p.ring(3.6f, 2.8f, 2.4f, oil, W); break;   // Naptha: oil's sign (a rock oil)
-    case 83: for (int k = 0; k < 2; k++) { float x = k ? 3.6f : -3.6f;                                    // Gum: gum's sign (two esses, a loop between)
-            S.to(x + 2.2f, -5.0f).quad(x - 3.6f, -4.4f, x, 0.4f).quad(x + 3.6f, 4.8f, x - 2.4f, 5.8f).done(amber, W); }
-        p.ring(0, -4.6f, 1.2f, amber, 1.1f); L(0, -3.4f, 0, 0.6f, amber, 1.1f); break;
-    case 75: L(0, -6.6f, 0, 7.2f, marsh);                                                                    // Marsh Vapor: putrefaction's sign (the gas of rot):
-        S.to(0, -0.6f).quad(-4.6f, 0.0f, -4.4f, -6.0f).done(marsh, W);                                       //   the stem, an arm each side,
-        S.to(0, -0.6f).quad(4.6f, 0.0f, 4.4f, -5.6f).done(marsh, W);                                         //   the right one ending inside its arrowhead's point
-        S.to(2.6f, -4.6f).to(4.4f, -6.4f).to(5.6f, -4.2f).done(marsh, W); break;
+    case 83: for (int k = 0; k < 2; k++) { float x = k ? 3.6f : -3.6f;                                    // Gum: gum's sign (two esses, a loop between): each ess one stroke,
+            S.to(x + 2.4f, -5.2f).quad(x - 3.8f, -5.2f, x, 0.2f).quad(x + 3.8f, 5.6f, x - 2.4f, 5.6f).done(amber, W); }   //   level at its ends (cut upright) and smooth through its middle
+        p.ring(0, -4.6f, 1.2f, amber, 1.1f); L(0, -3.4f, 0, 0.8f, amber, 1.1f); break;
+    case 75: L(0, -6.8f, 0, 7.2f, marsh);                                                                    // Marsh Vapor: putrefaction's sign (the gas of rot): the stem,
+        S.to(-4.6f, -6.2f).cubic(-4.6f, 0.4f, 4.4f, 0.4f, 4.4f, -5.0f).done(marsh, W);                       //   the cup one stroke round its foot,
+        p.tri(4.4f, -7.8f, 2.6f, -4.6f, 6.2f, -4.6f, marsh); break;                                          //   its right arm ending in a solid point
     /* the herbs: no sign in the alchemists' tables; a small emblem in the same green line (three tries each, herb_variant) */
     case 76:                                                                                                  // Eastern Black Bean
         if (herb_variant == 0) { ellipse_line(-3.0f, -2.8f, 3.2f, 2.1f, -0.45f, herb); p.arc(-2.7f, -1.2f, 1.9f, 3.7f, 5.5f, herb, 1.1f);   /* two beans */
