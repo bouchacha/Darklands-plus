@@ -128,7 +128,8 @@ covered and found, and what it could not check.
   SWITCHES.md regenerated; check_switches OK (212, 20 retired). Full Original: the battle has no order strip or
   margins; looks (text, ornaments) stay as chosen, as designed. perfcheck at 2560x1440: build time within budget
   everywhere (worst 6.9 ms), but vertices over the 60 000 mark on the sheet (78k), the world map (90k) and alchemy
-  (104k); the ornaments are 62k of alchemy's 89k (display.ornate off: 27k) - a textured braid would cut them, not
-  done. Not checkable here: Go to University's "cannot find the way from this card" (not reproduced from the
+  (104k); the ornaments are 62k of alchemy's 89k (display.ornate off: 27k). Then done: the plaited bands made into
+  pictures by the processor (ui/drawcache.cpp, mode 4): perfcheck at 2560x1440 now 6k (card) to 42k (alchemy)
+  vertices, every screen under 60k; a picture costs up to ~70 ms once at 4K (spread, ~12 ms a frame). Not checkable here: Go to University's "cannot find the way from this card" (not reproduced from the
   player's save at any of 30 places, nor after the university's own cards; the log now names the card, and the last
   session's log is kept as darklands_port_previous.log).
