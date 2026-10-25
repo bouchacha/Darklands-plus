@@ -408,6 +408,18 @@ static void presets_block(void)
     }
     ImGui::PopID();
     ImGui::Spacing();
+    {   /* Ironman (mods/saves.c): chosen for the next new game, whatever the preset */
+        ImGui::PushID("iron");
+        bool im = config_get_int("saves.ironman", 0) != 0, click = false;
+        if (ImGui::Checkbox("##iron", &im)) click = true;
+        ImGui::SameLine();
+        if (ui_title_desc("Ironman, for your next new game", "one save, kept by the game itself: saved over on every card, on arriving at a place, before each battle and when you quit. "
+                          "No loading back while that game runs, and when the party's journey ends, its save is deleted. Any preset.")) { im = !im; click = true; }
+        if (click) { config_set_int("saves.ironman", im); config_save(); }
+        if (saves_ironman()) ImGui::TextColored(ImVec4(0.62f, 0.32f, 0.08f, 1), "The game under way is an Ironman game.");
+        ImGui::PopID();
+    }
+    ImGui::Spacing();
     ImGui::TextColored(ImVec4(0.18f, 0.40f, 0.16f, 1), "Saved games stay compatible with the original game both ways, whatever the preset.");
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
     ImGui::TextWrapped("Darklands+ saves in the original game's format: its saves load in the original (on DOS too), and the original's saves load here; "

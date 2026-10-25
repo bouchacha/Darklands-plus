@@ -56,7 +56,9 @@ void tips_title_reached(void);               /* ui/tips.cpp: the New Player Guid
 static void screen_hook(void)                 /* title_screen (), s037 1e26:0008 */
 {
     tips_title_reached();
-    if (!tv_on || !ns_active()) { hook_call_original(); return; }
+    void saves_title_reached(void), saves_title_left(void);     /* (mods/saves.c: is the game that begins an Ironman game?) */
+    saves_title_reached();
+    if (!tv_on || !ns_active()) { hook_call_original(); if (!unw_active) saves_title_left(); return; }
     TitleModel *m = &title_model;
     ns_unwinding = 0;
     ns_call(-1, 0x047c, 0x0568, 0);                                  /* (the original's setup) */
@@ -116,6 +118,7 @@ static void screen_hook(void)                 /* title_screen (), s037 1e26:0008
     m->open = 0;
     ns_leave();
     fprintf(stderr, "title: closed%s\n", begin ? " (the game begins)" : "");
+    if (begin) saves_title_left();
     if (ns_unwinding) return;
     ns_call(GF_title_close, 0);
     hook_return_far(0);

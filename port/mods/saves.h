@@ -25,6 +25,7 @@ void saves_title_load(const char *file);          /* the start screen's load scr
 int saves_list(SaveInfo **out);                   /* newest first; free() */
 int saves_read(const char *file, SaveInfo *si);
 int saves_delete(const char *file);               /* not the one loaded; 0 if refused */
+int saves_ironman(void);                          /* the running game is an Ironman game (one save, kept by the game) */
 #ifdef __cplusplus
 }
 #endif

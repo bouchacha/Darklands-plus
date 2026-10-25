@@ -228,6 +228,7 @@ static Option OPTIONS[] = {
     { "encounters.seal", S_OTHER, 0, "A seal on encounters from mods", "a small red seal in the corner of a card that comes from a mod, not the original game.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
     { "encounters.share", S_OTHER, 0, "How often encounters from mods come up", "in percent: at 100, each is as likely as any one of the original encounters for that terrain.", OC_LOOK, 100, 100, 100, 0, 0, 0, 0, OF_ELSEWHERE },
     { "input.prompts", S_OTHER, 0, "Button prompts", "the controller's buttons on screen: 0 the device in use, 1 keys and mouse, 2 Xbox, 3 PlayStation, 4 Nintendo.", OC_LOOK, 0, 0, 0, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "saves.ironman", S_OTHER, 0, "Ironman", "the next new game keeps one save, saved over by the game itself as it goes (every card, each arrival, before each battle, on quitting); no loading back while it runs; when the party's journey ends, its save is deleted.", OC_LOOK, 0, 0, 0, 0, 0, 0, 0, OF_ELSEWHERE },
     { "saves.backup", S_OTHER, 0, "Back up saves", "a copy of each save before it is overwritten.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
     { "saves.keep_auto", S_OTHER, 0, "Autosaves kept", "how many autosaves are kept.", OC_LOOK, 3, 3, 3, 0, 0, 0, 0, OF_ELSEWHERE },
     { "saves.keep_quick", S_OTHER, 0, "Quick saves kept", "how many quick saves are kept.", OC_LOOK, 3, 3, 3, 0, 0, 0, 0, OF_ELSEWHERE },

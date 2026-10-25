@@ -77,7 +77,7 @@ extern "C" void titleview_draw(void)
         snprintf(b, sizeof b, "%s, %d %s %d", ns_gtext(s.place).c_str(), s.day, gm_month_name((unsigned)s.month % 12), s.year);
         std::string sub = b;
         if (!who.empty()) sub += " - " + who;
-        items[n++] = { TV_CONTINUE, "Continue", sub, m.can_continue != 0 };
+        items[n++] = { TV_CONTINUE, strncmp(s.comment, "Ironman ", 8) ? "Continue" : "Continue (Ironman)", sub, m.can_continue != 0 };
         snprintf(b, sizeof b, "%d saved game%s to choose from (The Story Continues)", m.nsaves, m.nsaves == 1 ? "" : "s");
         items[n++] = { TV_LOAD, "Load a saved game", b, true };
     } else items[n++] = { TV_LOAD, "Load a saved game", "No saved games yet", false };

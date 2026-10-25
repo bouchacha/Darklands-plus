@@ -13,7 +13,15 @@
  *    1c7d:06e6, is started at it). load_game then tears the running game down and returns to
  *    the main loop (longjmp) as usual.
  * Older quick- and autosaves (told apart by their comment) are deleted, keeping the newest
- * few; saves of the player are never touched. */
+ * few; saves of the player are never touched.
+ *
+ * Ironman: a game with one save, kept by the game itself. Chosen for the next new game
+ * (saves.ironman, F12 > Settings > Preset); a running game is known for one by its save's comment,
+ * "Ironman" and a number of its own. It is saved over on every card, on arriving at a place,
+ * before each battle and when the player quits or closes the window (once the game can save:
+ * not during a battle or in a shop); the game's Save, Ctrl+S and Save now save over it; loading
+ * is off until the player is back at the start screen; when the party's journey ends its save is
+ * deleted. A program killed during a battle comes back to before the battle (none is saved in one). */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -53,6 +61,11 @@ static char load_name[16];
 static int load_stage;           /* 1 asked for, 2 load_game called, 3 confirmed, 4 read */
 static u32 load_t, loaded_t;
 static int in_save;
+static char iron[16];            /* the running game's save comment when it is an Ironman game ("Ironman 3f2a"), else "" */
+static int close_due;            /* Ironman: the window was closed: save at the next chance, then quit */
+static int loaded_since_title, iron_check;   /* a save read since the start screen; a save read (is it an Ironman game's?) */
+static const char *IRON_NO_LOAD = "An Ironman game cannot go back to a save. To load another game, quit to the start screen.";
+int saves_ironman(void) { return iron[0] != 0; }
 
 /* ---------------------------------------------------------------- files */
 
@@ -160,6 +173,8 @@ static void textinput_hook(void)           /* text_input(char far *buf, char far
 static int do_save(const char *comment)
 {
     if (g_rb(D_SAVE_OK) != 1) return 0;
+    int asked = !strncmp(comment, "Quick", 5);
+    if (iron[0]) comment = iron;                       /* (an Ironman game: always over its one save) */
     char before[16]; g_str(G_DGROUP, D_SAVENAME, before, sizeof before);
     answer = comment; in_save = 1;
     int r = game_call_far(GF_save_game, 0, 0);
@@ -167,9 +182,10 @@ static int do_save(const char *comment)
     if (r < 0) { ui_notice("Could not save."); return 0; }
     char name[16]; g_str(G_DGROUP, D_SAVENAME, name, sizeof name);
     if (getenv("DL_SAVES_LOG")) fprintf(stderr, "saves: %s -> %s\n", comment, name);
+    if (iron[0]) { prune(iron, 1); if (asked) ui_notice("Saved (an Ironman game keeps one save, saved over as you go)"); return 1; }
     if (!strncmp(comment, "Quicksave", 9)) prune("Quicksave", saves_keep_quick);
     else if (!strncmp(comment, "Autosave", 8)) prune("Autosave", saves_keep_auto);
-    char m[80]; snprintf(m, sizeof m, "%s (%s)", !strncmp(comment, "Quick", 5) ? "Game saved" : "Autosaved", name);
+    char m[80]; snprintf(m, sizeof m, "%s (%s)", asked ? "Game saved" : "Autosaved", name);
     ui_notice(m);
     return 1;
 }
@@ -216,6 +232,12 @@ static void menubar_hook(void)             /* menu_bar_run(menu, once): with onc
         char c[24]; snprintf(c, sizeof c, "%s", auto_due);
         auto_due[0] = 0;
         do_save(c);
+    }
+    if (close_due && iron[0] && g_rb(D_SAVE_OK) == 1 && g_rb(D_IN_BATTLE) != 1) {   /* (the window closed: saved, then gone) */
+        void plat_quit(int code);
+        do_save("Autosave");
+        fprintf(stderr, "program exit: window closed (Ironman: saved first)\n");
+        plat_quit(0);
     }
     if (load_stage == 1) {
         if (g_rb(D_LOAD_OK) == 1) {
@@ -309,12 +331,22 @@ static void loaded_hook(void)              /* the save is read (s037 1c7d:0d24) 
     load_stage = 0;
     loaded_t = plat_ticks_ms();
     auto_due[0] = 0;
+    loaded_since_title = 1; iron_check = 1;          /* (an Ironman game's save, or not: saves_frame) */
 }
 
 /* the game's own Save and Load (the menu, Alt-S, Alt-L) as native dialogs (mods/savesview.c) */
 static void save_hook(void)                /* save_game () */
 {
     if (in_save) { hook_call_original(); return; }          /* (a quick- or autosave: do_save) */
+    if (iron[0]) {                                          /* (an Ironman game: over its one save, no name to give) */
+        answer = iron; in_save = 1;
+        hook_call_original();
+        answer = 0; in_save = 0;
+        if (unw_active) return;
+        prune(iron, 1);
+        ui_notice("Saved (an Ironman game keeps one save, saved over as you go)");
+        return;
+    }
     char c[48], old[16], before[16];
     int r = savesview_save(c, sizeof c, old, sizeof old);
     if (r < 0) { hook_call_original(); return; }
@@ -336,6 +368,7 @@ static void save_hook(void)                /* save_game () */
 
 static void load_hook(void)                /* load_game () */
 {
+    if (iron[0] && !load_stage) { ui_notice(IRON_NO_LOAD); hook_return_far(0); return; }
     if (load_stage || !saves_on) { hook_call_original(); return; }   /* (ours under way; or the original's list and question) */
     char f[16];
     int r = savesview_load(f, sizeof f);
@@ -363,7 +396,7 @@ static void note_menu_flags(void)
 }
 static void battle_hook(void)              /* run_battle (s029 0e76:2278) */
 {
-    if (saves_on && saves_auto_battle && g_rb(D_IN_BATTLE) != 1 && plat_ticks_ms() - loaded_t > 3000) {
+    if (((saves_on && saves_auto_battle) || iron[0]) && g_rb(D_IN_BATTLE) != 1 && plat_ticks_ms() - loaded_t > 3000) {
         char cn[16]; g_str(G_DGROUP, GV_card_name, cn, sizeof cn);
         u16 now[10]; int swap = menu_card[0] && !strcmp(cn, menu_card);
         for (int k = 0; k < 10; k++) { now[k] = g_rw((u16)(GV_opt_flag_0 + 2 * k)); if (swap) g_ww((u16)(GV_opt_flag_0 + 2 * k), menu_flags[k]); }
@@ -373,16 +406,83 @@ static void battle_hook(void)              /* run_battle (s029 0e76:2278) */
     hook_call_original();
 }
 
-static int last_loc = -2;
+static void hooks_set(int on);
+/* a game under way is an Ironman game when its save (the one read last) is one's, or when it is new
+   and the next new game was to be one: decided as the start screen is left (mods/titleview.c), and
+   again whenever a save is read during play */
+static void iron_from_save(void)
+{
+    char cur[16]; g_str(G_DGROUP, D_SAVENAME, cur, sizeof cur);
+    SaveInfo si;
+    iron[0] = 0; close_due = 0;
+    if (cur[0] && saves_read(cur, &si) && !strncmp(si.comment, "Ironman ", 8)) snprintf(iron, sizeof iron, "%.15s", si.comment);
+    if (iron[0]) { fprintf(stderr, "saves: an Ironman game (%s)\n", iron); hooks_set(1); assist_watch_cards(); }
+    else hooks_set(saves_on);
+}
+static int at_title;
+void saves_title_reached(void) { at_title = 1; loaded_since_title = 0; iron[0] = 0; close_due = 0; hooks_set(saves_on); }
+static void new_game_begins(void);
+void saves_title_left(void)                      /* (the game begins: a save read there, or a new one) */
+{
+    if (!at_title) return;
+    at_title = 0;
+    if (loaded_since_title) { iron_check = 0; iron_from_save(); } else new_game_begins();
+}
+static void new_game_begins(void)
+{
+    iron[0] = 0; close_due = 0;
+    if (!config_get_int("saves.ironman", 0)) return;
+    snprintf(iron, sizeof iron, "Ironman %04x", (unsigned)((plat_ticks_ms() * 2654435761u) ^ (unsigned)time(0)) & 0xffff);
+    snprintf(auto_due, sizeof auto_due, "Autosave");     /* (its save, made at once) */
+    ui_notice("An Ironman game: it saves itself as you go, over one save. There is no going back.");
+    fprintf(stderr, "saves: a new Ironman game (%s)\n", iron);
+    hooks_set(1); assist_watch_cards();
+}
+
+static int last_loc = -2, was_menu;
+static int card_due; static u32 card_saved;
 void saves_frame(void)
 {
     { void saves_note_game(void); saves_note_game(); }
     note_menu_flags();
     if (load_stage == 1 && plat_ticks_ms() - load_t > 30000) load_stage = 0;    /* never a moment to load */
-    if (!saves_on || game_mode() == GM_OTHER) { last_loc = -2; return; }
+    u32 now = plat_ticks_ms();
+    if (iron_check && !at_title && game_mode() != GM_OTHER) { iron_check = 0; iron_from_save(); }
+    if ((!saves_on && !iron[0]) || game_mode() == GM_OTHER) { last_loc = -2; return; }
     int loc = (s16)g_rw(G_CUR_LOC);
-    if (saves_auto_arrive && last_loc == -1 && loc >= 0 && loc < G_NLOC && plat_ticks_ms() - loaded_t > 3000) snprintf(auto_due, sizeof auto_due, "Autosave");
+    if ((saves_auto_arrive || iron[0]) && last_loc == -1 && loc >= 0 && loc < G_NLOC && plat_ticks_ms() - loaded_t > 3000) snprintf(auto_due, sizeof auto_due, "Autosave");
     last_loc = loc;
+    if (iron[0]) {                                     /* every card, once the last option's outcome has come: saved over (at most every 3 seconds) */
+        int menu = assist_in_card_menu();
+        if (menu && !was_menu) card_due = 1;
+        was_menu = menu;
+        if (card_due && now - loaded_t > 3000 && now - card_saved > 3000) { card_due = 0; card_saved = now; snprintf(auto_due, sizeof auto_due, "Autosave"); }
+    }
+}
+
+/* the window closed (runtime/platform_sdl.c): an Ironman game is saved first, at the next moment the
+   game allows it; 1 if the closing waits for that. Closed again, it goes at once */
+int saves_close_requested(void)
+{
+    if (!iron[0] || game_mode() == GM_OTHER || close_due) return 0;
+    close_due = 1;
+    ui_notice(g_rb(D_IN_BATTLE) == 1 ? "Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save)."
+                                      : "Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save).");
+    return 1;
+}
+
+/* the party's journey ended (the death of all, or retirement): an Ironman game's save goes with it */
+void saves_journey_over(void)
+{
+    if (!iron[0]) return;
+    SaveInfo *v; int n = saves_list(&v);
+    for (int i = 0; i < n; i++) if (!strcmp(v[i].comment, iron)) {
+        char b[20]; remove_ci(v[i].file); snprintf(b, sizeof b, "%s", v[i].file);
+        char *dot = strrchr(b, '.'); if (dot) { strcpy(dot, ".BSV"); remove_ci(b); }
+        fprintf(stderr, "saves: the Ironman game's save %s deleted (the journey is over)\n", v[i].file);
+    }
+    free(v);
+    iron[0] = 0;
 }
 
 /* ---------------------------------------------------------------- requests */
@@ -394,6 +494,7 @@ void saves_quick_save(void)
 
 int saves_load(const char *name)
 {
+    if (iron[0]) { ui_notice(IRON_NO_LOAD); return 0; }
     if (game_mode() == GM_OTHER) { ui_notice("Loading from here works once a game is running; until then, load from the start screen."); return 0; }
     /* only a save that is there and can be read: once the game's load_game has torn the game down,
        a load that fails has nothing to go back to (the game stopped: "Buffer dealloc error") */
@@ -415,6 +516,7 @@ void saves_title_load(const char *name)
 
 void saves_quick_load(void)
 {
+    if (iron[0]) { ui_notice(IRON_NO_LOAD); return; }
     SaveInfo *v; int n = saves_list(&v), found = -1;
     for (int i = 0; i < n && found < 0; i++) if (is_kind(&v[i], "Quicksave")) found = i;
     if (found < 0) ui_notice("No quicksave yet (Ctrl+S makes one).");
@@ -425,7 +527,7 @@ void saves_quick_load(void)
 /* Ctrl+S quick save, F9 / Ctrl+L quick load; 1 if the key was taken */
 int saves_key(int sym, int ctrl)
 {
-    if (!saves_on) return 0;
+    if (!saves_on && !iron[0]) return 0;
     if (ctrl && (sym == 's' || sym == 'S')) { saves_quick_save(); return 1; }
     if ((ctrl && (sym == 'l' || sym == 'L')) || sym == 0x40000042 /* SDLK_F9 */) { saves_quick_load(); return 1; }
     return 0;
@@ -435,14 +537,21 @@ static struct { int sect; unsigned seg, off; void (*fn)(void); } HK[] = {
     { 37, 0x1462, 0x43e6, textinput_hook }, { -1, 0x0000, 0x0000, menubar_hook }, { -1, 0x0000, 0x2522, askyesno_hook },
     { 37, 0x1c7d, 0x06e6, loadlist_hook }, { 37, 0x1c7d, 0x0d24, loaded_hook }, { 37, 0x1c7d, 0x0002, loadscreen_hook }, { 29, 0x0e76, 0x2278, battle_hook } };
 
-void saves_enable(int on)
+static void hooks_set(int on)
 {
-    saves_on = on;
-    config_set_int("saves.quick", on);
+    static int installed;
+    if (on == installed) return;
+    installed = on;
     for (size_t i = 0; i < sizeof HK / sizeof HK[0]; i++) {
         if (on) { if (!hook_install(HK[i].sect, HK[i].seg, HK[i].off, HK[i].fn)) fprintf(stderr, "saves: no hook point %d %04x:%04x\n", HK[i].sect, HK[i].seg, HK[i].off); }
         else hook_remove(HK[i].sect, HK[i].seg, HK[i].off, HK[i].fn);
     }
+}
+void saves_enable(int on)
+{
+    saves_on = on;
+    config_set_int("saves.quick", on);
+    hooks_set(on || iron[0]);                          /* (an Ironman game saves itself whatever this says) */
 }
 
 /* the end of the party: the original leaves to DOS (after the death pictures); the port starts
@@ -450,7 +559,12 @@ void saves_enable(int on)
  * 0000:13a0) - so a saved game can be loaded at once */
 int saves_restart = 1;
 static int user_quit, game_seen;
-static void quit_hook(void) { fprintf(stderr, "quit_to_dos asked\n"); user_quit = 1; hook_call_original(); user_quit = 0; }
+static void quit_hook(void)
+{
+    fprintf(stderr, "quit_to_dos asked\n");
+    if (iron[0] && g_rb(D_SAVE_OK) == 1 && g_rb(D_IN_BATTLE) != 1) do_save("Autosave");   /* (an Ironman game: saved as it is left) */
+    user_quit = 1; hook_call_original(); user_quit = 0;
+}
 int saves_restart_on_exit(void)
 {
     int headless = getenv("DL_HEADLESS") != 0;

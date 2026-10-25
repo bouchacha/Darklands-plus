@@ -227,6 +227,10 @@ int testcmd_run(const char *cmd, const char *arg)
             }
         }
         else if (!strcmp(cmd, "uattr")) { int m = 0, a = 0, v = 1; sscanf(arg, "%d,%d,%d", &m, &a, &v); if (m >= 0 && m < 5 && a >= 0 && a < 7) { g_wb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + a), (u8)v); g_wb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + a), (u8)v); } }   /* test: an attribute, now and at most */
+        else if (!strcmp(cmd, "udie")) {                /* test: the whole party at no strength, an hour passes (the death screen, the journey's end) */
+            for (int m = 0; m < 5; m++) g_wb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + 1), 0);
+            u16 h[1] = { 1 }; game_call_far(GF_hours_pass, 1, h);
+        }
         else if (!strcmp(cmd, "umoney")) { g_ww(G_MONEY, (u16)atoi(arg)); }   /* test: the party's florins */
         else if (!strcmp(cmd, "uleader")) { int m = atoi(arg); if (m >= 0 && m < 5) g_wb(G_LEADER, (u8)m); fprintf(stderr, "leader now %d\n", (s8)g_rb(G_LEADER)); }   /* test: the party's leader */
         else if (!strcmp(cmd, "uknows")) {             /* test: what each member knows: formulae (a byte a potion, 3 bits) and saints */

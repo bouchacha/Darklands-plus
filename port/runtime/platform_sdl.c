@@ -735,6 +735,7 @@ static void run_script(void)
             ev.button.x = x; ev.button.y = y; ev.button.clicks = 1; SDL_PushEvent(&ev);
             ev.type = SDL_MOUSEBUTTONUP; ev.button.state = SDL_RELEASED; SDL_PushEvent(&ev);
         }
+        else if (!strcmp(s->cmd, "uclose")) { SDL_Event ev; memset(&ev, 0, sizeof ev); ev.type = SDL_QUIT; SDL_PushEvent(&ev); }   /* test: the window's close button */
         else if (!strcmp(s->cmd, "udown") || !strcmp(s->cmd, "uup")) {   /* test: the left button pressed or let go there (window pixels): a drag between */
             SDL_Event ev; memset(&ev, 0, sizeof ev);
             Uint32 wid = win ? SDL_GetWindowID(win) : 0;
@@ -1127,7 +1128,8 @@ void plat_events(void)
         if (swallow_click && (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP)) { if (e.type == SDL_MOUSEBUTTONUP) swallow_click = 0; continue; }
         if (drag_filter(&e)) continue;
         switch (e.type) {
-        case SDL_QUIT: fprintf(stderr, "program exit: window closed\n"); plat_quit(0); break;
+        case SDL_QUIT: { int saves_close_requested(void); if (saves_close_requested()) break; }   /* (an Ironman game: saved first) */
+            fprintf(stderr, "program exit: window closed\n"); plat_quit(0); break;
         case SDL_WINDOWEVENT:
             if (e.window.event == SDL_WINDOWEVENT_FOCUS_LOST && !getenv("DL_SCRIPT") && !getenv("DL_CTL") && config_get_int("display.pause_unfocused", 1)) {
                 bg_paused = 1; fprintf(stderr, "window in the background: the game waits\n");

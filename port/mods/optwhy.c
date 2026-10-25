@@ -113,6 +113,7 @@ static const struct { const char *key, *why; } WHY[] = {
     { "display.full_names", "The original cut names short to fit its screens." },
     { "display.armour_worn", "V:/L: prefixes are cryptic." },
     { "saves.quick", "Saving took several menus." },
+    { "saves.ironman", "Players asked for a game where every choice stands." },
     { "saves.autosave_arrive", "A crash or a bad fight cost hours." },
     { "saves.autosave_battle", "A lost battle cost what came before it." },
     { "saves.restart_on_end", "The original quits to DOS at the end." },
