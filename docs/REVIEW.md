@@ -118,3 +118,17 @@ covered and found, and what it could not check.
   timing on a real sound card and display (this machine renders in software); the CM-32L's battle sounds
   differ from the MT-32's only slightly in the recordings (its settings line said "chimes and odd noises": now
   "some battle sounds a little different").
+- 2026-10-25 (afternoon): after a player's reports on RC26. Fixed on the way: the battle tooltip's melee weapons
+  (it read the combatant's +0x23 since 1.2; the weapon is +0x51), a false "Lost for good" after every battle for a
+  member with a saint's boost to a skill (the events are out of memory at a battle's end), horses on the sheet
+  (a spare one could not be given or ridden; a drag from the pack fell through as a click on the party panel).
+  Words: the 1.3 changelog cut to what changed since 1.2; "Std Attack" left only where the game's own menu says it
+  (Darklands+'s button and texts say Standard); the MT-32 window no longer calls the CM-32L chimes. Pointer: the
+  order strip's tips placed by ui_tip_beside (a hand-placed position had crept in). Code map, COPY.md and
+  SWITCHES.md regenerated; check_switches OK (212, 20 retired). Full Original: the battle has no order strip or
+  margins; looks (text, ornaments) stay as chosen, as designed. perfcheck at 2560x1440: build time within budget
+  everywhere (worst 6.9 ms), but vertices over the 60 000 mark on the sheet (78k), the world map (90k) and alchemy
+  (104k); the ornaments are 62k of alchemy's 89k (display.ornate off: 27k) - a textured braid would cut them, not
+  done. Not checkable here: Go to University's "cannot find the way from this card" (not reproduced from the
+  player's save at any of 30 places, nor after the university's own cards; the log now names the card, and the last
+  session's log is kept as darklands_port_previous.log).

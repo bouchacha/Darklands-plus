@@ -123,13 +123,13 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:160` | Improved combat |
 | `mods/options.c:160` | the party fights on sensibly between orders. A member with a bow, crossbow, gun or thrown weapon shoots first and keeps shooting: when the target falls, at the nearest enemy in sight; with no clear line (a wall, a tree or someone standing between, as the aiming line shows), the member moves to the nearest spot a few paces off that has one (or walks up until there is one); hand to hand only once an enemy is close or there is nothing left to shoot. A member whose enemy falls turns on one close by, Parry, Berserk and Vulnerable stay as ordered, and a click on an enemy opens with a Vulnerable attack (aimed at the gaps in its armor) when only that would get through its armor. When off: the original's ways. |
 | `mods/options.c:161` | Click an enemy to attack it |
-| `mods/options.c:161` | a click on an enemy sends the selected member to attack it (Std Attack), even before an attack is chosen. |
+| `mods/options.c:161` | a click on an enemy sends the selected member to attack it, even before an attack is chosen: a standard attack, or with Improved combat a Vulnerable one where only that gets through the enemy's armor. |
 | `mods/options.c:162` | Bow or sword on each member's box |
 | `mods/options.c:162` | in a battle, a member holding a missile weapon shows a bow or a sword on their box in the party panel: whether a click on an enemy makes them shoot or fight hand to hand. Click it to switch; each member keeps their choice. |
 | `mods/options.c:163` | Click a member's box to give them orders |
 | `mods/options.c:163` | in a battle, a click on a member's box in the party panel selects them for orders, as 1 to 5 do (a double-click also moves the view to them); a right-click on the box opens their character sheet. When off: a click on the box opens the sheet, as in the original. |
 | `mods/options.c:164` | One click gives an order |
-| `mods/options.c:164` | with a member selected, a click on an enemy or the ground gives the order at once, as do orders that need no target (Halt, a door, the stairs). An attack picked from the Orders menu or the buttons (Std Attack, Vulnerable, Berserk, Parry) goes against the enemy the member is already fighting. If selecting the member paused the battle, it resumes with the order. When off: a click only marks the target, and Enter, Space or selecting another member gives the order, as in the original. |
+| `mods/options.c:164` | with a member selected, a click on an enemy or the ground gives the order at once, as do orders that need no target (Halt, a door, the stairs). An attack picked from the Orders menu or the buttons (Standard, Vulnerable, Berserk, Parry) goes against the enemy the member is already fighting. If selecting the member paused the battle, it resumes with the order. When off: a click only marks the target, and Enter, Space or selecting another member gives the order, as in the original. |
 | `mods/options.c:165` | Then select the next member without orders |
 | `mods/options.c:165` | while the battle is paused, giving an order selects the next member on screen who has no order, so at the start of a battle each order is a single click on an enemy. Space resumes the battle. |
 | `mods/options.c:166` | Order buttons over the field |
@@ -781,50 +781,50 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/citynav.cpp:443` | something happened on the way. |
 | `ui/citynav.cpp:443` | leave this place first. |
 | `ui/citynav.cpp:451` | the way is blocked. |
-| `ui/citynav.cpp:453` | cannot find the way from this card. |
-| `ui/citynav.cpp:474` | leading merchant |
-| `ui/citynav.cpp:479` | something happened on the way. |
-| `ui/citynav.cpp:481` | something happened on the way. |
-| `ui/citynav.cpp:481` | leave this place first. |
-| `ui/citynav.cpp:491` | the marketplace by night: choose how to get past the guards to the offices upstairs (press G again there for the office). |
-| `ui/citynav.cpp:492` | the marketplace by night: its stalls are shut until 5:00. |
-| `ui/citynav.cpp:513` | not found in this city. |
-| `ui/citynav.cpp:523` | Going to: %s. Press any key or click to stop. |
-| `ui/citynav.cpp:553` | Walking to the city gate |
-| `ui/citynav.cpp:553` | Walking to: %s |
-| `ui/citynav.cpp:566` | Any key or click stops the walk. |
-| `ui/citynav.cpp:691` | Point at a place to read about it here: what it offers, its quests, its teachers. |
-| `ui/citynav.cpp:702` | Click the tile and the party walks there. |
-| `ui/citynav.cpp:741` | Pick a place and the party walks there through the streets. Press any key or click to stop them. |
-| `ui/citynav.cpp:743` | Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out. |
-| `ui/citynav.cpp:771` | Closed until 5:00 |
-| `ui/citynav.cpp:771` | Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same. |
-| `ui/citynav.cpp:775` | Turned away until %d %s |
-| `ui/citynav.cpp:775` | The alchemists turned the party away; they will see you again from %d %s, %d:00. |
-| `ui/citynav.cpp:776` | Library shut until %d %s |
-| `ui/citynav.cpp:776` | The monks' library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:777` | Prayers again from %d %s |
-| `ui/citynav.cpp:777` | The party prayed with the monks; they may again from %d %s, %d:00. |
-| `ui/citynav.cpp:778` | Library shut until %d %s |
-| `ui/citynav.cpp:778` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:796` | Quest chance %d%% |
-| `ui/citynav.cpp:797` | A merchant may offer a quest after you have bought or sold something. |
-| `ui/citynav.cpp:798` | No quests until %d %s |
-| `ui/citynav.cpp:799` | On a quest for them |
-| `ui/citynav.cpp:800` | Your reward is waiting |
-| `ui/citynav.cpp:801` | No quests: reputation too low |
-| `ui/citynav.cpp:806` |  Until %d %s, %d:00. |
-| `ui/citynav.cpp:814` | Your quest:  |
-| `ui/citynav.cpp:814` | see the world map (M) |
-| `ui/citynav.cpp:836` | Wares %dq, better than most |
-| `ui/citynav.cpp:838` | Wares of %dq (most shops sell about 25q). |
-| `ui/citynav.cpp:848` | Raises a Philosopher's Stone to |
-| `ui/citynav.cpp:848` | No better stone than the party's |
-| `ui/citynav.cpp:851` | What you learned |
-| `ui/citynav.cpp:851` | The physician:  |
-| `ui/citynav.cpp:851` | The alchemist:  |
-| `ui/citynav.cpp:923` | A teacher to hire (faint: not available now) |
-| `ui/citynav.cpp:924` | A quest of yours leads here |
+| `ui/citynav.cpp:455` | cannot find the way from this card. |
+| `ui/citynav.cpp:477` | leading merchant |
+| `ui/citynav.cpp:482` | something happened on the way. |
+| `ui/citynav.cpp:484` | something happened on the way. |
+| `ui/citynav.cpp:484` | leave this place first. |
+| `ui/citynav.cpp:494` | the marketplace by night: choose how to get past the guards to the offices upstairs (press G again there for the office). |
+| `ui/citynav.cpp:495` | the marketplace by night: its stalls are shut until 5:00. |
+| `ui/citynav.cpp:516` | not found in this city. |
+| `ui/citynav.cpp:526` | Going to: %s. Press any key or click to stop. |
+| `ui/citynav.cpp:556` | Walking to the city gate |
+| `ui/citynav.cpp:556` | Walking to: %s |
+| `ui/citynav.cpp:569` | Any key or click stops the walk. |
+| `ui/citynav.cpp:694` | Point at a place to read about it here: what it offers, its quests, its teachers. |
+| `ui/citynav.cpp:705` | Click the tile and the party walks there. |
+| `ui/citynav.cpp:744` | Pick a place and the party walks there through the streets. Press any key or click to stop them. |
+| `ui/citynav.cpp:746` | Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out. |
+| `ui/citynav.cpp:774` | Closed until 5:00 |
+| `ui/citynav.cpp:774` | Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same. |
+| `ui/citynav.cpp:778` | Turned away until %d %s |
+| `ui/citynav.cpp:778` | The alchemists turned the party away; they will see you again from %d %s, %d:00. |
+| `ui/citynav.cpp:779` | Library shut until %d %s |
+| `ui/citynav.cpp:779` | The monks' library (where saints are learned) is shut to the party until %d %s, %d:00. |
+| `ui/citynav.cpp:780` | Prayers again from %d %s |
+| `ui/citynav.cpp:780` | The party prayed with the monks; they may again from %d %s, %d:00. |
+| `ui/citynav.cpp:781` | Library shut until %d %s |
+| `ui/citynav.cpp:781` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
+| `ui/citynav.cpp:799` | Quest chance %d%% |
+| `ui/citynav.cpp:800` | A merchant may offer a quest after you have bought or sold something. |
+| `ui/citynav.cpp:801` | No quests until %d %s |
+| `ui/citynav.cpp:802` | On a quest for them |
+| `ui/citynav.cpp:803` | Your reward is waiting |
+| `ui/citynav.cpp:804` | No quests: reputation too low |
+| `ui/citynav.cpp:809` |  Until %d %s, %d:00. |
+| `ui/citynav.cpp:817` | Your quest:  |
+| `ui/citynav.cpp:817` | see the world map (M) |
+| `ui/citynav.cpp:839` | Wares %dq, better than most |
+| `ui/citynav.cpp:841` | Wares of %dq (most shops sell about 25q). |
+| `ui/citynav.cpp:851` | Raises a Philosopher's Stone to |
+| `ui/citynav.cpp:851` | No better stone than the party's |
+| `ui/citynav.cpp:854` | What you learned |
+| `ui/citynav.cpp:854` | The physician:  |
+| `ui/citynav.cpp:854` | The alchemist:  |
+| `ui/citynav.cpp:926` | A teacher to hire (faint: not available now) |
+| `ui/citynav.cpp:927` | A quest of yours leads here |
 | `ui/createview.cpp:109` | A new character |
 | `ui/createview.cpp:110` | %s, called %s, age %d |
 | `ui/createview.cpp:111` | %s, called %s |

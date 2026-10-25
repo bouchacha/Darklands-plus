@@ -158,7 +158,7 @@ static void order_button(ImDrawList *dl, ImVec2 a, const OrderEntry &e, bool ena
     dl->AddText(ImVec2(a.x + pad + iw, a.y + pad * 0.5f), enabled ? IM_COL32(244, 232, 204, 255) : IM_COL32(160, 146, 120, 255), e.label.c_str());
     if (enabled) order_btns.push_back({ a, b, e.j, e.k, e.s2 });
     if (hov && order_tip(e.kind)) {   /* (beside the button; in the strip at the field's foot, above the whole strip, not over its buttons) */
-        if (a.y > ImGui::GetIO().DisplaySize.y * 0.5f) ImGui::SetNextWindowPos(ImVec2(a.x, ImGui::GetWindowPos().y - lh * 0.3f), ImGuiCond_Always, ImVec2(0, 1));
+        if (a.y > ImGui::GetIO().DisplaySize.y * 0.5f) { ImVec2 wp = ImGui::GetWindowPos(), ws = ImGui::GetWindowSize(); ui_tip_beside(ImVec2(a.x, wp.y), ImVec2(b.x, wp.y + ws.y)); }   /* (the strip's whole height: above it) */
         else ui_tip_beside(a, b);
         margin_tip(order_tip(e.kind));
     }

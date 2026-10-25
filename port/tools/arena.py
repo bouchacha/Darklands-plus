@@ -57,7 +57,8 @@ sc('surrounded', 'enemies on every side, two shooters in the middle: put the bow
    bf=SURROUNDED, arms=[(1, XBOW, 30), (2, BOW, 30)], groups=(BANDIT, 2, 8, 0, 1, 0, -1, 0, 0), secs=100)
 sc('rescue', 'a friend set upon by three a few paces off while the archer shoots at another: go and help',
    arms=[(2, BOW, 30)], groups=(BANDIT, 1, 4, 0, 1, 0, -1, 0, 0),
-   place=[(2, 0, 0), (0, 40, 0), (5, 52, 0), (6, 40, 8), (7, 28, -8), (8, 220, 0), (1, -150, 60), (3, -150, 70)], orders=['ushoot:2,8'])
+   place=[(2, 0, 0), (0, 40, 0), (5, 52, 0), (6, 40, 8), (7, 28, -8), (8, 220, 0), (1, -150, 60), (3, -150, 70)], orders=['ushoot:2,8'],
+   secs=110)   # (if the three win there, they then walk the long way to the two left far off: still fighting at 70 s is not a stall)
 sc('handgun', 'a slow handgun with foes closing: no putting away and taking up again over and over (each change starts the reloading anew)',
    arms=[(2, GUN, 20)], groups=(THUG, 2, 6, 0, 1, 0, -1, 0, 0))
 sc('enemy_archers', 'enemy archers at range and swords coming: our archer duels theirs, our swords close in',
