@@ -450,7 +450,10 @@ extern "C" void citynav_tick(void)
     if (now - phase_t < 120) return;                       /* the option list fading in (at once while walking) */
     if (kb == last_key) { if (++same_count > 3) { stop("the way is blocked."); return; } } else { last_key = kb; same_count = 0; }
     auto it = cards.find(card);
-    if (it == cards.end() || blk < 0 || blk >= (int)it->second.size()) { stop("cannot find the way from this card."); return; }
+    if (it == cards.end() || blk < 0 || blk >= (int)it->second.size()) {
+        LOG("%s: %s (%d cards known)\n", kb, it == cards.end() ? "a card not among the game's" : "its option block not in the card", (int)cards.size());
+        stop("cannot find the way from this card."); return;
+    }
     std::vector<std::string> opts = block_options(it->second[blk]);
     int n = (s8)g_rb(GV_card_layout);
     if (n <= 0 || n > 20) return;

@@ -140,4 +140,4 @@ These are part of the game's memory and of every saved game, so Darklands+ works
 
 ### If something goes wrong
 
-Darklands+ writes `darklands_port.log` in the game folder; it says why a start failed. Report problems on GitHub, under Issues, with that log and, if you can, a save from just before the problem. Some antivirus programs distrust files a compiler has just made. If yours blocks `darklands_game.dll`, allow it; it is made from your own `DARKLAND.EXE` by the TinyCC in `darklands_plus\tcc`. On Linux and Steam Deck the Windows zip runs under Wine or Proton.
+Darklands+ writes `darklands_port.log` in the game folder; it says why a start failed. Report problems on GitHub, under Issues, with that log (or `darklands_port_previous.log`, the session before, if you have started the game again since) and, if you can, a save from just before the problem. Some antivirus programs distrust files a compiler has just made. If yours blocks `darklands_game.dll`, allow it; it is made from your own `DARKLAND.EXE` by the TinyCC in `darklands_plus\tcc`. On Linux and Steam Deck the Windows zip runs under Wine or Proton.

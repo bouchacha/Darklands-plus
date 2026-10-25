@@ -188,7 +188,9 @@ int main(int argc, char **argv)
 #endif
 #ifdef _WIN32
     {   /* no console on Windows: keep a log next to the game */
-        char lp[1100]; snprintf(lp, sizeof lp, "%s/darklands_port.log", dlp_data_dir);
+        char lp[1100], pp[1100]; snprintf(lp, sizeof lp, "%s/darklands_port.log", dlp_data_dir);
+        snprintf(pp, sizeof pp, "%s/darklands_port_previous.log", dlp_data_dir);   /* (the last session's kept: a bug met before a restart is still in it) */
+        remove(pp); rename(lp, pp);
         freopen(lp, "w", stderr);
         setvbuf(stderr, NULL, _IONBF, 0);        /* every line at once: a crash loses nothing */
     }

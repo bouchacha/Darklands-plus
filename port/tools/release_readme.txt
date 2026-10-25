@@ -114,14 +114,15 @@ MAKING MODS (in the Darklands folder)
 
 IF SOMETHING GOES WRONG
 Darklands+ writes darklands_port.log into the game folder. If the first start fails, the log says
-why. Report problems on GitHub (github.com/bouchacha/Darklands-plus, Issues) with this log and,
+why; darklands_port_previous.log keeps the session before. Report problems on GitHub
+(github.com/bouchacha/Darklands-plus, Issues) with the log of the session where it happened and,
 if you can, a save from just before the problem. To redo the translation, delete
 darklands_game.dll. Some antivirus programs distrust files that a compiler has just made: if
 yours removes or blocks darklands_game.dll, allow that file (it is made from your own
 DARKLAND.EXE by the TinyCC in darklands_plus\tcc).
 
 To remove Darklands+, delete the folder you unpacked it into, and darklands_game.dll,
-darklands_port.ini, darklands_port.log, darklands_journal_*.txt, darklands_chronicle_*.txt,
+darklands_port.ini, darklands_port*.log, darklands_journal_*.txt, darklands_chronicle_*.txt,
 darklands_notes_*.txt and darklands_sabbats_*.txt from the Darklands folder (or the folder
 %LOCALAPPDATA%\Darklands+, where they go when the Darklands folder cannot be written).
 
