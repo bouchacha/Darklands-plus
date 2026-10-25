@@ -187,8 +187,13 @@ void tab_mods(void)
             else snprintf(msg, sizeof msg, "Could not read MSGFILES.");
         }
         ImGui::SameLine(); ui_hint("every town and encounter text, editable, with its options");
-        { extern int ui_collect_texts; bool ct = ui_collect_texts != 0;
-          if (ImGui::Checkbox("Write every text shown to a file (for a translation: mods" PATH_SEP "_export" PATH_SEP "texts_seen.txt)", &ct)) ui_collect_texts = ct; }
+        { extern int ui_collect_texts; bool ct = ui_collect_texts != 0, click = false;   /* (the words wrapped beside the box) */
+          ImGui::PushID("collect");
+          if (ImGui::Checkbox("##ct", &ct)) click = true;
+          ImGui::SameLine();
+          if (ui_title_desc("Write every text shown to a file", "for a translation: mods" PATH_SEP "_export" PATH_SEP "texts_seen.txt.")) { ct = !ct; click = true; }
+          if (click) ui_collect_texts = ct;
+          ImGui::PopID(); }
         ui_hint("A mod's text.txt replaces the texts built into the game's menus, one per line, e.g. Purchase an item => Kaufen (needs New text: F12 > Settings > Text).");
         if (msg[0]) ImGui::TextWrapped("%s", msg);
         ui_hint("Mods are applied in the order of the list above: where two change the same file, the lower one wins. "
@@ -420,7 +425,9 @@ static void presets_block(void)
         ImGui::PopID();
     }
     ImGui::Spacing();
-    ImGui::TextColored(ImVec4(0.18f, 0.40f, 0.16f, 1), "Saved games stay compatible with the original game both ways, whatever the preset.");
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.18f, 0.40f, 0.16f, 1));
+    ImGui::TextWrapped("Saved games stay compatible with the original game both ways, whatever the preset.");   /* (wrapped: a narrow window has no room for it on one line) */
+    ImGui::PopStyleColor();
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
     ImGui::TextWrapped("Darklands+ saves in the original game's format: its saves load in the original (on DOS too), and the original's saves load here; "
                        "what Darklands+ records on top (what the party has learned of the witches' Sabbats, items marked Keep, sprites and colors) goes into separate files of its own. Switching presets "
@@ -469,6 +476,8 @@ void tab_helpers(void)
         }
     }
     for (const char *l : SETUP) sect.push_back(l);
+    for (size_t i = 0; i < sect.size(); i++)                                  /* the fixes, a long list: at the bottom */
+        if (!strcmp(sect[i], "Fixes for bugs of the original")) { const char *f = sect[i]; sect.erase(sect.begin() + i); sect.push_back(f); break; }
     const int NSECT = (int)sect.size();
     static int jump = -1, at_top = 0;
     if (h_jump_to[0]) { for (int i = 0; i < NSECT; i++) if (!strcmp(sect[i], h_jump_to)) jump = i; h_jump_to[0] = 0; }
@@ -500,7 +509,15 @@ void tab_helpers(void)
         ImGui::PopID();
         return open;
     };
+    static int wlog = -1; if (wlog < 0) wlog = getenv("DL_UI_WIDTH") != 0;   /* (test: a section wider than the page, logged) */
+    int open_group = -2;                                                       /* (the section whose width is being measured; -1 Preset) */
+    auto too_wide = [&](const char *name) {
+        ImGui::EndGroup();
+        float over = ImGui::GetItemRectMax().x - (ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x);
+        if (over > 0.5f) fprintf(stderr, "settings: \"%s\" is %.0f px wider than the page\n", name, over);
+    };
     section("Preset", false);
+    if (wlog) { ImGui::BeginGroup(); open_group = -1; }
     presets_block();
     if (orig) {
         ImGui::Spacing();
@@ -509,8 +526,10 @@ void tab_helpers(void)
     {
         int n = options_count();
         for (int k = 1; k < NSECT; k++) {
+            if (open_group > -2) { too_wide(open_group < 0 ? "Preset" : sect[open_group]); open_group = -2; }
             ImGui::Spacing();
             if (!section(sect[k], true)) continue;
+            if (wlog) { ImGui::BeginGroup(); open_group = k; }
             {   int l = look_index(sect[k]);
                 if (l >= 0) { LOOK_FN[l](); continue; } }
             {   int l = setup_index(sect[k]);
@@ -526,6 +545,7 @@ void tab_helpers(void)
                     for (int i = 0; i < n; i++) { const Option *o = options_get(i); if (o->cls == OC_FIX && !strcmp(o->section, sect[k]) && fix_group(o->key + 4) == g) { gn++; gon += option_value(o) != 0; } }
                     if (!gn) continue;
                     char lab[128]; snprintf(lab, sizeof lab, "%s (%d of %d on)###fixg%d", FIX_GROUPS[g].name, gon, gn, g);
+                    if (wlog) ImGui::SetNextItemOpen(true);                  /* (measuring: every group open) */
                     if (!ImGui::TreeNodeEx(lab, ImGuiTreeNodeFlags_SpanAvailWidth)) continue;
                     ui_hint("%s", FIX_GROUPS[g].what);
                     for (int i = 0; i < n; i++) {
@@ -543,10 +563,13 @@ void tab_helpers(void)
                 option_row(o, 0);
             }
         }
+        if (open_group > -2) { too_wide(open_group < 0 ? "Preset" : sect[open_group]); open_group = -2; }
     }
     at_top = top_found < 0 ? 0 : top_found;
     fold_all = false;
+    if (wlog && ImGui::GetScrollMaxX() > 0) fprintf(stderr, "settings: the page scrolls sideways by %.0f px\n", ImGui::GetScrollMaxX());
     ImGui::EndChild();
+    if (wlog && ImGui::GetScrollMaxX() > 0) fprintf(stderr, "settings: the window scrolls sideways by %.0f px\n", ImGui::GetScrollMaxX());
 }
 
 /* what MicroProse wrote, coded or left unfinished and never switched on, reconstructed by

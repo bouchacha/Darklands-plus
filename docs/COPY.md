@@ -1841,41 +1841,42 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/settings.cpp:186` | %d card files written to %s as text. Copy the ones you change into your mod's MSGFILES folder. |
 | `ui/settings.cpp:187` | Could not read MSGFILES. |
 | `ui/settings.cpp:189` | every town and encounter text, editable, with its options |
-| `ui/settings.cpp:191` | Write every text shown to a file (for a translation: mods |
-| `ui/settings.cpp:192` | A mod's text.txt replaces the texts built into the game's menus, one per line, e.g. Purchase an item => Kaufen (needs New text: F12 > Settings > Text). |
-| `ui/settings.cpp:194` | Mods are applied in the order of the list above: where two change the same file, the lower one wins. Single files inside MSGFILES and the .CAT catalogs can be replaced by a folder of that name holding just those files. Card texts and pictures change at once; the item list, saints, cities and the like change the next time the game starts. |
-| `ui/settings.cpp:199` | Replacement art (for artists) |
-| `ui/settings.cpp:203` | Built-in mods: easier play |
-| `ui/settings.cpp:204` | Off while playing the original game (Full Original): pick another preset to tick these. |
-| `ui/settings.cpp:205` | For the story more than the struggle. Each is its own switch; no preset turns them on, and Full Original and Purist turn them off. Some take effect only when the next new game starts (their note says so). |
-| `ui/settings.cpp:325` | Pictures of the new screens appear here as you meet them in your game: a card, a shop, the character sheet, the inn, alchemy. |
-| `ui/settings.cpp:332` | A picture of the world map appears here once you have opened it (M) in your game. |
-| `ui/settings.cpp:339` | A picture of the overland view, with the names and quest markers on it, appears here once the party has been out in the land. |
-| `ui/settings.cpp:379` |  (recommended) |
-| `ui/settings.cpp:387` | your own choices:  |
-| `ui/settings.cpp:400` |  and %d more |
-| `ui/settings.cpp:407` | your own choices from before you picked a preset, kept: click to restore them. |
-| `ui/settings.cpp:416` | Ironman, for your next new game |
-| `ui/settings.cpp:416` | one save, kept by the game itself: saved over on every card, on arriving at a place, before each battle and when you quit.  |
-| `ui/settings.cpp:416` | No loading back while that game runs, and when the party's journey ends, its save is deleted. Any preset. |
-| `ui/settings.cpp:419` | The game under way is an Ironman game. |
-| `ui/settings.cpp:423` | Saved games stay compatible with the original game both ways, whatever the preset. |
-| `ui/settings.cpp:425` | Darklands+ saves in the original game's format: its saves load in the original (on DOS too), and the original's saves load here; what Darklands+ records on top (what the party has learned of the witches' Sabbats, items marked Keep, sprites and colors) goes into separate files of its own. Switching presets or single switches at any time is safe. |
-| `ui/settings.cpp:429` | One exception: |
-| `ui/settings.cpp:431` | a save with a member using an enemy sprite or an added crest (Darklands+ offers both) loads only in Darklands+. |
-| `ui/settings.cpp:437` | The band around the windows |
-| `ui/settings.cpp:439` | The clock while hours pass |
-| `ui/settings.cpp:444` | Frames and clock |
-| `ui/settings.cpp:507` | Everything Darklands+ adds is off, and its switches are hidden: pick another preset to change single switches. |
-| `ui/settings.cpp:522` | The original game's bugs put right (%d of %d on). Each is its own switch, since what counts as a bug (and how to mend it) is open to argument; they are sorted from the plainly broken to the arguable. |
-| `ui/settings.cpp:557` | Reconstructed Content |
-| `ui/settings.cpp:560` | What MicroProse wrote or coded for Darklands and never switched on, put back by Darklands+. Nobody played it in 1992: expect rough edges. Every switch here is off unless you tick it, and every preset turns them off again. |
-| `ui/settings.cpp:562` | What each one was in the game's files, and what Darklands+ had to add or put right, is in docs/cut_content.md (and docs/cut_politics.md). |
-| `ui/settings.cpp:564` | Off while playing the original game (Full Original): pick another preset to tick these. |
-| `ui/settings.cpp:569` | Written, but never finished |
-| `ui/settings.cpp:569` | Finished, but never switched on |
-| `ui/settings.cpp:570` | The texts or pictures are in the game's files, but the game never shows them: Darklands+ supplies the missing pieces. |
-| `ui/settings.cpp:571` | Written and coded by MicroProse, only never turned on (or, for Black Cloud, left out of a menu): Darklands+ turns it on. |
+| `ui/settings.cpp:194` | Write every text shown to a file |
+| `ui/settings.cpp:194` | for a translation: mods |
+| `ui/settings.cpp:197` | A mod's text.txt replaces the texts built into the game's menus, one per line, e.g. Purchase an item => Kaufen (needs New text: F12 > Settings > Text). |
+| `ui/settings.cpp:199` | Mods are applied in the order of the list above: where two change the same file, the lower one wins. Single files inside MSGFILES and the .CAT catalogs can be replaced by a folder of that name holding just those files. Card texts and pictures change at once; the item list, saints, cities and the like change the next time the game starts. |
+| `ui/settings.cpp:204` | Replacement art (for artists) |
+| `ui/settings.cpp:208` | Built-in mods: easier play |
+| `ui/settings.cpp:209` | Off while playing the original game (Full Original): pick another preset to tick these. |
+| `ui/settings.cpp:210` | For the story more than the struggle. Each is its own switch; no preset turns them on, and Full Original and Purist turn them off. Some take effect only when the next new game starts (their note says so). |
+| `ui/settings.cpp:330` | Pictures of the new screens appear here as you meet them in your game: a card, a shop, the character sheet, the inn, alchemy. |
+| `ui/settings.cpp:337` | A picture of the world map appears here once you have opened it (M) in your game. |
+| `ui/settings.cpp:344` | A picture of the overland view, with the names and quest markers on it, appears here once the party has been out in the land. |
+| `ui/settings.cpp:384` |  (recommended) |
+| `ui/settings.cpp:392` | your own choices:  |
+| `ui/settings.cpp:405` |  and %d more |
+| `ui/settings.cpp:412` | your own choices from before you picked a preset, kept: click to restore them. |
+| `ui/settings.cpp:421` | Ironman, for your next new game |
+| `ui/settings.cpp:421` | one save, kept by the game itself: saved over on every card, on arriving at a place, before each battle and when you quit.  |
+| `ui/settings.cpp:421` | No loading back while that game runs, and when the party's journey ends, its save is deleted. Any preset. |
+| `ui/settings.cpp:424` | The game under way is an Ironman game. |
+| `ui/settings.cpp:429` | Saved games stay compatible with the original game both ways, whatever the preset. |
+| `ui/settings.cpp:432` | Darklands+ saves in the original game's format: its saves load in the original (on DOS too), and the original's saves load here; what Darklands+ records on top (what the party has learned of the witches' Sabbats, items marked Keep, sprites and colors) goes into separate files of its own. Switching presets or single switches at any time is safe. |
+| `ui/settings.cpp:436` | One exception: |
+| `ui/settings.cpp:438` | a save with a member using an enemy sprite or an added crest (Darklands+ offers both) loads only in Darklands+. |
+| `ui/settings.cpp:444` | The band around the windows |
+| `ui/settings.cpp:446` | The clock while hours pass |
+| `ui/settings.cpp:451` | Frames and clock |
+| `ui/settings.cpp:524` | Everything Darklands+ adds is off, and its switches are hidden: pick another preset to change single switches. |
+| `ui/settings.cpp:541` | The original game's bugs put right (%d of %d on). Each is its own switch, since what counts as a bug (and how to mend it) is open to argument; they are sorted from the plainly broken to the arguable. |
+| `ui/settings.cpp:580` | Reconstructed Content |
+| `ui/settings.cpp:583` | What MicroProse wrote or coded for Darklands and never switched on, put back by Darklands+. Nobody played it in 1992: expect rough edges. Every switch here is off unless you tick it, and every preset turns them off again. |
+| `ui/settings.cpp:585` | What each one was in the game's files, and what Darklands+ had to add or put right, is in docs/cut_content.md (and docs/cut_politics.md). |
+| `ui/settings.cpp:587` | Off while playing the original game (Full Original): pick another preset to tick these. |
+| `ui/settings.cpp:592` | Written, but never finished |
+| `ui/settings.cpp:592` | Finished, but never switched on |
+| `ui/settings.cpp:593` | The texts or pictures are in the game's files, but the game never shows them: Darklands+ supplies the missing pieces. |
+| `ui/settings.cpp:594` | Written and coded by MicroProse, only never turned on (or, for Black Cloud, left out of a menu): Darklands+ turns it on. |
 | `ui/settings_look.cpp:91` | A potion's grade, on its flask |
 | `ui/settings_look.cpp:93` | Chevrons on a badge |
 | `ui/settings_look.cpp:93` | Dots on a strip |
@@ -1883,15 +1884,17 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/settings_look.cpp:127` | The original lettering |
 | `ui/settings_look.cpp:151` | (the game's fonts were not found) |
 | `ui/settings_look.cpp:164` | New text: the same words drawn sharp at any window size, outlined over pictures and darkened where faint; the character sheet's abbreviations spelled out (wPol: Polearm Wpns), names in full where the game cut them short, armor named by where it is worn (Chainmail (body) for V:Chainmail), and icons beside the skills. |
-| `ui/settings_look.cpp:179` | The game's own small blackletter, as in 1992: true to the original, but hard to read on a large screen. |
-| `ui/settings_look.cpp:207` | Pen flourishes |
-| `ui/settings_look.cpp:207` | Stamped leather |
-| `ui/settings_look.cpp:208` | Metal plaques |
-| `ui/settings_look.cpp:208` | Flat, gold-edged |
-| `ui/settings_look.cpp:208` | Rounded tabs |
-| `ui/settings_look.cpp:209` | Frames (tooltips, the card text, the new screens' pages) |
-| `ui/settings_look.cpp:231` | The band around the windows, after the original's own: the cards' plaited copper, the party sheet's walnut and brass, the illuminated capitals' vermilion and gold, the stone niche around the figure on the character sheet. With any of them, the lines and corners are gilt and the frames and buttons are as chosen here. |
-| `ui/settings_look.cpp:264` | Shown while hours pass (at the inn, waiting, traveling on a card). The tower dial follows the great clocks of about 1400 (Wells, Prague); the copper astrolabe is the game's own clock, drawn anew so that it stays sharp. |
+| `ui/settings_look.cpp:180` | Money with coins |
+| `ui/settings_look.cpp:180` |  instead of 1fl 12gr 4pf (florins, groschen, pfennigs). |
+| `ui/settings_look.cpp:184` | The game's own small blackletter, as in 1992: true to the original, but hard to read on a large screen. |
+| `ui/settings_look.cpp:212` | Pen flourishes |
+| `ui/settings_look.cpp:212` | Stamped leather |
+| `ui/settings_look.cpp:213` | Metal plaques |
+| `ui/settings_look.cpp:213` | Flat, gold-edged |
+| `ui/settings_look.cpp:213` | Rounded tabs |
+| `ui/settings_look.cpp:214` | Frames (tooltips, the card text, the new screens' pages) |
+| `ui/settings_look.cpp:236` | The band around the windows, after the original's own: the cards' plaited copper, the party sheet's walnut and brass, the illuminated capitals' vermilion and gold, the stone niche around the figure on the character sheet. With any of them, the lines and corners are gilt and the frames and buttons are as chosen here. |
+| `ui/settings_look.cpp:269` | Shown while hours pass (at the inn, waiting, traveling on a card). The tower dial follows the great clocks of about 1400 (Wells, Prague); the copper astrolabe is the game's own clock, drawn anew so that it stays sharp. |
 | `ui/settings_setup.cpp:72` | Connected: %s (%s style) |
 | `ui/settings_setup.cpp:73` | No controller connected now: plug one in at any time. The buttons below can be set up beforehand. |
 | `ui/settings_setup.cpp:76` | Show the buttons as: |
@@ -1917,59 +1920,66 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/settings_setup.cpp:140` | Every pixel a crisp square, as the game drew it. |
 | `ui/settings_setup.cpp:141` | The stair-steps of diagonal edges rounded off, without blurring. On a computer without a proper graphics card, the game slows down with this. |
 | `ui/settings_setup.cpp:142` | Blurred a little, as an old monitor would. |
-| `ui/settings_setup.cpp:152` | text size in the margins, tooltips and place names |
-| `ui/settings_setup.cpp:161` | automatic (the system's scale) |
-| `ui/settings_setup.cpp:170` | Full screen (Alt+Enter) |
-| `ui/settings_setup.cpp:175` | None: straight to the start screen |
-| `ui/settings_setup.cpp:175` | Only the last scene: the lady of the Darklands and her welcome |
-| `ui/settings_setup.cpp:175` | The whole intro |
-| `ui/settings_setup.cpp:178` | Shown each time the game starts (the very first start plays it whole). A key or a click skips ahead. |
-| `ui/settings_setup.cpp:198` | Preview: Battle Sounds |
-| `ui/settings_setup.cpp:199` | Preview: Music |
+| `ui/settings_setup.cpp:148` | Side margins |
+| `ui/settings_setup.cpp:148` | on wide screens, the date, place, purse, quests, town and effects at the sides (in battles: the log and everyone's condition). |
+| `ui/settings_setup.cpp:157` | text size in the margins, tooltips and place names |
+| `ui/settings_setup.cpp:166` | automatic (the system's scale) |
+| `ui/settings_setup.cpp:175` | Full screen (Alt+Enter) |
+| `ui/settings_setup.cpp:180` | None: straight to the start screen |
+| `ui/settings_setup.cpp:180` | Only the last scene: the lady of the Darklands and her welcome |
+| `ui/settings_setup.cpp:180` | The whole intro |
+| `ui/settings_setup.cpp:183` | Shown each time the game starts (the very first start plays it whole). A key or a click skips ahead. |
+| `ui/settings_setup.cpp:203` | Preview: Battle Sounds |
 | `ui/settings_setup.cpp:204` | Preview: Music |
-| `ui/settings_setup.cpp:213` | Preview: Battle Sounds |
-| `ui/settings_setup.cpp:219` | A preview needs a game under way, outside a battle. |
-| `ui/settings_setup.cpp:231` | Roland MT-32 |
-| `ui/settings_setup.cpp:231` | Roland's synthesizer of 1987, the one Darklands was written for. Music and battle sounds alike are notes played on it: the music as composed, the blows as near to steel as a synthesizer gets. |
-| `ui/settings_setup.cpp:239` | MT-32 ROMs not found (click to close) |
-| `ui/settings_setup.cpp:239` | MT-32 ROMs not found (click for how to get it working) |
-| `ui/settings_setup.cpp:239` | MT-32 ROMs not found (click for how to get it working) |
-| `ui/settings_setup.cpp:242` | MT-32 details |
-| `ui/settings_setup.cpp:246` | The MT-32 was a Roland synthesizer of 1987; Darklands' music and battle sounds were written for it (both are notes played on it), and every other choice here is a lesser version. Darklands+ has it built in (Munt's imitation of it) and only needs two files copied from a real one's memory (its ROM files), which belong to Roland and can't be included. If you have used Munt or DOSBox with an MT-32 you already have them. Until they are found, the Sound Blaster plays. |
-| `ui/settings_setup.cpp:249` | Where to find them... |
-| `ui/settings_setup.cpp:256` | Look again##mt32 |
-| `ui/settings_setup.cpp:257` | Darklands+ finds them by their contents, whatever their names, in that folder and in: |
-| `ui/settings_setup.cpp:266` | midiA synthesizer outside Darklands+ (MIDI)For a real MT-32 connected to the computer, or Munt (an MT-32 imitation) installed on its own. An ordinary synthesizer, such as the one built into Windows, plays the wrong instruments.midi |
-| `ui/settings_setup.cpp:271` | No MIDI outputs (connections to a synthesizer) on this computer. |
-| `ui/settings_setup.cpp:274` | the system's default |
-| `ui/settings_setup.cpp:287` | For history's sake |
-| `ui/settings_setup.cpp:292` | A change is heard from the next battle, or the next start. |
-| `ui/settings_setup.cpp:305` | Every piece of the game's music, played through the device chosen above. Click a piece to hear it. |
-| `ui/settings_setup.cpp:306` | Every piece of the game's music, played through the device chosen above: it needs a game under way, outside a battle. |
-| `ui/settings_setup.cpp:331` | finding its length (silent, a few seconds) |
-| `ui/settings_setup.cpp:332` | , then again |
-| `ui/settings_setup.cpp:333` | no piece playing |
-| `ui/settings_setup.cpp:342` | (a piece without a known place) |
-| `ui/settings_setup.cpp:359` | Custom sound packs |
-| `ui/settings_setup.cpp:360` | Recordings that replace the synthesizer's music or battle sounds. A battle sounds pack comes with Darklands+ as a mod (F12 > Mods); no music pack does. The previews above play them when ticked. |
-| `ui/settings_setup.cpp:363` | Music from a music pack (recordings in a "music" folder) |
-| `ui/settings_setup.cpp:369` | No music pack found: a mod's music folder, or %s%smusic, with a recording for each piece named by its number (10.ogg, "11 market.ogg"). |
-| `ui/settings_setup.cpp:371` | The game's music now: piece %d%s%s%s, %s (silent while Settings is open). |
-| `ui/settings_setup.cpp:371` | from the pack |
-| `ui/settings_setup.cpp:371` | by the synthesizer |
-| `ui/settings_setup.cpp:373` | A recording replaces a piece when its file name starts with the number (up to four for one number, played in turn: "27 a.ogg", "27 b.ogg" ...). Pieces that loop in the game loop in the pack; while a piece of the pack is on, the synthesizer is silent. |
-| `ui/settings_setup.cpp:379` |   %s and %d more, in turn |
-| `ui/settings_setup.cpp:381` | Look again##music |
-| `ui/settings_setup.cpp:387` | Ordinary hits make a sound |
-| `ui/settings_setup.cpp:388` | Battle sounds from a sound pack (the "sounds" folder) |
-| `ui/settings_setup.cpp:390` | %d sound%s in %s%ssounds; the game's own sounds for the rest. |
-| `ui/settings_setup.cpp:391` | Recorded blows, parries and cries in place of the synthesizer's: a pack in %s%ssounds, or the "Battle sounds" mod (F12 > Mods). |
-| `ui/settings_setup.cpp:396` | Volume of the pack |
-| `ui/settings_setup.cpp:398` | Look again##sfx |
-| `ui/settings_setup.cpp:398` | %d sound%s found. |
-| `ui/settings_setup.cpp:402` | File names for a sound pack |
-| `ui/settings_setup.cpp:403` | %s.wav or .ogg: %s |
-| `ui/settings_setup.cpp:404` | Several versions of one sound (parry1.wav, parry2.wav ...) are played in turn at random. |
+| `ui/settings_setup.cpp:209` | Preview: Music |
+| `ui/settings_setup.cpp:218` | Preview: Battle Sounds |
+| `ui/settings_setup.cpp:224` | A preview needs a game under way, outside a battle. |
+| `ui/settings_setup.cpp:236` | Roland MT-32 |
+| `ui/settings_setup.cpp:236` | Roland's synthesizer of 1987, the one Darklands was written for. Music and battle sounds alike are notes played on it: the music as composed, the blows as near to steel as a synthesizer gets. |
+| `ui/settings_setup.cpp:244` | MT-32 ROMs not found (click to close) |
+| `ui/settings_setup.cpp:244` | MT-32 ROMs not found (click for how to get it working) |
+| `ui/settings_setup.cpp:244` | MT-32 ROMs not found (click for how to get it working) |
+| `ui/settings_setup.cpp:247` | MT-32 details |
+| `ui/settings_setup.cpp:251` | The MT-32 was a Roland synthesizer of 1987; Darklands' music and battle sounds were written for it (both are notes played on it), and every other choice here is a lesser version. Darklands+ has it built in (Munt's imitation of it) and only needs two files copied from a real one's memory (its ROM files), which belong to Roland and can't be included. If you have used Munt or DOSBox with an MT-32 you already have them. Until they are found, the Sound Blaster plays. |
+| `ui/settings_setup.cpp:254` | Where to find them... |
+| `ui/settings_setup.cpp:261` | Look again##mt32 |
+| `ui/settings_setup.cpp:262` | Darklands+ finds them by their contents, whatever their names, in that folder and in: |
+| `ui/settings_setup.cpp:273` | the battle sounds as blows and grunts, as composed. |
+| `ui/settings_setup.cpp:274` | CM-32L / LAPC-I |
+| `ui/settings_setup.cpp:274` | later Roland models, a curiosity: chimes and odd noises for the battle sounds. |
+| `ui/settings_setup.cpp:280` | The MT-32's display |
+| `ui/settings_setup.cpp:280` | its little screen at the top right, when the game puts a message on it. |
+| `ui/settings_setup.cpp:283` | midiA synthesizer outside Darklands+ (MIDI)For a real MT-32 connected to the computer, or Munt (an MT-32 imitation) installed on its own. An ordinary synthesizer, such as the one built into Windows, plays the wrong instruments.midi |
+| `ui/settings_setup.cpp:288` | No MIDI outputs (connections to a synthesizer) on this computer. |
+| `ui/settings_setup.cpp:291` | the system's default |
+| `ui/settings_setup.cpp:304` | For history's sake |
+| `ui/settings_setup.cpp:309` | A change is heard from the next battle, or the next start. |
+| `ui/settings_setup.cpp:322` | Every piece of the game's music, played through the device chosen above. Click a piece to hear it. |
+| `ui/settings_setup.cpp:323` | Every piece of the game's music, played through the device chosen above: it needs a game under way, outside a battle. |
+| `ui/settings_setup.cpp:348` | finding its length (silent, a few seconds) |
+| `ui/settings_setup.cpp:349` | , then again |
+| `ui/settings_setup.cpp:350` | no piece playing |
+| `ui/settings_setup.cpp:359` | (a piece without a known place) |
+| `ui/settings_setup.cpp:376` | Custom sound packs |
+| `ui/settings_setup.cpp:377` | Recordings that replace the synthesizer's music or battle sounds. A battle sounds pack comes with Darklands+ as a mod (F12 > Mods); no music pack does. The previews above play them when ticked. |
+| `ui/settings_setup.cpp:380` | Music from a music pack (recordings in a "music" folder) |
+| `ui/settings_setup.cpp:386` | No music pack found: a mod's music folder, or %s%smusic, with a recording for each piece named by its number (10.ogg, "11 market.ogg"). |
+| `ui/settings_setup.cpp:388` | The game's music now: piece %d%s%s%s, %s (silent while Settings is open). |
+| `ui/settings_setup.cpp:388` | from the pack |
+| `ui/settings_setup.cpp:388` | by the synthesizer |
+| `ui/settings_setup.cpp:390` | A recording replaces a piece when its file name starts with the number (up to four for one number, played in turn: "27 a.ogg", "27 b.ogg" ...). Pieces that loop in the game loop in the pack; while a piece of the pack is on, the synthesizer is silent. |
+| `ui/settings_setup.cpp:396` |   %s and %d more, in turn |
+| `ui/settings_setup.cpp:398` | Look again##music |
+| `ui/settings_setup.cpp:404` | Ordinary hits make a sound |
+| `ui/settings_setup.cpp:405` | Battle sounds from a sound pack (the "sounds" folder) |
+| `ui/settings_setup.cpp:407` | %d sound%s in %s%ssounds; the game's own sounds for the rest. |
+| `ui/settings_setup.cpp:408` | Recorded blows, parries and cries in place of the synthesizer's: a pack in %s%ssounds, or the "Battle sounds" mod (F12 > Mods). |
+| `ui/settings_setup.cpp:413` | Volume of the pack |
+| `ui/settings_setup.cpp:415` | Look again##sfx |
+| `ui/settings_setup.cpp:415` | %d sound%s found. |
+| `ui/settings_setup.cpp:419` | File names for a sound pack |
+| `ui/settings_setup.cpp:420` | %s.wav or .ogg: %s |
+| `ui/settings_setup.cpp:421` | Several versions of one sound (parry1.wav, parry2.wav ...) are played in turn at random. |
 | `ui/sheetview.cpp:159` | Light load (up to half of Endurance + Strength): no hindrance at all. Only what is equipped counts (weapons, armor, shield); items merely carried weigh nothing. |
 | `ui/sheetview.cpp:160` | Normal load (up to Endurance + Strength): blows hand to hand come about a fifth slower, and past 5/8 of it the Agility used to dodge falls to two thirds. |
 | `ui/sheetview.cpp:161` | Heavy load (up to half as much again): the Agility used to dodge falls to two thirds, and to a third past 1 1/4 times Endurance + Strength. Blows are no slower than with a normal load (an oversight in the original game). |

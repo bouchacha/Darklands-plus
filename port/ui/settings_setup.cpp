@@ -70,7 +70,7 @@ void controller_prefs(void)
     const char *nm; int kind = plat_controller_kind(&nm);
     static const char *KIND[4] = { "", "Xbox", "PlayStation", "Nintendo" };
     if (kind) ImGui::Text("Connected: %s (%s style)", nm, KIND[kind]);
-    else ImGui::TextUnformatted("No controller connected now: plug one in at any time. The buttons below can be set up beforehand.");
+    else ImGui::TextWrapped("No controller connected now: plug one in at any time. The buttons below can be set up beforehand.");
     static int view = 0;
     if (!view) view = kind ? kind : 1;
     ImGui::TextUnformatted("Show the buttons as:"); 
@@ -141,8 +141,13 @@ void setup_screen(void)
               : cur == 1 ? "The stair-steps of diagonal edges rounded off, without blurring. On a computer without a proper graphics card, the game slows down with this."
                          : "Blurred a little, as an old monitor would.");
     }
-    { extern int ui_margins_on; bool mg = ui_margins_on != 0;
-      if (ImGui::Checkbox("On wide screens, show the date, place, purse, quests, town and effects in the side margins (in battles: the log and everyone's condition)", &mg)) { ui_margins_on = mg; config_set_int("display.margins", mg); ui_dirty_config = 1; } }
+    { extern int ui_margins_on; bool mg = ui_margins_on != 0, click = false;   /* (a long line: the words wrapped beside the box, not one line wider than the page) */
+      ImGui::PushID("margins");
+      if (ImGui::Checkbox("##mg", &mg)) click = true;
+      ImGui::SameLine();
+      if (ui_title_desc("Side margins", "on wide screens, the date, place, purse, quests, town and effects at the sides (in battles: the log and everyone's condition).")) { mg = !mg; click = true; }
+      if (click) { ui_margins_on = mg; config_set_int("display.margins", mg); ui_dirty_config = 1; }
+      ImGui::PopID(); }
     {   /* grows with the picture; this scales it */
         static const int P[] = { 70, 80, 90, 100, 115, 130, 150, 175, 200 };
         int cur = config_get_int("display.text_size", 100), sel = 3;
@@ -258,11 +263,23 @@ void setup_sound(void)
             for (int i = 0; i < mt32_dir_count(); i++) ui_hint("    %s", mt32_dir(i));
             if (mt32_families() == 3) {                /* both: which one */
                 const char *m = config_get("sound.mt32_model", "mt32");
-                if (ImGui::RadioButton("MT-32 (the battle sounds as blows and grunts, as composed)", !strcmp(m, "mt32"))) { config_set("sound.mt32_model", "mt32"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
-                if (ImGui::RadioButton("CM-32L / LAPC-I (later Roland models), a curiosity: chimes and odd noises for the battle sounds", !strcmp(m, "cm32l"))) { config_set("sound.mt32_model", "cm32l"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
+                auto model = [&](const char *id, const char *title, const char *what) {   /* (the words wrapped beside the button) */
+                    ImGui::PushID(id);
+                    bool pick = ImGui::RadioButton("##m", !strcmp(m, id));
+                    ImGui::SameLine();
+                    if (ui_title_desc(title, what) || pick) { config_set("sound.mt32_model", id); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
+                    ImGui::PopID();
+                };
+                model("mt32", "MT-32", "the battle sounds as blows and grunts, as composed.");
+                model("cm32l", "CM-32L / LAPC-I", "later Roland models, a curiosity: chimes and odd noises for the battle sounds.");
             }
-            {   bool lcd = config_get_int("sound.mt32_lcd", 1);
-                if (ImGui::Checkbox("Show the MT-32's little display (top right) when the game puts a message on it", &lcd)) { config_set_int("sound.mt32_lcd", lcd); ui_dirty_config = 1; } }
+            {   bool lcd = config_get_int("sound.mt32_lcd", 1), click = false;
+                ImGui::PushID("lcd");
+                if (ImGui::Checkbox("##lcd", &lcd)) click = true;
+                ImGui::SameLine();
+                if (ui_title_desc("The MT-32's display", "its little screen at the top right, when the game puts a message on it.")) { lcd = !lcd; click = true; }
+                if (click) { config_set_int("sound.mt32_lcd", lcd); ui_dirty_config = 1; }
+                ImGui::PopID(); }
             device("midi", "A synthesizer outside Darklands+ (MIDI)", "For a real MT-32 connected to the computer, or Munt (an MT-32 imitation) installed on its own. "
                    "An ordinary synthesizer, such as the one built into Windows, plays the wrong instruments.", !strcmp(cur, "midi"));
             if (!strcmp(cur, "midi")) {

@@ -173,8 +173,13 @@ void look_text(void)
             }
             ImGui::EndCombo();
         }
-        bool co = money_coins();
-        if (ImGui::Checkbox("Money with coins: 1" COIN_FL " 12" COIN_GR " 4" COIN_PF " instead of 1fl 12gr 4pf (florins, groschen, pfennigs)", &co)) { config_set_int("display.coins", co); ui_dirty_config = 1; }
+        bool co = money_coins(), click = false;                              /* (the words wrapped beside the box) */
+        ImGui::PushID("coins");
+        if (ImGui::Checkbox("##co", &co)) click = true;
+        ImGui::SameLine();
+        if (ui_title_desc("Money with coins", "1" COIN_FL " 12" COIN_GR " 4" COIN_PF " instead of 1fl 12gr 4pf (florins, groschen, pfennigs).")) { co = !co; click = true; }
+        if (click) { config_set_int("display.coins", co); ui_dirty_config = 1; }
+        ImGui::PopID();
     } else
         ui_hint("The game's own small blackletter, as in 1992: true to the original, but hard to read on a large screen.");
 }
@@ -206,7 +211,7 @@ void look_ornaments(void)
             static const int V4[4] = { 0, 1, 2, 3 };
             static const char *FR[4] = { "Gold lines", "Red lines", "Pen flourishes", "Stamped leather" };
             static const char *BT[4] = { "Metal plaques", "Flat, gold-edged", "Rounded tabs", "Words only" };
-            ImGui::TextUnformatted("Frames (tooltips, the card text, the new screens' pages)");
+            ImGui::TextWrapped("Frames (tooltips, the card text, the new screens' pages)");
             pic_choice("ornfr", "display.frame_style", 0, V4, FR, 4, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
                 dl->AddRectFilled(a, b, IM_COL32(237, 222, 189, 255));
                 orn_parchment_edges(dl, a, b, (b.y - a.y) * 0.12f);
