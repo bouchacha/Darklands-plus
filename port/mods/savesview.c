@@ -136,6 +136,7 @@ static int ok_or_cancel(int loading)
            loop had found a key waiting that was no longer there: the travel loop waited) */
         u32 t0 = plat_ticks_ms();
         while (plat_ticks_ms() - t0 < 160) { dl_poll(); plat_sleep_ms(3); }
+        { void bios_kbd_drop_pending(void); bios_kbd_drop_pending(); }   /* (a key still on its way to the game: not given to it) */
         ns_call(GF_flush_keys, 0);
     }
     fprintf(stderr, "saves: the page closed (%s)\n", r == 1 ? "chosen" : "cancelled");

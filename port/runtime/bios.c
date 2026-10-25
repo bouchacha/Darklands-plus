@@ -249,6 +249,20 @@ static void bios_kbd_put(u16 w)
     ww(0x40, 0x1c, n);
 }
 void bios_kbd_inject(u16 w) { bios_kbd_put(w); }
+/* the keys pressed but not yet handed to the game (they go one every 10 ms): dropped, their releases
+   kept (a held Alt or Shift must still be let go). For a page of Darklands+ that a key closed: the
+   same key could reach the game after it (an Enter that saved then chose a card's first option) */
+void bios_kbd_drop_pending(void)
+{
+    u8 keep[64]; int n = 0;
+    for (int i = kq_head; i != kq_tail; i = (i + 1) % 64) {
+        u8 c = kq[i];
+        if (c == 0xe0) { int j = (i + 1) % 64; if (j != kq_tail && (kq[j] & 0x80)) { keep[n++] = c; keep[n++] = kq[j]; } if (j != kq_tail) i = j; continue; }
+        if (c & 0x80) keep[n++] = c;
+    }
+    kq_head = kq_tail = 0;
+    for (int i = 0; i < n; i++) { kq[kq_tail] = keep[i]; kq_tail = (kq_tail + 1) % 64; }
+}
 int bios_kbd_avail(void) { return rw(0x40, 0x1a) != rw(0x40, 0x1c); }
 u16 bios_kbd_get(int remove)
 {

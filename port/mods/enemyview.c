@@ -100,6 +100,7 @@ static void info_hook(void)                 /* enemy_info (), s021 1ef8:02ce */
     }
     if (!ns_unwinding) {
         while (g_rb(GV_mouse_buttons) & 1) { dl_poll(); plat_sleep_ms(3); }   /* (as the original: the button let go) */
+        { void bios_kbd_drop_pending(void); bios_kbd_drop_pending(); }   /* (a key still on its way to the game: not given to it) */
         ns_call(GF_flush_keys, 0);
         ns_call(-1, 0x047c, 0x1320, 4, 6, 0, 0, 0);                         /* (the click taken: not one on the battle too) */
     }
