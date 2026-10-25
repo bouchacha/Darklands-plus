@@ -87,3 +87,9 @@ covered and found, and what it could not check.
   notched (strokes drawn apart: look at new line art large, uiconstyles:7). Open: whether the Journal, New
   Player Guide and Editor keep sub-tabs (asked). Not checked: an Ironman save deleted at the party's death
   (no death screen could be brought about in a test).
+- 2026-10-24 (night): the card's member heads showed the figures' backs (SMALL's front is its right half);
+  the shields on a card overlapped (a shield is 1.25 sizes wide, they were set 1.1 apart); tooltips at the
+  window's right edge ran off it. Pictures settled: Agility steps (close to the battle's "use stairs" order:
+  asked), Charisma a rose, Latin a column, Read & Write a quill on a sheet, Stealth the mask, Streetwise a cat,
+  Reputation the medal, Fame the trumpet, Speak Common a speech bubble. A triskelion tried for Agility was
+  dropped (it reads as an extremist emblem): check a new emblem for that too.
