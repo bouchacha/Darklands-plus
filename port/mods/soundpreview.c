@@ -91,7 +91,7 @@ static void begin(int dev, int w, int c, int d)
     musicpack_hold(1);
     play(1); hush();
     load_driver(w == 1);                 /* (the battle sounds: the battles' driver; the music: the towns') */
-    active = 1; what = w; step = 0; t0 = plat_ticks_ms(); seg = rand() & 1;
+    active = 1; what = w; step = 0; t0 = plat_ticks_ms(); seg = getenv("DL_PREVIEW_SEG") ? atoi(getenv("DL_PREVIEW_SEG")) & 1 : rand() & 1;   /* (a test can choose the battle) */
     if (w != 1 && music_was < 0) { music_was = g_rb(GV_opt_music); g_wb(GV_opt_music, 1); }
     if (!w) play(20);                      /* the second tune of the overland view: every device has it */
     if (w == 2) { play(c); void playlist_started(int); playlist_started(c); }   /* (the soundtrack's player: piece c, until stopped) */

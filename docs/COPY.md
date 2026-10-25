@@ -625,20 +625,20 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/battlelog.cpp:338` | The battle before |
 | `ui/battleoverlay.cpp:216` | Click: attack |
 | `ui/battleoverlay.cpp:216` | No clear shot |
-| `ui/battleoverlay.cpp:240` | Battles need fewer clicks |
-| `ui/battleoverlay.cpp:241` | Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.  A member with a bow, crossbow, gun or thrown weapon shoots when you click an enemy and keeps shooting: at the next enemy when theirs falls, moving for a clear line when a wall, a tree or someone stands in the way, and drawing their melee weapon only when an enemy is beside them. A click on the bow or sword on their box at the left has them fight hand to hand instead.  Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.  Point at an order button in the right margin to see what it does. |
-| `ui/battleoverlay.cpp:248` | All this is Darklands+; each part can be switched off, for the game's own ways, in F12 > Settings > Battles. F11 lists the battle's keys and clicks. |
-| `ui/battleoverlay.cpp:309` | The nearest enemy is this way: click to look |
-| `ui/battleoverlay.cpp:350` | a little hurt |
-| `ui/battleoverlay.cpp:351` | gravely wounded |
-| `ui/battleoverlay.cpp:360` | Melee rating %d, aim %d |
-| `ui/battleoverlay.cpp:361` | Melee rating %d |
-| `ui/battleoverlay.cpp:363` | The master of this place: once this enemy has fallen and the fight is over, the place is won. |
-| `ui/battleoverlay.cpp:380` | %s (hardness %d) |
-| `ui/battleoverlay.cpp:394` |  does half damage |
-| `ui/battleoverlay.cpp:394` |  is mostly deflected |
-| `ui/battleoverlay.cpp:414` | \xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z) |
-| `ui/battleoverlay.cpp:417` | >> fast forward  (Z) |
+| `ui/battleoverlay.cpp:245` | Battles need fewer clicks |
+| `ui/battleoverlay.cpp:246` | Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.  A member with a bow, crossbow, gun or thrown weapon shoots when you click an enemy and keeps shooting: at the next enemy when theirs falls, moving for a clear line when a wall, a tree or someone stands in the way, and drawing their melee weapon only when an enemy is beside them. A click on the bow or sword on their box at the left has them fight hand to hand instead.  Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.  Point at an order button in the right margin to see what it does. |
+| `ui/battleoverlay.cpp:253` | All this is Darklands+; each part can be switched off, for the game's own ways, in F12 > Settings > Battles. F11 lists the battle's keys and clicks. |
+| `ui/battleoverlay.cpp:314` | The nearest enemy is this way: click to look |
+| `ui/battleoverlay.cpp:355` | a little hurt |
+| `ui/battleoverlay.cpp:356` | gravely wounded |
+| `ui/battleoverlay.cpp:365` | Melee rating %d, aim %d |
+| `ui/battleoverlay.cpp:366` | Melee rating %d |
+| `ui/battleoverlay.cpp:368` | The master of this place: once this enemy has fallen and the fight is over, the place is won. |
+| `ui/battleoverlay.cpp:385` | %s (hardness %d) |
+| `ui/battleoverlay.cpp:399` |  does half damage |
+| `ui/battleoverlay.cpp:399` |  is mostly deflected |
+| `ui/battleoverlay.cpp:419` | \xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z) |
+| `ui/battleoverlay.cpp:422` | >> fast forward  (Z) |
 | `ui/bestiary.cpp:38` | Could not read DARKLAND.ENM. |
 | `ui/bestiary.cpp:42` | DARKLAND.ENM has an unexpected size. |
 | `ui/bestiary.cpp:90` | natural weapons |

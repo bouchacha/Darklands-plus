@@ -13,6 +13,7 @@ int playlist_paused(void);
 int playlist_measuring(void);                    /* run ahead to find its length (silent) */
 int playlist_pos_ms(void);
 int playlist_length_ms(int n);                   /* on the device last played: -1 not known yet, -2 it repeats (no length found) */
+int playlist_length_dev_ms(const char *dev, int n);   /* the same on device dev (before anything is played) */
 void playlist_frame(int settings_shown);
 #ifdef __cplusplus
 }

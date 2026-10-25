@@ -65,13 +65,40 @@ static u32 repeat_at(void)
     return 0;
 }
 
-static void key_of(int n, char *k, int sz) { snprintf(k, (size_t)sz, "music.len.%s.%d", dev_now, n); }
-int playlist_length_ms(int n)                    /* -1 not measured yet on this device, -2 repeats (no length found) */
+/* the pieces' lengths found by running each ahead as above on the game's own music (the same in
+   every copy), on each driver (the MT-32's serves an outside synthesizer too): shown before a piece
+   is first played, and no silent run ahead for it. A length measured on the machine (music.len.*)
+   is taken first. ms; -2 repeats (no length found); 0 none known */
+static const int LEN_MT32[40] = {   /* pieces 8 ... 47 */
+    58889, 106709, 58666, 66806, 42269, 28648, 60620, 61857, 62120, 70058,
+    44594, 120266, 80002, -2, 94045, 70105, 8660, 11546, -2, 2582,
+    1500, 58099, 2445, 11546, 11546, 1946, 1500, -2, 17892, 30263,
+    -2, -2, -2, 81364, 14696, 51295, 1000, 55797, 82888, -2 };
+static const int LEN_FM[40] = {   /* pieces 8 ... 47 */
+    31741, 106709, 59542, -2, -2, 31741, 60620, 60207, 62120, 98925,
+    41002, 120266, 80002, -2, 94045, 70105, 8660, 11546, 184747, 2702,
+    52635, 58718, 2874, 40413, -2, 2187, 1500, -2, 17892, 30263,
+    -2, -2, -2, 81364, 17170, 51295, 1000, 69680, 82476, -2 };
+static const int LEN_ADLIB[40] = {   /* pieces 8 ... 47 */
+    68432, 124203, 68172, 77914, -2, 33162, 70700, 72142, 72240, 82300,
+    47571, 140014, 93304, -2, 109433, 81761, 6733, 13466, -2, 2902,
+    61138, 68232, 3103, 6733, 13747, 2000, 1500, 40400, 20978, 36008,
+    -2, -2, 282800, 94804, 18814, 59575, 1000, 81017, 96671, 0 };
+static int known_len(const char *dev, int n)
 {
-    if (!dev_now[0]) return -1;
-    char k[48]; key_of(n, k, sizeof k);
-    return config_get_int(k, -1);
+    if (n < 8 || n > 47) return -1;
+    const int *t = !strcmp(dev, "mt32") || !strcmp(dev, "midi") ? LEN_MT32 : !strcmp(dev, "fm") ? LEN_FM : !strcmp(dev, "adlib") ? LEN_ADLIB : 0;
+    return t && t[n - 8] ? t[n - 8] : -1;
 }
+static void key_of(int n, char *k, int sz) { snprintf(k, (size_t)sz, "music.len.%s.%d", dev_now, n); }
+int playlist_length_dev_ms(const char *dev, int n)
+{
+    if (!dev || !dev[0]) return -1;
+    char k[48]; snprintf(k, sizeof k, "music.len.%s.%d", dev, n);
+    int v = config_get_int(k, -1);
+    return v != -1 ? v : known_len(dev, n);
+}
+int playlist_length_ms(int n) { return playlist_length_dev_ms(dev_now, n); }   /* -1 not known on this device, -2 repeats (no length found) */
 
 static void measure_step(int n, int b, int c, int d)
 {

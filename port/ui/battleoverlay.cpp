@@ -221,11 +221,16 @@ static void hint_line(const char *h)
     bool no = strncmp(h, "Click", 5) != 0;
     ImGui::TextColored(no ? ImVec4(0.62f, 0.20f, 0.12f, 1) : ImVec4(0.18f, 0.40f, 0.16f, 1), "%s", h);
 }
+extern ImVec2 ptr_lo, ptr_hi; extern int ptr_frame;   /* (ui/overlay_text.cpp: where the game's pointer was drawn) */
 static void place_by_pointer(ImVec2 p)
 {
+    /* beside the pointer, towards the room, never over it: past the game's pointer where it is
+       drawn (a hand 16 by 12 of the game's pixels), else past the point */
     ImGuiIO &io = ImGui::GetIO();
+    ImVec2 lo(p.x - 20, p.y - 20), hi(p.x + 26, p.y + 26);
+    if (ImGui::GetFrameCount() - ptr_frame <= 2) { lo = ImVec2(fminf(ptr_lo.x, p.x), fminf(ptr_lo.y, p.y)); hi = ImVec2(fmaxf(ptr_hi.x, p.x), fmaxf(ptr_hi.y, p.y)); }
     bool right = p.x > io.DisplaySize.x * 0.6f, below = p.y > io.DisplaySize.y * 0.55f;
-    ImGui::SetNextWindowPos(ImVec2(p.x + (right ? -26.0f : 26.0f), p.y + (below ? -26.0f : 26.0f)), ImGuiCond_Always, ImVec2(right ? 1.0f : 0.0f, below ? 1.0f : 0.0f));
+    ImGui::SetNextWindowPos(ImVec2(right ? lo.x - 6 : hi.x + 6, below ? hi.y : lo.y), ImGuiCond_Always, ImVec2(right ? 1.0f : 0.0f, below ? 1.0f : 0.0f));
     ImGui::SetNextWindowBgAlpha(0.92f);
 }
 static const ImGuiWindowFlags INFO_FLAGS = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize |

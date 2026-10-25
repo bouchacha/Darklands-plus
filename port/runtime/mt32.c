@@ -300,7 +300,7 @@ void mt32_msg(const unsigned char *m, int n)
     if ((int32_t)(ts - last_ts) < 0) ts = last_ts;
     last_ts = ts;
     { static int lg = -1; if (lg < 0) lg = getenv("DL_MIDI_LOG") != 0;    /* (a test: each note's tick and where it was placed, for the timing) */
-      if (lg && (m[0] & 0xf0) == 0x90 && n > 2 && m[2]) { extern volatile uint32_t music_ticks; fprintf(stderr, "midi note %u %u %u %llu\n", music_ticks, ts, (unsigned)(plat_ticks_us() / 1000), (unsigned long long)(plat_ticks_us() - sound_tick_late_us)); } }
+      if (lg && (m[0] & 0xf0) == 0x90 && n > 2 && m[2]) { extern volatile uint32_t music_ticks; fprintf(stderr, "midi note %u %u %u %llu ch %d key %d\n", music_ticks, ts, (unsigned)(plat_ticks_us() / 1000), (unsigned long long)(plat_ticks_us() - sound_tick_late_us), (m[0] & 15) + 1, m[1]); } }
     /* the queue full (a burst: several songs started at once, each uploading its timbres): the
        message goes in at once rather than being lost (a lost timbre upload would leave an
        instrument wrong for the session). (Safe here: the lock keeps the renderer out.) */

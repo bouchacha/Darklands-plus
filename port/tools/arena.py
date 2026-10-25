@@ -73,7 +73,7 @@ sc('hemmed_in', 'the shooter boxed in by its own friends, no way out and no line
    arms=[(2, BOW, 30)], groups=(BANDIT, 2, 3, 0, 1, 0, -1, 0, 0),
    place=[(2, 0, 0), (0, 16, 0), (1, -16, 0), (3, 0, 8), (5, 200, 0), (6, 200, 20), (7, 200, -20)], orders=['ushoot:2,5'])
 sc('boss', 'a robber captain and his men in the wilds: long fight, many changes of target',
-   arms=[(1, ARBALEST, 20), (2, BOW, 30)], groups=(CAPTAIN, 3, 1, BANDIT, 2, 6, -1, 0, 0), bf=WILDS, secs=110)
+   arms=[(1, ARBALEST, 20), (2, BOW, 30)], groups=(CAPTAIN, 3, 1, BANDIT, 2, 6, -1, 0, 0), bf=WILDS, secs=180)   # (the captain's armor can hold out against the last two for a long while: still fighting is not a stall)
 sc('player_melee', 'the player sends the archer at a foe hand to hand: it fights, and does not take up the bow again by itself',
    arms=[(2, BOW, 30)], groups=(BANDIT, 2, 4, 0, 1, 0, -1, 0, 0), orders=['uattack:2,5'],
    forbid=[r'orders: member 2 (had no orders|has no foe beside it now|.s mark fell|stood idle with its bow)'])
@@ -210,7 +210,8 @@ def check(s, log):
             probs.append('member %d idle with a shooting order for %d ticks' % (i, worst_idle))
         if worst_blank >= 60:
             probs.append('member %d kept a shooting order with a foe beside it for %d ticks' % (i, worst_blank))
-        if worst_bowidle >= 150 and re.sub(r'_\d+$', '', s['name']) != 'original':   # (the seeds' runs too: original_1 ...)
+        held_i = any(o == 'uhold:%d,1' % i for o in s['orders'])   # (told to hold with its line blocked: standing is right, it may not step aside)
+        if worst_bowidle >= 150 and re.sub(r'_\d+$', '', s['name']) != 'original' and not held_i:   # (the seeds' runs too: original_1 ...)
             probs.append('member %d stood with its missile weapon and no orders for %d ticks' % (i, worst_bowidle))
         # (a shot's draw and loosing can fall between two samples: the battle log's "<name>'s shot" lines count too)
         if i < len(QUICK_PARTY): nshots = max(nshots, len(re.findall(r"battle: %s's shot" % QUICK_PARTY[i], log)))

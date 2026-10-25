@@ -359,7 +359,7 @@ void setup_sound(void)
                 ImGui::SameLine(x0 + UIS(4)); ImGui::TextDisabled("%d", k);   /* (the numbers in a column of their own) */
                 ImGui::SameLine(x0 + UIS(40)); ImGui::TextUnformatted(d[0] ? d : "(a piece without a known place)");
                 ImGui::PopID();
-                int l = playlist_length_ms(k);
+                int l = playlist_length_dev_ms(pdev, k);
                 if (l > 0 || l == -2) {
                     std::string t = l > 0 ? mmss(l) : std::string("repeats");
                     ImGui::SameLine(ImGui::GetContentRegionMax().x - ImGui::CalcTextSize(t.c_str()).x - UIS(6));

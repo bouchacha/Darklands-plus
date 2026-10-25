@@ -679,7 +679,11 @@ void dl_poll(void)
                ticks) and with the window in the background, the sound stops as before */
             int game_mode(void), plat_in_background(void);
             int soundpreview_active(void);
-            int keep = (config_get_int("sound.music_in_menus", 1) || soundpreview_active()) && game_mode() != 4 /* GM_BATTLE */ && R.iflag && ivt_hooked(8);
+            /* (asked again as the window stays open: a preview or the soundtrack's player started in
+               it, with the music in menus off, was silent - the sound held and no tick delivered - for
+               as long as the window stayed open) */
+            #define KEEP_MUSIC() ((config_get_int("sound.music_in_menus", 1) || soundpreview_active()) && game_mode() != 4 /* GM_BATTLE */ && R.iflag && ivt_hooked(8))
+            int keep = KEEP_MUSIC();
             void sound_pause(int);
             if (!keep) sound_pause(1);
             /* while music plays (a preview, the soundtrack's player, the music in menus) the timer's
@@ -695,6 +699,7 @@ void dl_poll(void)
                 u32 now2 = plat_ticks_ms();
                 if (first || !playing || now2 - drawn >= 14) { plat_events(); plat_present(M + 0xa0000, vga_dac); drawn = plat_ticks_ms(); first = 0; }
                 int bg = plat_in_background();
+                { int k2 = KEEP_MUSIC(); if (k2 != keep) { keep = k2; sound_pause(!keep || bg); paused_bg = bg; lt = plat_ticks_ms(); acc = 0; } }
                 if (keep && bg != paused_bg) { sound_pause(bg); paused_bg = bg; }
                 if (keep && !bg && !music_hold) {
                     u32 t = plat_ticks_ms(); u32 d = t - lt; lt = t; if (d > 500) d = 500;
@@ -708,6 +713,7 @@ void dl_poll(void)
                     plat_sleep_ms(1);
                 } else { int plat_bg_sleep_ms(void); plat_sleep_ms((u32)plat_bg_sleep_ms()); lt = plat_ticks_ms(); }
             }
+            #undef KEEP_MUSIC
             sound_pause(0);
             last_ms = now = present_end = plat_ticks_ms();
             tick_us_acc = 0;
