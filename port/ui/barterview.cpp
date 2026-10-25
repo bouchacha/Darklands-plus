@@ -379,6 +379,7 @@ extern "C" void barterview_draw(void)
         V.fnote = t; V.fhead = "Spare gear";
     }
     ns_sheet(P, 63, SY0, 317, SY1, IM_COL32(236, 222, 188, 255));
+    float strip_end = 0;
     if (!V.fnote.empty()) {
         T(f, NsDraw::FS_HEAD, 68, SY0 + 1.5f, ink, V.fhead.empty() ? "For the formula" : V.fhead);
         P.para(fo, NsDraw::FS_BODY, 68, SY0 + 10, 245, ink_soft, V.fnote);
@@ -395,7 +396,8 @@ extern "C" void barterview_draw(void)
             t.right = L ? (price > 0 ? "The merchant pays " + money_with_total(price) : "The merchant will not buy this")
                         : "Costs " + money_with_total(price) + (price > b.total_pf ? " - more than the purse holds" : "");
             t.right_col = L ? (price > 0 ? green : red) : (price > b.total_pf ? red : ink);
-            ns_item_strip(P, SY0, t);
+            t.y_max = SY1 - 9.5f;                                  /* (the hint line and the Sell spare gear button below) */
+            strip_end = ns_item_strip(P, SY0, t);
         }
     } else T(fo, NsDraw::FS_BODY, 68, SY0 + 3, ink_dim, "Point at a ware or one of your items to see it here.");
     if (show_spare) {
@@ -412,7 +414,7 @@ extern "C" void barterview_draw(void)
         sbx0 -= 3;
     } else sbx0 = 316;
     if (b.note[0] && plat_ticks_ms() - b.note_t < 6000) T(fo, NsDraw::FS_BODY, 68, SY1 - 8.5f, IM_COL32(112, 40, 22, 255), gt(b.note), -1, sbx0);
-    else T(fo, NsDraw::FS_SMALL, 68, SY1 - 7.5f, ink_dim, b.shared ? "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  purchases go to the member picked above"
+    else if (strip_end <= SY1 - 8.5f) T(fo, NsDraw::FS_SMALL, 68, SY1 - 7.5f, ink_dim, b.shared ? "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  purchases go to the member picked above"
                                               : assist_best_leader ? "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  click a name to see their items"
                                               : "Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  click a name's coin to make that member pay", -1, sbx0);
 }

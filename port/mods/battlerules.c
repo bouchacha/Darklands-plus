@@ -85,6 +85,10 @@ static signed char walk_for[5] = { -1, -1, -1, -1, -1 };  /* the target a member
 static int walk_x[5], walk_y[5];                          /* to where */
 static signed char approach[5];                           /* the walk is towards the foe, until a line opens */
 static u16 last_try[5], seen_engage[5], walk_since[5];
+void battlerules_battle_begins(void)                         /* (mods/orders.c orders_frame: a new battle) */
+{
+    for (int i = 0; i < 5; i++) { walk_for[i] = -1; approach[i] = 0; last_try[i] = seen_engage[i] = walk_since[i] = 0; }
+}
 
 static int strict_spot;                                 /* the line clear to where the mark is going too (a first pass) */
 static int spots_taken, spots_noline, spots_noway, spots_crossed;   /* (DL_BATTLE_LOG: why no spot was found) */
@@ -238,7 +242,7 @@ static void shoot_now(int i, int t)
     g_wb((u16)(c + 0x4a), (u8)t); g_ww((u16)(c + 0x10), 0x80);
     g_wb((u16)(GV_cbt_state + i), 0);
     g_ww((u16)(GV_cbt_flags + 2 * i), (u16)(g_rw((u16)(GV_cbt_flags + 2 * i)) | 2));
-    g_ww((u16)(GV_cbt_engage_time + 2 * i), g_rw(0xc867));
+    g_ww((u16)(GV_cbt_engage_time + 2 * i), g_rw(GV_combat_clock));
     g_wb((u16)(GV_cbt_action + i), 7);
 }
 

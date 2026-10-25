@@ -1042,17 +1042,19 @@ extern "C" int journal_buy_window(bool *open)
                 }
                 std::stable_sort(at.begin(), at.end(), [&](const Seen &a, const Seen &b) { return here ? a.dist < b.dist : loc_name(a.loc) < loc_name(b.loc); });
                 ImGui::TableNextRow();
+                ImGui::PushID(id);                                /* (a town's button in each ingredient's row: one id a row) */
                 ImGui::TableNextColumn(); icon_name_cell(id, item_name(id).c_str());
                 ImGui::TableNextColumn();
                 if (have[id]) ImGui::Text("%d", have[id]); else ImGui::TextColored(ImVec4(0.6f, 0.2f, 0.1f, 1), "none");
                 ImGui::TableNextColumn();
-                if (at.empty()) { ImGui::TextDisabled("not seen in a shop yet"); ImGui::TableNextColumn(); continue; }
+                if (at.empty()) { ImGui::TextDisabled("not seen in a shop yet"); ImGui::TableNextColumn(); ImGui::PopID(); continue; }
                 town_link(at[0].loc, "n");
                 { std::string t = travel_days(travel_min_to(at[0].loc)); if (!t.empty()) { ImGui::SameLine(); ImGui::TextDisabled("%s", t.c_str()); } }
                 ImGui::TableNextColumn();
                 for (size_t k = 1; k < at.size() && k < 7; k++) { if (k > 1) ImGui::SameLine(); town_link(at[k].loc, "a"); }
                 if (at.size() > 7) { ImGui::SameLine(); ImGui::TextDisabled("and %d more", (int)at.size() - 7); }
                 if (at.size() < 2) ImGui::TextDisabled("-");
+                ImGui::PopID();
             }
             ImGui::EndTable();
         }
@@ -1087,7 +1089,7 @@ extern "C" int journal_buy_window(bool *open)
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn(); icon_name_cell(h.id, item_name(h.id).c_str());
                     ImGui::TableNextColumn(); ImGui::Text("%dq", h.q);
-                    ImGui::TableNextColumn(); town_link(h.loc, "w"); { std::string t = travel_days(h.min < (1 << 29) ? h.min : -1); if (!t.empty()) { ImGui::SameLine(); ImGui::TextDisabled("%s", t.c_str()); } }
+                    ImGui::TableNextColumn(); ImGui::PushID(h.id); town_link(h.loc, "w"); ImGui::PopID(); { std::string t = travel_days(h.min < (1 << 29) ? h.min : -1); if (!t.empty()) { ImGui::SameLine(); ImGui::TextDisabled("%s", t.c_str()); } }
                     ImGui::TableNextColumn(); ImGui::TextUnformatted(h.shop.c_str());
                 }
                 ImGui::EndTable();

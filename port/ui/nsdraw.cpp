@@ -304,7 +304,7 @@ std::string ns_potion_effect(int id)
     return "";
 }
 
-void ns_item_strip(NsDraw &P, float y0, const NsStripThing &t)
+float ns_item_strip(NsDraw &P, float y0, const NsStripThing &t)
 {
     const ItemDef *d = ns_itemdef(t.id);
     const ImU32 ink = NsDraw::INK, soft = NsDraw::INK_SOFT;
@@ -322,17 +322,38 @@ void ns_item_strip(NsDraw &P, float y0, const NsStripThing &t)
     P.text(P.fo, NsDraw::FS_BODY, 79, y, soft, l1); y += 7;
     std::string l2 = ns_item_line(t.id, t.qual);
     if (!l2.empty()) { P.text(P.fo, NsDraw::FS_BODY, 79, y, soft, l2); y += 7; }
-    if (d && d->kind == K_INGREDIENT) { ns_ingredient_row(P, 79, y, 314, t.id); return; }   /* an ingredient: the potions it goes into, as pictures */
+    if (d && d->kind == K_INGREDIENT) return y + ns_ingredient_row(P, 79, y, 314, t.id);   /* an ingredient: the potions it goes into, as pictures */
     std::string use = ns_item_use(t.id);                    /* what it is good for (rope, lockpicks ...) */
     if (!use.empty()) {
-        float h = P.para(P.fo, NsDraw::FS_BODY, 79, y, 235, soft, use);
+        y += P.para(P.fo, NsDraw::FS_BODY, 79, y, 235, soft, use);
         ImU32 ec; std::string enc = ns_item_encounters(t.id, &ec);
-        if (!enc.empty()) P.para(P.fo, NsDraw::FS_BODY, 79, y + h + 0.5f, 235, ec, enc);
+        if (!enc.empty() && (t.y_max <= 0 || y + 0.5f + P.para_height(P.fo, NsDraw::FS_BODY, 235, enc) <= t.y_max))   /* (no room: the use says enough) */
+            y += 0.5f + P.para(P.fo, NsDraw::FS_BODY, 79, y + 0.5f, 235, ec, enc);
     }
     else if (t.cmp_who >= 0 || t.cmp_who == -2) {          /* a weapon or an armour: against what the member (-2: the party) has now */
         std::string cmp = t.cmp_who == -2 ? ns_item_compare_party(t.id, t.qual) : ns_item_compare(t.id, t.qual, t.cmp_who);
-        if (!cmp.empty()) P.para(P.fo, NsDraw::FS_BODY, 79, y, 235, ink, cmp);
+        if (!cmp.empty()) y += P.para(P.fo, NsDraw::FS_BODY, 79, y, 235, ink, cmp) + 0.5f;
+        /* the member's load were it worn instead of what is in that slot (ns_load_with), and the band
+           it comes to (sheetview's bands and what they do: ui_load_effect) */
+        int m = t.cmp_who, after = wearable && m >= 0 ? ns_load_with(t.id, m) : -1;
+        if (after >= 0 && after != gm_member_load(m)) {
+            int e, st, mx; gm_member_attr(m, 0, &e, &mx); gm_member_attr(m, 1, &st, &mx);
+            int cap = e + st, cur = gm_member_load(m);
+            auto band = [&](int l) { return 2 * l <= cap ? 0 : l <= cap ? 1 : 2 * l <= 3 * cap ? 2 : 3; };
+            static const char *BAND[4] = { "a light load: no hindrance", "a normal load: blows hand to hand a fifth slower",
+                                           "a heavy load: blows a fifth slower, dodging hampered", "overloaded: blows two thirds slower, little or no dodging" };
+            int b0 = band(cur), b1 = band(after);
+            char nm[24]; gm_member_name(m, nm, sizeof nm);
+            char line[200];
+            snprintf(line, sizeof line, "Worn by %s: load %d \xc2\xbb %d of %d, %s%s", ns_gtext(nm).c_str(), cur, after, cap, BAND[b1],
+                     b1 > b0 ? " (now " : b1 < b0 ? " (now " : "");
+            std::string l = line;
+            if (b1 != b0) { static const char *SHORT[4] = { "light", "normal", "heavy", "overloaded" }; l += SHORT[b0]; l += ")"; }
+            ImU32 c = b1 >= 3 ? NsDraw::RED : b1 == 2 ? IM_COL32(150, 80, 20, 255) : after < cur ? NsDraw::GREEN : soft;   /* (as the heading's note: ns_load_note) */
+            y += P.para(P.fo, NsDraw::FS_BODY, 79, y, 235, c, l);
+        }
     }
+    return y;
 }
 
 std::string ns_quality_tag(int id, int qual)

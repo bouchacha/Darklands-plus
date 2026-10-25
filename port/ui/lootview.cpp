@@ -159,6 +159,7 @@ extern "C" void lootview_draw(void)
             long w = sale_worth(id, qual);
             if (w > 0) t.right = "A shop pays about " + money_with_total(w) + (cnt > 1 ? " each" : "");
         }
+        t.y_max = SY1 - 1.5f;
         ns_item_strip(P, SY0, t);
     } else P.text(fo, NsDraw::FS_BODY, 68, SY0 + 3, dim, l.shared ? "Point at an item to see it here; F11 shows what you can do."
                                                          : "Point at an item to see it here. Click a name above the right list (or press D) for another member.");

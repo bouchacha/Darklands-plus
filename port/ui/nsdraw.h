@@ -190,15 +190,17 @@ static inline void ns_tip(const char *text, float width_em = 24) { ns_tip_begin(
 static inline std::string ns_item_name(int id) { const ItemDef *d = ns_itemdef(id); return d ? game_text(d->name.c_str(), d->name.size()) : "?"; }
 /* a quality worth showing: equipment and tools; not for the things a shop always sells at 25
  * (throwing axes, javelins, darts, arrows, quarrels, balls, ingredients) unless one differs, nor
- * for a potion (its grade is the dots on its flask) */
+ * for a potion (its grade is the dots on its flask), nor for an instrument (the one thing that
+ * asks for one, St. Cecilia, asks only whether one is carried: count_items_flags 0x20000000,
+ * s039 165c:1024) */
 static inline bool ns_shows_quality(int id, int q)
 {
     const ItemDef *d = ns_itemdef(id);
-    if (!d || d->kind == K_POTION) return false;
+    if (!d || d->kind == K_POTION || d->kind == K_INSTRUMENT) return false;
     bool fixed = (d->type >= 0x17 && d->type <= 0x19) || (d->type >= 0x40 && d->type <= 0x42) || d->kind == K_INGREDIENT;
     if (fixed) return q != 25;
     return d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_ARMOR || d->kind == K_SHIELD || d->kind == K_POTION ||
-           d->kind == K_TOOL || d->kind == K_INSTRUMENT;
+           d->kind == K_TOOL;
 }
 /* one line on a weapon, an armour or a shield (the combat tables, far 20a5; a shield at quality q,
    its usual quality when q < 0), "" for other things */
@@ -232,8 +234,9 @@ struct NsStripThing {
     int id = 0, qual = 0, weight = 0, count = 1, cmp_who = -1;
     std::string status, right;
     ImU32 right_col = NsDraw::INK_SOFT;
+    float y_max = 0;                  /* the panel's room ends here (0: no limit): the lesser lines that would pass it are left out */
 };
-void ns_item_strip(NsDraw &P, float y0, const NsStripThing &t);
+float ns_item_strip(NsDraw &P, float y0, const NsStripThing &t);   /* the y its last line ends at */
 
 #endif
 /* the counter of a shop (the store room): a timber wall to wall_to (rows), an awning's edge in

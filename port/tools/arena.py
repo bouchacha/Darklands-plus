@@ -9,7 +9,8 @@ member, missile weapon, ammunition), the fighters placed (uplace) and given orde
 the battle is on, then the battle run (fast-forward, Z) for a while with the combatants' state logged
 every few ticks (uarenalog). The checks, on the log:
   idle shooter   a party shooter with a Use Missile order, a foe standing and nothing beside it, that
-                 neither shoots, walks nor changes its mind for a long time
+                 neither shoots, walks nor changes its mind for a long time (idle, or "ready" and the shot never
+                 coming)
   point blank    a party shooter still ordered to shoot with a foe beside it for a while
   flip-flop      a member's weapon put away and taken up again too often
   stuck walker   a member walking but not moving for a long time
@@ -38,9 +39,9 @@ BOW, LONGBOW, XBOW, ARBALEST, GUN, JAVELIN, KNIFE = 28, 27, 30, 29, 31, 24, 1
 # least so many shots loosed)]
 S = []
 def sc(name, what, bf=CLEARING, seed=11, groups=(BANDIT, 2, 6, 0, 1, 0, -1, 0, 0), arms=(), set=(), place=(), orders=(), secs=70, end=True,
-       expect=(), shots=(), forbid=()):
+       expect=(), shots=(), forbid=(), pre=()):
     S.append(dict(name=name, what=what, bf=bf, seed=seed, groups=groups, arms=list(arms), set=list(set), place=list(place),
-                  orders=list(orders), secs=secs, end=end, expect=list(expect), shots=list(shots), forbid=list(forbid)))
+                  orders=list(orders), secs=secs, end=end, expect=list(expect), shots=list(shots), forbid=list(forbid), pre=list(pre)))
 
 sc('volley', 'one archer, three swords against six bandits in the open: shoot, then the sword when they close, the bow again after',
    arms=[(2, BOW, 30)])
@@ -52,8 +53,8 @@ sc('friend_in_line', 'the archer behind a friend, the foe straight beyond: step 
    expect=[r'battlerules: 2 (in place, shoots|has a line to) '], shots=[(2, 1)])
 sc('moving_target', 'the archer must find a line while its mark walks behind the melee: wolves run fast and circle',
    arms=[(2, LONGBOW, 30)], groups=(WOLF, 2, 5, 0, 1, 0, -1, 0, 0), bf=WILDS)
-sc('surrounded', 'enemies on every side, two shooters in the middle: put the bow away for a foe beside, help a friend set upon',
-   bf=SURROUNDED, arms=[(1, XBOW, 30), (2, BOW, 30)], groups=(BANDIT, 2, 8, 0, 1, 0, -1, 0, 0))
+sc('surrounded', 'enemies on every side, two shooters in the middle: put the bow away for a foe beside, help a friend set upon (a losing fight that can last: 100 s)',
+   bf=SURROUNDED, arms=[(1, XBOW, 30), (2, BOW, 30)], groups=(BANDIT, 2, 8, 0, 1, 0, -1, 0, 0), secs=100)
 sc('rescue', 'a friend set upon by three a few paces off while the archer shoots at another: go and help',
    arms=[(2, BOW, 30)], groups=(BANDIT, 1, 4, 0, 1, 0, -1, 0, 0),
    place=[(2, 0, 0), (0, 40, 0), (5, 52, 0), (6, 40, 8), (7, 28, -8), (8, 220, 0), (1, -150, 60), (3, -150, 70)], orders=['ushoot:2,8'])
@@ -103,6 +104,14 @@ sc('idle_join', 'a friend set upon a few paces off, two members with no orders n
    arms=[(2, BOW, 30)], groups=(BANDIT, 2, 2, 0, 1, 0, -1, 0, 0),
    place=[(0, 0, 0), (1, -30, 10), (3, -30, -10), (2, -70, 0), (5, 14, 0), (6, 14, 8)], orders=['uhold:3,1'], end=False,
    expect=[r'orders: member 1 had no orders: joins the fight'], forbid=[r'orders: member 3 had no orders: joins'])
+sc('join_melee', 'one of the party fights a lone foe hand to hand, three shooters a few paces off: they put the bows away and join in, not loose into the melee',
+   arms=[(1, BOW, 30), (2, BOW, 30), (3, XBOW, 30)], groups=(MERC, 3, 1, 0, 1, 0, -1, 0, 0),
+   place=[(0, 0, 0), (5, 14, 0), (1, -30, 12), (2, -28, -12), (3, -38, 0)], end=False,
+   expect=[r'orders: member 1 .*goes to help', r'orders: member 2 .*goes to help', r'orders: member 3 .*goes to help'])
+sc('second_battle', "a later battle of the session, the last battle's clock of its last order still set (the game clears the battle's clock, not that): the shooters open fire at once, not when this battle's clock reaches it",
+   arms=[(1, BOW, 30), (2, BOW, 30), (3, XBOW, 30)], groups=(BANDIT, 2, 3, 0, 1, 0, -1, 0, 0), orders=['uww:c867,30000'],
+   place=[(1, 0, 0), (2, 0, 30), (3, 0, -30), (0, -40, 0), (5, 230, 0), (6, 240, 30), (7, 240, -30)], secs=30, end=False,
+   shots=[(1, 1), (2, 1), (3, 1)])
 sc('wolf_pack', 'eight wolves on four swords in the open: fast foes swarming, nobody stuck walking in place, no stutter',
    groups=(WOLF, 2, 8, 0, 1, 0, -1, 0, 0), secs=90)
 sc('big_brawl', 'eight mercenaries and a captain against the party in the trees, two of ours shooting: a long crowded melee, routes round trunks and bodies',
@@ -121,6 +130,7 @@ def run(s, game, exe, out):
     steps = [START, 'ucmd uoption:battle.pause_down=0', 'ucmd uoption:battle.pause_hurt=0', 'ucmd uoption:battle.pause_foes=0']   # (no automatic pauses: nobody to resume)
     steps += ['ucmd uoption:%s' % kv for kv in s['set']]
     steps += ['ucmd uarm:%d,%d,%d' % a for a in s['arms']]
+    steps += ['ucmd %s' % p for p in s.get('pre', [])]          # (test commands before the battle: the state an earlier one leaves)
     g = ','.join(str(x) for x in s['groups'])
     steps += ['ucmd ufight:%d,%d,%s' % (s['bf'], s['seed'], g), 'ucmd ugoto:24', 'wait 14', 'ucmd ucbt:']
     if s['place']:
@@ -184,7 +194,7 @@ def check(s, log):
                 idle = blank = stuck = 0; last = None; continue
             foes = [j for j in cb if j >= 5]
             shooting_order = c['o'] == 0x80
-            if shooting_order and c['b'] == 0 and foes and c['m'] == 0 and c['a'] == 0:
+            if shooting_order and c['b'] == 0 and foes and c['m'] == 0 and c['a'] in (0, 7):   # (7: ready, and the loosing never comes)
                 idle += 10; worst_idle = max(worst_idle, idle)
             else:
                 idle = 0
