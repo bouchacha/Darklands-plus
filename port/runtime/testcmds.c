@@ -441,8 +441,8 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "ucbt")) {               /* test: the battle's combatants and what the pointer is on */
             fprintf(stderr, "cbt target %d\n", (s16)g_rw(0xd845));
             for (int i = 0; i < 13; i++) { u16 b = (u16)(0x9c55 + i * 0x80); char n[26]; g_str(G_DGROUP, (u16)(b + 0x25), n, sizeof n);
-                fprintf(stderr, "  %d st %d %s end %d/%d str %d/%d w %d atk %d def %d xy %d,%d order %#x target %d act %d moving %d to %d,%d q %d (%d/%d) arm %02x\n", i, g_rb((u16)(b + 0x14)), n, (s8)g_rb((u16)(b + 0x5d)), (s8)g_rb((u16)(b + 0x64)),
-                        (s8)g_rb((u16)(b + 0x5e)), (s8)g_rb((u16)(b + 0x65)), (s8)g_rb((u16)(b + 0x22)), g_rb((u16)(b + 0x21)), g_rb((u16)(b + 0x20)), (s16)g_rw((u16)(b + 4)), (s16)g_rw((u16)(b + 6)),
+                fprintf(stderr, "  %d st %d %s end %d/%d str %d/%d w %d c23 %d c51 %d c4b %d rec3d %d rec0e %d rec37 %d atk %d def %d xy %d,%d order %#x target %d act %d moving %d to %d,%d q %d (%d/%d) arm %02x\n", i, g_rb((u16)(b + 0x14)), n, (s8)g_rb((u16)(b + 0x5d)), (s8)g_rb((u16)(b + 0x64)),
+                        (s8)g_rb((u16)(b + 0x5e)), (s8)g_rb((u16)(b + 0x65)), (s8)g_rb((u16)(b + 0x22)), (s8)g_rb((u16)(b + 0x23)), (s8)g_rb((u16)(b + 0x51)), (s8)g_rb((u16)(b + 0x4b)), (s8)g_rb((u16)(G_MEMBER(i) + 0x3d)), (s8)g_rb((u16)(G_MEMBER(i) + 0x0e)), (s8)g_rb((u16)(G_MEMBER(i) + 0x37)), g_rb((u16)(b + 0x21)), g_rb((u16)(b + 0x20)), (s16)g_rw((u16)(b + 4)), (s16)g_rw((u16)(b + 6)),
                         g_rw((u16)(b + 0x10)), (s8)g_rb((u16)(b + 0x4a)), g_rb((u16)(GV_cbt_action + i)), g_rb((u16)(GV_cbt_moving + i)), (s16)g_rw((u16)(b + 8)), (s16)g_rw((u16)(b + 10)),
                         (s8)g_rb((u16)(b + 0x0d)), (s8)g_rb((u16)(b + 0x58)), (s8)g_rb((u16)(b + 0x5a)), g_rb((u16)(b + 0x55))); }
         }

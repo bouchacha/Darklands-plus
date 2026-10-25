@@ -221,6 +221,7 @@ static void hint_line(const char *h)
     bool no = strncmp(h, "Click", 5) != 0;
     ImGui::TextColored(no ? ImVec4(0.62f, 0.20f, 0.12f, 1) : ImVec4(0.18f, 0.40f, 0.16f, 1), "%s", h);
 }
+extern "C" int enemyview_human(int i);         /* (mods/enemyview.c: a man with armor and weapons, or natural ones) */
 extern ImVec2 ptr_lo, ptr_hi; extern int ptr_frame;   /* (ui/overlay_text.cpp: where the game's pointer was drawn) */
 static void place_by_pointer(ImVec2 p)
 {
@@ -346,8 +347,9 @@ void ui_draw_battle_info(void)
     }
     u16 b = (u16)(0x9c55 + best * 0x80);
     int st = g_rb((u16)(b + 0x14)), end = (s8)g_rb((u16)(b + 0x5d)), endm = (s8)g_rb((u16)(b + 0x64)), str = (s8)g_rb((u16)(b + 0x5e)), strm = (s8)g_rb((u16)(b + 0x65));
-    /* +0x22 the missile weapon's type (0xff none), +0x23 the melee weapon's */
-    int atk = g_rb((u16)(b + 0x21)), def = g_rb((u16)(b + 0x20)), wm = (s8)g_rb((u16)(b + 0x22)), w = (s8)g_rb((u16)(b + 0x23));
+    /* +0x22 the missile weapon's type (0xff none), +0x51 the melee weapon's (as the member record's +0x3d) */
+    int atk = g_rb((u16)(b + 0x21)), def = g_rb((u16)(b + 0x20)), wm = (s8)g_rb((u16)(b + 0x22)), w = (s8)g_rb((u16)(b + 0x51));
+    const bool human = enemyview_human(best);
     std::string name;
     if (best < 5) { char nm[26]; g_str(G_DGROUP, (u16)(b + 0x25), nm, sizeof nm); name = game_text(nm, sizeof nm); }
     else name = enemy_name(g_rb((u16)(GV_cbt_floor + best)), b);
@@ -371,10 +373,10 @@ void ui_draw_battle_info(void)
             for (const ItemDef &d : gamedata.items) if (d.type == t && (d.kind == K_WEAPON || d.kind == K_MISSILE)) return game_text(d.name.c_str(), d.name.size());
             return "";
         };
-        {
+        if (human) {
             std::string a = wname(w), m = wname(wm);
             if (!a.empty() || !m.empty()) ImGui::TextDisabled("%s%s%s", a.c_str(), !a.empty() && !m.empty() ? ", " : "", m.c_str());
-        }
+        } else ImGui::TextDisabled("Natural weapons");
         if (best >= 5 && st == 1) {
             /* its body armour against the party's weapons (the game's rule, as in the armour
                tooltips: penetration below the hardness deflects most of the blow, equal halves it,
@@ -382,7 +384,9 @@ void ui_draw_battle_info(void)
             int at = g_rb((u16)(b + 0x4b)), h = at == 0xff ? 0 : rb(G_FAR20A5, (u16)(0x781e + at));
             static const char *HN[6] = { "no armor", "soft armor", "stiff armor", "scale armor", "mail", "plate" };
             if (h >= 0 && h < 6) {
-                ImGui::Text("%s (hardness %d)", HN[h], h);
+                if (human) ImGui::Text("%s (hardness %d)", HN[h], h);
+                else if (h > 0) ImGui::Text("Natural armor, hardness %d (as %s)", h, HN[h]);
+                else ImGui::Text("No armor (hardness 0)");
                 int size = (s16)g_rw(G_PARTY_SIZE); if (size < 0 || size > 5) size = 0;
                 for (int m = 0; m < size; m++) {
                     u16 mb = (u16)(0x9c55 + m * 0x80);
@@ -391,7 +395,7 @@ void ui_draw_battle_info(void)
                     /* each weapon in its own colour: green pierces, amber does half damage, red is mostly deflected */
                     std::vector<std::pair<std::string, ImVec4>> seg;
                     for (int k = 0; k < 2; k++) {
-                        int mw = (s8)g_rb((u16)(mb + (k ? 0x22 : 0x23)));
+                        int mw = (s8)g_rb((u16)(mb + (k ? 0x22 : 0x51)));
                         std::string wn = wname(mw);
                         if (wn.empty()) continue;
                         int pen = rb(G_FAR20A5, (u16)(0x76a8 + mw)) & 15, r = pen > h ? 0 : pen == h ? 1 : 2;

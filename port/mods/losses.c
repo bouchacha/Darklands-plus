@@ -26,6 +26,7 @@ u32 plat_ticks_ms(void);
 int losses_on(void) { return config_get_int("assist.loss_alerts", 1) && !config_get_int("original", 0); }
 
 static struct { char name[24]; s8 max[7]; s8 skill[19]; int have; } snap[5];
+static int in_battle;
 static int snap_seed;
 
 /* the temporary part of attribute a (0x48) or skill k (0x49) of member m: the boosts and lowerings running */
@@ -39,11 +40,17 @@ static int temp_of(int kind, int m, int idx)
     }
     return t;
 }
+/* the events are in memory (the battle and what follows it until the next card swap them out: the
+   table reads empty, a saint's boost to a skill cannot be told from the skill then) */
+static int events_known(void) { for (int i = 0; i < G_NEVENTS; i++) if (g_event(i)) return 1; return 0; }
 static void take(int m)
 {
-    gm_member_name(m, snap[m].name, sizeof snap[m].name);
+    char nm[24]; gm_member_name(m, nm, sizeof nm);
+    int same = snap[m].have && !strcmp(nm, snap[m].name);
+    memcpy(snap[m].name, nm, sizeof nm);
     for (int a = 0; a < 7; a++) snap[m].max[a] = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + a));
-    for (int k = 0; k < 19; k++) snap[m].skill[k] = (s8)(g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + k)) - temp_of(0x49, m, k));
+    if (!same || events_known())                      /* (else the skills as last known stand) */
+        for (int k = 0; k < 19; k++) snap[m].skill[k] = (s8)(g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + k)) - temp_of(0x49, m, k));
     snap[m].have = gm_member_present(m);
 }
 /* (aging.c lowered member m's attributes and told it: taken as they are now) */
@@ -52,7 +59,6 @@ void losses_retake(int m) { if (m >= 0 && m < 5) take(m); }
 /* a battle under way (combat_main, s014 0e76:0000): its records are the fight's until it ends, even
    while another overlay (a saint's prayer, the loot) stands in for the battle's own and game_mode
    no longer says "battle" - the watch waits, then starts afresh */
-static int in_battle;
 static void battle_hook(void)
 {
     in_battle++;
@@ -74,6 +80,7 @@ void losses_frame(void)
     int fresh = !losses_on() || grace > 0 || gm == GM_OTHER || ovl_loaded[37] || ovl_loaded[38] || ui_is_open() || seed != snap_seed;
     if (fresh) { for (int m = 0; m < 5; m++) take(m); snap_seed = seed; return; }
     char body[1600]; size_t len = 0; body[0] = 0;
+    int ek = events_known();
     for (int m = 0; m < 5; m++) {
         char nm[24]; gm_member_name(m, nm, sizeof nm);
         int present = gm_member_present(m);
@@ -83,7 +90,7 @@ void losses_frame(void)
             int v = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + a));
             if (v < snap[m].max[a]) { pl += (size_t)snprintf(part + pl, sizeof part - pl, "%s%s %d (was %d)", pl ? ", " : "", gm_attr_name(a), v, snap[m].max[a]); if (pl >= sizeof part) pl = sizeof part - 1; }
         }
-        for (int k = 0; k < 19; k++) {
+        for (int k = 0; k < 19 && ek; k++) {          /* (the skills only while their boosts can be told) */
             int v = (s8)(g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + k)) - temp_of(0x49, m, k));
             if (v < snap[m].skill[k]) { pl += (size_t)snprintf(part + pl, sizeof part - pl, "%s%s %d (was %d)", pl ? ", " : "", gm_skill_name(k), v, snap[m].skill[k]); if (pl >= sizeof part) pl = sizeof part - 1; }
         }

@@ -28,6 +28,16 @@ EnemyModel enemy_model;
 static int ev_on = 1;
 
 int enemyview_is_on(void) { return ev_on; }
+/* combatant i (5-12) a man with armor and weapons, not a beast or a demon with natural ones: its pictures
+   are a man's (the kind's picture prefix starts with E, as the enemy info screen tells them) */
+int enemyview_human(int i)
+{
+    if (i < 5 || i >= 13) return 1;
+    int kind = (s8)g_rb((u16)(G_MEMBER(i) + 2));
+    if (kind < 0 || kind > 6) return 0;
+    char pre[8]; g_str(G_DGROUP, g_rw((u16)(0x1166 + 2 * kind)), pre, sizeof pre);
+    return pre[0] == 'E' || pre[0] == 'e';
+}
 void enemyview_set(int on) { ev_on = on; config_set_int("display.native_enemyinfo", on); }
 
 static int clampi(int v, int lo, int hi) { return v < lo ? lo : v > hi ? hi : v; }
