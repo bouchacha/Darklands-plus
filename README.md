@@ -4,15 +4,16 @@
 
 > Darklands+ is not a remake and does not contain the game. You need your own copy of Darklands from GOG or Steam.
 
-<img width="1600" height="900" alt="01-card" src="https://github.com/user-attachments/assets/4e1414e0-0255-41a8-8e98-5df6d034efbc" />
-<img width="1600" height="900" alt="07-shop" src="https://github.com/user-attachments/assets/fe17b8b3-7327-4f29-886b-83e165445d69" />
-<img width="1600" height="900" alt="08-alchemy" src="https://github.com/user-attachments/assets/449549f7-8d03-427b-876c-3ec72f355609" />
-<img width="1600" height="900" alt="09-goto" src="https://github.com/user-attachments/assets/fdbcae88-95ba-4e86-9604-0947fecc79b8" />
-<img width="1600" height="900" alt="04-worldmap" src="https://github.com/user-attachments/assets/d66192bd-a052-45d1-9521-ef1aee1f3ba2" />
-<img width="1600" height="900" alt="03-sheet" src="https://github.com/user-attachments/assets/a8c2b7db-4f9c-407d-a6bb-e6d78f6aa94d" />
-<img width="1600" height="900" alt="02-battle" src="https://github.com/user-attachments/assets/543a7d52-c5d9-4eca-9108-63e2fd9d01b7" />
-<img width="1600" height="900" alt="10-saint" src="https://github.com/user-attachments/assets/1f556415-549b-48be-8969-5944dd12794f" />
-
+<p>
+<img width="49%" alt="A card: the chance beside each option, who in the party tries it and what it rests on" src="https://github.com/user-attachments/assets/4e1414e0-0255-41a8-8e98-5df6d034efbc" />
+<img width="49%" alt="A shop: what a piece of armor would do to the member's load" src="https://github.com/user-attachments/assets/fe17b8b3-7327-4f29-886b-83e165445d69" />
+<img width="49%" alt="Alchemy: each formula's ingredients, how many the party has, and the chance of success" src="https://github.com/user-attachments/assets/449549f7-8d03-427b-876c-3ec72f355609" />
+<img width="49%" alt="Go to: every place in a city, with what it teaches, sells and offers" src="https://github.com/user-attachments/assets/fdbcae88-95ba-4e86-9604-0947fecc79b8" />
+<img width="49%" alt="The world map: every quest listed and marked, several at one place on an arc over it" src="https://github.com/user-attachments/assets/d66192bd-a052-45d1-9521-ef1aee1f3ba2" />
+<img width="49%" alt="The character sheet: skills and attributes as heraldic shields, the whole party compared" src="https://github.com/user-attachments/assets/a8c2b7db-4f9c-407d-a6bb-e6d78f6aa94d" />
+<img width="49%" alt="A battle: the party fights on between orders, the orders as buttons at the foot of the field, a log of every blow" src="https://github.com/user-attachments/assets/543a7d52-c5d9-4eca-9108-63e2fd9d01b7" />
+<img width="49%" alt="Calling on a saint: what the saint really does, the favor to spend and the chance" src="https://github.com/user-attachments/assets/1f556415-549b-48be-8969-5944dd12794f" />
+</p>
 
 ## What is Darklands?
 
