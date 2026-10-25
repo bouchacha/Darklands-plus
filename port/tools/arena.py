@@ -162,6 +162,11 @@ def check(s, log):
     ticks = parse(log)
     if not ticks:
         return ['no battle log (the battle never started?)']
+    # the battlefield's layout varies from run to run: foes placed behind a wall or a stand of trees never
+    # move, and no line reaches them; that is the layout, not the shooting (main tries another seed)
+    first = {j: (c['x'], c['y']) for j, c in ticks[0][1].items() if j >= 5}
+    if first and s.get('foes_move', True) and all((c['x'], c['y']) == first.get(j, (c['x'], c['y'])) for t, cb in ticks for j, c in cb.items() if j >= 5):
+        return ['layout: the foes never moved (walled off from the party?)']
     # per party member: runs of the same state
     for i in range(5):
         idle = blank = stuck = bowidle = 0; last = None; flips = []; worst_idle = worst_blank = worst_stuck = worst_bowidle = 0; nshots = 0
@@ -240,6 +245,11 @@ def main():
         for k in range(a.seeds):
             s2 = dict(s, seed=s['seed'] + k * 7, name=s['name'] + ('' if k == 0 else '_%d' % k))
             probs, dt = run(s2, a.game, a.exe, a.out)
+            for retry in range(2):                         # (a layout that walls the foes off: another seed)
+                if not any(p.startswith('layout:') for p in probs): break
+                print('%-22s        %s: another seed' % (s2['name'], probs[0]), flush=True)
+                s2 = dict(s2, seed=s2['seed'] + 3)
+                probs, dt = run(s2, a.game, a.exe, a.out)
             total += len(probs)
             print('%-22s %4.0fs  %s' % (s2['name'], dt, 'OK' if not probs else '; '.join(probs)), flush=True)
     print('%d problem%s' % (total, '' if total == 1 else 's'))
