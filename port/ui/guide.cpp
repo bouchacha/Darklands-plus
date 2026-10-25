@@ -6,32 +6,54 @@
 // it is drawn in its own color, so a player of the original can tell it apart.
 #include "imgui.h"
 #include <string.h>
+#include <string>
+#include <vector>
 #include <initializer_list>
+#include "ui.h"
+#include "uiinternal.h"
+#include "ornament.h"
 
 #include "../runtime/config.h"
 
 static const ImVec4 PLUS_INK(0.10f, 0.30f, 0.58f, 1);     /* what Darklands+ adds (the legend says so) */
 
+/* its topics are short, so they are listed at the left as Settings' sections are (a click brings one to
+   the top; the one in view is marked); the weapons and the enemies, long tables, are tabs of their own */
 void ui_guide_tab(void)
 {
     if (!config_get_int("guide.seen", 0)) { config_set_int("guide.seen", 1); config_save(); }     /* (the margin's hint is not needed any more) */
+    static std::vector<std::string> titles; static int jump = -1, at_top = 0;
+    ImGui::BeginChild("##gnav", ImVec2(UIS(230), 0), ImGuiChildFlags_Borders);
+    for (int i = 0; i < (int)titles.size(); i++) {
+        std::string t = titles[i].substr(0, titles[i].find(':'));               /* ("The party: Endurance, ..." as "The party") */
+        char lab[96]; snprintf(lab, sizeof lab, "%s###gn%d", t.c_str(), i);
+        if (ImGui::Selectable(lab, i == at_top)) jump = i;
+    }
+    ImGui::EndChild();
+    ImGui::SameLine();
+    ImGui::BeginChild("##gbody", ImVec2(0, 0));
+    std::vector<std::string> now; int top_found = -1; float view_top = ImGui::GetWindowPos().y + UIS(30);
     ImGui::TextWrapped("Darklands has no tutorial: this page sums up how it works, with the advice players have long given one another. "
                        "F11 (a Darklands+ addition) lists the keys and clicks of the current screen at any time; a right-click opens the game's menus.");
-    ImGui::TextColored(PLUS_INK, "Lines in this color depend on something Darklands+ adds (most can be switched off in F12 > Settings).");
+    ImGui::PushStyleColor(ImGuiCol_Text, PLUS_INK);
+    ImGui::TextWrapped("Lines in this color depend on something Darklands+ adds (most can be switched off in F12 > Settings).");
+    ImGui::PopStyleColor();
     ImGui::Spacing();
-    auto topic = [](const char *title, std::initializer_list<const char *> lines, bool open = false) {
-        if (ImGui::CollapsingHeader(title, open ? ImGuiTreeNodeFlags_DefaultOpen : 0)) {
-            ImGui::Indent();
-            for (const char *l : lines) {
-                bool plus = l[0] == '+';
-                ImGui::Bullet();
-                if (plus) ImGui::PushStyleColor(ImGuiCol_Text, PLUS_INK);
-                ImGui::TextWrapped("%s", plus ? l + 1 : l);
-                if (plus) ImGui::PopStyleColor();
-            }
-            ImGui::Unindent();
-            ImGui::Spacing();
+    auto topic = [&](const char *title, std::initializer_list<const char *> lines, bool = false) {
+        int i = (int)now.size(); now.push_back(title);
+        ImGui::Spacing();
+        ImGui::PushFont(ui_font_head); orn_septext(title); ImGui::PopFont();
+        if (jump == i) { ImGui::SetScrollHereY(0.0f); jump = -1; }
+        if (ImGui::GetItemRectMin().y <= view_top) top_found = i;    /* (the last heading above the top: the topic in view) */
+        ImGui::Indent();
+        for (const char *l : lines) {
+            bool plus = l[0] == '+';
+            ImGui::Bullet();
+            if (plus) ImGui::PushStyleColor(ImGuiCol_Text, PLUS_INK);
+            ImGui::TextWrapped("%s", plus ? l + 1 : l);
+            if (plus) ImGui::PopStyleColor();
         }
+        ImGui::Unindent();
     };
     topic("First steps", {
         "A new party has little money and light armor. Buy the best armor the purse allows before anything else (studded leather or mail if you can): a weapon whose penetration is below an armor's hardness is mostly turned aside (Battle, below).",
@@ -130,5 +152,8 @@ void ui_guide_tab(void)
     topic("Saving", {
         "Alt+S saves, with a comment, and Alt+L loads; each save is kept as a new one. Some places do not allow saving (in the middle of a card); save often in towns.",
         "+Ctrl+S quick-saves; F9 or Ctrl+L loads the quick save. On Darklands+'s Save screen, clicking an old save replaces it with the new one, and the Load screen has a Delete button.",
+        "+Ironman (F12 > Settings > Preset, for the next new game): the game keeps one save and saves over it as you go (every card, each arrival, before each battle, on quitting). There is no loading back, and when the party's journey ends its save is deleted.",
     });
+    titles = now; at_top = top_found < 0 ? 0 : top_found;
+    ImGui::EndChild();
 }

@@ -185,7 +185,7 @@ def check(s, log):
                 bowidle += 10; worst_bowidle = max(worst_bowidle, bowidle)
             else:
                 bowidle = 0
-            if shooting_order and c['a'] == 9 and (not last or last['a'] != 9):
+            if c['a'] in (9, 13) and (not last or last['a'] not in (9, 13)):   # (13: the last shot, its ammunition gone)
                 nshots += 1
             if c['m'] and last and (c['x'], c['y']) == (last['x'], last['y']):
                 stuck += 10; worst_stuck = max(worst_stuck, stuck)

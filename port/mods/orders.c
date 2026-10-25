@@ -239,6 +239,8 @@ static int line_clear(int i, int j)
 }
 static signed char shot_at[5] = { -1, -1, -1, -1, -1 };
 static int shot_target(int i, int *clear_out);
+static int has_ammo(int i, int wm);
+static void to_melee(int i, int t, int beside);
 static void retarget_shooters(void)
 {
     if (!combat_improved()) return;
@@ -250,6 +252,18 @@ static void retarget_shooters(void)
         if (ord == MISSILE && t >= 5 && t < 13 && g_rb((u16)(D_CBT + t * 0x80 + 0x14)) == 1) { shot_at[i] = (signed char)t; continue; }
         if (ord == MISSILE && shot_at[i] < 5) shot_at[i] = 5;                 /* (the order kept, its mark gone (-1, or fallen): a new mark now, below) */
         if (shot_at[i] < 5) continue;
+        {   /* its last loosed (the game drops the order, its mark still standing): the melee weapon, at the nearest foe,
+               once the shot is done (not for an order of the player's since) */
+            int wm = (s8)g_rb((u16)(c + 0x22)), act = g_rb((u16)(GV_cbt_action + i));
+            if ((ord == 0 || ord == MISSILE) && wm >= 0 && wm <= 62 && !has_ammo(i, wm)) {
+                if (act != 0 && act != 7) continue;                          /* (still loosing it: the next tick) */
+                int clear = 0, best = shot_target(i, &clear);
+                if (ns_unwinding) return;
+                shot_at[i] = -1;
+                if (best >= 0) { fprintf(stderr, "orders: member %d has nothing left to shoot: goes at %d with its melee weapon\n", i, best); to_melee(i, best, 0); if (ns_unwinding) return; }
+                continue;
+            }
+        }
         if (ord != MISSILE && g_rb((u16)(D_CBT + shot_at[i] * 0x80 + 0x14)) == 1) { shot_at[i] = -1; continue; }   /* (its mark stands: the order changed for another reason) */
         /* its mark has just fallen: whatever the game's AI gave it instead (to walk at someone, to
            fight hand to hand), it shoots again */

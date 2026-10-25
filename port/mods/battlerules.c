@@ -87,7 +87,7 @@ static signed char approach[5];                           /* the walk is towards
 static u16 last_try[5], seen_engage[5], walk_since[5];
 
 static int strict_spot;                                 /* the line clear to where the mark is going too (a first pass) */
-static int spots_taken, spots_noline, spots_noway;      /* (DL_BATTLE_LOG: why no spot was found) */
+static int spots_taken, spots_noline, spots_noway, spots_crossed;   /* (DL_BATTLE_LOG: why no spot was found) */
 static int clear_from(int i, int t, int x, int y)       /* a free spot, and a clear line from it to t */
 {
     u16 c = CBT(i);
@@ -116,17 +116,29 @@ static int clear_from(int i, int t, int x, int y)       /* a free spot, and a cl
 static void step_aside_at(int i);
 /* friends on their way somewhere are taken as there already while a spot is chosen (three shooters in
    a column each picked a spot the others then walked into: they crept aside, sixteen pixels at a
-   time, and never shot); the line to where the mark walks is wanted too, then only to where it is */
+   time, and never shot); the line to where the mark walks is wanted too, then only to where it is.
+   And no spot whose way there crosses a walking friend's way (two in a column each took the spot
+   behind the other: they met halfway and stood, each in the other's way, for good) */
+static int fw_n, fw[5][4];                               /* the walking friends' ways: from x, y to x, y */
+static int crosses(int ax, int ay, int bx, int by, int cx, int cy, int dx, int dy)   /* segment ab meets segment cd */
+{
+    long d1 = (long)(bx - ax) * (cy - ay) - (long)(by - ay) * (cx - ax), d2 = (long)(bx - ax) * (dy - ay) - (long)(by - ay) * (dx - ax);
+    long d3 = (long)(dx - cx) * (ay - cy) - (long)(dy - cy) * (ax - cx), d4 = (long)(dx - cx) * (by - cy) - (long)(dy - cy) * (bx - cx);
+    return ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0));
+}
 static void step_aside(int i)
 {
     int sx[5], sy[5], moved[5] = { 0 };
+    fw_n = 0;
     for (int j = 0; j < 5; j++) {
         u16 f = CBT(j);
         if (j == i || g_rb((u16)(f + 0x14)) != 1 || !g_rb((u16)(GV_cbt_moving + j))) continue;
         sx[j] = (s16)g_rw((u16)(f + 4)); sy[j] = (s16)g_rw((u16)(f + 6)); moved[j] = 1;
+        fw[fw_n][0] = sx[j]; fw[fw_n][1] = sy[j]; fw[fw_n][2] = (s16)g_rw((u16)(f + 8)); fw[fw_n][3] = (s16)g_rw((u16)(f + 0xa)); fw_n++;
         g_ww((u16)(f + 4), g_rw((u16)(f + 8))); g_ww((u16)(f + 6), g_rw((u16)(f + 0xa)));
     }
     step_aside_at(i);
+    fw_n = 0;
     for (int j = 0; j < 5; j++) if (moved[j]) { g_ww((u16)(CBT(j) + 4), (u16)sx[j]); g_ww((u16)(CBT(j) + 6), (u16)sy[j]); }
 }
 static void step_aside_at(int i)
@@ -158,7 +170,7 @@ static void step_aside_at(int i)
             return;
         }
     }
-    spots_taken = spots_noline = spots_noway = 0;
+    spots_taken = spots_noline = spots_noway = spots_crossed = 0;
     /* rings of half cells (16 x 8 pixels; a cell is 32 x 16) out to three cells; first with the line
        holding to where the mark walks, then to where it is */
     for (int pass = 0; pass < 2; pass++)
@@ -170,6 +182,7 @@ static void step_aside_at(int i)
                 if (dx > -r && dx < r && dy > -r && dy < r) continue;
                 int x = x0 + dx * 16, y = y0 + dy * 8;
                 if (x < 0 || y < 0 || x >= 40 * 32 || y >= 40 * 16) continue;
+                { int cross = 0; for (int k = 0; k < fw_n && !cross; k++) cross = crosses(x0, y0, x, y, fw[k][0], fw[k][1], fw[k][2], fw[k][3]); if (cross) { spots_crossed++; continue; } }
                 if (!clear_from(i, t, x, y)) { if (ns_unwinding) { strict_spot = 0; return; } continue; }
                 long d = (long)(x - tx) * (x - tx) + 4L * (y - ty) * (y - ty);   /* (rows half as tall) */
                 if (d > bd) { bd = d; bx = x; by = y; }
@@ -191,7 +204,7 @@ static void step_aside_at(int i)
         if (getenv("DL_BATTLE_LOG")) fprintf(stderr, "battlerules: %d steps aside from %d,%d to %d,%d to shoot at %d\n", i, x0, y0, bx, by, t);
         return;
     }
-    if (getenv("DL_BATTLE_LOG")) fprintf(stderr, "battlerules: %d's spots near %d,%d: %d taken, %d with no line, %d with no way to them\n", i, x0, y0, spots_taken, spots_noline, spots_noway);
+    if (getenv("DL_BATTLE_LOG")) fprintf(stderr, "battlerules: %d's spots near %d,%d: %d taken, %d with no line, %d with no way to them, %d across a friend's way\n", i, x0, y0, spots_taken, spots_noline, spots_noway, spots_crossed);
     /* no spot near: walk towards the foe until a line opens (step_hook) */
     g_ww((u16)(c + 8), (u16)tx); g_ww((u16)(c + 0xa), (u16)ty);
     int found = ns_call(GF_path_find, 1, i) == 1;
@@ -258,6 +271,34 @@ static void exchanges_hook(void)              /* melee_exchanges (), s014 0e76:2
     hook_call_original();
     if (ns_unwinding) return;
     u16 now = g_rw(GV_combat_clock);
+    for (int i = 0; i < 5; i++) {                             /* a walk aside that has gone nowhere for a second: planned again from here */
+        static int px[5], py[5]; static u16 pt[5];
+        u16 c = CBT(i);
+        if (walk_for[i] < 0 || !g_rb((u16)(GV_cbt_moving + i)) || g_rb((u16)(c + 0x14)) != 1) { pt[i] = 0; continue; }
+        int x = (s16)g_rw((u16)(c + 4)), y = (s16)g_rw((u16)(c + 6));
+        if (!pt[i] || abs(x - px[i]) > 1 || abs(y - py[i]) > 1) { px[i] = x; py[i] = y; pt[i] = now ? now : 1; continue; }
+        if ((u16)(now - pt[i]) < 100) continue;
+        int t = walk_for[i];
+        pt[i] = 0; walk_for[i] = -1; approach[i] = 0;
+        if (g_rb((u16)(CBT(t) + 0x14)) != 1) continue;
+        if (getenv("DL_BATTLE_LOG")) fprintf(stderr, "battlerules: %d's walk aside to shoot at %d went nowhere from %d,%d: planned again\n", i, t, x, y);
+        g_wb((u16)(GV_cbt_moving + i), 0);
+        u16 l0 = g_rw(GV_los_x0), l1 = g_rw(GV_los_y0), l2 = g_rw(GV_los_x1), l3 = g_rw(GV_los_y1);
+        g_ww(GV_los_x0, (u16)x); g_ww(GV_los_y0, (u16)y); g_ww(GV_los_x1, g_rw((u16)(CBT(t) + 4))); g_ww(GV_los_y1, g_rw((u16)(CBT(t) + 6)));
+        int blocked = ns_call(GF_line_blocked, 3, i, t, 0x80) != 0;
+        g_ww(GV_los_x0, l0); g_ww(GV_los_y0, l1); g_ww(GV_los_x1, l2); g_ww(GV_los_y1, l3);
+        if (ns_unwinding) return;
+        if (!blocked) {                                       /* (a line from where it got to: shoot from there) */
+            ns_call(GF_cbt_ready, 1, i);
+            if (!ns_unwinding) shoot_now(i, t);
+            if (ns_unwinding) return;
+            continue;
+        }
+        g_ww((u16)(c + 0x10), 0x80); g_wb((u16)(c + 0x4a), (u8)t);   /* (the shot it was walking for, then a spot from here) */
+        last_try[i] = now ? now : 1;
+        step_aside(i);
+        if (ns_unwinding) return;
+    }
     for (int i = 0; i < 5; i++) {
         u16 c = CBT(i);
         if (g_rb((u16)(GV_cbt_state + i)) != 1 || g_rw((u16)(GV_cbt_engage_time + 2 * i)) == seen_engage[i]) continue;   /* (blocked just now) */
