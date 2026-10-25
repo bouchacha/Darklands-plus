@@ -71,7 +71,7 @@ static float wm_panel_right;                      // the panel's right side (win
 static float wm_find_left = 1e9f, wm_find_bottom, wm_foot_top = 1e9f;   // the top right panel's left side and foot, the place panel's top (last frame): room past them
 static int wm_panel_run, wm_panel_frame = -10;    // frames the panel has been drawn in a row (its size settles after the first), the last
 std::string journal_travel_days(int loc);   /* ui/journal.cpp: "3 days" */
-extern "C" int journal_buy_window(bool *open), journal_town_noted(int loc); extern "C" void journal_town_wares(int loc);   /* ui/journal.cpp */
+extern "C" int journal_buy_window(bool *open, int what), journal_town_noted(int loc); extern "C" void journal_town_wares(int loc);   /* ui/journal.cpp */
 static int selected = -1;
 static int dock_hover = -1, dock_hover_next = -1;          /* the place panel's boat destination under the pointer (last frame): ringed on the map */
 static bool show_names = true, show_quests = true, show_icons = true, show_boats = true, show_days = false;
@@ -750,6 +750,15 @@ extern "C" void worldmap_draw(void)
     wm_find_left = ImGui::GetWindowPos().x - o.x; wm_find_bottom = ImGui::GetWindowPos().y + ImGui::GetWindowHeight() - o.y;
     ImGui::SetWindowFontScale(pk);
     float rw = fminf(UIS(300) * pk, sz.x * 0.27f - 2 * ImGui::GetStyle().WindowPadding.x);
+    {   /* the two finders: windows of their own (ui/journal.cpp); a click on a town there shows it here */
+        static bool buy_open[2];
+        if (ImGui::Button("Find alchemical ingredients", ImVec2(rw, 0))) buy_open[0] = !buy_open[0];
+        if (ImGui::Button("Find any ware", ImVec2(rw, 0))) buy_open[1] = !buy_open[1];
+        for (int w = 0; w < 2; w++) if (buy_open[w]) {
+            int pick = journal_buy_window(&buy_open[w], w);
+            if (pick >= 0) for (const Place &p : P) if (p.loc == pick) { tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; selected = pick; }
+        }
+    }
     char *find = wm_find;
     ImGui::SetNextItemWidth(rw);
     bool enter = ImGui::InputTextWithHint("##find", "Find a place...", find, sizeof wm_find, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_EscapeClearsAll);
@@ -816,47 +825,6 @@ extern "C" void worldmap_draw(void)
         return click;
     };
     ImGui::Spacing();
-    {   /* Where to buy: a window of its own (ui/journal.cpp), the ingredients carried and missing; a click on a town shows it here */
-        static bool buy_open;
-        if (ImGui::Button("Where to buy ingredients and wares", ImVec2(rw, 0))) buy_open = !buy_open;
-        if (buy_open) {
-            int pick = journal_buy_window(&buy_open);
-            if (pick >= 0) for (const Place &p : P) if (p.loc == pick) { tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; selected = pick; }
-        }
-    }
-    if (fold_head("Places on the map", FOLD_LEGEND)) {           /* the legend */
-        if (ui_font_small) ImGui::PushFont(ui_font_small);       /* (smaller than the panel's text: the map is the point) */
-        ImGui::TextDisabled("Click a kind to show or hide it.");
-        for (int k = 0; k < IK_N; k++)
-            if (grid_entry(k, show_kind[k], false, IK_LABEL[k], [&](ImDrawList *pl, ImVec2 c, float is) {
-                    if (show_icons) draw_icon(pl, c, is, k);
-                    else { static const int G[IK_N] = { 0, 1, 2, 3, 3, 4, 4, 3, 3, 4, 1, 4 }; pl->AddCircleFilled(c, is * 0.25f, kind_colour(G[k])); } }))
-                show_kind[k] = !show_kind[k];
-        {   float is = ImGui::GetFontSize();
-            ImDrawList *pl = ImGui::GetWindowDrawList();
-            ImVec2 q = ImGui::GetCursorScreenPos();                  /* quest marks, the party, a town not visited */
-            ImGui::Dummy(ImVec2(is * 1.2f, is));
-            ImVec2 m(q.x + is * 0.6f, q.y + is * 0.5f);
-            ui_draw_quest_icon(pl, m, is * 1.1f, QC_ROBBER);
-            ImGui::SameLine(); ImGui::TextUnformatted("A quest");
-            ImGui::SameLine(rcolw);
-            q = ImGui::GetCursorScreenPos();                          /* the party: a click shows where it is */
-            if (ImGui::InvisibleButton("##party", ImVec2(rcolw - ImGui::GetStyle().ItemSpacing.x, is))) { int px, py; party_tile(&px, &py); if (px >= 0) { tile_px(px, py, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; } }
-            bool phv = ImGui::IsItemHovered();
-            if (phv) { pl->AddRectFilled(q, ImVec2(q.x + rcolw - ImGui::GetStyle().ItemSpacing.x, q.y + is), IM_COL32(200, 170, 120, 90), 3); ImGui::SetMouseCursor(ImGuiMouseCursor_Hand); }
-            m = ImVec2(q.x + is * 0.6f, q.y + is * 0.5f);
-            pl->AddCircle(m, is * 0.4f, IM_COL32(255, 255, 255, 255), 0, 2); pl->AddCircleFilled(m, is * 0.15f, IM_COL32(255, 60, 40, 255));
-            pl->AddText(ImVec2(q.x + is * 1.35f, q.y + (is - ImGui::GetFontSize()) * 0.5f), ImGui::GetColorU32(ImGuiCol_Text), "The party");
-            if (phv) ImGui::SetTooltip("Click to find the party on the map.");
-            q = ImGui::GetCursorScreenPos(); ImGui::Dummy(ImVec2(is * 1.2f, is)); m = ImVec2(q.x + is * 0.6f, q.y + is * 0.5f);
-            if (show_icons) { draw_icon(pl, m, is, 0); pl->AddCircleFilled(m, is * 0.45f, IM_COL32(236, 226, 204, 150), 20); }
-            else { pl->AddCircle(m, is * 0.25f, IM_COL32(0, 0, 0, 200), 0, 3.0f); pl->AddCircle(m, is * 0.25f, kind_colour(0), 0, 1.6f); }
-            ImGui::SameLine(); ImGui::TextUnformatted("A town not visited yet");
-        }
-        ImGui::Spacing();
-        /* what the map shows: two to a row, as the entries above */
-        if (ui_font_small) ImGui::PopFont();
-    }
     if (fold_head(tfind < 0 ? "Towns with ..." : (std::string("Towns with ") + TFIND[tfind].label + "###tw").c_str(), FOLD_TOWNS)) {
         if (ui_font_small) ImGui::PushFont(ui_font_small);
         ImGui::TextDisabled("Click one to circle those towns on the map.");
@@ -885,7 +853,35 @@ extern "C" void worldmap_draw(void)
             }
         }
     }
+    if (fold_head("Map Legend", FOLD_LEGEND)) {           /* the legend */
+        if (ui_font_small) ImGui::PushFont(ui_font_small);       /* (smaller than the panel's text: the map is the point) */
+        ImGui::TextDisabled("Click a kind to show or hide it.");
+        for (int k = 0; k < IK_N; k++)
+            if (grid_entry(k, show_kind[k], false, IK_LABEL[k], [&](ImDrawList *pl, ImVec2 c, float is) {
+                    if (show_icons) draw_icon(pl, c, is, k);
+                    else { static const int G[IK_N] = { 0, 1, 2, 3, 3, 4, 4, 3, 3, 4, 1, 4 }; pl->AddCircleFilled(c, is * 0.25f, kind_colour(G[k])); } }))
+                show_kind[k] = !show_kind[k];
+        ImGui::Spacing();
+        /* what the map shows: two to a row, as the entries above */
+        if (ui_font_small) ImGui::PopFont();
+    }
     ImGui::End();
+    {   /* the lower right: back to the party (a click centres the map on it) */
+        int px = -1, py = -1; party_tile(&px, &py);
+        if (px >= 0) {
+            const char *lb = "Snap to party";
+            float bw = ImGui::CalcTextSize(lb).x * pk + ImGui::GetStyle().FramePadding.x * 2 + ImGui::GetStyle().WindowPadding.x * 2;
+            float fw = foot_h > 0 ? fminf(sz.x - 2 * pad, UIS(820) * pk) : 0;
+            bool under = foot_h > 0 && (sz.x + fw) * 0.5f > sz.x - pad - bw - pad;   /* (the place chosen at the foot reaches this far: above it) */
+            ImGui::SetNextWindowPos(ImVec2(o.x + sz.x - pad, o.y + sz.y - pad - (under ? foot_h + pad : 0)), ImGuiCond_Always, ImVec2(1, 1));
+            ImGui::SetNextWindowBgAlpha(0.97f);
+            ImGui::Begin("##wmsnap", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::SetWindowFontScale(pk);
+            if (ImGui::Button(lb)) { tile_px(px, py, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; }
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip("Center the map on the party.");
+            ImGui::End();
+        }
+    }
     {   /* what the map shows: five switches on the map, under the top right panel, each a button with
            its name beside it ("Show on the map" over them); a struck-out button is hidden */
         static bool loaded;

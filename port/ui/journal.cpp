@@ -103,6 +103,7 @@ static void save(void)
     rename(tmp.c_str(), p.c_str());
 }
 
+static void tidy_guesses(void);
 static void load(int seed)
 {
     towns.clear(); places.clear();
@@ -134,6 +135,7 @@ static void load(int seed)
         }
     }
     fclose(f);
+    tidy_guesses();
 }
 
 static void ensure_game(void)
@@ -200,10 +202,34 @@ static std::vector<SeenItem> predict_stock(int city, int seed, int shopq, u32 ma
 }
 
 struct ShopKind { int shop; u32 cats; const char *name; };
-static const ShopKind SHOPS[] = {          /* what each town shop sells (the cards' barter calls) */
-    { 0, 0x040000ffu, "Blacksmith" }, { 1, 0x0002c100u, "Goods merchant" }, { 2, 0x040000ffu, "Swordsmith" },
-    { 3, 0x040000ffu, "Armorer" }, { 5, 0x083c0030u, "Bowyer" }, { 6, 0x0000800eu, "Artificer" },
+/* what each town shop sells (the cards' barter calls). The arms-making street's own visit by day
+   (s049 1b1a, $MILCR: when the party is let in at once) narrows the swordsmith to swords and the
+   like (0x0f) and the armorer to armour (0x040000c0); turned away there, the party goes on to the
+   guild's card, whose street-level shopfronts sell every weapon and armour (0x040000ff, s063/s064).
+   The first is the way most visits go and the one worked out here; a list seen replaces it */
+static const ShopKind SHOPS[] = {
+    { 0, 0x040000ffu, "Blacksmith" }, { 1, 0x0002c100u, "Goods merchant" }, { 2, 0x0000000fu, "Swordsmith" },
+    { 3, 0x040000c0u, "Armorer" }, { 5, 0x083c0030u, "Bowyer" }, { 6, 0x0000800eu, "Artificer" },
     { 8, 0x04000000u, "Clothmaker" }, { -1, 0x00000400u, "Pharmacist" } };
+
+/* the worked-out lists of an older journal: a town shop's guessed with wares no longer guessed
+   (the swordsmith's and armorer's, before 1.3), and any guess for a shop whose list has been seen */
+static std::set<int> restock;               /* towns whose guesses tidy_guesses dropped: worked out again (card_load_hook) */
+static void tidy_guesses(void)
+{
+    for (auto &kv : towns) {
+        std::vector<Shop> &v = kv.second.shops;
+        for (size_t b = v.size(); b-- > 0;) {
+            const Shop &o = v[b];
+            if (o.seen || o.shop < 0) continue;
+            bool known = false, seen = false;
+            for (const ShopKind &k : SHOPS) if (k.shop == o.shop && k.cats == o.cats) known = true;
+            for (const Shop &x : v) if (x.seen && x.shop == o.shop) seen = true;
+            if (!known && !seen) restock.insert(kv.first);
+            if (!known || seen) v.erase(v.begin() + b);
+        }
+    }
+}
 
 /* every shop of the town the party has just reached; prices from the game's own rule
  * (buy_price, s032 192e: the leader's charisma, the town's opinion of the party ...),
@@ -225,9 +251,21 @@ static void record_town_stock(int loc)
         sh.items = predict_stock(loc, seed, shopq, k.cats);
         g_ww(GV_barter_quality, (u16)shopq); g_ww(GV_barter_shop, (u16)k.shop);
         for (SeenItem &i : sh.items) { u16 id = (u16)i.id; i.price = (u16)(game_call_link(GF_buy_price, 1, &id) & 0xffff); }
+        /* (a town shop: one worked-out list, none once a list of that shop has been seen; the
+           pharmacist and the other shops numbered -1 by their wares) */
         bool have = false;
-        for (Shop &o : t.shops) if (o.shop == sh.shop && o.cats == sh.cats) { have = true; if (!o.seen) o = sh; }
-        if (!have) t.shops.push_back(sh);
+        std::vector<Shop> keep;
+        for (Shop &o : t.shops) {
+            bool same = o.shop == sh.shop && (sh.shop >= 0 || o.cats == sh.cats);
+            if (same && o.seen) have = true;
+            if (same && !o.seen) { if (!have) { keep.push_back(sh); have = true; } continue; }
+            keep.push_back(o);
+        }
+        if (!have) keep.push_back(sh);
+        for (size_t a = 0; a < keep.size(); a++)             /* (a list seen after a worked-out one was kept: the guess goes) */
+            if (keep[a].seen && keep[a].shop >= 0)
+                for (size_t b = keep.size(); b-- > 0;) if (!keep[b].seen && keep[b].shop == keep[a].shop) keep.erase(keep.begin() + b);
+        t.shops = keep;
     }
     eval_restore(snap);
     eval_free(snap);
@@ -644,6 +682,7 @@ static void card_load_hook(void)
     if (!journal_on) { hook_call_original(); return; }
     ensure_game();
     int loc = (s16)g_rw(G_CUR_LOC);
+    if (!restock.empty()) { for (int c : restock) record_town_stock(c); restock.clear(); save(); }   /* (an older journal's guesses: tidy_guesses) */
     if (loc != last_loc) {
         last_loc = loc;
         if (loc >= 0 && loc < (int)gamedata.cities.size()) {
@@ -686,18 +725,23 @@ static void barter_list_hook(void)
     eval_free(snap);
     Town &t = towns[loc];
     if (loc >= 0 && loc < (int)gamedata.cities.size() && !t.visited) { t.visited = true; t.first = t.last = sh.date; t.visits = 1; }
+    /* the list seen replaces the one worked out for that shop (a town shop: whatever its wares,
+       the guess was for one way in) and an earlier list seen of the same shop and wares */
     bool replaced = false;
-    for (Shop &o : t.shops)
-        if (o.shop == sh.shop && o.cats == sh.cats && (o.name == sh.name || !o.seen)) {
-            if (!o.seen && getenv("DL_JOURNAL_LOG")) {             /* check the prediction */
-                int same = o.items.size() == sh.items.size();
-                for (size_t i = 0; same && i < o.items.size(); i++) same = o.items[i].id == sh.items[i].id && o.items[i].q == sh.items[i].q;
-                fprintf(stderr, "journal: predicted %s: %s (%d vs %d items)\n", sh.name.c_str(), same ? "exact" : "DIFFERENT",
-                        (int)o.items.size(), (int)sh.items.size());
-            }
-            if (!replaced) { o = sh; replaced = true; }
+    std::vector<Shop> keep;
+    for (Shop &o : t.shops) {
+        bool same = o.shop == sh.shop && (o.seen ? o.cats == sh.cats && o.name == sh.name : sh.shop >= 0 || o.cats == sh.cats);
+        if (!same) { keep.push_back(o); continue; }
+        if (!o.seen && o.cats == sh.cats && getenv("DL_JOURNAL_LOG")) {   /* check the prediction */
+            int eq = o.items.size() == sh.items.size();
+            for (size_t i = 0; eq && i < o.items.size(); i++) eq = o.items[i].id == sh.items[i].id && o.items[i].q == sh.items[i].q;
+            fprintf(stderr, "journal: predicted %s: %s (%d vs %d items)\n", sh.name.c_str(), eq ? "exact" : "DIFFERENT",
+                    (int)o.items.size(), (int)sh.items.size());
         }
-    if (!replaced) t.shops.push_back(sh);
+        if (!replaced) { keep.push_back(sh); replaced = true; }
+    }
+    if (!replaced) keep.push_back(sh);
+    t.shops = keep;
     save();
     if (getenv("DL_JOURNAL_LOG")) fprintf(stderr, "journal: %s, %s: %d items\n", loc_name(loc).c_str(), sh.name.c_str(), n);
 }
@@ -995,24 +1039,36 @@ extern "C" int journal_visited(int loc)
     auto it = towns.find(loc);
     return (it != towns.end() && it->second.visited) || places.count(loc);
 }
+extern "C" void journal_test_shops(int loc)  /* test (ushops:loc, -1 here): the shops noted in a town, seen or worked out, and their wares */
+{
+    ensure_game();
+    if (loc < 0) loc = (s16)g_rw(G_CUR_LOC);
+    auto it = towns.find(loc);
+    if (it == towns.end()) { fprintf(stderr, "shops of %d: none noted\n", loc); return; }
+    for (const Shop &sh : it->second.shops) {
+        fprintf(stderr, "shops of %s: %s (shop %d, cats %#x, %dq, %s):", loc_name(loc).c_str(), sh.name.c_str(), sh.shop, (unsigned)sh.cats, sh.shopq, sh.seen ? "seen" : "worked out");
+        for (const SeenItem &i : sh.items) fprintf(stderr, " %s %dq;", item_name(i.id).c_str(), i.q);
+        fprintf(stderr, "\n");
+    }
+}
 extern "C" void journal_test_where(int id)   /* test (uwhere:id): where an item is sold, and the days to a few towns */
 {
     fprintf(stderr, "where %d: %s\n", id, journal_where_sold(id).c_str());
     for (int c = 0; c < 92; c += 13) fprintf(stderr, "travel to %s: %s (%d min)\n", loc_name(c).c_str(), journal_travel_days(c).c_str(), travel_min_to(c));
 }
 
-/* the world map's Where to buy (ui/worldmap.cpp, its button): a window of its own. First every
-   alchemical ingredient - how many the party carries, the nearest town seen selling it with the
-   days of travel, the other towns -; then any other ware, found by name, one row a town (the best
-   quality seen there). A click on a town returns it (-1 none), for the map to show it. */
-extern "C" int journal_buy_window(bool *open)
+/* the world map's two finders (ui/worldmap.cpp, its buttons), each a window of its own. what 0:
+   every alchemical ingredient - how many the party carries, the nearest town seen selling it with
+   the days of travel, the other towns; 1: any ware, found by name, one row a town (the best quality
+   seen there). A click on a town returns it (-1 none), for the map to show it. */
+extern "C" int journal_buy_window(bool *open, int what)
 {
     ensure_game();
     int pick = -1;
     ImGuiIO &io = ImGui::GetIO();
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowSize(ImVec2(fminf(io.DisplaySize.x * 0.8f, UIS(1000)), fminf(io.DisplaySize.y * 0.8f, UIS(760))), ImGuiCond_Appearing);
-    if (!ImGui::Begin("Where to buy", open, ImGuiWindowFlags_NoCollapse)) { ImGui::End(); return -1; }
+    if (!ImGui::Begin(what == 0 ? "Find alchemical ingredients###wtb0" : "Find any ware###wtb1", open, ImGuiWindowFlags_NoCollapse)) { ImGui::End(); return -1; }
     int px = 0, py = 0; bool here = party_where(&px, &py);
     size_t nshops = 0; for (auto &kv : towns) nshops += kv.second.shops.size();
     if (!nshops) ImGui::TextDisabled("Nothing noted yet: the wares of each shop are noted as the party sees them.");
@@ -1024,7 +1080,7 @@ extern "C" int journal_buy_window(bool *open)
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("Show %s on the world map", loc_name(loc).c_str());
         ImGui::PopID(); ImGui::PopID();
     };
-    if (ImGui::CollapsingHeader("Alchemical ingredients", ImGuiTreeNodeFlags_DefaultOpen)) {
+    if (what == 0) {
         ImGui::TextDisabled("Bought ingredients are always quality 25. The nearest town first%s.", here ? "" : " (for now by name: the party's position is not known)");
         if (ImGui::BeginTable("ingr", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH)) {
             ImGui::TableSetupColumn("Ingredient", ImGuiTableColumnFlags_WidthFixed, UIS(230));
@@ -1059,9 +1115,10 @@ extern "C" int journal_buy_window(bool *open)
             ImGui::EndTable();
         }
     }
-    if (ImGui::CollapsingHeader("Any other ware", ImGuiTreeNodeFlags_DefaultOpen)) {
+    if (what == 1) {
         static char q_buf[48];
         ImGui::SetNextItemWidth(UIS(320));
+        if (ImGui::IsWindowAppearing()) ImGui::SetKeyboardFocusHere();
         ImGui::InputTextWithHint("##wtb", "a ware's name, e.g. plate or crossbow", q_buf, sizeof q_buf);
         std::string q = q_buf; std::transform(q.begin(), q.end(), q.begin(), ::tolower);
         if (!q.empty()) {

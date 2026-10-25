@@ -595,15 +595,15 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/barterview.cpp:370` | Sell spare gear |
 | `ui/barterview.cpp:377` | %d item%s not equipped (weapons, armor, shields; not ammunition or throwing weapons), for about %s in all: the ones pulsing in the list.%s |
 | `ui/barterview.cpp:378` |  Click again to sell them all. |
-| `ui/barterview.cpp:383` | For the formula |
-| `ui/barterview.cpp:393` | the mount this member rides |
-| `ui/barterview.cpp:395` | The merchant pays  |
-| `ui/barterview.cpp:395` | The merchant will not buy this |
-| `ui/barterview.cpp:396` |  - more than the purse holds |
-| `ui/barterview.cpp:400` | Point at a ware or one of your items to see it here. |
-| `ui/barterview.cpp:415` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  purchases go to the member picked above |
-| `ui/barterview.cpp:416` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  click a name to see their items |
-| `ui/barterview.cpp:417` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  click a name's coin to make that member pay |
+| `ui/barterview.cpp:384` | For the formula |
+| `ui/barterview.cpp:394` | the mount this member rides |
+| `ui/barterview.cpp:396` | The merchant pays  |
+| `ui/barterview.cpp:396` | The merchant will not buy this |
+| `ui/barterview.cpp:397` |  - more than the purse holds |
+| `ui/barterview.cpp:402` | Point at a ware or one of your items to see it here. |
+| `ui/barterview.cpp:417` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  purchases go to the member picked above |
+| `ui/barterview.cpp:418` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  click a name to see their items |
+| `ui/barterview.cpp:419` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  click a name's coin to make that member pay |
 | `ui/battlelog.cpp:121` | , the armor holds |
 | `ui/battlelog.cpp:121` | ; knocked back |
 | `ui/battlelog.cpp:122` | , knocked back |
@@ -672,8 +672,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/cacheview.cpp:84` | No potions or spare items in the pack. |
 | `ui/cacheview.cpp:84` | Carries nothing. |
 | `ui/cacheview.cpp:84` | Nothing stored here. |
-| `ui/cacheview.cpp:139` | Point at an item to see it here; F11 shows what you can do. |
-| `ui/cacheview.cpp:140` | Point at an item to see it here. Click a name above the right list (or press C) for another member. |
+| `ui/cacheview.cpp:140` | Point at an item to see it here; F11 shows what you can do. |
+| `ui/cacheview.cpp:141` | Point at an item to see it here. Click a name above the right list (or press C) for another member. |
 | `ui/cardhints.cpp:18` | Not for about a week after a fruitless search here for the religious library. |
 | `ui/cardhints.cpp:19` | Not for about a week after a fruitless search here for alchemical formulae. |
 | `ui/cardhints.cpp:20` | Not for about three weeks after a sewer grate in this town defeated you. |
@@ -760,61 +760,68 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/citynav.cpp:207` | central fortress |
 | `ui/citynav.cpp:208` | crafts district |
 | `ui/citynav.cpp:208` | side streets and alleys |
-| `ui/citynav.cpp:209` | posted notices |
-| `ui/citynav.cpp:294` | Go to %s: %s |
-| `ui/citynav.cpp:358` | simply walk out |
-| `ui/citynav.cpp:366` | leave the city |
-| `ui/citynav.cpp:367` | out of the city |
-| `ui/citynav.cpp:389` | The gate: choose how to get out, and the journey begins in the overland view. |
-| `ui/citynav.cpp:407` | left the city. |
-| `ui/citynav.cpp:408` | too many steps; stopped. |
-| `ui/citynav.cpp:417` | something happened on the way. |
-| `ui/citynav.cpp:417` | leave this place first. |
-| `ui/citynav.cpp:425` | the way is blocked. |
-| `ui/citynav.cpp:427` | cannot find the way from this card. |
-| `ui/citynav.cpp:448` | leading merchant |
-| `ui/citynav.cpp:453` | something happened on the way. |
-| `ui/citynav.cpp:455` | something happened on the way. |
-| `ui/citynav.cpp:455` | leave this place first. |
-| `ui/citynav.cpp:465` | the marketplace by night: choose how to get past the guards to the offices upstairs (press G again there for the office). |
-| `ui/citynav.cpp:466` | the marketplace by night: its stalls are shut until 5:00. |
-| `ui/citynav.cpp:487` | not found in this city. |
-| `ui/citynav.cpp:497` | Going to: %s. Press any key or click to stop. |
-| `ui/citynav.cpp:527` | Walking to the city gate |
-| `ui/citynav.cpp:527` | Walking to: %s |
-| `ui/citynav.cpp:540` | Any key or click stops the walk. |
-| `ui/citynav.cpp:665` | Point at a place to read about it here: what it offers, its quests, its teachers. |
-| `ui/citynav.cpp:676` | Click the tile and the party walks there. |
-| `ui/citynav.cpp:715` | Pick a place and the party walks there through the streets. Press any key or click to stop them. |
-| `ui/citynav.cpp:717` | Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out. |
-| `ui/citynav.cpp:745` | Closed until 5:00 |
-| `ui/citynav.cpp:745` | Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same. |
-| `ui/citynav.cpp:749` | Turned away until %d %s |
-| `ui/citynav.cpp:749` | The alchemists turned the party away; they will see you again from %d %s, %d:00. |
-| `ui/citynav.cpp:750` | Library shut until %d %s |
-| `ui/citynav.cpp:750` | The monks' library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:751` | Prayers again from %d %s |
-| `ui/citynav.cpp:751` | The party prayed with the monks; they may again from %d %s, %d:00. |
-| `ui/citynav.cpp:752` | Library shut until %d %s |
-| `ui/citynav.cpp:752` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:770` | Quest chance %d%% |
-| `ui/citynav.cpp:771` | A merchant may offer a quest after you have bought or sold something. |
-| `ui/citynav.cpp:772` | No quests until %d %s |
-| `ui/citynav.cpp:773` | On a quest for them |
-| `ui/citynav.cpp:774` | Your reward is waiting |
-| `ui/citynav.cpp:775` | No quests: reputation too low |
-| `ui/citynav.cpp:780` |  Until %d %s, %d:00. |
-| `ui/citynav.cpp:788` | Your quest:  |
-| `ui/citynav.cpp:788` | see the world map (M) |
-| `ui/citynav.cpp:810` | Wares %dq, better than most |
-| `ui/citynav.cpp:812` | Wares of %dq (most shops sell about 25q). |
-| `ui/citynav.cpp:822` | Raises a Philosopher's Stone to |
-| `ui/citynav.cpp:822` | No better stone than the party's |
-| `ui/citynav.cpp:825` | What you learned |
-| `ui/citynav.cpp:825` | The physician:  |
-| `ui/citynav.cpp:825` | The alchemist:  |
-| `ui/citynav.cpp:897` | A teacher to hire (faint: not available now) |
-| `ui/citynav.cpp:898` | A quest of yours leads here |
+| `ui/citynav.cpp:211` | not found in this city |
+| `ui/citynav.cpp:212` | alchemical symbols |
+| `ui/citynav.cpp:212` | great churches |
+| `ui/citynav.cpp:214` | great churches |
+| `ui/citynav.cpp:214` | common districts |
+| `ui/citynav.cpp:214` | merchant and craft districts |
+| `ui/citynav.cpp:215` | gates leading out |
+| `ui/citynav.cpp:216` | posted notices |
+| `ui/citynav.cpp:320` | Go to %s: %s |
+| `ui/citynav.cpp:384` | simply walk out |
+| `ui/citynav.cpp:392` | leave the city |
+| `ui/citynav.cpp:393` | out of the city |
+| `ui/citynav.cpp:415` | The gate: choose how to get out, and the journey begins in the overland view. |
+| `ui/citynav.cpp:433` | left the city. |
+| `ui/citynav.cpp:434` | too many steps; stopped. |
+| `ui/citynav.cpp:443` | something happened on the way. |
+| `ui/citynav.cpp:443` | leave this place first. |
+| `ui/citynav.cpp:451` | the way is blocked. |
+| `ui/citynav.cpp:453` | cannot find the way from this card. |
+| `ui/citynav.cpp:474` | leading merchant |
+| `ui/citynav.cpp:479` | something happened on the way. |
+| `ui/citynav.cpp:481` | something happened on the way. |
+| `ui/citynav.cpp:481` | leave this place first. |
+| `ui/citynav.cpp:491` | the marketplace by night: choose how to get past the guards to the offices upstairs (press G again there for the office). |
+| `ui/citynav.cpp:492` | the marketplace by night: its stalls are shut until 5:00. |
+| `ui/citynav.cpp:513` | not found in this city. |
+| `ui/citynav.cpp:523` | Going to: %s. Press any key or click to stop. |
+| `ui/citynav.cpp:553` | Walking to the city gate |
+| `ui/citynav.cpp:553` | Walking to: %s |
+| `ui/citynav.cpp:566` | Any key or click stops the walk. |
+| `ui/citynav.cpp:691` | Point at a place to read about it here: what it offers, its quests, its teachers. |
+| `ui/citynav.cpp:702` | Click the tile and the party walks there. |
+| `ui/citynav.cpp:741` | Pick a place and the party walks there through the streets. Press any key or click to stop them. |
+| `ui/citynav.cpp:743` | Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out. |
+| `ui/citynav.cpp:771` | Closed until 5:00 |
+| `ui/citynav.cpp:771` | Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same. |
+| `ui/citynav.cpp:775` | Turned away until %d %s |
+| `ui/citynav.cpp:775` | The alchemists turned the party away; they will see you again from %d %s, %d:00. |
+| `ui/citynav.cpp:776` | Library shut until %d %s |
+| `ui/citynav.cpp:776` | The monks' library (where saints are learned) is shut to the party until %d %s, %d:00. |
+| `ui/citynav.cpp:777` | Prayers again from %d %s |
+| `ui/citynav.cpp:777` | The party prayed with the monks; they may again from %d %s, %d:00. |
+| `ui/citynav.cpp:778` | Library shut until %d %s |
+| `ui/citynav.cpp:778` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
+| `ui/citynav.cpp:796` | Quest chance %d%% |
+| `ui/citynav.cpp:797` | A merchant may offer a quest after you have bought or sold something. |
+| `ui/citynav.cpp:798` | No quests until %d %s |
+| `ui/citynav.cpp:799` | On a quest for them |
+| `ui/citynav.cpp:800` | Your reward is waiting |
+| `ui/citynav.cpp:801` | No quests: reputation too low |
+| `ui/citynav.cpp:806` |  Until %d %s, %d:00. |
+| `ui/citynav.cpp:814` | Your quest:  |
+| `ui/citynav.cpp:814` | see the world map (M) |
+| `ui/citynav.cpp:836` | Wares %dq, better than most |
+| `ui/citynav.cpp:838` | Wares of %dq (most shops sell about 25q). |
+| `ui/citynav.cpp:848` | Raises a Philosopher's Stone to |
+| `ui/citynav.cpp:848` | No better stone than the party's |
+| `ui/citynav.cpp:851` | What you learned |
+| `ui/citynav.cpp:851` | The physician:  |
+| `ui/citynav.cpp:851` | The alchemist:  |
+| `ui/citynav.cpp:923` | A teacher to hire (faint: not available now) |
+| `ui/citynav.cpp:924` | A quest of yours leads here |
 | `ui/createview.cpp:109` | A new character |
 | `ui/createview.cpp:110` | %s, called %s, age %d |
 | `ui/createview.cpp:111` | %s, called %s |
@@ -1143,55 +1150,54 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/itemedit.cpp:131` | Could not write  |
 | `ui/itemedit.cpp:132` | . Tick the mod (F12 > Mods) and start the game again. |
 | `ui/itemedit.cpp:135` | Undo all changes |
-| `ui/journal.cpp:204` | Goods merchant |
-| `ui/journal.cpp:358` | the countryside |
-| `ui/journal.cpp:416` | the countryside |
-| `ui/journal.cpp:419` | A made-up text, number , to try the chronicle's days and places. It runs on a little so that it wraps over two lines in the window....leave. |
-| `ui/journal.cpp:429` | The chronicle is off: tick both boxes above (the Full Original preset keeps it off). |
-| `ui/journal.cpp:431` | Hide the list of days |
-| `ui/journal.cpp:431` | Show the list of days |
-| `ui/journal.cpp:434` | %d text%s read in this game |
-| `ui/journal.cpp:437` | Save as a text file |
-| `ui/journal.cpp:451` | Could not write the file. |
-| `ui/journal.cpp:464` | Every text the cards show is kept here, with the date, the place and the choice you made. |
-| `ui/journal.cpp:464` | Nothing found. |
-| `ui/journal.cpp:512` | < Day before |
-| `ui/journal.cpp:516` |  (matching texts only) |
-| `ui/journal.cpp:594` | a complete idiot: worse than none |
-| `ui/journal.cpp:597` | can raise a Philosopher's Stone to  |
-| `ui/journal.cpp:598` | no better Philosopher's Stone than the party's |
-| `ui/journal.cpp:628` | Start or load a game first: each game has its own notes. |
-| `ui/journal.cpp:634` | Your own notes for this game: clues, plans, who wanted what. Kept as darklands_notes_%u.txt. |
-| `ui/journal.cpp:783` | %s  (%d wares, noted %s) |
-| `ui/journal.cpp:862` | sold here (expected) |
-| `ui/journal.cpp:882` | Start or load a game first. |
-| `ui/journal.cpp:883` | Available after the battle. |
-| `ui/journal.cpp:890` | What the party has left with innkeepers ("store items with the innkeeper" at a town's inn): one store room, the same at every inn (the Darklands+ switch "One store room shared by every inn" in F12 > Settings > New screens). |
-| `ui/journal.cpp:891` | What the party has left with innkeepers ("store items with the innkeeper" at a town's inn), and where.  |
-| `ui/journal.cpp:891` | The original game shows a store room only while the party is in it. |
-| `ui/journal.cpp:920` | Nothing stored anywhere. |
-| `ui/journal.cpp:926` |  kind of item |
-| `ui/journal.cpp:926` |  kinds of items |
-| `ui/journal.cpp:927` | Every inn's store room  -   |
-| `ui/journal.cpp:958` | The quests and every town (its shops, the wares noted, where to buy an item) are on the world map (M). |
-| `ui/journal.cpp:961` | Note each town's shops and wares |
-| `ui/journal.cpp:973` | The Honor Roll of Glory: the four most famous parties. MicroProse drew it and wrote the code for it, but never finished it (the manual mentions a Hall of Fame, the game's README says there is none). A party enters it when its journey ends, or now with the button. |
-| `ui/journal.cpp:977` | Show the Honor Roll of Glory |
-| `ui/journal.cpp:981` | Enter the party now |
-| `ui/journal.cpp:981` | The party is on the roll. |
-| `ui/journal.cpp:981` | The party is not yet famous enough to be among the four best (or the roll could not be saved). |
-| `ui/journal.cpp:1015` | Where to buy |
-| `ui/journal.cpp:1018` | Nothing noted yet: the wares of each shop are noted as the party sees them. |
-| `ui/journal.cpp:1024` | Show %s on the world map |
-| `ui/journal.cpp:1027` | Alchemical ingredients |
-| `ui/journal.cpp:1028` | Bought ingredients are always quality 25. The nearest town first%s. |
-| `ui/journal.cpp:1028` |  (for now by name: the party's position is not known) |
-| `ui/journal.cpp:1032` | Nearest town |
-| `ui/journal.cpp:1033` | Also sold at |
-| `ui/journal.cpp:1049` | not seen in a shop yet |
-| `ui/journal.cpp:1060` | Any other ware |
-| `ui/journal.cpp:1077` | Not seen in any shop yet. |
-| `ui/journal.cpp:1095` | Type a name: every town seen selling it, the nearest first. |
+| `ui/journal.cpp:211` | Goods merchant |
+| `ui/journal.cpp:396` | the countryside |
+| `ui/journal.cpp:454` | the countryside |
+| `ui/journal.cpp:457` | A made-up text, number , to try the chronicle's days and places. It runs on a little so that it wraps over two lines in the window....leave. |
+| `ui/journal.cpp:467` | The chronicle is off: tick both boxes above (the Full Original preset keeps it off). |
+| `ui/journal.cpp:469` | Hide the list of days |
+| `ui/journal.cpp:469` | Show the list of days |
+| `ui/journal.cpp:472` | %d text%s read in this game |
+| `ui/journal.cpp:475` | Save as a text file |
+| `ui/journal.cpp:489` | Could not write the file. |
+| `ui/journal.cpp:502` | Every text the cards show is kept here, with the date, the place and the choice you made. |
+| `ui/journal.cpp:502` | Nothing found. |
+| `ui/journal.cpp:550` | < Day before |
+| `ui/journal.cpp:554` |  (matching texts only) |
+| `ui/journal.cpp:632` | a complete idiot: worse than none |
+| `ui/journal.cpp:635` | can raise a Philosopher's Stone to  |
+| `ui/journal.cpp:636` | no better Philosopher's Stone than the party's |
+| `ui/journal.cpp:666` | Start or load a game first: each game has its own notes. |
+| `ui/journal.cpp:672` | Your own notes for this game: clues, plans, who wanted what. Kept as darklands_notes_%u.txt. |
+| `ui/journal.cpp:827` | %s  (%d wares, noted %s) |
+| `ui/journal.cpp:906` | sold here (expected) |
+| `ui/journal.cpp:926` | Start or load a game first. |
+| `ui/journal.cpp:927` | Available after the battle. |
+| `ui/journal.cpp:934` | What the party has left with innkeepers ("store items with the innkeeper" at a town's inn): one store room, the same at every inn (the Darklands+ switch "One store room shared by every inn" in F12 > Settings > New screens). |
+| `ui/journal.cpp:935` | What the party has left with innkeepers ("store items with the innkeeper" at a town's inn), and where.  |
+| `ui/journal.cpp:935` | The original game shows a store room only while the party is in it. |
+| `ui/journal.cpp:964` | Nothing stored anywhere. |
+| `ui/journal.cpp:970` |  kind of item |
+| `ui/journal.cpp:970` |  kinds of items |
+| `ui/journal.cpp:971` | Every inn's store room  -   |
+| `ui/journal.cpp:1002` | The quests and every town (its shops, the wares noted, where to buy an item) are on the world map (M). |
+| `ui/journal.cpp:1005` | Note each town's shops and wares |
+| `ui/journal.cpp:1017` | The Honor Roll of Glory: the four most famous parties. MicroProse drew it and wrote the code for it, but never finished it (the manual mentions a Hall of Fame, the game's README says there is none). A party enters it when its journey ends, or now with the button. |
+| `ui/journal.cpp:1021` | Show the Honor Roll of Glory |
+| `ui/journal.cpp:1025` | Enter the party now |
+| `ui/journal.cpp:1025` | The party is on the roll. |
+| `ui/journal.cpp:1025` | The party is not yet famous enough to be among the four best (or the roll could not be saved). |
+| `ui/journal.cpp:1071` | Find alchemical ingredients###wtb0 |
+| `ui/journal.cpp:1071` | Find any ware###wtb1 |
+| `ui/journal.cpp:1074` | Nothing noted yet: the wares of each shop are noted as the party sees them. |
+| `ui/journal.cpp:1080` | Show %s on the world map |
+| `ui/journal.cpp:1084` | Bought ingredients are always quality 25. The nearest town first%s. |
+| `ui/journal.cpp:1084` |  (for now by name: the party's position is not known) |
+| `ui/journal.cpp:1088` | Nearest town |
+| `ui/journal.cpp:1089` | Also sold at |
+| `ui/journal.cpp:1106` | not seen in a shop yet |
+| `ui/journal.cpp:1136` | Not seen in any shop yet. |
+| `ui/journal.cpp:1154` | Type a name: every town seen selling it, the nearest first. |
 | `ui/levelmap.cpp:295` | The whole level  (floor %d) |
 | `ui/levelmap.cpp:295` | The level, as far as the party has seen it  (floor %d) |
 | `ui/levelmap.cpp:304` | enemies seen |
@@ -1264,8 +1270,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/lootview.cpp:103` | Carries nothing. |
 | `ui/lootview.cpp:103` | Nothing left in the pile. |
 | `ui/lootview.cpp:160` | A shop pays about  |
-| `ui/lootview.cpp:163` | Point at an item to see it here; F11 shows what you can do. |
-| `ui/lootview.cpp:164` | Point at an item to see it here. Click a name above the right list (or press D) for another member. |
+| `ui/lootview.cpp:164` | Point at an item to see it here; F11 shows what you can do. |
+| `ui/lootview.cpp:165` | Point at an item to see it here. Click a name above the right list (or press D) for another member. |
 | `ui/mapmsg.cpp:42` | press a key or click to go on |
 | `ui/marchview.cpp:44` | Marching order |
 | `ui/marchview.cpp:45` | The first leads the way; in single file the others follow in this order. |
@@ -1473,11 +1479,16 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/nsdraw.cpp:302` | Drunk: permanent protection against fire (the game never removes it): Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3). |
 | `ui/nsdraw.cpp:302` |  As in the original, it also adds 16 to the armor permanently (a bug; the fix "No invulnerability from fire protection" in F12 > Settings > Fixes removes it). |
 | `ui/nsdraw.cpp:318` |  when equipped |
-| `ui/nsdraw.cpp:391` | Load %d \xc2\xbb %d of %d |
-| `ui/nsdraw.cpp:392` | Load %d of %d |
-| `ui/nsdraw.cpp:445` | Spare equipment |
-| `ui/nsdraw.cpp:445` | Tools and other goods |
-| `ui/nsdraw.cpp:445` | Trophies and quest items |
+| `ui/nsdraw.cpp:343` | a light load: no hindrance |
+| `ui/nsdraw.cpp:343` | a normal load: blows hand to hand a fifth slower |
+| `ui/nsdraw.cpp:344` | a heavy load: blows a fifth slower, dodging hampered |
+| `ui/nsdraw.cpp:344` | overloaded: blows two thirds slower, little or no dodging |
+| `ui/nsdraw.cpp:348` | Worn by %s: load %d \xc2\xbb %d of %d, %s%s |
+| `ui/nsdraw.cpp:412` | Load %d \xc2\xbb %d of %d |
+| `ui/nsdraw.cpp:413` | Load %d of %d |
+| `ui/nsdraw.cpp:466` | Spare equipment |
+| `ui/nsdraw.cpp:466` | Tools and other goods |
+| `ui/nsdraw.cpp:466` | Trophies and quest items |
 | `ui/optpreview.cpp:42` | The gate is barred. You... |
 | `ui/optpreview.cpp:44` | ...climb the wall |
 | `ui/optpreview.cpp:45` | ...pray to a saint |
@@ -2373,24 +2384,24 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/worldmap.cpp:732` | Sorted %s first: click for %s first. |
 | `ui/worldmap.cpp:732` | the soonest due |
 | `ui/worldmap.cpp:741` | No quests or rumors yet. |
-| `ui/worldmap.cpp:784` | cave near Köln |
-| `ui/worldmap.cpp:790` | and %d more: type more of the name to narrow the list |
-| `ui/worldmap.cpp:791` | No place of that name. |
-| `ui/worldmap.cpp:821` | Where to buy ingredients and wares |
-| `ui/worldmap.cpp:827` | Places on the map |
-| `ui/worldmap.cpp:829` | Click a kind to show or hide it. |
-| `ui/worldmap.cpp:850` | Click to find the party on the map. |
-| `ui/worldmap.cpp:854` | A town not visited yet |
-| `ui/worldmap.cpp:862` | Click one to circle those towns on the map. |
-| `ui/worldmap.cpp:874` |  the party has been to: |
-| `ui/worldmap.cpp:878` | ... and %d more (circled on the map) |
-| `ui/worldmap.cpp:879` | %s %dq##tl%d |
-| `ui/worldmap.cpp:890` | Show on the map |
-| `ui/worldmap.cpp:896` | Show on the map |
-| `ui/worldmap.cpp:918` | shown (click to hide) |
-| `ui/worldmap.cpp:918` | hidden (click to show) |
-| `ui/worldmap.cpp:989` | faded: leaves later this week |
-| `ui/worldmap.cpp:1053` | Click to take the boat. |
+| `ui/worldmap.cpp:755` | Find alchemical ingredients |
+| `ui/worldmap.cpp:756` | Find any ware |
+| `ui/worldmap.cpp:793` | cave near Köln |
+| `ui/worldmap.cpp:799` | and %d more: type more of the name to narrow the list |
+| `ui/worldmap.cpp:800` | No place of that name. |
+| `ui/worldmap.cpp:830` | Click one to circle those towns on the map. |
+| `ui/worldmap.cpp:842` |  the party has been to: |
+| `ui/worldmap.cpp:846` | ... and %d more (circled on the map) |
+| `ui/worldmap.cpp:847` | %s %dq##tl%d |
+| `ui/worldmap.cpp:858` | Click a kind to show or hide it. |
+| `ui/worldmap.cpp:872` | Snap to party |
+| `ui/worldmap.cpp:881` | Center the map on the party. |
+| `ui/worldmap.cpp:886` | Show on the map |
+| `ui/worldmap.cpp:892` | Show on the map |
+| `ui/worldmap.cpp:914` | shown (click to hide) |
+| `ui/worldmap.cpp:914` | hidden (click to show) |
+| `ui/worldmap.cpp:985` | faded: leaves later this week |
+| `ui/worldmap.cpp:1049` | Click to take the boat. |
 | `ui/worldmap_draw.cpp:78` | ruined castle |
 | `ui/worldmap_draw.cpp:80` | ruined village |
 | `ui/worldmap_draw.cpp:81` | standing stone |
@@ -2682,20 +2693,20 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/offices.c:92` | Each request for an audience with the lord has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's Charisma and Speak Common). An audience brings a robber knight to hunt. After a request the chance is 1%% for a week. |
 | `mods/offices.c:95` | No quests for three days: at your last visit none came, one was turned down, or a reward was paid. |
 | `mods/offices.c:97` | The offer comes after shopping: as the party leaves the stalls, about one time in seven a trader takes it aside with a purse and a job (mostly an item to fetch, sometimes a robber knight to hunt). If none comes, there is no other offer for three days. |
-| `mods/orders.c:609` | Click: throw here |
-| `mods/orders.c:609` | Click: flee here |
-| `mods/orders.c:610` | No clear throw |
-| `mods/orders.c:610` | Can't walk there |
-| `mods/orders.c:611` | No clear shot |
-| `mods/orders.c:611` | No clear throw |
-| `mods/orders.c:611` | No way there |
-| `mods/orders.c:618` | Click: shoot (moves for a clear line) |
-| `mods/orders.c:619` | Click: shoot |
-| `mods/orders.c:621` | Click: throw |
-| `mods/orders.c:622` | Click: attack (Vulnerable) |
-| `mods/orders.c:623` | Click: attack (Berserk) |
-| `mods/orders.c:624` | Click: parry its blows |
-| `mods/orders.c:628` | No clear shot: walks up to fight |
+| `mods/orders.c:624` | Click: throw here |
+| `mods/orders.c:624` | Click: flee here |
+| `mods/orders.c:625` | No clear throw |
+| `mods/orders.c:625` | Can't walk there |
+| `mods/orders.c:626` | No clear shot |
+| `mods/orders.c:626` | No clear throw |
+| `mods/orders.c:626` | No way there |
+| `mods/orders.c:633` | Click: shoot (moves for a clear line) |
+| `mods/orders.c:634` | Click: shoot |
+| `mods/orders.c:636` | Click: throw |
+| `mods/orders.c:637` | Click: attack (Vulnerable) |
+| `mods/orders.c:638` | Click: attack (Berserk) |
+| `mods/orders.c:639` | Click: parry its blows |
+| `mods/orders.c:643` | No clear shot: walks up to fight |
 | `mods/pathfix.c:448` |  (stuck: around everyone) |
 | `mods/pathfix.c:628` | cells unreachable |
 | `mods/pathfix.c:628` | search gave up |
