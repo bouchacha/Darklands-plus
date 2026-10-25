@@ -382,7 +382,7 @@ void draw_icon_seal(ImDrawList *, ImVec2, float, int); void layer_glyph(ImDrawLi
 void ui_compass_icon(ImDrawList *, ImVec2, float, float); void ui_boot_icon(ImDrawList *, ImVec2, float, unsigned int);
 void ui_draw_teach_mark(ImDrawList *, ImVec2, float, unsigned, unsigned); void ui_item_icon(ImDrawList *, ImVec2, float, int);
 extern int ingredient_style_preview; bool ui_draw_ingredient(ImDrawList *, ImVec2, float, int);   /* ui/alchemyicons.cpp */
-void draw_icon_wax(ImDrawList *, ImVec2, float, int, int);   /* ui/worldmap_draw.cpp (a proposal) */
+void draw_icon_wax(ImDrawList *, ImVec2, float, int, int); float draw_town_wax(ImDrawList *, ImVec2, float, int, bool, int);   /* ui/worldmap_draw.cpp (proposals) */
 extern "C" void ui_icon_styles_draw(void)
 {
     if (!sheet_on) return;
@@ -407,9 +407,39 @@ extern "C" void ui_icon_styles_draw(void)
         ui_campfire_icon(dl, at(n++), sz * 0.8f);
         return;
     }
+    bool seal_v2 = sheet_on == 6; if (seal_v2) sheet_on = 5;   /* (uiconstyles:6: the seals' second round) */
+    struct Restore { int &v; bool on; ~Restore() { if (on) v = 6; } } restore_sheet{ sheet_on, seal_v2 };
     if (sheet_on == 5) {   /* the world map's place seals: the present set and three proposals (uiconstyles:5), on the map's parchment beside a quest's roundel */
         dl->AddRectFilled(ImVec2(0, 0), ds, IM_COL32(222, 202, 158, 255));
         for (int k = 0; k < 40; k++) dl->AddLine(ImVec2(0, ds.y * k / 40.0f), ImVec2(ds.x, ds.y * k / 40.0f + 30), IM_COL32(190, 165, 120, 60), 1.0f);   /* (a hint of the map's texture) */
+        if (seal_v2) {   /* the second round: the discs kept (castles now as villages and ruins); the towns on muted wax, sized, visited or not three ways */
+            static const char *KIND2[12] = { "Town", "Village", "Castle", "Monastery", "Shrine", "Cave", "Mine", "Spring, lake", "Tomb", "Pagan site", "Ruins", "Other" };
+            static const char *WAYS[3] = { "1. Not visited: cold grey wax; visited: warm wax", "2. Not visited: the ribbon of a letter still unopened", "3. Visited: the party's ring pressed into the wax" };
+            ImFont *f = ImGui::GetFont(); float fs = ds.y / 48, big = ds.y / 13.0f, y = fs * 0.5f;
+            const ImU32 INK = IM_COL32(60, 40, 20, 255), SOFT = IM_COL32(110, 85, 60, 255);
+            dl->AddText(f, fs * 1.15f, ImVec2(fs, y), INK, "The places, as now, castles in the villages' colour (the towns on wax below)"); y += fs * 1.6f;
+            for (int k = 1; k < 12; k++) {
+                ImVec2 c(fs + big * 0.6f + (k - 1) * big * 1.18f, y + big * 0.55f);
+                draw_icon_seal(dl, c, big, k);
+                float w = f->CalcTextSizeA(fs * 0.8f, 1e9f, 0, KIND2[k]).x; dl->AddText(f, fs * 0.8f, ImVec2(c.x - w * 0.5f, y + big * 1.12f), INK, KIND2[k]);
+            }
+            y += big * 1.12f + fs * 2.2f;
+            for (int w2 = 0; w2 < 3; w2++) {
+                dl->AddText(f, fs * 1.15f, ImVec2(fs, y), INK, WAYS[w2]); y += fs * 1.7f;
+                float x = fs + big * 0.7f;
+                for (int vis = 0; vis < 2; vis++) {
+                    dl->AddText(f, fs * 0.85f, ImVec2(x - big * 0.5f, y + big * 1.35f), SOFT, vis ? "visited: small, medium, large" : "not visited: small, medium, large");
+                    for (int sz = 0; sz < 3; sz++, x += big * 1.45f) draw_town_wax(dl, ImVec2(x, y + big * 0.6f), big, sz, vis != 0, w2 + 1);
+                    x += big * 0.6f;
+                }
+                for (int sz = 0; sz < 3; sz++, x += big * 0.62f) draw_town_wax(dl, ImVec2(x, y + big * 0.6f), big * 0.42f, sz, false, w2 + 1);   /* (at the map's size) */
+                x += big * 0.3f;
+                for (int sz = 0; sz < 3; sz++, x += big * 0.62f) draw_town_wax(dl, ImVec2(x, y + big * 0.6f), big * 0.42f, sz, true, w2 + 1);
+                ui_draw_quest_icon(dl, ImVec2(x + big * 0.2f, y + big * 0.6f), big * 0.42f, 2);
+                y += big * 1.35f + fs * 2.2f;
+            }
+            return;
+        }
         static const char *ROW[4] = { "Now: coloured discs, the picture painted", "1. Red wax, the picture pressed in", "2. Wax by kind of place, the picture pressed in", "3. Wax by kind of place, the picture painted on it" };
         static const char *KIND[12] = { "Town", "Village", "Castle", "Monastery", "Shrine", "Cave", "Mine", "Spring, lake", "Tomb", "Pagan site", "Ruins", "Other" };
         ImFont *f = ImGui::GetFont(); float fs = ds.y / 48, big = ds.y / 12.5f, small = ds.y / 40, y = fs * 0.5f;
@@ -428,6 +458,18 @@ extern "C" void ui_icon_styles_draw(void)
             ui_draw_town_icon(dl, ImVec2(x + 5 * small * 1.5f, y + big * 0.55f), small * 1.1f, 3);
             y += big * 1.12f + fs * (st == 0 ? 2.4f : 1.4f);
         }
+        return;
+    }
+    if (sheet_on == 7) {   /* the ingredients' proposal large, to look at the strokes' joins (uiconstyles:7): the signs, then the herbs' three tries */
+        extern int herb_variant;
+        static const int IDS[] = { 89, 87, 88, 78, 77, 73, 90, 79, 80, 85, 82, 74, 83, 75 };
+        float sz = fminf(ds.y / 5.0f, ds.x / 8.75f); int n = 0;          /* (a roundel is 1.17 sizes across) */
+        auto at = [&](int k) { return ImVec2(sz * 0.65f + (k % 7) * sz * 1.25f, sz * 0.65f + (k / 7) * sz * 1.22f); };
+        for (int id : IDS) { ingredient_style_preview = 1; ui_draw_ingredient(dl, at(n++), sz, id); ingredient_style_preview = 0; }
+        for (int h : { 76, 81, 84, 86 }) for (int v = 0; v < 3; v++) {
+            if (n % 7 == 6 && v == 0) n++;
+            herb_variant = v; ingredient_style_preview = 1; ui_draw_ingredient(dl, at(n++), sz * 0.8f, h); ingredient_style_preview = 0; }
+        herb_variant = 0;
         return;
     }
     if (sheet_on == 4) {   /* the ingredients' proposal by family (uiconstyles:4), the present ones below */
@@ -455,6 +497,23 @@ extern "C" void ui_icon_styles_draw(void)
                 dl->AddText(f, fs * 0.85f, ImVec2(x - w * 0.5f, y + sz * 1.08f), INK, n);
             }
             y += sz * 1.08f + fs * 1.9f;
+        }
+        {   /* the herbs: three tries each (the first above) */
+            extern int herb_variant;
+            static const int HERBS[4] = { 76, 81, 84, 86 }; static const char *TRY[3] = { "A", "B", "C" };
+            float x0 = ds.x * 0.52f; float yy = fs * 0.6f;
+            dl->AddText(f, fs * 1.15f, ImVec2(x0, yy), INK, "Herbs: three tries each"); yy += fs * 1.6f;
+            for (int h = 0; h < 4; h++) {
+                const char *n = NM[HERBS[h] - 72];
+                dl->AddText(f, fs * 0.9f, ImVec2(x0, yy + sz * 0.42f), INK, n);
+                for (int v = 0; v < 3; v++) {
+                    ImVec2 c(x0 + sz * 1.9f + v * sz * 1.25f, yy + sz * 0.5f);
+                    herb_variant = v; ingredient_style_preview = 1; ui_draw_ingredient(dl, c, sz, HERBS[h]); ingredient_style_preview = 0;
+                    dl->AddText(f, fs * 0.8f, ImVec2(c.x - fs * 0.25f, yy + sz * 1.02f), SOFT, TRY[v]);
+                }
+                herb_variant = 0;
+                yy += sz * 1.35f;
+            }
         }
         return;
     }

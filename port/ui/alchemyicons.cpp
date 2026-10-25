@@ -244,59 +244,114 @@ bool ui_draw_potion(ImDrawList *dl, ImVec2 c, float s, int id, int tier)
    and vapours their signs (aqua regia's has Water's triangle); the herbs, which have no sign, small
    drawings in the same green line. Not in use until chosen */
 int ingredient_style_preview = 0;
+int herb_variant = 0;                            /* (the herbs' three tries, for the sheet uiconstyles:4) */
 static bool draw_ingredient_signs(Pen &p, int id)
 {
     const float W = 1.5f;
     ImU32 steel = C(0.24f, 0.26f, 0.32f), gold = C(0.66f, 0.45f, 0.04f), copper = C(0.66f, 0.34f, 0.12f), lead = C(0.16f, 0.15f, 0.16f);
     ImU32 sulphur = C(0.62f, 0.46f, 0.02f), orpi = C(0.72f, 0.50f, 0.00f), vermilion = C(0.70f, 0.14f, 0.08f), salt = C(0.30f, 0.30f, 0.34f);
     ImU32 water = C(0.20f, 0.35f, 0.62f), oil = C(0.22f, 0.16f, 0.10f), amber = C(0.70f, 0.40f, 0.04f), marsh = C(0.26f, 0.40f, 0.34f);
-    ImU32 herb = C(0.24f, 0.46f, 0.16f);
-    auto cross = [&](float x, float y, float h, ImU32 k) { p.line(x, y - h, x, y + h, k, W); p.line(x - h, y, x + h, y, k, W); };
-    auto ellipse_line = [&](float x, float y, float rx, float ry, float rot, ImU32 k) { p.dl->AddEllipse(p.P(x, y), ImVec2(rx * p.u, ry * p.u), k, rot, 0, p.W(W)); };
+    ImU32 herb = C(0.24f, 0.46f, 0.16f), ink = C(0.20f, 0.12f, 0.07f);
+    /* crisp strokes, as a table's engraved signs (round ends read as a comic's lettering). A line of
+       the drawing that turns a corner is one stroke, its corners mitred (two strokes that only touch
+       leave a notch at the corner); a stroke that ends on another ends inside it */
+    struct Stroke {
+        const Pen &p; ImVector<ImVec2> pts; float lx = 0, ly = 0;
+        Stroke &to(float x, float y) { ImVec2 q = p.P(x, y); lx = x; ly = y;
+            if (!pts.Size || fabsf(pts.back().x - q.x) > 0.05f || fabsf(pts.back().y - q.y) > 0.05f) pts.push_back(q); return *this; }
+        Stroke &quad(float cx, float cy, float x, float y, int n = 12) { float x0 = lx, y0 = ly;
+            for (int i = 1; i <= n; i++) { float t = (float)i / n, a = (1 - t) * (1 - t), b = 2 * t * (1 - t), c = t * t; to(a * x0 + b * cx + c * x, a * y0 + b * cy + c * y); } return *this; }
+        Stroke &cubic(float c1x, float c1y, float c2x, float c2y, float x, float y, int n = 16) { float x0 = lx, y0 = ly;
+            for (int i = 1; i <= n; i++) { float t = (float)i / n, u = 1 - t;
+                to(u * u * u * x0 + 3 * u * u * t * c1x + 3 * u * t * t * c2x + t * t * t * x, u * u * u * y0 + 3 * u * u * t * c1y + 3 * u * t * t * c2y + t * t * t * y); } return *this; }
+        Stroke &arc(float cx, float cy, float r, float a0, float a1, int n = 18) {
+            for (int i = 0; i <= n; i++) { float a = a0 + (a1 - a0) * i / n; to(cx + cosf(a) * r, cy + sinf(a) * r); } return *this; }
+        void done(ImU32 k, float w, bool closed = false) {
+            if (closed && pts.Size > 2 && fabsf(pts.back().x - pts[0].x) < 0.05f && fabsf(pts.back().y - pts[0].y) < 0.05f) pts.pop_back();
+            p.dl->AddPolyline(pts.Data, pts.Size, k, closed ? ImDrawFlags_Closed : 0, p.W(w)); pts.clear(); }
+    };
+    Stroke S{ p };
+    auto L = [&](float x0, float y0, float x1, float y1, ImU32 k, float w = 1.5f) { p.line(x0, y0, x1, y1, k, w); };
+    auto ellipse_line = [&](float x, float y, float rx, float ry, float rot, ImU32 k, float w = 1.5f) { p.dl->AddEllipse(p.P(x, y), ImVec2(rx * p.u, ry * p.u), k, rot, 0, p.W(w)); };
     switch (id) {
     /* the metals and their ores: the planets' signs */
     case 72: p.ring(0, 0, 5.5f, gold, W); p.disc(0, 0, 1.4f, gold); break;                                     // Pure Gold: the Sun
-    case 89: p.line(-1, -6, -1, 6, steel, W); p.line(-1, 2, 5, 2, steel, W); p.bez(-1, -6, 4.5f, -5.5f, -4, -1, steel, W); break;   // Zinken: Jupiter (tin)
-    case 87: p.ring(-0.8f, -2.4f, 3.4f, copper, W); cross(-0.8f, 4.4f, 2.4f, copper); p.ring(4.4f, 4.4f, 1.3f, copper, 1.1f); break;   // Nikel: copper ore (Venus, the ore's ring): what the miners took Kupfernickel for
-    case 88: p.line(-2, -7, -2, 2.5f, lead, W); p.line(-4.6f, -4.4f, 0.6f, -4.4f, lead, W);                 // Pitchblende: lead ore (Saturn, the ore's ring): a heavy black ore
-        p.bez(-2, -0.5f, 3.8f, -2.2f, 2.6f, 3.6f, lead, W); p.bez(2.6f, 3.6f, 1.8f, 6.0f, 4.6f, 7.0f, lead, W); p.ring(3.8f, -5.6f, 1.3f, lead, 1.1f); break;
-    case 78: p.ring(0, 2.0f, 4.3f, steel, W); cross(0, -5.5f, 2.2f, steel); break;                          // Antimoni: the orb and cross
-    case 77: p.ring(0, 0.6f, 2.8f, steel, W); p.line(-4.6f, -6.0f, 4.6f, 7.0f, steel, W); p.line(4.6f, -6.0f, -4.6f, 7.0f, steel, W); break;   // Zincblende: tutty, the zinc ash of the time
-    case 73: p.ring(0, -1.5f, 4.0f, steel, W); p.line(0, -5.5f, 0, 7.5f, steel, W); p.line(-3, 5.5f, 3, 5.5f, steel, W); break;   // Manganes: the "magnesia" sign
+    case 89: S.arc(-1.6f, -4.2f, 2.6f, 3.4f, 6.6f, 10).to(-4.6f, 2.8f).to(5.8f, 2.8f).done(steel, W);          // Zinken: Jupiter (tin): the hook, down to the bar, the bar;
+        L(2.6f, -2.2f, 2.6f, 7.8f, steel); break;                                                                  //   the stroke through it
+    case 87: p.ring(-0.6f, -3.0f, 3.4f, copper, W); L(-0.6f, -0.2f, -0.6f, 7.6f, copper); L(-3.4f, 4.4f, 2.2f, 4.4f, copper);   // Nikel: copper ore (Venus, the ore's ring)
+        p.ring(4.6f, 4.4f, 1.3f, copper, 1.1f); break;
+    case 88: L(-2, -7, -2, 2.5f, lead); L(-4.6f, -4.4f, 0.6f, -4.4f, lead);                                    // Pitchblende: lead ore (Saturn, the ore's ring)
+        S.to(-2, -0.2f).quad(3.8f, -2.2f, 2.6f, 3.6f, 8).quad(1.8f, 6.0f, 4.6f, 7.0f, 8).done(lead, W); p.ring(3.8f, -5.6f, 1.3f, lead, 1.1f); break;
+    case 78: p.ring(0, 2.2f, 4.3f, steel, W); L(0, -8.2f, 0, -1.5f, steel); L(-2.4f, -5.6f, 2.4f, -5.6f, steel); break;   // Antimoni: the orb and cross
+    case 77: S.to(-4, -5).to(4, -5).to(-4, 5).to(4, 5).done(steel, W); L(-2.5f, 0, 2.5f, 0, steel); break;     // Zincblende: the zinc sign (kept: the player knows it)
+    case 73: p.ring(0, -1.5f, 4.0f, steel, W); L(0, -5.5f, 0, 7.5f, steel); L(-3, 5.5f, 3, 5.5f, steel); break;   // Manganes: the "magnesia" sign
     /* the sulphurs, salts and poisons */
     case 90: p.tri_line(-4.2f, -1.5f, 4.2f, -1.5f, 0, -8.0f, sulphur, W);                                    // Brimstone: sulphur, the triangle on the cross
-        p.line(0, -1.5f, 0, 8, sulphur, W); p.line(-3.5f, 2.5f, 3.5f, 2.5f, sulphur, W); p.line(-2.5f, 5.5f, 2.5f, 5.5f, sulphur, W); break;
+        L(0, -1.5f, 0, 8, sulphur); L(-3.5f, 2.5f, 3.5f, 2.5f, sulphur); L(-2.5f, 5.5f, 2.5f, 5.5f, sulphur); break;
     case 79: p.rect_line(-7.4f, -2.6f, 7.4f, 2.6f, orpi, W, 2.6f); p.ring(-4.4f, 0, 1.3f, orpi, 1.2f); p.ring(4.4f, 0, 1.3f, orpi, 1.2f); break;   // Orpiment: auripigment's sign
-    case 80: for (int k = 0; k < 2; k++) { float x = k ? 3.4f : -3.4f;                                     // White Cinnabar: cinnabar's sign (two threes, barred)
-            p.line(x - 2.4f, -5.6f, x + 2.2f, -5.6f, vermilion, W); p.line(x + 2.2f, -5.6f, x - 0.6f, -1.6f, vermilion, W);
-            p.arc(x - 0.4f, 2.0f, 3.4f, -1.9f, 2.5f, vermilion, W); }
+    case 80: for (int k = 0; k < 2; k++) { float x = k ? 3.4f : -3.4f;                                     // White Cinnabar: cinnabar's sign (two threes, barred):
+            S.to(x - 2.4f, -5.6f).to(x + 2.2f, -5.6f).arc(x - 0.2f, 2.1f, 3.5f, -1.75f, 2.5f).done(vermilion, W); }   //   the top, down to the bowl, the bowl
         p.line(-6.8f, -3.4f, 6.8f, -3.4f, vermilion, W * 0.8f); break;
-    case 85: p.rect_line(-3.4f, -0.6f, 3.4f, 6.2f, salt, W); p.line(-1.3f, -0.6f, -1.3f, -6.4f, salt, W); p.line(1.3f, -0.6f, 1.3f, -6.4f, salt, W); break;   // Alum: alum's sign
+    case 85: p.rect_line(-3.4f, -0.6f, 3.4f, 6.2f, salt, W); L(-1.3f, -0.6f, -1.3f, -6.4f, salt); L(1.3f, -0.6f, 1.3f, -6.4f, salt); break;   // Alum: alum's sign
     /* the waters, oils and vapours */
-    case 82: p.tri_line(-7.6f, -5.0f, 0.4f, -5.0f, -3.6f, 5.6f, water, W);                                  // Aqua Regia: its sign, Water's triangle and an R
-        p.line(1.8f, -5.0f, 1.8f, 5.6f, water, W); p.arc(2.4f, -2.4f, 2.6f, -1.75f, 1.75f, water, W); p.line(2.6f, 0.2f, 6.2f, 5.6f, water, W); break;
+    case 82: {                                                                                                // Aqua Regia: its sign, Water's triangle and an R on one stroke
+        const float w2 = 1.35f;                                                                                // (the R's stem is the triangle's right side, slanted):
+        S.to(2.4f, -4.7f).to(-6.6f, -4.7f).to(-2.0f, 4.6f).to(2.5f, -4.7f).done(water, w2);                    //   the top, the left side, the right side up to the top;
+        S.to(2.0f, -4.7f).to(3.0f, -4.7f).cubic(6.8f, -4.7f, 6.8f, 0.2f, 3.0f, 0.2f).to(0.1f, 0.2f).done(water, w2);   //   the bowl, from the top out and back to the stem
+        L(3.4f, 0.2f, 6.7f, 4.9f, water, w2); break; }                                                          //   the leg
     case 74: p.ring(0, -3.4f, 2.4f, oil, W); p.ring(-3.6f, 2.8f, 2.4f, oil, W); p.ring(3.6f, 2.8f, 2.4f, oil, W); break;   // Naptha: oil's sign (a rock oil)
     case 83: for (int k = 0; k < 2; k++) { float x = k ? 3.6f : -3.6f;                                    // Gum: gum's sign (two esses, a loop between)
-            p.bez(x + 2.2f, -5.0f, x - 3.6f, -4.4f, x, 0.4f, amber, W); p.bez(x, 0.4f, x + 3.6f, 4.8f, x - 2.4f, 5.8f, amber, W); }
-        p.ring(0, -4.6f, 1.2f, amber, 1.1f); p.line(0, -3.4f, 0, 0.6f, amber, 1.1f); break;
-    case 75: p.line(0, -2.0f, 0, 7.2f, marsh, W); p.line(0, -2.0f, 0, -6.6f, marsh, W);                    // Marsh Vapor: putrefaction's sign (the gas of rot)
-        p.bez(0, -0.6f, -4.6f, 0.0f, -4.4f, -6.0f, marsh, W); p.bez(0, -0.6f, 4.6f, 0.0f, 4.4f, -5.4f, marsh, W);
-        p.line(4.4f, -6.4f, 2.6f, -4.6f, marsh, W); p.line(4.4f, -6.4f, 5.6f, -4.2f, marsh, W); break;
-    /* the herbs: no sign; a small drawing in the same line */
-    case 76: ellipse_line(-3.0f, -2.8f, 3.2f, 2.1f, -0.45f, herb); p.arc(-2.7f, -1.2f, 1.9f, 3.7f, 5.5f, herb, 1.1f);   // Eastern Black Bean: two beans, each with its seam
-        ellipse_line(3.0f, 3.0f, 3.2f, 2.1f, 0.45f, herb); p.arc(3.2f, 4.6f, 1.9f, 3.9f, 5.7f, herb, 1.1f); break;
-    case 81: p.bez(-1.0f, 8.0f, -1.6f, 1.0f, 3.2f, -6.4f, herb, W);                                       // Solanaceae: a sprig of nightshade, a leaf and three berries
-        ellipse_line(-3.4f, -2.6f, 2.8f, 1.4f, 0.7f, herb); p.line(-1.4f, -0.4f, -3.4f, -2.6f, herb, 1.0f);
-        p.ring(2.8f, 1.6f, 1.5f, herb, 1.2f); p.ring(5.2f, 3.6f, 1.5f, herb, 1.2f); p.ring(2.4f, 4.8f, 1.5f, herb, 1.2f);
-        p.line(0.0f, 2.0f, 2.8f, 1.6f, herb, 0.9f); p.line(0.0f, 2.0f, 2.4f, 4.8f, herb, 0.9f); p.line(2.8f, 1.6f, 5.2f, 3.6f, herb, 0.9f); break;
-    case 84: p.ring(0, -2.6f, 1.7f, herb, W); p.line(0, -0.9f, 0, 3.4f, herb, W);                          // Mondragora: the mandrake, a little man of root
-        p.line(0, 0.6f, -3.8f, 2.6f, herb, W); p.line(0, 0.6f, 3.8f, 2.6f, herb, W); p.line(0, 3.4f, -2.6f, 7.6f, herb, W); p.line(0, 3.4f, 2.6f, 7.6f, herb, W);
-        for (int l = -1; l <= 1; l++) p.line(0, -4.3f, l * 2.4f, -8.0f, herb, 1.2f); break;
-    case 86: for (int k = 0; k < 12; k++) { float a = k * 0.5236f; p.line(cosf(a) * 2.4f, -2.2f + sinf(a) * 2.4f, cosf(a) * 5.4f, -2.2f + sinf(a) * 5.4f, herb, 1.2f); }   // Camomile: a daisy, its rays round a full heart
-        p.disc(0, -2.2f, 1.9f, herb); p.line(0, 3.4f, 0, 8.4f, herb, W); ellipse_line(1.8f, 6.0f, 1.8f, 0.9f, -0.6f, herb); break;
+            S.to(x + 2.2f, -5.0f).quad(x - 3.6f, -4.4f, x, 0.4f).quad(x + 3.6f, 4.8f, x - 2.4f, 5.8f).done(amber, W); }
+        p.ring(0, -4.6f, 1.2f, amber, 1.1f); L(0, -3.4f, 0, 0.6f, amber, 1.1f); break;
+    case 75: L(0, -6.6f, 0, 7.2f, marsh);                                                                    // Marsh Vapor: putrefaction's sign (the gas of rot):
+        S.to(0, -0.6f).quad(-4.6f, 0.0f, -4.4f, -6.0f).done(marsh, W);                                       //   the stem, an arm each side,
+        S.to(0, -0.6f).quad(4.6f, 0.0f, 4.4f, -5.6f).done(marsh, W);                                         //   the right one ending inside its arrowhead's point
+        S.to(2.6f, -4.6f).to(4.4f, -6.4f).to(5.6f, -4.2f).done(marsh, W); break;
+    /* the herbs: no sign in the alchemists' tables; a small emblem in the same green line (three tries each, herb_variant) */
+    case 76:                                                                                                  // Eastern Black Bean
+        if (herb_variant == 0) { ellipse_line(-3.0f, -2.8f, 3.2f, 2.1f, -0.45f, herb); p.arc(-2.7f, -1.2f, 1.9f, 3.7f, 5.5f, herb, 1.1f);   /* two beans */
+            ellipse_line(3.0f, 3.0f, 3.2f, 2.1f, 0.45f, herb); p.arc(3.2f, 4.6f, 1.9f, 3.9f, 5.7f, herb, 1.1f); }
+        else if (herb_variant == 1) { ellipse_line(0, 0, 5.6f, 3.6f, -0.35f, herb); S.to(-4.2f, 0.8f).quad(0, -2.6f, 4.2f, -1.6f).done(herb, 1.2f); }   /* one bean, its seam */
+        else { ellipse_line(0, 0, 7.4f, 3.2f, -0.3f, herb);                                                   /* a pod and its three beans */
+            for (int k = -1; k <= 1; k++) p.disc(k * 3.6f, k * 1.12f, 1.5f, herb); }
+        break;
+    case 81:                                                                                                  // Solanaceae (nightshade)
+        if (herb_variant == 0) { p.ring(0, 2.4f, 3.4f, herb, W);                                                /* the berry under its starred calyx (one stroke round) */
+            for (int k = 0; k < 5; k++) { float a = -1.5708f + k * 1.2566f, b = a + 0.6283f;
+                S.to(cosf(a) * 4.6f, -3.0f + sinf(a) * 3.2f).to(cosf(b) * 1.8f, -3.0f + sinf(b) * 1.3f); }
+            S.done(herb, 1.2f, true); }
+        else if (herb_variant == 1) {                                                                         /* a bell of a flower (one stroke round), and its berry */
+            S.to(-4.2f, -5.2f).quad(0, -7.6f, 4.2f, -5.2f).to(5.2f, 2.6f).quad(0, 0.6f, -5.2f, 2.6f).done(herb, W, true);
+            L(0, 1.4f, 0, 4.8f, herb, 1.1f); p.disc(0, 6.2f, 1.8f, herb); }
+        else { S.to(-5.6f, -6.4f).quad(1.0f, -6.0f, 1.6f, 1.6f).done(herb, W);                                   /* a sprig: the stem bowed, a leaf off it, the berry hanging */
+            ellipse_line(-2.6f, -2.2f, 2.8f, 1.3f, 0.9f, herb, 1.2f); L(-0.5f, -4.3f, -2.6f, -2.2f, herb, 1.0f);
+            p.ring(1.6f, 4.4f, 3.0f, herb, W); }
+        break;
+    case 84:                                                                                                  // Mondragora (mandrake)
+        if (herb_variant == 0) { p.ring(0, -2.6f, 1.7f, herb, W); L(0, -0.9f, 0, 3.9f, herb);                   /* the little man of root: head, body, */
+            S.to(-3.8f, 2.6f).to(0, 0.6f).to(3.8f, 2.6f).done(herb, W);                                         /*   the arms, the legs (one stroke each), */
+            S.to(-2.6f, 7.6f).to(0, 3.4f).to(2.6f, 7.6f).done(herb, W);
+            S.to(-2.4f, -8.0f).to(0, -4.3f).to(2.4f, -8.0f).done(herb, 1.2f); L(0, -4.3f, 0, -8.0f, herb, 1.2f); }   /*   the leaves */
+        else if (herb_variant == 1) {                                                                         /* the root's head only: a fat root (one stroke round), its crown of leaves */
+            S.to(-4.2f, -1.0f).quad(0, -4.2f, 4.2f, -1.0f).quad(4.6f, 6.2f, 0, 6.8f).quad(-4.6f, 6.2f, -4.2f, -1.0f).done(herb, W, true);
+            L(0, 6.8f, 0, 8.6f, herb, 1.2f);
+            for (int l = -1; l <= 1; l++) S.to(0, -2.6f).quad(l * 1.6f, -6.0f, l * 3.6f, -8.2f).done(herb, 1.2f); }
+        else { L(0, -8.4f, 0, 1.8f, herb);                                                                       /* the forked root (the stem runs up into the middle leaf), */
+            S.to(-3.6f, 7.8f).quad(-1.0f, 4.6f, 0, 1.0f).quad(1.0f, 4.6f, 3.6f, 7.8f).done(herb, W);            /*   the two legs one stroke, */
+            S.to(-5.4f, -8.0f).quad(-4.6f, -4.6f, 0, -4.0f).quad(4.6f, -4.6f, 5.4f, -8.0f).done(herb, 1.2f); }   /*   the side leaves one stroke */
+        break;
+    case 86:                                                                                                  // Camomile
+        if (herb_variant == 0) { for (int k = 0; k < 12; k++) { float a = k * 0.5236f; L(cosf(a) * 1.8f, sinf(a) * 1.8f, cosf(a) * 6.6f, sinf(a) * 6.6f, herb, 1.2f); }   /* the flower: its rays from a full heart */
+            p.disc(0, 0, 2.5f, herb); }
+        else if (herb_variant == 1) { for (int k = 0; k < 8; k++) { float a = k * 0.7854f; ellipse_line(cosf(a) * 4.3f, sinf(a) * 4.3f, 2.3f, 1.2f, a, herb, 1.2f); }   /* petals round a full heart */
+            p.disc(0, 0, 2.0f, herb); }
+        else { for (int k = 0; k < 5; k++) { float a = -1.5708f + k * 1.2566f; p.ring(cosf(a) * 3.9f, sinf(a) * 3.9f, 2.6f, herb, W); }   /* a cinquefoil, the heralds' flower */
+            p.disc(0, 0, 1.9f, herb); }
+        break;
     /* the bases: the elements, as before */
     default: return false;
     }
+    (void)ink;
     return true;
 }
 
