@@ -115,4 +115,5 @@ covered and found, and what it could not check.
   windows (the tips window drew the hand too, off the click point); tooltips beside their thing; skills and
   attributes heraldic everywhere; the sheet's hidden game text no longer drawn. Not checkable here: the music's
   timing on a real sound card and display (this machine renders in software); the CM-32L's battle sounds
-  differ from the MT-32's only slightly in the recordings, where its settings line promises more.
+  differ from the MT-32's only slightly in the recordings (its settings line said "chimes and odd noises": now
+  "some battle sounds a little different").

@@ -1943,7 +1943,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/settings_setup.cpp:264` | Darklands+ finds them by their contents, whatever their names: in that folder, in the game's folder and its "roms" folder, and where Munt and DOSBox keep them. |
 | `ui/settings_setup.cpp:274` | the battle sounds as blows and grunts, as composed. |
 | `ui/settings_setup.cpp:275` | CM-32L / LAPC-I |
-| `ui/settings_setup.cpp:275` | later Roland models, a curiosity: chimes and odd noises for the battle sounds. |
+| `ui/settings_setup.cpp:275` | later Roland models: much the same sound, some battle sounds a little different (Darklands was written for the MT-32). |
 | `ui/settings_setup.cpp:281` | The MT-32's display |
 | `ui/settings_setup.cpp:281` | its little screen at the top right, when the game puts a message on it. |
 | `ui/settings_setup.cpp:284` | midiA synthesizer outside Darklands+ (MIDI)For a real MT-32 connected to the computer, or Munt (an MT-32 imitation) installed on its own. An ordinary synthesizer, such as the one built into Windows, plays the wrong instruments.midi |

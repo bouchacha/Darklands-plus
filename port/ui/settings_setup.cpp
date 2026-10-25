@@ -272,7 +272,7 @@ void setup_sound(void)
                     ImGui::PopID();
                 };
                 model("mt32", "MT-32", "the battle sounds as blows and grunts, as composed.");
-                model("cm32l", "CM-32L / LAPC-I", "later Roland models, a curiosity: chimes and odd noises for the battle sounds.");
+                model("cm32l", "CM-32L / LAPC-I", "later Roland models: much the same sound, some battle sounds a little different (Darklands was written for the MT-32).");
             }
             {   bool lcd = config_get_int("sound.mt32_lcd", 1), click = false;
                 ImGui::PushID("lcd");
