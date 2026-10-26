@@ -3029,16 +3029,16 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/saves.c:363` | Saved: %s (%s), in place of the old save |
 | `mods/saves.c:364` | Saved: %s (%s) |
 | `mods/saves.c:387` | use your horses |
-| `mods/saves.c:403` | Autosave: battle |
-| `mods/saves.c:435` | Ironman %04x |
-| `mods/saves.c:437` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
-| `mods/saves.c:469` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:470` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:491` | Start or load a game first. |
-| `mods/saves.c:498` | Loading from here works once a game is running; until then, load from the start screen. |
-| `mods/saves.c:500` | Buffer dealloc error |
-| `mods/saves.c:502` | That save could not be read. |
-| `mods/saves.c:522` | No quicksave yet (Ctrl+S makes one). |
+| `mods/saves.c:404` | Autosave: battle |
+| `mods/saves.c:436` | Ironman %04x |
+| `mods/saves.c:438` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
+| `mods/saves.c:470` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:471` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:492` | Start or load a game first. |
+| `mods/saves.c:499` | Loading from here works once a game is running; until then, load from the start screen. |
+| `mods/saves.c:501` | Buffer dealloc error |
+| `mods/saves.c:503` | That save could not be read. |
+| `mods/saves.c:523` | No quicksave yet (Ctrl+S makes one). |
 | `mods/savesview.c:51` | %.14s %d %.3s |
 | `mods/sfx.c:50` | an attack that misses |
 | `mods/sfx.c:50` | a parried or blocked blow |

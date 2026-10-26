@@ -396,6 +396,7 @@ static void note_menu_flags(void)
 }
 static void battle_hook(void)              /* run_battle (s029 0e76:2278) */
 {
+    if (getenv("DL_BATTLE_LOG")) fprintf(stderr, "run_battle: type %#x, place %d, in battle %d, floor %d\n", (s16)rw(SS, (u16)(SP + 4)), (s16)rw(SS, (u16)(SP + 6)), g_rb(D_IN_BATTLE), (s8)g_rb(GV_floor_shown));
     if (((saves_on && saves_auto_battle) || iron[0]) && g_rb(D_IN_BATTLE) != 1 && plat_ticks_ms() - loaded_t > 3000) {
         char cn[16]; g_str(G_DGROUP, GV_card_name, cn, sizeof cn);
         u16 now[10]; int swap = menu_card[0] && !strcmp(cn, menu_card);

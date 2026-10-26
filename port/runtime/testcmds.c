@@ -396,6 +396,12 @@ int testcmd_run(const char *cmd, const char *arg)
             int k = atoi(arg), o[4]; int gm_library_saints(int loc, int out[4]); gm_library_saints(k, o);
             fprintf(stderr, "library %d: %d %d %d %d\n", k, o[0], o[1], o[2], o[3]);
         }
+        else if (!strcmp(cmd, "uevset")) {             /* test: word +off of event i set to v (hex off) */
+            int i = 0, v = 0; unsigned off = 0; sscanf(arg, "%d,%x,%d", &i, &off, &v);
+            u32 e = i >= 0 ? ev_far(i) : 0;
+            if (e) ww((u16)(e >> 16), (u16)((u16)e + off), (u16)v);
+            fprintf(stderr, "uevset %d +%x = %d%s\n", i, off, v, e ? "" : " (no event)");
+        }
         else if (!strcmp(cmd, "uevents")) {             /* test: the events of a kind (-1 all): index, kind, type0, owner +1a, loc +1c, value +1e, tag +28, +2a, +2c */
             int k = -1; sscanf(arg, "%d", &k);
             for (int i = 0; i < 300; i++) { u32 e = ev_far(i); if (!e) continue; u16 sg = (u16)(e >> 16), o = (u16)e;

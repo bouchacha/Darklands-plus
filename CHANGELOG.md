@@ -1,6 +1,6 @@
 # Darklands+ changelog
 
-## 1.3 (not yet released)
+## 1.3
 
 What changed since 1.2. Each can be switched off in F12 > Settings, or is a choice there.
 

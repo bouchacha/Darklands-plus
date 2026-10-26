@@ -36,7 +36,7 @@ The runtime: the CPU and DOS the game runs on, the window, sound, saves, the con
 | `runtime/sounddev.c` | 128 | which sound driver the game gets. |
 | `runtime/speaker.c` | 77 | the PC speaker, which the port had not made at all ("PC speaker" in F12 > Settings > Sound played nothing). |
 | `runtime/stb_impl.c` | 16 | the stb image reader and PNG writer (public domain, third_party/stb) for replacement art (mods/hdart.c, platform_sdl.c) |
-| `runtime/testcmds.c` | 521 | the test commands that look at or change the game's state, for the scripted sessions (port/tools/nctl.py "ucmd NAME:ARGS", release_check.py, monkey.py): a battle at the next card, hits, items, saves, the native screens' actions, dumps of what the game holds ... |
+| `runtime/testcmds.c` | 527 | the test commands that look at or change the game's state, for the scripted sessions (port/tools/nctl.py "ucmd NAME:ARGS", release_check.py, monkey.py): a battle at the next card, hits, items, saves, the native screens' actions, dumps of what the game holds ... |
 
 ## mods
 
@@ -95,7 +95,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/rosterview.c` | 307 | the party of a new game as a native screen (display.native_roster; the view is ui/rosterview.cpp). |
 | `mods/saintinfo.c` | 502 | what each saint's help does in the game's code, beside the description the game shows (DARKLAND.SNT), for Darklands+'s screens (saintinfo.h). |
 | `mods/sainttexts.c` | 434 | the "sainttexts" fix: saints whose help, in the game's code, plainly falls short of or departs from their own description (DARKLAND.SNT) do what the description says. |
-| `mods/saves.c` | 619 | quick save and quick load, autosaves, and loading any save from the Darklands+ menu. |
+| `mods/saves.c` | 620 | quick save and quick load, autosaves, and loading any save from the Darklands+ menu. |
 | `mods/savesview.c` | 170 | the game's Save and Load as native dialogs (display.native_saves; the Full Original preset keeps the game's). |
 | `mods/sfx.c` | 601 | battle sound effects. The battle driver (PSOUND.DB and the others) makes every combat sound on the FM chip or MIDI synthesizer ("random notes rather than clashing swords"). Here they are played as recorded-style sounds i |
 | `mods/sharedstore.c` | 224 | one store room for every inn (store.shared, F12 > Settings; on by default): what is left with one innkeeper (a town's inn, a village's old woman) is there at every other, like a chest that follows the party. |
