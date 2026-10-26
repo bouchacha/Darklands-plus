@@ -11,6 +11,11 @@ checks every frame where each tooltip went (ui/tipplace.cpp ui_tip_audit) and lo
 pointer" or "tooltip over what it describes", and whether two panels lie over each other
 (ui/panelcheck.cpp: "panels overlap"), and whether the game's hand shows over a window of Darklands+
 (two pointers); any such line is a FAIL, printed with the screen.
+
+A memory error or a game that has stopped is a FAIL too. Run it once with the ASAN build before an RC
+(make ASAN=1; --exe build/port_asan/darklands): a write past the end of a list is caught on the first
+screen that makes it, though on Linux it may change nothing to see (the skill icon's shield, 1.3-RC31:
+on Windows it moved the inn's text and blew it up hundreds of times).
 """
 import argparse, os, re, subprocess, sys
 
@@ -19,6 +24,12 @@ sys.path.insert(0, HERE)
 from perfcheck import START, SCREENS   # (the same screens, reached the same way)
 
 NCTL = [sys.executable, '-I', os.path.join(HERE, 'nctl.py')]
+BAD = re.compile(r'ERROR: AddressSanitizer|runtime error:|FATAL|CRASH')   # (as release_check.py)
+
+
+def alive(name):
+    try: return os.path.exists('/proc/' + open('/tmp/nctl/%s/pid' % name).read().strip())
+    except OSError: return False
 
 
 def main():
@@ -43,12 +54,15 @@ def main():
         pts = ['ucmd uhover:%d,%d; wait 0.12' % (x, y) for y in range(a.step // 2, H, a.step) for x in range(a.step // 2, W, a.step)]
         for i in range(0, len(pts), 200):
             subprocess.run(NCTL + ['do', name, '; '.join(pts[i:i + 200])], capture_output=True, timeout=600)
-        bad = [l for l in open(log, errors='replace').read()[n0:].splitlines() if l.startswith(('tooltip over', 'panels overlap', "the game's hand over"))]
+        bad = [l for l in open(log, errors='replace').read()[n0:].splitlines() if l.startswith(('tooltip over', 'panels overlap', "the game's hand over")) or BAD.search(l)]
+        dead = not alive(name)
+        if dead: bad.append('the game is no longer running (the end of its log: %s)' % log)
         fails += len(bad)
         print('%-18s %s' % (title, 'OK' if not bad else 'FAIL'))
         for l in bad: print('    ' + l)
+        if dead: break
     subprocess.run(NCTL + ['stop', name], capture_output=True)
-    print('every tooltip beside its thing, no panels over each other' if not fails else '%d misplaced' % fails)
+    print('every tooltip beside its thing, no panels over each other' if not fails else '%d failed' % fails)
     sys.exit(1 if fails else 0)
 
 

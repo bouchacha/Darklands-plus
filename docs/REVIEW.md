@@ -163,3 +163,14 @@ covered and found, and what it could not check.
   came had the same cause). Proposed, not done: the combat behaviour between orders made one ordered list of rules
   per member, in one file, with one memory cleared in one place (now: two hooks on the same game routine in two
   files, 19 per-member memories in three).
+- 2026-10-26: the inn's wash on players' Windows machines (text in the colour of the page's ink over the whole
+  window, then, with RC30's draw guard taking those letters out, the buttons blank). Not the renderer (OpenGL and
+  Direct3D 12 the same), not the save, not the drawing cache; the Windows program under Wine showed it, the Linux
+  one never. Each text of the inn logged with the vertices it made: the teacher rows' text at y 5630. The cause:
+  the skill icon's shield (ui/skillicons.cpp shield) put 13 corners in a list of 12; the 13th went onto the slot
+  where Windows x64 keeps the caller's xmm6, which held the inn's row position (later its text size), so these
+  became the icon's x. Linux keeps no registers there. Fixed in 1.3-RC31. What would have caught it here: an ASAN
+  build (make ASAN=1) stops on it at the roster, the first screen with a shield ("stack-buffer-overflow ...
+  shield"). tools/uitour.py now fails on a memory error or a game that has stopped (before, a dead game passed
+  every screen); run it with the ASAN build before an RC. Run so on 1.3-RC31: every screen and the inn with the
+  player's save clean. The draw guard stays, as the net under a slip of this kind.
