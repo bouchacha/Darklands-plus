@@ -4,6 +4,7 @@
 
 What changed since 1.3.
 
+- **Saints on the character sheet** can be picked by what they raise: a row of the attributes' and skills' shields and the town's opinion (all saints that raise Perception, say).
 - **World map, a town's panel:** its saints (those the party knows greyed), formulae as potions (known ones greyed) and teachers as the skills' shields, as in the margin; its boats as a dock, a boat and an arrow (leaving, arriving, both ways) before the towns.
 
 ## 1.3

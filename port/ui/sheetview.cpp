@@ -43,6 +43,7 @@
 #include "../mods/sheetview.h"
 #include "../mods/gamemodel.h"
 #include "../mods/saintinfo.h"
+#include "../mods/fixes.h"
 #include "nsdraw.h"
 #include "libraries.h"
 #include "money.h"
@@ -87,7 +88,7 @@ struct SheetView {
     int what = 0, which = -1; unsigned seq = 0;
     int drop_row = -1; unsigned act_seq = 0;      /* a row asking "sure?" */
     int pin_saint = -1, pin_formula = -1;         /* clicked: stays while the pointer is elsewhere */
-    bool saints_all = false, formulae_all = false; int use = 0;
+    bool saints_all = false, formulae_all = false; int use = 0, use_k = -1;   /* (use_k: a shield chosen - saint_touches) */
     /* dragging a thing */
     int drag_row = -1; bool dragging = false;
 } V;
@@ -177,6 +178,29 @@ bool saint_fits(int s, int use)
     std::string e = lower((eff.empty() ? gamedata.saints[s].text : eff) + " " + saint_info_does(s));   /* (what it promises, what it does) */
     for (const char *const *w = USES[use].words; *w; w++) if (e.find(*w) != std::string::npos) return true;
     return false;
+}
+/* what a saint's help does (mods/saintinfo.c, the code's own account) names attribute or skill key
+   (0..6 the attributes, 7..25 the skills, 26 the town's opinion): the shields' filter on the Saints page.
+   The account says the skills shortly ("Edged", "Latin") and "every weapon skill" for the seven. */
+static const char *const SAINT_SKILL_WORD[19] = { "Edged", "Impact", "Flails", "Polearms", "Thrown", "Bows", "Missile Devices", "Alchemy",
+    "Religion", "Virtue", "Speak Common", "Latin", "Read & Write", "Healing", "Artifice", "Stealth", "Streetwise", "Riding", "Woodwise" };
+enum { SK_KEYS = 27, KEY_REP = 26 };
+static bool saint_touches(int s, int key)
+{
+    std::string d = saint_info_does(s);
+    if (key == KEY_REP) return lower(d).find("reputation") != std::string::npos;
+    if (key < 7) return d.find(gm_attr_name(key)) != std::string::npos;
+    int k = key - 7;
+    if (k < 0 || k >= 19) return false;
+    if (d.find(SAINT_SKILL_WORD[k]) != std::string::npos) return true;
+    return k <= 6 && lower(d).find("every weapon skill") != std::string::npos;
+}
+static int saint_key_count(int key)
+{
+    static int n[SK_KEYS], fixes = -1;
+    int f = fix_is_on("sainttexts") * 2 + fix_is_on("armorday");   /* (the account follows these fixes) */
+    if (f != fixes) { fixes = f; for (int k = 0; k < SK_KEYS; k++) { n[k] = 0; for (int t = 0; t < (int)gamedata.saints.size() && t < SAINT_INFO_N; t++) n[k] += saint_touches(t, k); } }
+    return key >= 0 && key < SK_KEYS ? n[key] : 0;
 }
 const GamePic *statue(int cls)
 {
@@ -729,11 +753,35 @@ static void saints(NsDraw &P, const SheetModel &s)
     for (int u = 0; u < NUSES; u++) {
         float w = P.width(fo, 4.4f, USES[u].name) + 4;
         if (x + w > 318) { x = 63; y += 7.3f; }
-        bool sel = V.use == u;
+        bool sel = V.use == u && !(u == 0 && V.use_k >= 0);   /* ("Any" not lit while a shield is chosen) */
         P.rect(x, y, x + w, y + 6.5f, sel ? IM_COL32(40, 70, 112, 240) : IM_COL32(222, 204, 168, 255), 1.2f);
         P.text(fo, 4.4f, x + 2, y + 0.8f, sel ? NsDraw::LIGHT : ink, USES[u].name);
-        if (P.hit(x, y, x + w, y + 6.5f)) { V.use = u; V.scroll[TAB_SAINTS] = 0; }
+        if (P.hit(x, y, x + w, y + 6.5f)) { V.use = u; V.use_k = -1; V.scroll[TAB_SAINTS] = 0; }
         x += w + 1;
+    }
+    {   /* or by a shield: the saints whose help touches that attribute or skill, or the town's opinion */
+        y += 7.6f; x = 63;
+        P.text(fo, 4.4f, x, y + 0.8f, soft, "Or what it raises:"); x += P.width(fo, 4.4f, "Or what it raises:") + 1.5f;
+        const float SW = 6.6f;
+        for (int key = 0; key < SK_KEYS; key++) {
+            int cnt = saint_key_count(key);
+            if (!cnt) continue;                                  /* (Divine Favor: no saint's help raises it) */
+            if (x + SW > 318) { x = 63; y += 7.3f; }
+            bool sel = V.use_k == key;
+            if (sel) P.rect(x - 0.3f, y - 0.2f, x + SW - 0.3f, y + 6.8f, IM_COL32(40, 70, 112, 240), 1.2f);
+            ImVec2 ic = NsDraw::w(x + SW * 0.45f, y + 3.3f);
+            extern int ui_icon_disc; ui_icon_disc = 0;
+            if (key == KEY_REP) ui_standing_icon(P.dl, ic, 5.2f * P.k, 0);
+            else if (key < 7) ui_attr_icon(P.dl, ic, 5.6f * P.k, key); else ui_skill_icon(P.dl, ic, 5.6f * P.k, key - 7);
+            ui_icon_disc = 1;
+            if (P.over(x - 0.3f, y - 0.2f, x + SW - 0.3f, y + 6.8f)) {
+                char t[160]; snprintf(t, sizeof t, "%s: the %d saint%s whose help raises it%s", key == KEY_REP ? "The town's opinion of the party (its reputation)" : key < 7 ? gm_attr_name(key) : gm_skill_name(key - 7),
+                                      cnt, cnt == 1 ? "" : "s", sel ? " (click again for all)" : "");
+                ns_tip(t, 22);
+            }
+            if (P.hit(x - 0.3f, y - 0.2f, x + SW - 0.3f, y + 6.8f)) { V.use_k = sel ? -1 : key; V.use = 0; V.scroll[TAB_SAINTS] = 0; }
+            x += SW;
+        }
     }
     float LY0 = y + 8.5f, LX0 = 62, LX1 = 168, ROWH = 7.6f;
     int NROWS = (int)((197 - LY0) / ROWH);
@@ -742,6 +790,7 @@ static void saints(NsDraw &P, const SheetModel &s)
         bool known = false; for (int m = 0; m < 5; m++) if (s.present[m] && s.saint[m][t]) known = true;
         if (!V.saints_all && !known) continue;
         if (!saint_fits(t, V.use)) continue;
+        if (V.use_k >= 0 && !saint_touches(t, V.use_k)) continue;
         rows.push_back(t);
     }
     int n = (int)rows.size();

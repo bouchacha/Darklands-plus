@@ -2032,81 +2032,91 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/settings_setup.cpp:409` | File names for a sound pack |
 | `ui/settings_setup.cpp:410` | %s.wav or .ogg: %s |
 | `ui/settings_setup.cpp:411` | Several versions of one sound (parry1.wav, parry2.wav ...) are played in turn at random. |
-| `ui/sheetview.cpp:158` | Light load (up to half of Endurance + Strength): no hindrance at all. Only what is equipped counts (weapons, armor, shield); items merely carried weigh nothing. |
-| `ui/sheetview.cpp:159` | Normal load (up to Endurance + Strength): blows hand to hand come about a fifth slower, and past 5/8 of it the Agility used to dodge falls to two thirds. |
-| `ui/sheetview.cpp:160` | Heavy load (up to half as much again): the Agility used to dodge falls to two thirds, and to a third past 1 1/4 times Endurance + Strength. Blows are no slower than with a normal load (an oversight in the original game). |
-| `ui/sheetview.cpp:161` | Overloaded (more than 1 1/2 times Endurance + Strength): blows hand to hand come about two thirds slower, and the Agility used to dodge falls to a third, then to nothing past about twice Endurance + Strength. |
-| `ui/sheetview.cpp:197` | ; leaves the party in %s |
-| `ui/sheetview.cpp:206` | Darklands+ ("The best member speaks for the party", F12 > Settings > Cards and towns): on cards, each test is made by the member best at it, and shops set prices by the best bargainer, whoever leads. The leader is still the one meant by "the leader" on a card (a mine's traps, a church's favor, an item handed over), and in battles and dungeons (when not paused) deals with doors, chests, locks and traps and leads the group's movement. |
-| `ui/sheetview.cpp:209` | The leader speaks and acts for the party on the cards and bargains in the shops. |
-| `ui/sheetview.cpp:238` | a little slower (the attack rate falls) |
-| `ui/sheetview.cpp:238` | much slower (the attack rate falls a lot) |
-| `ui/sheetview.cpp:238` | at the usual pace |
-| `ui/sheetview.cpp:241` | Load %d: the weight of what %s has equipped (weapons, armor, shield). Items carried but not equipped weigh nothing. Compared with Endurance + Strength (%d now): light up to %d, normal up to %d, heavy up to %d, overloaded above that.  Now: - Tests on cards that ask for Agility (climbing a wall, running, a trap): Agility %d counts %s (%d). - Fending off blows in melee: Agility counts %s (%d). - Swinging in melee: %s.  Travel, walking in a battle, missiles and Endurance are not affected by the load. |
-| `ui/sheetview.cpp:345` |  when equipped |
-| `ui/sheetview.cpp:347` | ; this member's mount |
-| `ui/sheetview.cpp:349` |  in the party's pack |
-| `ui/sheetview.cpp:349` | ; in the party's pack |
-| `ui/sheetview.cpp:350` | ; kept (not sold or dropped) |
-| `ui/sheetview.cpp:351` | ; marked to sell (Sell spare gear sells it) |
-| `ui/sheetview.cpp:360` | Each member rides the best horse or mule they carry; the party travels mounted only when every member has one. |
-| `ui/sheetview.cpp:361` |  A member without one is given the best spare one when the game needs it (setting out on the road, a chase). |
-| `ui/sheetview.cpp:364` | For a member to ride it, drag it onto them, or press their number (1 to 5). |
-| `ui/sheetview.cpp:365` | For another member to ride it, drag it onto them, or press their number (1 to 5). |
-| `ui/sheetview.cpp:368` | To give the lot, drag it onto a member at the left, or press their number (1 to 5); Shift: just one. |
-| `ui/sheetview.cpp:368` | To give it, drag it onto a member at the left, or press their number (1 to 5). |
-| `ui/sheetview.cpp:373` | too weak by  |
-| `ui/sheetview.cpp:374` |  can use it well |
-| `ui/sheetview.cpp:378` | %s's defense with it: against a blow, %d + their melee rating; against a shot or throw, %d + twice the Agility %d = %d%s |
-| `ui/sheetview.cpp:379` |  (the load lowers Agility) |
-| `ui/sheetview.cpp:385` | Attack and defense hand to hand with  |
-| `ui/sheetview.cpp:385` | these weapons |
-| `ui/sheetview.cpp:396` | Point at an item to see it here; F11 shows what you can do. |
-| `ui/sheetview.cpp:398` | Point at an item to see it here. Drag an item onto a member at the left to give it to them (Shift: just one of a stack). Click another member at the left to see their sheet; Esc or Close goes back. |
-| `ui/sheetview.cpp:400` | Point at an attribute or a skill to see what it does and the whole party's values. Gold dot: the party's best at it; blue: raised by a saint for a while. |
-| `ui/sheetview.cpp:401` | Point at an attribute or a skill to see what it does. Blue: raised by a saint for a while. |
-| `ui/sheetview.cpp:405` | In effect now:  |
-| `ui/sheetview.cpp:407` |  more (see "Blessings and potions" in the margin). |
-| `ui/sheetview.cpp:432` | Worth about %s |
-| `ui/sheetview.cpp:473` | Carries nothing. |
-| `ui/sheetview.cpp:507` | The party's pack |
-| `ui/sheetview.cpp:580` | Kept from selling and dropping (Sell spare gear skips it). Click to stop keeping it. |
-| `ui/sheetview.cpp:581` | Kept from selling and dropping (Sell spare gear skips it). Click to mark it to sell instead. |
-| `ui/sheetview.cpp:582` | Marked to sell: Sell spare gear in a shop sells it with the spare weapons and armor. Click to clear the mark. |
-| `ui/sheetview.cpp:583` | Keep it: Darklands+ will not sell it (one by one or with Sell spare gear) or drop it until you click again. |
-| `ui/sheetview.cpp:617` | : the party's pack is everyone's already |
-| `ui/sheetview.cpp:618` | : drop it on a member at the left |
-| `ui/sheetview.cpp:691` | : Virtue too low for this saint |
-| `ui/sheetview.cpp:718` | Known in the party |
-| `ui/sheetview.cpp:754` | No saint helps with that. |
-| `ui/sheetview.cpp:754` | Nobody in the party knows a saint that helps with that. (All saints shows the others too.) |
-| `ui/sheetview.cpp:795` | No library the party has been to teaches this saint. |
-| `ui/sheetview.cpp:797` | Taught in the library of  |
-| `ui/sheetview.cpp:820` | Nobody in the party knows this saint. |
-| `ui/sheetview.cpp:824` | Asks a Virtue of %d. |
-| `ui/sheetview.cpp:824` | Asks a Virtue of %d: too low for %s, who cannot call on this saint. |
-| `ui/sheetview.cpp:836` | Call on this saint now: the prayer screen, where you choose how much Divine Favor to spend. |
-| `ui/sheetview.cpp:843` | Differs from the description:  |
-| `ui/sheetview.cpp:881` | The party has none. |
-| `ui/sheetview.cpp:882` | The party has %d. |
-| `ui/sheetview.cpp:883` | The party has %d (%s). |
-| `ui/sheetview.cpp:885` | Where to buy: %s |
-| `ui/sheetview.cpp:911` | All formulae |
-| `ui/sheetview.cpp:911` | Known in the party |
-| `ui/sheetview.cpp:932` | Nobody in the party knows a formula. All formulae shows every one, its ingredients and where it is sold. |
-| `ui/sheetview.cpp:974` | The party's ingredients |
-| `ui/sheetview.cpp:1004` | Mystic number %d, %s. |
-| `ui/sheetview.cpp:1004` | risk unknown |
-| `ui/sheetview.cpp:1007` | The mystic number: the higher, the harder the formula is to brew (set against the alchemist's Alchemy and Intelligence). The risk: how badly a failed brew can go wrong. |
-| `ui/sheetview.cpp:1012` | Ingredients: the party has / needed |
-| `ui/sheetview.cpp:1023` | Enough for %d batch%s. |
-| `ui/sheetview.cpp:1024` | The party lacks an ingredient: brewing must wait. |
-| `ui/sheetview.cpp:1024` | The party lacks an ingredient. |
-| `ui/sheetview.cpp:1026` | Chance of brewing one batch |
-| `ui/sheetview.cpp:1035` | Nobody in the party knows it. |
-| `ui/sheetview.cpp:1038` | No alchemist sells it: it is traded for or found. |
-| `ui/sheetview.cpp:1039` | No alchemist the party has been to sells it. |
-| `ui/sheetview.cpp:1044` | Sold by the alchemist of  |
+| `ui/sheetview.cpp:159` | Light load (up to half of Endurance + Strength): no hindrance at all. Only what is equipped counts (weapons, armor, shield); items merely carried weigh nothing. |
+| `ui/sheetview.cpp:160` | Normal load (up to Endurance + Strength): blows hand to hand come about a fifth slower, and past 5/8 of it the Agility used to dodge falls to two thirds. |
+| `ui/sheetview.cpp:161` | Heavy load (up to half as much again): the Agility used to dodge falls to two thirds, and to a third past 1 1/4 times Endurance + Strength. Blows are no slower than with a normal load (an oversight in the original game). |
+| `ui/sheetview.cpp:162` | Overloaded (more than 1 1/2 times Endurance + Strength): blows hand to hand come about two thirds slower, and the Agility used to dodge falls to a third, then to nothing past about twice Endurance + Strength. |
+| `ui/sheetview.cpp:184` | every weapon skill |
+| `ui/sheetview.cpp:185` | Missile Devices |
+| `ui/sheetview.cpp:186` | Speak Common |
+| `ui/sheetview.cpp:186` | Read & Write |
+| `ui/sheetview.cpp:196` | every weapon skill |
+| `ui/sheetview.cpp:221` | ; leaves the party in %s |
+| `ui/sheetview.cpp:230` | Darklands+ ("The best member speaks for the party", F12 > Settings > Cards and towns): on cards, each test is made by the member best at it, and shops set prices by the best bargainer, whoever leads. The leader is still the one meant by "the leader" on a card (a mine's traps, a church's favor, an item handed over), and in battles and dungeons (when not paused) deals with doors, chests, locks and traps and leads the group's movement. |
+| `ui/sheetview.cpp:233` | The leader speaks and acts for the party on the cards and bargains in the shops. |
+| `ui/sheetview.cpp:262` | a little slower (the attack rate falls) |
+| `ui/sheetview.cpp:262` | much slower (the attack rate falls a lot) |
+| `ui/sheetview.cpp:262` | at the usual pace |
+| `ui/sheetview.cpp:265` | Load %d: the weight of what %s has equipped (weapons, armor, shield). Items carried but not equipped weigh nothing. Compared with Endurance + Strength (%d now): light up to %d, normal up to %d, heavy up to %d, overloaded above that.  Now: - Tests on cards that ask for Agility (climbing a wall, running, a trap): Agility %d counts %s (%d). - Fending off blows in melee: Agility counts %s (%d). - Swinging in melee: %s.  Travel, walking in a battle, missiles and Endurance are not affected by the load. |
+| `ui/sheetview.cpp:369` |  when equipped |
+| `ui/sheetview.cpp:371` | ; this member's mount |
+| `ui/sheetview.cpp:373` |  in the party's pack |
+| `ui/sheetview.cpp:373` | ; in the party's pack |
+| `ui/sheetview.cpp:374` | ; kept (not sold or dropped) |
+| `ui/sheetview.cpp:375` | ; marked to sell (Sell spare gear sells it) |
+| `ui/sheetview.cpp:384` | Each member rides the best horse or mule they carry; the party travels mounted only when every member has one. |
+| `ui/sheetview.cpp:385` |  A member without one is given the best spare one when the game needs it (setting out on the road, a chase). |
+| `ui/sheetview.cpp:388` | For a member to ride it, drag it onto them, or press their number (1 to 5). |
+| `ui/sheetview.cpp:389` | For another member to ride it, drag it onto them, or press their number (1 to 5). |
+| `ui/sheetview.cpp:392` | To give the lot, drag it onto a member at the left, or press their number (1 to 5); Shift: just one. |
+| `ui/sheetview.cpp:392` | To give it, drag it onto a member at the left, or press their number (1 to 5). |
+| `ui/sheetview.cpp:397` | too weak by  |
+| `ui/sheetview.cpp:398` |  can use it well |
+| `ui/sheetview.cpp:402` | %s's defense with it: against a blow, %d + their melee rating; against a shot or throw, %d + twice the Agility %d = %d%s |
+| `ui/sheetview.cpp:403` |  (the load lowers Agility) |
+| `ui/sheetview.cpp:409` | Attack and defense hand to hand with  |
+| `ui/sheetview.cpp:409` | these weapons |
+| `ui/sheetview.cpp:420` | Point at an item to see it here; F11 shows what you can do. |
+| `ui/sheetview.cpp:422` | Point at an item to see it here. Drag an item onto a member at the left to give it to them (Shift: just one of a stack). Click another member at the left to see their sheet; Esc or Close goes back. |
+| `ui/sheetview.cpp:424` | Point at an attribute or a skill to see what it does and the whole party's values. Gold dot: the party's best at it; blue: raised by a saint for a while. |
+| `ui/sheetview.cpp:425` | Point at an attribute or a skill to see what it does. Blue: raised by a saint for a while. |
+| `ui/sheetview.cpp:429` | In effect now:  |
+| `ui/sheetview.cpp:431` |  more (see "Blessings and potions" in the margin). |
+| `ui/sheetview.cpp:456` | Worth about %s |
+| `ui/sheetview.cpp:497` | Carries nothing. |
+| `ui/sheetview.cpp:531` | The party's pack |
+| `ui/sheetview.cpp:604` | Kept from selling and dropping (Sell spare gear skips it). Click to stop keeping it. |
+| `ui/sheetview.cpp:605` | Kept from selling and dropping (Sell spare gear skips it). Click to mark it to sell instead. |
+| `ui/sheetview.cpp:606` | Marked to sell: Sell spare gear in a shop sells it with the spare weapons and armor. Click to clear the mark. |
+| `ui/sheetview.cpp:607` | Keep it: Darklands+ will not sell it (one by one or with Sell spare gear) or drop it until you click again. |
+| `ui/sheetview.cpp:641` | : the party's pack is everyone's already |
+| `ui/sheetview.cpp:642` | : drop it on a member at the left |
+| `ui/sheetview.cpp:715` | : Virtue too low for this saint |
+| `ui/sheetview.cpp:742` | Known in the party |
+| `ui/sheetview.cpp:764` | Or what it raises: |
+| `ui/sheetview.cpp:764` | Or what it raises: |
+| `ui/sheetview.cpp:778` | %s: the %d saint%s whose help raises it%s |
+| `ui/sheetview.cpp:778` | The town's opinion of the party (its reputation) |
+| `ui/sheetview.cpp:779` |  (click again for all) |
+| `ui/sheetview.cpp:803` | No saint helps with that. |
+| `ui/sheetview.cpp:803` | Nobody in the party knows a saint that helps with that. (All saints shows the others too.) |
+| `ui/sheetview.cpp:844` | No library the party has been to teaches this saint. |
+| `ui/sheetview.cpp:846` | Taught in the library of  |
+| `ui/sheetview.cpp:869` | Nobody in the party knows this saint. |
+| `ui/sheetview.cpp:873` | Asks a Virtue of %d. |
+| `ui/sheetview.cpp:873` | Asks a Virtue of %d: too low for %s, who cannot call on this saint. |
+| `ui/sheetview.cpp:885` | Call on this saint now: the prayer screen, where you choose how much Divine Favor to spend. |
+| `ui/sheetview.cpp:892` | Differs from the description:  |
+| `ui/sheetview.cpp:930` | The party has none. |
+| `ui/sheetview.cpp:931` | The party has %d. |
+| `ui/sheetview.cpp:932` | The party has %d (%s). |
+| `ui/sheetview.cpp:934` | Where to buy: %s |
+| `ui/sheetview.cpp:960` | All formulae |
+| `ui/sheetview.cpp:960` | Known in the party |
+| `ui/sheetview.cpp:981` | Nobody in the party knows a formula. All formulae shows every one, its ingredients and where it is sold. |
+| `ui/sheetview.cpp:1023` | The party's ingredients |
+| `ui/sheetview.cpp:1053` | Mystic number %d, %s. |
+| `ui/sheetview.cpp:1053` | risk unknown |
+| `ui/sheetview.cpp:1056` | The mystic number: the higher, the harder the formula is to brew (set against the alchemist's Alchemy and Intelligence). The risk: how badly a failed brew can go wrong. |
+| `ui/sheetview.cpp:1061` | Ingredients: the party has / needed |
+| `ui/sheetview.cpp:1072` | Enough for %d batch%s. |
+| `ui/sheetview.cpp:1073` | The party lacks an ingredient: brewing must wait. |
+| `ui/sheetview.cpp:1073` | The party lacks an ingredient. |
+| `ui/sheetview.cpp:1075` | Chance of brewing one batch |
+| `ui/sheetview.cpp:1084` | Nobody in the party knows it. |
+| `ui/sheetview.cpp:1087` | No alchemist sells it: it is traded for or found. |
+| `ui/sheetview.cpp:1088` | No alchemist the party has been to sells it. |
+| `ui/sheetview.cpp:1093` | Sold by the alchemist of  |
 | `ui/skillicons.cpp:384` | Frames and clock |
 | `ui/skillicons.cpp:388` | Cards and towns |
 | `ui/skillicons.cpp:393` | The party and its items |

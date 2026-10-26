@@ -179,7 +179,7 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/settings.cpp` | 603 | the Darklands+ window's Settings page (F12), and its Mods and Reconstructed Content tabs. |
 | `ui/settings_look.cpp` | 274 | the Settings page's sections on what things look like (ui/settings.cpp draws the page): Text (the original lettering or the new text, the typeface, the coins) and Frames and clock (the band around the windows, the frames, the buttons, the clock, the potions' grade marks). |
 | `ui/settings_setup.cpp` | 419 | the Settings page's sections on the game on this computer (ui/settings.cpp draws the page): Screen, Intro, Sound and Controller. |
-| `ui/sheetview.cpp` | 1086 | draws a member's sheet (mods/sheetview.c runs it; docs/NATIVE_SCREENS.md), the whole page anew beside the party panel. |
+| `ui/sheetview.cpp` | 1135 | draws a member's sheet (mods/sheetview.c runs it; docs/NATIVE_SCREENS.md), the whole page anew beside the party panel. |
 | `ui/skillicons.cpp` | 441 | the skills', attributes' and F12 tabs' pictures, drawn with ImGui shapes so they read at any size (the character sheet, character creation, the roster, card chances, the tabs). |
 | `ui/teachersui.cpp` | 143 | the teachers a town can offer, as shown (ui/teachersui.h). |
 | `ui/tipplace.cpp` | 144 | where every tooltip goes: beside the thing it describes, never over it nor over the pointer - below it, or above when there is no room below, else at its side, and inside the window. |
