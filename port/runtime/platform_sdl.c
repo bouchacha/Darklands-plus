@@ -507,7 +507,11 @@ void plat_present(const u8 *vga, const u8 *pal)
             for (int i = 0; i < out_w * out_h; i++) px[i * 4 + 3] = 255;
             int stbi_write_png(char const *filename, int w, int h, int comp, const void *data, int stride_in_bytes);
             char msg[200];
-            if (stbi_write_png(path, out_w, out_h, 4, px, out_w * 4)) snprintf(msg, sizeof msg, "Screenshot saved: screenshots%s%s", PATH_SEP_STR, name);
+            if (stbi_write_png(path, out_w, out_h, 4, px, out_w * 4)) {
+                snprintf(msg, sizeof msg, "Screenshot saved: screenshots%s%s", PATH_SEP_STR, name);
+                char tp[1310]; snprintf(tp, sizeof tp, "%.*s.txt", (int)(strlen(path) - 4), path);   /* (and the frame's draws beside it: ui/drawguard.cpp) */
+                void ui_draw_dump(const char *); ui_draw_dump(tp);
+            }
             else snprintf(msg, sizeof msg, "The screenshot could not be saved (%s)", dir);
             fprintf(stderr, "%s\n", msg);
             void ui_notice(const char *); ui_notice(msg);
@@ -786,6 +790,7 @@ static void run_script(void)
             else if (a >= 0 && a < 4) pad_test_axis[a] = 0x7fffffff;
         }
         else if (!strcmp(s->cmd, "wshot")) snprintf(pending_wshot, sizeof pending_wshot, "%s", s->arg);
+        else if (!strcmp(s->cmd, "ushot")) { if (ren) pending_shot = 1; }   /* test: a screenshot as Ctrl+F12 takes it (with the frame's draws beside it) */
         else if (!strcmp(s->cmd, "usdlkey")) {             /* test: a key as an SDL event (through Darklands+'s own keys, ui_event): usdlkey:z */
             SDL_Event ev; memset(&ev, 0, sizeof ev);
             ev.type = SDL_KEYDOWN; ev.key.state = SDL_PRESSED; ev.key.keysym.scancode = SDL_GetScancodeFromName(s->arg);

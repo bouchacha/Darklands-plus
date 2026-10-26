@@ -727,6 +727,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
             }
         }
     }
+    { void ui_draw_guard(ImDrawData *); ui_draw_guard(ImGui::GetDrawData()); }   /* (what no screen means to draw: taken out, said in the log - ui/drawguard.cpp) */
     SDL_ClearError();
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), ren);
     {   /* what the renderer refused this frame (a draw it could not make: on some graphics cards the
