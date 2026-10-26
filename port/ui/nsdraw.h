@@ -100,7 +100,12 @@ struct NsDraw {
     }
     float width(ImFont *ff, float gs, const std::string &s) const { return ff->CalcTextSizeA(size(ff, gs), FLT_MAX, 0, s.c_str()).x / kx; }
 
-    bool over(float x0, float y0, float x1, float y1) const { return mx >= x0 && mx < x1 && my >= y0 && my < y1; }
+    bool over(float x0, float y0, float x1, float y1) const     /* (the pointer on it; a tooltip then goes beside it) */
+    {
+        bool o = mx >= x0 && mx < x1 && my >= y0 && my < y1;
+        if (o) ui_hit_area(w(x0, y0), w(x1, y1));
+        return o;
+    }
     bool hit(float x0, float y0, float x1, float y1) const { return click && cx >= x0 && cx < x1 && cy >= y0 && cy < y1; }
 
     /* a button; true when clicked */

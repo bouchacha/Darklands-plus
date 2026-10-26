@@ -144,3 +144,22 @@ covered and found, and what it could not check.
   large sparse drawings (the alchemy desk, the shop counter: 33-41k vertices) kept as triangles, since a
   processor-drawn picture of them costs ~170 ms at 1600x900; the opening's PAN files left open by the game when
   a key ends them (the original's own; 64 handles to spare). Startup to the title is mostly the game's own waits.
+- 2026-10-25 (night): the problems that kept coming back, looked at for their common cause rather than one by one.
+  Go to's wording (each report a phrase missing from a table): Go to now reads the card's own text from memory,
+  and two tests cover it all - every line of every street card matched (`ucitylines`, in release_check) and every
+  place of a town walked to from a save (tools/gotosweep.py: 23 of 23 from the player's DKSAVE85). Raw byte
+  offsets into the combatant records (the battle tooltip's wrong weapon read +0x23): named fields (runtime/game.h
+  CB_*), the machine code unchanged. Tooltips over their thing or the pointer, fixed one screen at a time: every
+  tooltip is now placed by one rule (ui/tipplace.cpp, also those ImGui placed by itself), a native screen's hit
+  areas tell it where the thing is (NsDraw::over), the pointer's real size is used (the game's hand, from its
+  sprite), and each frame a check logs a tooltip over the pointer or its thing, panels lying over each other
+  (ui/panelcheck.cpp) and the game's hand over a window of Darklands+ (two pointers); tools/uitour.py rests the
+  pointer on a grid over every screen and fails on any of them. The sheet's own 650 ms tooltip wait (on top of the
+  Tooltip delay) removed. The shared pack's per-screen copies (four listings, three "whom it goes to") made one
+  (gm_pack_rows, gm_pack_target). The texts that say the same things (README, changelog, release notes, the
+  download's README, MODDING.md, the welcome) checked against the code by tools/check_docs.py (it found the
+  download's README still naming "F12 > Settings > Display" and an MT-32/CM-32L switch that is gone). A battle's
+  memories: the route planner's now forgotten with the rest at the next battle (the shooters' "shoots" that never
+  came had the same cause). Proposed, not done: the combat behaviour between orders made one ordered list of rules
+  per member, in one file, with one memory cleared in one place (now: two hooks on the same game routine in two
+  files, 19 per-member memories in three).

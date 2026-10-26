@@ -312,7 +312,10 @@ static void foe_arrow(void)
     arrow_box[2] = fmaxf(fmaxf(tip.x, a.x), fmaxf(b2.x, lp.x + ts.x)) + 4; arrow_box[3] = fmaxf(fmaxf(tip.y, a.y), fmaxf(b2.y, lp.y + ts.y)) + 4;
     arrow_foe = best; arrow_frame = ImGui::GetFrameCount();
     if (ImGui::GetIO().MousePos.x >= arrow_box[0] && ImGui::GetIO().MousePos.x <= arrow_box[2] && ImGui::GetIO().MousePos.y >= arrow_box[1] && ImGui::GetIO().MousePos.y <= arrow_box[3])
+    {
+        ui_tip_beside(ImVec2(arrow_box[0], arrow_box[1]), ImVec2(arrow_box[2], arrow_box[3]));
         ImGui::SetTooltip("The nearest enemy is this way: click to look");
+    }
 }
 
 void ui_draw_battle_info(void)

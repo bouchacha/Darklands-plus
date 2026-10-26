@@ -423,7 +423,7 @@ extern "C" void worldmap_draw(void)
         }
     }
     // places
-    int hover = -1; float hd = 1e9f;
+    int hover = -1; float hd = 1e9f; ImVec2 hov0, hov1;      /* (the place under the pointer, and where: its tooltip beside it) */
     VTMARK("wm way");
     /* names with the screen (ui_text_px: display.text_size), a little larger as one zooms in */
     ImFont *fs = ui_font_overlay;
@@ -471,7 +471,7 @@ extern "C" void worldmap_draw(void)
         }
         float d = (io.MousePos.x - s.x) * (io.MousePos.x - s.x) + (io.MousePos.y - s.y) * (io.MousePos.y - s.y);
         float hr = 14 * fmaxf(ks, 1.0f);
-        if (hovered && fade > 0.5f && d < hr * hr && d < hd) { hd = d; hover = p.loc; }
+        if (hovered && fade > 0.5f && d < hr * hr && d < hd) { hd = d; hover = p.loc; hov0 = ImVec2(s.x - hr, s.y - hr); hov1 = ImVec2(s.x + hr, s.y + hr); }
         int big = p.loc < (int)gamedata.cities.size() ? gamedata.cities[p.loc].size : 0;
         bool label = show_names && (g == 0 ? (zoom >= 0.3f || (zoom >= 0.14f && big >= 6)) : zoom >= 0.9f);
         if (label || p.loc == selected) {
@@ -532,7 +532,7 @@ extern "C" void worldmap_draw(void)
             if (hv >= 0) ui_draw_quest_icon(dl, at[hv], is * 1.12f, qs[hv] < mark_cats.size() ? mark_cats[qs[hv]] : 0);
             /* each picture is the place too: pointed at, clicked (the place chosen), double-clicked (travel
                there), even with the places' icons hidden */
-            if (hv >= 0) { hd = 0; hover = loc; }
+            if (hv >= 0) { hd = 0; hover = loc; hov0 = ImVec2(at[hv].x - is * 0.5f, at[hv].y - is * 0.5f); hov1 = ImVec2(at[hv].x + is * 0.5f, at[hv].y + is * 0.5f); }
         }
     }
     // the party
@@ -566,6 +566,7 @@ extern "C" void worldmap_draw(void)
     float pk = fmaxf(1.0f, ui_text_px() * 0.8f / ImGui::GetFontSize());
     if (hover >= 0) {
         for (const Place &p : P) if (p.loc == hover) {
+            ui_tip_beside(hov0, hov1);
             ImGui::BeginTooltip();
             ImGui::SetWindowFontScale(pk);
             ImGui::TextUnformatted(p.name.c_str());
@@ -1063,6 +1064,7 @@ extern "C" int worldmap_docks_inset(float x0, float y0, float x1, float y1, int 
         ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
         std::string nm = dest[over] < (int)gamedata.cities.size() ? gamedata.cities[dest[over]].name : std::string("?");
         {   /* what the town offers, as on the world map */
+            ui_tip_beside(ImVec2(dpos[over].x - fsz * 1.6f, dpos[over].y - fsz * 1.6f), ImVec2(dpos[over].x + fsz * 1.6f, dpos[over].y + fsz * 1.6f));
             ImGui::BeginTooltip();
             if (ui_font_overlay) ImGui::PushFont(ui_font_overlay);
             ImGui::TextUnformatted(nm.c_str());

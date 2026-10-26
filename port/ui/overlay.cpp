@@ -162,6 +162,7 @@ static void draw_new_encounter_seal(void)
     ImVec2 mp = ImGui::GetIO().MousePos;
     if ((mp.x - c.x) * (mp.x - c.x) + (mp.y - c.y) * (mp.y - c.y) < r * r * 1.4f) {
         char t[200]; snprintf(t, sizeof t, "A new encounter: %s\n(from a mod, not the original game)", encounters_title(a - 1));
+        ui_tip_beside(ImVec2(c.x - r, c.y - r), ImVec2(c.x + r, c.y + r));
         ImGui::SetTooltip("%s", t);
     }
 }

@@ -571,7 +571,10 @@ extern "C" void journal_quests(void)
             {   ImVec2 a = ImGui::GetItemRectMin(), b = ImGui::GetItemRectMax();
                 ImVec2 ic(a.x + ImGui::GetTreeNodeToLabelSpacing() + isz * 0.5f, (a.y + b.y) * 0.5f), m = ImGui::GetIO().MousePos;
                 ui_draw_quest_icon(ImGui::GetWindowDrawList(), ic, isz, l.cat);
-                if (ImGui::IsItemHovered() && fabsf(m.x - ic.x) < isz * 0.5f && fabsf(m.y - ic.y) < isz * 0.5f) ImGui::SetTooltip("%s", QUEST_CAT_NAME[l.cat]); }
+                if (ImGui::IsItemHovered() && fabsf(m.x - ic.x) < isz * 0.5f && fabsf(m.y - ic.y) < isz * 0.5f) {
+                    ui_tip_beside(ImVec2(ic.x - isz * 0.5f, ic.y - isz * 0.5f), ImVec2(ic.x + isz * 0.5f, ic.y + isz * 0.5f));
+                    ImGui::SetTooltip("%s", QUEST_CAT_NAME[l.cat]);
+                } }
             if (!days.empty()) { ImGui::SameLine(); ImGui::TextDisabled("   %s", days.c_str()); }
             quest_way_inline(l);                                       /* (the way: a compass, a boot, "~7 d") */
             (void)d;

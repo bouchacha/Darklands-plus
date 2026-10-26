@@ -88,7 +88,6 @@ struct SheetView {
     int drop_row = -1; unsigned act_seq = 0;      /* a row asking "sure?" */
     int pin_saint = -1, pin_formula = -1;         /* clicked: stays while the pointer is elsewhere */
     bool saints_all = false, formulae_all = false; int use = 0;
-    int tip_row = -1; unsigned tip_t = 0;        /* a thing's row under the pointer, since when (its details after a moment) */
     /* dragging a thing */
     int drag_row = -1; bool dragging = false;
 } V;
@@ -584,9 +583,9 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         float th = (LY1 - LY0) * NROWS / n, ty = LY0 + (LY1 - LY0 - th) * sc / (float)(n - NROWS);
         P.rect(RX1 - 1.4f, ty, RX1 - 0.3f, ty + th, IM_COL32(120, 80, 36, 140), 0.5f);
     }
-    /* a weapon, armour or shield the pointer rests on: all its numbers, and the whole party's fit */
-    if (tip_i != V.tip_row) { V.tip_row = tip_i; V.tip_t = plat_ticks_ms(); }
-    else if (tip_i >= 0 && !V.dragging && plat_ticks_ms() - V.tip_t > 650) gear_tip(s.item[tip_i]);
+    /* a weapon, armour or shield the pointer rests on: all its numbers, and the whole party's fit (after
+       the Tooltip delay, as every tooltip: third_party/imgui BeginTooltipEx) */
+    if (tip_i >= 0 && !V.dragging) gear_tip(s.item[tip_i]);
     if (s.ndrops > 0) {                                  /* take back what was left behind here */
         const SvDrop &d = s.drops[s.ndrops - 1];
         std::string l = "Undo: " + ns_gtext(d.name) + (d.count > 1 ? " (" + std::to_string(d.count) + ")" : "");

@@ -692,6 +692,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     dc_frame_end();
     worldmap_icon_sheet_draw(); orn_test_sheet_draw(); niche_test_sheet_draw(); clock_test_sheet_draw();
     orn_windows();
+    ui_tip_audit(); ui_panel_audit(); ui_pointer_audit();   /* (the checks: tools/uitour.py) */
     ImGui::Render();
     ui_build_us = SDL_GetPerformanceCounter();
     { ImDrawData *dd = ImGui::GetDrawData(); ui_vtx = dd->TotalVtxCount; ui_cmds = 0; for (int i = 0; i < dd->CmdListsCount; i++) ui_cmds += dd->CmdLists[i]->CmdBuffer.Size; }

@@ -11433,6 +11433,7 @@ bool ImGui::BeginItemTooltip()
     return BeginTooltipEx(ImGuiTooltipFlags_None, ImGuiWindowFlags_None);
 }
 
+void (*GImGuiTooltipPlace)(void) = NULL;     // Darklands+ (see BeginTooltipEx)
 bool ImGui::BeginTooltipEx(ImGuiTooltipFlags tooltip_flags, ImGuiWindowFlags extra_window_flags)
 {
     ImGuiContext& g = *GImGui;
@@ -11458,6 +11459,11 @@ bool ImGui::BeginTooltipEx(ImGuiTooltipFlags tooltip_flags, ImGuiWindowFlags ext
         //PushStyleVar(ImGuiStyleVar_Alpha, g.Style.Alpha * 0.60f); // This would be nice but e.g ColorButton with checkboard has issue with transparent colors :(
         tooltip_flags |= ImGuiTooltipFlags_OverridePrevious;
     }
+
+    // Darklands+: a tooltip given no place of its own goes beside what it belongs to (the item under the
+    // pointer, else the pointer itself), never over it (ui/tipplace.cpp), the same for every tooltip
+    if (!is_dragdrop_tooltip && (g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasPos) == 0 && GImGuiTooltipPlace)
+        GImGuiTooltipPlace();
 
     const char* window_name_template = is_dragdrop_tooltip ? "##Tooltip_DragDrop_%02d" : "##Tooltip_%02d";
     char window_name[32];

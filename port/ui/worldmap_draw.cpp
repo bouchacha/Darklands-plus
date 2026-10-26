@@ -457,6 +457,7 @@ extern "C" void travelmap_labels(void)
                 static int tip_loc = -1, tip_min = -1, tip_frame = -1000;
                 if (tip_loc != k || ImGui::GetFrameCount() - tip_frame > 120) { tip_loc = k; tip_min = travel_minutes_loc(k, nullptr, nullptr); }   /* (a route search: once, while the pointer stays) */
                 tip_frame = ImGui::GetFrameCount();
+                if (on_icon) ui_tip_beside(i0, i1); else ui_tip_beside(tp, ImVec2(tp.x + ts.x, tp.y + ts.y));
                 ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
                 ImGui::TextUnformatted(name.c_str());
                 ImGui::TextDisabled("%s", loc_kind_label(kind));
@@ -498,6 +499,7 @@ extern "C" void travelmap_labels(void)
                 for (int j = 0; j < nq; j++) if (j != hov) ui_draw_quest_icon(dl, at[j], is, qs[j] < qcats.size() ? qcats[qs[j]] : 0);
                 if (hov >= 0) {                                  /* (the one pointed at over the others, and its task) */
                     ui_draw_quest_icon(dl, at[hov], is * 1.12f, qs[hov] < qcats.size() ? qcats[qs[hov]] : 0);
+                    ui_tip_beside(ImVec2(at[hov].x - is * 0.5f, at[hov].y - is * 0.5f), ImVec2(at[hov].x + is * 0.5f, at[hov].y + is * 0.5f));
                     ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22); ImGui::TextUnformatted(qmarks[qs[hov]].second.c_str()); ImGui::PopTextWrapPos(); ImGui::EndTooltip();
                 }
             }

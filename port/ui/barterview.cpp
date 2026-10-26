@@ -129,6 +129,7 @@ extern "C" void barterview_draw(void)
             }
             if (m == b.payer) dl->AddCircleFilled(g2w(x + 3.5f, 24), 1.8f * k, IM_COL32(214, 172, 60, 255));
             else dl->AddCircle(g2w(x + 3.5f, 24), 1.8f * k, coin_h ? IM_COL32(214, 172, 60, 255) : sel ? IM_COL32(250, 236, 200, 110) : IM_COL32(120, 90, 40, 110), 0, fmaxf(1.0f, 0.4f * k));
+            if (coin_h && m != b.payer) ui_hit_area(g2w(x, 19), g2w(x + 7, 29));
             if (coin_h && m != b.payer) ImGui::SetTooltip("Click to have %s pay from now on", nm.c_str());
             if (click && in(cx, cy, x, 19, x + 7, 29)) ns_push(BV_PAYER, m, 0, 0);
             else if (click && in(cx, cy, x, 19, x + tw - 1, 29)) ns_push(BV_WHO, m, 0, 0);
