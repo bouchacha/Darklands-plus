@@ -65,7 +65,7 @@ void ui_pointer_audit(void)
     ImGuiWindow *w = g.HoveredWindow;
     if (!w || SDL_ShowCursor(SDL_QUERY) == SDL_ENABLE || nseen >= 32) return;
     w = w->RootWindow;
-    if (w->Flags & ImGuiWindowFlags_Tooltip) return;
+    if ((w->Flags & ImGuiWindowFlags_Tooltip) || !w->Active || w->Hidden) return;   /* (a window closed this frame is still the one ImGui found under the pointer) */
     for (int k = 0; k < nseen; k++) if (seen[k] == w->ID) return;
     seen[nseen++] = w->ID;
     fprintf(stderr, "the game's hand over a window: \"%s\"\n", w->Name);

@@ -553,18 +553,16 @@ extern "C" void cardview_draw(void)
         dl->AddTriangleFilled(ImVec2(ax - r, ay - r * 0.55f), ImVec2(ax + r, ay - r * 0.55f), ImVec2(ax, ay + r * 0.75f), ac);
         if (ui_pad_prompts()) ui_pad_glyph(dl, ImVec2(ax - r * 4.2f, ay + r * 0.1f), r * 3.0f, PB_A);   /* (a controller: A goes on) */
     }
-    /* a tooltip beside the box, level with the option under the pointer; under the option when the
-       window has no room on the right for em letters' width (it returns the width to wrap at) */
+    /* a tooltip beside the box, level with the option under the pointer (narrower to fit there, down
+       to 14 letters); else under the option, above it, at its left - as every tooltip, clear of the
+       option and the pointer and inside the window (ui/tipplace.cpp). It returns the width to wrap at */
     auto tip_place = [&](float em) -> float {
         float fs = ImGui::GetFontSize(), pad = ImGui::GetStyle().WindowPadding.x * 2 + 0.5f * fs;
-        float W = ImGui::GetIO().DisplaySize.x, x = bx1 + 4.5f * k, w = em * fs;
-        ImVec2 pos(x, laid[c.hover].y0 - shift);
-        if (x + w + pad > W) {
-            if (W - x - pad >= 14 * fs) w = W - x - pad;
-            else { pos = ImVec2(X0, laid[c.hover].y1 - shift + 2 * k); w = fminf(w, W - X0 - pad); }
-        }
-        ImGui::SetNextWindowPos(pos);
+        float W = ImGui::GetIO().DisplaySize.x, x = fmaxf(bx1 + 4.5f * k, ui_pointer_area().z + 0.3f * fs), w = em * fs;   /* (past the pointer too) */
+        if (x + w + pad > W - 4 && W - 4 - x - pad >= 14 * fs) w = W - 4 - x - pad;
+        w = fminf(w, W - 8 - pad);
         ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(w + pad, FLT_MAX));
+        ui_tip_beside_in(ImVec2(X0, laid[c.hover].y0 - shift), ImVec2(bx1 + 4.5f * k - fs * 0.3f, laid[c.hover].y1 - shift), "rbal");
         return w;
     };
     const bool tipmenu = menu && !ui_is_open();                  /* (no card tooltips over the Darklands+ window, the world map, Go to ...) */

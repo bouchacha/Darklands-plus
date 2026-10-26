@@ -23,6 +23,8 @@ struct ImVec2;
    room below, never over it nor over the pointer (ui/tipplace.cpp). Every tooltip that belongs to a
    thing on screen is placed with it. */
 void ui_tip_beside(ImVec2 a0, ImVec2 a1);
+void ui_tip_beside_in(ImVec2 a0, ImVec2 a1, const char *order);
+ImVec4 ui_pointer_area(void);   /* (where the pointer is drawn - the game hand or the system arrow - as x0, y0, x1, y1) */   /* (the places tried in order: b below, a above, r right, l left) */
 void ui_hit_area(ImVec2 a0, ImVec2 a1);   /* (a thing drawn by hand under the pointer: a tooltip with no place of its own goes beside it, ui/tipplace.cpp) */
 void ui_tip_audit(void);
 void ui_panel_audit(void), ui_pointer_audit(void);   /* (ui/panelcheck.cpp) */

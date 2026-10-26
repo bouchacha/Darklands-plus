@@ -35,9 +35,12 @@ ImRect ui_pointer_rect(void)
     return ImRect(mp.x - 1, mp.y - 1, mp.x + 20 * f, mp.y + 32 * f);
 }
 
-/* beside the thing a0-a1: below it, or above when there is no room below, else at its side - clear of
-   the pointer too, and inside the window */
-void ui_tip_beside(ImVec2 a0, ImVec2 a1)
+ImVec4 ui_pointer_area(void) { ImRect r = ui_pointer_rect(); return ImVec4(r.Min.x, r.Min.y, r.Max.x, r.Max.y); }
+
+/* beside the thing a0-a1, clear of it and of the pointer, inside the window: the places tried in the
+   order given ('b' below, 'a' above, 'r' at its right, 'l' at its left), the first where the tooltip
+   fits; none: the first, pushed inside the window */
+void ui_tip_beside_in(ImVec2 a0, ImVec2 a1, const char *order)
 {
     ImGuiContext &g = *ImGui::GetCurrentContext();
     anc0 = a0; anc1 = a1; anc_frame = g.FrameCount;
@@ -47,19 +50,34 @@ void ui_tip_beside(ImVec2 a0, ImVec2 a1)
     float m = 4.0f, gap = ImGui::GetFontSize() * 0.3f;
     ImRect p = ui_pointer_rect();
     bool valid = ImGui::IsMousePosValid();
-    float x = fminf(fmaxf(a0.x, m), ds.x - sz.x - m), y;
-    bool in_cols = valid && p.Max.x > x && p.Min.x < x + sz.x;   /* (the pointer in the tooltip's columns: clear of it up or down) */
-    float below = fmaxf(a1.y, in_cols ? p.Max.y : -FLT_MAX) + gap;
-    float above = fminf(a0.y, in_cols ? p.Min.y : FLT_MAX) - gap - sz.y;
-    if (below + sz.y <= ds.y - m) y = below;
-    else if (above >= m) y = above;
-    else {                                                        /* (no room either way: at the side, past the thing and the pointer) */
-        y = fminf(fmaxf(a0.y, m), ds.y - sz.y - m);
-        float right = fmaxf(a1.x, valid ? p.Max.x : -FLT_MAX) + gap, left = fminf(a0.x, valid ? p.Min.x : FLT_MAX) - gap - sz.x;
-        x = right + sz.x <= ds.x - m ? right : fmaxf(left, m);
+    auto clampx = [&](float x) { return fminf(fmaxf(x, m), ds.x - sz.x - m); };
+    auto clampy = [&](float y) { return fminf(fmaxf(y, m), ds.y - sz.y - m); };
+    /* (none fits as it is: of the places pushed inside the window, the one least over the pointer, then
+       least over the thing - a tooltip too big for the window may have to cover something) */
+    auto over = [](ImRect a, ImRect b) { float w = fminf(a.Max.x, b.Max.x) - fmaxf(a.Min.x, b.Min.x), h = fminf(a.Max.y, b.Max.y) - fmaxf(a.Min.y, b.Min.y); return w > 0 && h > 0 ? w * h : 0.0f; };
+    ImVec2 best(m, m); float best_pen = FLT_MAX;
+    for (const char *o = order; *o; o++) {
+        float x, y; bool fits;
+        if (*o == 'b' || *o == 'a') {
+            x = clampx(a0.x);
+            bool cols = valid && p.Max.x > x && p.Min.x < x + sz.x;      /* (the pointer in the tooltip's columns: clear of it too) */
+            if (*o == 'b') { y = fmaxf(a1.y, cols ? p.Max.y : -FLT_MAX) + gap; fits = y + sz.y <= ds.y - m; }
+            else { y = fminf(a0.y, cols ? p.Min.y : FLT_MAX) - gap - sz.y; fits = y >= m; }
+        } else {
+            y = clampy(a0.y);
+            bool rows = valid && p.Max.y > y && p.Min.y < y + sz.y;      /* (the pointer in its rows) */
+            if (*o == 'r') { x = fmaxf(a1.x, rows ? p.Max.x : -FLT_MAX) + gap; fits = x + sz.x <= ds.x - m; }
+            else { x = fminf(a0.x, rows ? p.Min.x : FLT_MAX) - gap - sz.x; fits = x >= m; }
+        }
+        if (fits) { ImGui::SetNextWindowPos(ImVec2(x, y)); return; }
+        x = clampx(x); y = clampy(y);
+        ImRect t(x, y, x + sz.x, y + sz.y);
+        float pen = (valid ? over(t, p) * 1000.0f : 0.0f) + over(t, ImRect(a0, a1));
+        if (pen < best_pen) { best_pen = pen; best = ImVec2(x, y); }
     }
-    ImGui::SetNextWindowPos(ImVec2(x, y));
+    ImGui::SetNextWindowPos(best);
 }
+void ui_tip_beside(ImVec2 a0, ImVec2 a1) { ui_tip_beside_in(a0, a1, "barl"); }
 
 /* the hit areas of this frame (NsDraw::over, a native screen's things under the pointer), each with the
    window it was drawn in */
