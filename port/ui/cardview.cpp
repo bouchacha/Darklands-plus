@@ -32,6 +32,7 @@
 #include "teachersui.h"
 #include "skillicons.h"
 #include "gamepics.h"
+#include "quests.h"
 
 extern ImFont *ui_font_text, *ui_font_overlay;
 extern ImFont *ui_font_game[UI_GAME_FONTS], *ui_font_game_hi[UI_GAME_FONTS];
@@ -210,6 +211,26 @@ extern "C" void cardview_draw(void)
         char cn[16]; g_str(G_DGROUP, GV_card_name, cn, sizeof cn);
         for (int j = 0; j < c.npieces; j++) if (c.piece[j].is_opt && c.piece[j].state) teaches[j] = (char)teach_card_option(cn, c.piece[j].opt, &teach[j]);
     }
+    /* the town gate's "simply walk out" ($Selec00): when the guards will stop the party and attack (or
+       may: the town on alert), the crossed blades of a fight, and why under the pointer (ui/quests.cpp) */
+    int gate_piece = -1; bool gate_certain = false; std::string gate_why;
+    {
+        char cn[16]; g_str(G_DGROUP, GV_card_name, cn, sizeof cn);
+        if (menu && !strcasecmp(cn, "$SELEC00") && (gate_why = town_gate_risk((s16)g_rw(G_CUR_LOC), &gate_certain)).size())
+            for (int j = 0; j < c.npieces; j++)
+                if (c.piece[j].is_opt && c.piece[j].state == 1 && c.piece[j].type == 0 && strstr(c.piece[j].text, "walk out")) gate_piece = j;
+    }
+    auto fights = [&](int j) { const CvPiece &p = c.piece[j]; return p.is_opt && (p.type == -1 || j == gate_piece); };
+    /* an option that leads to one of the party's tasks here (a reward waiting, a thing to get from an
+       office): the task's picture at the row's end, the task under the pointer (ui/citynav.cpp) */
+    std::vector<int> task_of(c.npieces, -1);
+    std::vector<CardTask> tasks;
+    if (menu) {
+        tasks = citynav_option_tasks();
+        for (int j = 0; j < c.npieces; j++)
+            if (c.piece[j].is_opt && c.piece[j].state == 1)
+                for (size_t t = 0; t < tasks.size(); t++) if (tasks[t].opt == c.piece[j].opt) { task_of[j] = (int)t; break; }
+    }
     float scale = 1.0f;
     std::vector<Laid> laid(c.npieces);
     float size = 0, L = 0, gap = 0, pad = 0, cap = 0, total = 0;
@@ -238,7 +259,7 @@ extern "C" void cardview_draw(void)
             std::string body = utf[j];
             float hang = 0;                                      /* the lines of an option under its words, after the "..." */
             if (p.is_opt && p.lead[0]) { std::string ld = gtext(p.lead); hang = f->CalcTextSizeA(size, FLT_MAX, 0, ld.c_str()).x; body = ld + body; }
-            float reserve = (p.is_opt && p.type == -1 ? 1.6f * size : 0) + (teaches[j] ? 1.6f * size : 0);   /* room for the crossed blades, the lectern */
+            float reserve = (fights(j) ? 1.6f * size : 0) + (teaches[j] ? 1.6f * size : 0) + (task_of[j] >= 0 ? 1.6f * size : 0);   /* room for the crossed blades, the lectern, a task's picture */
             wrap(f, size, body, w - reserve, ind, indl, ws, hang);
             if (p.is_opt && j > 0 && !c.piece[j - 1].is_opt) y += gap * 0.6f;
             la.y0 = y - 0.12f * L;
@@ -372,10 +393,11 @@ extern "C" void cardview_draw(void)
             float rs = size * 1.0f; ImVec2 rt = f->CalcTextSizeA(rs, FLT_MAX, 0, "?");   /* (as the numerals, dim) */
             dl->AddText(f, rs, ImVec2(cpos.x - rt.x * 0.5f, cpos.y - rt.y * 0.52f), ink_dim, "?");
         }
-        if (p.is_opt && p.type == -1 && p.state == 1) {          /* a fight: two crossed blades */
+        if (fights(j) && p.state == 1) {                         /* a fight: two crossed blades (faint: a fight that may come) */
             ImVec2 cpos(X1 - 0.9f * size, (la.lines.empty() ? y0 : la.lines[0].y - shift) + size * 0.5f);
             float r = size * 0.42f, th = fmaxf(1.2f, 0.34f * k);
-            ImU32 bc = dark ? IM_COL32(230, 120, 100, 230) : IM_COL32(140, 30, 20, 230);
+            int ba = j == gate_piece && !gate_certain ? 120 : 230;
+            ImU32 bc = dark ? IM_COL32(230, 120, 100, ba) : IM_COL32(140, 30, 20, ba);
             for (int s = -1; s <= 1; s += 2) {                   /* (each a sword: blade, crossguard, pommel - two bare lines read as an X, "not possible") */
                 ImVec2 tip(cpos.x - s * r, cpos.y - r), hilt(cpos.x + s * r, cpos.y + r);
                 ImVec2 g(tip.x + 0.68f * (hilt.x - tip.x), tip.y + 0.68f * (hilt.y - tip.y));
@@ -387,10 +409,15 @@ extern "C" void cardview_draw(void)
             }
         }
         if (teaches[j]) {                                          /* brings a teacher: a lectern (left of the blades, if both) */
-            ImVec2 cpos(X1 - 0.9f * size - (p.type == -1 && p.state == 1 ? 1.6f * size : 0), (la.lines.empty() ? y0 : la.lines[0].y - shift) + size * 0.5f);
+            ImVec2 cpos(X1 - 0.9f * size - (fights(j) && p.state == 1 ? 1.6f * size : 0), (la.lines.empty() ? y0 : la.lines[0].y - shift) + size * 0.5f);
             int a = p.state == 1 ? 235 : 110;
             ImU32 ti = dark ? IM_COL32(236, 210, 160, a) : IM_COL32(80, 50, 24, a), tp = dark ? IM_COL32(238, 230, 208, a) : IM_COL32(252, 246, 228, a);
             ui_draw_teach_mark(dl, cpos, size * 1.05f, ti, tp);
+        }
+        if (task_of[j] >= 0) {                                     /* leads to a task: its picture (left of the blades and the lectern) */
+            float off = (fights(j) && p.state == 1 ? 1.6f * size : 0) + (teaches[j] ? 1.6f * size : 0);
+            ImVec2 cpos(X1 - 0.9f * size - off, (la.lines.empty() ? y0 : la.lines[0].y - shift) + size * 0.5f);
+            ui_draw_quest_icon(dl, cpos, size * 1.25f, tasks[task_of[j]].cat);
         }
         for (const Line &l : la.lines) dl->AddText(f, size, ImVec2(l.x, l.y - shift), col, l.t.c_str());
         if (p.is_opt && (p.type == 1 || p.type == 2) && p.state == 1) {               /* opens a list: a small arrow */
@@ -531,6 +558,28 @@ extern "C" void cardview_draw(void)
                                       en.code == 0x87 ? (c.popup_kind == 2 ? "at the easiest difficulty, the leader need not know the saint" : "at the easiest difficulty, the leader needs none") : nullptr;
                     if (knows_saint) why = "knows this saint already";
                     if (why) dl->AddText(fs, size * 0.78f, ImVec2(tx + f->CalcTextSizeA(size * 0.95f, FLT_MAX, 0, et.c_str()).x + 0.6f * size, ey + 0.12f * h), ink_soft, why);
+                    /* a saint to call on: the Virtue it asks of the one who prays, at the row's end - Virtue's shield and
+                       the number, red when this member's is below it (more Divine Favor does not help then) */
+                    if (c.popup_kind == 2 && !saint_learning && en.vmin > 0) {
+                        char vb[16]; snprintf(vb, sizeof vb, "%d", en.vmin);
+                        float vs = size * 0.82f, ish = size * 0.8f;
+                        ImVec2 vt = fs->CalcTextSizeA(vs, FLT_MAX, 0, vb);
+                        float vx = X1 - 0.5f * size - vt.x;
+                        bool low = en.virtue < en.vmin;
+                        ImU32 vc = low ? (dark ? IM_COL32(250, 125, 100, 255) : IM_COL32(150, 30, 18, 255)) : ink_soft;
+                        const int VIRTUE = 9;                       /* (the skills' numbering: gm_skill_name) */
+                        ui_skill_icon(dl, ImVec2(vx - ish * 0.7f, ey + 0.46f * h), ish, VIRTUE);
+                        dl->AddText(fs, vs, ImVec2(vx, ey + 0.46f * h - vt.y * 0.52f), vc, vb);
+                        ImVec2 m0(vx - ish * 1.3f, ey), m1(vx + vt.x, ey + h);
+                        if (ImGui::IsMouseHoveringRect(m0, m1, false) && !ui_is_open()) {
+                            ui_tip_beside(m0, m1);
+                            ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
+                            ImGui::Text("This saint asks a Virtue of %d of the one who prays.", en.vmin);
+                            if (low) { char nm[24]; g_str(G_DGROUP, (u16)(G_MEMBER(en.member) + G_M_SHORTNAME), nm, sizeof nm);
+                                       ImGui::TextDisabled("%s has %d: too low to call on this saint, however much Divine Favor is spent.", game_text(nm, strlen(nm)).c_str(), en.virtue); }
+                            ImGui::PopTextWrapPos(); ImGui::EndTooltip();
+                        }
+                    }
                 }
                 c.entry_y0[e] = wy2g(ey - 0.1f * h); c.entry_y1[e] = wy2g(ey + 0.95f * h);
                 if (c.hover_entry == e) { tip_at = ImVec2(X1 + 2 * k, ey); if (c.popup_kind == 2) tip_saint = en.id; else if (ef >= 0) tip_formula = ef; else tip_item = en.id; }
@@ -599,6 +648,26 @@ extern "C" void cardview_draw(void)
         std::string hired = ui_teachers_hired_line((s16)g_rw(GV_cur_loc));
         if (!hired.empty()) ImGui::TextDisabled("Hired here now: %s.", hired.c_str());
         if (const char *why = greyed_hint(c.piece[c.hover])) { ImGui::Separator(); ImGui::TextDisabled("Not possible now"); ImGui::TextUnformatted(why); }
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
+    else if (tipmenu && c.hover >= 0 && c.hover == gate_piece) {
+        float ww = tip_place(21);
+        ImGui::BeginTooltip();
+        ImGui::TextDisabled("%s", gate_certain ? "A fight" : "Perhaps a fight");
+        ImGui::PushTextWrapPos(ww);
+        ImGui::TextUnformatted(gate_why.c_str());
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
+    else if (tipmenu && c.hover >= 0 && c.hover < c.npieces && task_of[c.hover] >= 0) {
+        float ww = tip_place(22);                                  /* the task this way leads to */
+        int n = 0; for (const CardTask &t : tasks) n += t.opt == c.piece[c.hover].opt;
+        ImGui::BeginTooltip();
+        ImGui::TextDisabled("%s", n > 1 ? "Your tasks" : "Your task");
+        ImGui::PushTextWrapPos(ww);
+        for (const CardTask &t : tasks)
+            if (t.opt == c.piece[c.hover].opt) { ImGui::TextUnformatted(t.title.c_str()); ImGui::TextDisabled("%s", t.text.c_str()); }
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }

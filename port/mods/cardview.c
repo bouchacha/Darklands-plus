@@ -422,6 +422,12 @@ static void build_popup(int j)
         e->id = (s16)g_rw((u16)((p->type == 1 ? A_CARD_ITEMS : A_CARD_SAINTS) + 2 * e->slot));
         snprintf(e->text, sizeof e->text, "%s", t);
         snprintf(e->who, sizeof e->who, "%s", name);
+        if (p->type == 2 && e->member >= 0 && e->member < 5) {
+            int sheet_saint_vmin(int);
+            e->vmin = sheet_saint_vmin(e->id);
+            if (ns_unwinding) return;
+            e->virtue = (s8)g_rb((u16)(G_MEMBER(e->member) + G_M_SKILLS + 9));
+        }
         name[0] = 0;
     }
     for (int i = 0; i < CV_MAXPOP; i++) c->entry_y0[i] = c->entry_y1[i] = -1;

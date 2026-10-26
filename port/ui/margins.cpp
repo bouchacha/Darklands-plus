@@ -562,9 +562,12 @@ static void right_panel(int size)
             ImVec2 p0 = ImGui::GetCursorScreenPos();
             ui_draw_quest_icon(ImGui::GetWindowDrawList(), ImVec2(p0.x + is * 0.5f, p0.y + lh * 0.5f), is, t.cat);
             ImGui::Indent(is + lh * 0.3f);
-            ImGui::TextColored(ImVec4(0.95f, 0.55f, 0.43f, 1), "%s %s", t.cat == QC_UNWELCOME ? "Unwelcome" : "Wanted", short_date(t.until, (s16)g_rw(G_CUR_YEAR)).c_str());
+            bool al = t.cat == QC_ALERT;
+            ImGui::TextColored(al ? ImVec4(0.95f, 0.78f, 0.45f, 1) : ImVec4(0.95f, 0.55f, 0.43f, 1), "%s %s", t.cat == QC_UNWELCOME ? "Unwelcome" : al ? "On alert" : "Wanted",
+                               short_date(t.until, (s16)g_rw(G_CUR_YEAR)).c_str());
             if (item_hovered()) margin_tip(t.cat == QC_UNWELCOME ? "The town counts as hostile: its gates and people turn the party away."
-                                                                                       : "The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder.");
+                                           : al ? town_alert_text(cur).c_str()
+                                                : "The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder.");
             ImGui::Unindent(is + lh * 0.3f);
         }
         {   /* a season of city politics (mods/politics.c, experimental): the town in turmoil, until the party takes a side

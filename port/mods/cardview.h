@@ -28,6 +28,7 @@ typedef struct {
     int code;                 /* the original's colour code: 0x80 normal, 0x87 automatic, 0x84 known, 0x83 none */
     int id;                   /* the saint, or the item */
     char who[24];             /* the member's name (first entry of a member) */
+    int vmin, virtue;         /* a saint: the Virtue it asks of the one who prays (0 none), and that member's */
     char text[60];
 } CvEntry;
 

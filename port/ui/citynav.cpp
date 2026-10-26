@@ -740,6 +740,76 @@ static std::map<int, std::vector<DestTask>> dest_tasks(int town)
     return m;
 }
 
+/* the options of the card on show that lead to one of the party's tasks in this town, for the card
+   view (ui/cardview.cpp: the task's picture at the option's end, the task under the pointer).
+   A reward waits with its giver: at a house (the banks, the Hanse, the cathedral, the council, the
+   fortress without one) its own option for the reward; at the marketplace (a merchant, a foreign
+   trader, a pharmacist) the line to the stall. A thing to get from an office above the marketplace:
+   by night, the market's ways upstairs, then the office. On the streets' hubs, the line to the
+   place, or to a hub whose own lines lead there. */
+static const char *HOUSE_CARD[D_N];
+static std::vector<CardTask> option_tasks_now(void)
+{
+    std::vector<CardTask> out;
+    int town = (s16)g_rw(G_CUR_LOC);
+    if (!in_city() || town < 0 || town >= (int)gamedata.cities.size()) return out;
+    struct Want { int dest, office; CardTask t; };
+    std::vector<Want> w;
+    bool council = gamedata.cities[town].buildings & 2;
+    std::vector<QuestRow> rows; quest_rows(rows, QSORT_DEADLINE);
+    for (const QuestRow &r : rows) {
+        if (r.loc != town) continue;
+        CardTask t; t.opt = -1; t.cat = r.cat; t.title = r.title; t.text = r.text;
+        if (r.office >= 0) { if (is_night()) w.push_back({ -1, r.office & 3, t }); continue; }
+        int d = -1;
+        switch (r.giver) {
+        case 0: d = D_MERCHANT; break; case 4: d = D_FOREIGN; break; case 5: d = D_PHARMACIST; break;
+        case 6: d = D_MEDICI; break; case 7: d = D_HANSE; break; case 8: d = D_FUGGER; break; case 3: d = D_CATHEDRAL; break;
+        case 10: d = council ? D_TOWNHALL : fix_is_on("lordreward") ? D_FORTRESS : -1; break;
+        }
+        if (d >= 0 && !night_closed(d)) w.push_back({ d, -1, t });
+    }
+    if (w.empty()) return out;
+    std::string card = card_now();
+    int blk = (s16)g_rw(GV_shown_block);
+    std::vector<std::string> blocks = live_blocks();
+    if (blocks.empty()) { if (!cards_loaded) load_cards(); auto it = cards.find(card); if (it != cards.end()) blocks = it->second; }
+    if (blk < 0 || blk >= (int)blocks.size()) return out;
+    std::vector<std::string> opts = block_options(blocks[blk]);
+    int hub = hub_of(card);
+    static const char *OFFICE[4] = { "leading merchant", "medici", "fugger", "hanseatic" };   /* (papers_office: 0 the leading merchant, 1 the Medici, 2 the Fugger, 3 the Hanse) */
+    auto leads = [&](int to, const Want &x) {                 /* a hub's line `to` leads to the task's place (directly, or by its next hub) */
+        if (x.dest >= 0 && to == x.dest) return true;
+        if (to < 100) return false;
+        for (const Rule &r : RULES) if (r.hub == to - 100 && x.dest >= 0 && r.to == x.dest) return true;
+        return x.office >= 0 && to == 100 + H_MARKET;
+    };
+    for (int o = 0; o < (int)opts.size(); o++) {
+        const std::string &t = opts[o];
+        for (const Want &x : w) {
+            bool yes = false;
+            if (x.office >= 0 && hub == H_MARKET) yes = t.find("upstairs") != std::string::npos || t.find("avoiding them") != std::string::npos;   /* ($Marke01: the saint takes them up too) */
+            else if (x.office >= 0 && !strncmp(card.c_str(), "$INSID", 6)) yes = t.find(OFFICE[x.office]) != std::string::npos;
+            else if (hub != H_NONE) { int to = rule_for(hub, t); yes = to >= 0 && leads(to, x); }
+            else if (x.dest >= 0 && HOUSE_CARD[x.dest] && !strncmp(card.c_str(), HOUSE_CARD[x.dest], 6))
+                yes = t.find(x.dest == D_TOWNHALL || x.dest == D_FORTRESS ? "request an audience" : "reward") != std::string::npos;
+            if (yes) { CardTask c = x.t; c.opt = o; out.push_back(c); }
+        }
+    }
+    return out;
+}
+std::vector<CardTask> citynav_option_tasks(void)
+{
+    static std::vector<CardTask> v; static int frame = -100; static std::string key;
+    std::string k = card_now() + "/" + std::to_string((s16)g_rw(GV_shown_block));
+    if (k != key || ImGui::GetFrameCount() - frame > 30) {
+        if (!HOUSE_CARD[D_FUGGER]) { HOUSE_CARD[D_FUGGER] = "$FUGGE"; HOUSE_CARD[D_MEDICI] = "$MEDIC"; HOUSE_CARD[D_HANSE] = "$HANSE";
+                                     HOUSE_CARD[D_CATHEDRAL] = "$CATHE"; HOUSE_CARD[D_TOWNHALL] = "$COUNC"; HOUSE_CARD[D_FORTRESS] = "$CITYF"; }
+        v = option_tasks_now(); key = k; frame = ImGui::GetFrameCount();
+    }
+    return v;
+}
+
 extern "C" const char *journal_town_fact(int loc, const char *key);   /* ui/journal.cpp */
 extern ImFont *ui_font_bold;
 

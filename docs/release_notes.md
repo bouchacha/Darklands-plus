@@ -15,19 +15,19 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 
 **Cards, towns and the party**
 
-- **Cards say who tries an option and what it rests on:** the member's head, the skills and attributes as heraldic shields, the town's opinion and the party's fame. Where any member may speak for the party, a click on another member's chance has them speak (an alchemist's formula trade too).
+- **Cards say who tries an option and what it rests on:** the member's head, the skills and attributes as heraldic shields, the town's opinion and the party's fame. Where any member may speak for the party, a click on another member's chance has them speak (an alchemist's formula trade too). An option on the way to one of the party's quests in town (a reward waiting, papers to take from an office) carries the quest's picture, and the town gate warns when its guards may stop the party.
 - **Screens redrawn in period style:** alchemy as an alchemist's workbench with the Philosopher's Stone pictured; the inn and camp as a ledger that names the potions made and shows the hours going by (1.2's page looked frozen); the shop at its counter, the store room in a cellar, Party Info, Save and Load, marching order and enemy info.
-- **Shops and the character sheet:** items in sections; the load a weapon or armor would bring before you buy it; ingredients ten at a time, with how many the party has; a spare horse given to a member with Ride, a drag, or their number.
+- **Shops and the character sheet:** items in sections; the load a weapon or armor would bring before you buy it; ingredients ten at a time, with how many the party has; a spare horse given to a member with Ride, a drag, or their number. Items can be marked Keep or Sell, and the shop's Sell spare gear sells those marked Sell.
 - **Ammunition that runs out** (with the shared pack): each member's arrows, quarrels, balls and thrown weapons are their own.
 - **"Lost for good"** no longer shows after a battle for a member whose skill a saint has raised for a while (1.2 showed it after every battle, the boosted skills "lowered").
 - **Go to** works by night, says why a place is shut, and shows the party walking instead of flashing the cards on the way.
-- **Calling on a saint:** the favor to spend on a bar with the best chance marked, the reason when there is no chance, and prayers from the character sheet.
+- **Calling on a saint:** the favor to spend on a bar with the best chance marked, the reason when there is no chance, the Virtue each saint asks, and prayers from the character sheet.
 - **Docks:** a small map of where the boats go, with each fare. **More day jobs:** nine jobs the original never offers turn up in towns with the right places.
-- **Right margin:** the party's fame, the town's reputation with what changed it, and the formulae and teachers to be had in town as pictures.
+- **Right margin:** the party's fame, the town's reputation with what changed it, whether its watch is on alert, and the formulae and teachers to be had in town as pictures.
 
 **The world map**
 
-- **Quests and towns live on the world map** (the Journal's pages for them are gone): boat routes along the rivers and coasts, windows to find alchemical ingredients or any ware, towns on wax seals, several quests at one place on an arc over it, the way the party would take, Snap to party, and a view that stays on the map.
+- **Quests and towns live on the world map** (the Journal's pages for them are gone): boat routes along the rivers and coasts, windows to find alchemical ingredients or any ware, towns on wax seals, several quests at one place circling it, the way the party would take, Snap to party, and a view that stays on the map.
 
 **Look and sound**
 

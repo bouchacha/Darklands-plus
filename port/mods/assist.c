@@ -488,8 +488,24 @@ int assist_card_key(int digit, int *gx, int *gy)
     return 1;
 }
 
+/* the town gate ($Selec00, s058 191a:0470), "simply walk out": the guards stop the party when the town
+   counts as hostile, else two times in five while it is on alert; the log says which held (the card
+   view says it beforehand, ui/quests.cpp town_gate_risk) */
+static void gate_walk_hook(void)
+{
+    int loc = (s16)g_rw(G_CUR_LOC);
+    int unwel = ns_call(GF_event_at, 2, 0x11, loc), alert = ns_call(GF_event_at, 2, 0x13, loc);
+    int rep = ns_call(GF_loc_reputation, 1, loc), hostile = ns_call(GF_loc_hostile_impl, 0);
+    if (ns_unwinding) return;
+    fprintf(stderr, "gate: walking out of %d: %s (opinion %d%s%s)\n", loc,
+            hostile ? "the town is hostile: the guards stop the party" : alert ? "on alert: the guards stop 2 in 5" : "free to go",
+            rep, unwel ? ", unwelcome" : "", alert ? ", on alert" : "");
+    hook_call_original();
+}
+
 void assist_init(void)
 {
+    hook_install(58, 0x191a, 0x0470, gate_walk_hook);
     assist_card_help = config_get_int("assist.card_help", 1);
     assist_card_keys = config_get_int("assist.card_keys", 1);
     assist_best_leader = config_get_int("assist.best_leader", 1);

@@ -270,6 +270,45 @@ static int side_at(const std::vector<Ev> &evs, int loc)        /* the party's si
     for (const Ev &e : evs) if (e.kind == 8 && e.tag == 2 && e.loc == loc) return e.value == -1 || e.value == 1 ? e.value : 0;
     return 0;
 }
+/* a town on alert (event 0x13): set for a day by a fight with the guards at a gate or the walls, a
+   potion used there or a party caught sneaking in, for four weeks by a rising (conflict_outcome) */
+std::string town_alert_text(int loc)
+{
+    std::string t = "The watch of " + loc_name(loc) + " is on alert, after trouble with its guards at the gates or walls (or a rising). "
+                    "Two times in five, the guards stop a party that simply walks out of the gate, and attack; sneaking out, "
+                    "or talking your way in, is harder.";
+    if (fix_is_on("cityalert")) t += " With its opinion of the party at -10 or worse, the town counts as hostile.";
+    return t;
+}
+/* $Selec00's "simply walk out" (s058 191a:0470): the guards stop the party when the town counts as
+   hostile (loc_hostile: unwelcome, an opinion of -75 or worse, or on alert at -10 or worse with
+   the cityalert fix), else two times in five while it is on alert */
+std::string town_gate_risk(int loc, bool *certain)
+{
+    *certain = false;
+    if (loc < 0 || loc >= (int)gamedata.cities.size()) return "";
+    std::vector<Ev> evs = read_events();
+    int today[4] = { (s16)g_rw(G_CUR_HOUR), (s16)g_rw(G_CUR_DAY), (s16)g_rw(G_CUR_MONTH), (s16)g_rw(G_CUR_YEAR) };
+    long now = when_key(today), unwel = -1, alert = -1; std::string unwel_d, alert_d;
+    for (const Ev &e : evs) {
+        if (e.loc != loc || when_key(e.end) < now) continue;
+        if (e.kind == 0x11 && when_key(e.end) > unwel) { unwel = when_key(e.end); unwel_d = date(e.end); }
+        if (e.kind == 0x13 && when_key(e.end) > alert) { alert = when_key(e.end); alert_d = date(e.end); }
+    }
+    u32 r = g_location(loc);
+    int rep = r ? (s16)rw((u16)(r >> 16), (u16)((u16)r + 0x12)) : 0;
+    std::string town = loc_name(loc);
+    char op[16]; snprintf(op, sizeof op, "%d", rep);
+    *certain = true;
+    if (unwel >= 0) return "The guards will stop the party and attack: " + town + " counts the party as unwelcome, until " + unwel_d + ".";
+    if (rep <= -75) return "The guards will stop the party and attack: " + town + "'s opinion of the party is " + op + " (-75 or worse: hostile).";
+    if (alert >= 0 && rep <= -10 && fix_is_on("cityalert"))
+        return "The guards will stop the party and attack: " + town + "'s watch is on alert, until " + alert_d + ", and its opinion of the party is " + op + " (-10 or worse: hostile).";
+    *certain = false;
+    if (alert >= 0) return "Two times in five, the guards stop the party and attack: " + town + "'s watch is on alert, until " + alert_d + ".";
+    return "";
+}
+
 static std::vector<Line> build_lines(void)
 {
     std::vector<Line> v;
@@ -280,10 +319,11 @@ static std::vector<Line> build_lines(void)
     int today[4] = { (s16)g_rw(G_CUR_HOUR), (s16)g_rw(G_CUR_DAY), (s16)g_rw(G_CUR_MONTH), (s16)g_rw(G_CUR_YEAR) };
     long now = when_key(today);
     std::map<std::pair<int, int>, long> last;
-    for (const Ev &e : evs) if (e.kind == 0x11 || e.kind == 0x12) { long k = when_key(e.end); auto &l = last[{ e.kind, e.loc }]; if (k > l) l = k; }
+    for (const Ev &e : evs) if (e.kind == 0x11 || e.kind == 0x12 || e.kind == 0x13) { long k = when_key(e.end); auto &l = last[{ e.kind, e.loc }]; if (k > l) l = k; }
     std::map<std::pair<int, int>, int> shown;
     for (const Ev &e : evs) {
-        if ((e.kind == 0x11 || e.kind == 0x12) && (when_key(e.end) < now || when_key(e.end) != last[{ e.kind, e.loc }] || shown[{ e.kind, e.loc }]++)) continue;
+        if ((e.kind == 0x11 || e.kind == 0x12 || e.kind == 0x13) && (when_key(e.end) < now || when_key(e.end) != last[{ e.kind, e.loc }] || shown[{ e.kind, e.loc }]++)) continue;
+        if (e.kind == 0x13 && last.count({ 0x11, e.loc }) && last[{ 0x11, e.loc }] >= now) continue;   /* (unwelcome says more) */
         std::string who = person(e.kind == 0x24 ? e.value : e.type0);
         std::string by = who.empty() ? giver(e.owner) : who + " (" + giver(e.owner) + ")";
         std::string place = loc_name(e.loc);
@@ -320,6 +360,8 @@ static std::vector<Line> build_lines(void)
             add("The Wild Hunt", "The Wild Hunt pursues the party.", "", 2, -1, false, QC_HUNT);
         else if (e.kind == 0x11 && e.loc >= 0 && e.loc < (int)gamedata.cities.size())
             { add("Unwelcome @ " + place, "Not welcome in " + place + ": the town counts as hostile to the party (its gates and people turn it away).", "until " + date(e.end), 3, -1, true, QC_UNWELCOME); v.back().town = e.loc; }
+        else if (e.kind == 0x13 && e.loc >= 0 && e.loc < (int)gamedata.cities.size())
+            { add("On alert @ " + place, town_alert_text(e.loc), "until " + date(e.end), 3, -1, true, QC_ALERT); v.back().town = e.loc; }
         else if (e.kind == 0x12 && e.loc >= 0 && e.loc < (int)gamedata.cities.size())
             { add("Wanted @ " + place, "Wanted by the watch in " + place + ": guards who recognize the party try to arrest it, and talking or bribing your way out is harder.", "until " + date(e.end), 3, -1, true, QC_WANTED); v.back().town = e.loc; }
         else if (e.kind == 0x1c && e.tag == 1 && e.type0 == 4 && (spoilers || sab_what(e))) {

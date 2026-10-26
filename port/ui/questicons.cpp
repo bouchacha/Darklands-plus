@@ -15,7 +15,7 @@ using pen::Pen;
 
 const char *QUEST_CAT_NAME[QC_N] = {
     "Quest", "Robber knight", "Reward waiting", "A treasure to fetch", "Papers to get in a town", "Mine",
-    "Dragon", "Wild Hunt", "Unwelcome in a town", "Wanted in a town", "Sabbat", "City politics", "City at war"
+    "Dragon", "Wild Hunt", "Unwelcome in a town", "Wanted in a town", "Sabbat", "City politics", "City at war", "Town on alert"
 };
 
 namespace {
@@ -184,6 +184,20 @@ void ui_draw_quest_icon(ImDrawList *dl, ImVec2 c, float s, int cat)
         p.disc(0, 2.0f, 8.4f + o, INK); p.disc(0, 2.0f, 8.4f, RED);
         p.ring(0, 2.0f, 7.0f, GOLD, 0.9f);
         p.disc(0, 2.0f, 2.4f + o, INK); p.disc(0, 2.0f, 2.4f, STEEL);       // the boss
+        break; }
+    case QC_ALERT: {                                                        /* the watch's alarm bell, ringing */
+        ImU32 BRONZE = C(0.80f, 0.56f, 0.22f);
+        p.rect(-11.0f - o, -13.0f - o, 11.0f + o, -10.6f + o, INK); p.rect(-11.0f, -13.0f, 11.0f, -10.6f, WOOD);   // the beam
+        p.rect(-1.0f - o, -10.8f, 1.0f + o, -7.6f, INK); p.rect(-1.0f, -10.8f, 1.0f, -7.6f, IRON);
+        p.poly({ -3.9f, -8.9f, 3.9f, -8.9f, 6.5f, -3.4f, 7.4f, 4.4f, -7.4f, 4.4f, -6.5f, -3.4f }, INK);
+        p.poly({ -3.3f, -8.1f, 3.3f, -8.1f, 5.7f, -3.2f, 6.6f, 3.8f, -6.6f, 3.8f, -5.7f, -3.2f }, BRONZE);   // the bell
+        p.rect(-9.4f - o, 3.2f - o, 9.4f + o, 5.8f + o, INK, 1.2f); p.rect(-9.4f, 3.2f, 9.4f, 5.8f, BRONZE, 1.0f);   // its lip
+        p.line(-2.4f, -6.8f, -4.0f, 2.6f, GOLD, 1.0f);                       // the light on it
+        p.disc(1.6f, 7.6f, 1.9f + o, INK); p.disc(1.6f, 7.6f, 1.9f, IRON);   // the clapper, swung
+        for (int sd = -1; sd <= 1; sd += 2) {                                // the ringing
+            p.line(sd * 9.6f, -3.8f, sd * 12.2f, -6.2f, INK, 1.1f);
+            p.line(sd * 10.4f, 0.2f, sd * 13.2f, 0.2f, INK, 1.1f);
+        }
         break; }
     default:                                                                /* a scroll */
         p.rect(-7.0f, -9.0f, 7.0f, 9.0f, C(0.98f, 0.95f, 0.86f)); p.rect_line(-7.0f, -9.0f, 7.0f, 9.0f, INK, 0.8f);

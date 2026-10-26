@@ -12,7 +12,7 @@ struct ImDrawList; struct ImVec2;
    a town), a reward waiting, and a town's trouble with the party (not a task: shown at the town) */
 enum QuestCat {
     QC_NONE, QC_ROBBER, QC_REWARD, QC_RETRIEVE, QC_PAPERS, QC_MINE, QC_DRAGON, QC_HUNT,
-    QC_UNWELCOME, QC_WANTED, QC_SABBAT, QC_POLITICS, QC_WAR, QC_N
+    QC_UNWELCOME, QC_WANTED, QC_SABBAT, QC_POLITICS, QC_WAR, QC_ALERT, QC_N
 };
 extern const char *QUEST_CAT_NAME[QC_N];
 void ui_draw_quest_icon(ImDrawList *dl, ImVec2 c, float s, int cat);   // a roundel about s pixels across, centred on c
@@ -45,8 +45,12 @@ void ui_boot_icon(ImDrawList *dl, ImVec2 c, float s, unsigned int col);       //
 void quest_sort(std::vector<QuestRow> &rows, int sort);
 void quest_merge(std::vector<QuestRow> &rows);   // one row for the same task from several givers (shown lists; not citynav)
 void quest_marks_cat(std::vector<std::pair<int, std::string>> &out, std::vector<int> &cats);
-struct TownMark { int loc, cat; std::string until; };     // a town that bars the party (QC_UNWELCOME) or whose watch wants it (QC_WANTED)
+struct TownMark { int loc, cat; std::string until; };     // a town that bars the party (QC_UNWELCOME), whose watch wants it (QC_WANTED), or is on alert (QC_ALERT)
 void town_marks(std::vector<TownMark> &out);   // (place, its task) with each one's QuestCat
 std::string quest_days(const QuestRow &r);                 // "37 days", "last day", "" (no deadline)
 std::string quest_distance(const QuestRow &r);             // "here", "north-east, about 2 days away"
+struct CardTask { int opt, cat; std::string title, text; };
+std::vector<CardTask> citynav_option_tasks(void);   // the options of the card on show that lead to a task of the party's here (ui/citynav.cpp)
+std::string town_gate_risk(int loc, bool *certain);   // what the guards at loc's gate do to a party that simply walks out ($Selec00): "" nothing
+std::string town_alert_text(int loc);                // what a town's alert means (the margin, the journal)
 bool party_xy(double *x, double *y);      // the party on the travel map: the place it is at, else its tile (false: unknown)
