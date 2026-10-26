@@ -216,7 +216,8 @@ static void shield(ImDrawList *dl, ImVec2 c, float s, ImU32 field)
 {
     float u = s / 16.0f;
     auto P = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
-    ImVec2 pts[12]; int n = 0;
+    ImVec2 pts[13]; int n = 0;            /* (13 corners: 3 + 4 + 1 + 4 + 1. It was 12: the last one went past the end, onto what Windows
+                                             keeps of the caller's registers - the inn's teacher rows lost their place, its text its size) */
     pts[n++] = P(-10, -11); pts[n++] = P(10, -11); pts[n++] = P(10, 0);
     for (int i = 1; i <= 4; i++) { float t = i / 5.0f; pts[n++] = P(10 * (1 - t) * (1 - t) + 0, 0 + 12 * t * (2 - t)); }
     pts[n++] = P(0, 12);

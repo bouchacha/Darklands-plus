@@ -1,11 +1,13 @@
 // drawguard.cpp - the last look at a frame before it goes to the graphics card: a triangle no screen of
 // Darklands+ means to draw is taken out, and the first few of them are said in the log ("draw guard: ...").
 //
-// Why: on players' machines (Direct3D 11) the inn and the camp were washed over in the colour of the
-// screens' light text, a picture never seen here (OpenGL and the processor's renderer). Such a wash is
-// what a letter drawn many times its size looks like (its soft edges magnified), or a triangle whose
-// corners lie absurdly far away (graphics cards clip those to the window and fill it; some renderers
-// drop them). Two kinds are taken out:
+// Why: on players' Windows machines the inn was washed over in the colour of the screens' text: letters
+// drawn hundreds of times their size (their soft edges magnified). The cause was a skill icon's shield
+// (ui/skillicons.cpp shield) writing one corner past its list, onto where Windows keeps the caller's
+// registers: the inn's row positions and text sizes after a teacher's icon became whatever the corner
+// was. Linux keeps nothing there, so it never showed here. A wash like that, or a triangle whose
+// corners lie absurdly far away (graphics cards clip those to the window and fill it), is what a slip
+// of that kind looks like on screen, so this guard stays: two kinds are taken out:
 //   - a corner not a number, or farther than 100 000 pixels: nothing on screen is so;
 //   - a letter (a triangle textured from the font atlas, not its white pixel) drawn more than 24 times
 //     the size it was made at: the largest text of the screens is some 3 times.
