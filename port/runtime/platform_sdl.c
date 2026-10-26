@@ -456,7 +456,7 @@ int plat_rec_frames;
 static u32 hold_until;
 void plat_hold(int ms) { hold_until = ms > 0 ? SDL_GetTicks() + (u32)ms : 0; }
 /* the battle view moved and its floor redrawn, its people not yet (mods/battlescroll.c): the last whole
-   frame stays until the next combat frame is drawn (plat_drawn), at most 150 ms */
+   picture of the game stays in the window until the next combat frame is drawn (plat_drawn), at most 150 ms */
 static u32 hold_draw_t; static int hold_draw;
 void plat_hold_until_drawn(void) { hold_draw = 1; hold_draw_t = SDL_GetTicks(); }
 void plat_drawn(void) { hold_draw = 0; }
@@ -467,17 +467,23 @@ void plat_present(const u8 *vga, const u8 *pal)
     if (headless) return;
     if (hold_until && (s32)(hold_until - SDL_GetTicks()) > 0) { SDL_PumpEvents(); return; }
     hold_until = 0;
-    if (hold_draw && SDL_GetTicks() - hold_draw_t < 150 && game_mode() == GM_BATTLE) { SDL_PumpEvents(); return; }
-    hold_draw = 0;
+    /* the battle view just moved, its people not yet drawn again (plat_hold_until_drawn): the window goes on
+       being drawn as ever - the interface, a slide under way - but with the last whole picture of the game
+       (1.3-RC32 held the whole window back instead: the people no longer flickered, but a drag lost its
+       smoothness) */
+    int held = hold_draw && SDL_GetTicks() - hold_draw_t < 150 && game_mode() == GM_BATTLE;
+    if (!held) hold_draw = 0;
     static int ptime = -1; if (ptime < 0) ptime = getenv("DL_PRESENT_TIME") != 0;
     uint64_t pt0 = ptime ? plat_ticks_us() : 0;
-    to_rgb(vga, pal);
-    static u8 idx[320 * 200];
-    memcpy(idx, vga, sizeof idx);
-    { void hdtext_prepare(u32 *, const u32 *, u8 *); hdtext_prepare(frame, lut, idx); }   /* crisp text: wipe the glyphs it redraws */
-    hdart_prepare(frame, idx, lut);                 /* replacement art: clear the pixels it covers */
-    { void hdart_labels(u32 *, const u8 *, const u32 *); hdart_labels(frame, idx, lut); }   /* words painted into pictures */
-    { void worldmap_watch_palette(void); worldmap_watch_palette(); }
+    if (!held) {
+        to_rgb(vga, pal);
+        static u8 idx[320 * 200];
+        memcpy(idx, vga, sizeof idx);
+        { void hdtext_prepare(u32 *, const u32 *, u8 *); hdtext_prepare(frame, lut, idx); }   /* crisp text: wipe the glyphs it redraws */
+        hdart_prepare(frame, idx, lut);                 /* replacement art: clear the pixels it covers */
+        { void hdart_labels(u32 *, const u8 *, const u32 *); hdart_labels(frame, idx, lut); }   /* words painted into pictures */
+        { void worldmap_watch_palette(void); worldmap_watch_palette(); }
+    }
     uint64_t pt1 = ptime ? plat_ticks_us() : 0;
     int nt = frame_textures();
     layout();
@@ -494,7 +500,7 @@ void plat_present(const u8 *vga, const u8 *pal)
         }
         SDL_RenderCopyF(ren, tiles[t], &tile_src[t], &d);
     }
-    if (slide_watch()) slide_draw();
+    if (held ? sliding && slide_t() < 1 : slide_watch()) slide_draw();   /* (held: a slide under way goes on; a new one waits for the whole picture) */
     uint64_t pt2 = ptime ? plat_ticks_us() : 0;
     ui_draw(ren);
     uint64_t pt3 = ptime ? plat_ticks_us() : 0;
