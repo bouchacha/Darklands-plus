@@ -129,43 +129,15 @@ static void build(int who)
             it->holder = who; it->kept = keep_is(g.id, g.qual); it->potion = 0;
         }
     } else {
-        /* the member's things in use, then their own (potions; ammunition and thrown weapons that run out:
-           gm_member_own), then the party's pack: every member's spares (but their own) by kind and quality */
-        for (int i = 0; i < gm_item_count(who); i++) {
-            GmItem g; if (!gm_item(who, i, &g) || !gm_item_in_use(who, i)) continue;
-            SvItem *it = &s->item[s->nitems++];
-            it->idx = i; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = gm_member_own(g.id, g.type) ? g.count : 1; it->weight = g.weight;   /* (a stack of one's own in hand: all of it) */
-            it->equipped = gm_item_equipped(who, i) ? 1 : 2;    /* (2: the mount they ride) */
-            it->drinkable = drinkable(g.id); it->holder = who; it->kept = keep_is(g.id, g.qual); it->potion = 0;
-        }
-        for (int i = 0; i < gm_item_count(who) && s->nitems < 200; i++) {
-            GmItem g; if (!gm_item(who, i, &g) || gm_item_in_use(who, i) || !gm_member_own(g.id, g.type)) continue;
-            SvItem *it = &s->item[s->nitems++];
-            it->idx = i; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
-            it->equipped = 0; it->drinkable = drinkable(g.id); it->holder = who; it->kept = keep_is(g.id, g.qual); it->potion = 1;
-        }
-        int first = s->nitems;
-        for (int m = 0; m < 5; m++) {
-            if (!gm_member_present(m) || gm_member_status(m) == 5) continue;
-            for (int i = 0; i < gm_item_count(m); i++) {
-                GmItem g; if (!gm_item(m, i, &g) || gm_member_own(g.id, g.type) || (gm_ammo_hidden() && gm_is_ammo(g.id))) continue;
-                int spare = gm_item_spare(m, i);
-                if (spare <= 0) continue;
-                int k = first;
-                while (k < s->nitems && !(s->item[k].id == g.id && s->item[k].qual == g.qual)) k++;
-                if (k == s->nitems) {
-                    if (s->nitems >= 200) continue;
-                    SvItem *it = &s->item[s->nitems++];
-                    it->idx = -1; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = 0; it->weight = g.weight;
-                    it->equipped = 0; it->drinkable = drinkable(g.id); it->holder = -1; it->kept = keep_is(g.id, g.qual); it->potion = 0;
-                }
-                s->item[k].count += spare;
-            }
-        }
-        for (int a = first + 1; a < s->nitems; a++) {           /* (by kind in the game's list order, then the better first) */
-            SvItem t = s->item[a]; int b = a - 1;
-            while (b >= first && (s->item[b].id > t.id || (s->item[b].id == t.id && s->item[b].qual < t.qual))) { s->item[b + 1] = s->item[b]; b--; }
-            s->item[b + 1] = t;
+        /* the member's things in use, then their own (potions; ammunition and thrown weapons that run out),
+           then the party's pack: every member's spares (but their own) by kind and quality (gm_pack_rows) */
+        static GmPackRow r[200];
+        int n = gm_pack_rows(who, r, 200);
+        for (s->nitems = 0; s->nitems < n; s->nitems++) {
+            SvItem *it = &s->item[s->nitems]; const GmPackRow *g = &r[s->nitems];
+            it->idx = g->idx; it->id = g->id; it->type = g->type; it->qual = g->qual; it->count = g->count; it->weight = g->weight;
+            it->equipped = g->use; it->drinkable = drinkable(g->id); it->holder = g->holder; it->kept = keep_is(g->id, g->qual);
+            it->potion = g->own && !g->use;
         }
     }
     memcpy(s->saint_class, saint_cls, sizeof s->saint_class);

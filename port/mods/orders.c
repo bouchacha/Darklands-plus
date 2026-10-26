@@ -485,7 +485,7 @@ static int kept_kind[5] = { -1, -1, -1, -1, -1 };
 /* every frame (runtime/platform_sdl.c): a battle begun, what this file remembers of the members is
    cleared - the last battle's orders, kinds kept, marks and bow switches are not this one's (a member
    sent hand to hand there opened fire here no more) */
-void battlerules_battle_begins(void);
+void battlerules_battle_begins(void), pathfix_battle_begins(void);
 void orders_frame(void)
 {
     static int was;
@@ -495,7 +495,7 @@ void orders_frame(void)
             by_volley[i] = 0; bow_given[i] = bow_hold[i] = 0; bow_flips[i] = 0; player_melee[i] = 0;
             idle_since[i] = 0; shot_at[i] = -1; kept_kind[i] = -1;
         }
-        battlerules_battle_begins();
+        battlerules_battle_begins(); pathfix_battle_begins();   /* (every file's memory of a battle: forgotten at the next) */
     }
     was = in;
 }

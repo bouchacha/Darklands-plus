@@ -77,40 +77,21 @@ static void build(void)
         w->weight = gm_itemdef_weight(w->id);
     }
     b->nitems = 0;
-    for (int pass = 0; pass < (b->shared ? 2 : 1); pass++)   /* the member's things (shared: those in use, then their own potions) */
-    for (int i = 0; i < ni; i++) {
+    if (b->shared) {                                      /* the member's things in use, their own, then the party's pack (gm_pack_rows) */
+        static GmPackRow r[200];
+        int n = gm_pack_rows(m, r, 200);
+        for (; b->nitems < n; b->nitems++) {
+            BvItem *it = &b->item[b->nitems]; const GmPackRow *g = &r[b->nitems];
+            it->idx = g->idx; it->id = g->id; it->type = g->type; it->qual = g->qual; it->count = g->count; it->weight = g->weight;
+            it->equipped = g->use; it->holder = g->holder; it->kept = keep_is(g->id, g->qual);
+        }
+    } else
+    for (int i = 0; i < ni; i++) {                        /* the member's things */
         GmItem g; gm_item(m, i, &g);
-        int eq = b->shared ? (gm_item_equipped(m, i) ? 1 : gm_item_riding(m, i) ? 2 : 0) : gm_item_equipped(m, i);
-        if (b->shared && (pass == 0 ? !eq : (eq || !gm_member_own(g.id, g.type)))) continue;
         if (gm_ammo_hidden() && gm_is_ammo(g.id)) continue;
         BvItem *it = &b->item[b->nitems++];
-        it->idx = i; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = b->shared && eq && !gm_member_own(g.id, g.type) ? 1 : g.count; it->weight = g.weight;
-        it->equipped = eq; it->holder = m; it->kept = keep_is(g.id, g.qual);
-    }
-    if (b->shared) {                                      /* then the party's pack: every member's spares by kind and quality */
-        int first = b->nitems;
-        for (int h = 0; h < 5; h++) {
-            if (!gm_member_present(h) || gm_member_status(h) == 5) continue;
-            for (int i = 0; i < gm_item_count(h); i++) {
-                GmItem g; if (!gm_item(h, i, &g) || gm_member_own(g.id, g.type) || (gm_ammo_hidden() && gm_is_ammo(g.id))) continue;   /* (potions and the like: each member's own) */
-                int spare = gm_item_spare(h, i);
-                if (spare <= 0) continue;
-                int k = first;
-                while (k < b->nitems && !(b->item[k].id == g.id && b->item[k].qual == g.qual)) k++;
-                if (k == b->nitems) {
-                    if (b->nitems >= 200) continue;
-                    BvItem *it = &b->item[b->nitems++];
-                    it->idx = -1; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = 0; it->weight = g.weight;
-                    it->equipped = 0; it->holder = -1; it->kept = keep_is(g.id, g.qual);
-                }
-                b->item[k].count += spare;
-            }
-        }
-        for (int a = first + 1; a < b->nitems; a++) {
-            BvItem t = b->item[a]; int c = a - 1;
-            while (c >= first && (b->item[c].id > t.id || (b->item[c].id == t.id && b->item[c].qual < t.qual))) { b->item[c + 1] = b->item[c]; c--; }
-            b->item[c + 1] = t;
-        }
+        it->idx = i; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
+        it->equipped = gm_item_equipped(m, i); it->holder = m; it->kept = keep_is(g.id, g.qual);
     }
     for (int k = 0; k < b->nitems; k++) {
         BvItem *it = &b->item[k];

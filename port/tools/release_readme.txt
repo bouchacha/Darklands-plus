@@ -41,7 +41,7 @@ Properties > Compatibility tick "Force the use of a specific Steam Play compatib
 choose Proton. In Gaming Mode it is then in your library, and the controller works.
 
 The opening plays at every start: a key or a click goes on to its last scene, the lady's
-welcome, and another to the start screen (F12 > Settings > Display: the whole opening, only its
+welcome, and another to the start screen (F12 > Settings > Intro: the whole opening, only its
 last scene, or nothing). The start screen shows the version; Continue there loads your newest
 save.
 
@@ -83,14 +83,14 @@ belong to Roland and are not included. If you use Munt or DOSBox with an MT-32 y
 already: Darklands+ finds them by their contents (any file names) in Munt's ROM folder, in
 DOSBox Staging's mt32-roms folder, or in a "roms" folder next to darklands.exe or in the
 Darklands folder. When none are found, Darklands+ says so when it starts and lets you choose
-their folder (or "Don't remind me again"); F12 > Settings > Display > Sound can name the folder too. With
+their folder (or "Don't remind me again"); F12 > Settings > Sound can name the folder too. With
 both a CM-32L and an MT-32 pair the MT-32 plays (on the CM-32L the battle sounds turn into
-chimes); you can switch between them there while playing.
+chimes).
 
 BATTLE SOUNDS
 The mods folder of this download holds "Battle sounds (0 A.D. recordings)": real sounds of
 swords, shields, blows, cries, the bow and the handgun in place of the synthesizer notes. Tick
-it in F12 > Mods (F12 > Settings > Display sets the volume). The recordings are from 0 A.D. by Wildfire
+it in F12 > Mods (F12 > Settings > Sound sets the volume). The recordings are from 0 A.D. by Wildfire
 Games, CC BY-SA 3.0 (mods\Battle sounds\CREDITS.txt).
 
 NEW ENCOUNTERS
@@ -108,7 +108,7 @@ MAKING MODS (in the Darklands folder)
   mods\My mod\rules.ini             weapon numbers and other rules
   mods\My mod\art\, sounds\         replacement pictures and sounds
   mods\My mod\music\                recordings in place of the game's music, named by the
-                                    piece's number (10.ogg, "11 market.ogg"; F12 > Settings > Display)
+                                    piece's number (10.ogg, "11 market.ogg"; F12 > Settings > Sound)
   mods\My mod\ENCOUNTERS\           new encounters as scripts (see mods\New encounters)
   F12 > Mods > "Make a new mod folder" makes one with a mod.txt that explains this.
 

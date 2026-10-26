@@ -81,6 +81,10 @@ def main():
     time.sleep(3)
     failed = 0
     seen = 0
+    # (first what the texts say against the code: tools/check_docs.py)
+    r = subprocess.run([sys.executable, '-I', os.path.join(HERE, 'check_docs.py')], capture_output=True, text=True)
+    print('%-40s %s' % ('the texts say what the code does', 'OK' if r.returncode == 0 else 'FAILED'))
+    if r.returncode: print(r.stdout.rstrip()); failed += 1
     try:
         for step in STEPS:
             name, steps, want = step[:3]

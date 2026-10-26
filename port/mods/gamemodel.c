@@ -107,6 +107,63 @@ int gm_pack_find(int prefer, int id, int qual, int *m_out, int *i_out)
     return 1;
 }
 
+int gm_pack_rows(int who, GmPackRow *out, int max)
+{
+    int n = 0;
+    for (int m = 0; m < 5; m++) {                                 /* the member's (or every member's) things */
+        if (who >= 0 && m != who) continue;
+        if (!gm_member_present(m) || (who < 0 && gm_member_status(m) == 5)) continue;
+        for (int pass = who >= 0 ? 0 : 1; pass < 2; pass++)       /* (in use first, then their own) */
+            for (int i = 0; i < gm_item_count(m) && n < max; i++) {
+                GmItem g; if (!gm_item(m, i, &g) || (gm_ammo_hidden() && gm_is_ammo(g.id))) continue;
+                int use = gm_item_equipped(m, i) ? 1 : gm_item_riding(m, i) ? 2 : 0, own = gm_member_own(g.id, g.type);
+                if (pass == 0 ? !use : (use || !own)) continue;
+                GmPackRow *r = &out[n++];
+                r->idx = i; r->holder = m; r->id = g.id; r->type = g.type; r->qual = g.qual; r->weight = g.weight;
+                r->count = use && !own ? 1 : g.count; r->use = use; r->own = own;
+            }
+    }
+    int first = n;
+    for (int m = 0; m < 5; m++) {                                 /* the pack */
+        if (!gm_member_present(m) || gm_member_status(m) == 5) continue;
+        for (int i = 0; i < gm_item_count(m); i++) {
+            GmItem g; if (!gm_item(m, i, &g) || gm_member_own(g.id, g.type) || (gm_ammo_hidden() && gm_is_ammo(g.id))) continue;
+            int spare = gm_item_spare(m, i);
+            if (spare <= 0) continue;
+            int k = first;
+            while (k < n && !(out[k].id == g.id && out[k].qual == g.qual)) k++;
+            if (k == n) {
+                if (n >= max) continue;
+                GmPackRow *r = &out[n++];
+                r->idx = -1; r->holder = -1; r->id = g.id; r->type = g.type; r->qual = g.qual; r->weight = g.weight;
+                r->count = 0; r->use = 0; r->own = 0;
+            }
+            out[k].count += spare;
+        }
+    }
+    for (int a = first + 1; a < n; a++) {                         /* (by kind, then the better first) */
+        GmPackRow t = out[a]; int b = a - 1;
+        while (b >= first && (out[b].id > t.id || (out[b].id == t.id && out[b].qual < t.qual))) { out[b + 1] = out[b]; b--; }
+        out[b + 1] = t;
+    }
+    return n;
+}
+
+int gm_pack_target(int id, int qual, int prefer, int allow)
+{
+    int best = -1, bm = -1, code = id;                            /* (a pile's code as it is, for gm_room_for) */
+    id &= 0xfff;
+    for (int k = 0; k < 5; k++) {
+        if (!(allow & (1 << k)) || !gm_member_present(k) || !gm_room_for(k, code, qual)) continue;
+        int stacks = 0;
+        for (int j = 0; j < gm_item_count(k) && !stacks; j++) { GmItem g; if (gm_item(k, j, &g) && g.id == id && g.qual == qual && g.count < 255) stacks = 1; }
+        int score = stacks ? 1000 : 2 * (64 - gm_item_count(k)) + (k == prefer);
+        if (gm_member_own(id, gm_itemdef_type(id)) && gm_member_uses(k, id)) score += 5000;   /* (arrows that run out: to the one who shoots them) */
+        if (score > best) { best = score; bm = k; }
+    }
+    return bm;
+}
+
 int gm_knows_formula(int m, int f)            /* a byte per potion, a bit per formula of it */
 {
     return m >= 0 && m < 5 && f >= 0 && f < 66 && ((rb(G_FAR2E38, (u16)(0x07be + m * 22 + f / 3)) >> (f % 3)) & 1);

@@ -18,7 +18,7 @@ UI_AVG, UI_WORST, VTX = 3.0, 8.0, 60000
 START = 'QUICKSTART; key Return; wait 12; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3'
 SCREENS = [
     ('a card', 'wait 4'),
-    ('a shop', 'ucmd urand:7; ucmd ugoto:3; wait 18; at 110 63; wait 4'),
+    ('a shop', 'ucmd urand:7; ucmd ugoto:0; wait 18; at 110 63; wait 4'),   # (the merchants: every town has them)
     ('sheet: items', 'at 20 70; click; wait 3; at 250 80; wait 4'),
     ('sheet: skills', 'at 254 15; click; wait 4'),
     ('sheet: saints', 'at 280 15; click; wait 4'),

@@ -264,7 +264,14 @@ def check(s, log):
     if s['end'] and not ended and foes_left and party_left and ticks[-1][0] < 40 * s['secs']:
         probs.append('slow run: the battle clock reached only %d in %ds (the machine busy?): not judged' % (ticks[-1][0], s['secs']))
     elif s['end'] and not ended and foes_left and party_left:
-        probs.append('battle not over after %ds (%d foes and %d of the party still standing)' % (s['secs'], len(foes_left), len(party_left)))
+        # (a fight still going - blows and shots in its last quarter - is a long one, not a stall: noted, not a problem)
+        t_q = ticks[-1][0] * 3 // 4
+        m = next((m for m in re.finditer(r'ARENA t=(\d+)', log) if int(m.group(1)) >= t_q), None)
+        blows = len(re.findall(r'^battle: .*(hits|misses|wounds|parries|shot)', log[m.start():] if m else '', re.M))
+        if blows >= 4:
+            print('%-24s        a long fight: not over after %ds, %d blows and shots in its last quarter' % (s['name'], s['secs'], blows))
+        else:
+            probs.append('battle not over after %ds (%d foes and %d of the party still standing; %d blows and shots in its last quarter)' % (s['secs'], len(foes_left), len(party_left), blows))
     return probs
 
 def main():

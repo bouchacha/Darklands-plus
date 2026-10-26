@@ -55,39 +55,16 @@ static void build(void)
         e->weight = gm_itemdef_weight(e->id);
     }
     c->shared = sheetview_shared();
-    if (c->shared) {                                          /* every member's potions, then the party's pack: the spares of all, by kind and quality */
-        c->nitems = 0; c->room = 0;
-        for (int m = 0; m < 5; m++) {
-            if (!gm_member_present(m) || gm_member_status(m) == 5) continue;
-            for (int i = 0; i < gm_item_count(m) && c->nitems < 200; i++) {
-                GmItem g; if (!gm_item(m, i, &g) || !gm_member_own(g.id, g.type) || gm_item_in_use(m, i)) continue;   /* (one's own: potions, and ammunition that runs out; not what is in hand) */
-                CvItem *it = &c->item[c->nitems++];
-                it->idx = i; it->id = g.id; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
-                it->equipped = 0; it->kept = keep_is(g.id, g.qual); it->potion = 1; it->owner = m;
-            }
+    if (c->shared) {                                          /* every member's own (potions ...), then the party's pack (gm_pack_rows) */
+        static GmPackRow r[200];
+        int n = gm_pack_rows(-1, r, 200);
+        c->room = 0;
+        for (int m = 0; m < 5; m++) if (gm_member_present(m) && gm_member_status(m) != 5 && able(m) && gm_item_count(m) < 64) c->room = 1;
+        for (c->nitems = 0; c->nitems < n; c->nitems++) {
+            CvItem *it = &c->item[c->nitems]; const GmPackRow *g = &r[c->nitems];
+            it->idx = g->idx; it->id = g->id; it->qual = g->qual; it->count = g->count; it->weight = g->weight;
+            it->equipped = 0; it->kept = keep_is(g->id, g->qual); it->potion = g->own; it->owner = g->holder;
         }
-        int first = c->nitems;
-        for (int m = 0; m < 5; m++) {
-            if (!gm_member_present(m) || gm_member_status(m) == 5) continue;
-            if (able(m) && gm_item_count(m) < 64) c->room = 1;
-            for (int i = 0; i < gm_item_count(m); i++) {
-                GmItem g; int spare = gm_item_spare(m, i);
-                if (spare <= 0 || !gm_item(m, i, &g) || gm_member_own(g.id, g.type) || (gm_ammo_hidden() && gm_is_ammo(g.id))) continue;
-                int k = first;
-                while (k < c->nitems && !(c->item[k].id == g.id && c->item[k].qual == g.qual)) k++;
-                if (k < c->nitems) { c->item[k].count += spare; continue; }
-                if (c->nitems >= 200) continue;
-                CvItem *it = &c->item[c->nitems++];
-                it->idx = -1; it->id = g.id; it->qual = g.qual; it->count = spare; it->weight = g.weight;
-                it->equipped = 0; it->kept = keep_is(g.id, g.qual); it->potion = 0; it->owner = -1;
-            }
-        }
-        for (int a = first + 1; a < c->nitems; a++)           /* by kind, the better first */
-            for (int b = a; b > first; b--) {
-                CvItem *x = &c->item[b - 1], *y = &c->item[b];
-                if (x->id < y->id || (x->id == y->id && x->qual >= y->qual)) break;
-                CvItem t = *x; *x = *y; *y = t;
-            }
     } else {
         int m = c->who;
         c->nitems = 0;
@@ -109,16 +86,9 @@ static int key(int k) { return ns_call(GF_cache_key, 1, k); }
    stacks), else whoever has the most free places (the member shown, on a tie) */
 static int pack_target(int id, int q)
 {
-    int best = -1, bm = -1, cur = who_now();
-    for (int k = 0; k < 5; k++) {
-        if (!able(k) || !gm_room_for(k, id, q)) continue;
-        int stacks = 0;
-        for (int j = 0; j < gm_item_count(k) && !stacks; j++) { GmItem g; if (gm_item(k, j, &g) && g.id == id && g.qual == q && g.count < 255) stacks = 1; }
-        int score = stacks ? 1000 : 2 * (64 - gm_item_count(k)) + (k == cur);
-        if (gm_member_own(id & 0xfff, gm_itemdef_type(id & 0xfff)) && gm_member_uses(k, id & 0xfff)) score += 5000;   /* (arrows that run out: to the one who shoots them) */
-        if (score > best) { best = score; bm = k; }
-    }
-    return bm;
+    int allow = 0;
+    for (int k = 0; k < 5; k++) if (able(k)) allow |= 1 << k;
+    return gm_pack_target(id, q, who_now(), allow);
 }
 
 static int take(int i, int all)

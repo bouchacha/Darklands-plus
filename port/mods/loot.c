@@ -21,6 +21,7 @@
 #include "../runtime/config.h"
 #include "barterview.h"
 #include "lootview.h"
+#include "gamemodel.h"
 
 #define L_CUR   GV_loot_who
 #define L_N     GV_loot_n
@@ -43,24 +44,6 @@ static int pile_units(void)
     for (int i = 0; i < n && i < 200; i++) t += rb(pile_seg(), (u16)(pile_off(i) + 4));
     return t;
 }
-static int item_type(int id)
-{
-    u32 d = g_itemdef(id & 0xfff);
-    return d ? rb((u16)(d >> 16), (u16)((u16)d + 30)) : 0;
-}
-/* does member m carry this item already (it stacks onto that record) */
-static int stacks(int m, u16 code, int qual)
-{
-    int n = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
-    u8 type = (u8)item_type(code);
-    for (int j = 0; j < n && j < 64; j++) {
-        u16 o = G_ITEM(m, j);
-        if (rw(G_FAR2E38, o) == code && rb(G_FAR2E38, (u16)(o + 2)) == type && rb(G_FAR2E38, (u16)(o + 3)) == qual && rb(G_FAR2E38, (u16)(o + 4)) < 0xff) return 1;
-    }
-    return 0;
-}
-/* can member m take one more of this item: a free record, or one it stacks onto */
-static int room_for(int m, u16 code, int qual) { return g_rb((u16)(G_MEMBER(m) + G_M_NITEMS)) < 64 || stacks(m, code, qual); }
 /* a member who can take things: alive, awake, and not left on another floor of the battlefield
  * (cbt_floor is a char array, -99 there; the original loot screen reads it as ints) */
 static int able(int m)
@@ -80,14 +63,11 @@ static void take_all(int share)
         u16 o = pile_off(j);
         u16 code = rw(pile_seg(), o); int qual = rb(pile_seg(), (u16)(o + 3));
         int m = -1;
-        if (!share) m = room_for(cur, code, qual) ? cur : -1;
-        else {
-            int best = -1;
-            for (int k = 0; k < size; k++) {
-                if (!able(k) || !room_for(k, code, qual)) continue;
-                int score = stacks(k, code, qual) ? 1000 : 2 * (64 - g_rb((u16)(G_MEMBER(k) + G_M_NITEMS))) + (k == cur);   /* (the person shown first, on a tie) */
-                if (score > best) { best = score; m = k; }
-            }
+        if (!share) m = gm_room_for(cur, code, qual) ? cur : -1;
+        else {                                                        /* (the rule of the loot screen's Take: gm_pack_target) */
+            int allow = 0;
+            for (int k = 0; k < size; k++) if (able(k)) allow |= 1 << k;
+            m = gm_pack_target(code, qual, cur, allow);
         }
         if (m < 0) { j++; continue; }                                 /* this one stays: on to the next */
         g_ww(L_CUR, (u16)m); g_ww((u16)(L_SIDE + 2 * m), 1); g_ww((u16)(L_PTOP + 2 * m), (u16)j); g_ww((u16)(L_PSEL + 2 * m), 0);
@@ -203,7 +183,7 @@ static void give_back_thrown(void)
                         u16 o = pile_off(i);
                         if ((rw(pile_seg(), o) & 0xfff) == th[m][k].id && (pass || rb(pile_seg(), (u16)(o + 3)) == th[m][k].q)) { j = i; break; }
                     }
-                if (j < 0 || !room_for(m, rw(pile_seg(), pile_off(j)), rb(pile_seg(), (u16)(pile_off(j) + 3)))) break;
+                if (j < 0 || !gm_room_for(m, rw(pile_seg(), pile_off(j)), rb(pile_seg(), (u16)(pile_off(j) + 3)))) break;
                 g_ww(L_CUR, (u16)m); g_ww((u16)(L_SIDE + 2 * m), 1); g_ww((u16)(L_PTOP + 2 * m), (u16)j); g_ww((u16)(L_PSEL + 2 * m), 0);
                 int before = pile_units();
                 u16 a[1] = { 0x2247 };
