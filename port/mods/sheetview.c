@@ -72,6 +72,13 @@ static void saint_classes(void)
     eval_free(snap);
     fprintf(stderr, "sheet: %d saints' statues known\n", saint_cls_n);
 }
+/* the Virtue saint t asks of the one who prays (0 none): the cards' list of saints shows it too
+   (mods/cardview.c). On the game's side only (it asks the saints' own handlers, once) */
+int sheet_saint_vmin(int t)
+{
+    saint_classes();
+    return t >= 0 && t < saint_cls_n ? saint_vmin[t] : 0;
+}
 
 static void build(int who)
 {
@@ -126,7 +133,7 @@ static void build(int who)
             it->idx = i; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
             it->equipped = gm_item_equipped(who, i);
             it->drinkable = drinkable(g.id);
-            it->holder = who; it->kept = keep_is(g.id, g.qual); it->potion = 0;
+            it->holder = who; it->kept = keep_is(g.id, g.qual); it->sell = sell_is(g.id, g.qual); it->potion = 0;
         }
     } else {
         /* the member's things in use, then their own (potions; ammunition and thrown weapons that run out),
@@ -136,7 +143,7 @@ static void build(int who)
         for (s->nitems = 0; s->nitems < n; s->nitems++) {
             SvItem *it = &s->item[s->nitems]; const GmPackRow *g = &r[s->nitems];
             it->idx = g->idx; it->id = g->id; it->type = g->type; it->qual = g->qual; it->count = g->count; it->weight = g->weight;
-            it->equipped = g->use; it->drinkable = drinkable(g->id); it->holder = g->holder; it->kept = keep_is(g->id, g->qual);
+            it->equipped = g->use; it->drinkable = drinkable(g->id); it->holder = g->holder; it->kept = keep_is(g->id, g->qual); it->sell = sell_is(g->id, g->qual);
             it->potion = g->own && !g->use;
         }
     }
@@ -215,9 +222,9 @@ static void act(const NsAction *a, int *who)
                    snprintf(t, sizeof t, "%s carries the %s, but rides the better %s.", sheet_model.names[to], nm, bn); }
             break; }
         case SV_KEEP:
-            keep_set(id, q, a->c);
-            snprintf(t, sizeof t, a->c ? "The %s is marked Keep: it will not be sold or dropped until you unmark it." : "The %s may be sold and dropped again.", nm);
-            break;
+            keep_mark(id, q, a->c);                      /* (no note: the button says it, and the strip) */
+            fprintf(stderr, "sheet: %s %s\n", nm, a->c == 1 ? "kept" : a->c == 2 ? "marked to sell" : "no longer marked");
+            return;
         case SV_PREADY: {
             int r = pack_fetch(w, id, q, nm, t, sizeof t);
             if (ns_unwinding) return;

@@ -144,11 +144,13 @@ extern "C" void barterview_draw(void)
     float LY1 = LY0 + NROWS * ROWH;
     int new_hl = -1, new_hr = -1;
     /* a thing "Sell spare gear" would sell: the weapons, armour and shields not in use (not
-       arrows, quarrels, balls or things to throw), that this shop pays for, not kept */
+       arrows, quarrels, balls or things to throw), that this shop pays for, not kept; and whatever
+       the player marked to sell on the character sheet (keep.c: the potions never wanted) */
     auto is_spare = [&](int i) {
         const BvItem &it = b.item[i];
         const ItemDef *d = def(it.id);
         if (!d || it.equipped || it.price <= 0 || it.kept) return false;
+        if (it.sell) return true;
         if (!(d->kind == K_WEAPON || d->kind == K_ARMOR || d->kind == K_SHIELD || d->kind == K_MISSILE)) return false;
         if ((d->type >= 0x17 && d->type <= 0x1a) || (d->type >= 0x40 && d->type <= 0x42)) return false;
         return true;
@@ -374,8 +376,8 @@ extern "C" void barterview_draw(void)
     bool spare_h = show_spare && (asking || in(mx, my, sbx0, SY1 - 9.5f, sbx1, SY1 - 1.5f));
     spare_lit = spare_h;
     if (spare_h && V.fnote.empty()) {
-        char t[200];
-        snprintf(t, sizeof t, "%d item%s not equipped (weapons, armor, shields; not ammunition or throwing weapons), for about %s in all: the ones pulsing in the list.%s",
+        char t[320];
+        snprintf(t, sizeof t, "%d item%s not equipped (weapons, armor, shields; not ammunition or throwing weapons; and whatever is marked Sell on the character sheet), for about %s in all: the ones pulsing in the list.%s",
                  spare_n, spare_n == 1 ? "" : "s", money(spare_pf).c_str(), asking ? " Click again to sell them all." : "");
         V.fnote = t; V.fhead = "Spare gear";
     }

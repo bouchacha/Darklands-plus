@@ -83,7 +83,7 @@ static void build(void)
         for (; b->nitems < n; b->nitems++) {
             BvItem *it = &b->item[b->nitems]; const GmPackRow *g = &r[b->nitems];
             it->idx = g->idx; it->id = g->id; it->type = g->type; it->qual = g->qual; it->count = g->count; it->weight = g->weight;
-            it->equipped = g->use; it->holder = g->holder; it->kept = keep_is(g->id, g->qual);
+            it->equipped = g->use; it->holder = g->holder; it->kept = keep_is(g->id, g->qual); it->sell = sell_is(g->id, g->qual);
         }
     } else
     for (int i = 0; i < ni; i++) {                        /* the member's things */
@@ -91,7 +91,7 @@ static void build(void)
         if (gm_ammo_hidden() && gm_is_ammo(g.id)) continue;
         BvItem *it = &b->item[b->nitems++];
         it->idx = i; it->id = g.id; it->type = g.type; it->qual = g.qual; it->count = g.count; it->weight = g.weight;
-        it->equipped = gm_item_equipped(m, i); it->holder = m; it->kept = keep_is(g.id, g.qual);
+        it->equipped = gm_item_equipped(m, i); it->holder = m; it->kept = keep_is(g.id, g.qual); it->sell = sell_is(g.id, g.qual);
     }
     for (int k = 0; k < b->nitems; k++) {
         BvItem *it = &b->item[k];

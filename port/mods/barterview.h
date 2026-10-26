@@ -7,7 +7,7 @@ extern "C" {
 #endif
 
 typedef struct { int id, qual, weight, price, src; } BvWare;   /* (src: the shop's ware; arrows and the like left out when hidden) */
-typedef struct { int idx, id, type, qual, count, weight, price, equipped, holder, kept; } BvItem;
+typedef struct { int idx, id, type, qual, count, weight, price, equipped, holder, kept, sell; } BvItem;   /* sell: marked to sell (keep.c) */
 /* (holder: the member carrying it; -1 the party's pack (inventory.shared): every member's spares of
    that kind and quality, idx -1, sold from whoever carries them) */
 

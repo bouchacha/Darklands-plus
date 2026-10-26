@@ -348,6 +348,7 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         else if (it.equipped) l1 += "; equipped";
         else if (it.holder < 0) l1 += it.count > 1 ? " in the party's pack" : "; in the party's pack";
         if (it.kept) l1 += "; kept (not sold or dropped)";
+        else if (it.sell) l1 += "; marked to sell (Sell spare gear sells it)";
         y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, l1) + 0.5f;
         std::string l2 = ns_item_line(it.id, it.qual);
         if (!l2.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, l2) + 0.5f;
@@ -533,9 +534,11 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         const ItemDef *d = ns_itemdef(it.id);
         float name_end = (h || busy) ? RX1 - 59 : RX1 - 2;
         if (h && P.mx < name_end) tip_i = i;
-        if (it.kept) {                                     /* kept from selling and dropping: a small seal at the right */
+        if (it.kept || it.sell) {                          /* kept from selling and dropping: a small red seal at the right; marked to sell: a coin */
             float kx = (h || busy) ? RX1 - 61 : RX1 - 4;
-            P.dl->AddCircleFilled(NsDraw::w(kx, y + ROWH * 0.5f), 1.5f * P.k, IM_COL32(150, 40, 24, 230));
+            ImVec2 kc = NsDraw::w(kx, y + ROWH * 0.5f);
+            if (it.kept) P.dl->AddCircleFilled(kc, 1.5f * P.k, IM_COL32(150, 40, 24, 230));
+            else { P.dl->AddCircleFilled(kc, 1.5f * P.k, IM_COL32(214, 168, 60, 255)); P.dl->AddCircle(kc, 1.5f * P.k, IM_COL32(120, 84, 30, 255), 0, fmaxf(1.0f, 0.3f * P.k)); }
             name_end -= 4;
         }
         /* (display.shop_compare) a weapon, armour or shield carried: better or worse than what this member has there now,
@@ -567,9 +570,18 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         }
         else if (gear) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Equip", IM_COL32(40, 92, 34, 235), 4.4f)) { if (pack) ns_push(SV_PREADY, it.id, it.qual, 0); else ns_push(SV_READY, it.idx, 0, 0); } }
         x += 19;
-        if (P.button(x, y + 1, x + 18, y + ROWH - 1, it.kept ? "Kept" : "Keep", it.kept ? IM_COL32(150, 40, 24, 245) : IM_COL32(120, 84, 40, 235), 4.4f)) ns_push(SV_KEEP, it.id, it.qual, !it.kept);
-        if (P.over(x, y + 1, x + 18, y + ROWH - 1)) ns_tip(it.kept ? "Kept from selling and dropping (Sell spare gear skips it). Click to stop keeping it."
-                                                                               : "Keep it: Darklands+ will not sell it (one by one or with Sell spare gear) or drop it until you click again.");
+        /* Keep / Kept, and for what Sell spare gear would not sell by itself (potions, tools...) a third state, Sell:
+           a click goes Keep, Kept, Sell, Keep */
+        {   int mark = it.kept ? 1 : it.sell ? 2 : 0, next = mark == 0 ? 1 : mark == 1 && !gear ? 2 : 0;
+            const char *lab = mark == 1 ? "Kept" : mark == 2 ? "Sell" : "Keep";
+            ImU32 bc = mark == 1 ? IM_COL32(150, 40, 24, 245) : mark == 2 ? IM_COL32(150, 112, 30, 245) : IM_COL32(120, 84, 40, 235);
+            if (P.button(x, y + 1, x + 18, y + ROWH - 1, lab, bc, 4.4f)) ns_push(SV_KEEP, it.id, it.qual, next);
+            if (P.over(x, y + 1, x + 18, y + ROWH - 1))
+                ns_tip(mark == 1 ? (gear ? "Kept from selling and dropping (Sell spare gear skips it). Click to stop keeping it."
+                                         : "Kept from selling and dropping (Sell spare gear skips it). Click to mark it to sell instead.")
+                     : mark == 2 ? "Marked to sell: Sell spare gear in a shop sells it with the spare weapons and armor. Click to clear the mark."
+                     : "Keep it: Darklands+ will not sell it (one by one or with Sell spare gear) or drop it until you click again.");
+        }
         x += 19;
         if (it.kept) P.button(x, y + 1, x + 18, y + ROWH - 1, "Drop", IM_COL32(170, 150, 130, 200), 4.4f);   /* (greyed: kept) */
         else if (busy) {
