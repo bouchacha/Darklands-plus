@@ -303,10 +303,14 @@ static int shot_target(int i, int *clear_out)
 /* a foe within a few paces (near_foe_of) fighting one of the party hand to hand: the shooter puts
    the bow away and joins in rather than stand by and loose into the melee from close by. Of
    several, the one beside the friend most set upon (the most foes, then the least Endurance), then
-   the one fewest of the party fight, then the nearest. -1 none */
+   the one fewest of the party fight, then the nearest. Not a foe two of the party already fight or
+   walk to, while the shooter has another foe to shoot at: a third and fourth helper only crowded
+   round it, one walking round the crowd for a free side and ending beside another foe with its
+   order still on this one (a player's battle, RC32) - then it goes on shooting. -1 none */
+static int other_mark(int i, int skip);
 static int rescue_target(int i)
 {
-    int fl = g_rb((u16)(GV_cbt_floor + i)), best = -1; long bs = 0;
+    int fl = g_rb((u16)(GV_cbt_floor + i)), best = -1, best_on = 0; long bs = 0;
     for (int j = 5; j < 13; j++) {
         if (g_rb(CBF(j, CB_STATUS)) != 1 || g_rb((u16)(GV_cbt_floor + j)) != fl || !near_foe_of(i, j)) continue;
         long dx = (s16)g_rw(CBF(j, CB_X)) - (s16)g_rw(CBF(i, CB_X));
@@ -327,10 +331,30 @@ static int rescue_target(int i)
             if (p != i && g_rb(CBF(p, CB_STATUS)) == 1 && !rb(G_FAR20A5, (u16)(0x7900 + p * 13 + j))
                 && (s8)g_rb(CBF(p, CB_TARGET)) == j && g_rb((u16)(GV_cbt_moving + p)) && g_rw(CBF(p, CB_ORDER)) != MISSILE) on_it++;
         if (sc < 0) continue;
+        int crowded = on_it >= 2;
         sc = (sc * 10 - on_it) * 10000 - dd / 32;   /* (fits a 32-bit long: sc under 5000, dd / 32 under 10000) */
-        if (best < 0 || sc > bs) { best = j; bs = sc; }
+        if (best < 0 || (best_on >= 2 && !crowded) || ((best_on >= 2) == crowded && sc > bs)) { best = j; bs = sc; best_on = on_it; }
+    }
+    if (best >= 0 && best_on >= 2 && other_mark(i, best) >= 0) {             /* (crowded: the bow, at another foe) */
+        static signed char said[5] = { -1, -1, -1, -1, -1 };
+        if (said[i] != best) { said[i] = (signed char)best; fprintf(stderr, "orders: member %d leaves %d to the %d of the party on it: shoots at another\n", i, best, best_on); }
+        return -1;
     }
     return best;
+}
+/* another foe member i could shoot at instead: standing on its floor, fighting none of the party, a
+   clear line to it (the volley's own test). -1 none */
+static int other_mark(int i, int skip)
+{
+    int fl = g_rb((u16)(GV_cbt_floor + i)), wm = (s8)g_rb(CBF(i, CB_MISSILE));
+    if (wm < 0 || wm > 62 || !has_ammo(i, wm)) return -1;
+    for (int j = 5; j < 13; j++) {
+        if (j == skip || g_rb(CBF(j, CB_STATUS)) != 1 || g_rb((u16)(GV_cbt_floor + j)) != fl) continue;
+        int engaged = 0;
+        for (int p = 0; p < 5; p++) if (g_rb(CBF(p, CB_STATUS)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + p * 13 + j))) engaged = 1;
+        if (!engaged && line_clear(i, j)) return j;
+    }
+    return -1;
 }
 /* a member with a missile weapon left without orders (the battle let run before the player gave any,
    or an order carried out): it opens fire at the nearest foe it can see, rather than stand with the
@@ -402,6 +426,33 @@ static void idle_fighters(void)
         if (ns_unwinding) return;
         by_volley[i] = 0;
         fprintf(stderr, "orders: member %d had no orders: joins the fight against %d (%s)\n", i, best, beside ? "beside it" : "a friend's, a few paces off");
+    }
+}
+/* a member ordered to fight a foe that has fallen, or that is not beside it while another is (it walked
+   to its foe and found the place taken: a player's battle, RC32, a member standing before a foe that
+   fought a friend, its order still on one that fell): the foe beside it; with none, the order ends,
+   and the member is free for the next (idle_fighters, idle_shooters, back_to_bow) */
+static void stale_melee(void)
+{
+    for (int i = 0; i < 5; i++) {
+        u16 c = (u16)(D_CBT + i * 0x80);
+        int f = (s16)g_rw((u16)(c + CB_ORDER));
+        if (!(f == STD_ATTACK || f == 0x0a || f == 0x22 || f == 6)) continue;
+        if (g_rb((u16)(c + CB_STATUS)) != 1 || g_rb((u16)(GV_cbt_moving + i))) continue;
+        int t = (s8)g_rb((u16)(c + CB_TARGET));
+        int alive = t >= 5 && t < 13 && g_rb(CBF(t, CB_STATUS)) == 1;
+        if (alive && rb(G_FAR20A5, (u16)(0x7900 + i * 13 + t))) continue;          /* (beside its foe: fighting) */
+        if (alive && player_melee[i]) continue;                                    /* (the player's own foe, still standing: the game's way to it) */
+        int b = -1;
+        for (int j = 5; j < 13; j++) if (g_rb(CBF(j, CB_STATUS)) == 1 && rb(G_FAR20A5, (u16)(0x7900 + i * 13 + j))) { b = j; break; }
+        if (b >= 0) {
+            to_melee(i, b, 1);
+            if (ns_unwinding) return;
+            fprintf(stderr, "orders: member %d's foe %d %s: fights %d beside it\n", i, t, alive ? "is not beside it" : "fell", b);
+        } else if (!alive) {
+            g_ww((u16)(c + CB_ORDER), 0); g_wb((u16)(GV_cbt_action + i), 7);
+            fprintf(stderr, "orders: member %d's foe %d fell: free for the next\n", i, t);
+        }
     }
 }
 /* a shooter who fought a foe beside it: with none beside it now, the missile weapon again, at the
@@ -533,6 +584,8 @@ static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchange
         }
     }
     if (combat_improved()) back_to_bow();
+    if (ns_unwinding) return;
+    if (combat_improved()) stale_melee();
     if (ns_unwinding) return;
     idle_shooters();
     if (ns_unwinding) return;

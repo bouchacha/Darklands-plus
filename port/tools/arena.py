@@ -109,6 +109,10 @@ sc('join_melee', 'one of the party fights a lone foe hand to hand, three shooter
    arms=[(1, BOW, 30), (2, BOW, 30), (3, XBOW, 30)], groups=(MERC, 3, 1, 0, 1, 0, -1, 0, 0),
    place=[(0, 0, 0), (5, 14, 0), (1, -30, 12), (2, -28, -12), (3, -38, 0)], end=False,
    expect=[r'orders: member 1 .*goes to help', r'orders: member 2 .*goes to help', r'orders: member 3 .*goes to help'])
+sc('crowded_help', "a friend fights a foe hand to hand, three shooters a few paces off, two more foes far off: one goes to help, the others shoot (four on one foe only crowded it: one walked round the crowd and stood idle, RC32)",
+   arms=[(0, BOW, 30), (1, BOW, 30), (2, BOW, 30), (3, XBOW, 30)], groups=(BANDIT, 1, 3, 0, 1, 0, -1, 0, 0),
+   place=[(1, 0, 0), (5, 14, 0), (0, -30, 12), (2, -28, -12), (3, -38, 0), (6, 200, 30), (7, 210, -30)], secs=40, end=False,
+   expect=[r'orders: member \d .*goes to help', r'orders: member \d leaves 5 to the 2 of the party on it'])
 sc('second_battle', "a later battle of the session, the last battle's clock of its last order still set (the game clears the battle's clock, not that): the shooters open fire at once, not when this battle's clock reaches it",
    arms=[(1, BOW, 30), (2, BOW, 30), (3, XBOW, 30)], groups=(BANDIT, 2, 3, 0, 1, 0, -1, 0, 0), orders=['uww:c867,30000'],
    place=[(1, 0, 0), (2, 0, 30), (3, 0, -30), (0, -40, 0), (5, 230, 0), (6, 240, 30), (7, 240, -30)], secs=30, end=False,
