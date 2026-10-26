@@ -199,7 +199,7 @@ void setup_sound(void)
     {
         const char *dev = !strcmp(cur, "auto") || !strcmp(cur, "game") ? (mt32_available() ? "mt32" : "fm") : cur;
         bool off = !strcmp(cur, "off");
-        bool pack_music = musicpack_on && musicpack_versions(20) > 0, pack_sfx = sfx_mode != 0;
+        bool pack_music = musicpack_on && musicpack_versions(20) > 0, pack_sfx = sfx_mode != 0 || sfx_mod_count() > 0;
         float bw = ImGui::CalcTextSize("Preview: Battle Sounds").x + ImGui::GetStyle().FramePadding.x * 2;
         float bm = ImGui::CalcTextSize("Preview: Music").x + ImGui::GetStyle().FramePadding.x * 2;
         float x = ImGui::GetContentRegionMax().x - bw - bm - ImGui::GetStyle().ItemSpacing.x;
@@ -391,11 +391,12 @@ void setup_sound(void)
         {   /* battle sounds packs (mods/sfx.c) */
             ImGui::Spacing();
             bool sp = sfx_mode;   /* (hits: the fix "Ordinary hits make a sound") */
+            int nm = sfx_mod_count(), n = sfx_user_count() - nm;
             if (ImGui::Checkbox("Battle sounds from a sound pack (the \"sounds\" folder)", &sp)) { sfx_set(sp); ui_dirty_config = 1; }
-            int n = sfx_user_count();
-            if (n) ui_hint("%d sound%s in %s%ssounds; the game's own sounds for the rest.", n, n == 1 ? "" : "s", dlp_user_dir, PATH_SEP);
-            else ui_hint("Recorded blows, parries and cries in place of the synthesizer's: a pack in %s%ssounds, or the \"Battle sounds\" mod (F12 > Mods).", dlp_user_dir, PATH_SEP);
-            if (sp) {
+            if (nm) ui_hint("A mod enabled in F12 > Mods gives %d battle sound%s: they play in place of the synthesizer's (switch the mod off there for the game's own).", nm, nm == 1 ? "" : "s");
+            if (n > 0) ui_hint("%d sound%s in %s%ssounds%s; the game's own sounds for the rest.", n, n == 1 ? "" : "s", dlp_user_dir, PATH_SEP, sp ? "" : " (played once this is ticked)");
+            else if (!nm) ui_hint("Recorded blows, parries and cries in place of the synthesizer's: a pack in %s%ssounds, or the \"Battle sounds\" mod (F12 > Mods).", dlp_user_dir, PATH_SEP);
+            if (sp || nm) {
                 ImGui::Indent(UIS(30));
                 int v = sfx_volume;
                 ImGui::SetNextItemWidth(UIS(260));

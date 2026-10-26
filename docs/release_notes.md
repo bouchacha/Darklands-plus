@@ -33,7 +33,7 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 
 - **Period ornaments:** plaited frames and gilt corners, clocks to choose for passing time, skills and attributes as heraldic shields everywhere, ingredients as the alchemists' signs, potion grades as chevrons, and Comic Sans as an eighth typeface (we are so sorry).
 - **Tooltips** open beside what they describe, never over it or the pointer.
-- **Sound:** the whole soundtrack to play in Settings; previews of each device's music and battle sounds; evener music timing; the PC speaker heard at last (1.2 played nothing on it). The MT-32 and the CM-32L are one choice, and MIDI out is a device of its own.
+- **Sound:** the whole soundtrack to play in Settings; previews of each device's music and battle sounds; evener music timing; the PC speaker heard at last (1.2 played nothing on it). The MT-32 and the CM-32L are one choice, and MIDI out is a device of its own. The Battle sounds mod plays once it is switched on in F12 > Mods (1.2 also wanted a switch in Settings).
 
 **Settings and saving**
 

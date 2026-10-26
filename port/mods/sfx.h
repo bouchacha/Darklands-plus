@@ -12,6 +12,7 @@ void sfx_set_volume(int v);
 void sfx_set_hits(int on);
 void sfx_reload(void);
 int sfx_user_count(void);
+int sfx_mod_count(void);              /* sounds an enabled mod gives (they play without sound.effects) */
 int sfx_export(char *msg, int n);
 void sfx_mix(short *out, int frames);
 #ifdef __cplusplus

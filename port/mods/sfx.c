@@ -390,6 +390,7 @@ static int name_of(const char *file, char *key, int keyn)
 }
 
 /* one sounds folder; a sound already given by a folder that wins (a mod's) is left alone */
+static int from_mods;            /* sounds an enabled mod gives: they play without the pack switch */
 static void load_user_dir(const char *dir, int level, int *from)
 {
     DIR *d = opendir(dir);
@@ -420,11 +421,17 @@ static void load_user(void)
     static char md[DATAMODS_MAX][1200];
     int nm = datamods_dirs("sounds", md, DATAMODS_MAX);
     for (int i = 0; i < nm; i++) load_user_dir(md[i], i, from);
+    from_mods = 0;
+    for (int k = 0; k < NS; k++) if (from[k] >= 0 && from[k] < nm) from_mods += bank[k].nv;
     char dir[1100]; snprintf(dir, sizeof dir, "%s/sounds", USER_DIR);
     load_user_dir(dir, nm, from);
     if (strcmp(USER_DIR, game_dir)) { snprintf(dir, sizeof dir, "%s/sounds", game_dir); load_user_dir(dir, nm + 1, from); }   /* sounds put into a game folder that cannot be written */
 }
 
+/* the pack plays: switched on (the player's own "sounds" folder), or a mod that gives sounds is enabled
+   (F12 > Mods: switching the mod on is what the player does; 1.3-RC32 also wanted the switch) */
+int sfx_mod_count(void) { return from_mods; }
+static int active(void) { return sfx_mode || from_mods > 0; }
 int sfx_user_count(void) { int n = 0; for (int k = 0; k < NS; k++) n += bank[k].user ? bank[k].nv : 0; return n; }
 
 void sound_lock(int on);
@@ -513,7 +520,7 @@ static void sound_play_hook(void)            /* sound_play(n): the driver */
 {
     int n = (s16)rw(SS, (u16)(SP + 4));
     musicpack_cmd(n);                         /* the music (towns' driver) */
-    if (sfx_mode && want == n && n >= 10 && n <= 18) {
+    if (active() && want == n && n >= 10 && n <= 18) {
         int k = -1; float g = 1;
         switch (n) {
         case 10: k = S_DEATH; break;
@@ -549,7 +556,7 @@ static void melee_hook(void)                 /* melee_step(i, set, *again), near
     if (land && tg >= 0 && tg < 13) { void battlelog_blow(int, int, int, int, int, int, int); battlelog_blow(i, tg, anim, e0, (s8)g_rb((u16)(GV_combatants + 0x80 * tg + 0x5d)), s0, (s8)g_rb((u16)(GV_combatants + 0x80 * tg + 0x5e))); }
     if (land && getenv("DL_BLOW_LOG") && tg >= 0 && tg < 13) { u32 plat_ticks_ms(void); fprintf(stderr, "blow %u: %d -> %d anim %d: end %d -> %d, str %d -> %d\n", plat_ticks_ms(), i, tg, anim, e0, (s8)g_rb((u16)(GV_combatants + 0x80 * tg + 0x5d)), s0, (s8)g_rb((u16)(GV_combatants + 0x80 * tg + 0x5e))); }
     if (land && (anim == 1 || anim == 2) && !impact_done && fix_is_on("hitsound") && g_rb(GV_opt_sound) == 1) {   /* (an ordinary hit: the original is silent) */
-        if (sfx_mode) play(S_HIT, anim == 2 ? 1.0f : 0.7f);
+        if (active()) play(S_HIT, anim == 2 ? 1.0f : 0.7f);
         else { int ns_call(int, u16, u16, int, ...); ns_call(GF_battle_sound, 1, 16); }      /* (the knock-back's blow, through the game's driver) */
     }
     impact = oi; impact_anim = oa; impact_done = od;

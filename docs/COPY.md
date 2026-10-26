@@ -2015,15 +2015,17 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/settings_setup.cpp:385` |   %s and %d more, in turn |
 | `ui/settings_setup.cpp:387` | Look again##music |
 | `ui/settings_setup.cpp:393` | Ordinary hits make a sound |
-| `ui/settings_setup.cpp:394` | Battle sounds from a sound pack (the "sounds" folder) |
-| `ui/settings_setup.cpp:396` | %d sound%s in %s%ssounds; the game's own sounds for the rest. |
-| `ui/settings_setup.cpp:397` | Recorded blows, parries and cries in place of the synthesizer's: a pack in %s%ssounds, or the "Battle sounds" mod (F12 > Mods). |
-| `ui/settings_setup.cpp:402` | Volume of the pack |
-| `ui/settings_setup.cpp:404` | Look again##sfx |
-| `ui/settings_setup.cpp:404` | %d sound%s found. |
-| `ui/settings_setup.cpp:408` | File names for a sound pack |
-| `ui/settings_setup.cpp:409` | %s.wav or .ogg: %s |
-| `ui/settings_setup.cpp:410` | Several versions of one sound (parry1.wav, parry2.wav ...) are played in turn at random. |
+| `ui/settings_setup.cpp:395` | Battle sounds from a sound pack (the "sounds" folder) |
+| `ui/settings_setup.cpp:396` | A mod enabled in F12 > Mods gives %d battle sound%s: they play in place of the synthesizer's (switch the mod off there for the game's own). |
+| `ui/settings_setup.cpp:397` | %d sound%s in %s%ssounds%s; the game's own sounds for the rest. |
+| `ui/settings_setup.cpp:397` |  (played once this is ticked) |
+| `ui/settings_setup.cpp:398` | Recorded blows, parries and cries in place of the synthesizer's: a pack in %s%ssounds, or the "Battle sounds" mod (F12 > Mods). |
+| `ui/settings_setup.cpp:403` | Volume of the pack |
+| `ui/settings_setup.cpp:405` | Look again##sfx |
+| `ui/settings_setup.cpp:405` | %d sound%s found. |
+| `ui/settings_setup.cpp:409` | File names for a sound pack |
+| `ui/settings_setup.cpp:410` | %s.wav or .ogg: %s |
+| `ui/settings_setup.cpp:411` | Several versions of one sound (parry1.wav, parry2.wav ...) are played in turn at random. |
 | `ui/sheetview.cpp:158` | Light load (up to half of Endurance + Strength): no hindrance at all. Only what is equipped counts (weapons, armor, shield); items merely carried weigh nothing. |
 | `ui/sheetview.cpp:159` | Normal load (up to Endurance + Strength): blows hand to hand come about a fifth slower, and past 5/8 of it the Agility used to dodge falls to two thirds. |
 | `ui/sheetview.cpp:160` | Heavy load (up to half as much again): the Agility used to dodge falls to two thirds, and to a third past 1 1/4 times Endurance + Strength. Blows are no slower than with a normal load (an oversight in the original game). |
@@ -3050,7 +3052,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/sfx.c:52` | a magical effect |
 | `mods/sfx.c:52` | hidden enemies appear |
 | `mods/sfx.c:52` | "cannot go there" |
-| `mods/sfx.c:586` | %d sounds written to %s |
+| `mods/sfx.c:593` | %d sounds written to %s |
 | `mods/sharedstore.c:121` | This inn's own store room holds too many kinds of items to join the store room shared by every inn (Darklands+): its items stay at this inn until some are taken out. |
 | `mods/sheetview.c:191` | No %s is left in the party's pack. |
 | `mods/sheetview.c:193` | %s cannot carry another kind of item. |
