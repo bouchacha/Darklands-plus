@@ -187,3 +187,15 @@ covered and found, and what it could not check.
   release_check.py writes the switch list and reports when it changed. Words: COPY.md's Terms hold everywhere
   (no "in use" for equipped, the attributes capitalized); the shop's hint ends as the other item screens'.
   Not split: mods/fixes.c (2,577 lines), one table of independent fixes, each described in the header.
+- 2026-10-26 (later): the player's reports on RC31. Go to failed again ("cannot find the way from this card",
+  Freiberg's main street read as block 4 of four): the cause of the whole run of such reports was the variable
+  Go to read for the option list's text block, options_block (DS:ee53), which only some scripts set - another
+  card's value stayed in it. The text block on show is shown_block (DS:e959), set by card_text and card_options
+  both; Go to reads that now, and the earlier fallback ($SIDES01 "a block that has no options: take one that
+  has", the same cause) is gone. gotosweep from the player's DKSAVE90: every place of Freiberg. The cave south-east
+  of Basel: the offmap fix put it on row 930, which a step never reaches (the marker stops at screen y 0xb1);
+  now 929, moved before the overland lists its icons. The battle view dragged: edge scrolling off while
+  dragging (the view ran off by itself), and the last whole frame kept until the people are drawn again (they
+  flickered: a recording of a drag had frames with nobody on the field). Card chances one look everywhere (the
+  alchemist's formulae showed every member's chip). gamevars.h had three names added by hand, which the next
+  run of its generator would have dropped: made from the headers again, and check_docs.py checks it.
