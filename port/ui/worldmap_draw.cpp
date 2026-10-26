@@ -56,6 +56,33 @@ std::string hhmm(int minutes)      /* a time on the way, as an estimate reads: "
 }
 /* a soft golden halo behind a quest's picture, breathing slowly, with a few sparks turning about it:
    the quests stand out from the towns' and places' own marks */
+/* where the pictures of the n quests that lead to one place go: one on a pin above it (pin), several
+   evenly round it (mid) on a ring of fixed size, turning slowly about it - a turn in about 20
+   seconds - so a place many quests lead to grows crowded, not wide. The ring stands still while
+   the pointer is near it (pointer_ok: the pointer is on the map), so a picture is easy to point at. */
+static int ring_held_frame = -10;
+static float ring_phase(void)
+{
+    static float ph = 0; static double t0 = -1; static int frame = -1;
+    int f = ImGui::GetFrameCount();
+    if (f != frame) {
+        double now = ImGui::GetTime();
+        if (t0 >= 0 && ring_held_frame < f - 1) ph = fmodf(ph + (float)(now - t0) * 0.3f, 6.2831853f);
+        t0 = now; frame = f;
+    }
+    return ph;
+}
+void quest_ring(std::vector<ImVec2> &at, int n, ImVec2 mid, ImVec2 pin, float is, bool pointer_ok)
+{
+    at.assign(n > 0 ? n : 0, mid);
+    if (n == 1) { at[0] = ImVec2(pin.x, pin.y - is * 0.55f); return; }
+    float R = is * fminf(1.6f, n > 4 ? 1.1f + 0.1f * (n - 4) : 1.1f), ph = ring_phase();
+    for (int j = 0; j < n; j++) { float a = -1.5707963f + ph + 6.2831853f * j / n; at[j] = ImVec2(mid.x + cosf(a) * R, mid.y + sinf(a) * R); }
+    ImVec2 m = ImGui::GetIO().MousePos;
+    float dx = m.x - mid.x, dy = m.y - mid.y, o = R + is * 0.8f;
+    if (n > 1 && pointer_ok && dx * dx + dy * dy < o * o) ring_held_frame = ImGui::GetFrameCount();
+}
+
 void quest_glow(ImDrawList *dl, ImVec2 c, float is)
 {
     float t = (float)ImGui::GetTime(), p = 1.0f + 0.07f * sinf(t * 2.4f);
@@ -476,8 +503,8 @@ extern "C" void travelmap_labels(void)
         int n = 0;                                            /* the town bars the party, or its watch wants it */
         for (const TownMark &t : tmarks)
             if (t.loc == k) { float is = size * 1.15f; ui_draw_quest_icon(dl, ImVec2(tp.x + ts.x + is * (0.65f + 1.05f * n), tp.y + ts.y * 0.5f), is, t.cat); n++; }
-        {   /* a quest that leads here: its picture above the place; several: on an arc of fixed size over the
-               place, so a place many quests lead to grows crowded, not wide */
+        {   /* a quest that leads here: its picture above the place; several: on a ring round it, turning
+               slowly (quest_ring) */
             std::vector<size_t> qs;
             for (size_t i = 0; i < qmarks.size(); i++) if (qmarks[i].first == k) qs.push_back(i);
             if (!qs.empty()) {
@@ -485,12 +512,8 @@ extern "C" void travelmap_labels(void)
                 ImVec2 top; plat_game_to_win(sx, sy - 6, &top.x, &top.y);
                 ImVec2 mid; plat_game_to_win(sx, sy, &mid.x, &mid.y);
                 int nq = (int)qs.size();
-                std::vector<ImVec2> at(nq);
-                for (int j = 0; j < nq; j++) {
-                    if (nq == 1) { at[j] = ImVec2(top.x, top.y - is * 0.55f); continue; }
-                    float span = fminf(240.0f, 60.0f * (nq - 1)), a = (270.0f - span * 0.5f + span * j / (nq - 1)) * 0.0174533f, R = is * 1.15f;   /* (an arc over it, open below where its name is) */
-                    at[j] = ImVec2(mid.x + cosf(a) * R, mid.y + sinf(a) * R);
-                }
+                std::vector<ImVec2> at;
+                quest_ring(at, nq, mid, top, is, !ImGui::GetIO().WantCaptureMouse);
                 ImVec2 m = ImGui::GetIO().MousePos;              /* (the pointer on one: the topmost, the last drawn) */
                 int hov = -1;
                 if (!ImGui::GetIO().WantCaptureMouse)

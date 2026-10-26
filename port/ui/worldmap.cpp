@@ -70,6 +70,7 @@ static float zoom = 0.5f, cx = -1, cy = -1;      // display pixels per travel-sc
 static float wm_panel_right;                      // the panel's right side (window pixels, last frame): the view's west limit
 static float wm_find_left = 1e9f, wm_find_bottom, wm_foot_top = 1e9f;   // the top right panel's left side and foot, the place panel's top (last frame): room past them
 static int wm_panel_run, wm_panel_frame = -10;    // frames the panel has been drawn in a row (its size settles after the first), the last
+static const char *town_mark_label(int cat) { return cat == QC_UNWELCOME ? "Unwelcome here" : cat == QC_ALERT ? "The watch on alert here" : "Wanted by the watch here"; }
 std::string journal_travel_days(int loc);   /* ui/journal.cpp: "3 days" */
 extern "C" int journal_buy_window(bool *open, int what), journal_town_noted(int loc); extern "C" void journal_town_wares(int loc);   /* ui/journal.cpp */
 static int selected = -1;
@@ -499,9 +500,8 @@ extern "C" void worldmap_draw(void)
             for (int vi = v_fade; vi < dl->VtxBuffer.Size; vi++) { ImU32 &cc = dl->VtxBuffer[vi].col; int al = (int)((cc >> IM_COL32_A_SHIFT) & 255); cc = (cc & ~IM_COL32_A_MASK) | ((ImU32)(al * fade) << IM_COL32_A_SHIFT); }
     }
     // quest marks
-    if (show_quests) {                                       /* the quest's picture on a pin above the place; several: round the place
-                                                                on an arc of fixed size over it (many quests there: a crowded arc,
-                                                                never a long row) */
+    if (show_quests) {                                       /* the quest's picture on a pin above the place; several: on a ring
+                                                                round it, turning slowly (quest_ring) */
         std::vector<int> done;
         for (size_t i = 0; i < marks.size(); i++) {
             int loc = marks[i].first;
@@ -514,13 +514,8 @@ extern "C" void worldmap_draw(void)
             float x, y; tile_px((s16)rw((u16)(r >> 16), (u16)(r + 4)), (s16)rw((u16)(r >> 16), (u16)(r + 6)), &x, &y);
             float k = fmaxf(ks, 1.0f), is = 22 * k;
             ImVec2 mid = to_scr(x, y), s = mid; s.y -= 10 * k;
-            std::vector<ImVec2> at(n);
-            for (int j = 0; j < n; j++) {
-                if (n == 1) { at[j] = ImVec2(s.x, s.y - is * 0.55f); continue; }
-                /* (an arc over the place, open below where its name is: up to 60 degrees apart, 240 in all) */
-                float span = fminf(240.0f, 60.0f * (n - 1)), a = (270.0f - span * 0.5f + span * j / (n - 1)) * 0.0174533f, R = is * 1.2f;
-                at[j] = ImVec2(mid.x + cosf(a) * R, mid.y + sinf(a) * R);
-            }
+            std::vector<ImVec2> at;
+            quest_ring(at, n, mid, s, is, hovered);
             int hv = -1;                                     /* (the pointer on one: the topmost) */
             for (int j = n - 1; j >= 0 && hv < 0; j--) {
                 float qd = (io.MousePos.x - at[j].x) * (io.MousePos.x - at[j].x) + (io.MousePos.y - at[j].y) * (io.MousePos.y - at[j].y);
@@ -573,7 +568,7 @@ extern "C" void worldmap_draw(void)
             ImGui::TextDisabled("%s", kind_line(P, p).c_str());
             if (selected != p.loc) ImGui::TextDisabled("Click for what it offers, and to travel there");
             for (auto &m : marks) if (m.first == p.loc) { ImGui::PushTextWrapPos(UIS(380) * pk); ImGui::TextWrapped("%s", m.second.c_str()); ImGui::PopTextWrapPos(); }
-            for (const TownMark &t : tmarks) if (t.loc == p.loc) ImGui::TextColored(ImVec4(0.75f, 0.25f, 0.15f, 1), "%s %s", t.cat == QC_UNWELCOME ? "Unwelcome here" : "Wanted by the watch here", t.until.c_str());
+            for (const TownMark &t : tmarks) if (t.loc == p.loc) ImGui::TextColored(ImVec4(0.75f, 0.25f, 0.15f, 1), "%s %s", town_mark_label(t.cat), t.until.c_str());
             ImGui::EndTooltip();
             break;
         }
@@ -677,7 +672,7 @@ extern "C" void worldmap_draw(void)
                 if (!out.empty() || !in.empty()) ImGui::TextDisabled("Not every boat sails every day; the docks say which leave today.");
             }
             for (auto &m : marks) if (m.first == p.loc) ImGui::TextWrapped("%s", m.second.c_str());
-            for (const TownMark &t : tmarks) if (t.loc == p.loc) ImGui::TextColored(ImVec4(0.75f, 0.25f, 0.15f, 1), "%s %s.", t.cat == QC_UNWELCOME ? "Unwelcome here" : "Wanted by the watch here", t.until.c_str());
+            for (const TownMark &t : tmarks) if (t.loc == p.loc) ImGui::TextColored(ImVec4(0.75f, 0.25f, 0.15f, 1), "%s %s.", town_mark_label(t.cat), t.until.c_str());
             ImGui::PopTextWrapPos();
             ImGui::EndTable();
         }

@@ -22,6 +22,7 @@ void draw_icon_painted(ImDrawList *dl, ImVec2 c, float s, int ik);
 void draw_icon_seal(ImDrawList *dl, ImVec2 c, float s, int ik);
 void draw_icon(ImDrawList *dl, ImVec2 c, float s, int ik);   /* a place's picture (the seals) */
 void quest_glow(ImDrawList *dl, ImVec2 c, float is);   /* the halo behind a quest's picture */
+void quest_ring(std::vector<ImVec2> &at, int n, ImVec2 mid, ImVec2 pin, float is, bool pointer_ok);   /* where n quests' pictures at one place go */
 std::string hhmm(int minutes);                         /* "40 minutes", "22 hours", "1.4 days" */
 float aspect(void);
 void tile_px(int x, int y, float *px, float *py);      /* a tile's middle, in travel-screen pixels */
