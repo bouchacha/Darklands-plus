@@ -324,11 +324,13 @@ void ui_town_offers(int loc, bool tables, float width, bool words)
 /* the saints a place's library teaches (ui/libraries.h), one a line (their names may hold a comma:
    "St.Edward, Confessor"): those nobody in the party knows in the margin's ink, the others dim;
    what each does under the pointer */
+static bool lists_panel;                                   /* (the world map's place panel: its headings, names in a flow) */
+static void list_heading(const char *t) { if (lists_panel) ImGui::TextDisabled("%s", t); else heading(t); }
 static void library_line(int loc)
 {
     const Library *L = library_at(loc);
     if (!L) return;
-    ImGui::Spacing(); heading("Saints taught here");
+    ImGui::Spacing(); list_heading("Saints taught here");
     int shown[4], ns = 0;
     for (int k = 0; k < 4; k++) {
         int s = L->saint[k]; bool dup = false;
@@ -336,10 +338,14 @@ static void library_line(int loc)
         if (dup || s < 0 || s >= (int)gamedata.saints.size()) continue;
         shown[ns++] = s;
     }
+    float right = ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
     for (int j = 0; j < ns; j++) {
         int s = shown[j]; bool known = party_knows_saint(s);
         const std::string &t = gamedata.saints[s].name;
-        name_line(t, known);
+        if (lists_panel) {                                   /* (the panel is wide: one after another) */
+            if (j) { ImGui::SameLine(0, ImGui::GetFontSize() * 0.9f); if (ImGui::GetCursorScreenPos().x + ImGui::CalcTextSize(t.c_str()).x > right) ImGui::NewLine(); }
+            if (known) ImGui::TextDisabled("%s", t.c_str()); else ImGui::TextUnformatted(t.c_str());
+        } else name_line(t, known);
         if (item_hovered()) {
             std::string tip = gamedata.saints[s].name + (known ? " (someone in the party knows this saint): " : " (nobody in the party knows this saint): ") + saint_info_does(s) + (*saint_info_note(s) ? "\n" : "") + saint_info_note(s);   /* (what its help really does: mods/saintinfo.h) */
             margin_tip(tip.c_str());
@@ -356,8 +362,8 @@ static void formulae_line(int town)
 {
     int fo[4], pr[4];
     if (town < 0 || town >= (int)gamedata.cities.size() || !alchemist_formulae(town, fo, pr)) return;
-    ImGui::Spacing(); heading("Formulae sold here");
-    float gap = ImGui::GetStyle().ItemSpacing.x, s = fminf(ImGui::GetTextLineHeight() * 1.35f, (ImGui::GetContentRegionAvail().x - 3 * gap) / 4 - 1);   /* (as the town's icons above) */
+    ImGui::Spacing(); list_heading("Formulae sold here");
+    float gap = ImGui::GetStyle().ItemSpacing.x, s = fminf(ImGui::GetTextLineHeight() * (lists_panel ? 1.6f : 1.35f), (ImGui::GetContentRegionAvail().x - 3 * gap) / 4 - 1);   /* (as the town's icons above) */
     bool first = true;
     for (int k = 0; k < 4; k++) {
         int f = fo[k];
@@ -407,6 +413,67 @@ static void teachers_lines(int loc)
         }
         margin_tip(tip.c_str());
     }
+}
+/* the world map's place panel: the teachers a row a source - the place's picture, each skill's shield
+   and how far they teach it; dim when nobody in the party would learn anything or not to be had now;
+   who would learn, or why not, under the pointer (as the margin's lectern) */
+static int teacher_icon(int src)
+{
+    static const int I[] = { TI_SMITH, TI_SWORD, TI_ARMOUR, TI_BOW, TI_TOOLS, TI_SQUARE, TI_UNIVERSITY, TI_MONASTERY, TI_PHYSICIAN, TI_ALCHEMIST };
+    return src >= 0 && src < (int)(sizeof I / sizeof I[0]) ? I[src] : TI_SQUARE;
+}
+static void teacher_rows(int loc)
+{
+    if (!ui_teachers_on()) return;
+    TchSource ts[12];
+    int n = ui_town_teachers(loc, ts, 12);
+    if (!n) return;
+    ImGui::Spacing(); list_heading("Teachers to be hired");
+    float lh = ImGui::GetTextLineHeight(), is = lh * 1.3f, gap = lh * 0.25f;
+    ImDrawList *dl = ImGui::GetWindowDrawList();
+    for (int i = 0; i < n; i++) {
+        const TchSource &t = ts[i];
+        std::string who; bool any = false;
+        for (int j = 0; j < t.n; j++) { std::string w; if (teach_useful(t.skill[j], t.strength, &w)) { any = true; if (!who.empty()) who += "; "; who += std::string(t.n > 1 ? std::string(gm_skill_name(t.skill[j])) + ": " : "") + w; } }
+        ImGui::BeginGroup();
+        int v0 = dl->VtxBuffer.Size;
+        ImVec2 a = ImGui::GetCursorScreenPos();
+        ui_draw_town_icon(dl, ImVec2(a.x + is * 0.5f, a.y + is * 0.5f), is, teacher_icon(t.src));
+        ImGui::Dummy(ImVec2(is, is));
+        for (int j = 0; j < t.n; j++) {
+            ImGui::SameLine(0, j ? gap * 2 : gap);
+            ImVec2 b = ImGui::GetCursorScreenPos();
+            ui_skill_icon(dl, ImVec2(b.x + is * 0.45f, b.y + is * 0.5f), is * 0.9f, t.skill[j]);
+            ImGui::Dummy(ImVec2(is * 0.9f, is));
+        }
+        char to[16]; snprintf(to, sizeof to, fix_is_on("teachcap") ? "to %d" : "%d", t.strength);
+        ImGui::SameLine(0, gap); ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (is - lh) * 0.5f);
+        ImGui::TextUnformatted(to);
+        ImGui::EndGroup();
+        if (!any || t.off) dim_since(dl, v0, 0.38f);
+        bool hov = item_hovered();
+        ImGui::Dummy(ImVec2(0, lh * 0.08f));                 /* (a little air between the rows of shields) */
+        if (hov) {
+            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(44, 26, 10, 255));
+            ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 24);
+            char head[200]; snprintf(head, sizeof head, fix_is_on("teachcap") ? "%s: %s, up to %d" : "%s: %s (their skill %d)", ui_teacher_short(t.src), ui_teacher_skills(t).c_str(), t.strength);
+            ImGui::TextUnformatted(head);
+            ImGui::TextDisabled("A lesson a day at the inn, for a fee.");
+            if (t.off) { std::string c = t.now; size_t p2 = c.find(" ("); if (p2 != std::string::npos) c = c.substr(0, p2) + "."; ImGui::TextColored(ImVec4(0.6f, 0.2f, 0.1f, 1), "Not now: %s", c.c_str()); }
+            if (any) ImGui::TextColored(ImVec4(0.15f, 0.42f, 0.15f, 1), "Would teach %s", who.c_str());
+            else ImGui::TextDisabled("Nobody in the party would learn anything");
+            ImGui::PopTextWrapPos(); ImGui::EndTooltip();
+            ImGui::PopStyleColor();
+        }
+    }
+}
+/* the saints, formulae and teachers of a town for the world map's place panel, in the margin's look */
+void ui_town_lists_panel(int loc)
+{
+    lists_panel = true;
+    library_line(loc);
+    if (loc >= 0 && loc < (int)gamedata.cities.size()) { formulae_line(loc); teacher_rows(loc); }
+    lists_panel = false;
 }
 extern "C" int ui_nearest_town(void);
 /* the right margin names the place (a town, or near one on the map, or the place of a card) */

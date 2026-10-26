@@ -22,6 +22,8 @@ void draw_icon_painted(ImDrawList *dl, ImVec2 c, float s, int ik);
 void draw_icon_seal(ImDrawList *dl, ImVec2 c, float s, int ik);
 void draw_icon(ImDrawList *dl, ImVec2 c, float s, int ik);   /* a place's picture (the seals) */
 void quest_glow(ImDrawList *dl, ImVec2 c, float is);   /* the halo behind a quest's picture */
+#define BOAT_WAY_W(h) ((h) * 2.3f)
+void boat_way_icon(ImDrawList *dl, ImVec2 a, float h, int kind);   /* a dock, a boat, the way they go: 0 leaving, 1 arriving, 2 both */
 void quest_ring(std::vector<ImVec2> &at, int n, ImVec2 mid, ImVec2 pin, float is, bool pointer_ok);   /* where n quests' pictures at one place go */
 std::string hhmm(int minutes);                         /* "40 minutes", "22 hours", "1.4 days" */
 float aspect(void);

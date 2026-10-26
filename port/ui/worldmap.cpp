@@ -71,7 +71,8 @@ static float wm_panel_right;                      // the panel's right side (win
 static float wm_find_left = 1e9f, wm_find_bottom, wm_foot_top = 1e9f;   // the top right panel's left side and foot, the place panel's top (last frame): room past them
 static int wm_panel_run, wm_panel_frame = -10;    // frames the panel has been drawn in a row (its size settles after the first), the last
 static const char *town_mark_label(int cat) { return cat == QC_UNWELCOME ? "Unwelcome here" : cat == QC_ALERT ? "The watch on alert here" : "Wanted by the watch here"; }
-std::string journal_travel_days(int loc);   /* ui/journal.cpp: "3 days" */
+std::string journal_travel_days(int loc);
+void ui_town_lists_panel(int loc);                /* ui/margins.cpp */   /* ui/journal.cpp: "3 days" */
 extern "C" int journal_buy_window(bool *open, int what), journal_town_noted(int loc); extern "C" void journal_town_wares(int loc);   /* ui/journal.cpp */
 static int selected = -1;
 static int dock_hover = -1, dock_hover_next = -1;          /* the place panel's boat destination under the pointer (last frame): ringed on the map */
@@ -209,34 +210,12 @@ static void place_details(const Place &p, float wrap)
         dim("Its saints, formulae and teachers: known once the party has been there.");
     else if (!known_here && library_at(p.loc))
         dim("The saints its library teaches: known once the party has been there.");
-    if (const Library *L = known_here ? library_at(p.loc) : nullptr) {        /* the saints its library teaches; new ones marked */
-        std::string t; int done[4], nd = 0;
-        for (int k = 0; k < 4; k++) {
-            int s = L->saint[k]; bool dup = false;
-            for (int j = 0; j < nd; j++) if (done[j] == s) dup = true;
-            if (dup || s < 0 || s >= (int)gamedata.saints.size()) continue;
-            done[nd++] = s;
-            t += (t.empty() ? "" : ";  ") + gamedata.saints[s].name + (party_knows_saint(s) ? "" : " (new)");
-        }
-        ImGui::TextDisabled("Saints taught here:");
-        ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + wrap); ImGui::TextWrapped("%s", t.c_str()); ImGui::PopTextWrapPos();
-    }
-    {   int fo[4], pr[4];                                /* the formulae its alchemist sells */
-        if (known_here && p.loc < 92 && alchemist_formulae(p.loc, fo, pr)) {
-            std::string t;
-            for (int k = 0; k < 4; k++) if (fo[k] >= 0 && fo[k] < (int)gamedata.formula_names.size()) t += (t.empty() ? "" : ";  ") + gamedata.formula_names[fo[k]] + (party_knows_formula(fo[k]) ? "" : " (new)");
-            ImGui::TextDisabled("Formulae sold here:");
-            ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + wrap); ImGui::TextWrapped("%s", t.c_str()); ImGui::PopTextWrapPos();
-        }
-    }
-    if (known_here && p.loc < 92 && ui_teachers_on()) {      /* the teachers it can offer (mods/teachers.c) */
-        TchSource ts[12]; int n = ui_town_teachers(p.loc, ts, 12);
-        std::string t;
-        for (int k = 0; k < n; k++) t += (t.empty() ? "" : ";  ") + std::string(ui_teacher_short(ts[k].src)) + ": " + ui_teacher_skills(ts[k]);
-        if (n) {
-            ImGui::TextDisabled("Teachers to be hired:");
-            ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + wrap); ImGui::TextWrapped("%s", t.c_str()); ImGui::PopTextWrapPos();
-        }
+    if (known_here) {                                        /* the saints, formulae and teachers, in the margin's look (ui/margins.cpp) */
+        ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + wrap);
+        ImGui::BeginGroup(); ImGui::Dummy(ImVec2(wrap, 0));
+        ui_town_lists_panel(p.loc);
+        ImGui::EndGroup();
+        ImGui::PopTextWrapPos();
     }
     if (p.loc < 92) ImGui::TextDisabled(journal_visited(p.loc) ? "Visited" : "Not visited yet");
 }
@@ -651,25 +630,40 @@ extern "C" void worldmap_draw(void)
             if (p.loc >= 0 && p.loc < (int)gamedata.cities.size()) {        /* its docks: the towns its boats go to (a click shows one) */
                 const City &town = gamedata.cities[p.loc];
                 /* a row of town buttons, wrapped to the column: pointed at, the route lights; a click shows the town */
-                auto boat_row = [&](const char *head, const std::vector<int> &to, int tag) {
+                /* the towns its boats go to and come from, a row each way: a dock, a boat and an arrow, then
+                   the towns (a click picks one); a town with boats both ways once, on the row of two arrows */
+                auto boat_row = [&](int kind, const std::vector<int> &to) {
+                    if (to.empty()) return;
+                    float h = ImGui::GetFrameHeight();
+                    ImVec2 a = ImGui::GetCursorScreenPos();
+                    boat_way_icon(ImGui::GetWindowDrawList(), a, h, kind);
+                    ImGui::Dummy(ImVec2(BOAT_WAY_W(h), h));
+                    if (ImGui::IsItemHovered()) {
+                        static const char *const TIP[3] = { "Boats leave here for these towns (not every day: the docks say which leave today).",
+                                                            "Boats from these towns call here; none sail back to them from here.",
+                                                            "Boats sail both ways between here and these towns (not every day: the docks say which leave today)." };
+                        ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 20); ImGui::TextUnformatted(TIP[kind]); ImGui::PopTextWrapPos(); ImGui::EndTooltip();
+                    }
                     for (size_t k = 0; k < to.size(); k++) {
                         const City &d2 = gamedata.cities[to[k]];
-                        char lb[64]; snprintf(lb, sizeof lb, "%s##boat%d_%d", d2.name.c_str(), tag, (int)k);
+                        char lb[64]; snprintf(lb, sizeof lb, "%s##boat%d_%d", d2.name.c_str(), kind, (int)k);
                         float bw2 = ImGui::CalcTextSize(lb, nullptr, true).x + ImGui::GetStyle().FramePadding.x * 2;
-                        if (!k) ImGui::TextDisabled("%s", head);
-                        else if (ImGui::GetItemRectMax().x + ImGui::GetStyle().ItemSpacing.x + bw2 <= ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x) ImGui::SameLine();
+                        if (ImGui::GetItemRectMax().x + ImGui::GetStyle().ItemSpacing.x + bw2 <= ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x) ImGui::SameLine();
+                        else ImGui::SetCursorPosX(ImGui::GetCursorPosX() + BOAT_WAY_W(h) + ImGui::GetStyle().ItemSpacing.x);
                         bool clk = ImGui::SmallButton(lb);
                         if (ImGui::IsItemHovered()) dock_hover_next = to[k];
                         if (clk) { selected = to[k]; for (const Place &q : P) if (q.loc == selected) { tile_px(q.x, q.y, &cx, &cy); } }
                     }
                 };
-                std::vector<int> out, in;
+                std::vector<int> out, in, both;
                 for (int k = 0; k < 5; k++) if (town.docks[k] >= 0 && town.docks[k] < (int)gamedata.cities.size() && town.docks[k] != p.loc) out.push_back(town.docks[k]);   /* (Groningen's lists itself) */
                 for (int o = 0; o < (int)gamedata.cities.size(); o++) if (o != p.loc) for (int k = 0; k < 5; k++) if (gamedata.cities[o].docks[k] == p.loc) { in.push_back(o); break; }
-                boat_row("Boats leaving here for:", out, 0);
-                if (out.empty() && citynav_town_offers(p.loc, TI_DOCKS)) ImGui::TextDisabled("Its docks have no boats leaving (the original game has none either).");
-                if (!in.empty()) { if (!out.empty()) ImGui::Spacing(); boat_row("Boats arriving here from:", in, 1); }
-                if (!out.empty() || !in.empty()) ImGui::TextDisabled("Not every boat sails every day; the docks say which leave today.");
+                for (int t : out) if (std::find(in.begin(), in.end(), t) != in.end()) both.push_back(t);
+                auto drop = [&](std::vector<int> &v) { v.erase(std::remove_if(v.begin(), v.end(), [&](int t) { return std::find(both.begin(), both.end(), t) != both.end(); }), v.end()); };
+                drop(out); drop(in);
+                if (!out.empty() || !in.empty() || !both.empty()) ImGui::TextDisabled("Boats");
+                boat_row(2, both); boat_row(0, out); boat_row(1, in);
+                if (out.empty() && both.empty() && citynav_town_offers(p.loc, TI_DOCKS)) ImGui::TextDisabled("Its docks have no boats leaving (the original game has none either).");
             }
             for (auto &m : marks) if (m.first == p.loc) ImGui::TextWrapped("%s", m.second.c_str());
             for (const TownMark &t : tmarks) if (t.loc == p.loc) ImGui::TextColored(ImVec4(0.75f, 0.25f, 0.15f, 1), "%s %s.", town_mark_label(t.cat), t.until.c_str());

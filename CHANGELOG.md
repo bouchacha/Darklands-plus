@@ -1,5 +1,11 @@
 # Darklands+ changelog
 
+## 1.4 (not yet released)
+
+What changed since 1.3.
+
+- **World map, a town's panel:** its saints (those the party knows greyed), formulae as potions (known ones greyed) and teachers as the skills' shields, as in the margin; its boats as a dock, a boat and an arrow (leaving, arriving, both ways) before the towns.
+
 ## 1.3
 
 What changed since 1.2. Each can be switched off in F12 > Settings, or is a choice there.

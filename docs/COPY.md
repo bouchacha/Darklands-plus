@@ -1314,52 +1314,58 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/margins.cpp:318` | Notable shops |
 | `ui/margins.cpp:320` | %s: %s of %dq (most shops sell about 25q). |
 | `ui/margins.cpp:325` | St.Edward, Confessor |
-| `ui/margins.cpp:331` | Saints taught here |
-| `ui/margins.cpp:344` |  (someone in the party knows this saint):  |
-| `ui/margins.cpp:344` |  (nobody in the party knows this saint):  |
-| `ui/margins.cpp:359` | Formulae sold here |
-| `ui/margins.cpp:378` | Someone in the party knows this formula. |
-| `ui/margins.cpp:378` | Nobody in the party knows this formula. |
-| `ui/margins.cpp:397` | Teachers: some at the inn now |
-| `ui/margins.cpp:398` | Teachers: %d here |
-| `ui/margins.cpp:399` | Teachers: none to be had now |
-| `ui/margins.cpp:402` | At the inn now:  |
-| `ui/margins.cpp:402` |  Hired teachers give lessons at the inn: set a member to "Train or study" there, a lesson a day, for a fee.   |
-| `ui/margins.cpp:516` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
-| `ui/margins.cpp:525` | Reputation %d |
-| `ui/margins.cpp:543` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
-| `ui/margins.cpp:543` | Below 0 its shops ask more and pay less (up to 9% from about -20 down). |
-| `ui/margins.cpp:547` |   Changes seen since this game was loaded: |
-| `ui/margins.cpp:550` | the overland view |
-| `ui/margins.cpp:550` | , after choosing " |
-| `ui/margins.cpp:568` | The town counts as hostile: its gates and people turn the party away. |
-| `ui/margins.cpp:570` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
-| `ui/margins.cpp:581` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
-| `ui/margins.cpp:593` | Preparing for war |
-| `ui/margins.cpp:594` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
-| `ui/margins.cpp:596` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
-| `ui/margins.cpp:621` | The party has goods stored here (F12 > Journal > Stored). |
-| `ui/margins.cpp:628` | Blessings and potions |
-| `ui/margins.cpp:646` | No blessings or potions at work. |
-| `ui/margins.cpp:655` | C: camp here |
-| `ui/margins.cpp:656` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
-| `ui/margins.cpp:660` | Go to a place here |
-| `ui/margins.cpp:660` | G: go to a place here |
-| `ui/margins.cpp:666` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
-| `ui/margins.cpp:715` | None taken on. |
-| `ui/margins.cpp:747` | Travel there |
-| `ui/margins.cpp:764` | ... %d more on the world map (M) |
-| `ui/margins.cpp:780` | Night in the streets |
-| `ui/margins.cpp:784` | almost always |
-| `ui/margins.cpp:785` | about %d time%s in 10 |
-| `ui/margins.cpp:786` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's Stealth and Streetwise)%s. An inn is the safe place to wait for morning. |
-| `ui/margins.cpp:789` | , as set in F12 > Mods (Night encounters in the streets) |
-| `ui/margins.cpp:828` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
-| `ui/margins.cpp:828` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
-| `ui/margins.cpp:830` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
-| `ui/margins.cpp:830` | It is day (from 5:00 to 19:00). |
-| `ui/margins.cpp:857` | %s in bank notes |
-| `ui/margins.cpp:871` | F11: the keys and clicks of this screen. |
+| `ui/margins.cpp:333` | Saints taught here |
+| `ui/margins.cpp:350` |  (someone in the party knows this saint):  |
+| `ui/margins.cpp:350` |  (nobody in the party knows this saint):  |
+| `ui/margins.cpp:365` | Formulae sold here |
+| `ui/margins.cpp:384` | Someone in the party knows this formula. |
+| `ui/margins.cpp:384` | Nobody in the party knows this formula. |
+| `ui/margins.cpp:403` | Teachers: some at the inn now |
+| `ui/margins.cpp:404` | Teachers: %d here |
+| `ui/margins.cpp:405` | Teachers: none to be had now |
+| `ui/margins.cpp:408` | At the inn now:  |
+| `ui/margins.cpp:408` |  Hired teachers give lessons at the inn: set a member to "Train or study" there, a lesson a day, for a fee.   |
+| `ui/margins.cpp:431` | Teachers to be hired |
+| `ui/margins.cpp:459` | %s: %s, up to %d |
+| `ui/margins.cpp:459` | %s: %s (their skill %d) |
+| `ui/margins.cpp:461` | A lesson a day at the inn, for a fee. |
+| `ui/margins.cpp:463` | Would teach %s |
+| `ui/margins.cpp:464` | Nobody in the party would learn anything |
+| `ui/margins.cpp:583` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
+| `ui/margins.cpp:592` | Reputation %d |
+| `ui/margins.cpp:610` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
+| `ui/margins.cpp:610` | Below 0 its shops ask more and pay less (up to 9% from about -20 down). |
+| `ui/margins.cpp:614` |   Changes seen since this game was loaded: |
+| `ui/margins.cpp:617` | the overland view |
+| `ui/margins.cpp:617` | , after choosing " |
+| `ui/margins.cpp:635` | The town counts as hostile: its gates and people turn the party away. |
+| `ui/margins.cpp:637` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
+| `ui/margins.cpp:648` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
+| `ui/margins.cpp:660` | Preparing for war |
+| `ui/margins.cpp:661` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
+| `ui/margins.cpp:663` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
+| `ui/margins.cpp:688` | The party has goods stored here (F12 > Journal > Stored). |
+| `ui/margins.cpp:695` | Blessings and potions |
+| `ui/margins.cpp:713` | No blessings or potions at work. |
+| `ui/margins.cpp:722` | C: camp here |
+| `ui/margins.cpp:723` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
+| `ui/margins.cpp:727` | Go to a place here |
+| `ui/margins.cpp:727` | G: go to a place here |
+| `ui/margins.cpp:733` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
+| `ui/margins.cpp:782` | None taken on. |
+| `ui/margins.cpp:814` | Travel there |
+| `ui/margins.cpp:831` | ... %d more on the world map (M) |
+| `ui/margins.cpp:847` | Night in the streets |
+| `ui/margins.cpp:851` | almost always |
+| `ui/margins.cpp:852` | about %d time%s in 10 |
+| `ui/margins.cpp:853` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's Stealth and Streetwise)%s. An inn is the safe place to wait for morning. |
+| `ui/margins.cpp:856` | , as set in F12 > Mods (Night encounters in the streets) |
+| `ui/margins.cpp:895` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
+| `ui/margins.cpp:895` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
+| `ui/margins.cpp:897` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
+| `ui/margins.cpp:897` | It is day (from 5:00 to 19:00). |
+| `ui/margins.cpp:924` | %s in bank notes |
+| `ui/margins.cpp:938` | F11: the keys and clicks of this screen. |
 | `ui/margins_battle.cpp:80` | The battle runs again (the key: Space). Any order being given is given first. |
 | `ui/margins_battle.cpp:81` | This member's order is given; the battle stays paused, to give others theirs (the key: Enter). |
 | `ui/margins_battle.cpp:82` | Every kind of enemy on the field: attributes, weapons, armor (the key: E). |
@@ -2383,83 +2389,80 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/worldmap.cpp:73` | Unwelcome here |
 | `ui/worldmap.cpp:73` | The watch on alert here |
 | `ui/worldmap.cpp:73` | Wanted by the watch here |
-| `ui/worldmap.cpp:87` | a university |
-| `ui/worldmap.cpp:87` | an alchemist |
-| `ui/worldmap.cpp:88` | docks (boats) |
-| `ui/worldmap.cpp:89` | a swordsmith of 30q+ |
-| `ui/worldmap.cpp:89` | an armorer of 30q+ |
-| `ui/worldmap.cpp:89` | a bowyer of 30q+ |
-| `ui/worldmap.cpp:90` | an artificer of 30q+ |
-| `ui/worldmap.cpp:90` | Artificer 30q+ |
-| `ui/worldmap.cpp:108` | everyone knows the swordsmiths of Nuremberg |
-| `ui/worldmap.cpp:144` | Route planned: the party sets off once it is in the overland view. |
-| `ui/worldmap.cpp:209` | Its saints, formulae and teachers: known once the party has been there. |
-| `ui/worldmap.cpp:211` | The saints its library teaches: known once the party has been there. |
-| `ui/worldmap.cpp:221` | Saints taught here: |
-| `ui/worldmap.cpp:228` | Formulae sold here: |
-| `ui/worldmap.cpp:237` | Teachers to be hired: |
-| `ui/worldmap.cpp:241` | Not visited yet |
-| `ui/worldmap.cpp:253` | Quest markers |
-| `ui/worldmap.cpp:253` | Boat routes between the towns' docks |
-| `ui/worldmap.cpp:253` | Each place as an icon of its kind (else a dot) |
-| `ui/worldmap.cpp:254` | The days of travel from the party to every town, under its name (off at first: it crowds the map) |
-| `ui/worldmap.cpp:463` | Towns with ... |
-| `ui/worldmap.cpp:552` | the marked spot |
-| `ui/worldmap.cpp:569` | Click for what it offers, and to travel there |
-| `ui/worldmap.cpp:605` | No way there from here |
-| `ui/worldmap.cpp:606` | Travel there |
-| `ui/worldmap.cpp:611` | Travel there |
-| `ui/worldmap.cpp:614` | Leave town and travel there |
-| `ui/worldmap.cpp:619` | To travel, be in the overland view or in a town's streets |
-| `ui/worldmap.cpp:625` | Walk out of %s's gate and travel to %s? |
-| `ui/worldmap.cpp:626` | The party walks through the streets to a gate and out; in the overland view the journey begins. |
-| `ui/worldmap.cpp:627` | Leave and travel |
-| `ui/worldmap.cpp:646` | The wares noted here (%d shop%s) |
-| `ui/worldmap.cpp:669` | Boats leaving here for: |
-| `ui/worldmap.cpp:670` | Its docks have no boats leaving (the original game has none either). |
-| `ui/worldmap.cpp:671` | Boats arriving here from: |
-| `ui/worldmap.cpp:672` | Not every boat sails every day; the docks say which leave today. |
-| `ui/worldmap.cpp:694` | The Holy Roman Empire |
-| `ui/worldmap.cpp:695` | {LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes the world map. |
-| `ui/worldmap.cpp:696` | Drag to move, wheel to zoom. M or Esc closes. |
-| `ui/worldmap.cpp:698` | Traveling to %s |
-| `ui/worldmap.cpp:722` | Collect your reward |
-| `ui/worldmap.cpp:722` | Robber knights |
-| `ui/worldmap.cpp:722` | Treasures to fetch |
-| `ui/worldmap.cpp:722` | Papers to get in a town |
-| `ui/worldmap.cpp:722` | City politics |
-| `ui/worldmap.cpp:722` | Cities at war |
-| `ui/worldmap.cpp:722` | The Wild Hunt |
-| `ui/worldmap.cpp:722` | Other quests |
-| `ui/worldmap.cpp:740` | %s (%d)###qg |
-| `ui/worldmap.cpp:746` | Sorted %s first: click for %s first. |
-| `ui/worldmap.cpp:746` | the soonest due |
-| `ui/worldmap.cpp:755` | No quests or rumors yet. |
-| `ui/worldmap.cpp:769` | Find alchemical ingredients |
-| `ui/worldmap.cpp:770` | Find any ware |
-| `ui/worldmap.cpp:807` | cave near Köln |
-| `ui/worldmap.cpp:813` | and %d more: type more of the name to narrow the list |
-| `ui/worldmap.cpp:814` | No place of that name. |
-| `ui/worldmap.cpp:844` | Click one to circle those towns on the map. |
-| `ui/worldmap.cpp:856` |  the party has been to: |
-| `ui/worldmap.cpp:860` | ... and %d more (circled on the map) |
-| `ui/worldmap.cpp:861` | %s %dq##tl%d |
-| `ui/worldmap.cpp:872` | Click a kind to show or hide it. |
-| `ui/worldmap.cpp:886` | Snap to party |
-| `ui/worldmap.cpp:898` | Center the map on the party. |
+| `ui/worldmap.cpp:88` | a university |
+| `ui/worldmap.cpp:88` | an alchemist |
+| `ui/worldmap.cpp:89` | docks (boats) |
+| `ui/worldmap.cpp:90` | a swordsmith of 30q+ |
+| `ui/worldmap.cpp:90` | an armorer of 30q+ |
+| `ui/worldmap.cpp:90` | a bowyer of 30q+ |
+| `ui/worldmap.cpp:91` | an artificer of 30q+ |
+| `ui/worldmap.cpp:91` | Artificer 30q+ |
+| `ui/worldmap.cpp:109` | everyone knows the swordsmiths of Nuremberg |
+| `ui/worldmap.cpp:145` | Route planned: the party sets off once it is in the overland view. |
+| `ui/worldmap.cpp:210` | Its saints, formulae and teachers: known once the party has been there. |
+| `ui/worldmap.cpp:212` | The saints its library teaches: known once the party has been there. |
+| `ui/worldmap.cpp:220` | Not visited yet |
+| `ui/worldmap.cpp:232` | Quest markers |
+| `ui/worldmap.cpp:232` | Boat routes between the towns' docks |
+| `ui/worldmap.cpp:232` | Each place as an icon of its kind (else a dot) |
+| `ui/worldmap.cpp:233` | The days of travel from the party to every town, under its name (off at first: it crowds the map) |
+| `ui/worldmap.cpp:442` | Towns with ... |
+| `ui/worldmap.cpp:531` | the marked spot |
+| `ui/worldmap.cpp:548` | Click for what it offers, and to travel there |
+| `ui/worldmap.cpp:584` | No way there from here |
+| `ui/worldmap.cpp:585` | Travel there |
+| `ui/worldmap.cpp:590` | Travel there |
+| `ui/worldmap.cpp:593` | Leave town and travel there |
+| `ui/worldmap.cpp:598` | To travel, be in the overland view or in a town's streets |
+| `ui/worldmap.cpp:604` | Walk out of %s's gate and travel to %s? |
+| `ui/worldmap.cpp:605` | The party walks through the streets to a gate and out; in the overland view the journey begins. |
+| `ui/worldmap.cpp:606` | Leave and travel |
+| `ui/worldmap.cpp:625` | The wares noted here (%d shop%s) |
+| `ui/worldmap.cpp:642` | Boats leave here for these towns (not every day: the docks say which leave today). |
+| `ui/worldmap.cpp:643` | Boats from these towns call here; none sail back to them from here. |
+| `ui/worldmap.cpp:644` | Boats sail both ways between here and these towns (not every day: the docks say which leave today). |
+| `ui/worldmap.cpp:666` | Its docks have no boats leaving (the original game has none either). |
+| `ui/worldmap.cpp:688` | The Holy Roman Empire |
+| `ui/worldmap.cpp:689` | {LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes the world map. |
+| `ui/worldmap.cpp:690` | Drag to move, wheel to zoom. M or Esc closes. |
+| `ui/worldmap.cpp:692` | Traveling to %s |
+| `ui/worldmap.cpp:716` | Collect your reward |
+| `ui/worldmap.cpp:716` | Robber knights |
+| `ui/worldmap.cpp:716` | Treasures to fetch |
+| `ui/worldmap.cpp:716` | Papers to get in a town |
+| `ui/worldmap.cpp:716` | City politics |
+| `ui/worldmap.cpp:716` | Cities at war |
+| `ui/worldmap.cpp:716` | The Wild Hunt |
+| `ui/worldmap.cpp:716` | Other quests |
+| `ui/worldmap.cpp:734` | %s (%d)###qg |
+| `ui/worldmap.cpp:740` | Sorted %s first: click for %s first. |
+| `ui/worldmap.cpp:740` | the soonest due |
+| `ui/worldmap.cpp:749` | No quests or rumors yet. |
+| `ui/worldmap.cpp:763` | Find alchemical ingredients |
+| `ui/worldmap.cpp:764` | Find any ware |
+| `ui/worldmap.cpp:801` | cave near Köln |
+| `ui/worldmap.cpp:807` | and %d more: type more of the name to narrow the list |
+| `ui/worldmap.cpp:808` | No place of that name. |
+| `ui/worldmap.cpp:838` | Click one to circle those towns on the map. |
+| `ui/worldmap.cpp:850` |  the party has been to: |
+| `ui/worldmap.cpp:854` | ... and %d more (circled on the map) |
+| `ui/worldmap.cpp:855` | %s %dq##tl%d |
+| `ui/worldmap.cpp:866` | Click a kind to show or hide it. |
+| `ui/worldmap.cpp:880` | Snap to party |
+| `ui/worldmap.cpp:892` | Center the map on the party. |
+| `ui/worldmap.cpp:897` | Show on the map |
 | `ui/worldmap.cpp:903` | Show on the map |
-| `ui/worldmap.cpp:909` | Show on the map |
-| `ui/worldmap.cpp:932` | shown (click to hide) |
-| `ui/worldmap.cpp:932` | hidden (click to show) |
-| `ui/worldmap.cpp:1003` | faded: leaves later this week |
-| `ui/worldmap.cpp:1068` | Click to take the boat. |
+| `ui/worldmap.cpp:926` | shown (click to hide) |
+| `ui/worldmap.cpp:926` | hidden (click to show) |
+| `ui/worldmap.cpp:997` | faded: leaves later this week |
+| `ui/worldmap.cpp:1062` | Click to take the boat. |
 | `ui/worldmap_draw.cpp:105` | ruined castle |
 | `ui/worldmap_draw.cpp:107` | ruined village |
 | `ui/worldmap_draw.cpp:108` | standing stone |
 | `ui/worldmap_draw.cpp:108` | witches' meeting place |
 | `ui/worldmap_draw.cpp:137` | Spring or lake |
 | `ui/worldmap_draw.cpp:359` | Map of Greater Germany |
-| `ui/worldmap_draw.cpp:491` | About %s of travel |
+| `ui/worldmap_draw.cpp:523` | About %s of travel |
 
 ## The game side (mods/)
 

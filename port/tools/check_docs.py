@@ -49,8 +49,9 @@ def sections_of_docs():
     """(name, text) of each player-facing text, the current part only"""
     out = [('README.md', rd('README.md'))]
     ch = rd('CHANGELOG.md')
-    m = re.search(r'^## .*?(?=^## )', ch, re.M | re.S)
-    out.append(('CHANGELOG.md (newest section)', m.group(0) if m else ''))
+    secs = [m.group(0) for m in re.finditer(r'^## .*?(?=^## |\Z)', ch, re.M | re.S)]
+    out.append(('CHANGELOG.md (newest section)', secs[0] if secs else ''))
+    out.append(('CHANGELOG.md (newest release)', next((t for t in secs if 'not yet released' not in t.splitlines()[0]), '')))   # (what the release notes say)
     rn = rd('docs/release_notes.md')
     i = rn.find('**New in 1.2**'); j = rn.find('### What it adds')
     out.append(('docs/release_notes.md', rn[:i if i >= 0 else len(rn)] + (rn[j:] if j >= 0 else '')))
@@ -144,7 +145,7 @@ def main():
                     bad.append('%s: preset "%s" - the presets are %s' % (name, w, ', '.join(presets)))
 
     # the changelog's newest section and the release notes' "New in" section: the same text
-    ch = texts[1][1]
+    ch = texts[2][1]                     # (the newest released version: the release notes are the download's)
     rn = rd('docs/release_notes.md')
     a = rn.find('**New in '); b = rn.find('**New in ', a + 1)
     def body(s):

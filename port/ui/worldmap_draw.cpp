@@ -414,6 +414,38 @@ void boat_way_draw(ImDrawList *dl, const std::vector<ImVec2> &pts, float lw, boo
     });
 }
 
+/* a town's boats in the place panel: a dock, a boat and which way they go - 0 leaving (the arrow
+   after the boat, away from the dock), 1 arriving (the arrow before it, towards the dock), 2 both
+   ways (two arrows between). Drawn in a box at a, BOAT_WAY_W(h) wide and h high */
+void boat_way_icon(ImDrawList *dl, ImVec2 a, float h, int kind)
+{
+    ImU32 wood = IM_COL32(110, 64, 30, 255), dark = IM_COL32(60, 36, 16, 255), sail = IM_COL32(250, 246, 232, 255);
+    ImU32 water = IM_COL32(70, 110, 150, 200), ink = IM_COL32(150, 40, 25, 255);
+    float lw = fmaxf(1.0f, h * 0.07f), base = a.y + h * 0.78f;
+    dl->AddLine(ImVec2(a.x, base + h * 0.1f), ImVec2(a.x + BOAT_WAY_W(h), base + h * 0.1f), water, lw);     /* the water */
+    dl->AddRectFilled(ImVec2(a.x, a.y + h * 0.42f), ImVec2(a.x + h * 0.34f, base), wood);                       /* the dock: its planks */
+    dl->AddRectFilled(ImVec2(a.x + h * 0.04f, a.y + h * 0.3f), ImVec2(a.x + h * 0.12f, base + h * 0.16f), dark);  /* and a post */
+    for (int k = 1; k < 3; k++) dl->AddLine(ImVec2(a.x, a.y + h * (0.42f + 0.12f * k)), ImVec2(a.x + h * 0.34f, a.y + h * (0.42f + 0.12f * k)), dark, fmaxf(1.0f, h * 0.03f));
+    auto boat = [&](float cx, bool right) {
+        float b = h * 0.24f;
+        ImVec2 hull[4] = { ImVec2(cx - b * 1.5f, base - b * 0.55f), ImVec2(cx + b * 1.5f, base - b * 0.55f), ImVec2(cx + b * 1.0f, base), ImVec2(cx - b * 1.0f, base) };
+        dl->AddConvexPolyFilled(hull, 4, wood);
+        dl->AddLine(ImVec2(cx, base - b * 0.55f), ImVec2(cx, a.y + h * 0.08f), dark, lw);
+        float sx = right ? 1.0f : -1.0f;
+        dl->AddTriangleFilled(ImVec2(cx, a.y + h * 0.1f), ImVec2(cx, base - b * 0.7f), ImVec2(cx + sx * b * 1.3f, base - b * 0.8f), sail);
+        dl->AddTriangle(ImVec2(cx, a.y + h * 0.1f), ImVec2(cx, base - b * 0.7f), ImVec2(cx + sx * b * 1.3f, base - b * 0.8f), dark, fmaxf(1.0f, h * 0.03f));
+    };
+    auto arrow = [&](float x0, float x1, float y) {                                   /* from x0 to x1, its head at x1 */
+        float d = x1 > x0 ? 1.0f : -1.0f, hw = h * 0.13f;
+        dl->AddLine(ImVec2(x0, y), ImVec2(x1 - d * hw, y), ink, lw * 1.3f);
+        dl->AddTriangleFilled(ImVec2(x1, y), ImVec2(x1 - d * hw * 1.6f, y - hw), ImVec2(x1 - d * hw * 1.6f, y + hw), ink);
+    };
+    float d0 = a.x + h * 0.48f;                                                       /* past the dock */
+    if (kind == 0) { boat(d0 + h * 0.4f, true); arrow(d0 + h * 0.85f, d0 + h * 1.75f, a.y + h * 0.5f); }
+    else if (kind == 1) { arrow(d0 + h * 0.85f, d0 + h * 0.02f, a.y + h * 0.5f); boat(d0 + h * 1.3f, false); }
+    else { arrow(d0 + h * 0.02f, d0 + h * 0.8f, a.y + h * 0.36f); arrow(d0 + h * 0.8f, d0 + h * 0.02f, a.y + h * 0.64f); boat(d0 + h * 1.3f, true); }
+}
+
 /* the four things the map can show or not (names, quest marks, boats, the places' icons): buttons
    floating on the map, under the top right panel */
 
