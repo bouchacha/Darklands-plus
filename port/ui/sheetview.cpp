@@ -1,4 +1,3 @@
-#include "vtrace.h"
 /* sheetview.cpp - draws a member's sheet (mods/sheetview.c runs it; docs/NATIVE_SCREENS.md),
  * the whole page anew beside the party panel.
  *
@@ -7,7 +6,7 @@
  * of its own for them).
  * Things: the paper doll on its column (put together from the game's own pictures, as the
  *   original does: PICS\ARMSBACK.PIC and the armour, weapon, shield and missile weapon over it),
- *   the load under it; right, the things, those in use first, the quality only where it can
+ *   the load under it; right, the things, those equipped first, the quality only where it can
  *   differ; Equip / Unequip / Drink and Drop on the row under the pointer, Undo for what was
  *   dropped; a thing dragged onto a member at the left is given to them (Shift: one of a stack);
  *   a weapon, armour or shield the pointer rests on shows all its numbers and who could use it.
@@ -27,6 +26,7 @@
  *   the formula shown calls for ringed; the formula under the pointer with its effect, mystic
  *   number and risk, its ingredients against what the party carries, and each alchemist's
  *   chance with one batch, or where an alchemist the party has been to sells it. */
+#include "vtrace.h"
 #include "imgui.h"
 #include "skillicons.h"
 #include "../runtime/config.h"

@@ -17,7 +17,8 @@ Checked:
     has (a string in ui/ or mods/);
   - the presets named (*Full Original*, *Purist*, *Darklands+* ...) are the presets (mods/options.c);
   - the docs made from the code are as it makes them now: docs/CODE_MAP.md (tools/code_map.py) and
-    docs/COPY.md (tools/copy_catalog.py). With --fix they are written anew instead of reported.
+    docs/COPY.md (tools/copy_catalog.py). With --fix they are written anew instead of reported. And
+    every source file starts with a header comment saying what it is (CODE_MAP.md's description).
 """
 import os, re, subprocess, sys
 
@@ -67,6 +68,9 @@ def generated(fix):
     for doc, tool in GENERATED:
         now = subprocess.run([sys.executable, '-I', os.path.join(TOP, tool)], capture_output=True, text=True, cwd=TOP).stdout
         if not now.strip(): out.append('%s: %s made nothing' % (doc, tool)); continue
+        if doc.endswith('CODE_MAP.md'):              # (every file starts with a header saying what it is)
+            for f in re.findall(r'^\| `([^`]+)` \| \d+ \| \s*\|$', now, re.M):
+                out.append('port/%s: no header comment saying what it is (the first thing in the file)' % f)
         if now == rd(doc): continue
         if fix:
             open(os.path.join(TOP, doc), 'w', encoding='utf-8').write(now)

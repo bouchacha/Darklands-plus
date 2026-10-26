@@ -1,5 +1,7 @@
+/* gamemodel.c - the game's state by name (gamemodel.h says what each function reads): where the party,
+ * the members, their things and their equipment are kept, and the shared pack's listing and "whom it
+ * goes to" (gm_pack_rows, gm_pack_target) for the sheet, the shop, the loot and the store room. */
 #include <stdio.h>
-/* gamemodel.c - see gamemodel.h */
 #include <string.h>
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"

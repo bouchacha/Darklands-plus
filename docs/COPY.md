@@ -2589,14 +2589,14 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixgroups.c:13` | Bugs players have long used to their advantage (invulnerability from fire protection, confession's clock turned back, the same bounty again and again). Leave these off to keep the old tricks. |
 | `mods/fixgroups.c:14` | Left over from 1992 |
 | `mods/fixgroups.c:14` | Not bugs, but nobody misses them: the question from the printed manual before the party first sets out. |
-| `mods/gamemodel.c:338` | Divine Favor |
-| `mods/gamemodel.c:343` | Edged Weapons |
-| `mods/gamemodel.c:343` | Impact Weapons |
-| `mods/gamemodel.c:343` | Thrown Weapons |
-| `mods/gamemodel.c:343` | Missile Devices |
-| `mods/gamemodel.c:344` | Speak Common |
-| `mods/gamemodel.c:344` | Read & Write |
-| `mods/gamemodel.c:363` | Missile Devices |
+| `mods/gamemodel.c:340` | Divine Favor |
+| `mods/gamemodel.c:345` | Edged Weapons |
+| `mods/gamemodel.c:345` | Impact Weapons |
+| `mods/gamemodel.c:345` | Thrown Weapons |
+| `mods/gamemodel.c:345` | Missile Devices |
+| `mods/gamemodel.c:346` | Speak Common |
+| `mods/gamemodel.c:346` | Read & Write |
+| `mods/gamemodel.c:365` | Missile Devices |
 | `mods/hdart.c:779` | Create a New World |
 | `mods/hdart.c:780` | The Story Continues |
 | `mods/hdart.c:992` | %d pictures written to %s%s |
