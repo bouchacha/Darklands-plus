@@ -14,18 +14,20 @@ extern "C" SDL_Renderer *plat_renderer(void);
 struct DcEnt { unsigned long long key; int w, h; SDL_Texture *t; int used; };
 static std::vector<DcEnt> cache;
 static int frame_no, usable = -1;
-/* the way of keeping a drawing used by default (display.draw_cache 1 and 3): its triangles, made once,
+/* keeping a drawing as its triangles (display.draw_cache 3, and in 4 a large sparse drawing): made once,
    copied into the frame each time - the same pixels, none of the work of making them, no picture on the
-   graphics card. A picture drawn into (2) showed as a wash over the inn, the camp and the margins on a
-   player's machines, on Direct3D 11 first and then on a laptop: pictures only when asked for. Each of
-   the drawing's commands keeps its own clip rectangle and texture */
+   graphics card. (Pictures drawn into on the card, 2, were blamed for a wash over the inn, the camp and the
+   margins on players' machines and taken out of the default; the wash was the skill icon's shield writing
+   past its list - ui/skillicons.cpp, 1.3-RC31 - and those are the screens that draw shields. With that
+   fixed, 2 draws the inn as the others do.) Each of the drawing's commands keeps its own clip rectangle
+   and texture */
 struct DcGeo { unsigned long long key; std::vector<ImDrawVert> v; std::vector<ImDrawIdx> i; std::vector<int> cmd_n, cmd_vlo, cmd_vhi; std::vector<ImVec4> cmd_clip; std::vector<ImTextureID> cmd_tex; ImTextureID tex; int used; };
 static std::vector<DcGeo> geos;
 static int mode = -1;                          /* 0 none, 2 pictures drawn by the graphics card, 3 triangles, 4 pictures drawn by the processor */
 
 /* mode 4 (the default): the drawing made into a picture by SDL's software renderer, in memory, then
-   given to the graphics card as an ordinary picture (as the game's own pictures are: no drawing into a
-   picture on the card, which washed the screen over on some machines) - 4 vertices a frame instead of
+   given to the graphics card as an ordinary picture (as the game's own pictures are: nothing drawn into
+   a picture on the card) - 4 vertices a frame instead of
    the drawing's tens of thousands. One software renderer on a surface as large as the largest drawing
    asked for so far, with its own copy of the font atlas (the thick lines are drawn from its texture) */
 static SDL_Surface *sw_surf;

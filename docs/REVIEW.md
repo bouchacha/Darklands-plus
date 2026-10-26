@@ -174,3 +174,16 @@ covered and found, and what it could not check.
   shield"). tools/uitour.py now fails on a memory error or a game that has stopped (before, a dead game passed
   every screen); run it with the ASAN build before an RC. Run so on 1.3-RC31: every screen and the inn with the
   player's save clean. The draw guard stays, as the net under a slip of this kind.
+- 2026-10-26 (morning): the standing orders run through after RC31. The Windows compiler with every warning on
+  (-Wall -Wextra -Wformat=2) over runtime/, mods/ and ui/: nothing; the shield's kind of slip is ASAN's to find
+  (uitour with the ASAN build, now in docs/RELEASING.md's step 0 with every other check). Looked back at the
+  wash's earlier diagnosis: twice (commits of 10-23 and 10-25) pictures drawn into on the graphics card (display.draw_cache 2) were
+  blamed for it and taken out of the default; the wash came from the inn, the camp and the margins, the screens
+  that draw shields, so it was the shield all along. Mode 2 draws the inn as the others do now (under Wine); its
+  description no longer says it washes the screen, and drawcache.cpp says what happened. The default stays the
+  processor-drawn pictures (lighter anyway). Made from the code and now checked so: docs/COPY.md had drifted by
+  hundreds of lines, docs/SWITCHES.md by three descriptions; check_docs.py reports a stale CODE_MAP.md or COPY.md
+  (--fix writes them) and a source file without a header (two had none: gamemodel.c, sheetview.cpp), and
+  release_check.py writes the switch list and reports when it changed. Words: COPY.md's Terms hold everywhere
+  (no "in use" for equipped, the attributes capitalized); the shop's hint ends as the other item screens'.
+  Not split: mods/fixes.c (2,577 lines), one table of independent fixes, each described in the header.

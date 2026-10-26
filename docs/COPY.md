@@ -237,7 +237,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:225` | Intro at start-up |
 | `mods/options.c:225` | the intro: 0 nothing, 1 the last scene, 2 the whole (-1: the whole the first time). |
 | `mods/options.c:226` | Drawing cache |
-| `mods/options.c:226` | the ornate frames drawn once and kept, not drawn again each time: 1 (the default: the plaited bands made into pictures by the processor, the rest kept as triangles), 0 off, 3 everything kept as triangles, 2 kept as pictures drawn by the graphics card (showed as a wash over the screen on some computers). |
+| `mods/options.c:226` | the ornate frames drawn once and kept, not drawn again each time: 1 (the default: the plaited bands made into pictures by the processor, the rest kept as triangles), 0 off, 3 everything kept as triangles, 2 kept as pictures drawn by the graphics card. |
 | `mods/options.c:227` | Encounters from mods |
 | `mods/options.c:227` | the new encounters that mods add (F12 > Mods) come up on the road. |
 | `mods/options.c:228` | A seal on encounters from mods |
@@ -2154,11 +2154,11 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui.cpp:594` | Reconstructed Content |
 | `ui/ui.cpp:598` | Reconstructed Content |
 | `ui/ui.cpp:620` |              |
-| `ui/ui.cpp:724` | an index past the vertices |
-| `ui/ui.cpp:724` | not a number |
-| `ui/ui.cpp:724` | far past the window |
-| `ui/ui.cpp:756` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
-| `ui/ui.cpp:762` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
+| `ui/ui.cpp:725` | an index past the vertices |
+| `ui/ui.cpp:725` | not a number |
+| `ui/ui.cpp:725` | far past the window |
+| `ui/ui.cpp:757` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
+| `ui/ui.cpp:763` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
 | `ui/ui_windows.cpp:74` | Darklands+ is made by Yassine Meskhout. |
 | `ui/ui_windows.cpp:75` | Darklands (c) 1992 MicroProse. This is the original game, rebuilt to run directly on today's computers, with the game files of your own copy. F12 > Settings has the Full Original preset, the game as it played, and switches for most of what Darklands+ adds. |
 | `ui/ui_windows.cpp:78` | F11: the keys for the current screen.  F12: this window (the game waits while it is open).  Alt+Enter: full screen.  Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities). |

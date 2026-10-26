@@ -120,6 +120,20 @@ def main():
     finally:
         subprocess.run(NCTL + ['stop', NAME], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     shutil.copy(log, os.path.join(a.out, 'log.txt'))
+    # the switches: no key lost, and docs/SWITCHES.md as the game writes it now. (Written by the program
+    # itself, on the session's copy of the game folder: starting it writes its settings and backs the saves
+    # up, which the player's own folder must not get from a check)
+    sw = os.path.join(a.out, 'SWITCHES.md'); doc = os.path.join(TOP, 'docs', 'SWITCHES.md')
+    copy = os.path.join(os.path.dirname(log), 'game')
+    subprocess.run([a.exe, copy], env=dict(os.environ, DL_DUMP_SWITCHES=sw), capture_output=True, timeout=300)
+    r = subprocess.run([sys.executable, '-I', os.path.join(HERE, 'check_switches.py'), doc, sw], capture_output=True, text=True)
+    same = os.path.exists(sw) and open(sw, encoding='utf-8').read() == open(doc, encoding='utf-8').read()
+    print('%-40s %s' % ('the switches: none lost, the list current', 'OK' if r.returncode == 0 and same else 'FAILED'))
+    if r.returncode: print(r.stdout.rstrip()); failed += 1
+    elif not same: print('    docs/SWITCHES.md is not as the game writes it now: cp %s docs/SWITCHES.md' % sw); failed += 1
+    if failed and re.search(r'Go to \w[^:]*: something happened on the way', open(log, encoding='latin1', errors='replace').read()):
+        print('    (Go to met a street encounter on the way - the shell game ($SHELL00) and the like: the game\'s own chance, which the')
+        print('    fixed seed avoids in some towns and not in others; Quickstart picks the town. Not a fault: run the check again.)')
     print('%s; screenshots and the log in %s' % ('all passed' if not failed else '%d FAILED' % failed, a.out))
     return 1 if failed else 0
 

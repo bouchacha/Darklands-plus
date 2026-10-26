@@ -74,7 +74,9 @@ Windows zip runs under Wine / Proton. The players' README in the zip is
 
 ## Switch names
 
-Before a release, write the switch list afresh and check that no switch lost its name:
+`release_check.py` writes the switch list afresh (into its `--out` folder) and checks that no switch
+lost its name (`port/tools/check_switches.py`); when the list has changed it says so, and the new one
+is copied over `docs/SWITCHES.md`. By hand:
 
     DL_DUMP_SWITCHES=/tmp/sw.md build/port/darklands GAME_FOLDER
     python3 port/tools/check_switches.py docs/SWITCHES.md /tmp/sw.md && cp /tmp/sw.md docs/SWITCHES.md

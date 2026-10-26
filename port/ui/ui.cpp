@@ -697,7 +697,8 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     ui_build_us = SDL_GetPerformanceCounter();
     { ImDrawData *dd = ImGui::GetDrawData(); ui_vtx = dd->TotalVtxCount; ui_cmds = 0; for (int i = 0; i < dd->CmdListsCount; i++) ui_cmds += dd->CmdLists[i]->CmdBuffer.Size; }
     {   /* test (DL_DRAW_CHECK): every draw command's triangles, their extent: one far past the window, or not
-           a number, is reported once (a wash over the screen on some graphics cards was looked for so) */
+           a number, is reported once (the inn's wash on Windows was looked for so: it was letters drawn hundreds
+           of times their size, which ui/drawguard.cpp now takes out and reports) */
         static int chk = -1; if (chk < 0) chk = getenv("DL_DRAW_CHECK") != 0;
         if (chk) {
             ImDrawData *dd = ImGui::GetDrawData(); ImVec2 ds = ImGui::GetIO().DisplaySize;

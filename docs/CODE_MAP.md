@@ -128,7 +128,7 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/careericons.cpp` | 93 | a picture for each kind of profession on the making of a character (arms, nobility, church, trade, learning, crafts, common folk), in the manner of the town's pictures (ui/townicons.cpp): a parchment disc, bold shapes with an ink outline. |
 | `ui/citynav.cpp` | 1033 | "Go to" in cities. A city in Darklands is a maze of card menus (main street, market, churches, the crafts district, side streets ...); the list here names every place at once, and picking one walks the party there throug |
 | `ui/createview.cpp` | 382 | making a character, drawn by Darklands+ (mods/createview.c runs it), over the whole screen. |
-| `ui/drawcache.cpp` | 224 | see drawcache.h |
+| `ui/drawcache.cpp` | 226 | see drawcache.h |
 | `ui/drawguard.cpp` | 122 | the last look at a frame before it goes to the graphics card: a triangle no screen of Darklands+ means to draw is taken out, and the first few of them are said in the log ("draw guard: ..."). |
 | `ui/editor.cpp` | 168 | the character editor (F12 > Editor, switched on under Helpers): what the save-game editors of the community (Darklands Companion, EDITOR.EXE, CharacterEditor) change, done on the running game: money, names, attributes, skills, saints, formulas, a character's colours (the "garish colors" bug), shield and figure, items' quality and number. |
 | `ui/enemyview.cpp` | 120 | the battle's Enemy Info drawn by Darklands+ (mods/enemyview.c runs it): every kind of foe on the field with its picture, how many and how many still fight, its armour, shield and weapons (with the game's word for its skill, but not at Expert), and what each of the party's weapons does against its body armour. |
@@ -187,7 +187,7 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/titleview.cpp` | 110 | the start screen, drawn by Darklands+ (mods/titleview.c runs it): laid out as the game lays out a card, the words on the parchment at the left and a picture at the right (the castle at dusk the game shows on the road to a town, pics\aproch1.pic), the Darklands lettering of the original start screen (pics\startscr.pic) cut from its stone. |
 | `ui/townicons.cpp` | 384 | see townicons.h. Drawn with ImGui's shapes (pen.h) in the manner of the quests' pictures: bold shapes with an ink outline, readable at the size of a line of text. |
 | `ui/travel.cpp` | 37 | the route of auto-travel drawn over the overland map (mods/travel.c walks it; the world map, ui/worldmap.cpp, is where a journey is chosen). |
-| `ui/ui.cpp` | 771 | the native port's own interface, drawn over the game: the Darklands+ window (F12) and its pages (the settings pages in settings.cpp), help, notices. |
+| `ui/ui.cpp` | 772 | the native port's own interface, drawn over the game: the Darklands+ window (F12) and its pages (the settings pages in settings.cpp), help, notices. |
 | `ui/ui_windows.cpp` | 441 | the interface's side windows: About, the welcome on the first start, the news of a new version, getting the MT-32 working, and F11's keys and clicks for the screen in view. |
 | `ui/worldmap.cpp` | 1091 | the world map: the whole of the Holy Roman Empire as the travel screen draws it (mods/worldmap.c), to pan and zoom, with towns and places named, the party, the route of auto-travel and the places the quest log points to. |
 | `ui/worldmap_draw.cpp` | 530 | the world map's pictures (the places' seals and painted icons, the frame, the compass rose, the boats' red ink and ships, the layer buttons' glyphs, a quest's halo), its list of places, the names over the game's own travel map, and a test sheet of the pictures. |
@@ -219,7 +219,7 @@ Tools: tests, checks, the harness.
 | `tools/package.py` | 151 | the Windows release of Darklands+: only our own code and the tools that make the game module on the player's machine (runtime/split.h). |
 | `tools/perfcheck.py` | 72 | how long the interface takes to draw on each screen (run after every new feature). |
 | `tools/prepare.py` | 137 | make the game module (runtime/split.h) from the player's own DARKLAND.EXE. |
-| `tools/release_check.py` | 128 | a scripted session through the parts of Darklands+ that a release must not break, in a window (native screens are drawn only there), on your own game files. |
+| `tools/release_check.py` | 142 | a scripted session through the parts of Darklands+ that a release must not break, in a window (native screens are drawn only there), on your own game files. |
 | `tools/smoke.py` | 52 | quick checks of a Darklands+ build against your own game files, before a release. |
 | `tools/soundpack.py` | 313 | build the sample battle-sound pack from free recordings. |
 | `tools/uitour.py` | 70 | every tooltip beside what it describes (never over it nor over the pointer), and no two of Darklands+'s panels over each other. |
