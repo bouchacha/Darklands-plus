@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """check_docs.py - what the player-facing texts say against the code, so that no text drifts from it.
 
-  check_docs.py            (from anywhere; exit 1 on a mismatch; release_check.py runs it first)
+  check_docs.py [--fix]    (from anywhere; exit 1 on a mismatch; release_check.py runs it first)
 
 The same things are said in several places - README.md, the changelog's newest section, the release
 notes (docs/release_notes.md, what is above "New in 1.2" and from "What it adds" on), the README of
@@ -15,7 +15,9 @@ Checked:
   - every "F12 > A > B ..." names a real place: A one of the F12 window's tabs (ui/ui.cpp), B under
     Settings one of its sections (ui/settings.cpp, mods/options.c), anything further a label the code
     has (a string in ui/ or mods/);
-  - the presets named (*Full Original*, *Purist*, *Darklands+* ...) are the presets (mods/options.c).
+  - the presets named (*Full Original*, *Purist*, *Darklands+* ...) are the presets (mods/options.c);
+  - the docs made from the code are as it makes them now: docs/CODE_MAP.md (tools/code_map.py) and
+    docs/COPY.md (tools/copy_catalog.py). With --fix they are written anew instead of reported.
 """
 import os, re, subprocess, sys
 
@@ -56,8 +58,26 @@ def sections_of_docs():
     return out
 
 
+GENERATED = [('docs/CODE_MAP.md', 'port/tools/code_map.py'), ('docs/COPY.md', 'port/tools/copy_catalog.py')]
+
+
+def generated(fix):
+    """the docs made from the code: (what is stale, as mismatches) - or, with fix, written anew"""
+    out = []
+    for doc, tool in GENERATED:
+        now = subprocess.run([sys.executable, '-I', os.path.join(TOP, tool)], capture_output=True, text=True, cwd=TOP).stdout
+        if not now.strip(): out.append('%s: %s made nothing' % (doc, tool)); continue
+        if now == rd(doc): continue
+        if fix:
+            open(os.path.join(TOP, doc), 'w', encoding='utf-8').write(now)
+            print('  %s written anew' % doc)
+        else:
+            out.append('%s: not as the code makes it now (python3 %s > %s, or check_docs.py --fix)' % (doc, tool, doc))
+    return out
+
+
 def main():
-    bad = []
+    bad = generated('--fix' in sys.argv[1:])
     fixes_src = rd('port/mods/fixes.c')
     n_fix = fixes_count(fixes_src)
     st = rd('port/mods/sainttexts.c')

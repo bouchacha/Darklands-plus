@@ -23,9 +23,20 @@ Never commit anything from `build/`, game files, or a `darklands_game.dll`. `.gi
 
 ## Each release
 
-0. On Linux, with your own game folder: `python3 port/tools/release_check.py --game DIR` and the
-   same with `--exe build/port_asan/darklands` (after `make -C port ASAN=1`). Both must say
-   "all passed" (docs/PORT_STRUCTURE.md).
+0. On Linux, with your own game folder (each must pass):
+   - `python3 port/tools/release_check.py --game DIR`, and the same with
+     `--exe build/port_asan/darklands` (after `make -C port ASAN=1`): "all passed"
+     (docs/PORT_STRUCTURE.md). It runs `port/tools/check_docs.py` first; generated docs that are
+     out of date are written afresh with `check_docs.py --fix`.
+   - `python3 port/tools/uitour.py --game DIR --exe build/port_asan/darklands`: tooltips, panels
+     and pointers on every screen, plus memory errors. A write past the end of a list may show
+     nothing on Linux and wreck a screen on Windows (1.3-RC31's inn).
+   - `python3 port/tools/gotosweep.py --game DIR --save SAVE`: Go to every place of a town.
+   - Under Wine, the Windows program (`make -C port SPLIT=1 TARGET=win64`):
+     `port/tools/nctl.py start NAME --x11 --exe build/port_win64_split/darklands.exe --game DIR`.
+     Load a save, open the screens that have changed, and check that the log has no
+     "draw guard" line. Wine's Direct3D 11 does not start, so SDL falls back to Direct3D 9, but
+     a slip that only shows on Windows still shows here.
 1. Make a test zip: on GitHub, open **Actions > Windows release > Run workflow**. When the run
    finishes, its page has the zip under **Artifacts**.
 2. Try it on Windows: unpack the zip into a copy of the Darklands folder, start

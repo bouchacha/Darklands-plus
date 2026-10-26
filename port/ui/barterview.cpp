@@ -400,7 +400,7 @@ extern "C" void barterview_draw(void)
             t.y_max = SY1 - 9.5f;                                  /* (the hint line and the Sell spare gear button below) */
             strip_end = ns_item_strip(P, SY0, t);
         }
-    } else T(fo, NsDraw::FS_BODY, 68, SY0 + 3, ink_dim, "Point at a ware or one of your items to see it here.");
+    } else T(fo, NsDraw::FS_BODY, 68, SY0 + 3, ink_dim, "Point at a ware or one of your items to see it here; F11 shows what you can do.");
     if (show_spare) {
         if (P.button(sbx0, SY1 - 9.5f, sbx1, SY1 - 1.5f, slab, asking ? IM_COL32(140, 60, 40, 235) : IM_COL32(120, 84, 40, 235))) {
             if (asking) {
