@@ -267,11 +267,21 @@ def check(s, log):
         # (a fight still going - blows and shots in its last quarter - is a long one, not a stall: noted, not a problem)
         t_q = ticks[-1][0] * 3 // 4
         m = next((m for m in re.finditer(r'ARENA t=(\d+)', log) if int(m.group(1)) >= t_q), None)
-        blows = len(re.findall(r'^battle: .*(hits|misses|wounds|parries|shot)', log[m.start():] if m else '', re.M))
-        if blows >= 4:
-            print('%-24s        a long fight: not over after %ds, %d blows and shots in its last quarter' % (s['name'], s['secs'], blows))
+        hurt = len(re.findall(r'^battle: .*(wounds|hits .*End|falls|dies|killed)', log[m.start():] if m else '', re.M))
+        if hurt >= 2:
+            print('%-24s        a long fight: not over after %ds, %d wounds in its last quarter' % (s['name'], s['secs'], hurt))
         else:
-            probs.append('battle not over after %ds (%d foes and %d of the party still standing; %d blows and shots in its last quarter)' % (s['secs'], len(foes_left), len(party_left), blows))
+            probs.append('battle not over after %ds (%d foes and %d of the party still standing; %d wounds in its last quarter)' % (s['secs'], len(foes_left), len(party_left), hurt))
+    # (one fighter missing the same foe over and over, never once landing a blow: a chance near nothing, or a
+    #  blow that cannot land - out of reach, a stale target - rather than bad luck)
+    run = {}
+    for m in re.finditer(r'^battle: (.+?)(?:, knocked back,)? (misses|parries|hits|wounds) (.+?)(?: \(|,|$)', log, re.M):
+        a, verb, b = m.group(1), m.group(2), m.group(3)
+        if "'s shot" in a: continue
+        k = (a, b)
+        if verb == 'misses': run[k] = run.get(k, 0) + 1
+        elif verb in ('hits', 'wounds'): run[k] = 0
+        if run.get(k, 0) == 60: probs.append('%s missed %s 60 times running without a blow landing' % (a, b))
     return probs
 
 def main():
