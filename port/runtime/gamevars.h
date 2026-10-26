@@ -261,7 +261,8 @@
 #define GV_pic_buf2                     0xe95f    /* picture name buffer (passed to card_load_near) */
 #define GV_card_window                  0x017c    /* card text window (first argument of card_menu) */
 #define GV_card_window2                 0x0154    /* second argument of card_menu (?) */
-#define GV_options_block                0xee53    /* text block index of the option list (card_options) */
+#define GV_options_block                0xee53    /* a block some scripts keep for card_options (s083); others pass a number, so it may be an earlier card's: see shown_block */
+#define GV_shown_block                  0xe959    /* the text block on show: set by card_text and card_options (while a menu runs: its list) */
 #define GV_msg_buf                      0x9085    /* message text: option handlers strcpy their result text here */
 #define GV_opt_on                       0xe99c    /* char[20]: option enabled flags */
 #define GV_opt_on_1                     0xe99d

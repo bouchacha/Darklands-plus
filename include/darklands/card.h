@@ -25,7 +25,8 @@
 #define items_usable         sub_s043_150b_16e8 /* 1 if an able member has an item of card_items[], else 2 */
 #define card_window          D_017c   /* card text window (first argument of card_menu) */
 #define card_window2         D_0154   /* second argument of card_menu (?) */
-#define options_block        D_ee53   /* text block index of the option list (card_options) */
+#define options_block        D_ee53   /* a block some scripts keep for card_options (s083); others pass a number, so it may be an earlier card's: see shown_block */
+#define shown_block          D_e959   /* the text block on show: set by card_text and card_options (while a menu runs: its list) */
 #define msg_buf              D_9085   /* message text: option handlers strcpy their result text here */
 
 /* option tables, filled by the script before card_menu */

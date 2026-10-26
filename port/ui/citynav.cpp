@@ -7,8 +7,10 @@
 // player, and when it has chosen the place.
 //
 // Cards are told apart by their names (s043 card_name, DS:e3d4: "$MainS01" ...); the option
-// lines by their text in MSGFILES (the card file's text block D_ee53, option k = the k-th
-// option mark), so nothing depends on the crisp text or on the screen.
+// lines by their text in the card file (the text block on show, shown_block D_e959 - what
+// card_options last showed - option k = the k-th option mark), so nothing depends on the crisp
+// text or on the screen. (Not options_block, D_ee53: only some scripts keep their list's block
+// there, so another card's stayed in it - Freiberg's main street read as block 4 of four.)
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -476,7 +478,7 @@ static void leaving_tick(void)
     if (!assist_in_card_menu()) { std::string c = card_now(); if (hub_of(c) == H_NONE && now - phase_t > 300) { plat_click_game(304, 12); last_act = now; } return; }
     if (g_rb(GV_card_box_shown)) return;
     std::string card = card_now();
-    int blk = (s16)g_rw(GV_options_block);
+    int blk = (s16)g_rw(GV_shown_block);
     std::vector<std::string> blocks = live_blocks();
     if (blocks.empty()) { auto it = cards.find(card); if (it != cards.end()) blocks = it->second; }
     if (blk < 0 || blk >= (int)blocks.size()) return;
@@ -509,7 +511,7 @@ extern "C" void citynav_tick(void)
     if (!in_city()) { stop(game_mode() == GM_CARD ? "left the city." : "interrupted."); return; }
     if (steps_taken > 20) { stop("too many steps; stopped."); return; }
     std::string card = card_now();
-    int blk = (s16)g_rw(GV_options_block);
+    int blk = (s16)g_rw(GV_shown_block);
     char kb[48]; snprintf(kb, sizeof kb, "%s/%d/%d", card.c_str(), blk, assist_in_card_menu());
     if (phase_key != kb) { phase_key = kb; phase_t = now; }
     int hub = hub_of(card);
@@ -539,18 +541,6 @@ extern "C" void citynav_tick(void)
     if (g_rb(GV_card_box_shown)) return;                              /* a skill-check box is up */
     std::vector<std::string> line(n);
     for (int i = 0; i < n; i++) { int o = (s8)g_rb((u16)(GV_card_layout_opt + i)); line[i] = o >= 0 && o < (int)opts.size() ? opts[o] : ""; }
-    {   /* the option block named holds no options for these lines (seen: $SIDES01 shown again after a
-           night's errand upstairs, its options block 1 while its options are block 0's): the card's block
-           that has them */
-        bool none = true; for (const std::string &l : line) if (!l.empty()) none = false;
-        if (none)
-            for (size_t b = 0; b < blocks.size(); b++) {
-                std::vector<std::string> o2 = block_options(blocks[b]);
-                std::vector<std::string> l2(n); bool ok = true;
-                for (int i = 0; i < n; i++) { int o = (s8)g_rb((u16)(GV_card_layout_opt + i)); if (o < 0 || o >= (int)o2.size() || o2[o].empty()) { ok = false; break; } l2[i] = o2[o]; }
-                if (ok) { LOG("block %d has no options for these lines: block %d's taken\n", blk, (int)b); line = l2; break; }
-            }
-    }
     { LOG("%s hub %d visited %x, line %d of %d:\n", kb, hub, visited, (int)g_rb(GV_card_layout_opt), (int)blocks.size()); for (int i = 0; i < n; i++) LOG("  %d: %s -> %d\n", i, line[i].c_str(), hub >= 0 ? rule_for(hub, line[i]) : -1); }
     if (card == "$INSID00" && blk == 0) {                   /* the offices above the marketplace by night: the one wanted, else out by the window */
         static const struct { int d; const char *key; } OFF[] = { { D_MERCHANT, "leading merchant" }, { D_FUGGER, "fugger" }, { D_MEDICI, "medici" }, { D_HANSE, "hanseatic" } };

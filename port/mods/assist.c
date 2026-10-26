@@ -369,6 +369,8 @@ static void evaluate(void)
                 c.line[i].per[m] = (signed char)(pm < 0 ? 0 : pm > 100 ? 100 : pm);
             }
             g_wb(G_LEADER, (u8)cur);
+            c.line[i].dep = !game_call_timed_out;                      /* (shown as every chance is: the leader's, the arrow for the others) */
+            who = cur;
         }
         if (getenv("DL_ASSIST_LOG")) { int ovl_section_at(u32); fprintf(stderr, "assist: card %.12s line %d opt %d kind %d fn %04x:%04x (s%03d) -> %d%% member %d\n",
                                              (const char *)M + LIN(G_DGROUP, 0xe3d4), i, opt, kind, seg, off, ovl_section_at(LIN(seg, off)), pct, who); }

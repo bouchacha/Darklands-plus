@@ -455,6 +455,11 @@ int plat_rec_frames;
    stays on screen until the new view is up (ns_enter releases it), at most ms */
 static u32 hold_until;
 void plat_hold(int ms) { hold_until = ms > 0 ? SDL_GetTicks() + (u32)ms : 0; }
+/* the battle view moved and its floor redrawn, its people not yet (mods/battlescroll.c): the last whole
+   frame stays until the next combat frame is drawn (plat_drawn), at most 150 ms */
+static u32 hold_draw_t; static int hold_draw;
+void plat_hold_until_drawn(void) { hold_draw = 1; hold_draw_t = SDL_GetTicks(); }
+void plat_drawn(void) { hold_draw = 0; }
 void plat_present(const u8 *vga, const u8 *pal)
 {
     { void fixes_frame(void); fixes_frame(); void saves_frame(void); saves_frame(); void rules_frame(void); rules_frame(); void autopause_frame(void); autopause_frame(); void battlelog_frame(void); battlelog_frame(); void memberlooks_frame(void); memberlooks_frame(); void losses_frame(void); losses_frame(); void battleend_frame(void); battleend_frame(); void orders_frame(void); orders_frame(); }   /* game-side checks, headless too */
@@ -462,6 +467,8 @@ void plat_present(const u8 *vga, const u8 *pal)
     if (headless) return;
     if (hold_until && (s32)(hold_until - SDL_GetTicks()) > 0) { SDL_PumpEvents(); return; }
     hold_until = 0;
+    if (hold_draw && SDL_GetTicks() - hold_draw_t < 150 && game_mode() == GM_BATTLE) { SDL_PumpEvents(); return; }
+    hold_draw = 0;
     static int ptime = -1; if (ptime < 0) ptime = getenv("DL_PRESENT_TIME") != 0;
     uint64_t pt0 = ptime ? plat_ticks_us() : 0;
     to_rgb(vga, pal);
@@ -625,6 +632,7 @@ int plat_win_outside(int wx, int wy)
 static int drag_state, drag_btn, drag_x0, drag_y0, drag_lx, drag_ly, drag_replay;
 static float drag_ax, drag_ay;
 static SDL_Event drag_down;
+int plat_dragging(void) { return drag_state != 0; }      /* (the right button held on the field: no edge scrolling meanwhile) */
 static int drag_ok(int wx, int wy)
 {
     int ui_is_open(void), ns_showing(void);

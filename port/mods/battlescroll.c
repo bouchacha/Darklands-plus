@@ -43,6 +43,10 @@ static void pan_apply(void)
     u8 c = g_rb(GV_battle_view_col), r = g_rb(GV_battle_view_row);
     g_wb(GV_battle_view_col, (u8)((s8)c + h)); g_wb(GV_battle_view_row, (u8)((s8)r + v));
     ns_call(16, 0x1ef8, 0x0b92, 0);
+    /* that drew the floor anew, its people not yet: they come with the next combat frame (combat_draw).
+       Until then the window keeps showing the last whole frame - a drag pans many times a second, and
+       each frame shown in between had the field empty: the people flickered */
+    void plat_hold_until_drawn(void); plat_hold_until_drawn();
     if (getenv("DL_SCROLL_LOG")) fprintf(stderr, "battlescroll: pan %d across, %d down: origin %d,%d\n", h, v, (s8)g_rb(GV_battle_view_col), (s8)g_rb(GV_battle_view_row));
 }
 
@@ -93,6 +97,12 @@ static void select_hook(void)
     g_wb(GV_battle_follow, 0);
 }
 
+static void draw_hook(void)         /* s014 14f7:0008 combat_draw(): a whole combat frame drawn */
+{
+    hook_call_original();
+    void plat_drawn(void); plat_drawn();
+}
+
 static void input_hook(void)        /* s014 0e76:3166 combat_input(): one tick of player input */
 {
     pan_apply();
@@ -103,14 +113,19 @@ static void input_hook(void)        /* s014 0e76:3166 combat_input(): one tick o
     static int was_edge, stale;
     int mx, my; plat_mouse_game(&mx, &my);
     u32 now = plat_ticks_ms();
-    int plat_pointer_outside(void);
+    int plat_pointer_outside(void), plat_dragging(void);
     int edge = on_edge(mx, my) && !plat_pointer_outside();     /* (beside the picture, over the margins: no) */
     /* back from another screen (a member's sheet, enemy info, the menus: no input ticks meanwhile)
        with the pointer on an edge, where that screen's button was (the sheet's Close is at the top):
-       it rests there by chance, so no scrolling until it has left the edge once (Shift still does) */
+       it rests there by chance, so no scrolling until it has left the edge once (Shift still does).
+       The same when a drag of the field took it there: the drag moves the view, not the edge, and
+       after it the pointer must leave the edge before resting there scrolls */
     if (now - last_call > 250) stale = edge;
     last_call = now;
+    int dragging = plat_dragging();
+    if (dragging && edge) stale = 1;
     if (!edge) stale = 0;
+    if (dragging) edge = 0;
     if (edge && !was_edge) edge_since = now;
     was_edge = edge;
     if (!edge) { held_since = 0; hook_call_original(); return; }
@@ -135,6 +150,7 @@ void battlescroll_set(int on, int rest)
     battlescroll_on = on; battlescroll_rest = rest;
     config_set_int("battle.scroll_paced", on); config_set_int("battle.scroll_rest", rest);
     hook_install(GF_combat_input, input_hook);
+    hook_install(GF_combat_draw, draw_hook);
     hook_install(16, 0x1ef8, 0x0a2c, select_hook);
 }
 

@@ -402,16 +402,9 @@ extern "C" void cardview_draw(void)
         }
         if (p.is_opt) { c.row_y0[j] = wy2g(y0); c.row_y1[j] = wy2g(y1); }
         else c.row_y0[j] = c.row_y1[j] = -1;
-        /* who speaks, picked by the player (the alchemist's formulae: what comes of it is the speaker's): every
-           member's chip, always */
-        if (p.is_opt && p.state == 1 && chance_shown(p.line) && cc.line[p.line].pick && menu && !ui_is_open()) {
-            float ms = size * 0.82f, cy = (la.lines.empty() ? y0 : la.lines[0].y - shift) + size * 0.52f, x = X1 + 4.5f * k;
-            float room = ImGui::GetIO().DisplaySize.x - x - 6 * k, want = chips_width(ms, p.line);   /* (all beside the card, within the window: smaller if need be) */
-            if (want > room && want > 0) ms *= fmaxf(0.6f, room / want);
-            chips(x, cy, ms, p.line, p.opt, true, 1.0f);
-        }
-        /* the chance of success */
-        else if (p.is_opt && chance_shown(p.line)) {
+        /* the chance of success (the alchemist's formulae too, where what comes of it is the speaker's: the
+           leader's chance, and the arrow for each member's, as everywhere) */
+        if (p.is_opt && chance_shown(p.line)) {
             int pct = cc.line[p.line].pct, who = cc.line[p.line].who;
             char main[40], sub[24] = "";
             if (cmode == 0) snprintf(main, sizeof main, "%d%%", pct);
@@ -421,12 +414,12 @@ extern "C" void cardview_draw(void)
                 if (pct <= 0) snprintf(main, sizeof main, "hopeless");
                 else g_str(G_DGROUP, pp, main, sizeof main);
             }
-            /* who tries it (their heads: one, or the whole party when each tries), and what it rests on
-               (the skills and attributes as on the character sheet, the town's opinion, fame) */
+            /* who tries it (one head; "all" when each member tries - never a row of heads: one chance, one
+               look, on every option), and what it rests on (the skills and attributes as on the character
+               sheet, the town's opinion, fame) */
             u32 reads = cc.line[p.line].reads;
             int heads[5], nh = 0, icons[30], ni = 0;
             if (who >= 0 && who < 5) heads[nh++] = who;
-            else if (who == -2) for (int m = 0; m < members && m < 5; m++) heads[nh++] = m;
             for (int q = 0; q < 19; q++) if (reads & CC_SKILL(q)) icons[ni++] = q;
             for (int q = 0; q < 7; q++) if (reads & CC_ATTR(q)) icons[ni++] = 100 + q;
             if (reads & CC_REP) icons[ni++] = 200;
@@ -569,7 +562,7 @@ extern "C" void cardview_draw(void)
     if (ui_is_open()) tip_formula = tip_item = tip_saint = -1;
     if (slide_out.on) {                                         /* every member's chance, slid out under the pointer's option */
         dl->AddRectFilled(slide_out.r0, ImVec2(slide_out.r0.x + (slide_out.r1.x - slide_out.r0.x) * slide_out.e, slide_out.r1.y), IM_COL32(14, 9, 5, (int)(200 * slide_out.e)), 4 * k);
-        chips(slide_out.x, slide_out.cy, slide_out.ms, slide_out.line, slide_out.opt, false, slide_out.e);
+        chips(slide_out.x, slide_out.cy, slide_out.ms, slide_out.line, slide_out.opt, cc.line[slide_out.line].pick != 0, slide_out.e);
     }
     if (chance_tip >= 0 && !ui_is_open()) {
         const CvPiece &p = c.piece[chance_tip];
@@ -587,7 +580,8 @@ extern "C" void cardview_draw(void)
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
             if (!w.empty()) ImGui::TextUnformatted((w + ".").c_str());
             if (!r.empty()) ImGui::TextUnformatted(("It rests on: " + r + ".").c_str());
-            if (cc.line[p.line].dep) ImGui::TextDisabled(assist_best_leader ? "Whoever speaks for the party tries it: the best at it, unless you pick another (the arrow at the end shows each member's chance)."
+            if (cc.line[p.line].pick) ImGui::TextDisabled("The leader speaks for the party, and what is traded is the speaker's to know, unless you pick another (the arrow at the end shows each member's chance).");
+            else if (cc.line[p.line].dep) ImGui::TextDisabled(assist_best_leader ? "Whoever speaks for the party tries it: the best at it, unless you pick another (the arrow at the end shows each member's chance)."
                                                                            : "Whoever speaks for the party tries it: the leader, unless you pick another (the arrow at the end shows each member's chance).");
             ImGui::PopTextWrapPos();
             ImGui::EndTooltip();

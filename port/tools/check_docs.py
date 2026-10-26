@@ -16,8 +16,9 @@ Checked:
     Settings one of its sections (ui/settings.cpp, mods/options.c), anything further a label the code
     has (a string in ui/ or mods/);
   - the presets named (*Full Original*, *Purist*, *Darklands+* ...) are the presets (mods/options.c);
-  - the docs made from the code are as it makes them now: docs/CODE_MAP.md (tools/code_map.py) and
-    docs/COPY.md (tools/copy_catalog.py). With --fix they are written anew instead of reported. And
+  - the docs made from the code are as it makes them now: docs/CODE_MAP.md (tools/code_map.py),
+    docs/COPY.md (tools/copy_catalog.py) and runtime/gamevars.h (tools/gen_gamevars.py, from the
+    decompilation's names: a name added there by hand would be lost at the next run). With --fix they are written anew instead of reported. And
     every source file starts with a header comment saying what it is (CODE_MAP.md's description).
 """
 import os, re, subprocess, sys
@@ -59,14 +60,15 @@ def sections_of_docs():
     return out
 
 
-GENERATED = [('docs/CODE_MAP.md', 'port/tools/code_map.py'), ('docs/COPY.md', 'port/tools/copy_catalog.py')]
+GENERATED = [('docs/CODE_MAP.md', 'port/tools/code_map.py'), ('docs/COPY.md', 'port/tools/copy_catalog.py'),
+             ('port/runtime/gamevars.h', 'port/tools/gen_gamevars.py --stdout')]
 
 
 def generated(fix):
     """the docs made from the code: (what is stale, as mismatches) - or, with fix, written anew"""
     out = []
     for doc, tool in GENERATED:
-        now = subprocess.run([sys.executable, '-I', os.path.join(TOP, tool)], capture_output=True, text=True, cwd=TOP).stdout
+        now = subprocess.run([sys.executable, '-I', os.path.join(TOP, tool.split()[0])] + tool.split()[1:], capture_output=True, text=True, cwd=TOP).stdout
         if not now.strip(): out.append('%s: %s made nothing' % (doc, tool)); continue
         if doc.endswith('CODE_MAP.md'):              # (every file starts with a header saying what it is)
             for f in re.findall(r'^\| `([^`]+)` \| \d+ \| \s*\|$', now, re.M):
@@ -76,7 +78,7 @@ def generated(fix):
             open(os.path.join(TOP, doc), 'w', encoding='utf-8').write(now)
             print('  %s written anew' % doc)
         else:
-            out.append('%s: not as the code makes it now (python3 %s > %s, or check_docs.py --fix)' % (doc, tool, doc))
+            out.append('%s: not as %s makes it now (python3 %s > %s, or check_docs.py --fix)' % (doc, tool.split()[0], tool, doc))
     return out
 
 

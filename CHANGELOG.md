@@ -47,6 +47,7 @@ What changed since 1.2. Each can be switched off in F12 > Settings, or is a choi
 **Bugs of the original game**
 
 - 23 more fixed (60 in all), most from the list Arkana Mechanika (Darklands Restoration) keep: climbing a city wall at night, mounts that never helped outrun wolves, a church's tenth that blessed nobody, an audience "fixed for tomorrow" that never came, bands of enemies missing from battles, shots stopped by clouds not in the way, loot lost past 255 of a kind, ordinary hits that made no sound, and more.
+- The cave south-east of Basel, which lies off the map, is moved to where the party can walk onto it (1.2 had moved it onto the map's last row, which the party cannot walk onto).
 
 **Withdrawn**
 

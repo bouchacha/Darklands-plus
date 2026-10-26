@@ -55,9 +55,12 @@
  *            (missing braces), so it always ends as 6 (Missile Devices); the practice of a
  *            card (s053 1838:074e: practice_skill(leader, best_skill ...)) then trained that.
  *            best_skill is set to the first of the highest weapon skills afterwards.
- *  offmap    One location of DARKLAND.LOC (record 373, a cave) lies at y 931, one row below the
- *            931-row map: quests that send the party there cannot be finished ("quests send
- *            you off the map"). It is moved onto the last row.
+ *  offmap    One location of DARKLAND.LOC (record 373, a cave south-east of Basel) lies at y 931,
+ *            one row below the 931-row map: quests that send the party there cannot be finished
+ *            ("quests send you off the map"). It is moved onto the last row the party can step on,
+ *            929: a step keeps the party's marker above the screen's last rows (s030 1462:0c44), so
+ *            with the view at the map's bottom the party never stands on row 930 by walking, and a
+ *            place is entered by stepping onto it. (Until 1.3-RC31 it went to 930: still out of reach.)
  *  itemcount When robbers take the party's things (lose_items, s031 18e7:0ab8: $Raubi02's
  *            surrender and others), the loop over a member's items starts at the count, one
  *            past the last item, and remove_item_rec (18e7:0406) lowers the count even for an
@@ -250,7 +253,7 @@ Fix FIXES[] = {
     { "potions", "Weapon potions wear off and don't ruin weapons",
       "Deadly Blade, Strongedge and Great Power never wore off, and their bonuses piled up past what the game can hold: after a few potions (or one Great Power), weapons, especially bows, hit for almost nothing. They now wear off after about a day, and several at once add up without going past that limit.", 1 },
     { "offmap", "No quest destinations off the edge of the land",
-      "One cave lies a row beyond the bottom edge of the land, so quests sent there could never be finished. It is moved onto the land.", 1 },
+      "One cave, south-east of Basel, lies a row beyond the bottom edge of the land, where the party cannot walk, so quests sent there could never be finished. It is moved onto the land, where the party can reach it.", 1 },
     { "bestweapon", "Weapon practice trains the leader's best weapon skill",
       "Where a card lets the leader practice with the weapon he or she is best at, the original always trained Missile Devices. Now it trains the leader's best weapon skill.", 1 },
     { "itemcount", "Robbers take only what is there (no crash afterwards)",
@@ -613,18 +616,33 @@ static void colours_frame(void)
     col_read(cur); memcpy(col_good, cur, sizeof cur);
 }
 static void potions_frame(void);
-static void offmap_frame(void)                 /* locations below or right of the map onto its edge */
+/* the last row the party can walk to: a step moves the party's marker no lower than 0xb1 on the screen
+   (s030 1462:0c44), and with the view at the bottom of the map that is row 929 - the map's own last
+   row, 930, is never stepped on, so a place there is never entered (a place is entered by stepping
+   onto its icon, 1462:1300). Towns are let be: their entrance reaches four rows round them */
+#define OFFMAP_LAST_ROW 929
+static void offmap_move(void)                  /* places below or right of the land onto its edge */
 {
-    static u32 n;
-    if ((n++ & 63) || game_mode() == GM_OTHER) return;
-    for (int k = 0; k < G_NLOC; k++) {
+    for (int k = 0x5c; k < G_NLOC; k++) {       /* (0..0x5b: the towns) */
         u32 r = g_location(k);
         if (!r) continue;
         u16 s = (u16)(r >> 16), o = (u16)r;
         int x = (s16)rw(s, (u16)(o + 4)), y = (s16)rw(s, (u16)(o + 6));
-        if (y > 930 && y < 940) { ww(s, (u16)(o + 6), 930); if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix offmap: location %d y %d -> 930\n", k, y); }
+        if (y > OFFMAP_LAST_ROW && y < 940) { ww(s, (u16)(o + 6), OFFMAP_LAST_ROW); if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix offmap: location %d y %d -> %d\n", k, y, OFFMAP_LAST_ROW); }
         if (x > 326 && x < 336) { ww(s, (u16)(o + 4), 326); if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix offmap: location %d x %d -> 326\n", k, x); }
     }
+}
+static void offmap_frame(void)                 /* (the world map and the quests read the places too: kept moved) */
+{
+    static u32 n;
+    if ((n++ & 63) || game_mode() == GM_OTHER) return;
+    offmap_move();
+}
+static void offmap_hook(void)                  /* s030 1462:1c76 (f): the overland map loaded, the list of its places' icons made from the
+                                                  places (k 92..413) - where a step looks for them: moved first, so they are right from the start */
+{
+    offmap_move();
+    hook_call_original();
 }
 /* ---------------------------------------------------------------- itemcount */
 static int clamp_items(int i)              /* combatant i's item count into 0..64 (enemies 0..16) */
@@ -2491,7 +2509,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
     { 31, 0x18e7, 0x01b4, additem_hook }, { 36, 0x1462, 0x0082, innsave_hook }, { -2, 0, 0, 0 }, { 41, 0x1462, 0x0000, copyprot_hook },
-    { 14, 0x18bf, 0x0778, hitdamage_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x01c0, bestweapon_hook }, { 31, 0x18e7, 0x0406, removeitem_hook },
+    { 14, 0x18bf, 0x0778, hitdamage_hook }, { 30, 0x1462, 0x1c76, offmap_hook }, { 29, 0x0e76, 0x01c0, bestweapon_hook }, { 31, 0x18e7, 0x0406, removeitem_hook },
     { 35, 0x1462, 0x0a46, storeroom_hook }, { 44, 0x1838, 0x0000, testcard_hook },
     { 19, 0x1ef8, 0x0968, armourwear_hook }, { 36, 0x1462, 0x0082, teachers_lodging_hook }, { GF_card_options, cardopts_hook },
     { GF_set_member_bit, patron_hook }, { 108, 0x1925, 0x0438, debtnote_hook }, { 29, 0x0e76, 0x3fb2, alchrisk_hook },

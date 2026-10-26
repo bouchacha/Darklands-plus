@@ -141,6 +141,7 @@
 #define key_pressed              sub_root_047c_073d   /* (): 1 when a key is waiting */
 #define get_key                  sub_root_047c_0744   /* (): next key (scan code << 8 | ASCII) */
 #define sound_play               sub_root_047c_078a   /* (n): play a sound (1: stop the music) */
+#define battle_sound             sub_s014_0e76_465e   /* (n): a battle sound, if the sound options allow it (10 death ... 16 knock-back, 17 miss or parry) */
 #define distance3                sub_root_047c_1120   /* (dx, dy, dz): integer approximation of sqrt(dx*dx + dy*dy + dz*dz) */
 #define mouse_set_cursor         sub_root_047c_124f   /* (x, y, cursor): hot spot and pointer */
 #define mouse_move               sub_root_047c_1266   /* ? (x, y) */
@@ -277,7 +278,7 @@
 #define combat_recover_vec       vec_1af9             /* overlay call vector of combat_recover */
 #define combat_tick              sub_s014_0e76_0f58   /* (): one tick: AI, locations, melee, actions, redraw */
 #define combat_actions           sub_s014_0e76_116e   /* (): action state machine of every combatant */
-#define cbt_step                 sub_s014_0e76_1624   /* (i): one step along the path */
+#define cbt_step                 sub_s014_0e76_1624   /* (i, set): one step along the path (a near call: i at SP+2) */
 #define cbt_missile_action       sub_s014_0e76_1ba0   /* (i): draw/loose, reload, aim */
 #define cbt_location_action      sub_s014_0e76_2170   /* (i): door/lock/chest actions ordered from the menu */
 #define cbt_dying                sub_s014_0e76_2324   /* (i): falling / dying, the body becomes a loot pile */
@@ -311,7 +312,7 @@
 #define attack_rate              sub_s014_18bf_0002   /* (i) */
 #define cbt_attack               sub_s014_18bf_0102   /* (a, t): one attack, returns the to-hit result */
 #define to_hit_roll              sub_s014_18bf_02a8   /* (a, t, *crit): 0 miss, 1 parried/dodged, 2 hit, 3 good hit */
-#define melee_to_hit           sub_s014_18bf_0592   /* (...) */
+#define melee_to_hit           sub_s014_18bf_0592   /* (a, t, order, ca, ct): the chance of a blow (an order with bit 2), against the defender's +0x20 and shield */
 #define hit_damage               sub_s014_18bf_0778   /* (a, t, loc, r) */
 #define damage_queue             sub_s014_18bf_08ca   /* (t, d, ...) */
 #define damage_apply             sub_s014_18bf_098e   /* (): endurance 0 unconscious, strength 0 dead */

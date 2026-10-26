@@ -1,5 +1,5 @@
 darklands_plus_switch,original_coordinates,area,what_the_original_does,darklands_plus
-fix.offmap,DARKLAND.LOC record 373,data,"One location (a cave) lies at y 931, one row below the 931-row map: quests that send the party there cannot be finished.",Moved onto the last row.
+fix.offmap,DARKLAND.LOC record 373,data,"One location (a cave) lies at y 931, one row below the 931-row map: quests that send the party there cannot be finished.",Moved onto the last row the party can step on (929: a step keeps the marker off row 930).
 fix.innsave,s036 1462:0082,screens,"The lodging screen disables Save and Load (DS:9920, DS:9934 = 2) and re-enables them on most exits but not all (a click on an empty party slot returns at once): Save/Load stay grey until a character sheet is opened.",Enabled again on the way out.
 fix.colours,(not located),screens,The 'neon hair' bug: characters' colours (and figures) change after encounters.,We only watch and put them back each frame; the cause is not found. A save that shows it would help.
 fix.testcard,"s044 1838:0000 ($Initi00, card 0)",cards,"A card that goes back to where it came from (prev_screen) goes to card 0 when it came from none; card 0 is the developers' test card, whose picture (pics\xhouse3.pic) is missing: the game stops.",Goes on to the map or the town.
