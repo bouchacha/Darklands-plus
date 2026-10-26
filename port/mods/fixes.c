@@ -188,6 +188,8 @@
  *            Woodwise, by Stealth, and by one if any weapon skill is 30 or more; the test lists
  *            party +0x57, 5c, 59, 5a, 5b, 5d and leaves out Impact Weapons (+0x58). Now all seven.
  *            Found by Arkana Mechanika (Darklands Restoration).
+ *  minerelic The relic deep in a mine of dwarfs, kobolds or vulcans gets its own quality and kind
+ *            (the item list's), not quality 35 and item type 0x9f for any relic (below, minerelic).
  *  cityalert, dayjobs, cloudline, attrsum, lootcount, corridors, battledead, createback: below, each
  *            at its hook (Arkana Mechanika's B-55afd6, B-074e99, B-3cc78a and B-bfb04e, B-82a302,
  *            B-e080d4, B-c90740, B-f7799c, B-126118).
@@ -350,6 +352,8 @@ Fix FIXES[] = {
       "A town's lord or council (and any giver) always names the robber knight nearest its town; asked again a week later it gave the party the same knight a second time, as a second quest with its own deadline, though the party already had the first. Now a giver who already asked the party for that knight repeats the request instead of adding another.", 1 },
     { "bestteacher", "Of two teachers of one skill, the better one teaches",
       "When the party hired two teachers of the same skill in a town (the university's and the alchemist's, say), the inn always used whichever was hired first, its fee and its chance of a lesson taking, even when the other was far better. Now a member training in that skill learns from the best of them (the highest ability; the cheaper of two equals).", 1 },
+    { "minerelic", "A relic found in a mine is as good as the relic itself",
+      "In the mines of dwarfs, kobolds and vulcans, the relic the party can find deep inside was always of quality 35, whatever relic it was (the relics' own qualities run from 50 to 99), and it was not even of its own kind of thing: Saint Arnulf's Greatsword or Saint Olaf's Battleaxe could not be wielded as the weapons they are. Now the relic is as the list of items has it.", 1 },
     { "hitsound", "Ordinary hits make a sound",
       "In the original, a blow that hits without knocking the target back makes no sound at all: only misses, parries, knock-backs, shots and deaths are heard, so many blows that land pass in silence. Now an ordinary hit sounds like a blow (the game's own knock-back sound, or the hit sound of a custom sound pack).", 1 },
 };
@@ -2505,6 +2509,27 @@ static void ruinkeep_hook(void)
     if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix ruinkeep: searched, the journey resumes\n");
 }
 
+/* ---------------------------------------------------------------- minerelic
+ * A mine's levels (s009): the deepest section of the dwarfs', kobolds' and vulcans' mines (0x0e..0x10,
+ * 0x84..0x86, section 12; s009 182c:0db6) gets one item group of a random relic (items 0x96..0xab) through
+ * 182c:1146 (group, item, item type, quality, number) with the type 0x9f and the quality 0x23 for any
+ * relic, where the item list (DARKLAND.LST +0x1e, +0x26; bf_items, D_db35 based on D_dae3, while the
+ * battle is built) gives each its own (qualities 50..99; the weapons among them typed as weapons).
+ * Here they come from the list. */
+static void minerelic_hook(void)            /* s009 182c:1146 (struct grp far *g, int item, char type, char quality, int n) */
+{
+    int item = (s16)rw(SS, (u16)(SP + 8));
+    if (item >= 0x96 && item <= 0xab && (s16)rw(SS, (u16)(SP + 12)) == 0x23) {
+        u16 sg = g_rw(0xdae3), o = (u16)(g_rw(0xdb35) + item * 0x2e);      /* (bf_items: DARKLAND.LST as read for the battle's build, based on D_dae3) */
+        if (sg) {
+            int type = (s16)rw(sg, (u16)(o + 0x1e)), q = rb(sg, (u16)(o + 0x26));
+            ww(SS, (u16)(SP + 10), (u16)type); ww(SS, (u16)(SP + 12), (u16)q);
+            if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix minerelic: relic %#x in the mine: type %#x, quality %d (not 0x9f, 35)\n", item, type, q);
+        }
+    }
+    hook_call_original();
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -2523,7 +2548,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 36, 0x1462, 0x1b80, campguard_hook }, { GF_groups_fixup, enemygroups_hook }, { GF_loc_hostile_impl, cityalert_hook },
     { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook },
     { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
-    { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { -2, 0, 0, 0 } };   /* (hitsound: mods/sfx.c) */
+    { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { -2, 0, 0, 0 } };   /* (hitsound: mods/sfx.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {

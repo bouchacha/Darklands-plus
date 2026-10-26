@@ -114,8 +114,11 @@ def main():
     presets = re.findall(r'^    \{ "([^"]+)", "', opts[opts.index('PRESETS[PRESET_COUNT] = {'):], re.M)
 
     texts = sections_of_docs()
+    unreleased = 'not yet released' in texts[1][1].splitlines()[0] if texts[1][1] else False
     for name, t in texts:
         flat = re.sub(r'\s+', ' ', t.replace('**', '').replace('\\n', ' '))
+        if unreleased and name in ('CHANGELOG.md (newest release)', 'docs/release_notes.md'):
+            flat = re.sub(r'\d+ fixes\b|\(\d+ in all\)|\d+ more fixed|\d+ saints that', '', flat)   # (a release's own counts: what its download held)
         for m in re.finditer(r'(\d+) fixes\b', flat):
             if int(m.group(1)) != n_fix: bad.append('%s: "%s" - the code has %d fixes' % (name, m.group(0), n_fix))
         for m in re.finditer(r'\((\d+) in all\)', flat):

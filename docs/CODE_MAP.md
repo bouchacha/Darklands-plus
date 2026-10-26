@@ -61,7 +61,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/datamods.c` | 409 | mod folders: game files replaced without touching the game's own. |
 | `mods/encounters.c` | 1529 | new encounters written as data. |
 | `mods/enemyview.c` | 129 | the battle's Enemy Info as a native page (display.native_enemyinfo; the view is ui/enemyview.cpp). |
-| `mods/fixes.c` | 2595 | fixes for bugs that are still in the last official version (483.07). |
+| `mods/fixes.c` | 2620 | fixes for bugs that are still in the last official version (483.07). |
 | `mods/fixgroups.c` | 35 | the fixes (fixes.c) sorted by kind, for the settings' list: from what the game plainly gets wrong to what is open to argument, as players have talked of them over the years (the GOG and Steam forums, the old Usenet posts and the patch notes MicroProse left). |
 | `mods/foesleft.c` | 131 | the foes a place still holds that the party has not met yet (battle.foes_left, on by default): shown under the battle margin's enemies, so a castle, dungeon or mine whose fight "does not end" says where the rest still wait (the game ends it only when they are all beaten, or the party walks out and counts as fled). |
 | `mods/gamemodel.c` | 367 | the game's state by name (gamemodel.h says what each function reads): where the party, the members, their things and their equipment are kept, and the shared pack's listing and "whom it goes to" (gm_pack_rows, gm_pack_target) for the sheet, the shop, the loot and the store room. |
@@ -203,7 +203,7 @@ Tools: tests, checks, the harness.
 | `tools/artpack.py` | 204 | make a replacement-art mod from the game's own pictures. |
 | `tools/battletrace.py` | 156 | stress tests of battle movement (pathfinding in a melee crowd), on your own game files. |
 | `tools/bin2c.py` | 13 | bin2c.py OUT.c NAME=FILE ...: embed files as const byte arrays (NAME, NAME_SIZE). |
-| `tools/check_docs.py` | 166 | what the player-facing texts say against the code, so that no text drifts from it. |
+| `tools/check_docs.py` | 169 | what the player-facing texts say against the code, so that no text drifts from it. |
 | `tools/check_switches.py` | 24 | check_switches.py OLD.md NEW.md - fails if a switch key in OLD (docs/SWITCHES.md as committed) is missing from NEW (as the game now writes it) without being listed under "Retired keys" there: a switch's key is its name for good (saved settings, presets and other engines know it by it). |
 | `tools/code_map.py` | 38 | writes docs/CODE_MAP.md: every source file of the port with the first sentence of its header comment (each file starts with one saying what it is), by folder, with its size. |
 | `tools/copy_catalog.py` | 61 | every text a player can read that Darklands+ itself writes (not the game's own), by file and line: docs/COPY.md. |
