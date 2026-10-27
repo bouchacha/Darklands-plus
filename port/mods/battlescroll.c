@@ -42,11 +42,7 @@ static void pan_apply(void)
     if (game_mode() != GM_BATTLE) return;
     u8 c = g_rb(GV_battle_view_col), r = g_rb(GV_battle_view_row);
     g_wb(GV_battle_view_col, (u8)((s8)c + h)); g_wb(GV_battle_view_row, (u8)((s8)r + v));
-    ns_call(16, 0x1ef8, 0x0b92, 0);
-    /* that drew the floor anew, its people not yet: they come with the next combat frame (combat_draw).
-       Until then the window keeps showing the last whole frame - a drag pans many times a second, and
-       each frame shown in between had the field empty: the people flickered */
-    void plat_hold_until_drawn(void); plat_hold_until_drawn();
+    ns_call(16, 0x1ef8, 0x0b92, 0);                     /* (the last whole frame stays shown: view_redraw_hook) */
     if (getenv("DL_SCROLL_LOG")) fprintf(stderr, "battlescroll: pan %d across, %d down: origin %d,%d\n", h, v, (s8)g_rb(GV_battle_view_col), (s8)g_rb(GV_battle_view_row));
 }
 
@@ -97,6 +93,12 @@ static void select_hook(void)
     g_wb(GV_battle_follow, 0);
 }
 
+/* s016 1ef8:0b92 (vec_1d3d): the view's origin clamped to the field and its floor drawn anew, by the game's
+   own scrolling (Shift or the pointer resting on an edge: one step each time combat_input runs) and by a
+   drag (pan_apply). The people come with the next combat frame (combat_draw); until then the window keeps
+   showing the last whole frame. Else each step showed the field empty for a moment - at the field's edge,
+   where the view no longer moves, at every step: the people and the floor flickered */
+static void view_redraw_hook(void) { hook_call_original(); void plat_hold_until_drawn(void); plat_hold_until_drawn(); }
 static void draw_hook(void)         /* s014 14f7:0008 combat_draw(): a whole combat frame drawn */
 {
     hook_call_original();
@@ -151,6 +153,7 @@ void battlescroll_set(int on, int rest)
     config_set_int("battle.scroll_paced", on); config_set_int("battle.scroll_rest", rest);
     hook_install(GF_combat_input, input_hook);
     hook_install(GF_combat_draw, draw_hook);
+    hook_install(16, 0x1ef8, 0x0b92, view_redraw_hook);
     hook_install(16, 0x1ef8, 0x0a2c, select_hook);
 }
 
