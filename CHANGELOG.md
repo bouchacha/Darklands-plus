@@ -4,22 +4,42 @@
 
 What changed since 1.3.1.
 
-- **More than 100 saves:** the game names a new save after the first free number, and from 100 on that was no longer a name the game could list: save 100 did not show on the Load page, and every later save was written over it. Saves 100 and on are now named dksavea0, dksavea1 and so on (up to 1035), and a save 100 already made is renamed so at the first start.
-- **Level map (Tab), floors:** in a castle, mine or dungeon with more than one floor, a small chart at the top right, a square a floor: the floors the party has been on, the stairs seen between them, the party's floor outlined, and "?" for a floor its stairs lead to that nobody has been on; a click on a floor these stairs lead to walks the party to them and, outside a fight, takes them. The map also keeps what the party saw through a card in the middle of the dungeon (a riddle, a talk).
-- **Camp:** Guard the camp has a picture of its own (the watch's lantern), and under it the chance that the lord's men find the party, before the next day and the day after; Train or study, never possible in the wild, is gone.
-- **Praying:** the favor to spend stops where the chance reaches its best (99% at most); the rest of the bar is hatched, kept.
-- **Saints on the character sheet** can be picked by what they raise: a row of the attributes' and skills' shields and the town's opinion (all saints that raise Perception, say), the saint who gives the most of it first. Each saint's help shows under its name as shields, the most first, with one to three chevrons on each for how much it gives against what the other saints give (red, reversed, for what it costs); the Virtue it asks is a shield and number beside its name, greyed when nobody in the party has as much (the same on the cards' list of saints and the prayer screen). The saint clicked shows each member's best chance of being heard with the least favor it takes, and Pray, and what its help does an effect a line: shields that share a value side by side, the value once.
-- **A relic found deep in a mine** (dwarfs, kobolds, vulcans) is as good as the relic itself: the original made every one quality 35 and not its own kind of thing, so the saints' weapons among them could not be wielded. (61 fixes now.)
-- **World map, a town's panel:** its saints (those the party knows greyed), formulae as potions (known ones greyed) and teachers as the skills' shields, as in the margin; its boats as a dock, a boat and an arrow (leaving, arriving, both ways) before the towns.
-- **Alchemy:** a chart of the chance for every number of batches the ingredients allow (a click sets it), and under it what may come of the brew in pictures: the potions, the ingredients lost, a stink or an explosion at the inn. The chance's parts are shown as shields and signs. Formulae can be starred (first in the list) or put aside (last). The list says how many potions the ingredients make, and the Philosopher's Stone's plaque what its quality adds.
+**Shields and the pointer**
+
 - **Shields for attributes and skills, in place of their names:** the years' toll and "Lost for good" show each member's age (an hourglass) and each attribute or skill lowered as its shield with what it was and is; the town's teachers show who would learn which skill, by its shield, and from what; the margin's blessings and potions show each raised attribute or skill as its shield and how much; a card's chance names what it rests on beside each shield. In texts too, wherever an attribute or skill is named, changed or asked for: the inn's and camp's days, a weapon's skill and the Strength it needs, the load, the prayer screen, a profession's needs at character creation, the teachers' and audiences' conditions, the potions, the battle log and the skill raised in a battle; the pointer on a shield names it.
 - **The pointer:** the game's armored gauntlet drawn anew, crisp at any size: a fist while something is dragged; on its cuff the pause while a battle is paused, crossed blades over a foe a click would attack (a member chosen), an hourglass while Go to walks (F12 > Settings: the game's own little picture if preferred).
 - **Battle, a foe's tooltip and Enemy Info:** each of your weapons shown as its picture, then whether it pierces the foe's armor, does half damage or is mostly deflected.
+
+**Saints**
+
+- **Saints on the character sheet** can be picked by what they raise: a row of the attributes' and skills' shields and the town's opinion (all saints that raise Perception, say), the saint who gives the most of it first. Each saint's help shows under its name as shields, the most first, with one to three chevrons on each for how much it gives against what the other saints give (red, reversed, for what it costs); the Virtue it asks is a shield and number beside its name, greyed when nobody in the party has as much (the same on the cards' list of saints and the prayer screen). The saint clicked shows each member's best chance of being heard with the least favor it takes, and Pray, and what its help does an effect a line: shields that share a value side by side, the value once.
+- **Praying:** the favor to spend stops where the chance reaches its best (99% at most); the rest of the bar is hatched, kept.
+
+**Alchemy**
+
+- **Alchemy:** a chart of the chance for every number of batches the ingredients allow (a click sets it), and under it what may come of the brew in pictures: the potions, the ingredients lost, a stink or an explosion at the inn. The chance's parts are shown as shields and signs. Formulae can be starred (first in the list) or put aside (last). The list says how many potions the ingredients make, and the Philosopher's Stone's plaque what its quality adds.
 - **A shop's Formulae tab:** each formula's ingredients as pictures, what the party carries against what a batch needs and the price here; a click on one finds it in For sale. The +1 and +5 buttons are gone.
-- **World map:** the quests alone at the left; at the top right, finding a town (by name, the towns with something, where to buy an ingredient or any ware) and, merged, what the map shows (the layers and the kinds of place); each panel folds away. The party's pulsing mark centers the map on it. The ingredient and ware finders sort by a column's head (name, carried or quality, nearest), and the ware finder lists every ware seen until a name narrows it.
-- **Report a problem** (F12 > About): one click makes a zip of what a bug report needs (this session's log and the last one's, the settings, the two newest saves; your own name taken out of the folder paths in them), opens its folder and the GitHub bug form with the version, system and preset filled in; drag the zip into the form (posting takes a free GitHub account).
-- **Aging:** pointing at a member's age on the character sheet tells what the years will take next, and by five years on.
 - **The Philosopher's Stone on sale:** each town's alchemist and university always sell the same quality; the town's row in the margin shows the best (dim when no better than the party's), and the card's option to buy one is dimmed where it would gain nothing (a failed attempt still costs time).
+
+**The world map**
+
+- **World map:** the quests alone at the left; at the top right, finding a town (by name, the towns with something, where to buy an ingredient or any ware) and, merged, what the map shows (the layers and the kinds of place); each panel folds away. The party's pulsing mark centers the map on it. The ingredient and ware finders sort by a column's head (name, carried or quality, nearest), and the ware finder lists every ware seen until a name narrows it.
+- **World map, a town's panel:** its saints (those the party knows greyed), formulae as potions (known ones greyed) and teachers as the skills' shields, as in the margin; its boats as a dock, a boat and an arrow (leaving, arriving, both ways) before the towns.
+
+**Dungeons, camp and the party**
+
+- **Level map (Tab), floors:** in a castle, mine or dungeon with more than one floor, a small chart at the top right, a square a floor: the floors the party has been on, the stairs seen between them, the party's floor outlined, and "?" for a floor its stairs lead to that nobody has been on; a click on a floor these stairs lead to walks the party to them and, outside a fight, takes them. The map also keeps what the party saw through a card in the middle of the dungeon (a riddle, a talk).
+- **Camp:** Guard the camp has a picture of its own (the watch's lantern), and under it the chance that the lord's men find the party, before the next day and the day after; Train or study, never possible in the wild, is gone.
+- **Aging:** pointing at a member's age on the character sheet tells what the years will take next, and by five years on.
+
+**Saves and bug reports**
+
+- **Report a problem** (F12 > About): one click makes a zip of what a bug report needs (this session's log and the last one's, the settings, the two newest saves; your own name taken out of the folder paths in them), opens its folder and the GitHub bug form with the version, system and preset filled in; drag the zip into the form (posting takes a free GitHub account).
+- **More than 100 saves:** the game names a new save after the first free number, and from 100 on that was no longer a name the game could list: save 100 did not show on the Load page, and every later save was written over it. Saves 100 and on are now named dksavea0, dksavea1 and so on (up to 1035), and a save 100 already made is renamed so at the first start.
+
+**A bug of the original fixed**
+
+- **A relic found deep in a mine** (dwarfs, kobolds, vulcans) is as good as the relic itself: the original made every one quality 35 and not its own kind of thing, so the saints' weapons among them could not be wielded. (61 fixes now.)
 
 ## 1.3.1
 
