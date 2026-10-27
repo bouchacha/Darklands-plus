@@ -223,7 +223,8 @@ Tools: tests, checks, the harness.
 | `tools/package.py` | 151 | the Windows release of Darklands+: only our own code and the tools that make the game module on the player's machine (runtime/split.h). |
 | `tools/perfcheck.py` | 72 | how long the interface takes to draw on each screen (run after every new feature). |
 | `tools/prepare.py` | 137 | make the game module (runtime/split.h) from the player's own DARKLAND.EXE. |
-| `tools/release_check.py` | 143 | a scripted session through the parts of Darklands+ that a release must not break, in a window (native screens are drawn only there), on your own game files. |
+| `tools/release_check.py` | 151 | a scripted session through the parts of Darklands+ that a release must not break, in a window (native screens are drawn only there), on your own game files. |
+| `tools/reloc_check.py` | 54 | every segment the DOS loader would have fixed up in DARKLAND.EXE's code, and whether the translation (port/recomp/recomp16.py) adds the load segment there too. |
 | `tools/smoke.py` | 52 | quick checks of a Darklands+ build against your own game files, before a release. |
 | `tools/soundpack.py` | 313 | build the sample battle-sound pack from free recordings. |
 | `tools/uitour.py` | 70 | every tooltip beside what it describes (never over it nor over the pointer), and no two of Darklands+'s panels over each other. |

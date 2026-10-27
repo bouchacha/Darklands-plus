@@ -226,3 +226,15 @@ covered and found, and what it could not check.
   the button is held): it now takes the orders' own pointer test. Left as words: the switches' and built-in
   mods' descriptions (they also make docs/SWITCHES.md), and the sheet's Skills page and character creation,
   where each shield's name is learned.
+- 2026-10-27 (1.3.1 and 1.4): the translation, checked as a whole. The dwarves' door (GitHub issue 2) came from
+  one gap in recomp16.py: a relocated immediate of cmp was translated without the load segment (only mov and
+  push had it), so the game's comparisons of stored routine pointers never matched: a card's opened wall, the
+  battle save's routine numbers (every trigger came back a pit) and the traps enemies spring. Fixed at that one
+  place (imm_val) rather than at the 13 sites, and tools/reloc_check.py (in the release check) now lists any
+  relocation in the program the translation does not add the load segment to: none left but one word of data
+  after the runtime's exit call. Old battle saves are put right as they load (saves.c), not by a second rule in
+  the game's restore. The pathfinding's "no way after eight asks" had grown three exceptions in a day; they are
+  one account now (pathfix.c). Edge scrolling held the frame only for drags: the hold moved to the view's redraw
+  itself (battlescroll.c view_redraw_hook), so every way of scrolling gets it. Saves past 99: the DOS layer's
+  8.3 rule hid them; one alias (dos_name_alias) at path resolution, one reader of the save in play
+  (saves_cur_name) in place of seven.

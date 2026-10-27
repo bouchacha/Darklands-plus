@@ -86,6 +86,14 @@ def main():
     r = subprocess.run([sys.executable, '-I', os.path.join(HERE, 'check_docs.py')], capture_output=True, text=True)
     print('%-40s %s' % ('the texts say what the code does', 'OK' if r.returncode == 0 else 'FAILED'))
     if r.returncode: print(r.stdout.rstrip()); failed += 1
+    # (the load segment wherever the loader would have added it: tools/reloc_check.py, from the game's
+    # DARKLAND.EXE and the analysis, when both are at hand)
+    exe = next((os.path.join(a.game, n) for n in os.listdir(a.game) if n.upper() == 'DARKLAND.EXE'), None)
+    pk = os.path.join(HERE, '..', '..', 'build', 'analysis', 'analysis.pickle')
+    if exe and os.path.exists(pk):
+        r = subprocess.run([sys.executable, '-I', os.path.join(HERE, 'reloc_check.py'), exe, pk], capture_output=True, text=True, cwd=a.out)
+        print('%-40s %s' % ('every relocation translated', 'OK' if r.returncode == 0 else 'FAILED'))
+        if r.returncode: print(r.stdout.rstrip()); failed += 1
     try:
         for step in STEPS:
             name, steps, want = step[:3]
