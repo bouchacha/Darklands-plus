@@ -1251,22 +1251,22 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/journal.cpp:1155` | No shop's wares noted yet. |
 | `ui/journal.cpp:1155` | Not seen in any shop yet. |
 | `ui/journal.cpp:1160` | Town (nearest first) |
-| `ui/levelmap.cpp:159` | Floor %d: the party is here.%s%s |
-| `ui/levelmap.cpp:159` |  Stairs seen to floor  |
-| `ui/levelmap.cpp:159` |  Stairs seen to floors  |
-| `ui/levelmap.cpp:160` | Floor %d: the party has been here.%s%s |
 | `ui/levelmap.cpp:160` |  Stairs seen to floor  |
 | `ui/levelmap.cpp:160` |  Stairs seen to floors  |
-| `ui/levelmap.cpp:161` | A floor nobody has been on yet: stairs from floor %s lead there. |
-| `ui/levelmap.cpp:162` |  Click: the party walks to those stairs and takes them. |
-| `ui/levelmap.cpp:410` | The whole level  (floor %d) |
-| `ui/levelmap.cpp:410` | The level, as far as the party has seen it  (floor %d) |
-| `ui/levelmap.cpp:419` | enemies seen |
-| `ui/levelmap.cpp:421` | arrows: who targets whom |
-| `ui/levelmap.cpp:424` | stairs, ways out |
-| `ui/levelmap.cpp:425` | not yet revealed |
-| `ui/levelmap.cpp:426` | Click the floor to walk the party there. Tab or Esc closes the level map; the game is paused until then. |
-| `ui/levelmap.cpp:426` | Tab or Esc closes the level map; the game is paused until then. |
+| `ui/levelmap.cpp:161` | Floor %d: the party has been here.%s%s%s |
+| `ui/levelmap.cpp:161` |  Stairs seen to floor  |
+| `ui/levelmap.cpp:161` |  Stairs seen to floors  |
+| `ui/levelmap.cpp:162` | A floor nobody has been on yet: stairs from floor %s lead there. |
+| `ui/levelmap.cpp:163` |  Click: the party walks to those stairs. |
+| `ui/levelmap.cpp:163` |  Click: the party walks to those stairs and takes them. |
+| `ui/levelmap.cpp:411` | The whole level  (floor %d) |
+| `ui/levelmap.cpp:411` | The level, as far as the party has seen it  (floor %d) |
+| `ui/levelmap.cpp:420` | enemies seen |
+| `ui/levelmap.cpp:422` | arrows: who targets whom |
+| `ui/levelmap.cpp:425` | stairs, ways out |
+| `ui/levelmap.cpp:426` | not yet revealed |
+| `ui/levelmap.cpp:427` | Click the floor to walk the party there. Tab or Esc closes the level map; the game is paused until then. |
+| `ui/levelmap.cpp:427` | Tab or Esc closes the level map; the game is paused until then. |
 | `ui/lodgeview.cpp:168` | Camping in the wild |
 | `ui/lodgeview.cpp:168` | Staying here |
 | `ui/lodgeview.cpp:190` | The room: %s a day.%s |
@@ -2761,12 +2761,13 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/hdart.c:992` |  (some could not be written) |
 | `mods/hdtext.c:457` | cursor: shown %d page %d save %d,%d %dx%d at %d,%d |
 | `mods/keep.c:46` | # formulae first or last in the alchemy screen's list (formula f first\|last)  |
-| `mods/levelwalk.c:69` | The party cannot get there from where it stands. |
-| `mods/levelwalk.c:79` | The party will walk there in single file (press G to move as a group again); Space resumes the battle. |
-| `mods/levelwalk.c:80` | The party will walk there: Space resumes the battle. |
-| `mods/levelwalk.c:81` | The party walks there in single file (press G to move as a group again). |
-| `mods/levelwalk.c:141` | There are no stairs on this floor that the party has found. |
-| `mods/levelwalk.c:144` | The party walks to the stairs and takes them. |
+| `mods/levelwalk.c:70` | The party cannot get there from where it stands. |
+| `mods/levelwalk.c:80` | The party will walk there in single file (press G to move as a group again); Space resumes the battle. |
+| `mods/levelwalk.c:81` | The party will walk there: Space resumes the battle. |
+| `mods/levelwalk.c:82` | The party walks there in single file (press G to move as a group again). |
+| `mods/levelwalk.c:142` | There are no stairs on this floor that the party has found. |
+| `mods/levelwalk.c:155` | The party walks to the stairs and takes them. |
+| `mods/levelwalk.c:155` | The party walks to the stairs. |
 | `mods/lodgeview.c:140` | Castle Guard |
 | `mods/lodgeview.c:143` | Castle Servant |
 | `mods/lodgeview.c:144` | Castle Steward |

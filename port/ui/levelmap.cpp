@@ -28,6 +28,7 @@ extern "C" {
 }
 extern ImFont *ui_font_small;
 extern "C" int levelwalk_x, levelwalk_y, levelwalk_floor;   /* mods/levelwalk.c */
+extern "C" void levelwalk_stairs(int s);
 
 #define NFLOORS 16
 static unsigned char seen[NFLOORS][40][40];
@@ -139,7 +140,7 @@ static ImVec2 floors_draw(ImDrawList *dl, ImVec2 o, ImVec2 sz, int fl, Known kno
     bool party_on[NFLOORS] = {};
     for (int i = 0; i < 5; i++) { int st = g_rb(CBF(i, CB_STATUS)), pf = (s8)g_rb((u16)(GV_cbt_floor + i)); if ((st == 1 || st == 2) && pf >= 0 && pf < NFLOORS) party_on[pf] = true; }
     ImGuiIO &io = ImGui::GetIO();
-    int hover = -1;
+    int hover = -1; ImVec2 ha, hb;
     for (int fi = 0; fi < nf; fi++) {
         if (!shown[fi]) continue;
         ImVec2 c = centre(fi), a(c.x - qs * 0.5f, c.y - qs * 0.5f), b(c.x + qs * 0.5f, c.y + qs * 0.5f);
@@ -150,20 +151,20 @@ static ImVec2 floors_draw(ImDrawList *dl, ImVec2 o, ImVec2 sz, int fl, Known kno
         ImVec2 ts = f->CalcTextSizeA(UIS(18), FLT_MAX, 0, num);
         dl->AddText(f, UIS(18), ImVec2(c.x - ts.x * 0.5f, c.y - ts.y * 0.5f), visited[fi] ? IM_COL32(20, 16, 12, 255) : IM_COL32(200, 180, 140, 255), num);
         if (party_on[fi]) dl->AddCircleFilled(ImVec2(b.x - UIS(5), a.y + UIS(5)), UIS(4.5f), IM_COL32(70, 150, 230, 255));
-        if (io.MousePos.x >= a.x && io.MousePos.x < b.x && io.MousePos.y >= a.y && io.MousePos.y < b.y) hover = fi;
+        if (io.MousePos.x >= a.x && io.MousePos.x < b.x && io.MousePos.y >= a.y && io.MousePos.y < b.y) { hover = fi; ha = a; hb = b; }
     }
     if (hover >= 0) {
         char tip[200], tos[80] = "";
         int n = 0;
         for (int t = 0; t < nf; t++) if (edge[hover][t]) { char w[12]; snprintf(w, sizeof w, "%s%d", n ? ", " : "", t + 1); strncat(tos, w, sizeof tos - strlen(tos) - 1); n++; }
-        if (hover == fl) snprintf(tip, sizeof tip, "Floor %d: the party is here.%s%s", hover + 1, n ? (n == 1 ? " Stairs seen to floor " : " Stairs seen to floors ") : "", tos);
-        else if (visited[hover]) snprintf(tip, sizeof tip, "Floor %d: the party has been here.%s%s", hover + 1, n ? (n == 1 ? " Stairs seen to floor " : " Stairs seen to floors ") : "", tos);
+        if (hover == fl) snprintf(tip, sizeof tip, "Floor %d: the party is here.%s%s%s", hover + 1, n ? (n == 1 ? " Stairs seen to floor " : " Stairs seen to floors ") : "", tos, n ? "." : "");
+        else if (visited[hover]) snprintf(tip, sizeof tip, "Floor %d: the party has been here.%s%s%s", hover + 1, n ? (n == 1 ? " Stairs seen to floor " : " Stairs seen to floors ") : "", tos, n ? "." : "");
         else snprintf(tip, sizeof tip, "A floor nobody has been on yet: stairs from floor %s lead there.", tos);
-        if (via[hover] >= 0 && hover != fl) strncat(tip, "\nClick: the party walks to those stairs and takes them.", sizeof tip - strlen(tip) - 1);
+        if (via[hover] >= 0 && hover != fl) strncat(tip, g_rb(GV_real_combat) ? "\nClick: the party walks to those stairs." : "\nClick: the party walks to those stairs and takes them.", sizeof tip - strlen(tip) - 1);
+        ui_tip_beside(ha, hb);
         ImGui::SetTooltip("%s", tip);
         if (via[hover] >= 0 && hover != fl && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-            const Exit &e = exits[fl][via[hover]];
-            levelwalk_x = e.x + e.w / 2; levelwalk_y = e.y + e.h / 2; levelwalk_floor = fl;
+            levelwalk_stairs(via[hover]);                      /* (mods/levelwalk.c: taken on arrival, outside a fight) */
             open_lm = false;
         }
     }

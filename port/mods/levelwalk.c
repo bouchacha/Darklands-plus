@@ -29,6 +29,7 @@ int levelwalk_x = -1, levelwalk_y = -1, levelwalk_floor = -1;     /* the place, 
 void ui_notice(const char *msg);
 
 static int stairs_pending = -1, stairs_floor; static u32 stairs_t;   /* U: the stairs walked to, taken on arrival */
+void levelwalk_stairs(int s);
 static int stairs_under(int i);
 static void stairs_arrive(void)
 {
@@ -129,19 +130,29 @@ static void keys_hook(void)                /* combat_keys (): U with nobody on t
     for (int i = 0; i < 5; i++)
         if (g_rb(CBF(i, CB_STATUS)) == 1 && (s8)g_rb((u16)(GV_cbt_floor + i)) == fl && on_stairs(i)) { hook_call_original(); return; }
     if (lead < 0 || lead > 4 || g_rb(CBF(lead, CB_STATUS)) != 1 || (s8)g_rb((u16)(GV_cbt_floor + lead)) != fl) { hook_call_original(); return; }
-    int ns = (s8)rb(G_FAR20A5, FLR_NSTAIRS), best = -1, bd = 0x7fffffff, bx = 0, by = 0;
+    int ns = (s8)rb(G_FAR20A5, FLR_NSTAIRS), best = -1, bd = 0x7fffffff;
     int x = (s16)g_rw(CBF(lead, CB_X)), y = (s16)g_rw(CBF(lead, CB_Y));
     for (int s = 0; s < ns && s < 6; s++) {
         u16 o = (u16)(FLR_STAIRS + 14 * s);
         int cx = (s16)rw(G_FAR20A5, o) + rb(G_FAR20A5, (u16)(o + 4)) / 2, cy = (s16)rw(G_FAR20A5, (u16)(o + 2)) + rb(G_FAR20A5, (u16)(o + 5)) / 2;
         int d = (cx - x) * (cx - x) + 4 * (cy - y) * (cy - y);
-        if (d < bd) { bd = d; best = s; bx = cx; by = cy; }
+        if (d < bd) { bd = d; best = s; }
     }
     bios_kbd_get(1);                                         /* (the key is ours) */
     if (best < 0) { ui_notice("There are no stairs on this floor that the party has found."); return; }
-    levelwalk_x = bx; levelwalk_y = by; levelwalk_floor = fl;
-    stairs_pending = best; stairs_floor = fl; stairs_t = plat_ticks_ms();
-    ui_notice("The party walks to the stairs and takes them.");
+    levelwalk_stairs(best);
+}
+/* the party walks to stairs s of the floor shown and, outside a fight, takes them on arrival (U above;
+   a click on a floor of the level map's chart, ui/levelmap.cpp) */
+void levelwalk_stairs(int s)
+{
+    int fl = (s8)g_rb(GV_floor_shown), ns = (s8)rb(G_FAR20A5, FLR_NSTAIRS);
+    if (s < 0 || s >= ns || s >= 6) return;
+    u16 o = (u16)(FLR_STAIRS + 14 * s);
+    levelwalk_x = (s16)rw(G_FAR20A5, o) + rb(G_FAR20A5, (u16)(o + 4)) / 2; levelwalk_y = (s16)rw(G_FAR20A5, (u16)(o + 2)) + rb(G_FAR20A5, (u16)(o + 5)) / 2; levelwalk_floor = fl;
+    int take = !g_rb(GV_real_combat);
+    if (take) { stairs_pending = s; stairs_floor = fl; stairs_t = plat_ticks_ms(); }
+    ui_notice(take ? "The party walks to the stairs and takes them." : "The party walks to the stairs.");
     if (g_rb(GV_ai_paused) == 1) { extern void bios_kbd_inject(u16); bios_kbd_inject(0x3920); }   /* (on its way at once: Space) */
 }
 
