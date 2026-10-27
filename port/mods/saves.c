@@ -576,8 +576,34 @@ int saves_restart_on_exit(void)
 void saves_note_game(void) { if (game_mode() != GM_OTHER) game_seen = 1; }
 int saves_party_ended(void) { return !user_quit && game_seen; }     /* the program ends for the party's end, not a quit */
 
+/* ---- battle saves made by Darklands+ up to 1.3: a castle's, mine's or dungeon's trigger areas came back
+ * as pits. A battle save stores each level's trigger routines as numbers (s003 0e76:09b9..0a48: e->fn ==
+ * vec_17f7 -> 1 ...) and the restore turns them back, any number it does not know into the pit's routine
+ * (vec_181f, "Aaaahh!" once the whole party stands in the area). The translation compared the routines'
+ * segment without the load segment, so nothing matched and the routines were saved as they stood in memory
+ * (fixed in the translator, recomp16.py: a relocated immediate of cmp): after loading such a save every
+ * trap, secret door, alarm and the mine's dwarves' iron door was a pit, and the door showed no riddle
+ * (GitHub issue 2). When the restore takes a level out of the save (EXPLODE, s003 1016:0d07, from
+ * 0e76:17d5), a routine stored as a far pointer is given its number first (the restore's own table). */
+static void bsv_level_hook(void)
+{
+    u16 ret_off = rw(SS, SP), ret_seg = rw(SS, (u16)(SP + 2));
+    hook_call_original();
+    if (ret_off != 0x17da || ret_seg != (u16)(LOADSEG + 0x0e76)) return;
+    static const u16 VEC[8] = { 0x17ed, 0x17f7, 0x1801, 0x180b, 0x181f, 0x1815, 0x1833, 0x1829 }, TYPE[8] = { 0, 1, 2, 4, 5, 6, 7, 8 };
+    u16 bo = g_rw(GV_load_buf), bs = g_rw((u16)(GV_load_buf + 2));
+    int n = rb(bs, (u16)(bo + 0x2184)), fixed = 0;
+    for (int k = 0; k < n && k < 50; k++) {
+        u16 r = (u16)(bo + 0x218c + 14 * k), off = rw(bs, r), seg = rw(bs, (u16)(r + 2));
+        if (!seg) continue;                                     /* (a number, as the game saves it) */
+        for (int t = 0; t < 8; t++) if (off == VEC[t]) { ww(bs, r, TYPE[t]); ww(bs, (u16)(r + 2), 0); fixed++; break; }
+    }
+    if (fixed) fprintf(stderr, "saves: %d trigger routines of a level put back (a battle save of an earlier Darklands+)\n", fixed);
+}
+
 void saves_init(void)
 {
+    hook_install(3, 0x1016, 0x0d07, bsv_level_hook);
     saves_restart = config_get_int("saves.restart_on_end", 1);
     hook_install(GF_quit_to_dos, quit_hook);
     hook_install(GF_save_game, save_hook);

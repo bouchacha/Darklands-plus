@@ -86,7 +86,7 @@ static unsigned search_budget = 40000;   /* us */
 #define D_BLOCKER 0xd5f6                 /* int[13]: who blocked the last step */
 #define D_NEXTSTEP 0xca30                /* char[13]: the step lined up, -1 none */
 #define FLOORSEG_ ((u16)(LOADSEG + 0x20a5))   /* the floor's cells, far 20a5:0000 (below) */
-static struct { s16 x, y; u8 n; u16 clk; } stall[13];
+static struct { s16 x, y; u8 n; u16 clk; s16 tx, ty; } stall[13];
 static u8 stall_resets[13];                                 /* (the party: times a member blocked only by friends kept asking) */   /* where each combatant last asked for a route, and how often since from there */
 static int ncoll;
 
@@ -401,10 +401,20 @@ static void path_find_hook(void)
        asking for ever */
     int stuck = 0;
     u16 now = g_rw(GV_combat_clock);
+    /* (a member of the party asking for somewhere else: a new order, or the one it follows gone on, is
+       a new start. Else the eight asks of a follower that stood in the line behind a friend while the
+       leader went round a corner, or of one who stood still for a while, held for good: "no way" from
+       that spot to anywhere, and the member never moved again, even out of a fight) */
+    if (i < 5 && abs(tx - stall[i].tx) + abs(ty - stall[i].ty) > 24) stall[i].n = 0;
+    stall[i].tx = (s16)tx; stall[i].ty = (s16)ty;
     if (abs(x - stall[i].x) <= 3 && abs(y - stall[i].y) <= 3) {
         if ((u16)(now - stall[i].clk) >= 6 && stall[i].n < 250) { stall[i].n++; stall[i].clk = now; }
         stuck = stall[i].n;
     } else { stall[i].x = (s16)x; stall[i].y = (s16)y; stall[i].n = 0; stall[i].clk = now; }
+    /* a member following a friend (single file, a group: the target is one of the party) is never told
+       there is no way: it waits behind the one in front and goes on when that one does, planning around
+       everyone meanwhile (the game asks again and again while it stands; each ask is a few steps) */
+    if (stuck >= 8 && i < 5 && target >= 0 && target < 5) stuck = 7;
     /* two of the party in each other's way (paths crossing in a doorway or a corridor): both
        planned around everyone from where they stood, both stepped the same way, and after eight
        tries both were told there is no way and stopped ("waits"). Now, with only the party in the

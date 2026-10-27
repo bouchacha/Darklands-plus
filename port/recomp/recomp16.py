@@ -224,6 +224,14 @@ class Gen:
             seg = 'DS'
         return seg, off
 
+    def imm_val(self, img, lin, size, s, w):
+        """an instruction's immediate operand (its last bytes). A 16-bit one with a relocation is a
+        segment (cmp word [es:bx+218e], seg vec_1829: a stored far pointer's segment against a
+        routine's): the load segment is added, as the loader did."""
+        if w == 16 and self.has_reloc(img, lin + size - 2, 2):
+            return '(u16)(LOADSEG + %d)' % (s.imm & 0xffff)
+        return str(s.imm & (0xff if w == 8 else 0xffff))
+
     def rd(self, op, ins, size=None):
         size = size or op.size
         if op.type == X.X86_OP_REG:
@@ -420,7 +428,7 @@ class Gen:
             w = 8 * d.size
             sv = self.rd(s, ins, d.size)
             if s.type == X.X86_OP_IMM:
-                sv = str(s.imm & (0xff if w == 8 else 0xffff))
+                sv = self.imm_val(img, lin, size, s, w)
             fn = {'add': 'f_add', 'sub': 'f_sub', 'adc': 'f_adc', 'sbb': 'f_sbb', 'cmp': 'f_sub'}[m]
             e = '%s(%s, %s, %d)' % (fn, self.rd(d, ins), sv, w)
             if m == 'cmp':
@@ -431,7 +439,7 @@ class Gen:
             w = 8 * d.size
             sv = self.rd(s, ins, d.size)
             if s.type == X.X86_OP_IMM:
-                sv = str(s.imm & (0xff if w == 8 else 0xffff))
+                sv = self.imm_val(img, lin, size, s, w)
             c = {'and': '&', 'or': '|', 'xor': '^', 'test': '&'}[m]
             e = 'f_logic(%s %s %s, %d)' % (self.rd(d, ins), c, sv, w)
             if m == 'test':
