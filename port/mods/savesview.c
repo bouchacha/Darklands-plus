@@ -84,7 +84,7 @@ static int ok_or_cancel(int loading)
     qh = qt = 0;
     free(S->saves); S->saves = 0;
     S->nsaves = saves_list(&S->saves);
-    g_str(G_DGROUP, 0xa680, S->cur_file, sizeof S->cur_file);     /* "dksaveN.sav": the save last written or read */
+    saves_cur_name(S->cur_file, sizeof S->cur_file);              /* "dksaveN.sav": the save last written or read */
     S->loading = loading;
     S->sel = -1; S->armed = -1;
     if (loading) for (int i = 0; i < S->nsaves; i++) if (!strcasecmp(S->saves[i].file, S->cur_file)) { S->sel = i; break; }

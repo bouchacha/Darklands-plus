@@ -77,7 +77,7 @@ extern "C" void tab_saves(void)
 {
     if (nlist < 0 || plat_ticks_ms() - listed_at > 3000) refresh();
     bool in_game = game_mode() != GM_OTHER;
-    char cur[16]; g_str(G_DGROUP, 0xa680, cur, sizeof cur);
+    char cur[16]; saves_cur_name(cur, sizeof cur);
     if (nlist == 0) { ImGui::TextDisabled("No saved games yet."); return; }
     ImGui::Text("%d saved game%s, newest first", nlist, nlist == 1 ? "" : "s");
     ImGui::SameLine(); if (ImGui::SmallButton("Refresh")) refresh();

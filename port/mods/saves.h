@@ -1,6 +1,7 @@
 /* saves.h - quick save / load, autosaves, loading from the menu (saves.c) */
 #ifndef DL_SAVES_H
 #define DL_SAVES_H
+#include <stddef.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -26,6 +27,7 @@ int saves_list(SaveInfo **out);                   /* newest first; free() */
 int saves_read(const char *file, SaveInfo *si);
 int saves_delete(const char *file);               /* not the one loaded; 0 if refused */
 int saves_ironman(void);                          /* the running game is an Ironman game (one save, kept by the game) */
+void saves_cur_name(char *out, size_t n);         /* the save last written or loaded, as the listings name it */
 #ifdef __cplusplus
 }
 #endif

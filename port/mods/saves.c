@@ -53,6 +53,15 @@ u32 plat_ticks_ms(void);
 #define D_LOAD_OK  GV_font_flag_b        /* Load menu item: 1 enabled */
 #define D_IN_BATTLE GV_in_battle       /* 1 during a battle */
 #define D_SAVENAME 0xa680        /* "dksaveN.sav": the save last written or loaded */
+/* that name as the save is on disk: past 99 the game writes "dksave100.sav", which is dksavea0.sav
+   (dos_name_alias, runtime/dos.c), the name the listings give */
+void saves_cur_name(char *out, size_t n)
+{
+    int dos_name_alias(const char *, char *, size_t);
+    g_str(G_DGROUP, D_SAVENAME, out, n);
+    char al[32];
+    if (dos_name_alias(out, al, sizeof al)) snprintf(out, n, "%s", al);
+}
 
 static const char *answer;       /* text_input's answer while we save */
 static int quick_due;
@@ -136,7 +145,7 @@ static void remove_ci(const char *name)
 
 int saves_delete(const char *name)
 {
-    char cur[16]; g_str(G_DGROUP, D_SAVENAME, cur, sizeof cur);
+    char cur[16]; saves_cur_name(cur, sizeof cur);
     if (!strcasecmp(cur, name)) return 0;                  /* the game's own rule: not the loaded one */
     char b[20];
     remove_ci(name);
@@ -175,12 +184,12 @@ static int do_save(const char *comment)
     if (g_rb(D_SAVE_OK) != 1) return 0;
     int asked = !strncmp(comment, "Quick", 5);
     if (iron[0]) comment = iron;                       /* (an Ironman game: always over its one save) */
-    char before[16]; g_str(G_DGROUP, D_SAVENAME, before, sizeof before);
+    char before[16]; saves_cur_name(before, sizeof before);
     answer = comment; in_save = 1;
     int r = game_call_far(GF_save_game, 0, 0);
     answer = 0; in_save = 0;
     if (r < 0) { ui_notice("Could not save."); return 0; }
-    char name[16]; g_str(G_DGROUP, D_SAVENAME, name, sizeof name);
+    char name[16]; saves_cur_name(name, sizeof name);
     if (getenv("DL_SAVES_LOG")) fprintf(stderr, "saves: %s -> %s\n", comment, name);
     if (iron[0]) { prune(iron, 1); if (asked) ui_notice("Saved (an Ironman game keeps one save, saved over as you go)"); return 1; }
     if (!strncmp(comment, "Quicksave", 9)) prune("Quicksave", saves_keep_quick);
@@ -351,12 +360,12 @@ static void save_hook(void)                /* save_game () */
     int r = savesview_save(c, sizeof c, old, sizeof old);
     if (r < 0) { hook_call_original(); return; }
     if (r == 0) { AX = 0; hook_return_far(0); return; }
-    g_str(G_DGROUP, D_SAVENAME, before, sizeof before);
+    saves_cur_name(before, sizeof before);
     answer = c; in_save = 1;
     hook_call_original();
     answer = 0; in_save = 0;
     if (unw_active) return;
-    char name[16]; g_str(G_DGROUP, D_SAVENAME, name, sizeof name);
+    char name[16]; saves_cur_name(name, sizeof name);
     SaveInfo now;
     int written = (s16)AX >= 0 && saves_read(name, &now) && strcasecmp(name, old) && (strcasecmp(name, before) || !before[0]);
     char m[128];
@@ -413,7 +422,7 @@ static void hooks_set(int on);
    again whenever a save is read during play */
 static void iron_from_save(void)
 {
-    char cur[16]; g_str(G_DGROUP, D_SAVENAME, cur, sizeof cur);
+    char cur[16]; saves_cur_name(cur, sizeof cur);
     SaveInfo si;
     iron[0] = 0; close_due = 0;
     if (cur[0] && saves_read(cur, &si) && !strncmp(si.comment, "Ironman ", 8)) snprintf(iron, sizeof iron, "%.15s", si.comment);
