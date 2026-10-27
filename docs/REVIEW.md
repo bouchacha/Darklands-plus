@@ -214,3 +214,15 @@ covered and found, and what it could not check.
   noted from the card's words: the journal's alchemist facts dropped. Dead code the compiler's -Wall named, gone:
   the margin's old teachers lines, two clock plates and a throne never drawn, unused helpers and variables in nine
   files (orders.c's "engaged", left from an older rule, computed and never read).
+- 2026-10-26 (night, 1.4): the shields pass. Shields were drawn by hand beside text in each screen; now one
+  markup (ui/richtext.h: {Strength}, {Strength:30 of 35}) goes through every native screen's text and
+  tooltips, the margins' tooltips, notices, the battle log and ImGui text, and check_docs fails on a name no
+  shield has. One key for every shield (ui_key_icon / ui_key_name / ui_key_of: attributes, skills, the town's
+  opinion, fame, age) in place of three numberings. The Saints page's filter searched the account's text a
+  second way beside the chips' parse: it now reads the chips (saint_effect), so the filter, the chips and the
+  order agree; usaintchips (in the release check) fails on any part of a saint's help the parse does not know.
+  The fade of a drawn picture (ui_dim_since, two copies) and the potion grade's chevron badge (ui_mark_chevrons)
+  shared. Found on the way: the pointer's crossed blades never showed (the game sets cursor_target only while
+  the button is held): it now takes the orders' own pointer test. Left as words: the switches' and built-in
+  mods' descriptions (they also make docs/SWITCHES.md), and the sheet's Skills page and character creation,
+  where each shield's name is learned.
