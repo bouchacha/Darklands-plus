@@ -511,11 +511,10 @@ static int day_changed(const LodgeModel *was, const LodgeModel *now, int until_r
         }
         if (a->act != b->act) { snprintf(msg, sizeof msg, "The days stop: what %s does each day has changed.", nm); break; }
         if (until_rested) continue;                             /* (Until rested runs on while anyone still rests) */
-        if (b->act == 1 && a->str < a->str_max && b->str >= b->str_max) snprintf(msg, sizeof msg, "The days stop: %s has regained all Strength.", nm);
-        if (b->act == 2 && a->df < a->df_max && b->df >= b->df_max) snprintf(msg, sizeof msg, "The days stop: %s's Divine Favor is full.", nm);
+        if (b->act == 1 && a->str < a->str_max && b->str >= b->str_max) snprintf(msg, sizeof msg, "The days stop: %s has regained all {Strength}.", nm);
+        if (b->act == 2 && a->df < a->df_max && b->df >= b->df_max) snprintf(msg, sizeof msg, "The days stop: %s's {Divine Favor} is full.", nm);
     }
     if (!msg[0]) return 0;
-    fprintf(stderr, "lodging: %s\n", msg);
     ui_notice(msg);
     return 1;
 }

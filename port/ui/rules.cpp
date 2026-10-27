@@ -21,6 +21,7 @@
 #include <ctype.h>
 #include <string>
 #include <vector>
+#include "richtext.h"
 #include "imgui.h"
 #include "tablesort.h"
 #include "ui.h"
@@ -231,7 +232,7 @@ void rules_tab(void)
             ImGui::TableNextRow();
             ImGui::TableNextColumn(); ImGui::TextUnformatted(n.c_str());
             int sk = get(w, FIELDS[0]);
-            ImGui::TableNextColumn(); ImGui::TextUnformatted(sk < 7 ? SK[sk] : "?");
+            ImGui::TableNextColumn(); if (sk < 7) ui_rich_text(("{" + std::string(SK[sk] == std::string("Missile dev.") ? "Missile Devices" : SK[sk]) + "}").c_str()); else ImGui::TextUnformatted("?");   /* (its shield; the name under the pointer) */
             ImGui::TableNextColumn(); ImGui::Text("%d", get(w, FIELDS[2]) >= 2 ? 2 : 1);
             ImGui::TableNextColumn(); ImGui::Text("%d", get(w, FIELDS[4]));
             ImGui::TableNextColumn(); ImGui::Text("%d", get(w, FIELDS[3]));
@@ -243,7 +244,9 @@ void rules_tab(void)
         ImGui::EndTable();
     }
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
-    ImGui::TextWrapped("Time: how long a blow takes (lower is quicker); where it is blank, Reload sets the pace. Hand to hand, a fighter's melee rating counts both in attack and in defense; each point of skill below what a weapon needs costs 2 of it, each point of Strength below the weapon's range 3 (and weaker blows), each point above the range adds 2 (and harder blows). With a missile weapon, the aim: 2 per point of skill short, 1 per point of Strength short.");
+    ImGui::PushTextWrapPos(0);
+    ui_rich_text("Time: how long a blow takes (lower is quicker); where it is blank, Reload sets the pace. Hand to hand, a fighter's melee rating counts both in attack and in defense; each point of skill below what a weapon needs costs 2 of it, each point of {Strength} below the weapon's range 3 (and weaker blows), each point above the range adds 2 (and harder blows). With a missile weapon, the aim: 2 per point of skill short, 1 per point of {Strength} short.");
+    ImGui::PopTextWrapPos();
     ImGui::PopStyleColor();
     if (!ui_modding()) { if (!rules_log.empty()) ImGui::TextColored(ImVec4(0.6f, 0.15f, 0.1f, 1), "%s", rules_log.c_str()); return; }
     static char modname[64] = "My weapons"; static std::string msg;

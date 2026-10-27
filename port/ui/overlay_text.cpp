@@ -462,6 +462,7 @@ extern "C" void hdtext_draw(void)
    fist while the button is held and the pointer has moved (a drag); crossed blades over a foe in a
    battle, an hourglass while Go to walks */
 extern "C" int citynav_walking(void);
+extern "C" int orders_pointer_target(void);                  /* mods/orders.c */
 static int pointer_look(int *badge)
 {
     *badge = PTR_PLAIN;
@@ -469,9 +470,9 @@ static int pointer_look(int *badge)
     unsigned seg = hdtext_cursor_seg();
     bool battle = seg && seg == g_rw(GV_cursor_battle), paused = seg && seg == g_rw(GV_cursor_battle_paused);
     if (!battle && !paused && !(seg && seg == g_rw(GV_cursor_default))) return PTR_GAME;
-    int ct = (s8)g_rb(GV_cursor_target);
+    int ct = (battle || paused) ? orders_pointer_target() : -1;   /* (the game tests the pointer only while its button is held: mods/orders.c tests it as it moves) */
     if (paused) *badge = PTR_PAUSED;
-    if ((battle || paused) && ct >= 5 && ct < 13) *badge = PTR_ATTACK;
+    if (ct >= 5 && ct < 13) *badge = PTR_ATTACK;
     if (citynav_walking()) *badge = PTR_BUSY;
     static ImVec2 down_at; static bool held;
     ImGuiIO &io = ImGui::GetIO();

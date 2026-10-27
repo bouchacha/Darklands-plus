@@ -2,8 +2,8 @@
 // page shows it under the pointer, with the whole party's values).
 static const char *ATTR_HELP[7] = {
     "Health and stamina. Wounds take it away; at 0 the character falls unconscious. Rest brings it back.",
-    "Bodily strength. Weapons and armor need a minimum Strength (shown in the shops' tooltips), and Endurance and "
-    "Strength together set how much a character can carry. Bad wounds take Strength too; at 0 the character dies.",
+    "Bodily strength. Weapons and armor need a minimum {Strength} (shown in the shops' tooltips), and {Endurance} and "
+    "{Strength} together set how much a character can carry. Bad wounds take Strength too; at 0 the character dies.",
     "Speed and deftness, of the body and of the hands.",
     "Alertness: noticing things, people and dangers.",
     "Wits and learning.",

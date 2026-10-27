@@ -13,6 +13,7 @@
 #include "imgui.h"
 #include "gamedata.h"
 #include "skillicons.h"
+#include "richtext.h"
 #include "pstone.h"
 #include "teachersui.h"
 #include "ordericons.h"
@@ -114,7 +115,7 @@ bool item_hovered(void)
 void margin_tip(const char *text)
 {
     ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(44, 26, 10, 255));
-    ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 20); ImGui::TextUnformatted(text); ImGui::PopTextWrapPos(); ImGui::EndTooltip();
+    ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 20); ui_rich_text(text); ImGui::PopTextWrapPos(); ImGui::EndTooltip();
     ImGui::PopStyleColor();
 }
 void heading(const char *t)
@@ -188,23 +189,14 @@ static void place_quests(int cur);
  * `width`: where the rows wrap (0: the room left); `words`: each picture's name after it (where
  * no tooltip can show: the world map's tooltip on a town). */
 static const char *TOWN_OFFER_TIP[2] = {
-    "University: new saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone, teachers to hire (it expects Latin and a sharp mind).",
-    "Cathedral: donations for Divine Favor (and maybe Virtue), an errand for the canon (a relic), the patron saint's story, sanctuary." };
+    "University: new saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone, teachers to hire (it expects {Latin} and a sharp mind).",
+    "Cathedral: donations for {Divine Favor} (and maybe {Virtue}), an errand for the canon (a relic), the patron saint's story, sanctuary." };
 static const struct { int shop, icon; const char *wares; } NOTABLE_SHOPS[] = {
     { 2, TI_SWORD, "weapons" }, { 3, TI_ARMOUR, "armor and shields" }, { 5, TI_BOW, "bows, crossbows and guns" },
     { 0, TI_SMITH, "weapons" }, { 6, TI_TOOLS, "hammers, maces, flails and polearms (pikes, halberds, spears, staves)" },
     { 8, TI_CLOTH, "clothing and soft armor (padded, leather, studded leather, cuir bouilli)" } };   /* (the clothmaker: only with the cardopts fix, which opens its shopfronts by day) */
 enum { NOTABLE_Q = 30 };
 static const char *TOWN_OFFER_WORD[2] = { "University", "Cathedral" };
-/* what was drawn into dl since vertex v0, faded to alpha k (a known formula, a teacher nobody needs) */
-static void dim_since(ImDrawList *dl, int v0, float k)
-{
-    for (int i = v0; i < dl->VtxBuffer.Size; i++) {
-        ImU32 &c = dl->VtxBuffer[i].col;
-        unsigned al = (c >> IM_COL32_A_SHIFT) & 255;
-        c = (c & ~IM_COL32_A_MASK) | ((ImU32)(al * k) << IM_COL32_A_SHIFT);
-    }
-}
 /* the teachers to be had in town loc (mods/teachers.c), and whether anyone in the party could use
    them: a fighting skill only if some member's best weapon of that kind (hand to hand: Edged,
    Impact, Flails, Polearms; at range: Thrown, Bows, Missile Devices) is below what the teacher
@@ -258,10 +250,10 @@ static void teacher_row(const TchSource &t, float is, bool lines)
     ImGui::SameLine(0, gap); ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (is - lh) * 0.5f);
     ImGui::TextUnformatted(to);
     ImGui::EndGroup();
-    if (!any || t.off) dim_since(dl, v0, 0.38f);
+    if (!any || t.off) ui_dim_since(dl, v0, 0.38f);
     if (!lines) return;
     ImGui::Indent(is + gap);
-    if (t.off) { std::string c = t.now; size_t p2 = c.find(" ("); if (p2 != std::string::npos) c = c.substr(0, p2) + "."; ImGui::TextColored(ImVec4(0.6f, 0.2f, 0.1f, 1), "Not now: %s", c.c_str()); }
+    if (t.off) { std::string c = t.now; size_t p2 = c.find(" ("); if (p2 != std::string::npos) c = c.substr(0, p2) + "."; ui_rich_textf_c(ImVec4(0.6f, 0.2f, 0.1f, 1), "Not now: %s", c.c_str()); }
     for (int j = 0; j < t.n; j++) {                           /* each skill: its shield, who would learn it and their skill now */
         std::vector<Learner> L; teach_learners(t.skill[j], t.strength, &L);
         ImVec2 b = ImGui::GetCursorScreenPos(); float s2 = lh * 1.1f;
@@ -294,7 +286,7 @@ static void teachers_chip(int loc, bool &first, float isz, float gap, float x0, 
     dl->AddCircle(c, isz * 0.48f, IM_COL32(92, 60, 30, 255), 24, fmaxf(1.0f, isz * 0.05f));
     ui_draw_teach_mark(dl, ImVec2(c.x, c.y + isz * 0.02f), isz * 0.72f, IM_COL32(80, 50, 24, 255), IM_COL32(252, 246, 228, 255));
     dl->AddText(ImVec2(a.x + isz + lh * 0.2f, a.y + (isz - lh) * 0.5f), ImGui::GetColorU32(ImGuiCol_Text), num);
-    if (!useful) dim_since(dl, v0, 0.38f);                   /* nobody would learn anything now: dim, as a known saint */
+    if (!useful) ui_dim_since(dl, v0, 0.38f);                   /* nobody would learn anything now: dim, as a known saint */
     if (item_hovered()) {                                    /* a row a teacher: who would learn, or why not now */
         ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(44, 26, 10, 255));
         ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 24);
@@ -326,7 +318,7 @@ static void stone_chip(int loc, bool &first, float isz, float gap, float x0, flo
     dl->AddCircle(c, isz * 0.48f, IM_COL32(92, 60, 30, 255), 24, fmaxf(1.0f, isz * 0.05f));
     ui_pstone_draw(dl, c, isz * 0.74f, ui_pstone_look(), -best, (float)ImGui::GetTime());
     dl->AddText(ImVec2(a.x + isz + lh * 0.2f, a.y + (isz - lh) * 0.5f), ImGui::GetColorU32(ImGuiCol_Text), t);
-    if (best <= have) dim_since(dl, v0, 0.38f);              /* no better than the party's: dim */
+    if (best <= have) ui_dim_since(dl, v0, 0.38f);              /* no better than the party's: dim */
     if (item_hovered()) {
         std::string b = "A better Philosopher's Stone, for a price:";
         char l[120];
@@ -405,7 +397,7 @@ static void library_line(int loc)
             if (known) ImGui::TextDisabled("%s", t.c_str()); else ImGui::TextUnformatted(t.c_str());
         } else name_line(t, known);
         if (item_hovered()) {
-            std::string tip = gamedata.saints[s].name + (known ? " (someone in the party knows this saint): " : " (nobody in the party knows this saint): ") + saint_info_does(s) + (*saint_info_note(s) ? "\n" : "") + saint_info_note(s);   /* (what its help really does: mods/saintinfo.h) */
+            std::string tip = gamedata.saints[s].name + (known ? " (someone in the party knows this saint): " : " (nobody in the party knows this saint): ") + "\n" + saint_effects_text(s) + (*saint_info_note(s) ? "\n" : "") + saint_info_note(s);   /* (what its help really does: mods/saintinfo.h) */
             margin_tip(tip.c_str());
         }
     }
@@ -434,7 +426,7 @@ static void formulae_line(int town)
         ImDrawList *dl = ImGui::GetWindowDrawList();
         int v0 = dl->VtxBuffer.Size;
         ui_draw_potion(dl, ImVec2(a.x + s * 0.5f, a.y + s * 0.5f), s, 95 + f / 3, f % 3 + 1);
-        if (known) dim_since(dl, v0, 0.38f);                 /* known to the party: dim, as the saints above (the whole icon) */
+        if (known) ui_dim_since(dl, v0, 0.38f);                 /* known to the party: dim, as the saints above (the whole icon) */
         if (item_hovered()) {
             const std::string &t = gamedata.formula_names[f];
             const ItemDef *pd = 95 + f / 3 < (int)gamedata.items.size() ? &gamedata.items[95 + f / 3] : nullptr;
@@ -471,7 +463,7 @@ static void teacher_rows(int loc)
             ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(44, 26, 10, 255));
             ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 24);
             char head[200]; snprintf(head, sizeof head, fix_is_on("teachcap") ? "%s: %s, up to %d" : "%s: %s (their skill %d)", ui_teacher_short(t.src), ui_teacher_skills(t).c_str(), t.strength);
-            ImGui::TextUnformatted(head);
+            ui_rich_text(head);
             ImGui::TextDisabled("A lesson a day at the inn, for a fee. Who would learn, and their skill now:");
             teacher_row(t, ImGui::GetTextLineHeight() * 1.3f, true);
             ImGui::PopTextWrapPos(); ImGui::EndTooltip();
@@ -882,7 +874,7 @@ static void night_streets(bool night)
         else snprintf(often, sizeof often, "about %d time%s in 10", k, k == 1 ? "" : "s");
         snprintf(b, sizeof b, "From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, "
                  "and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s "
-                 "(depending on the party's Stealth and Streetwise)%s. An inn is the safe place to wait for morning.",
+                 "(depending on the party's {Stealth} and {Streetwise})%s. An inn is the safe place to wait for morning.",
                  often, pct != 100 ? ", as set in F12 > Mods (Night encounters in the streets)" : "");
         margin_tip(b);
     }

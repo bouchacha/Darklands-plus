@@ -56,3 +56,18 @@ void ui_mark_lost(ImDrawList *dl, ImVec2 c, float r, int item, float th)
     dl->AddCircleFilled(c, r * 0.95f, IM_COL32(40, 24, 12, 110), 16);
     dl->AddLine(at(c, -r * 0.8f, -r * 0.8f), at(c, r * 0.8f, r * 0.8f), IM_COL32(200, 60, 40, 255), th * 1.6f);
 }
+
+float ui_mark_chevrons(ImDrawList *dl, ImVec2 base, float hw, float th, int n, bool down)
+{
+    if (n < 1) return 0;
+    if (n > 3) n = 3;
+    float hh = hw * 0.62f, step = hh + th * 1.25f, top = base.y - (n - 1) * step;
+    dl->AddRectFilled(ImVec2(base.x - hw - th, top - hh * 0.5f - th * 1.3f), ImVec2(base.x + hw + th, base.y + hh * 0.5f + th * 1.6f), IM_COL32(41, 26, 13, 235), th);
+    ImU32 col = down ? IM_COL32(236, 92, 64, 255) : IM_COL32(255, 209, 51, 255);
+    for (int k = 0; k < n; k++) {
+        float y = top + k * step, e = down ? -1.0f : 1.0f;
+        ImVec2 pts[3] = { ImVec2(base.x - hw, y + e * hh * 0.5f), ImVec2(base.x, y - e * hh * 0.5f), ImVec2(base.x + hw, y + e * hh * 0.5f) };
+        dl->AddPolyline(pts, 3, col, 0, th);
+    }
+    return hw + th;
+}

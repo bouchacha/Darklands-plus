@@ -28,7 +28,7 @@ static const struct { int src, q, off, need; const char *who, *ask; } GUILDS[5] 
     { TCH_BOWYERS, 5, 17, 85, "Bowyers' guild", "In the daytime, go to the bowyers' and gunsmiths' guild and choose \"request a meeting with the guild's masters\"." },
     { TCH_ARTIFICERS, 6, 0, 0, "Artificers' guild", "In the daytime, go to the artificers' guild and choose \"request a meeting with the guild's masters\"." },
 };
-static const char GUILD_COND[] = "The guild only lets in a party with enough fame, reputation in this town and Charisma "
+static const char GUILD_COND[] = "The guild only lets in a party with enough fame, reputation in this town and {Charisma} "
                                  "(otherwise its street leads only to the shop). While the guild is split by a dispute, its masters want help with that first.";
 
 static int is_here(int loc) { return loc >= 0 && loc == (s16)g_rw(GV_cur_loc); }
@@ -119,7 +119,7 @@ int teach_town(int loc, const TchTown *t, TchSource *out, int max)
             if (dispute_at(loc)) snprintf(o->now, sizeof o->now, "A guild here is split by a dispute, and its masters want help with that first.");
             else if (GUILDS[k].need) {
                 int d = standing(k, seed, loc);
-                snprintf(o->now, sizeof o->now, d >= 0 ? "The guild would receive the party now, in the daytime." : "The guild would not receive the party yet (it needs more fame, reputation here or Charisma).");
+                snprintf(o->now, sizeof o->now, d >= 0 ? "The guild would receive the party now, in the daytime." : "The guild would not receive the party yet (it needs more fame, reputation here or {Charisma}).");
                 o->off = d < 0;
             }
         }
@@ -128,7 +128,7 @@ int teach_town(int loc, const TchTown *t, TchSource *out, int max)
         TchSource *o = NEXT(); if (!o) return n;
         o->src = TCH_UNIVERSITY; o->who = "University";
         o->ask = "In the daytime, go to the university and choose \"a teacher you can hire\".";
-        o->cond = "They may say no (it depends on Perception, Intelligence, Latin, the party's best Alchemy and fame). A refusal shuts their door for a week and lowers the party's reputation here a little.";
+        o->cond = "They may say no (it depends on {Perception}, {Intelligence}, {Latin}, the party's best {Alchemy} and fame). A refusal shuts their door for a week and lowers the party's reputation here a little.";
         o->strength = (int)(seed % 15) + 45;
         add(o, SKILL_ALCHEMY, 90); add(o, SKILL_RELIGION, 70); add(o, SKILL_LATIN, 50); add(o, SKILL_RW, 50); add(o, SKILL_HEALING, 110);
     }
@@ -136,7 +136,7 @@ int teach_town(int loc, const TchTown *t, TchSource *out, int max)
         TchSource *o = NEXT(); if (!o) return n;
         o->src = TCH_MONASTERY; o->who = "Monastery";
         o->ask = "Go to the monastery and choose \"inquire about tutoring in various disciplines\".";
-        o->cond = "Only for a party of good name (Virtue, Charisma, reputation here), and only while no other teacher is hired in the town. After a refusal, wait two days.";
+        o->cond = "Only for a party of good name ({Virtue}, {Charisma}, reputation here), and only while no other teacher is hired in the town. After a refusal, wait two days.";
         o->strength = 50;
         add(o, SKILL_RELIGION, 50); add(o, SKILL_LATIN, 25); add(o, SKILL_RW, 25);
     }
@@ -144,7 +144,7 @@ int teach_town(int loc, const TchTown *t, TchSource *out, int max)
         TchSource *o = NEXT(); if (!o) return n;
         o->src = TCH_PHYSICIAN; o->who = "Physician";
         o->ask = "In the daytime, go to the physician and choose \"beg him to allow you to be his students\".";
-        o->cond = "He takes no one who already heals better than he does himself (his own Healing changes from week to week; visiting him shows it). Some years he takes no students.";
+        o->cond = "He takes no one who already heals better than he does himself (his own {Healing} changes from week to week; visiting him shows it). Some years he takes no students.";
         o->strength = 50;
         add(o, SKILL_HEALING, 60);
         int year = (s16)g_rw(G_CUR_YEAR);
@@ -155,21 +155,21 @@ int teach_town(int loc, const TchTown *t, TchSource *out, int max)
         if (here) { int e = event_at(0x37, loc, -1); if (e >= 0) { u32 p = g_event(e); P = (s16)rw((u16)(p >> 16), (u16)((u16)p + 0x1e)); } }
         int best = party_best_skill(SKILL_HEALING);
         /* (in the game's order: the party healing better first, then the year) */
-        if (P > 1 && best > P) { snprintf(o->now, sizeof o->now, "His own Healing is %d this week, and the party's best is %d: he will not teach you.", P, best); o->off = 1; }
-        else if (P < 0 && best > hi) { snprintf(o->now, sizeof o->now, "His own Healing is at most %d, and the party's best is %d: he will not teach you.", hi, best); o->off = 1; }
+        if (P > 1 && best > P) { snprintf(o->now, sizeof o->now, "His own {Healing:%d} this week, and the party's best is %d: he will not teach you.", P, best); o->off = 1; }
+        else if (P < 0 && best > hi) { snprintf(o->now, sizeof o->now, "His own {Healing:%d} at most, and the party's best is %d: he will not teach you.", hi, best); o->off = 1; }
         else if ((s16)(seed + year) % 3 == 0) { snprintf(o->now, sizeof o->now, "He takes no students this year."); o->off = 1; }
         else if (P >= 0) {
             if (P <= 1) { snprintf(o->now, sizeof o->now, "He takes no students at the moment."); o->off = 1; }
-            else if (best > P) { snprintf(o->now, sizeof o->now, "His own Healing is %d this week, and the party's best is %d: he will not teach you.", P, best); o->off = 1; }
-            else snprintf(o->now, sizeof o->now, "His own Healing is %d this week: he will teach you.", P);
-        } else if (best > hi) { snprintf(o->now, sizeof o->now, "His own Healing is at most %d, and the party's best is %d: he will not teach you.", hi, best); o->off = 1; }
-        else if (best > lo) snprintf(o->now, sizeof o->now, "His own Healing is %d to %d this week (visiting him shows which): he teaches only if it is at least the party's best, %d.", lo, hi, best);
+            else if (best > P) { snprintf(o->now, sizeof o->now, "His own {Healing:%d} this week, and the party's best is %d: he will not teach you.", P, best); o->off = 1; }
+            else snprintf(o->now, sizeof o->now, "His own {Healing:%d} this week: he will teach you.", P);
+        } else if (best > hi) { snprintf(o->now, sizeof o->now, "His own {Healing:%d} at most, and the party's best is %d: he will not teach you.", hi, best); o->off = 1; }
+        else if (best > lo) snprintf(o->now, sizeof o->now, "His own {Healing:%d to %d} this week (visiting him shows which): he teaches only if it is at least the party's best, %d.", lo, hi, best);
     }
     if (t->alchemist) {
         TchSource *o = NEXT(); if (!o) return n;
         o->src = TCH_ALCHEMIST; o->who = "Alchemists";
         o->ask = "In the daytime, go to Astrologists' Lane and choose \"receiving additional instruction in alchemy\".";
-        o->cond = "They may say no (it depends on Charisma, Speak Common, the party's best Alchemy and reputation here). After a refusal, wait two and a half days.";
+        o->cond = "They may say no (it depends on {Charisma}, {Speak Common}, the party's best {Alchemy} and reputation here). After a refusal, wait two and a half days.";
         o->strength = t->size * 3 + (int)((u16)(seed + 4) % 41) + ((t->buildings & 0x100) ? (int)((u16)(seed + 9) % 11) + 10 : 0);
         add(o, SKILL_ALCHEMY, o->strength / 4 + 12);
     }
@@ -223,7 +223,7 @@ int teach_card_option(const char *card, int opt, TchSource *out)
         memset(out, 0, sizeof *out);
         out->src = TCH_GUILD; out->who = "The guild's masters";
         out->ask = "Here: choose \"inquire about special training\".";
-        out->cond = "They may say no (it depends on Charisma, reputation here and fame); they always agree if the guild owes the party a favor.";
+        out->cond = "They may say no (it depends on {Charisma}, reputation here and fame); they always agree if the guild owes the party a favor.";
         int q = bit == 2 || bit == 0x10 ? t.shopq[0] : bit == 4 ? t.shopq[2] : bit == 8 ? t.shopq[5] : t.shopq[6];
         out->strength = q + (int)(seed % 15) - 5;
         if (bit == 8) snprintf(out->now, sizeof out->now, "A bug in the original game: this guild's teacher teaches no skill at all.");

@@ -12,6 +12,8 @@
 #include "ui.h"
 #include "gamedata.h"
 #include "padglyphs.h"
+#include "richtext.h"
+#include "skillicons.h"
 
 extern ImFont *ui_font_text, *ui_font_overlay;
 extern ImFont *ui_font_game[UI_GAME_FONTS], *ui_font_game_hi[UI_GAME_FONTS];
@@ -19,6 +21,7 @@ extern int ui_game_font;
 extern "C" void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 float ui_face_k(ImFont *f);
 
+static inline void ns_tip(const char *text, float width_em = 24);   /* a tooltip of the native screens (below) */
 struct NsDraw {
     ImDrawList *dl = nullptr;
     ImFont *f = nullptr, *fo = nullptr;      /* the game's typeface (names, headings), the plain one (numbers, notes) */
@@ -78,27 +81,53 @@ struct NsDraw {
         if (sel) orn_tab_mark(dl, w(x0, y1), w(x1, y1), k);
     }
     void frame(float x0, float y0, float x1, float y1, ImU32 c, float rnd = 0) { dl->AddRect(w(x0, y0), w(x1, y1), c, rnd * k, 0, fmaxf(1.0f, 0.4f * k)); }
-    /* text at (x, y) (its top); right_to >= 0: ending there; clip_to >= 0: cut there */
+    /* text at (x, y) (its top); right_to >= 0: ending there; clip_to >= 0: cut there. Text and para take the
+       shields' {Name} and {Name:value} (ui/richtext.h) */
     void text(ImFont *ff, float gs, float x, float y, ImU32 c, const std::string &s, float right_to = -1, float clip_to = -1)
     {
         float sz = size(ff, gs);
         ImVec2 p = w(x, y);
-        if (right_to >= 0) p.x = w(right_to, 0).x - ff->CalcTextSizeA(sz, FLT_MAX, 0, s.c_str()).x;
-        if (clip_to >= 0) { ImVec4 cr(p.x, p.y - sz, w(clip_to, 0).x, p.y + 2 * sz); dl->AddText(ff, sz, p, c, s.c_str(), nullptr, 0, &cr); }
+        bool rich = rich_has(s.c_str());
+        if (right_to >= 0) p.x = w(right_to, 0).x - (rich ? rich_size(ff, sz, 0, s.c_str()).x : ff->CalcTextSizeA(sz, FLT_MAX, 0, s.c_str()).x);
+        if (rich) {
+            if (clip_to >= 0) dl->PushClipRect(ImVec2(p.x, p.y - sz), ImVec2(w(clip_to, 0).x, p.y + 2 * sz), true);
+            rich_draw(dl, ff, sz, p, 0, c, s.c_str());
+            if (clip_to >= 0) dl->PopClipRect();
+            shield_tip();
+        }
+        else if (clip_to >= 0) { ImVec4 cr(p.x, p.y - sz, w(clip_to, 0).x, p.y + 2 * sz); dl->AddText(ff, sz, p, c, s.c_str(), nullptr, 0, &cr); }
         else dl->AddText(ff, sz, p, c, s.c_str());
     }
+    /* the pointer on a shield just written (rich_draw): its name beside it */
+    void shield_tip() const
+    {
+        int key = rich_key_at(w((float)mx + 0.5f, (float)my + 0.5f));
+        if (key >= 0) ns_tip(ui_key_name(key), 14);
+    }
+    /* a shield and its value after it ("[Virtue] 43": ui_shield_value), its left end at x, the line's middle at y;
+       is the shield's size (rows), the value in the plain type at gs; returns its width (columns). _width: what it takes */
+    float shield_value(float x, float y, float is, int key, const std::string &v, float gs, ImU32 c)
+    { return ui_shield_value(dl, w(x, y), is * k, key, v.c_str(), fo, size(fo, gs), c) / kx; }
+    float shield_value_width(float is, const std::string &v, float gs) const
+    { return (UI_SHIELD_W * is * k + (v.empty() ? 0 : is * k * 0.2f + fo->CalcTextSizeA(size(fo, gs), FLT_MAX, 0, v.c_str()).x)) / kx; }
     /* wrapped to width (game pixels); returns the height used, game pixels */
     float para(ImFont *ff, float gs, float x, float y, float width, ImU32 c, const std::string &s)
     {
         float sz = size(ff, gs), ww = width * kx;
+        if (rich_has(s.c_str())) { float h = rich_draw(dl, ff, sz, w(x, y), ww, c, s.c_str()).y / k; shield_tip(); return h; }
         dl->AddText(ff, sz, w(x, y), c, s.c_str(), nullptr, ww);
         return ff->CalcTextSizeA(sz, FLT_MAX, ww, s.c_str()).y / k;
     }
     float para_height(ImFont *ff, float gs, float width, const std::string &s) const   /* (what para would take) */
     {
+        if (rich_has(s.c_str())) return rich_size(ff, size(ff, gs), width * kx, s.c_str()).y / k;
         return ff->CalcTextSizeA(size(ff, gs), FLT_MAX, width * kx, s.c_str()).y / k;
     }
-    float width(ImFont *ff, float gs, const std::string &s) const { return ff->CalcTextSizeA(size(ff, gs), FLT_MAX, 0, s.c_str()).x / kx; }
+    float width(ImFont *ff, float gs, const std::string &s) const
+    {
+        if (rich_has(s.c_str())) return rich_size(ff, size(ff, gs), 0, s.c_str()).x / kx;
+        return ff->CalcTextSizeA(size(ff, gs), FLT_MAX, 0, s.c_str()).x / kx;
+    }
 
     bool over(float x0, float y0, float x1, float y1) const     /* (the pointer on it; a tooltip then goes beside it) */
     {
@@ -190,7 +219,7 @@ static inline void ns_tip_begin(float width_em = 24)
     ImGui::PushTextWrapPos(ImGui::GetFontSize() * width_em);
 }
 static inline void ns_tip_end(void) { ImGui::PopTextWrapPos(); ImGui::PopStyleVar(); if (ui_font_overlay) ImGui::PopFont(); ImGui::EndTooltip(); }
-static inline void ns_tip(const char *text, float width_em = 24) { ns_tip_begin(width_em); ImGui::TextUnformatted(text); ns_tip_end(); }
+static inline void ns_tip(const char *text, float width_em) { ns_tip_begin(width_em); ui_rich_text(text); ns_tip_end(); }
 
 static inline std::string ns_item_name(int id) { const ItemDef *d = ns_itemdef(id); return d ? game_text(d->name.c_str(), d->name.size()) : "?"; }
 /* a quality worth showing: equipment and tools; not for the things a shop always sells at 25

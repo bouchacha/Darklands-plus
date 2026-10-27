@@ -252,7 +252,7 @@ extern "C" void alchemyview_draw(void)
             ImGui::TextUnformatted(ns_item_name(tip).c_str());
             ImGui::TextDisabled(have[tip] ? "The party carries %d." : "The party has none.", have[tip]);
             if (!where.empty()) ImGui::TextUnformatted(where.c_str());
-            if (!use.empty()) ImGui::TextUnformatted(use.c_str());
+            if (!use.empty()) ui_rich_text(use.c_str());
             ns_tip_end();
         }
     }
@@ -367,7 +367,7 @@ extern "C" void alchemyview_draw(void)
                 if (P.over(X0, cy - 3, X1, cy + 3)) {
                     char b[600];
                     snprintf(b, sizeof b, "The chance: %d for %d %s (100 for 1 to 3, 50 for 4 or 5, 33 for 6 or 7, 25 for 8 or 9 ...: 100 divided by half the batches) "
-                             "+ %s's Intelligence %d + Alchemy %d + the party's Philosopher's Stone %d - the formula's mystic number %d = %d, at most 99%%.",
+                             "+ %s's {Intelligence:%d} + {Alchemy:%d} + the party's Philosopher's Stone %d - the formula's mystic number %d = %d, at most 99%%.",
                              bp, nb, nb == 1 ? "batch" : "batches", who.c_str(), a.intel, a.alch, a.stone, a.mystic, sum);
                     tablet_tip = b;
                 }

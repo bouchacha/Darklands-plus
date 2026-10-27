@@ -80,3 +80,4 @@ const char *kind_name_one(ItemKind k);      /* for one thing ("Weapon") */
 size_t saint_effect_at(const std::string &text);
 void ui_saint_info(int s);                      // the description, what the help really does, where they differ (ImGui, wrapped)
 const char *saint_encounters_line(int s);        // whether encounters let a member call on saint s
+std::string saint_effects_text(int s);           // what saint s's help does, an effect a line, names as shields and a shared value once (ui/richtext.h)

@@ -11,6 +11,7 @@
 #include <algorithm>
 #include "imgui.h"
 #include "../mods/nscreen.h"
+#include "richtext.h"
 #include "skillicons.h"
 #include "ui.h"
 #include "gamedata.h"
@@ -542,20 +543,20 @@ void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's qual
             dmg = rb(G_FAR20A5, (u16)(0x76e7 + w)), minsk = rb(G_FAR20A5, (u16)(0x7726 + w)), minst = rb(G_FAR20A5, (u16)(0x7765 + w)),
             maxst = rb(G_FAR20A5, (u16)(0x77a4 + w)), reload = rb(G_FAR20A5, (u16)(0x77e3 + w));
         ImGui::Separator();
-        ImGui::Text("%s, %s", gm_skill_name(sk), (cp >> 4) >= 2 ? "two hands" : "one hand");
+        ui_rich_textf("{%s}, %s", gm_skill_name(sk), (cp >> 4) >= 2 ? "two hands" : "one hand");
         ImGui::Text("Damage %d, penetration %d", dmg, cp & 15);
         if (speed) ImGui::Text("Time for a blow %d", speed);
         if (reload) ImGui::Text("Time to %s %d", w >= 30 ? "reload" : w >= 27 ? "draw and loose" : "throw", reload);
         /* (the combatant's melee rating +0x20 and aim +0x21, weapon_ready: mods/gamemodel.h) */
         const bool shot = sk >= 4 && sk <= 6;                 /* (Thrown, Bows, Missile Devices: aimed) */
         if (shot) {
-            ImGui::Text("Skill needed %d: each point short costs 2 aim", minsk);
-            if (maxst < 99) ImGui::Text("Strength %d to %d: below that, each point short costs 1 aim and hits are softer; above %d, hits are harder", minst, maxst, maxst);
-            else ImGui::Text("Strength %d: below that, each point short costs 1 aim and hits are softer", minst);
+            ui_rich_textf("{%s:%d} needed: each point short costs 2 aim", gm_skill_name(sk), minsk);
+            if (maxst < 99) ui_rich_textf("{Strength:%d to %d}: below that, each point short costs 1 aim and hits are softer; above %d, hits are harder", minst, maxst, maxst);
+            else ui_rich_textf("{Strength:%d}: below that, each point short costs 1 aim and hits are softer", minst);
         } else {
-            ImGui::Text("Skill needed %d: each point short costs 2 melee rating (attack and defense hand to hand)", minsk);
-            if (maxst < 99) ImGui::Text("Strength %d to %d: below that, each point short costs 3 melee rating and blows hit softer;\nabove %d, each point adds 2 melee rating and blows hit harder", minst, maxst, maxst);
-            else ImGui::Text("Strength %d: below that, each point short costs 3 melee rating and blows hit softer", minst);
+            ui_rich_textf("{%s:%d} needed: each point short costs 2 melee rating (attack and defense hand to hand)", gm_skill_name(sk), minsk);
+            if (maxst < 99) ui_rich_textf("{Strength:%d to %d}: below that, each point short costs 3 melee rating and blows hit softer;\nabove %d, each point adds 2 melee rating and blows hit harder", minst, maxst, maxst);
+            else ui_rich_textf("{Strength:%d}: below that, each point short costs 3 melee rating and blows hit softer", minst);
         }
         ImGui::TextDisabled("Lower times are quicker.");
         /* who in the party could use it, and what it would cost them */
@@ -572,8 +573,8 @@ void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's qual
             if (v.empty()) v = str > maxst && maxst < 99 ? "suits (strong enough to hit harder)" : "suits";
             int loss = 2 * (ss > 0 ? ss : 0) + (shot ? 1 : 3) * (ws > 0 ? ws : 0);
             ImVec4 c = loss ? ImVec4(0.62f, 0.20f, 0.12f, 1) : ImVec4(0.18f, 0.40f, 0.16f, 1);
-            if (loss) ImGui::TextColored(c, "%s: skill %d, Strength %d - %s (-%d %s)", game_text(n, sizeof n).c_str(), have, str, v.c_str(), loss, shot ? "aim" : "melee rating");
-            else ImGui::TextColored(c, "%s: skill %d, Strength %d - %s", game_text(n, sizeof n).c_str(), have, str, v.c_str());
+            if (loss) ui_rich_textf_c(c, "%s: {%s:%d} {Strength:%d} - %s (-%d %s)", game_text(n, sizeof n).c_str(), gm_skill_name(sk), have, str, v.c_str(), loss, shot ? "aim" : "melee rating");
+            else ui_rich_textf_c(c, "%s: {%s:%d} {Strength:%d} - %s", game_text(n, sizeof n).c_str(), gm_skill_name(sk), have, str, v.c_str());
         }
     }
     if (d && d->type >= 67 && d->type <= 84) {
@@ -603,7 +604,7 @@ void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's qual
             ImGui::TextColored(GC[g], GL[g], h);
             ImGui::Indent(UIS(12)); ImGui::TextWrapped("%s", l.c_str()); ImGui::Unindent(UIS(12));
         }
-        ImGui::TextDisabled("A blow that pierces also wounds Strength; a good hit gets through more easily.");
+        ui_rich_textf_dim("A blow that pierces also wounds {Strength}; a good hit gets through more easily.");
         ImGui::TextDisabled("Quality: every 10 points take 1 off each blow's damage.");
     }
     if (d && d->type >= 95 && d->type <= 97) {             /* a shield: what each size adds to the defence (mods/gamemodel.h, the game's to-hit rolls) */
@@ -613,13 +614,13 @@ void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's qual
         static const char *SZ[3] = { "Small", "Medium", "Large" };
         for (int t = 95; t <= 97; t++)
             (t == d->type ? ImGui::Text : ImGui::TextDisabled)("%s shield at %dq: %d against blows, %d against shots and throws", SZ[t - 95], q, gm_shield_defence(t, q, 0), gm_shield_defence(t, q, 1));
-        ImGui::TextDisabled("No shield counts as -5, and a flail's blow passes any shield. Hand to hand, the chance to hit is 50 + 2/3 of the attacker's\nmelee rating minus (the defender's melee rating + the shield); against a shot or throw, the defense is the shield plus twice Agility (less under a load).");
+        ui_rich_textf_dim("No shield counts as -5, and a flail's blow passes any shield. Hand to hand, the chance to hit is 50 + 2/3 of the attacker's\nmelee rating minus (the defender's melee rating + the shield); against a shot or throw, the defense is the shield plus twice {Agility} (less under a load).");
     }
     if (d && d->kind == K_POTION) {
         int p = id - 95;
         ImGui::PushTextWrapPos(UIS(380));
         if (p >= 0 && 3 * p < (int)gamedata.formulas.size()) ImGui::TextWrapped("%s", gamedata.formulas[3 * p].text.c_str());
-        { std::string ns_potion_effect(int id); std::string e = ns_potion_effect(id); if (!e.empty()) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]); ImGui::TextWrapped("How it works: %s", e.c_str()); ImGui::PopStyleColor(); } }
+        { std::string ns_potion_effect(int id); std::string e = ns_potion_effect(id); if (!e.empty()) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]); ui_rich_text(("How it works: " + e).c_str()); ImGui::PopStyleColor(); } }
         ImGui::PopTextWrapPos();
     }
 }

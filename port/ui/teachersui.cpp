@@ -49,10 +49,10 @@ static const char *skill_short(int k)
     return k >= 0 && k < 19 ? S[k] : "?";
 }
 
-std::string ui_teacher_skills(const TchSource &s)
+std::string ui_teacher_skills(const TchSource &s)              /* their shields ({Edged}: ui/richtext.h) */
 {
     std::string r;
-    for (int k = 0; k < s.n; k++) r += (k ? ", " : "") + std::string(skill_short(s.skill[k]));
+    for (int k = 0; k < s.n; k++) r += (k ? " " : "") + std::string("{") + skill_short(s.skill[k]) + "}";
     return r;
 }
 
@@ -67,7 +67,7 @@ std::string ui_teacher_text(const TchSource &s)
         for (int k = 1; k < s.n; k++) if (s.fee[k] != s.fee[0]) same = false;
         t += "Teaches: ";
         for (int k = 0; k < s.n; k++) {
-            t += (k == 0 ? "" : k + 1 == s.n ? " and " : ", ") + std::string(gm_skill_name(s.skill[k]));
+            t += (k == 0 ? "" : k + 1 == s.n ? " and " : ", ") + std::string("{") + gm_skill_name(s.skill[k]) + "}";
             if (!same) t += " (" + money_str(s.fee[k]) + " a day)";
         }
         t += ".\n";
@@ -96,7 +96,7 @@ std::string ui_teachers_hired_line(int loc)
     for (int k = 0; k < n; k++) {
         char b[80];
         if (h[k].skill < 0 || h[k].skill >= 19) continue;
-        snprintf(b, sizeof b, "%s (until %d %s)", skill_short(h[k].skill), h[k].day, gm_month_name((h[k].month % 12 + 12) % 12));
+        snprintf(b, sizeof b, "{%s} (until %d %s)", skill_short(h[k].skill), h[k].day, gm_month_name((h[k].month % 12 + 12) % 12));
         r += (r.empty() ? "" : ", ") + std::string(b);
     }
     return r;

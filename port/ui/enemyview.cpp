@@ -14,6 +14,14 @@ extern "C" {
 #include "../mods/gamemodel.h"
 }
 
+void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);   /* ui/inventory.cpp */
+static int type_id(int t, int k1, int k2 = -1)                  /* the first item of that type and kind (its picture); -1 */
+{
+    if (t < 0) return -1;
+    for (size_t i = 0; i < gamedata.items.size(); i++)
+        if (gamedata.items[i].type == t && ((int)gamedata.items[i].kind == k1 || (int)gamedata.items[i].kind == k2)) return (int)i;
+    return -1;
+}
 static std::string type_name(int t, int k1, int k2 = -1)
 {
     if (t < 0) return "";
@@ -93,25 +101,29 @@ extern "C" void enemyview_draw(void)
         if (e.human) {
             for (int p = 0; p < size; p++) {
                 if (!gm_member_present(p) || gm_member_status(p) != 1) continue;
-                /* the member's name, then each weapon in its own colour: green pierces, amber does half
-                   damage, red is mostly deflected (a line, wrapped by the clause where it runs long) */
-                std::vector<std::pair<std::string, ImU32>> seg;
+                /* the member's name, then each weapon in hand as its picture and what it does in its colour:
+                   green pierces, amber half damage, red mostly deflected (wrapped by the weapon where it runs long;
+                   the weapon's name under the pointer) */
+                struct Seg { int id; std::string word; ImU32 col; };
+                std::vector<Seg> seg;
                 char nm[24]; gm_member_name(p, nm, sizeof nm);
                 for (int k = 0; k < 2; k++) {
                     int mw = (s8)g_rb((u16)(G_MEMBER(p) + (k ? 0x0e : 0x3d)));
                     if (mw < 0 || mw > 62) continue;
                     int pen = rb(G_FAR20A5, (u16)(0x76a8 + mw)) & 15, r = pen > h ? 0 : pen == h ? 1 : 2;
-                    seg.push_back({ std::string(seg.empty() ? "" : "; ") + type_name(mw, K_WEAPON, K_MISSILE) + (r == 0 ? " pierces" : r == 1 ? " does half damage" : " is mostly deflected"),
+                    seg.push_back({ type_id(mw, K_WEAPON, K_MISSILE), r == 0 ? "pierces" : r == 1 ? "half damage" : "mostly deflected",
                                     r == 0 ? IM_COL32(40, 96, 34, 255) : r == 1 ? IM_COL32(176, 124, 0, 255) : NsDraw::RED });
                 }
                 if (seg.empty() || ly >= y + ch - 4) continue;
-                float lh2 = P.para_height(fo, 4.4f, 1000, "X"), lx = tx;
-                std::string head = ns_gtext(nm) + ": ";
-                P.text(fo, 4.4f, lx, ly, NsDraw::INK, head); lx += P.width(fo, 4.4f, head);
-                for (auto &g : seg) {
-                    float w = P.width(fo, 4.4f, g.first);
+                float lh2 = P.para_height(fo, 4.4f, 1000, "X"), lx = tx, iw = lh2 * P.k / P.kx;
+                std::string head = ns_gtext(nm) + ":";
+                P.text(fo, 4.4f, lx, ly, NsDraw::INK, head); lx += P.width(fo, 4.4f, head) + 1.5f;
+                for (const Seg &g : seg) {
+                    float w = iw + 0.8f + P.width(fo, 4.4f, g.word) + 3;
                     if (lx > tx && lx + w > tx + lw) { lx = tx + 4; ly += lh2; }
-                    P.text(fo, 4.4f, lx, ly, g.second, g.first); lx += w;
+                    if (g.id >= 0) ui_item_icon(P.dl, NsDraw::w(lx + iw * 0.5f, ly + lh2 * 0.5f), lh2 * P.k, g.id);
+                    if (g.id >= 0 && P.over(lx, ly, lx + iw, ly + lh2)) ns_tip(game_text(gamedata.items[g.id].plain.c_str(), gamedata.items[g.id].plain.size()).c_str(), 16);
+                    P.text(fo, 4.4f, lx + iw + 0.8f, ly, g.col, g.word); lx += w;
                 }
                 ly += lh2 + 0.3f;
             }

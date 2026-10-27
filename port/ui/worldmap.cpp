@@ -26,6 +26,7 @@ extern "C" int ns_showing(void);
 #include "libraries.h"
 #include "ui.h"
 #include "ornament.h"
+#include "skillicons.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -476,7 +477,7 @@ extern "C" void worldmap_draw(void)
             }
         }
         if (fade < 1.0f)                                     /* (coming in: all it drew, faint) */
-            for (int vi = v_fade; vi < dl->VtxBuffer.Size; vi++) { ImU32 &cc = dl->VtxBuffer[vi].col; int al = (int)((cc >> IM_COL32_A_SHIFT) & 255); cc = (cc & ~IM_COL32_A_MASK) | ((ImU32)(al * fade) << IM_COL32_A_SHIFT); }
+            ui_dim_since(dl, v_fade, fade);
     }
     // quest marks
     if (show_quests) {                                       /* the quest's picture on a pin above the place; several: on a ring

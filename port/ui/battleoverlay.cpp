@@ -12,6 +12,9 @@
 #include "../mods/losaim.h"
 #include <vector>
 #include "imgui.h"
+#include "richtext.h"
+#include "skillicons.h"
+void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);   /* ui/inventory.cpp */
 #include "../mods/nscreen.h"
 #include "gamedata.h"
 #include "ui.h"
@@ -73,14 +76,14 @@ std::string ui_enemy_name(int floor, u16 b)
    until D_daa3, from D_d948 less the 10 ticks before reloading begins) */
 /* a skill raised in the fight (battle.skill_gains): "+2 Edged" rising in gold over the member's
    head for a few seconds (battlelog.cpp hands it on from the game's side message) */
-struct Float { int m; std::string t; u32 t0; bool good; };
+struct Float { int m, key; std::string t; u32 t0; bool good; };   /* key: the skill's shield before the gain (-1 none) */
 static std::vector<Float> floats;
 extern "C" u32 plat_ticks_ms(void);
-void ui_battle_float(int m, const std::string &t, bool good)
+void ui_battle_float(int m, int key, const std::string &t, bool good)
 {
     if (m < 0 || m >= 5 || !config_get_int("battle.skill_gains", 1) || config_get_int("original", 0)) return;
     int stack = 0; for (const Float &f : floats) if (f.m == m) stack++;
-    floats.push_back({ m, t, plat_ticks_ms() + (u32)(stack * 450), good });   /* (several at once: one after the other) */
+    floats.push_back({ m, key, t, plat_ticks_ms() + (u32)(stack * 450), good });   /* (several at once: one after the other) */
 }
 static void draw_float(ImDrawList *dl, const Float &f, float cx, float gy, float k, u32 now)
 {
@@ -92,9 +95,18 @@ static void draw_float(ImDrawList *dl, const Float &f, float cx, float gy, float
     ImFont *fo = ui_font_overlay ? ui_font_overlay : ImGui::GetFont();
     float sz = 9.0f * k * (age < 0.25f ? 1.0f + 0.35f * (0.25f - age) / 0.25f : 1.0f);   /* (a little bigger as it appears) */
     ImVec2 ts = fo->CalcTextSizeA(sz, FLT_MAX, 0, f.t.c_str());
+    float is = sz * 0.7f, iw = f.key >= 0 ? UI_SHIELD_W * is + sz * 0.15f : 0;   /* the skill's shield, then "+2" */
     ImVec2 p = g2w(cx, gy - rise);
-    p.x -= ts.x * 0.5f; p.y -= ts.y;
+    p.x -= (ts.x + iw) * 0.5f; p.y -= ts.y;
     int A = (int)(255 * a);
+    if (f.key >= 0) {
+        int v0 = dl->VtxBuffer.Size;
+        extern int ui_icon_disc; int disc = ui_icon_disc; ui_icon_disc = 0;
+        ui_key_icon(dl, ImVec2(p.x + UI_SHIELD_W * is * 0.5f, p.y + ts.y * 0.52f), is, f.key);
+        ui_icon_disc = disc;
+        if (a < 1) ui_dim_since(dl, v0, a);
+        p.x += iw;
+    }
     ImU32 ink = f.good ? IM_COL32(255, 220, 110, A) : IM_COL32(245, 120, 100, A), edge = IM_COL32(20, 10, 2, (int)(230 * a));
     for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++) if (dx || dy) dl->AddText(fo, sz, ImVec2(p.x + dx * 1.5f, p.y + dy * 1.5f), edge, f.t.c_str());
     dl->AddText(fo, sz, p, ink, f.t.c_str());
@@ -106,6 +118,16 @@ static ImVec2 map2w(float x, float y, float up = 0)
 {
     float ox = (s16)g_rw(0xc26c), oy = (s16)g_rw(0xc293);
     return g2w(60 + (x - ox) - (y - oy) + 0x88, (y - oy) + 0x69 - up);
+}
+/* test (uhovercb:i): where combatant i stands in the window (its middle, a little above its feet); 0 none */
+extern "C" int ui_battle_combatant_px(int i, int *x, int *y)
+{
+    if (i < 0 || i >= 13 || game_mode() != GM_BATTLE) return 0;
+    u16 b = (u16)(0x9c55 + i * 0x80);
+    if (g_rb((u16)(b + CB_STATUS)) == 0) return 0;
+    ImVec2 p = map2w((float)(s16)g_rw((u16)(b + CB_X)), (float)(s16)g_rw((u16)(b + CB_Y)), 8);
+    *x = (int)p.x; *y = (int)p.y;
+    return 1;
 }
 static float seg_enter(float x0, float y0, float x1, float y1, const LosBox &b)   /* where the line meets the box, 0..1 (Liang-Barsky) */
 {
@@ -366,16 +388,17 @@ void ui_draw_battle_info(void)
         if (hint) hint_line(hint);
         ImGui::TextColored(best < 5 ? ImVec4(0.18f, 0.32f, 0.55f, 1) : ImVec4(0.55f, 0.15f, 0.10f, 1), "%s", name.c_str());
         if (*cond) { ImGui::SameLine(); ImGui::TextDisabled("- %s", cond); }
-        if (best < 5 || ui_battle_numbers) ImGui::Text("Endurance %d/%d, Strength %d/%d", end, endm, str, strm);
+        if (best < 5 || ui_battle_numbers) ui_rich_textf("{Endurance:%d/%d}   {Strength:%d/%d}", end, endm, str, strm);
         if (wm >= 0 && wm <= 33) ImGui::Text("Melee rating %d, aim %d", def, atk);   /* (+0x20 both ways hand to hand, +0x21 shooting: mods/gamemodel.h) */
         else ImGui::Text("Melee rating %d", def);
         if (best >= 5 && st == 1 && g_rb((u16)(GV_cbt_ends_battle + best)) == 1)
             ImGui::TextColored(ImVec4(0.55f, 0.15f, 0.10f, 1), "The master of this place: once this enemy has fallen and the fight is over, the place is won.");
-        auto wname = [](int t) -> std::string {
-            if (t < 0 || t > 33) return "";
-            for (const ItemDef &d : gamedata.items) if (d.type == t && (d.kind == K_WEAPON || d.kind == K_MISSILE)) return game_text(d.name.c_str(), d.name.size());
-            return "";
+        auto wid = [](int t) -> int {                           /* a weapon type's item (its name, its picture); -1 none */
+            if (t < 0 || t > 33) return -1;
+            for (size_t i = 0; i < gamedata.items.size(); i++) { const ItemDef &d = gamedata.items[i]; if (d.type == t && (d.kind == K_WEAPON || d.kind == K_MISSILE)) return (int)i; }
+            return -1;
         };
+        auto wname = [&](int t) -> std::string { int i = wid(t); return i < 0 ? "" : game_text(gamedata.items[i].name.c_str(), gamedata.items[i].name.size()); };
         if (human) {
             std::string a = wname(w), m = wname(wm);
             if (!a.empty() || !m.empty()) ImGui::TextDisabled("%s%s%s", a.c_str(), !a.empty() && !m.empty() ? ", " : "", m.c_str());
@@ -395,19 +418,29 @@ void ui_draw_battle_info(void)
                     u16 mb = (u16)(0x9c55 + m * 0x80);
                     if (g_rb((u16)(mb + CB_STATUS)) != 1) continue;
                     char nm[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), nm, sizeof nm);
-                    /* each weapon in its own colour: green pierces, amber does half damage, red is mostly deflected */
-                    std::vector<std::pair<std::string, ImVec4>> seg;
+                    /* each weapon in hand as its picture, then what it does in its colour: green pierces, amber
+                       half damage, red mostly deflected */
+                    struct Seg { int id; const char *word; ImVec4 col; };
+                    std::vector<Seg> seg;
                     for (int k = 0; k < 2; k++) {
                         int mw = (s8)g_rb((u16)(mb + (k ? 0x22 : 0x51)));
-                        std::string wn = wname(mw);
-                        if (wn.empty()) continue;
+                        int id = wid(mw);
+                        if (id < 0) continue;
                         int pen = rb(G_FAR20A5, (u16)(0x76a8 + mw)) & 15, r = pen > h ? 0 : pen == h ? 1 : 2;
-                        seg.push_back({ std::string(seg.empty() ? " " : "; ") + wn + (r == 0 ? " pierces" : r == 1 ? " does half damage" : " is mostly deflected"),
+                        seg.push_back({ id, r == 0 ? "pierces" : r == 1 ? "half damage" : "mostly deflected",
                                         r == 0 ? ImVec4(0.18f, 0.40f, 0.16f, 1) : r == 1 ? ImVec4(0.69f, 0.49f, 0.0f, 1) : ImVec4(0.62f, 0.20f, 0.12f, 1) });
                     }
                     if (seg.empty()) continue;
                     ImGui::TextUnformatted((game_text(nm, sizeof nm) + ":").c_str());
-                    for (auto &g : seg) { ImGui::SameLine(0, 0); ImGui::TextColored(g.second, "%s", g.first.c_str()); }
+                    float fsz = ImGui::GetFontSize();
+                    for (size_t g = 0; g < seg.size(); g++) {
+                        ImGui::SameLine(0, fsz * (g ? 0.9f : 0.4f));
+                        ImVec2 q = ImGui::GetCursorScreenPos();
+                        ImGui::Dummy(ImVec2(fsz * 1.1f, fsz));
+                        ui_item_icon(ImGui::GetWindowDrawList(), ImVec2(q.x + fsz * 0.55f, q.y + fsz * 0.5f), fsz * 1.05f, seg[g].id);
+                        ImGui::SameLine(0, fsz * 0.2f);
+                        ImGui::TextColored(seg[g].col, "%s", seg[g].word);
+                    }
                 }
             }
         }

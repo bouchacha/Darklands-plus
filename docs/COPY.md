@@ -554,7 +554,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 
 | Where | Text |
 |---|---|
-| `ui/alchemyicons.cpp:200` | and sometimes appears to make more gold |
+| `ui/alchemyicons.cpp:199` | and sometimes appears to make more gold |
 | `ui/alchemyview.cpp:94` |  mixes; the whole party's ingredients count. |
 | `ui/alchemyview.cpp:98` | The party's Philosopher's Stone |
 | `ui/alchemyview.cpp:98` | No Philosopher's Stone |
@@ -591,7 +591,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/alchemyview.cpp:343` | Failure, and a stink: the ingredients lost, and no room at this inn for a month. |
 | `ui/alchemyview.cpp:344` | Failure, and an explosion: the ingredients lost, the party hurt, damages to pay, and no room at this inn for four months. |
 | `ui/alchemyview.cpp:349` | No batch set. |
-| `ui/alchemyview.cpp:369` | The chance: %d for %d %s (100 for 1 to 3, 50 for 4 or 5, 33 for 6 or 7, 25 for 8 or 9 ...: 100 divided by half the batches) + %s's Intelligence %d + Alchemy %d + the party's Philosopher's Stone %d - the formula's mystic number %d = %d, at most 99%%. |
+| `ui/alchemyview.cpp:369` | The chance: %d for %d %s (100 for 1 to 3, 50 for 4 or 5, 33 for 6 or 7, 25 for 8 or 9 ...: 100 divided by half the batches) + %s's {Intelligence:%d} + {Alchemy:%d} + the party's Philosopher's Stone %d - the formula's mystic number %d = %d, at most 99%%. |
 | `ui/alchemyview.cpp:375` | Choose a formula in the book. |
 | `ui/alchemyview.cpp:381` | Start mixing |
 | `ui/alchemyview.cpp:382` | Start mixing |
@@ -624,44 +624,44 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/barterview.cpp:412` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  purchases go to the member picked above |
 | `ui/barterview.cpp:413` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  click a name to see their items |
 | `ui/barterview.cpp:414` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  click a name's coin to make that member pay |
-| `ui/battlelog.cpp:120` | , the armor holds |
-| `ui/battlelog.cpp:120` | ; knocked back |
-| `ui/battlelog.cpp:121` | , knocked back |
-| `ui/battlelog.cpp:125` | , knocked back, misses  |
-| `ui/battlelog.cpp:190` | <skill> changed from X to Y |
-| `ui/battlelog.cpp:190` | Edged +3 (now 33) |
-| `ui/battlelog.cpp:192` |  changed from  |
-| `ui/battlelog.cpp:194` |  changed from %d to %d |
-| `ui/battlelog.cpp:197` | %s %+d (now %d) |
-| `ui/battlelog.cpp:224` | The battle is over: the party has fallen. |
-| `ui/battlelog.cpp:224` | The battle is over: the enemies are beaten. |
-| `ui/battlelog.cpp:224` | The battle is over. |
-| `ui/battlelog.cpp:248` |  falls unconscious |
-| `ui/battlelog.cpp:250` |  leaves the field |
-| `ui/battlelog.cpp:254` | , the armor holds |
-| `ui/battlelog.cpp:288` | Each blow will be listed here. |
-| `ui/battlelog.cpp:333` | No battle yet: the battle log shows here, blow by blow, during each battle and after it. |
-| `ui/battlelog.cpp:336` | The last battle |
-| `ui/battlelog.cpp:337` | The battle before |
-| `ui/battleoverlay.cpp:217` | Click: attack |
-| `ui/battleoverlay.cpp:217` | No clear shot |
-| `ui/battleoverlay.cpp:246` | Battles need fewer clicks |
-| `ui/battleoverlay.cpp:247` | Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.  A member with a bow, crossbow, gun or thrown weapon shoots when you click an enemy and keeps shooting: at the next enemy when theirs falls, moving for a clear line when a wall, a tree or someone stands in the way, and drawing their melee weapon only when an enemy is beside them. A click on the bow or sword on their box at the left has them fight hand to hand instead.  Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.  While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does. |
-| `ui/battleoverlay.cpp:254` | All this is Darklands+; each part can be switched off, for the game's own ways, in F12 > Settings > Battles. F11 lists the battle's keys and clicks. |
-| `ui/battleoverlay.cpp:317` | The nearest enemy is this way: click to look |
-| `ui/battleoverlay.cpp:360` | a little hurt |
-| `ui/battleoverlay.cpp:361` | gravely wounded |
-| `ui/battleoverlay.cpp:370` | Melee rating %d, aim %d |
-| `ui/battleoverlay.cpp:371` | Melee rating %d |
-| `ui/battleoverlay.cpp:373` | The master of this place: once this enemy has fallen and the fight is over, the place is won. |
-| `ui/battleoverlay.cpp:382` | Natural weapons |
-| `ui/battleoverlay.cpp:390` | %s (hardness %d) |
-| `ui/battleoverlay.cpp:391` | Natural armor, hardness %d (as %s) |
-| `ui/battleoverlay.cpp:392` | No armor (hardness 0) |
-| `ui/battleoverlay.cpp:405` |  does half damage |
-| `ui/battleoverlay.cpp:405` |  is mostly deflected |
-| `ui/battleoverlay.cpp:426` | \xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z) |
-| `ui/battleoverlay.cpp:429` | >> fast forward  (Z) |
+| `ui/battlelog.cpp:122` | , the armor holds |
+| `ui/battlelog.cpp:122` | ; knocked back |
+| `ui/battlelog.cpp:123` | , knocked back |
+| `ui/battlelog.cpp:127` | , knocked back, misses  |
+| `ui/battlelog.cpp:192` | <skill> changed from X to Y |
+| `ui/battlelog.cpp:192` | Edged +3 (now 33) |
+| `ui/battlelog.cpp:194` |  changed from  |
+| `ui/battlelog.cpp:196` |  changed from %d to %d |
+| `ui/battlelog.cpp:201` | {%s:%+d (now %d)} |
+| `ui/battlelog.cpp:202` | %s %+d (now %d) |
+| `ui/battlelog.cpp:229` | The battle is over: the party has fallen. |
+| `ui/battlelog.cpp:229` | The battle is over: the enemies are beaten. |
+| `ui/battlelog.cpp:229` | The battle is over. |
+| `ui/battlelog.cpp:253` |  falls unconscious |
+| `ui/battlelog.cpp:255` |  leaves the field |
+| `ui/battlelog.cpp:259` | , the armor holds |
+| `ui/battlelog.cpp:293` | Each blow will be listed here. |
+| `ui/battlelog.cpp:338` | No battle yet: the battle log shows here, blow by blow, during each battle and after it. |
+| `ui/battlelog.cpp:341` | The last battle |
+| `ui/battlelog.cpp:342` | The battle before |
+| `ui/battleoverlay.cpp:239` | Click: attack |
+| `ui/battleoverlay.cpp:239` | No clear shot |
+| `ui/battleoverlay.cpp:268` | Battles need fewer clicks |
+| `ui/battleoverlay.cpp:269` | Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.  A member with a bow, crossbow, gun or thrown weapon shoots when you click an enemy and keeps shooting: at the next enemy when theirs falls, moving for a clear line when a wall, a tree or someone stands in the way, and drawing their melee weapon only when an enemy is beside them. A click on the bow or sword on their box at the left has them fight hand to hand instead.  Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.  While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does. |
+| `ui/battleoverlay.cpp:276` | All this is Darklands+; each part can be switched off, for the game's own ways, in F12 > Settings > Battles. F11 lists the battle's keys and clicks. |
+| `ui/battleoverlay.cpp:339` | The nearest enemy is this way: click to look |
+| `ui/battleoverlay.cpp:382` | a little hurt |
+| `ui/battleoverlay.cpp:383` | gravely wounded |
+| `ui/battleoverlay.cpp:392` | Melee rating %d, aim %d |
+| `ui/battleoverlay.cpp:393` | Melee rating %d |
+| `ui/battleoverlay.cpp:395` | The master of this place: once this enemy has fallen and the fight is over, the place is won. |
+| `ui/battleoverlay.cpp:405` | Natural weapons |
+| `ui/battleoverlay.cpp:413` | %s (hardness %d) |
+| `ui/battleoverlay.cpp:414` | Natural armor, hardness %d (as %s) |
+| `ui/battleoverlay.cpp:415` | No armor (hardness 0) |
+| `ui/battleoverlay.cpp:430` | mostly deflected |
+| `ui/battleoverlay.cpp:459` | \xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z) |
+| `ui/battleoverlay.cpp:462` | >> fast forward  (Z) |
 | `ui/bestiary.cpp:38` | Could not read DARKLAND.ENM. |
 | `ui/bestiary.cpp:42` | DARKLAND.ENM has an unexpected size. |
 | `ui/bestiary.cpp:90` | natural weapons |
@@ -705,174 +705,174 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/cardhints.cpp:23` | Needs a rope. |
 | `ui/cardhints.cpp:26` | Not for about three weeks after a sewer grate here defeated you. |
 | `ui/cardhints.cpp:28` | Not for two days after a guard refused your bribe here, nor if you cannot pay it. |
-| `ui/cardview.cpp:371` |  speaks for the party |
-| `ui/cardview.cpp:371` |  (the leader) |
-| `ui/cardview.cpp:371` | . A formula traded is  |
-| `ui/cardview.cpp:372` | Click to choose this with %s speaking. |
-| `ui/cardview.cpp:413` | not possible |
-| `ui/cardview.cpp:534` | Nobody in the party knows a saint who can help here. |
-| `ui/cardview.cpp:534` | Nobody in the party carries anything that helps here. |
-| `ui/cardview.cpp:561` | knows it already |
-| `ui/cardview.cpp:569` | knows the formula but carries none |
-| `ui/cardview.cpp:570` | at the easiest difficulty, the leader need not know the saint |
-| `ui/cardview.cpp:570` | at the easiest difficulty, the leader needs none |
-| `ui/cardview.cpp:571` | knows this saint already |
-| `ui/cardview.cpp:588` | This saint asks a Virtue of %d of the one who prays. |
-| `ui/cardview.cpp:590` | %s has %d: too low to call on this saint, however much Divine Favor is spent. |
-| `ui/cardview.cpp:632` | Each member tries it |
-| `ui/cardview.cpp:638` | the town's opinion of the party (its reputation here) |
-| `ui/cardview.cpp:639` | the party's fame |
-| `ui/cardview.cpp:646` | It rests on: |
-| `ui/cardview.cpp:658` | The leader speaks for the party, and what is traded is the speaker's to know, unless you pick another (the arrow at the end shows each member's chance). |
-| `ui/cardview.cpp:659` | Whoever speaks for the party tries it: the best at it, unless you pick another (the arrow at the end shows each member's chance). |
-| `ui/cardview.cpp:660` | Whoever speaks for the party tries it: the leader, unless you pick another (the arrow at the end shows each member's chance). |
-| `ui/cardview.cpp:671` | Brings a teacher to the inn |
-| `ui/cardview.cpp:675` | Hired here now: %s. |
-| `ui/cardview.cpp:676` | Not possible now |
-| `ui/cardview.cpp:683` | Nothing to gain here |
-| `ui/cardview.cpp:683` | A better Philosopher's Stone |
-| `ui/cardview.cpp:686` | The stone %s offers is of quality %d; the party's is %d. A batch's chance of success would rise by %d. |
-| `ui/cardview.cpp:687` | the university |
-| `ui/cardview.cpp:687` | this alchemist |
-| `ui/cardview.cpp:688` | The stone %s offers is of quality %d; the party has none. It would add %d to a batch's chance of success. |
-| `ui/cardview.cpp:689` | the university |
-| `ui/cardview.cpp:689` | this alchemist |
-| `ui/cardview.cpp:690` | The university's best stone is of quality %d, no better than the party's %d. Asking gains nothing, and if it goes wrong it costs two hours, a point of the party's reputation here and the question for a week. |
-| `ui/cardview.cpp:692` | This alchemist's best stone is of quality %d, no better than the party's %d. Asking gains nothing, and if the alchemist will not talk the party is turned away for 60 hours. |
-| `ui/cardview.cpp:701` | Perhaps a fight |
-| `ui/cardview.cpp:721` | Not possible now |
-| `ui/cardview.cpp:724` | Nor would it gain anything: the stone sold here is of quality %d, the party's %d. |
-| `ui/cardview.cpp:751` | nobody knows it yet |
-| `ui/cardview.cpp:764` | nobody knows this saint |
-| `ui/cardview.cpp:764` | nobody carries one |
-| `ui/cardview.cpp:769` | Saints who help here |
-| `ui/cardview.cpp:769` | Formulae for sale |
-| `ui/cardview.cpp:769` | Items that help here |
-| `ui/cardview.cpp:774` | Not possible now |
-| `ui/cardview.cpp:778` | (click to choose who learns one; point at a formula there for its details) |
-| `ui/cardview.cpp:779` | (click to choose who) |
-| `ui/cardview.cpp:795` | ..., for 3 groschen. |
-| `ui/citynav.cpp:187` | Market stalls: everyday goods to buy and sell. |
-| `ui/citynav.cpp:188` | Foreign trader |
-| `ui/citynav.cpp:188` | Pavilions of traders from distant lands: goods to buy and sell. |
-| `ui/citynav.cpp:189` | Swordsmith's Lane: weapons, and the swordsmiths' guild. |
-| `ui/citynav.cpp:190` | Armorer's Way: armor and shields, and the armorers' guild. |
-| `ui/citynav.cpp:191` | The Square of Bowyers and Gunsmiths: bows, crossbows and guns, and their guild. |
-| `ui/citynav.cpp:192` | The Street of the Blacksmiths: weapons, and the blacksmiths' guild. |
-| `ui/citynav.cpp:193` | Soldiers' Road |
-| `ui/citynav.cpp:193` | Shops and push-carts crowded with soldiers and camp followers, and the street's leaders. |
-| `ui/citynav.cpp:195` | Tinkers' Square: hammers, maces, flails and polearms, and the artisans' guild. |
-| `ui/citynav.cpp:196` | Clothmakers' Street: clothing and soft armor (padded, leather, studded leather, cuir bouilli), and the clothmakers' guild. |
-| `ui/citynav.cpp:197` | Astrologists' Lane: formulae to buy or trade, a better Philosopher's Stone, lessons in Alchemy. |
-| `ui/citynav.cpp:199` | Stalls with herbs and rare materials: alchemical ingredients. |
-| `ui/citynav.cpp:200` | Wounds treated for a fee, lessons in Healing, alchemical ingredients bought and sold. |
-| `ui/citynav.cpp:201` | Heavy coin changed into bank notes that weigh nothing, and back, for a fee. |
-| `ui/citynav.cpp:202` | The Medici representative: bank notes, as at the Fugger bank. |
-| `ui/citynav.cpp:203` | Hanseatic League |
-| `ui/citynav.cpp:203` | The offices of the league of northern merchant towns: quests for pay. Asked politely, they judge the party by its standing with the Hanse; asked boldly, by its reputation here and its fame. Collecting a reward politely also raises that standing. |
-| `ui/citynav.cpp:204` | The Fuggers' Leihhaus: a wide choice of everyday goods, and money for almost anything you sell. |
-| `ui/citynav.cpp:205` | Mass (a little Divine Favor for everyone); a donation of a third of the purse (the leader's Divine Favor); the patron saint's story; an errand for the canon (a relic); sanctuary. |
-| `ui/citynav.cpp:206` | Mass at set hours (Divine Favor for everyone, more with Religion and Latin); confession (the leader's Divine Favor, a few hours); a tithe of a tenth of the purse (everyone's Divine Favor filled); sanctuary when the town is against you. |
-| `ui/citynav.cpp:207` | The monks' library (Religion, Latin) and prayers for Divine Favor. |
-| `ui/citynav.cpp:208` | New saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone. The staff expect Latin and a sharp mind. |
-| `ui/citynav.cpp:209` | Nuns tend the sick: alms, a day's work beside them (Healing), wounds tended for a fee, or free of charge if they accept you. Open by day only. |
-| `ui/citynav.cpp:210` | Meals and a bed, news and rumors, the stables, a store room; stay to study or train. |
-| `ui/citynav.cpp:211` | Notices, gossip and news. |
-| `ui/citynav.cpp:212` | The city council: an audience with the lord, prisoners in the dungeons. |
-| `ui/citynav.cpp:213` | The city's prison. |
-| `ui/citynav.cpp:214` | The city guard's headquarters: people to join the party, weapons training. |
-| `ui/citynav.cpp:215` | The lord's fortress: an audience with the lord, prisoners in the dungeons. |
-| `ui/citynav.cpp:216` | Boats to other towns, for a fee (each leaves on its own day). |
-| `ui/citynav.cpp:217` | A dangerous slum: rumors, and a room for next to nothing. |
-| `ui/citynav.cpp:218` | A quiet corner where the party can wait: an hour, three hours, or until nightfall. |
-| `ui/citynav.cpp:219` | An alley to a stretch of the wall: a way out when you cannot use the gates. |
-| `ui/citynav.cpp:220` | Leave the city by one of its gates. |
-| `ui/citynav.cpp:222` | Quest givers |
-| `ui/citynav.cpp:222` | Learning and healing |
-| `ui/citynav.cpp:245` | arms and armor |
-| `ui/citynav.cpp:245` | less violent |
-| `ui/citynav.cpp:250` | other crafts |
-| `ui/citynav.cpp:258` | city marketplace |
-| `ui/citynav.cpp:258` | central city square |
-| `ui/citynav.cpp:259` | crafts district |
-| `ui/citynav.cpp:259` | central fortress |
+| `ui/cardview.cpp:372` |  speaks for the party |
+| `ui/cardview.cpp:372` |  (the leader) |
+| `ui/cardview.cpp:372` | . A formula traded is  |
+| `ui/cardview.cpp:373` | Click to choose this with %s speaking. |
+| `ui/cardview.cpp:414` | not possible |
+| `ui/cardview.cpp:535` | Nobody in the party knows a saint who can help here. |
+| `ui/cardview.cpp:535` | Nobody in the party carries anything that helps here. |
+| `ui/cardview.cpp:562` | knows it already |
+| `ui/cardview.cpp:570` | knows the formula but carries none |
+| `ui/cardview.cpp:571` | at the easiest difficulty, the leader need not know the saint |
+| `ui/cardview.cpp:571` | at the easiest difficulty, the leader needs none |
+| `ui/cardview.cpp:572` | knows this saint already |
+| `ui/cardview.cpp:589` | This saint asks a {Virtue} of %d of the one who prays. |
+| `ui/cardview.cpp:592` | %s has %d: too low to call on this saint, however much {Divine Favor} is spent. |
+| `ui/cardview.cpp:635` | Each member tries it |
+| `ui/cardview.cpp:641` | the town's opinion of the party (its reputation here) |
+| `ui/cardview.cpp:642` | the party's fame |
+| `ui/cardview.cpp:649` | It rests on: |
+| `ui/cardview.cpp:661` | The leader speaks for the party, and what is traded is the speaker's to know, unless you pick another (the arrow at the end shows each member's chance). |
+| `ui/cardview.cpp:662` | Whoever speaks for the party tries it: the best at it, unless you pick another (the arrow at the end shows each member's chance). |
+| `ui/cardview.cpp:663` | Whoever speaks for the party tries it: the leader, unless you pick another (the arrow at the end shows each member's chance). |
+| `ui/cardview.cpp:674` | Brings a teacher to the inn |
+| `ui/cardview.cpp:678` | Hired here now: %s. |
+| `ui/cardview.cpp:679` | Not possible now |
+| `ui/cardview.cpp:686` | Nothing to gain here |
+| `ui/cardview.cpp:686` | A better Philosopher's Stone |
+| `ui/cardview.cpp:689` | The stone %s offers is of quality %d; the party's is %d. A batch's chance of success would rise by %d. |
+| `ui/cardview.cpp:690` | the university |
+| `ui/cardview.cpp:690` | this alchemist |
+| `ui/cardview.cpp:691` | The stone %s offers is of quality %d; the party has none. It would add %d to a batch's chance of success. |
+| `ui/cardview.cpp:692` | the university |
+| `ui/cardview.cpp:692` | this alchemist |
+| `ui/cardview.cpp:693` | The university's best stone is of quality %d, no better than the party's %d. Asking gains nothing, and if it goes wrong it costs two hours, a point of the party's reputation here and the question for a week. |
+| `ui/cardview.cpp:695` | This alchemist's best stone is of quality %d, no better than the party's %d. Asking gains nothing, and if the alchemist will not talk the party is turned away for 60 hours. |
+| `ui/cardview.cpp:704` | Perhaps a fight |
+| `ui/cardview.cpp:724` | Not possible now |
+| `ui/cardview.cpp:727` | Nor would it gain anything: the stone sold here is of quality %d, the party's %d. |
+| `ui/cardview.cpp:754` | nobody knows it yet |
+| `ui/cardview.cpp:767` | nobody knows this saint |
+| `ui/cardview.cpp:767` | nobody carries one |
+| `ui/cardview.cpp:772` | Saints who help here |
+| `ui/cardview.cpp:772` | Formulae for sale |
+| `ui/cardview.cpp:772` | Items that help here |
+| `ui/cardview.cpp:777` | Not possible now |
+| `ui/cardview.cpp:781` | (click to choose who learns one; point at a formula there for its details) |
+| `ui/cardview.cpp:782` | (click to choose who) |
+| `ui/cardview.cpp:798` | ..., for 3 groschen. |
+| `ui/citynav.cpp:188` | Market stalls: everyday goods to buy and sell. |
+| `ui/citynav.cpp:189` | Foreign trader |
+| `ui/citynav.cpp:189` | Pavilions of traders from distant lands: goods to buy and sell. |
+| `ui/citynav.cpp:190` | Swordsmith's Lane: weapons, and the swordsmiths' guild. |
+| `ui/citynav.cpp:191` | Armorer's Way: armor and shields, and the armorers' guild. |
+| `ui/citynav.cpp:192` | The Square of Bowyers and Gunsmiths: bows, crossbows and guns, and their guild. |
+| `ui/citynav.cpp:193` | The Street of the Blacksmiths: weapons, and the blacksmiths' guild. |
+| `ui/citynav.cpp:194` | Soldiers' Road |
+| `ui/citynav.cpp:194` | Shops and push-carts crowded with soldiers and camp followers, and the street's leaders. |
+| `ui/citynav.cpp:196` | Tinkers' Square: hammers, maces, flails and polearms, and the artisans' guild. |
+| `ui/citynav.cpp:197` | Clothmakers' Street: clothing and soft armor (padded, leather, studded leather, cuir bouilli), and the clothmakers' guild. |
+| `ui/citynav.cpp:198` | Astrologists' Lane: formulae to buy or trade, a better Philosopher's Stone, lessons in Alchemy. |
+| `ui/citynav.cpp:200` | Stalls with herbs and rare materials: alchemical ingredients. |
+| `ui/citynav.cpp:201` | Wounds treated for a fee, lessons in Healing, alchemical ingredients bought and sold. |
+| `ui/citynav.cpp:202` | Heavy coin changed into bank notes that weigh nothing, and back, for a fee. |
+| `ui/citynav.cpp:203` | The Medici representative: bank notes, as at the Fugger bank. |
+| `ui/citynav.cpp:204` | Hanseatic League |
+| `ui/citynav.cpp:204` | The offices of the league of northern merchant towns: quests for pay. Asked politely, they judge the party by its standing with the Hanse; asked boldly, by its reputation here and its fame. Collecting a reward politely also raises that standing. |
+| `ui/citynav.cpp:205` | The Fuggers' Leihhaus: a wide choice of everyday goods, and money for almost anything you sell. |
+| `ui/citynav.cpp:206` | Mass (a little Divine Favor for everyone); a donation of a third of the purse (the leader's Divine Favor); the patron saint's story; an errand for the canon (a relic); sanctuary. |
+| `ui/citynav.cpp:207` | Mass at set hours (Divine Favor for everyone, more with Religion and Latin); confession (the leader's Divine Favor, a few hours); a tithe of a tenth of the purse (everyone's Divine Favor filled); sanctuary when the town is against you. |
+| `ui/citynav.cpp:208` | The monks' library (Religion, Latin) and prayers for Divine Favor. |
+| `ui/citynav.cpp:209` | New saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone. The staff expect Latin and a sharp mind. |
+| `ui/citynav.cpp:210` | Nuns tend the sick: alms, a day's work beside them (Healing), wounds tended for a fee, or free of charge if they accept you. Open by day only. |
+| `ui/citynav.cpp:211` | Meals and a bed, news and rumors, the stables, a store room; stay to study or train. |
+| `ui/citynav.cpp:212` | Notices, gossip and news. |
+| `ui/citynav.cpp:213` | The city council: an audience with the lord, prisoners in the dungeons. |
+| `ui/citynav.cpp:214` | The city's prison. |
+| `ui/citynav.cpp:215` | The city guard's headquarters: people to join the party, weapons training. |
+| `ui/citynav.cpp:216` | The lord's fortress: an audience with the lord, prisoners in the dungeons. |
+| `ui/citynav.cpp:217` | Boats to other towns, for a fee (each leaves on its own day). |
+| `ui/citynav.cpp:218` | A dangerous slum: rumors, and a room for next to nothing. |
+| `ui/citynav.cpp:219` | A quiet corner where the party can wait: an hour, three hours, or until nightfall. |
+| `ui/citynav.cpp:220` | An alley to a stretch of the wall: a way out when you cannot use the gates. |
+| `ui/citynav.cpp:221` | Leave the city by one of its gates. |
+| `ui/citynav.cpp:223` | Quest givers |
+| `ui/citynav.cpp:223` | Learning and healing |
+| `ui/citynav.cpp:246` | arms and armor |
+| `ui/citynav.cpp:246` | less violent |
+| `ui/citynav.cpp:251` | other crafts |
+| `ui/citynav.cpp:259` | city marketplace |
+| `ui/citynav.cpp:259` | central city square |
 | `ui/citynav.cpp:260` | crafts district |
-| `ui/citynav.cpp:260` | side streets and alleys |
-| `ui/citynav.cpp:263` | not found in this city |
-| `ui/citynav.cpp:264` | alchemical symbols |
-| `ui/citynav.cpp:264` | great churches |
-| `ui/citynav.cpp:266` | great churches |
-| `ui/citynav.cpp:266` | common districts |
-| `ui/citynav.cpp:266` | merchant and craft districts |
-| `ui/citynav.cpp:267` | gates leading out |
-| `ui/citynav.cpp:268` | posted notices |
-| `ui/citynav.cpp:274` | avoiding them |
-| `ui/citynav.cpp:274` | attack the guards |
-| `ui/citynav.cpp:275` | other locations you remember |
-| `ui/citynav.cpp:276` | connecting to important districts |
-| `ui/citynav.cpp:276` | to be determined |
-| `ui/citynav.cpp:418` | Go to %s: %s |
-| `ui/citynav.cpp:466` | think better of it |
-| `ui/citynav.cpp:466` | apologizes for disturbing |
-| `ui/citynav.cpp:466` | not to get involved |
-| `ui/citynav.cpp:466` | come back in the morning |
-| `ui/citynav.cpp:485` | simply walk out |
-| `ui/citynav.cpp:494` | leave the city |
-| `ui/citynav.cpp:495` | out of the city |
-| `ui/citynav.cpp:517` | The gate: choose how to get out, and the journey begins in the overland view. |
-| `ui/citynav.cpp:535` | left the city. |
-| `ui/citynav.cpp:536` | too many steps; stopped. |
-| `ui/citynav.cpp:545` | something happened on the way. |
-| `ui/citynav.cpp:545` | leave this place first. |
-| `ui/citynav.cpp:553` | the way is blocked. |
-| `ui/citynav.cpp:559` | cannot find the way from this card. |
-| `ui/citynav.cpp:569` | leading merchant |
-| `ui/citynav.cpp:574` | something happened on the way. |
-| `ui/citynav.cpp:576` | something happened on the way. |
-| `ui/citynav.cpp:576` | leave this place first. |
-| `ui/citynav.cpp:586` | the marketplace by night: choose how to get past the guards to the offices upstairs (press G again there for the office). |
-| `ui/citynav.cpp:587` | the marketplace by night: its stalls are shut until 5:00. |
-| `ui/citynav.cpp:608` | not found in this city. |
-| `ui/citynav.cpp:618` | Going to: %s. Press any key or click to stop. |
-| `ui/citynav.cpp:648` | Walking to the city gate |
-| `ui/citynav.cpp:648` | Walking to: %s |
-| `ui/citynav.cpp:661` | Any key or click stops the walk. |
-| `ui/citynav.cpp:803` | leading merchant |
-| `ui/citynav.cpp:814` | avoiding them |
-| `ui/citynav.cpp:818` | request an audience |
-| `ui/citynav.cpp:862` | Point at a place to read about it here: what it offers, its quests, its teachers. |
-| `ui/citynav.cpp:873` | Click the tile and the party walks there. |
-| `ui/citynav.cpp:912` | Pick a place and the party walks there through the streets. Press any key or click to stop them. |
-| `ui/citynav.cpp:914` | Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out. |
-| `ui/citynav.cpp:942` | Closed until 5:00 |
-| `ui/citynav.cpp:942` | Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same. |
-| `ui/citynav.cpp:946` | Turned away until %d %s |
-| `ui/citynav.cpp:946` | The alchemists turned the party away; they will see you again from %d %s, %d:00. |
-| `ui/citynav.cpp:947` | Library shut until %d %s |
-| `ui/citynav.cpp:947` | The monks' library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:948` | Prayers again from %d %s |
-| `ui/citynav.cpp:948` | The party prayed with the monks; they may again from %d %s, %d:00. |
-| `ui/citynav.cpp:949` | Library shut until %d %s |
-| `ui/citynav.cpp:949` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:967` | Quest chance %d%% |
-| `ui/citynav.cpp:968` | A merchant may offer a quest after you have bought or sold something. |
-| `ui/citynav.cpp:969` | No quests until %d %s |
-| `ui/citynav.cpp:970` | On a quest for them |
-| `ui/citynav.cpp:971` | Your reward is waiting |
-| `ui/citynav.cpp:972` | No quests: reputation too low |
-| `ui/citynav.cpp:977` |  Until %d %s, %d:00. |
-| `ui/citynav.cpp:985` | Your quest:  |
-| `ui/citynav.cpp:985` | see the world map (M) |
-| `ui/citynav.cpp:1007` | Wares %dq, better than most |
-| `ui/citynav.cpp:1009` | Wares of %dq (most shops sell about 25q). |
-| `ui/citynav.cpp:1021` | What you learned |
-| `ui/citynav.cpp:1021` | The physician:  |
-| `ui/citynav.cpp:1027` | Philosopher's Stone %dq |
-| `ui/citynav.cpp:1027` | Stone %dq, no better |
-| `ui/citynav.cpp:1029` | A Philosopher's Stone of quality %d; the party's is %d. |
-| `ui/citynav.cpp:1029` | A Philosopher's Stone of quality %d; the party has none. |
-| `ui/citynav.cpp:1101` | A teacher to hire (faint: not available now) |
-| `ui/citynav.cpp:1102` | A quest of yours leads here |
+| `ui/citynav.cpp:260` | central fortress |
+| `ui/citynav.cpp:261` | crafts district |
+| `ui/citynav.cpp:261` | side streets and alleys |
+| `ui/citynav.cpp:264` | not found in this city |
+| `ui/citynav.cpp:265` | alchemical symbols |
+| `ui/citynav.cpp:265` | great churches |
+| `ui/citynav.cpp:267` | great churches |
+| `ui/citynav.cpp:267` | common districts |
+| `ui/citynav.cpp:267` | merchant and craft districts |
+| `ui/citynav.cpp:268` | gates leading out |
+| `ui/citynav.cpp:269` | posted notices |
+| `ui/citynav.cpp:275` | avoiding them |
+| `ui/citynav.cpp:275` | attack the guards |
+| `ui/citynav.cpp:276` | other locations you remember |
+| `ui/citynav.cpp:277` | connecting to important districts |
+| `ui/citynav.cpp:277` | to be determined |
+| `ui/citynav.cpp:419` | Go to %s: %s |
+| `ui/citynav.cpp:467` | think better of it |
+| `ui/citynav.cpp:467` | apologizes for disturbing |
+| `ui/citynav.cpp:467` | not to get involved |
+| `ui/citynav.cpp:467` | come back in the morning |
+| `ui/citynav.cpp:486` | simply walk out |
+| `ui/citynav.cpp:495` | leave the city |
+| `ui/citynav.cpp:496` | out of the city |
+| `ui/citynav.cpp:518` | The gate: choose how to get out, and the journey begins in the overland view. |
+| `ui/citynav.cpp:536` | left the city. |
+| `ui/citynav.cpp:537` | too many steps; stopped. |
+| `ui/citynav.cpp:546` | something happened on the way. |
+| `ui/citynav.cpp:546` | leave this place first. |
+| `ui/citynav.cpp:554` | the way is blocked. |
+| `ui/citynav.cpp:560` | cannot find the way from this card. |
+| `ui/citynav.cpp:570` | leading merchant |
+| `ui/citynav.cpp:575` | something happened on the way. |
+| `ui/citynav.cpp:577` | something happened on the way. |
+| `ui/citynav.cpp:577` | leave this place first. |
+| `ui/citynav.cpp:587` | the marketplace by night: choose how to get past the guards to the offices upstairs (press G again there for the office). |
+| `ui/citynav.cpp:588` | the marketplace by night: its stalls are shut until 5:00. |
+| `ui/citynav.cpp:609` | not found in this city. |
+| `ui/citynav.cpp:619` | Going to: %s. Press any key or click to stop. |
+| `ui/citynav.cpp:649` | Walking to the city gate |
+| `ui/citynav.cpp:649` | Walking to: %s |
+| `ui/citynav.cpp:662` | Any key or click stops the walk. |
+| `ui/citynav.cpp:804` | leading merchant |
+| `ui/citynav.cpp:815` | avoiding them |
+| `ui/citynav.cpp:819` | request an audience |
+| `ui/citynav.cpp:863` | Point at a place to read about it here: what it offers, its quests, its teachers. |
+| `ui/citynav.cpp:874` | Click the tile and the party walks there. |
+| `ui/citynav.cpp:913` | Pick a place and the party walks there through the streets. Press any key or click to stop them. |
+| `ui/citynav.cpp:915` | Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out. |
+| `ui/citynav.cpp:943` | Closed until 5:00 |
+| `ui/citynav.cpp:943` | Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same. |
+| `ui/citynav.cpp:947` | Turned away until %d %s |
+| `ui/citynav.cpp:947` | The alchemists turned the party away; they will see you again from %d %s, %d:00. |
+| `ui/citynav.cpp:948` | Library shut until %d %s |
+| `ui/citynav.cpp:948` | The monks' library (where saints are learned) is shut to the party until %d %s, %d:00. |
+| `ui/citynav.cpp:949` | Prayers again from %d %s |
+| `ui/citynav.cpp:949` | The party prayed with the monks; they may again from %d %s, %d:00. |
+| `ui/citynav.cpp:950` | Library shut until %d %s |
+| `ui/citynav.cpp:950` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
+| `ui/citynav.cpp:968` | Quest chance %d%% |
+| `ui/citynav.cpp:969` | A merchant may offer a quest after you have bought or sold something. |
+| `ui/citynav.cpp:970` | No quests until %d %s |
+| `ui/citynav.cpp:971` | On a quest for them |
+| `ui/citynav.cpp:972` | Your reward is waiting |
+| `ui/citynav.cpp:973` | No quests: reputation too low |
+| `ui/citynav.cpp:978` |  Until %d %s, %d:00. |
+| `ui/citynav.cpp:986` | Your quest:  |
+| `ui/citynav.cpp:986` | see the world map (M) |
+| `ui/citynav.cpp:1008` | Wares %dq, better than most |
+| `ui/citynav.cpp:1010` | Wares of %dq (most shops sell about 25q). |
+| `ui/citynav.cpp:1022` | What you learned |
+| `ui/citynav.cpp:1022` | The physician:  |
+| `ui/citynav.cpp:1028` | Philosopher's Stone %dq |
+| `ui/citynav.cpp:1028` | Stone %dq, no better |
+| `ui/citynav.cpp:1030` | A Philosopher's Stone of quality %d; the party's is %d. |
+| `ui/citynav.cpp:1030` | A Philosopher's Stone of quality %d; the party has none. |
+| `ui/citynav.cpp:1106` | A teacher to hire (faint: not available now) |
+| `ui/citynav.cpp:1107` | A quest of yours leads here |
 | `ui/createview.cpp:109` | A new character |
 | `ui/createview.cpp:110` | %s, called %s, age %d |
 | `ui/createview.cpp:111` | %s, called %s |
@@ -920,15 +920,14 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/editor.cpp:123` | Saints known |
 | `ui/editor.cpp:134` | Formulae known (each potion has three) |
 | `ui/editor.cpp:150` | Items: quality and count |
-| `ui/enemyview.cpp:47` | press a key or click to return to the battle |
-| `ui/enemyview.cpp:66` | %d on the field, %d still fighting |
-| `ui/enemyview.cpp:67` | still fighting |
-| `ui/enemyview.cpp:80` |  (enchanted) |
-| `ui/enemyview.cpp:85` |  (enchanted) |
-| `ui/enemyview.cpp:88` | Natural armor |
-| `ui/enemyview.cpp:89` | Natural weapons |
-| `ui/enemyview.cpp:104` |  does half damage |
-| `ui/enemyview.cpp:104` |  is mostly deflected |
+| `ui/enemyview.cpp:55` | press a key or click to return to the battle |
+| `ui/enemyview.cpp:74` | %d on the field, %d still fighting |
+| `ui/enemyview.cpp:75` | still fighting |
+| `ui/enemyview.cpp:88` |  (enchanted) |
+| `ui/enemyview.cpp:93` |  (enchanted) |
+| `ui/enemyview.cpp:96` | Natural armor |
+| `ui/enemyview.cpp:97` | Natural weapons |
+| `ui/enemyview.cpp:114` | mostly deflected |
 | `ui/figures.cpp:32` | two-handed sword |
 | `ui/figures.cpp:33` | great hammer |
 | `ui/figures.cpp:34` | potion throw |
@@ -1161,42 +1160,42 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/infoview.cpp:102` | by reputation |
 | `ui/infoview.cpp:141` | Last change:  |
 | `ui/infoview.cpp:142` | , after choosing " |
-| `ui/inventory.cpp:42` | East. Black Bean |
-| `ui/inventory.cpp:43` | White Cinnabar |
-| `ui/inventory.cpp:47` | Choleric Base |
-| `ui/inventory.cpp:47` | Phleqmatic Base |
-| `ui/inventory.cpp:48` | Sanguine Base |
-| `ui/inventory.cpp:48` | Melanc. Base |
-| `ui/inventory.cpp:68` | East. Black Bean |
-| `ui/inventory.cpp:510` | Items can't change hands during a battle. |
-| `ui/inventory.cpp:511` | Close the game's current screen (sheet, shop ...) to hand items over. |
-| `ui/inventory.cpp:512` | Start or load a game first. |
-| `ui/inventory.cpp:546` | Damage %d, penetration %d |
-| `ui/inventory.cpp:547` | Time for a blow %d |
-| `ui/inventory.cpp:548` | Time to %s %d |
-| `ui/inventory.cpp:548` | draw and loose |
-| `ui/inventory.cpp:552` | Skill needed %d: each point short costs 2 aim |
-| `ui/inventory.cpp:553` | Strength %d to %d: below that, each point short costs 1 aim and hits are softer; above %d, hits are harder |
-| `ui/inventory.cpp:554` | Strength %d: below that, each point short costs 1 aim and hits are softer |
-| `ui/inventory.cpp:556` | Skill needed %d: each point short costs 2 melee rating (attack and defense hand to hand) |
-| `ui/inventory.cpp:557` | Strength %d to %d: below that, each point short costs 3 melee rating and blows hit softer; above %d, each point adds 2 melee rating and blows hit harder |
-| `ui/inventory.cpp:558` | Strength %d: below that, each point short costs 3 melee rating and blows hit softer |
-| `ui/inventory.cpp:560` | Lower times are quicker. |
-| `ui/inventory.cpp:571` | too weak by  |
-| `ui/inventory.cpp:572` | suits (strong enough to hit harder) |
-| `ui/inventory.cpp:575` | melee rating |
-| `ui/inventory.cpp:587` | Covers the vitals (body and arms) |
-| `ui/inventory.cpp:587` | Covers the legs |
-| `ui/inventory.cpp:589` | Hardness %d of 5 (%s) |
-| `ui/inventory.cpp:596` | Deflects most of the blow (penetration below %d): |
-| `ui/inventory.cpp:596` | Halves the blow (penetration %d): |
-| `ui/inventory.cpp:596` | Pierced (penetration above %d): |
-| `ui/inventory.cpp:606` | A blow that pierces also wounds Strength; a good hit gets through more easily. |
-| `ui/inventory.cpp:607` | Quality: every 10 points take 1 off each blow's damage. |
-| `ui/inventory.cpp:611` | Adds to its bearer's defense, more the better it is made; unusable with a two-handed weapon. |
-| `ui/inventory.cpp:615` | %s shield at %dq: %d against blows, %d against shots and throws |
-| `ui/inventory.cpp:616` | No shield counts as -5, and a flail's blow passes any shield. Hand to hand, the chance to hit is 50 + 2/3 of the attacker's melee rating minus (the defender's melee rating + the shield); against a shot or throw, the defense is the shield plus twice Agility (less under a load). |
-| `ui/inventory.cpp:622` | How it works: %s |
+| `ui/inventory.cpp:43` | East. Black Bean |
+| `ui/inventory.cpp:44` | White Cinnabar |
+| `ui/inventory.cpp:48` | Choleric Base |
+| `ui/inventory.cpp:48` | Phleqmatic Base |
+| `ui/inventory.cpp:49` | Sanguine Base |
+| `ui/inventory.cpp:49` | Melanc. Base |
+| `ui/inventory.cpp:69` | East. Black Bean |
+| `ui/inventory.cpp:511` | Items can't change hands during a battle. |
+| `ui/inventory.cpp:512` | Close the game's current screen (sheet, shop ...) to hand items over. |
+| `ui/inventory.cpp:513` | Start or load a game first. |
+| `ui/inventory.cpp:547` | Damage %d, penetration %d |
+| `ui/inventory.cpp:548` | Time for a blow %d |
+| `ui/inventory.cpp:549` | Time to %s %d |
+| `ui/inventory.cpp:549` | draw and loose |
+| `ui/inventory.cpp:553` | {%s:%d} needed: each point short costs 2 aim |
+| `ui/inventory.cpp:554` | {Strength:%d to %d}: below that, each point short costs 1 aim and hits are softer; above %d, hits are harder |
+| `ui/inventory.cpp:555` | {Strength:%d}: below that, each point short costs 1 aim and hits are softer |
+| `ui/inventory.cpp:557` | {%s:%d} needed: each point short costs 2 melee rating (attack and defense hand to hand) |
+| `ui/inventory.cpp:558` | {Strength:%d to %d}: below that, each point short costs 3 melee rating and blows hit softer; above %d, each point adds 2 melee rating and blows hit harder |
+| `ui/inventory.cpp:559` | {Strength:%d}: below that, each point short costs 3 melee rating and blows hit softer |
+| `ui/inventory.cpp:561` | Lower times are quicker. |
+| `ui/inventory.cpp:572` | too weak by  |
+| `ui/inventory.cpp:573` | suits (strong enough to hit harder) |
+| `ui/inventory.cpp:576` | melee rating |
+| `ui/inventory.cpp:588` | Covers the vitals (body and arms) |
+| `ui/inventory.cpp:588` | Covers the legs |
+| `ui/inventory.cpp:590` | Hardness %d of 5 (%s) |
+| `ui/inventory.cpp:597` | Deflects most of the blow (penetration below %d): |
+| `ui/inventory.cpp:597` | Halves the blow (penetration %d): |
+| `ui/inventory.cpp:597` | Pierced (penetration above %d): |
+| `ui/inventory.cpp:607` | A blow that pierces also wounds {Strength}; a good hit gets through more easily. |
+| `ui/inventory.cpp:608` | Quality: every 10 points take 1 off each blow's damage. |
+| `ui/inventory.cpp:612` | Adds to its bearer's defense, more the better it is made; unusable with a two-handed weapon. |
+| `ui/inventory.cpp:616` | %s shield at %dq: %d against blows, %d against shots and throws |
+| `ui/inventory.cpp:617` | No shield counts as -5, and a flail's blow passes any shield. Hand to hand, the chance to hit is 50 + 2/3 of the attacker's melee rating minus (the defender's melee rating + the shield); against a shot or throw, the defense is the shield plus twice {Agility} (less under a load). |
+| `ui/inventory.cpp:623` | How it works:  |
 | `ui/itemedit.cpp:32` | Could not read DARKLAND.LST. |
 | `ui/itemedit.cpp:49` | Every item of the game. Change names, weight, quality, rarity and value here, then save the list into a mod folder; it takes effect when the game is started again with that mod ticked. |
 | `ui/itemedit.cpp:51` | Every item of the game, with its weight, usual quality, rarity and value (to change them for a mod, choose a preset other than Full Original in F12 > Settings). |
@@ -1266,32 +1265,33 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/lodgeview.cpp:190` |    Days stayed:  |
 | `ui/lodgeview.cpp:219` | %d now, %d%% a day for +1, up to %d; %s a day |
 | `ui/lodgeview.cpp:222` | Make 3 potions |
-| `ui/lodgeview.cpp:228` | Endurance back to full ( |
+| `ui/lodgeview.cpp:228` | back to full: {Endurance: |
 | `ui/lodgeview.cpp:228` | Already rested: earning would be better |
 | `ui/lodgeview.cpp:228` | Already rested |
-| `ui/lodgeview.cpp:231` | Divine Favor  |
-| `ui/lodgeview.cpp:232` | Endurance stays down ( |
-| `ui/lodgeview.cpp:250` | Regain Endurance |
-| `ui/lodgeview.cpp:250` | Regain Strength |
-| `ui/lodgeview.cpp:250` | Pray for Divine Favor |
+| `ui/lodgeview.cpp:230` | }  {Stealth: |
+| `ui/lodgeview.cpp:231` | {Divine Favor: |
+| `ui/lodgeview.cpp:232` | stays down: {Endurance: |
+| `ui/lodgeview.cpp:250` | Regain {Endurance} |
+| `ui/lodgeview.cpp:250` | Regain {Strength} |
+| `ui/lodgeview.cpp:250` | Pray for {Divine Favor} |
 | `ui/lodgeview.cpp:250` | Alchemy work |
 | `ui/lodgeview.cpp:250` | Earn a little money |
 | `ui/lodgeview.cpp:250` | Guard the camp |
 | `ui/lodgeview.cpp:250` | Train or study |
-| `ui/lodgeview.cpp:251` | Endurance is full: earning money is the better day. |
-| `ui/lodgeview.cpp:251` | Already at full Strength. |
-| `ui/lodgeview.cpp:251` | Divine Favor is full. |
+| `ui/lodgeview.cpp:251` | {Endurance} is full: earning money is the better day. |
+| `ui/lodgeview.cpp:251` | Already at full {Strength}. |
+| `ui/lodgeview.cpp:251` | {Divine Favor} is full. |
 | `ui/lodgeview.cpp:251` | Knows no formula to make. |
 | `ui/lodgeview.cpp:251` | Only at an inn in a town. |
 | `ui/lodgeview.cpp:251` | Only when camping in the wild. |
 | `ui/lodgeview.cpp:251` | No teachers retained in this town. |
-| `ui/lodgeview.cpp:252` | Rest: Endurance comes back to full. Nothing else is gained. |
-| `ui/lodgeview.cpp:252` | Rest and care: Strength comes back; the better the party's Healing, the more (Endurance too). |
-| `ui/lodgeview.cpp:253` | Prayer: Divine Favor comes back; the better Religion and Virtue, the more. Endurance does not come back that day. |
-| `ui/lodgeview.cpp:253` | Make potions from a known formula (the ingredients are used up). Endurance does not come back that day. |
-| `ui/lodgeview.cpp:254` | Work in the town: the job that pays this member best, by their attributes and skills (wounds lower the pay; a bad name in the town too). Endurance does not come back that day. |
-| `ui/lodgeview.cpp:255` | Keep watch: the risk that the lord's men find the party living off his land grows more slowly each day. Woodwise helps most, then Stealth, then a weapon skill of 30 or more. |
-| `ui/lodgeview.cpp:255` | Lessons from a teacher hired in this town, for a fee each day. Endurance does not come back that day. |
+| `ui/lodgeview.cpp:252` | Rest: {Endurance} comes back to full. Nothing else is gained. |
+| `ui/lodgeview.cpp:252` | Rest and care: {Strength} comes back; the better the party's {Healing}, the more ({Endurance} too). |
+| `ui/lodgeview.cpp:253` | Prayer: {Divine Favor} comes back; the better {Religion} and {Virtue}, the more. {Endurance} does not come back that day. |
+| `ui/lodgeview.cpp:253` | Make potions from a known formula (the ingredients are used up). {Endurance} does not come back that day. |
+| `ui/lodgeview.cpp:254` | Work in the town: the job that pays this member best, by their attributes and skills (wounds lower the pay; a bad name in the town too). {Endurance} does not come back that day. |
+| `ui/lodgeview.cpp:255` | Keep watch: the risk that the lord's men find the party living off his land grows more slowly each day. {Woodwise} helps most, then {Stealth}, then a weapon skill of 30 or more. |
+| `ui/lodgeview.cpp:255` | Lessons from a teacher hired in this town, for a fee each day. {Endurance} does not come back that day. |
 | `ui/lodgeview.cpp:281` | none retained |
 | `ui/lodgeview.cpp:286` | No risk here: the lord's men will not come. |
 | `ui/lodgeview.cpp:287` | The lord's men: %d%% before the next day, %d%% the day after |
@@ -1300,8 +1300,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/lodgeview.cpp:317` | The lord's men may find the party living off his land, more likely each day. With %s on guard the day after is %d%% (%d%% unguarded). Camp broken, the risk stays half a day to two and a half. |
 | `ui/lodgeview.cpp:319` | The lord's men may find the party living off his land, more likely each day; members on guard slow it. Camp broken, the risk stays half a day to two and a half. |
 | `ui/lodgeview.cpp:322` |  At an inn a failed batch can blow up; in a camp in the wild it cannot. |
-| `ui/lodgeview.cpp:330` | The teacher of %s knows %d; %s has %d already: nothing more to learn here. |
-| `ui/lodgeview.cpp:332` | Teacher of %s (skill %d), %d more day%s hired. Each day: %d%% chance of +1 (about one point in %d day%s)%s. %s has %d.%s |
+| `ui/lodgeview.cpp:330` | The teacher of {%s} knows %d; %s has %d already: nothing more to learn here. |
+| `ui/lodgeview.cpp:332` | Teacher of {%s} (skill %d), %d more day%s hired. Each day: %d%% chance of +1 (about one point in %d day%s)%s. %s has %d.%s |
 | `ui/lodgeview.cpp:333` | , up to the teacher's skill |
 | `ui/lodgeview.cpp:334` |  (The best of the teachers of it hired here teaches.) |
 | `ui/lodgeview.cpp:334` |  (The one hired first teaches.) |
@@ -1332,74 +1332,74 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/mapmsg.cpp:42` | press a key or click to go on |
 | `ui/marchview.cpp:44` | Marching order |
 | `ui/marchview.cpp:45` | The first leads the way; in single file the others follow in this order. |
-| `ui/margins.cpp:70` | In the wilds |
-| `ui/margins.cpp:71` | Traveling, near  |
-| `ui/margins.cpp:191` | University: new saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone, teachers to hire (it expects Latin and a sharp mind). |
-| `ui/margins.cpp:192` | Cathedral: donations for Divine Favor (and maybe Virtue), an errand for the canon (a relic), the patron saint's story, sanctuary. |
-| `ui/margins.cpp:194` | armor and shields |
-| `ui/margins.cpp:194` | bows, crossbows and guns |
-| `ui/margins.cpp:195` | hammers, maces, flails and polearms (pikes, halberds, spears, staves) |
-| `ui/margins.cpp:196` | clothing and soft armor (padded, leather, studded leather, cuir bouilli) |
-| `ui/margins.cpp:271` | the party's best |
-| `ui/margins.cpp:272` | nobody would learn |
-| `ui/margins.cpp:301` | Teachers here: a lesson a day at the inn, for a fee |
-| `ui/margins.cpp:302` | Under each, who would learn, and their skill now. |
-| `ui/margins.cpp:316` | Philosopher's Stone %dq |
-| `ui/margins.cpp:331` | A better Philosopher's Stone, for a price: |
-| `ui/margins.cpp:333` |  the alchemist's, quality %d; |
-| `ui/margins.cpp:334` |  the university's, quality %d; |
-| `ui/margins.cpp:336` |  The party's is %d%s. |
-| `ui/margins.cpp:336` |  The party has none. |
-| `ui/margins.cpp:336` | : nothing to gain here |
-| `ui/margins.cpp:376` | Notable shops |
-| `ui/margins.cpp:376` | Notable shops |
-| `ui/margins.cpp:378` | %s: %s of %dq (most shops sell about 25q). |
-| `ui/margins.cpp:383` | St.Edward, Confessor |
-| `ui/margins.cpp:391` | Saints taught here |
-| `ui/margins.cpp:408` |  (someone in the party knows this saint):  |
-| `ui/margins.cpp:408` |  (nobody in the party knows this saint):  |
-| `ui/margins.cpp:423` | Formulae sold here |
-| `ui/margins.cpp:442` | Someone in the party knows this formula. |
-| `ui/margins.cpp:442` | Nobody in the party knows this formula. |
-| `ui/margins.cpp:463` | Teachers to be hired |
-| `ui/margins.cpp:473` | %s: %s, up to %d |
-| `ui/margins.cpp:473` | %s: %s (their skill %d) |
-| `ui/margins.cpp:475` | A lesson a day at the inn, for a fee. Who would learn, and their skill now: |
-| `ui/margins.cpp:595` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
-| `ui/margins.cpp:604` | Reputation %d |
-| `ui/margins.cpp:622` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
-| `ui/margins.cpp:622` | Below 0 its shops ask more and pay less (up to 9% from about -20 down). |
-| `ui/margins.cpp:626` |   Changes seen since this game was loaded: |
-| `ui/margins.cpp:629` | the overland view |
-| `ui/margins.cpp:629` | , after choosing " |
-| `ui/margins.cpp:647` | The town counts as hostile: its gates and people turn the party away. |
-| `ui/margins.cpp:649` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
-| `ui/margins.cpp:660` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
-| `ui/margins.cpp:672` | Preparing for war |
-| `ui/margins.cpp:673` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
-| `ui/margins.cpp:675` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
-| `ui/margins.cpp:699` | The party has goods stored here (F12 > Journal > Stored). |
-| `ui/margins.cpp:706` | Blessings and potions |
-| `ui/margins.cpp:743` | No blessings or potions at work. |
-| `ui/margins.cpp:752` | C: camp here |
-| `ui/margins.cpp:753` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
-| `ui/margins.cpp:757` | Go to a place here |
-| `ui/margins.cpp:757` | G: go to a place here |
-| `ui/margins.cpp:763` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
-| `ui/margins.cpp:812` | None taken on. |
-| `ui/margins.cpp:844` | Travel there |
-| `ui/margins.cpp:861` | ... %d more on the world map (M) |
-| `ui/margins.cpp:877` | Night in the streets |
-| `ui/margins.cpp:881` | almost always |
-| `ui/margins.cpp:882` | about %d time%s in 10 |
-| `ui/margins.cpp:883` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's Stealth and Streetwise)%s. An inn is the safe place to wait for morning. |
-| `ui/margins.cpp:886` | , as set in F12 > Mods (Night encounters in the streets) |
-| `ui/margins.cpp:925` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
-| `ui/margins.cpp:925` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
-| `ui/margins.cpp:927` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
-| `ui/margins.cpp:927` | It is day (from 5:00 to 19:00). |
-| `ui/margins.cpp:954` | %s in bank notes |
-| `ui/margins.cpp:968` | F11: the keys and clicks of this screen. |
+| `ui/margins.cpp:71` | In the wilds |
+| `ui/margins.cpp:72` | Traveling, near  |
+| `ui/margins.cpp:192` | University: new saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone, teachers to hire (it expects {Latin} and a sharp mind). |
+| `ui/margins.cpp:193` | Cathedral: donations for {Divine Favor} (and maybe {Virtue}), an errand for the canon (a relic), the patron saint's story, sanctuary. |
+| `ui/margins.cpp:195` | armor and shields |
+| `ui/margins.cpp:195` | bows, crossbows and guns |
+| `ui/margins.cpp:196` | hammers, maces, flails and polearms (pikes, halberds, spears, staves) |
+| `ui/margins.cpp:197` | clothing and soft armor (padded, leather, studded leather, cuir bouilli) |
+| `ui/margins.cpp:263` | the party's best |
+| `ui/margins.cpp:264` | nobody would learn |
+| `ui/margins.cpp:293` | Teachers here: a lesson a day at the inn, for a fee |
+| `ui/margins.cpp:294` | Under each, who would learn, and their skill now. |
+| `ui/margins.cpp:308` | Philosopher's Stone %dq |
+| `ui/margins.cpp:323` | A better Philosopher's Stone, for a price: |
+| `ui/margins.cpp:325` |  the alchemist's, quality %d; |
+| `ui/margins.cpp:326` |  the university's, quality %d; |
+| `ui/margins.cpp:328` |  The party's is %d%s. |
+| `ui/margins.cpp:328` |  The party has none. |
+| `ui/margins.cpp:328` | : nothing to gain here |
+| `ui/margins.cpp:368` | Notable shops |
+| `ui/margins.cpp:368` | Notable shops |
+| `ui/margins.cpp:370` | %s: %s of %dq (most shops sell about 25q). |
+| `ui/margins.cpp:375` | St.Edward, Confessor |
+| `ui/margins.cpp:383` | Saints taught here |
+| `ui/margins.cpp:400` |  (someone in the party knows this saint):  |
+| `ui/margins.cpp:400` |  (nobody in the party knows this saint):  |
+| `ui/margins.cpp:415` | Formulae sold here |
+| `ui/margins.cpp:434` | Someone in the party knows this formula. |
+| `ui/margins.cpp:434` | Nobody in the party knows this formula. |
+| `ui/margins.cpp:455` | Teachers to be hired |
+| `ui/margins.cpp:465` | %s: %s, up to %d |
+| `ui/margins.cpp:465` | %s: %s (their skill %d) |
+| `ui/margins.cpp:467` | A lesson a day at the inn, for a fee. Who would learn, and their skill now: |
+| `ui/margins.cpp:587` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
+| `ui/margins.cpp:596` | Reputation %d |
+| `ui/margins.cpp:614` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
+| `ui/margins.cpp:614` | Below 0 its shops ask more and pay less (up to 9% from about -20 down). |
+| `ui/margins.cpp:618` |   Changes seen since this game was loaded: |
+| `ui/margins.cpp:621` | the overland view |
+| `ui/margins.cpp:621` | , after choosing " |
+| `ui/margins.cpp:639` | The town counts as hostile: its gates and people turn the party away. |
+| `ui/margins.cpp:641` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
+| `ui/margins.cpp:652` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
+| `ui/margins.cpp:664` | Preparing for war |
+| `ui/margins.cpp:665` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
+| `ui/margins.cpp:667` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
+| `ui/margins.cpp:691` | The party has goods stored here (F12 > Journal > Stored). |
+| `ui/margins.cpp:698` | Blessings and potions |
+| `ui/margins.cpp:735` | No blessings or potions at work. |
+| `ui/margins.cpp:744` | C: camp here |
+| `ui/margins.cpp:745` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
+| `ui/margins.cpp:749` | Go to a place here |
+| `ui/margins.cpp:749` | G: go to a place here |
+| `ui/margins.cpp:755` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
+| `ui/margins.cpp:804` | None taken on. |
+| `ui/margins.cpp:836` | Travel there |
+| `ui/margins.cpp:853` | ... %d more on the world map (M) |
+| `ui/margins.cpp:869` | Night in the streets |
+| `ui/margins.cpp:873` | almost always |
+| `ui/margins.cpp:874` | about %d time%s in 10 |
+| `ui/margins.cpp:875` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's {Stealth} and {Streetwise})%s. An inn is the safe place to wait for morning. |
+| `ui/margins.cpp:878` | , as set in F12 > Mods (Night encounters in the streets) |
+| `ui/margins.cpp:917` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
+| `ui/margins.cpp:917` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
+| `ui/margins.cpp:919` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
+| `ui/margins.cpp:919` | It is day (from 5:00 to 19:00). |
+| `ui/margins.cpp:946` | %s in bank notes |
+| `ui/margins.cpp:960` | F11: the keys and clicks of this screen. |
 | `ui/margins_battle.cpp:80` | The battle runs again (the key: Space). Any order being given is given first. |
 | `ui/margins_battle.cpp:81` | This member's order is given; the battle stays paused, to give others theirs (the key: Enter). |
 | `ui/margins_battle.cpp:82` | Every kind of enemy on the field: attributes, weapons, armor (the key: E). |
@@ -1449,9 +1449,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/menuview.cpp:106` | Arrows, Enter; Esc closes |
 | `ui/menuview.cpp:106` | Click to choose; Esc or a click elsewhere closes |
 | `ui/money.cpp:45` | %ld pfennig%s in all (1 florin = 20 groschen = 240 pfennigs) |
-| `ui/nsdraw.cpp:26` |  against blows,  |
-| `ui/nsdraw.cpp:27` |  against shots and throws; unusable with a two-handed weapon |
-| `ui/nsdraw.cpp:31` | Missile Device |
+| `ui/nsdraw.cpp:27` |  against blows,  |
+| `ui/nsdraw.cpp:28` |  against shots and throws; unusable with a two-handed weapon |
 | `ui/nsdraw.cpp:33` | , penetration  |
 | `ui/nsdraw.cpp:34` | , time for a blow  |
 | `ui/nsdraw.cpp:35` | draw and loose  |
@@ -1463,114 +1462,112 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/nsdraw.cpp:72` | q): this is  |
 | `ui/nsdraw.cpp:77` |  carries no shield. |
 | `ui/nsdraw.cpp:78` | q): this is  |
-| `ui/nsdraw.cpp:81` | Missile Device |
-| `ui/nsdraw.cpp:86` |  Too heavy: it needs Strength  |
-| `ui/nsdraw.cpp:90` |  In hand now:  |
-| `ui/nsdraw.cpp:90` | , penetration  |
-| `ui/nsdraw.cpp:91` |  No missile weapon equipped. |
-| `ui/nsdraw.cpp:91` |  Nothing in hand now. |
-| `ui/nsdraw.cpp:122` | Harder or better made than what  |
-| `ui/nsdraw.cpp:123` |  nothing there. |
-| `ui/nsdraw.cpp:124` | Everyone wears as good or better there. |
-| `ui/nsdraw.cpp:134` | Better made than the shield of  |
-| `ui/nsdraw.cpp:136` | Everyone's shield is as good or better. |
-| `ui/nsdraw.cpp:139` | Missile Device |
-| `ui/nsdraw.cpp:152` |  Too heavy for  |
-| `ui/nsdraw.cpp:152` |  (it needs Strength  |
-| `ui/nsdraw.cpp:171` | Many encounters let you use it. |
-| `ui/nsdraw.cpp:171` | Some encounters let you use it. |
-| `ui/nsdraw.cpp:171` | A few encounters let you use it. |
-| `ui/nsdraw.cpp:171` | No encounter asks for it. |
-| `ui/nsdraw.cpp:185` | For climbing: over a town's walls at night, into a castle and the like, the best climber goes up first and lets it down for the others (without one, each climbs alone). One in the party is enough. |
-| `ui/nsdraw.cpp:186` | For picking locks: shops at night, doors, chests, a cell. One in the party is enough. |
-| `ui/nsdraw.cpp:187` | St. Cecilia, the patron of music, raises the party's standing in a town greatly for a member who carries an instrument. |
-| `ui/nsdraw.cpp:189` | Nothing in the game asks for one (no card, no saint): it is worth only what it sells for. |
-| `ui/nsdraw.cpp:192` | One of the Six Keys: the gate to the last chamber of the Baphomet's lair opens only for a party that carries all six. Keep it. |
-| `ui/nsdraw.cpp:193` | A trophy: the boars' tusks, thought to be good-luck charms. Nothing in the game asks for them and no shop buys them. |
-| `ui/nsdraw.cpp:194` | A trophy. Nothing in the game asks for it. |
-| `ui/nsdraw.cpp:195` | A skeleton near a cemetery wants its bone back: give it this and it will talk with you. |
-| `ui/nsdraw.cpp:196` | The dragon's gold cup, taken back from the thief: brandish it before the dragon and it will not breathe fire on its treasure. |
-| `ui/nsdraw.cpp:198` | Wanted by whoever sent you to fetch it: bring it to them (the quests on the world map, M, say who and where). |
-| `ui/nsdraw.cpp:221` | No formula uses it. |
-| `ui/nsdraw.cpp:251` | ; the other two grades don't use it |
-| `ui/nsdraw.cpp:251` | ; the other grade doesn't use it |
-| `ui/nsdraw.cpp:254` | Dots: the grades (1 to 3) whose formula uses it, gold where the party knows it. Point at a potion for more. |
-| `ui/nsdraw.cpp:255` | Nobody in the party knows a formula with it. Dots: the grades (1 to 3) that use it; point at a potion for more. |
-| `ui/nsdraw.cpp:268` |  for about a day (19 to 21 hours). |
-| `ui/nsdraw.cpp:268` |  permanently, adding up with the next dose. |
-| `ui/nsdraw.cpp:270` | Thrown in a battle: a reeking cloud (up to 4 by 4 paces). Whoever it hits loses half their Agility, Perception and weapon skills and everyone else in the cloud a quarter, allies and enemies alike, while it lasts (longer at higher grades). |
-| `ui/nsdraw.cpp:271` | Thrown: blinding powder. The target loses a third of their Agility, Perception and weapon skills and is blinded (cannot shoot, throw or take orders well); those beside them lose a quarter. Lasts longer at higher grades. |
-| `ui/nsdraw.cpp:272` | Thrown: a cloud of black smoke. Shots through any cloud hit far less often (a fifth of the chance), and fighting from inside one costs 15 to hit. Lasts longer at higher grades. (The battle menu never offers it to the party: it is used on cards, and enemies throw it.) |
-| `ui/nsdraw.cpp:273` | Thrown: itching powder. Weapon skills fall by five times the armor worn on the body and limbs: the heavier the armor, the worse the itch. Lasts longer at higher grades. |
-| `ui/nsdraw.cpp:274` | Thrown: acid that eats the target's armor, lowering its quality by 4, 6 or 8 (grade 1, 2, 3) plus up to 8 more at random; armor eaten to nothing is destroyed, and where there is no armor (or damage is left over) it wounds the target. Also dissolves locks. |
-| `ui/nsdraw.cpp:275` | Thrown: a poison cloud (up to 2 by 2 paces) whose wounds no armor stops, worse for weaker targets; stronger at higher grades. |
-| `ui/nsdraw.cpp:276` | Thrown: a blinding flash. The target and every enemy of the thrower on that floor who faces it are blinded for a while (longer at higher grades); the thrower's allies are spared. |
-| `ui/nsdraw.cpp:277` | Thrown: it bursts with great force: damage 4, 6 or 8 (grade 1, 2, 3) plus up to 8 more at random, penetration 6, 7 or 8 on the target and less around it; it also wears the armor down by a quarter of the damage. |
-| `ui/nsdraw.cpp:278` | Thrown: burning pitch that no armor stops: damage 4, 6 or 8 (grade 1, 2, 3) plus up to 6 more at random, a quarter of that further off, minus a tenth of the armor's quality (and of Firewall's protection); it also wears the armor down. |
-| `ui/nsdraw.cpp:279` | Thrown: a pool of sticky sludge (up to 4 by 4 paces) that slows whoever crosses it to 1/2, 3/8 or 1/4 of their pace (grade 1, 2, 3), for a long while. |
-| `ui/nsdraw.cpp:280` | Used (P in the inventory) by a member: +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land with any weapon except an impact weapon or a flail. Damage only, not the chance to hit; |
-| `ui/nsdraw.cpp:281` | Used (P in the inventory) by a member: +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land, with any weapon: bows, guns, impact weapons and fists too. Damage only, not the chance to hit; |
-| `ui/nsdraw.cpp:282` | Used by a member: +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land with a blade or a polearm,  |
-| `ui/nsdraw.cpp:282` | up to 15 in all |
-| `ui/nsdraw.cpp:282` | past 15 the penetration starts again from 0 |
-| `ui/nsdraw.cpp:283` | Used by a member: +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land, with any weapon,  |
-| `ui/nsdraw.cpp:283` | up to 15 in all |
-| `ui/nsdraw.cpp:283` | past 15 the penetration starts again from 0 (a bow's 6 + 10 hits as 0) |
-| `ui/nsdraw.cpp:284` | Used by a member: the weapon in hand counts as 14, 22 or 30 points higher in quality (grade 1, 2, 3; up to 99),  |
-| `ui/nsdraw.cpp:284` | if it is an impact weapon, a flail or a handgun |
-| `ui/nsdraw.cpp:284` | including bows, guns and fists |
-| `ui/nsdraw.cpp:284` | , for about a day (19 to 21 hours). Each 10 points of quality add one step of damage. A second dose adds to the first. |
-| `ui/nsdraw.cpp:285` | Used by a member, on every hit they land, with any weapon: grade 1 +14 penetration; grade 2 +1 damage and +6 penetration; grade 3 +1 damage and +14 penetration.  |
-| `ui/nsdraw.cpp:285` | Penetration counts up to 15 in all |
-| `ui/nsdraw.cpp:285` | Penetration past 15 starts again from 0, so grades 1 and 3 lower a bow's penetration |
-| `ui/nsdraw.cpp:286` | Used by a member: +14, +22 or +30 (grade 1, 2, 3) to Bows, Thrown Weapons and Missile Devices (up to 99), for about a day (19 to 21 hours). A second dose adds to the first. |
-| `ui/nsdraw.cpp:287` | Used by a member: their armor counts 20, 25 or 30 points better in quality and 1, 2 or 2 levels thicker (grade 1, 2, 3) against every blow and shot, for about a day (19 to 21 hours). A second dose while one is active keeps the stronger. |
-| `ui/nsdraw.cpp:288` | Used by a member: +1, +2 or +3 (grade 1, 2, 3) to their armor against every hit, blow or shot, permanently; doses add up. |
-| `ui/nsdraw.cpp:289` | Drinking it yields just one florin: it is meant for cards, where an encounter asks for it (to purify, or to make gold). |
-| `ui/nsdraw.cpp:292` | 9-14, 15-21 or 22-29 |
-| `ui/nsdraw.cpp:292` | 6-11, 8-13 or 10-15 |
-| `ui/nsdraw.cpp:292` | 6-11, 8-13 or 10-15 |
-| `ui/nsdraw.cpp:292` | 6-11, 8-15 or 10-17 |
-| `ui/nsdraw.cpp:294` |  (grade 1, 2, 3) for about a day: the current value rises, past the maximum if need be; the maximum itself does not change.  |
-| `ui/nsdraw.cpp:295` | On a wounded member it heals:  |
-| `ui/nsdraw.cpp:295` | when it wears off, only the part still above the maximum is lost, so the healing stays. |
-| `ui/nsdraw.cpp:295` | but when it wears off the whole amount is taken back, healed or not. |
-| `ui/nsdraw.cpp:296` | When it wears off, what it added is lost. |
-| `ui/nsdraw.cpp:297` |  A second dose while the first is active adds only what goes beyond it. |
-| `ui/nsdraw.cpp:299` | Drunk: permanently heals 50, 70 or 90% of the Strength lost to wounds (grade 1, 2, 3), and raises Endurance by 9-14, 15-21 or 22-29 for about 30 hours. |
-| `ui/nsdraw.cpp:301` | Drunk: protection against fire for about a day (19 to 21 hours): Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3). A second dose keeps the stronger. |
-| `ui/nsdraw.cpp:302` | Drunk: permanent protection against fire: Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3). |
-| `ui/nsdraw.cpp:302` |  It also adds 16 to the armor permanently. |
-| `ui/nsdraw.cpp:318` |  when equipped |
-| `ui/nsdraw.cpp:343` | a light load: no hindrance |
-| `ui/nsdraw.cpp:343` | a normal load: blows hand to hand a fifth slower |
-| `ui/nsdraw.cpp:344` | a heavy load: blows a fifth slower, dodging hampered |
-| `ui/nsdraw.cpp:344` | overloaded: blows two thirds slower, little or no dodging |
-| `ui/nsdraw.cpp:348` | Worn by %s: load %d \xc2\xbb %d of %d, %s%s |
-| `ui/nsdraw.cpp:412` | Load %d \xc2\xbb %d of %d |
-| `ui/nsdraw.cpp:413` | Load %d of %d |
-| `ui/nsdraw.cpp:466` | Spare equipment |
-| `ui/nsdraw.cpp:466` | Tools and other goods |
-| `ui/nsdraw.cpp:466` | Trophies and quest items |
-| `ui/optpreview.cpp:42` | The gate is barred. You... |
-| `ui/optpreview.cpp:44` | ...climb the wall |
-| `ui/optpreview.cpp:45` | ...pray to a saint |
-| `ui/optpreview.cpp:51` | St. Odilia: Jorg |
-| `ui/optpreview.cpp:107` | Jorg hits the bandit |
-| `ui/optpreview.cpp:107` | The bandit parries |
-| `ui/optpreview.cpp:107` | Anna shoots: a wound |
-| `ui/optpreview.cpp:107` | The bandit falls |
-| `ui/optpreview.cpp:107` | Jorg: +1 Edged |
-| `ui/optpreview.cpp:165` | Pointing at an enemy |
-| `ui/optpreview.cpp:165` | The line of a shot |
-| `ui/optpreview.cpp:165` | Skill gains, reloading |
-| `ui/optpreview.cpp:165` | The battle log |
-| `ui/optpreview.cpp:166` | One click to attack |
-| `ui/optpreview.cpp:166` | Shoot or fight |
-| `ui/optpreview.cpp:166` | Order buttons |
-| `ui/optpreview.cpp:166` | Z: fast-forward |
-| `ui/optpreview.cpp:167` | Tab: the level map; a click walks there |
-| `ui/optpreview.cpp:168` | Chances, and who would try |
+| `ui/nsdraw.cpp:85` |  Too heavy: it needs {Strength: |
+| `ui/nsdraw.cpp:89` |  In hand now:  |
+| `ui/nsdraw.cpp:89` | , penetration  |
+| `ui/nsdraw.cpp:90` |  No missile weapon equipped. |
+| `ui/nsdraw.cpp:90` |  Nothing in hand now. |
+| `ui/nsdraw.cpp:121` | Harder or better made than what  |
+| `ui/nsdraw.cpp:122` |  nothing there. |
+| `ui/nsdraw.cpp:123` | Everyone wears as good or better there. |
+| `ui/nsdraw.cpp:133` | Better made than the shield of  |
+| `ui/nsdraw.cpp:135` | Everyone's shield is as good or better. |
+| `ui/nsdraw.cpp:150` |  Too heavy for  |
+| `ui/nsdraw.cpp:150` |  (it needs {Strength: |
+| `ui/nsdraw.cpp:169` | Many encounters let you use it. |
+| `ui/nsdraw.cpp:169` | Some encounters let you use it. |
+| `ui/nsdraw.cpp:169` | A few encounters let you use it. |
+| `ui/nsdraw.cpp:169` | No encounter asks for it. |
+| `ui/nsdraw.cpp:183` | For climbing: over a town's walls at night, into a castle and the like, the best climber goes up first and lets it down for the others (without one, each climbs alone). One in the party is enough. |
+| `ui/nsdraw.cpp:184` | For picking locks: shops at night, doors, chests, a cell. One in the party is enough. |
+| `ui/nsdraw.cpp:185` | St. Cecilia, the patron of music, raises the party's standing in a town greatly for a member who carries an instrument. |
+| `ui/nsdraw.cpp:187` | Nothing in the game asks for one (no card, no saint): it is worth only what it sells for. |
+| `ui/nsdraw.cpp:190` | One of the Six Keys: the gate to the last chamber of the Baphomet's lair opens only for a party that carries all six. Keep it. |
+| `ui/nsdraw.cpp:191` | A trophy: the boars' tusks, thought to be good-luck charms. Nothing in the game asks for them and no shop buys them. |
+| `ui/nsdraw.cpp:192` | A trophy. Nothing in the game asks for it. |
+| `ui/nsdraw.cpp:193` | A skeleton near a cemetery wants its bone back: give it this and it will talk with you. |
+| `ui/nsdraw.cpp:194` | The dragon's gold cup, taken back from the thief: brandish it before the dragon and it will not breathe fire on its treasure. |
+| `ui/nsdraw.cpp:196` | Wanted by whoever sent you to fetch it: bring it to them (the quests on the world map, M, say who and where). |
+| `ui/nsdraw.cpp:219` | No formula uses it. |
+| `ui/nsdraw.cpp:249` | ; the other two grades don't use it |
+| `ui/nsdraw.cpp:249` | ; the other grade doesn't use it |
+| `ui/nsdraw.cpp:252` | Dots: the grades (1 to 3) whose formula uses it, gold where the party knows it. Point at a potion for more. |
+| `ui/nsdraw.cpp:253` | Nobody in the party knows a formula with it. Dots: the grades (1 to 3) that use it; point at a potion for more. |
+| `ui/nsdraw.cpp:266` |  for about a day (19 to 21 hours). |
+| `ui/nsdraw.cpp:266` |  permanently, adding up with the next dose. |
+| `ui/nsdraw.cpp:268` | Thrown in a battle: a reeking cloud (up to 4 by 4 paces). Whoever it hits loses half their {Agility}, {Perception} and weapon skills and everyone else in the cloud a quarter, allies and enemies alike, while it lasts (longer at higher grades). |
+| `ui/nsdraw.cpp:269` | Thrown: blinding powder. The target loses a third of their {Agility}, {Perception} and weapon skills and is blinded (cannot shoot, throw or take orders well); those beside them lose a quarter. Lasts longer at higher grades. |
+| `ui/nsdraw.cpp:270` | Thrown: a cloud of black smoke. Shots through any cloud hit far less often (a fifth of the chance), and fighting from inside one costs 15 to hit. Lasts longer at higher grades. (The battle menu never offers it to the party: it is used on cards, and enemies throw it.) |
+| `ui/nsdraw.cpp:271` | Thrown: itching powder. Weapon skills fall by five times the armor worn on the body and limbs: the heavier the armor, the worse the itch. Lasts longer at higher grades. |
+| `ui/nsdraw.cpp:272` | Thrown: acid that eats the target's armor, lowering its quality by 4, 6 or 8 (grade 1, 2, 3) plus up to 8 more at random; armor eaten to nothing is destroyed, and where there is no armor (or damage is left over) it wounds the target. Also dissolves locks. |
+| `ui/nsdraw.cpp:273` | Thrown: a poison cloud (up to 2 by 2 paces) whose wounds no armor stops, worse for weaker targets; stronger at higher grades. |
+| `ui/nsdraw.cpp:274` | Thrown: a blinding flash. The target and every enemy of the thrower on that floor who faces it are blinded for a while (longer at higher grades); the thrower's allies are spared. |
+| `ui/nsdraw.cpp:275` | Thrown: it bursts with great force: damage 4, 6 or 8 (grade 1, 2, 3) plus up to 8 more at random, penetration 6, 7 or 8 on the target and less around it; it also wears the armor down by a quarter of the damage. |
+| `ui/nsdraw.cpp:276` | Thrown: burning pitch that no armor stops: damage 4, 6 or 8 (grade 1, 2, 3) plus up to 6 more at random, a quarter of that further off, minus a tenth of the armor's quality (and of Firewall's protection); it also wears the armor down. |
+| `ui/nsdraw.cpp:277` | Thrown: a pool of sticky sludge (up to 4 by 4 paces) that slows whoever crosses it to 1/2, 3/8 or 1/4 of their pace (grade 1, 2, 3), for a long while. |
+| `ui/nsdraw.cpp:278` | Used (P in the inventory) by a member: +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land with any weapon except an impact weapon or a flail. Damage only, not the chance to hit; |
+| `ui/nsdraw.cpp:279` | Used (P in the inventory) by a member: +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land, with any weapon: bows, guns, impact weapons and fists too. Damage only, not the chance to hit; |
+| `ui/nsdraw.cpp:280` | Used by a member: +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land with a blade or a polearm,  |
+| `ui/nsdraw.cpp:280` | up to 15 in all |
+| `ui/nsdraw.cpp:280` | past 15 the penetration starts again from 0 |
+| `ui/nsdraw.cpp:281` | Used by a member: +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land, with any weapon,  |
+| `ui/nsdraw.cpp:281` | up to 15 in all |
+| `ui/nsdraw.cpp:281` | past 15 the penetration starts again from 0 (a bow's 6 + 10 hits as 0) |
+| `ui/nsdraw.cpp:282` | Used by a member: the weapon in hand counts as 14, 22 or 30 points higher in quality (grade 1, 2, 3; up to 99),  |
+| `ui/nsdraw.cpp:282` | if it is an impact weapon, a flail or a handgun |
+| `ui/nsdraw.cpp:282` | including bows, guns and fists |
+| `ui/nsdraw.cpp:282` | , for about a day (19 to 21 hours). Each 10 points of quality add one step of damage. A second dose adds to the first. |
+| `ui/nsdraw.cpp:283` | Used by a member, on every hit they land, with any weapon: grade 1 +14 penetration; grade 2 +1 damage and +6 penetration; grade 3 +1 damage and +14 penetration.  |
+| `ui/nsdraw.cpp:283` | Penetration counts up to 15 in all |
+| `ui/nsdraw.cpp:283` | Penetration past 15 starts again from 0, so grades 1 and 3 lower a bow's penetration |
+| `ui/nsdraw.cpp:284` | Used by a member: +14, +22 or +30 (grade 1, 2, 3) to Bows, Thrown Weapons and Missile Devices (up to 99), for about a day (19 to 21 hours). A second dose adds to the first. |
+| `ui/nsdraw.cpp:285` | Used by a member: their armor counts 20, 25 or 30 points better in quality and 1, 2 or 2 levels thicker (grade 1, 2, 3) against every blow and shot, for about a day (19 to 21 hours). A second dose while one is active keeps the stronger. |
+| `ui/nsdraw.cpp:286` | Used by a member: +1, +2 or +3 (grade 1, 2, 3) to their armor against every hit, blow or shot, permanently; doses add up. |
+| `ui/nsdraw.cpp:287` | Drinking it yields just one florin: it is meant for cards, where an encounter asks for it (to purify, or to make gold). |
+| `ui/nsdraw.cpp:290` | 9-14, 15-21 or 22-29 |
+| `ui/nsdraw.cpp:290` | 6-11, 8-13 or 10-15 |
+| `ui/nsdraw.cpp:290` | 6-11, 8-13 or 10-15 |
+| `ui/nsdraw.cpp:290` | 6-11, 8-15 or 10-17 |
+| `ui/nsdraw.cpp:292` |  (grade 1, 2, 3) for about a day: the current value rises, past the maximum if need be; the maximum itself does not change.  |
+| `ui/nsdraw.cpp:293` | On a wounded member it heals:  |
+| `ui/nsdraw.cpp:293` | when it wears off, only the part still above the maximum is lost, so the healing stays. |
+| `ui/nsdraw.cpp:293` | but when it wears off the whole amount is taken back, healed or not. |
+| `ui/nsdraw.cpp:294` | When it wears off, what it added is lost. |
+| `ui/nsdraw.cpp:295` |  A second dose while the first is active adds only what goes beyond it. |
+| `ui/nsdraw.cpp:297` | Drunk: permanently heals 50, 70 or 90% of the {Strength} lost to wounds (grade 1, 2, 3), and raises {Endurance} by 9-14, 15-21 or 22-29 for about 30 hours. |
+| `ui/nsdraw.cpp:299` | Drunk: protection against fire for about a day (19 to 21 hours): Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3). A second dose keeps the stronger. |
+| `ui/nsdraw.cpp:300` | Drunk: permanent protection against fire: Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3). |
+| `ui/nsdraw.cpp:300` |  It also adds 16 to the armor permanently. |
+| `ui/nsdraw.cpp:316` |  when equipped |
+| `ui/nsdraw.cpp:341` | a light load: no hindrance |
+| `ui/nsdraw.cpp:341` | a normal load: blows hand to hand a fifth slower |
+| `ui/nsdraw.cpp:342` | a heavy load: blows a fifth slower, dodging hampered |
+| `ui/nsdraw.cpp:342` | overloaded: blows two thirds slower, little or no dodging |
+| `ui/nsdraw.cpp:346` | Worn by %s: load %d \xc2\xbb %d of %d, %s%s |
+| `ui/nsdraw.cpp:410` | Load %d \xc2\xbb %d of %d |
+| `ui/nsdraw.cpp:411` | Load %d of %d |
+| `ui/nsdraw.cpp:464` | Spare equipment |
+| `ui/nsdraw.cpp:464` | Tools and other goods |
+| `ui/nsdraw.cpp:464` | Trophies and quest items |
+| `ui/optpreview.cpp:43` | The gate is barred. You... |
+| `ui/optpreview.cpp:45` | ...climb the wall |
+| `ui/optpreview.cpp:46` | ...pray to a saint |
+| `ui/optpreview.cpp:52` | St. Odilia: Jorg |
+| `ui/optpreview.cpp:108` | Jorg hits the bandit |
+| `ui/optpreview.cpp:108` | The bandit parries |
+| `ui/optpreview.cpp:108` | Anna shoots: a wound |
+| `ui/optpreview.cpp:108` | The bandit falls |
+| `ui/optpreview.cpp:108` | Jorg: {Edged:+1 (now 31)} |
+| `ui/optpreview.cpp:166` | Pointing at an enemy |
+| `ui/optpreview.cpp:166` | The line of a shot |
+| `ui/optpreview.cpp:166` | Skill gains, reloading |
+| `ui/optpreview.cpp:166` | The battle log |
+| `ui/optpreview.cpp:167` | One click to attack |
+| `ui/optpreview.cpp:167` | Shoot or fight |
+| `ui/optpreview.cpp:167` | Order buttons |
+| `ui/optpreview.cpp:167` | Z: fast-forward |
+| `ui/optpreview.cpp:168` | Tab: the level map; a click walks there |
+| `ui/optpreview.cpp:169` | Chances, and who would try |
 | `ui/ordericons.cpp:248` | walk towards |
 | `ui/ordericons.cpp:248` | flee towards |
 | `ui/ordericons.cpp:249` | travel as group |
@@ -1585,40 +1582,40 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ornament.cpp:519` | Blind tooling |
 | `ui/ornament.cpp:520` | Metal plaque |
 | `ui/ornament.cpp:527` | Heals 8 to 15 Endurance |
-| `ui/overlay.cpp:126` |   (replaced) |
-| `ui/overlay.cpp:164` | A new encounter: %s (from a mod, not the original game) |
-| `ui/overlay.cpp:177` | Darklands+ %s (build %s) |
-| `ui/overlay.cpp:177` | Darklands+ build %s%s |
-| `ui/overlay.cpp:211` | No controller detected |
-| `ui/overlay.cpp:211` | Xbox controller detected |
-| `ui/overlay.cpp:211` | PlayStation controller detected |
-| `ui/overlay.cpp:211` | Nintendo controller detected |
-| `ui/overlay.cpp:298` | MT-32 ACTIVE |
-| `ui/overlay.cpp:323` | MIDI MESSAGE |
+| `ui/overlay.cpp:127` |   (replaced) |
+| `ui/overlay.cpp:165` | A new encounter: %s (from a mod, not the original game) |
+| `ui/overlay.cpp:178` | Darklands+ %s (build %s) |
+| `ui/overlay.cpp:178` | Darklands+ build %s%s |
+| `ui/overlay.cpp:212` | No controller detected |
+| `ui/overlay.cpp:212` | Xbox controller detected |
+| `ui/overlay.cpp:212` | PlayStation controller detected |
+| `ui/overlay.cpp:212` | Nintendo controller detected |
+| `ui/overlay.cpp:299` | MT-32 ACTIVE |
 | `ui/overlay.cpp:324` | MIDI MESSAGE |
-| `ui/overlay.cpp:382` | nobody knows |
-| `ui/overlay.cpp:396` | nobody has one |
-| `ui/overlay.cpp:405` | Saints who help here |
-| `ui/overlay.cpp:405` | Items that help here |
-| `ui/overlay.cpp:435` | nobody knows |
-| `ui/overlay.cpp:435` | nobody has one |
-| `ui/overlay.cpp:477` |  learned of  |
-| `ui/overlay.cpp:613` |  when equipped |
-| `ui/overlay.cpp:624` | Nobody in the party knows this saint |
-| `ui/overlay.cpp:633` | %s - mystic number %d, %s |
-| `ui/overlay.cpp:645` | %s of the three formulae for %s (the others: %s). |
-| `ui/overlay.cpp:653` | Nobody in the party knows this formula. |
-| `ui/overlay.cpp:668` | (carried: %d) |
-| `ui/overlay.cpp:670` | Enough for %d batch%s. |
-| `ui/overlay.cpp:670` | Not enough ingredients for a batch. |
-| `ui/overlay.cpp:694` |   Take all of it |
-| `ui/overlay.cpp:694` |   Share it out among the party |
-| `ui/overlay.cpp:695` |   Sell the whole stack |
-| `ui/overlay.cpp:729` | Making a character: name and gender first, then the family background, the attributes, and one profession after another, five years each, until you begin adventuring. Older characters know more, but age costs attributes. |
-| `ui/overlay.cpp:732` | The family decides the first attributes and skills. The right side shows what the background under the pointer would give; EP (top right) are the points to spend next. |
-| `ui/overlay.cpp:734` | Spend the EP on attributes: pick one, then + or -. Endurance and Strength are the hit points (and together set how much a character can carry); Agility counts in battle; Perception, Intelligence and Charisma serve many skills. |
-| `ui/overlay.cpp:735` | Choose the profession for the next five years. The right side shows the one under the pointer: the EP it gives (top), the attributes after it, and for each skill gain:room, that is, what it adds at once and how many EP that skill can still take. Some professions open only after others, or need certain attributes. |
-| `ui/overlay.cpp:736` | Spend the EP on skills: pick one, then + or -. A skill takes at most the room shown after the colon. Then choose the next profession, or begin adventuring. |
+| `ui/overlay.cpp:325` | MIDI MESSAGE |
+| `ui/overlay.cpp:383` | nobody knows |
+| `ui/overlay.cpp:397` | nobody has one |
+| `ui/overlay.cpp:406` | Saints who help here |
+| `ui/overlay.cpp:406` | Items that help here |
+| `ui/overlay.cpp:436` | nobody knows |
+| `ui/overlay.cpp:436` | nobody has one |
+| `ui/overlay.cpp:478` |  learned of  |
+| `ui/overlay.cpp:614` |  when equipped |
+| `ui/overlay.cpp:625` | Nobody in the party knows this saint |
+| `ui/overlay.cpp:634` | %s - mystic number %d, %s |
+| `ui/overlay.cpp:646` | %s of the three formulae for %s (the others: %s). |
+| `ui/overlay.cpp:654` | Nobody in the party knows this formula. |
+| `ui/overlay.cpp:669` | (carried: %d) |
+| `ui/overlay.cpp:671` | Enough for %d batch%s. |
+| `ui/overlay.cpp:671` | Not enough ingredients for a batch. |
+| `ui/overlay.cpp:695` |   Take all of it |
+| `ui/overlay.cpp:695` |   Share it out among the party |
+| `ui/overlay.cpp:696` |   Sell the whole stack |
+| `ui/overlay.cpp:730` | Making a character: name and gender first, then the family background, the attributes, and one profession after another, five years each, until you begin adventuring. Older characters know more, but age costs attributes. |
+| `ui/overlay.cpp:733` | The family decides the first attributes and skills. The right side shows what the background under the pointer would give; EP (top right) are the points to spend next. |
+| `ui/overlay.cpp:735` | Spend the EP on attributes: pick one, then + or -. Endurance and Strength are the hit points (and together set how much a character can carry); Agility counts in battle; Perception, Intelligence and Charisma serve many skills. |
+| `ui/overlay.cpp:736` | Choose the profession for the next five years. The right side shows the one under the pointer: the EP it gives (top), the attributes after it, and for each skill gain:room, that is, what it adds at once and how many EP that skill can still take. Some professions open only after others, or need certain attributes. |
+| `ui/overlay.cpp:737` | Spend the EP on skills: pick one, then + or -. A skill takes at most the room shown after the colon. Then choose the next profession, or begin adventuring. |
 | `ui/overlay_text.cpp:177` | This option tests %s: %s %d%% chance of success. The original game shows this number while you hold Shift over an option; it rises with the skills and attributes tested. |
 | `ui/overlay_text.cpp:178` | This option tests the whole party: %s %d%% chance of success. The original game shows this number while you hold Shift over an option; it rises with the skills and attributes tested. |
 | `ui/overlay_text.cpp:212` | Edged Weapons |
@@ -1639,7 +1636,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/overlay_text.cpp:220` | Divine Favor |
 | `ui/panelcheck.cpp:59` | the game's hand over a window: NAME |
 | `ui/party.cpp:4` | Health and stamina. Wounds take it away; at 0 the character falls unconscious. Rest brings it back. |
-| `ui/party.cpp:5` | Bodily strength. Weapons and armor need a minimum Strength (shown in the shops' tooltips), and Endurance and Strength together set how much a character can carry. Bad wounds take Strength too; at 0 the character dies. |
+| `ui/party.cpp:5` | Bodily strength. Weapons and armor need a minimum {Strength} (shown in the shops' tooltips), and {Endurance} and {Strength} together set how much a character can carry. Bad wounds take Strength too; at 0 the character dies. |
 | `ui/party.cpp:7` | Speed and deftness, of the body and of the hands. |
 | `ui/party.cpp:8` | Alertness: noticing things, people and dangers. |
 | `ui/party.cpp:9` | Wits and learning. |
@@ -1677,25 +1674,27 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/partypanel.cpp:258` | has no clear line of fire to the target and waits for one (or give another order) |
 | `ui/partypanel.cpp:259` | has nothing left to shoot or throw: give another order |
 | `ui/partypanel.cpp:260` | waits for an order: click them here or on the battlefield, then an enemy, a spot or a choice from the Orders menu |
-| `ui/partypanel.cpp:440` | %s carries %s: %d against %d (Endurance + Strength; only equipped items count). %s %s. |
+| `ui/partypanel.cpp:440` | %s carries %s: %d against %d ({Endurance} + {Strength}; only equipped items count). %s %s. |
 | `ui/partypanel.cpp:441` | far too much |
 | `ui/partypanel.cpp:441` | a heavy load |
-| `ui/partypanel.cpp:462` | In effect on %s:%s |
-| `ui/partypanel.cpp:476` | %s opens with the missile weapon: a click on an enemy makes %s shoot while the line is clear, then fight hand to hand once the enemies close in. Click here: melee from the start. |
-| `ui/partypanel.cpp:477` | %s opens with the melee weapon: a click on an enemy makes %s close in and fight hand to hand. Click here: shoot first, then fight hand to hand once the enemies close in. |
-| `ui/prayview.cpp:37` |  calls on the saint for the whole party: |
-| `ui/prayview.cpp:37` |  calls on the saint: |
-| `ui/prayview.cpp:39` | Saint's day:  |
-| `ui/prayview.cpp:45` | Differs from the description:  |
-| `ui/prayview.cpp:53` | Divine Favor to spend |
-| `ui/prayview.cpp:92` | %s has %d; %d will be left. Past the green mark the chance rises no more. |
-| `ui/prayview.cpp:92` | %s has %d; %d will be left. |
-| `ui/prayview.cpp:95` | Chance the saint hears: %d%% |
-| `ui/prayview.cpp:98` | More Divine Favor gives a better chance (up to 99%); it is spent either way. |
-| `ui/prayview.cpp:118` | %s's Virtue (%d) is below the %d this saint asks: more Divine Favor will not help. |
-| `ui/prayview.cpp:119` | This saint asks at least %d Divine Favor; %s has only %d. |
-| `ui/prayview.cpp:120` | This saint asks at least %d Divine Favor: spend more. |
-| `ui/prayview.cpp:121` | No chance as it is: spend more Divine Favor (or the saint does not help here). |
+| `ui/partypanel.cpp:463` | In effect on %s:%s |
+| `ui/partypanel.cpp:477` | %s opens with the missile weapon: a click on an enemy makes %s shoot while the line is clear, then fight hand to hand once the enemies close in. Click here: melee from the start. |
+| `ui/partypanel.cpp:478` | %s opens with the melee weapon: a click on an enemy makes %s close in and fight hand to hand. Click here: shoot first, then fight hand to hand once the enemies close in. |
+| `ui/prayview.cpp:38` |  calls on the saint for the whole party: |
+| `ui/prayview.cpp:38` |  calls on the saint: |
+| `ui/prayview.cpp:52` | This saint asks a {Virtue} of %d of the one who prays. %s's: %d%s |
+| `ui/prayview.cpp:53` | , too low: more Divine Favor will not help. |
+| `ui/prayview.cpp:60` | Saint's day:  |
+| `ui/prayview.cpp:66` | Differs from the description:  |
+| `ui/prayview.cpp:74` | {Divine Favor} to spend |
+| `ui/prayview.cpp:113` | %s has {Divine Favor:%d}; %d will be left. Past the green mark the chance rises no more. |
+| `ui/prayview.cpp:113` | %s has {Divine Favor:%d}; %d will be left. |
+| `ui/prayview.cpp:116` | Chance the saint hears: %d%% |
+| `ui/prayview.cpp:119` | More {Divine Favor} gives a better chance (up to 99%); it is spent either way. |
+| `ui/prayview.cpp:139` | %s's {Virtue:%d} is below the %d this saint asks: more {Divine Favor} will not help. |
+| `ui/prayview.cpp:140` | This saint asks at least {Divine Favor:%d}; %s has only %d. |
+| `ui/prayview.cpp:141` | This saint asks at least {Divine Favor:%d}: spend more. |
+| `ui/prayview.cpp:142` | No chance as it is: spend more {Divine Favor} (or the saint does not help here). |
 | `ui/professions.cpp:340` | Only for a man |
 | `ui/professions.cpp:345` | Not with this character's past |
 | `ui/professions.cpp:345` | , and not with this past |
@@ -1790,6 +1789,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/quests.cpp:627` | Travel there |
 | `ui/quests.cpp:635` | No quests at the moment. Robber-knight bounties, errands and deliveries the party takes on are listed here with their deadlines. |
 | `ui/quests.cpp:637` | Show secrets (Sabbat dates and places, even before the party learns them) |
+| `ui/richtext.cpp:153` | Missile Devices |
 | `ui/rosterview.cpp:33` |  Add to the Party |
 | `ui/rosterview.cpp:67` | Who travels on |
 | `ui/rosterview.cpp:68` | Up to four travel together. Those who stay behind are kept here and can join again; new characters can join too. |
@@ -1828,53 +1828,55 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/rosterview.cpp:252` | New character |
 | `ui/rosterview.cpp:253` | Begin the adventure |
 | `ui/rosterview.cpp:256` | %d of 4 in the party |
-| `ui/rules.cpp:44` | missile devices |
-| `ui/rules.cpp:107` | rules.ini line  |
-| `ui/rules.cpp:107` | : unknown section  |
-| `ui/rules.cpp:129` | rules.ini line  |
-| `ui/rules.cpp:129` | : unknown field  |
-| `ui/rules.cpp:185` | # the original game's numbers stay for any weapon not named here. # skill: edged, impact, flails, polearms, thrown, bows, missile devices. time: for a blow (lower is quicker). # strength = min-max: below min each point costs 3 melee rating (1 aim for a missile weapon); above max, 2 melee rating more and harder blows.   |
-| `ui/rules.cpp:205` | The battle numbers of every weapon, as the game uses them now%s. |
-| `ui/rules.cpp:205` |  (changed by a mod) |
-| `ui/rules.cpp:206` | Missile dev. |
-| `ui/rules.cpp:209` | Skill needed |
-| `ui/rules.cpp:246` | Time: how long a blow takes (lower is quicker); where it is blank, Reload sets the pace. Hand to hand, a fighter's melee rating counts both in attack and in defense; each point of skill below what a weapon needs costs 2 of it, each point of Strength below the weapon's range 3 (and weaker blows), each point above the range adds 2 (and harder blows). With a missile weapon, the aim: 2 per point of skill short, 1 per point of Strength short. |
-| `ui/rules.cpp:251` | Write these numbers into a mod folder (rules.ini) |
-| `ui/rules.cpp:254` | Could not make the mod folder. |
-| `ui/rules.cpp:255` | . Edit it, then tick the mod in F12 > Mods. |
-| `ui/rules.cpp:256` | Could not write  |
-| `ui/saints.cpp:48` | stays with the party |
-| `ui/saints.cpp:71` | %+d armor (from a saint) |
-| `ui/saints.cpp:71` | worn armor %+d quality (from a saint) |
-| `ui/saints.cpp:72` | metal armor %+d quality (from a saint) |
-| `ui/saints.cpp:72` | leather and cloth armor %+d quality (from a saint) |
-| `ui/saints.cpp:73` | weapon %+d quality (from a saint) |
-| `ui/saints.cpp:73` | edged weapon %+d quality (from a saint) |
-| `ui/saints.cpp:74` | blades, maces, polearms, crossbows and guns %+d quality (from a saint) |
-| `ui/saints.cpp:75` | fire protection %d (from a saint) |
-| `ui/saints.cpp:75` | %+d armor against missiles (from a saint) |
-| `ui/saints.cpp:76` | the party travels %d%% faster (from a saint) |
-| `ui/saints.cpp:76` | the party travels %d%% faster in woods (from a saint) |
-| `ui/saints.cpp:77` | no death from wounds (from a saint) |
-| `ui/saints.cpp:80` | the party travels %s%s (from a saint) |
-| `ui/saints.cpp:80` | twice as fast |
-| `ui/saints.cpp:80` | half again as fast |
-| `ui/saints.cpp:87` | %s: %+d damage |
-| `ui/saints.cpp:88` | %s: %+d penetration |
-| `ui/saints.cpp:90` | %s: armor %+d thickness, %+d quality |
-| `ui/saints.cpp:91` | %s: fire protection %d |
-| `ui/saints.cpp:92` | %s: weapon quality %+d |
-| `ui/saints.cpp:93` | %s: %+d penetration |
-| `ui/saints.cpp:94` | %s: %+d damage, %+d penetration |
-| `ui/saints.cpp:168` | Provides ... |
-| `ui/saints.cpp:168` | Also heals ... |
-| `ui/saints.cpp:184` | ..., Agnes grants |
-| `ui/saints.cpp:222` | What it does: %s |
-| `ui/saints.cpp:228` | Differs from the description: %s |
-| `ui/saints.cpp:238` | Many encounters offer this saint as a choice, and there it can do more than the help above. |
-| `ui/saints.cpp:239` | Some encounters offer this saint as a choice, and there it can do more than the help above. |
-| `ui/saints.cpp:240` | A few encounters offer this saint as a choice, and there it can do more than the help above. |
-| `ui/saints.cpp:241` | No encounter calls for this saint: its help above is all it does. |
+| `ui/rules.cpp:45` | missile devices |
+| `ui/rules.cpp:108` | rules.ini line  |
+| `ui/rules.cpp:108` | : unknown section  |
+| `ui/rules.cpp:130` | rules.ini line  |
+| `ui/rules.cpp:130` | : unknown field  |
+| `ui/rules.cpp:186` | # the original game's numbers stay for any weapon not named here. # skill: edged, impact, flails, polearms, thrown, bows, missile devices. time: for a blow (lower is quicker). # strength = min-max: below min each point costs 3 melee rating (1 aim for a missile weapon); above max, 2 melee rating more and harder blows.   |
+| `ui/rules.cpp:206` | The battle numbers of every weapon, as the game uses them now%s. |
+| `ui/rules.cpp:206` |  (changed by a mod) |
+| `ui/rules.cpp:207` | Missile dev. |
+| `ui/rules.cpp:210` | Skill needed |
+| `ui/rules.cpp:235` | Missile dev. |
+| `ui/rules.cpp:235` | Missile Devices |
+| `ui/rules.cpp:248` | Time: how long a blow takes (lower is quicker); where it is blank, Reload sets the pace. Hand to hand, a fighter's melee rating counts both in attack and in defense; each point of skill below what a weapon needs costs 2 of it, each point of {Strength} below the weapon's range 3 (and weaker blows), each point above the range adds 2 (and harder blows). With a missile weapon, the aim: 2 per point of skill short, 1 per point of {Strength} short. |
+| `ui/rules.cpp:254` | Write these numbers into a mod folder (rules.ini) |
+| `ui/rules.cpp:257` | Could not make the mod folder. |
+| `ui/rules.cpp:258` | . Edit it, then tick the mod in F12 > Mods. |
+| `ui/rules.cpp:259` | Could not write  |
+| `ui/saints.cpp:49` | stays with the party |
+| `ui/saints.cpp:72` | %+d armor (from a saint) |
+| `ui/saints.cpp:72` | worn armor %+d quality (from a saint) |
+| `ui/saints.cpp:73` | metal armor %+d quality (from a saint) |
+| `ui/saints.cpp:73` | leather and cloth armor %+d quality (from a saint) |
+| `ui/saints.cpp:74` | weapon %+d quality (from a saint) |
+| `ui/saints.cpp:74` | edged weapon %+d quality (from a saint) |
+| `ui/saints.cpp:75` | blades, maces, polearms, crossbows and guns %+d quality (from a saint) |
+| `ui/saints.cpp:76` | fire protection %d (from a saint) |
+| `ui/saints.cpp:76` | %+d armor against missiles (from a saint) |
+| `ui/saints.cpp:77` | the party travels %d%% faster (from a saint) |
+| `ui/saints.cpp:77` | the party travels %d%% faster in woods (from a saint) |
+| `ui/saints.cpp:78` | no death from wounds (from a saint) |
+| `ui/saints.cpp:81` | the party travels %s%s (from a saint) |
+| `ui/saints.cpp:81` | twice as fast |
+| `ui/saints.cpp:81` | half again as fast |
+| `ui/saints.cpp:88` | %s: %+d damage |
+| `ui/saints.cpp:89` | %s: %+d penetration |
+| `ui/saints.cpp:91` | %s: armor %+d thickness, %+d quality |
+| `ui/saints.cpp:92` | %s: fire protection %d |
+| `ui/saints.cpp:93` | %s: weapon quality %+d |
+| `ui/saints.cpp:94` | %s: %+d penetration |
+| `ui/saints.cpp:95` | %s: %+d damage, %+d penetration |
+| `ui/saints.cpp:169` | Provides ... |
+| `ui/saints.cpp:169` | Also heals ... |
+| `ui/saints.cpp:185` | ..., Agnes grants |
+| `ui/saints.cpp:223` | What it does:  |
+| `ui/saints.cpp:229` | Differs from the description:  |
+| `ui/saints.cpp:239` | Many encounters offer this saint as a choice, and there it can do more than the help above. |
+| `ui/saints.cpp:240` | Some encounters offer this saint as a choice, and there it can do more than the help above. |
+| `ui/saints.cpp:241` | A few encounters offer this saint as a choice, and there it can do more than the help above. |
+| `ui/saints.cpp:242` | No encounter calls for this saint: its help above is all it does. |
 | `ui/saves.cpp:41` | yesterday %H:%M |
 | `ui/saves.cpp:53` | Quick save, quick load and autosaves |
 | `ui/saves.cpp:57` | Ctrl+S saves at once (no comment to type); F9 or Ctrl+L loads the last quick save. |
@@ -2067,138 +2069,148 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/settings_setup.cpp:412` | File names for a sound pack |
 | `ui/settings_setup.cpp:413` | %s.wav or .ogg: %s |
 | `ui/settings_setup.cpp:414` | Several versions of one sound (parry1.wav, parry2.wav ...) are played in turn at random. |
-| `ui/sheetview.cpp:162` | Light load (up to half of Endurance + Strength): no hindrance at all. Only what is equipped counts (weapons, armor, shield); items merely carried weigh nothing. |
-| `ui/sheetview.cpp:163` | Normal load (up to Endurance + Strength): blows hand to hand come about a fifth slower, and past 5/8 of it the Agility used to dodge falls to two thirds. |
-| `ui/sheetview.cpp:164` | Heavy load (up to half as much again): the Agility used to dodge falls to two thirds, and to a third past 1 1/4 times Endurance + Strength. Blows are no slower than with a normal load (an oversight in the original game). |
-| `ui/sheetview.cpp:165` | Overloaded (more than 1 1/2 times Endurance + Strength): blows hand to hand come about two thirds slower, and the Agility used to dodge falls to a third, then to nothing past about twice Endurance + Strength. |
-| `ui/sheetview.cpp:187` | every weapon skill |
-| `ui/sheetview.cpp:188` | Missile Devices |
-| `ui/sheetview.cpp:189` | Speak Common |
-| `ui/sheetview.cpp:189` | Read & Write |
-| `ui/sheetview.cpp:199` | every weapon skill |
-| `ui/sheetview.cpp:224` | ; leaves the party in %s |
-| `ui/sheetview.cpp:233` | Darklands+ ("The best member speaks for the party", F12 > Settings > Cards and towns): on cards, each test is made by the member best at it, and shops set prices by the best bargainer, whoever leads. The leader is still the one meant by "the leader" on a card (a mine's traps, a church's favor, an item handed over), and in battles and dungeons (when not paused) deals with doors, chests, locks and traps and leads the group's movement. |
-| `ui/sheetview.cpp:236` | The leader speaks and acts for the party on the cards and bargains in the shops. |
-| `ui/sheetview.cpp:265` | a little slower (the attack rate falls) |
-| `ui/sheetview.cpp:265` | much slower (the attack rate falls a lot) |
-| `ui/sheetview.cpp:265` | at the usual pace |
-| `ui/sheetview.cpp:268` | Load %d: the weight of what %s has equipped (weapons, armor, shield). Items carried but not equipped weigh nothing. Compared with Endurance + Strength (%d now): light up to %d, normal up to %d, heavy up to %d, overloaded above that.  Now: - Tests on cards that ask for Agility (climbing a wall, running, a trap): Agility %d counts %s (%d). - Fending off blows in melee: Agility counts %s (%d). - Swinging in melee: %s.  Travel, walking in a battle, missiles and Endurance are not affected by the load. |
-| `ui/sheetview.cpp:372` |  when equipped |
-| `ui/sheetview.cpp:374` | ; this member's mount |
-| `ui/sheetview.cpp:376` |  in the party's pack |
-| `ui/sheetview.cpp:376` | ; in the party's pack |
-| `ui/sheetview.cpp:377` | ; kept (not sold or dropped) |
-| `ui/sheetview.cpp:378` | ; marked to sell (Sell spare gear sells it) |
-| `ui/sheetview.cpp:387` | Each member rides the best horse or mule they carry; the party travels mounted only when every member has one. |
-| `ui/sheetview.cpp:388` |  A member without one is given the best spare one when the game needs it (setting out on the road, a chase). |
-| `ui/sheetview.cpp:391` | For a member to ride it, drag it onto them, or press their number (1 to 5). |
-| `ui/sheetview.cpp:392` | For another member to ride it, drag it onto them, or press their number (1 to 5). |
-| `ui/sheetview.cpp:395` | To give the lot, drag it onto a member at the left, or press their number (1 to 5); Shift: just one. |
-| `ui/sheetview.cpp:395` | To give it, drag it onto a member at the left, or press their number (1 to 5). |
-| `ui/sheetview.cpp:400` | too weak by  |
-| `ui/sheetview.cpp:401` |  can use it well |
-| `ui/sheetview.cpp:405` | %s's defense with it: against a blow, %d + their melee rating; against a shot or throw, %d + twice the Agility %d = %d%s |
-| `ui/sheetview.cpp:406` |  (the load lowers Agility) |
-| `ui/sheetview.cpp:412` | Attack and defense hand to hand with  |
-| `ui/sheetview.cpp:412` | these weapons |
-| `ui/sheetview.cpp:423` | Point at an item to see it here; F11 shows what you can do. |
-| `ui/sheetview.cpp:425` | Point at an item to see it here. Drag an item onto a member at the left to give it to them (Shift: just one of a stack). Click another member at the left to see their sheet; Esc or Close goes back. |
-| `ui/sheetview.cpp:427` | Point at an attribute or a skill to see what it does and the whole party's values. Gold dot: the party's best at it; blue: raised by a saint for a while. |
-| `ui/sheetview.cpp:428` | Point at an attribute or a skill to see what it does. Blue: raised by a saint for a while. |
-| `ui/sheetview.cpp:432` | In effect now:  |
-| `ui/sheetview.cpp:434` |  more (see "Blessings and potions" in the margin). |
-| `ui/sheetview.cpp:459` | Worth about %s |
-| `ui/sheetview.cpp:500` | Carries nothing. |
-| `ui/sheetview.cpp:534` | The party's pack |
-| `ui/sheetview.cpp:607` | Kept from selling and dropping (Sell spare gear skips it). Click to stop keeping it. |
-| `ui/sheetview.cpp:608` | Kept from selling and dropping (Sell spare gear skips it). Click to mark it to sell instead. |
-| `ui/sheetview.cpp:609` | Marked to sell: Sell spare gear in a shop sells it with the spare weapons and armor. Click to clear the mark. |
-| `ui/sheetview.cpp:610` | Keep it: Darklands+ will not sell it (one by one or with Sell spare gear) or drop it until you click again. |
-| `ui/sheetview.cpp:644` | : the party's pack is everyone's already |
-| `ui/sheetview.cpp:645` | : drop it on a member at the left |
-| `ui/sheetview.cpp:718` | : Virtue too low for this saint |
-| `ui/sheetview.cpp:736` | half its maximum |
-| `ui/sheetview.cpp:740` | half its maximum |
-| `ui/sheetview.cpp:750` | faster travel |
-| `ui/sheetview.cpp:750` | ire protection |
-| `ui/sheetview.cpp:750` | better armor |
-| `ui/sheetview.cpp:751` | better in quality |
-| `ui/sheetview.cpp:751` | better weapons |
-| `ui/sheetview.cpp:751` | walks on water |
-| `ui/sheetview.cpp:752` | a long sword |
-| `ui/sheetview.cpp:752` | Costs a point |
-| `ui/sheetview.cpp:752` | costs Strength, Virtue |
-| `ui/sheetview.cpp:752` | musical instrument |
-| `ui/sheetview.cpp:752` | with music: the town's opinion |
-| `ui/sheetview.cpp:753` | nearest town |
-| `ui/sheetview.cpp:753` | carried to a town |
-| `ui/sheetview.cpp:753` | a little money |
-| `ui/sheetview.cpp:753` | teaches a saint |
-| `ui/sheetview.cpp:754` | Virtue is raised |
-| `ui/sheetview.cpp:754` | Virtue 20 at least, a quarter of the money |
-| `ui/sheetview.cpp:754` | No help of its own |
-| `ui/sheetview.cpp:754` | encounters only |
-| `ui/sheetview.cpp:754` | the bankers' favor |
-| `ui/sheetview.cpp:755` | death from wounds |
-| `ui/sheetview.cpp:755` | no death from wounds |
-| `ui/sheetview.cpp:755` | loses a tenth |
-| `ui/sheetview.cpp:755` | may cost money |
-| `ui/sheetview.cpp:755` | loses 3 to 8 |
-| `ui/sheetview.cpp:755` | may cost Endurance |
-| `ui/sheetview.cpp:756` | costs something |
-| `ui/sheetview.cpp:772` | (all\|half the\|[0-9]+%\|[0-9]+ to [0-9]+)( of)?( lost)? (Endurance\|Strength)( and (Endurance\|Strength))? |
-| `ui/sheetview.cpp:773` | ^(.*?)\\s*(\\+[0-9]+( to [0-9]+)?\|lowered by ([0-9]+ to [0-9]+\|half its maximum))(.*)$ |
-| `ui/sheetview.cpp:774` | by ([0-9]+ to [0-9]+) |
-| `ui/sheetview.cpp:787` | (Endurance\|Strength)( and (Endurance\|Strength))? below [0-9]+ (is\|are) raised to ([0-9]+) |
-| `ui/sheetview.cpp:792` | ^Costs ([0-9]+ to [0-9]+) (Endurance\|Strength) |
-| `ui/sheetview.cpp:808` | Every member's  |
-| `ui/sheetview.cpp:813` | Streetwise and Woodwise each +1 to 4 |
-| `ui/sheetview.cpp:818` | worn body and leg armor |
-| `ui/sheetview.cpp:818` | it gives the one prayed for armor |
-| `ui/sheetview.cpp:832` | weapons in hand |
-| `ui/sheetview.cpp:833` | weapon skill |
-| `ui/sheetview.cpp:937` | Known in the party |
-| `ui/sheetview.cpp:959` | Or what it raises: |
-| `ui/sheetview.cpp:959` | Or what it raises: |
-| `ui/sheetview.cpp:973` | %s: the %d saint%s whose help raises it%s |
-| `ui/sheetview.cpp:973` | The town's opinion of the party (its reputation) |
-| `ui/sheetview.cpp:974` |  (click again for all) |
-| `ui/sheetview.cpp:998` | No saint helps with that. |
-| `ui/sheetview.cpp:998` | Nobody in the party knows a saint that helps with that. (All saints shows the others too.) |
-| `ui/sheetview.cpp:1047` | No library the party has been to teaches this saint. |
-| `ui/sheetview.cpp:1049` | Taught in the library of  |
-| `ui/sheetview.cpp:1072` | Nobody in the party knows this saint. |
-| `ui/sheetview.cpp:1076` | Asks a Virtue of %d. |
-| `ui/sheetview.cpp:1076` | Asks a Virtue of %d: too low for %s, who cannot call on this saint. |
-| `ui/sheetview.cpp:1089` | %s: no chance now |
-| `ui/sheetview.cpp:1092` | The best chance of being heard, and the least Divine Favor that gives it: more is spent for nothing. The prayer screen sets the favor. |
-| `ui/sheetview.cpp:1093` | Virtue too low for this saint, or too little Divine Favor: see above and the prayer screen. |
-| `ui/sheetview.cpp:1095` | Call on this saint now: the prayer screen, where you choose how much Divine Favor to spend. |
-| `ui/sheetview.cpp:1102` | Differs from the description:  |
-| `ui/sheetview.cpp:1140` | The party has none. |
-| `ui/sheetview.cpp:1141` | The party has %d. |
-| `ui/sheetview.cpp:1142` | The party has %d (%s). |
-| `ui/sheetview.cpp:1144` | Where to buy: %s |
-| `ui/sheetview.cpp:1170` | All formulae |
-| `ui/sheetview.cpp:1170` | Known in the party |
-| `ui/sheetview.cpp:1191` | Nobody in the party knows a formula. All formulae shows every one, its ingredients and where it is sold. |
-| `ui/sheetview.cpp:1233` | The party's ingredients |
-| `ui/sheetview.cpp:1263` | Mystic number %d, %s. |
-| `ui/sheetview.cpp:1263` | risk unknown |
-| `ui/sheetview.cpp:1266` | The mystic number: the higher, the harder the formula is to brew (set against the alchemist's Alchemy and Intelligence). The risk: how badly a failed brew can go wrong. |
-| `ui/sheetview.cpp:1271` | Ingredients: the party has / needed |
-| `ui/sheetview.cpp:1282` | Enough ingredients to make %d potion%s. |
-| `ui/sheetview.cpp:1283` | The party lacks an ingredient: brewing must wait. |
-| `ui/sheetview.cpp:1283` | The party lacks an ingredient. |
-| `ui/sheetview.cpp:1285` | Chance of brewing one batch |
-| `ui/sheetview.cpp:1294` | Nobody in the party knows it. |
-| `ui/sheetview.cpp:1297` | No alchemist sells it: it is traded for or found. |
-| `ui/sheetview.cpp:1298` | No alchemist the party has been to sells it. |
-| `ui/sheetview.cpp:1303` | Sold by the alchemist of  |
-| `ui/skillicons.cpp:396` | Frames and clock |
-| `ui/skillicons.cpp:400` | Cards and towns |
-| `ui/skillicons.cpp:405` | The party and its items |
-| `ui/skillicons.cpp:421` | Fixes for bugs of the original |
+| `ui/sheetview.cpp:164` | Light load (up to half of {Endurance} + {Strength}): no hindrance at all. Only what is equipped counts (weapons, armor, shield); items merely carried weigh nothing. |
+| `ui/sheetview.cpp:165` | Normal load (up to {Endurance} + {Strength}): blows hand to hand come about a fifth slower, and past 5/8 of it the {Agility} used to dodge falls to two thirds. |
+| `ui/sheetview.cpp:166` | Heavy load (up to half as much again): the {Agility} used to dodge falls to two thirds, and to a third past 1 1/4 times {Endurance} + {Strength}. Blows are no slower than with a normal load (an oversight in the original game). |
+| `ui/sheetview.cpp:167` | Overloaded (more than 1 1/2 times {Endurance} + {Strength}): blows hand to hand come about two thirds slower, and the {Agility} used to dodge falls to a third, then to nothing past about twice {Endurance} + {Strength}. |
+| `ui/sheetview.cpp:189` | every weapon skill |
+| `ui/sheetview.cpp:190` | Missile Devices |
+| `ui/sheetview.cpp:191` | Speak Common |
+| `ui/sheetview.cpp:191` | Read & Write |
+| `ui/sheetview.cpp:217` | ; leaves the party in %s |
+| `ui/sheetview.cpp:226` | Darklands+ ("The best member speaks for the party", F12 > Settings > Cards and towns): on cards, each test is made by the member best at it, and shops set prices by the best bargainer, whoever leads. The leader is still the one meant by "the leader" on a card (a mine's traps, a church's favor, an item handed over), and in battles and dungeons (when not paused) deals with doors, chests, locks and traps and leads the group's movement. |
+| `ui/sheetview.cpp:229` | The leader speaks and acts for the party on the cards and bargains in the shops. |
+| `ui/sheetview.cpp:258` | a little slower (the attack rate falls) |
+| `ui/sheetview.cpp:258` | much slower (the attack rate falls a lot) |
+| `ui/sheetview.cpp:258` | at the usual pace |
+| `ui/sheetview.cpp:261` | Load %d: the weight of what %s has equipped (weapons, armor, shield). Items carried but not equipped weigh nothing. Compared with {Endurance} + {Strength} (%d now): light up to %d, normal up to %d, heavy up to %d, overloaded above that.  Now: - Tests on cards that ask for {Agility} (climbing a wall, running, a trap): {Agility:%d} counts %s (%d). - Fending off blows in melee: {Agility} counts %s (%d). - Swinging in melee: %s.  Travel, walking in a battle, missiles and {Endurance} are not affected by the load. |
+| `ui/sheetview.cpp:365` |  when equipped |
+| `ui/sheetview.cpp:367` | ; this member's mount |
+| `ui/sheetview.cpp:369` |  in the party's pack |
+| `ui/sheetview.cpp:369` | ; in the party's pack |
+| `ui/sheetview.cpp:370` | ; kept (not sold or dropped) |
+| `ui/sheetview.cpp:371` | ; marked to sell (Sell spare gear sells it) |
+| `ui/sheetview.cpp:380` | Each member rides the best horse or mule they carry; the party travels mounted only when every member has one. |
+| `ui/sheetview.cpp:381` |  A member without one is given the best spare one when the game needs it (setting out on the road, a chase). |
+| `ui/sheetview.cpp:384` | For a member to ride it, drag it onto them, or press their number (1 to 5). |
+| `ui/sheetview.cpp:385` | For another member to ride it, drag it onto them, or press their number (1 to 5). |
+| `ui/sheetview.cpp:388` | To give the lot, drag it onto a member at the left, or press their number (1 to 5); Shift: just one. |
+| `ui/sheetview.cpp:388` | To give it, drag it onto a member at the left, or press their number (1 to 5). |
+| `ui/sheetview.cpp:393` | too weak by  |
+| `ui/sheetview.cpp:394` |  can use it well |
+| `ui/sheetview.cpp:398` | %s's defense with it: against a blow, %d + their melee rating; against a shot or throw, %d + twice the {Agility:%d} = %d%s |
+| `ui/sheetview.cpp:399` |  (the load lowers Agility) |
+| `ui/sheetview.cpp:405` | Attack and defense hand to hand with  |
+| `ui/sheetview.cpp:405` | these weapons |
+| `ui/sheetview.cpp:416` | Point at an item to see it here; F11 shows what you can do. |
+| `ui/sheetview.cpp:418` | Point at an item to see it here. Drag an item onto a member at the left to give it to them (Shift: just one of a stack). Click another member at the left to see their sheet; Esc or Close goes back. |
+| `ui/sheetview.cpp:420` | Point at an attribute or a skill to see what it does and the whole party's values. Gold dot: the party's best at it; blue: raised by a saint for a while. |
+| `ui/sheetview.cpp:421` | Point at an attribute or a skill to see what it does. Blue: raised by a saint for a while. |
+| `ui/sheetview.cpp:425` | In effect now:  |
+| `ui/sheetview.cpp:427` |  more (see "Blessings and potions" in the margin). |
+| `ui/sheetview.cpp:452` | Worth about %s |
+| `ui/sheetview.cpp:493` | Carries nothing. |
+| `ui/sheetview.cpp:527` | The party's pack |
+| `ui/sheetview.cpp:600` | Kept from selling and dropping (Sell spare gear skips it). Click to stop keeping it. |
+| `ui/sheetview.cpp:601` | Kept from selling and dropping (Sell spare gear skips it). Click to mark it to sell instead. |
+| `ui/sheetview.cpp:602` | Marked to sell: Sell spare gear in a shop sells it with the spare weapons and armor. Click to clear the mark. |
+| `ui/sheetview.cpp:603` | Keep it: Darklands+ will not sell it (one by one or with Sell spare gear) or drop it until you click again. |
+| `ui/sheetview.cpp:637` | : the party's pack is everyone's already |
+| `ui/sheetview.cpp:638` | : drop it on a member at the left |
+| `ui/sheetview.cpp:711` | : Virtue too low for this saint |
+| `ui/sheetview.cpp:734` | half its maximum |
+| `ui/sheetview.cpp:738` | half its maximum |
+| `ui/sheetview.cpp:748` | faster travel |
+| `ui/sheetview.cpp:748` | ire protection |
+| `ui/sheetview.cpp:748` | better armor |
+| `ui/sheetview.cpp:749` | better in quality |
+| `ui/sheetview.cpp:749` | better weapons |
+| `ui/sheetview.cpp:749` | walks on water |
+| `ui/sheetview.cpp:750` | a long sword |
+| `ui/sheetview.cpp:750` | Costs a point |
+| `ui/sheetview.cpp:750` | costs Strength, Virtue |
+| `ui/sheetview.cpp:750` | musical instrument |
+| `ui/sheetview.cpp:750` | with music: the town's opinion |
+| `ui/sheetview.cpp:751` | nearest town |
+| `ui/sheetview.cpp:751` | carried to a town |
+| `ui/sheetview.cpp:751` | a little money |
+| `ui/sheetview.cpp:751` | teaches a saint |
+| `ui/sheetview.cpp:752` | Virtue is raised |
+| `ui/sheetview.cpp:752` | Virtue 20 at least, a quarter of the money |
+| `ui/sheetview.cpp:752` | No help of its own |
+| `ui/sheetview.cpp:752` | encounters only |
+| `ui/sheetview.cpp:752` | the bankers' favor |
+| `ui/sheetview.cpp:753` | death from wounds |
+| `ui/sheetview.cpp:753` | no death from wounds |
+| `ui/sheetview.cpp:753` | loses a tenth |
+| `ui/sheetview.cpp:753` | may cost money |
+| `ui/sheetview.cpp:753` | loses 3 to 8 |
+| `ui/sheetview.cpp:753` | may cost Endurance |
+| `ui/sheetview.cpp:754` | costs something |
+| `ui/sheetview.cpp:770` | (all\|half the\|[0-9]+%\|[0-9]+ to [0-9]+)( of)?( lost)? (Endurance\|Strength)( and (Endurance\|Strength))? |
+| `ui/sheetview.cpp:771` | ^(.*?)\\s*(\\+[0-9]+( to [0-9]+)?\|lowered by ([0-9]+ to [0-9]+\|half its maximum))(.*)$ |
+| `ui/sheetview.cpp:772` | by ([0-9]+ to [0-9]+) |
+| `ui/sheetview.cpp:785` | (Endurance\|Strength)( and (Endurance\|Strength))? below [0-9]+ (is\|are) raised to ([0-9]+) |
+| `ui/sheetview.cpp:790` | ^Costs ([0-9]+ to [0-9]+) (Endurance\|Strength) |
+| `ui/sheetview.cpp:806` | Every member's  |
+| `ui/sheetview.cpp:811` | Streetwise and Woodwise each +1 to 4 |
+| `ui/sheetview.cpp:816` | worn body and leg armor |
+| `ui/sheetview.cpp:816` | it gives the one prayed for armor |
+| `ui/sheetview.cpp:830` | weapons in hand |
+| `ui/sheetview.cpp:831` | weapon skill |
+| `ui/sheetview.cpp:849` | {Charisma} +6 to 11 |
+| `ui/sheetview.cpp:876` | \\}(, and \|, \| and )\\{ |
+| `ui/sheetview.cpp:876` | ^((?:\\{[^{}:]+\\})+) (\\+[0-9]+(?: to [0-9]+)?)$ |
+| `ui/sheetview.cpp:1067` | Known in the party |
+| `ui/sheetview.cpp:1089` | Or what it raises: |
+| `ui/sheetview.cpp:1089` | Or what it raises: |
+| `ui/sheetview.cpp:1103` | %s: the %d saint%s whose help %s it, the most first%s |
+| `ui/sheetview.cpp:1103` | The town's opinion of the party (its reputation) |
+| `ui/sheetview.cpp:1104` | raises or heals |
+| `ui/sheetview.cpp:1104` |  (click again for all) |
+| `ui/sheetview.cpp:1130` | No saint helps with that. |
+| `ui/sheetview.cpp:1130` | Nobody in the party knows a saint that helps with that. (All saints shows the others too.) |
+| `ui/sheetview.cpp:1169` | This saint asks a {Virtue} of %d of the one who prays%s. Each member's {Virtue}: %s. |
+| `ui/sheetview.cpp:1169` | , more than anyone in the party has |
+| `ui/sheetview.cpp:1195` | No library the party has been to teaches this saint. |
+| `ui/sheetview.cpp:1197` | Taught in the library of  |
+| `ui/sheetview.cpp:1220` | Nobody in the party knows this saint. |
+| `ui/sheetview.cpp:1224` | Asks a {Virtue} of %d. |
+| `ui/sheetview.cpp:1224` | Asks a {Virtue} of %d: too low for %s, who cannot call on this saint. |
+| `ui/sheetview.cpp:1237` | %s: no chance now |
+| `ui/sheetview.cpp:1240` | The best chance of being heard, and the least Divine Favor that gives it: more is spent for nothing. The prayer screen sets the favor. |
+| `ui/sheetview.cpp:1241` | Virtue too low for this saint, or too little Divine Favor: see above and the prayer screen. |
+| `ui/sheetview.cpp:1243` | Call on this saint now: the prayer screen, where you choose how much Divine Favor to spend. |
+| `ui/sheetview.cpp:1250` | Differs from the description:  |
+| `ui/sheetview.cpp:1288` | The party has none. |
+| `ui/sheetview.cpp:1289` | The party has %d. |
+| `ui/sheetview.cpp:1290` | The party has %d (%s). |
+| `ui/sheetview.cpp:1292` | Where to buy: %s |
+| `ui/sheetview.cpp:1318` | All formulae |
+| `ui/sheetview.cpp:1318` | Known in the party |
+| `ui/sheetview.cpp:1339` | Nobody in the party knows a formula. All formulae shows every one, its ingredients and where it is sold. |
+| `ui/sheetview.cpp:1381` | The party's ingredients |
+| `ui/sheetview.cpp:1411` | Mystic number %d, %s. |
+| `ui/sheetview.cpp:1411` | risk unknown |
+| `ui/sheetview.cpp:1414` | The mystic number: the higher, the harder the formula is to brew (set against the alchemist's {Alchemy} and {Intelligence}). The risk: how badly a failed brew can go wrong. |
+| `ui/sheetview.cpp:1419` | Ingredients: the party has / needed |
+| `ui/sheetview.cpp:1430` | Enough ingredients to make %d potion%s. |
+| `ui/sheetview.cpp:1431` | The party lacks an ingredient: brewing must wait. |
+| `ui/sheetview.cpp:1431` | The party lacks an ingredient. |
+| `ui/sheetview.cpp:1433` | Chance of brewing one batch |
+| `ui/sheetview.cpp:1442` | Nobody in the party knows it. |
+| `ui/sheetview.cpp:1445` | No alchemist sells it: it is traded for or found. |
+| `ui/sheetview.cpp:1446` | No alchemist the party has been to sells it. |
+| `ui/sheetview.cpp:1451` | Sold by the alchemist of  |
+| `ui/skillicons.cpp:349` | Missile Device |
+| `ui/skillicons.cpp:349` | Missile Weapons |
+| `ui/skillicons.cpp:350` | Edged Weapon |
+| `ui/skillicons.cpp:350` | Impact Weapon |
+| `ui/skillicons.cpp:350` | Thrown Weapon |
+| `ui/skillicons.cpp:475` | Frames and clock |
+| `ui/skillicons.cpp:479` | Cards and towns |
+| `ui/skillicons.cpp:484` | The party and its items |
+| `ui/skillicons.cpp:500` | Fixes for bugs of the original |
 | `ui/teachersui.cpp:47` | Missile Devices |
 | `ui/teachersui.cpp:48` | Speak Common |
 | `ui/teachersui.cpp:48` | Read & Write |
@@ -2211,7 +2223,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/teachersui.cpp:85` |  The teacher then stays in town for a week; at the inn, set a member to "Train or study". |
 | `ui/teachersui.cpp:86` |  Who they accept:  |
 | `ui/teachersui.cpp:87` |  Right now:  |
-| `ui/teachersui.cpp:99` | %s (until %d %s) |
+| `ui/teachersui.cpp:99` | {%s} (until %d %s) |
 | `ui/tipplace.cpp:118` | tooltip over ... |
 | `ui/tipplace.cpp:136` | what it describes |
 | `ui/tips.cpp:56` | Never show again (this will nag you %d more time%s) |
@@ -2474,74 +2486,74 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui_windows.cpp:433` | held: Ctrl (in the overland view: Ctrl+click travels there) |
 | `ui/ui_windows.cpp:434` | pressed: F11 (this list) |
 | `ui/ui_windows.cpp:436` | F11, Esc or a click closes this. |
-| `ui/worldmap.cpp:73` | Unwelcome here |
-| `ui/worldmap.cpp:73` | The watch on alert here |
-| `ui/worldmap.cpp:73` | Wanted by the watch here |
-| `ui/worldmap.cpp:88` | a university |
-| `ui/worldmap.cpp:88` | an alchemist |
-| `ui/worldmap.cpp:89` | docks (boats) |
-| `ui/worldmap.cpp:90` | a swordsmith of 30q+ |
-| `ui/worldmap.cpp:90` | an armorer of 30q+ |
-| `ui/worldmap.cpp:90` | a bowyer of 30q+ |
-| `ui/worldmap.cpp:91` | an artificer of 30q+ |
-| `ui/worldmap.cpp:91` | Artificer 30q+ |
-| `ui/worldmap.cpp:109` | everyone knows the swordsmiths of Nuremberg |
-| `ui/worldmap.cpp:145` | Route planned: the party sets off once it is in the overland view. |
-| `ui/worldmap.cpp:210` | Its saints, formulae and teachers: known once the party has been there. |
-| `ui/worldmap.cpp:212` | The saints its library teaches: known once the party has been there. |
-| `ui/worldmap.cpp:220` | Not visited yet |
-| `ui/worldmap.cpp:232` | Quest markers |
-| `ui/worldmap.cpp:232` | Boat routes between the towns' docks |
-| `ui/worldmap.cpp:232` | Each place as an icon of its kind (else a dot) |
-| `ui/worldmap.cpp:233` | The days of travel from the party to every town, under its name (off at first: it crowds the map) |
-| `ui/worldmap.cpp:442` | Towns with ... |
-| `ui/worldmap.cpp:531` | the marked spot |
-| `ui/worldmap.cpp:548` | Click for what it offers, and to travel there |
-| `ui/worldmap.cpp:584` | No way there from here |
-| `ui/worldmap.cpp:585` | Travel there |
-| `ui/worldmap.cpp:590` | Travel there |
-| `ui/worldmap.cpp:593` | Leave town and travel there |
-| `ui/worldmap.cpp:598` | To travel, be in the overland view or in a town's streets |
-| `ui/worldmap.cpp:604` | Walk out of %s's gate and travel to %s? |
-| `ui/worldmap.cpp:605` | The party walks through the streets to a gate and out; in the overland view the journey begins. |
-| `ui/worldmap.cpp:606` | Leave and travel |
-| `ui/worldmap.cpp:625` | The wares noted here (%d shop%s) |
-| `ui/worldmap.cpp:642` | Boats leave here for these towns (not every day: the docks say which leave today). |
-| `ui/worldmap.cpp:643` | Boats from these towns call here; none sail back to them from here. |
-| `ui/worldmap.cpp:644` | Boats sail both ways between here and these towns (not every day: the docks say which leave today). |
-| `ui/worldmap.cpp:666` | Its docks have no boats leaving (the original game has none either). |
-| `ui/worldmap.cpp:708` | Collect your reward |
-| `ui/worldmap.cpp:708` | Robber knights |
-| `ui/worldmap.cpp:708` | Treasures to fetch |
-| `ui/worldmap.cpp:708` | Papers to get in a town |
-| `ui/worldmap.cpp:708` | City politics |
-| `ui/worldmap.cpp:708` | Cities at war |
-| `ui/worldmap.cpp:708` | The Wild Hunt |
-| `ui/worldmap.cpp:708` | Other quests |
-| `ui/worldmap.cpp:726` | %s (%d)###qg |
-| `ui/worldmap.cpp:732` | Sorted %s first: click for %s first. |
-| `ui/worldmap.cpp:732` | the soonest due |
-| `ui/worldmap.cpp:741` | No quests or rumors yet. |
-| `ui/worldmap.cpp:812` | cave near Köln |
-| `ui/worldmap.cpp:818` | and %d more: type more of the name to narrow the list |
-| `ui/worldmap.cpp:819` | No place of that name. |
-| `ui/worldmap.cpp:824` | Click one to circle those towns on the map. |
-| `ui/worldmap.cpp:836` |  the party has been to: |
-| `ui/worldmap.cpp:840` | ... and %d more (circled on the map) |
-| `ui/worldmap.cpp:841` | %s %dq##tl%d |
-| `ui/worldmap.cpp:852` | Find alchemical ingredients |
-| `ui/worldmap.cpp:853` | Find any ware |
-| `ui/worldmap.cpp:860` | Show on the map |
-| `ui/worldmap.cpp:877` | shown (click to hide) |
-| `ui/worldmap.cpp:877` | hidden (click to show) |
-| `ui/worldmap.cpp:892` | Places: click a kind to show or hide it. |
-| `ui/worldmap.cpp:921` | The party: a click shows it on the map. |
-| `ui/worldmap.cpp:932` | The Holy Roman Empire |
-| `ui/worldmap.cpp:935` | {LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes. |
-| `ui/worldmap.cpp:936` | Drag to move, wheel to zoom. M or Esc closes. |
-| `ui/worldmap.cpp:938` | Traveling to %s |
-| `ui/worldmap.cpp:1001` | faded: leaves later this week |
-| `ui/worldmap.cpp:1066` | Click to take the boat. |
+| `ui/worldmap.cpp:74` | Unwelcome here |
+| `ui/worldmap.cpp:74` | The watch on alert here |
+| `ui/worldmap.cpp:74` | Wanted by the watch here |
+| `ui/worldmap.cpp:89` | a university |
+| `ui/worldmap.cpp:89` | an alchemist |
+| `ui/worldmap.cpp:90` | docks (boats) |
+| `ui/worldmap.cpp:91` | a swordsmith of 30q+ |
+| `ui/worldmap.cpp:91` | an armorer of 30q+ |
+| `ui/worldmap.cpp:91` | a bowyer of 30q+ |
+| `ui/worldmap.cpp:92` | an artificer of 30q+ |
+| `ui/worldmap.cpp:92` | Artificer 30q+ |
+| `ui/worldmap.cpp:110` | everyone knows the swordsmiths of Nuremberg |
+| `ui/worldmap.cpp:146` | Route planned: the party sets off once it is in the overland view. |
+| `ui/worldmap.cpp:211` | Its saints, formulae and teachers: known once the party has been there. |
+| `ui/worldmap.cpp:213` | The saints its library teaches: known once the party has been there. |
+| `ui/worldmap.cpp:221` | Not visited yet |
+| `ui/worldmap.cpp:233` | Quest markers |
+| `ui/worldmap.cpp:233` | Boat routes between the towns' docks |
+| `ui/worldmap.cpp:233` | Each place as an icon of its kind (else a dot) |
+| `ui/worldmap.cpp:234` | The days of travel from the party to every town, under its name (off at first: it crowds the map) |
+| `ui/worldmap.cpp:443` | Towns with ... |
+| `ui/worldmap.cpp:532` | the marked spot |
+| `ui/worldmap.cpp:549` | Click for what it offers, and to travel there |
+| `ui/worldmap.cpp:585` | No way there from here |
+| `ui/worldmap.cpp:586` | Travel there |
+| `ui/worldmap.cpp:591` | Travel there |
+| `ui/worldmap.cpp:594` | Leave town and travel there |
+| `ui/worldmap.cpp:599` | To travel, be in the overland view or in a town's streets |
+| `ui/worldmap.cpp:605` | Walk out of %s's gate and travel to %s? |
+| `ui/worldmap.cpp:606` | The party walks through the streets to a gate and out; in the overland view the journey begins. |
+| `ui/worldmap.cpp:607` | Leave and travel |
+| `ui/worldmap.cpp:626` | The wares noted here (%d shop%s) |
+| `ui/worldmap.cpp:643` | Boats leave here for these towns (not every day: the docks say which leave today). |
+| `ui/worldmap.cpp:644` | Boats from these towns call here; none sail back to them from here. |
+| `ui/worldmap.cpp:645` | Boats sail both ways between here and these towns (not every day: the docks say which leave today). |
+| `ui/worldmap.cpp:667` | Its docks have no boats leaving (the original game has none either). |
+| `ui/worldmap.cpp:709` | Collect your reward |
+| `ui/worldmap.cpp:709` | Robber knights |
+| `ui/worldmap.cpp:709` | Treasures to fetch |
+| `ui/worldmap.cpp:709` | Papers to get in a town |
+| `ui/worldmap.cpp:709` | City politics |
+| `ui/worldmap.cpp:709` | Cities at war |
+| `ui/worldmap.cpp:709` | The Wild Hunt |
+| `ui/worldmap.cpp:709` | Other quests |
+| `ui/worldmap.cpp:727` | %s (%d)###qg |
+| `ui/worldmap.cpp:733` | Sorted %s first: click for %s first. |
+| `ui/worldmap.cpp:733` | the soonest due |
+| `ui/worldmap.cpp:742` | No quests or rumors yet. |
+| `ui/worldmap.cpp:813` | cave near Köln |
+| `ui/worldmap.cpp:819` | and %d more: type more of the name to narrow the list |
+| `ui/worldmap.cpp:820` | No place of that name. |
+| `ui/worldmap.cpp:825` | Click one to circle those towns on the map. |
+| `ui/worldmap.cpp:837` |  the party has been to: |
+| `ui/worldmap.cpp:841` | ... and %d more (circled on the map) |
+| `ui/worldmap.cpp:842` | %s %dq##tl%d |
+| `ui/worldmap.cpp:853` | Find alchemical ingredients |
+| `ui/worldmap.cpp:854` | Find any ware |
+| `ui/worldmap.cpp:861` | Show on the map |
+| `ui/worldmap.cpp:878` | shown (click to hide) |
+| `ui/worldmap.cpp:878` | hidden (click to show) |
+| `ui/worldmap.cpp:893` | Places: click a kind to show or hide it. |
+| `ui/worldmap.cpp:922` | The party: a click shows it on the map. |
+| `ui/worldmap.cpp:933` | The Holy Roman Empire |
+| `ui/worldmap.cpp:936` | {LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes. |
+| `ui/worldmap.cpp:937` | Drag to move, wheel to zoom. M or Esc closes. |
+| `ui/worldmap.cpp:939` | Traveling to %s |
+| `ui/worldmap.cpp:1002` | faded: leaves later this week |
+| `ui/worldmap.cpp:1067` | Click to take the boat. |
 | `ui/worldmap_draw.cpp:105` | ruined castle |
 | `ui/worldmap_draw.cpp:107` | ruined village |
 | `ui/worldmap_draw.cpp:108` | standing stone |
@@ -2743,8 +2755,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/lodgeview.c:151` | Town Militia |
 | `mods/lodgeview.c:510` | The days stop: %s's teacher has gone. |
 | `mods/lodgeview.c:512` | The days stop: what %s does each day has changed. |
-| `mods/lodgeview.c:514` | The days stop: %s has regained all Strength. |
-| `mods/lodgeview.c:515` | The days stop: %s's Divine Favor is full. |
+| `mods/lodgeview.c:514` | The days stop: %s has regained all {Strength}. |
+| `mods/lodgeview.c:515` | The days stop: %s's {Divine Favor} is full. |
 | `mods/looks.c:85` | Gray-haired fighter |
 | `mods/looks.c:85` | Brown-haired woman |
 | `mods/looks.c:85` | Blond fighter |
@@ -2832,24 +2844,24 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/offices.c:85` | The lord grants no audience while your reputation in this town is -40 or lower. |
 | `mods/offices.c:88` | You finished a quest for the lord: your reward is waiting (an audience is certain). |
 | `mods/offices.c:90` | You finished a quest for the lord. In a town without a council the original game never pays this reward; with the fix "The lord pays for his quests" on, he pays it at an audience. |
-| `mods/offices.c:91` | Each request for an audience with the council has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's Charisma and Speak Common). An audience brings a robber knight to hunt or an item to fetch, half and half. After a request the chance is 1%% for a week. |
-| `mods/offices.c:92` | Each request for an audience with the lord has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's Charisma and Speak Common). An audience brings a robber knight to hunt. After a request the chance is 1%% for a week. |
+| `mods/offices.c:91` | Each request for an audience with the council has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's {Charisma} and {Speak Common}). An audience brings a robber knight to hunt or an item to fetch, half and half. After a request the chance is 1%% for a week. |
+| `mods/offices.c:92` | Each request for an audience with the lord has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's {Charisma} and {Speak Common}). An audience brings a robber knight to hunt. After a request the chance is 1%% for a week. |
 | `mods/offices.c:95` | No quests for three days: at your last visit none came, one was turned down, or a reward was paid. |
 | `mods/offices.c:97` | The offer comes after shopping: as the party leaves the stalls, about one time in seven a trader takes it aside with a purse and a job (mostly an item to fetch, sometimes a robber knight to hunt). If none comes, there is no other offer for three days. |
-| `mods/orders.c:676` | Click: throw here |
-| `mods/orders.c:676` | Click: flee here |
-| `mods/orders.c:677` | No clear throw |
-| `mods/orders.c:677` | Can't walk there |
-| `mods/orders.c:678` | No clear shot |
-| `mods/orders.c:678` | No clear throw |
-| `mods/orders.c:678` | No way there |
-| `mods/orders.c:685` | Click: shoot (moves for a clear line) |
-| `mods/orders.c:686` | Click: shoot |
-| `mods/orders.c:688` | Click: throw |
-| `mods/orders.c:689` | Click: attack (Vulnerable) |
-| `mods/orders.c:690` | Click: attack (Berserk) |
-| `mods/orders.c:691` | Click: parry its blows |
-| `mods/orders.c:695` | No clear shot: walks up to fight |
+| `mods/orders.c:683` | Click: throw here |
+| `mods/orders.c:683` | Click: flee here |
+| `mods/orders.c:684` | No clear throw |
+| `mods/orders.c:684` | Can't walk there |
+| `mods/orders.c:685` | No clear shot |
+| `mods/orders.c:685` | No clear throw |
+| `mods/orders.c:685` | No way there |
+| `mods/orders.c:692` | Click: shoot (moves for a clear line) |
+| `mods/orders.c:693` | Click: shoot |
+| `mods/orders.c:695` | Click: throw |
+| `mods/orders.c:696` | Click: attack (Vulnerable) |
+| `mods/orders.c:697` | Click: attack (Berserk) |
+| `mods/orders.c:698` | Click: parry its blows |
+| `mods/orders.c:702` | No clear shot: walks up to fight |
 | `mods/pathfix.c:455` |  (stuck: around everyone) |
 | `mods/pathfix.c:635` | cells unreachable |
 | `mods/pathfix.c:635` | search gave up |
@@ -3180,38 +3192,38 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/teachers.c:28` | In the daytime, go to the bowyers' and gunsmiths' guild and choose "request a meeting with the guild's masters". |
 | `mods/teachers.c:29` | Artificers' guild |
 | `mods/teachers.c:29` | In the daytime, go to the artificers' guild and choose "request a meeting with the guild's masters". |
-| `mods/teachers.c:31` | The guild only lets in a party with enough fame, reputation in this town and Charisma  |
+| `mods/teachers.c:31` | The guild only lets in a party with enough fame, reputation in this town and {Charisma}  |
 | `mods/teachers.c:31` | (otherwise its street leads only to the shop). While the guild is split by a dispute, its masters want help with that first. |
 | `mods/teachers.c:109` | While the guild is split by a dispute, its masters want help with that first. |
 | `mods/teachers.c:119` | A guild here is split by a dispute, and its masters want help with that first. |
 | `mods/teachers.c:122` | The guild would receive the party now, in the daytime. |
-| `mods/teachers.c:122` | The guild would not receive the party yet (it needs more fame, reputation here or Charisma). |
+| `mods/teachers.c:122` | The guild would not receive the party yet (it needs more fame, reputation here or {Charisma}). |
 | `mods/teachers.c:130` | In the daytime, go to the university and choose "a teacher you can hire". |
-| `mods/teachers.c:131` | They may say no (it depends on Perception, Intelligence, Latin, the party's best Alchemy and fame). A refusal shuts their door for a week and lowers the party's reputation here a little. |
+| `mods/teachers.c:131` | They may say no (it depends on {Perception}, {Intelligence}, {Latin}, the party's best {Alchemy} and fame). A refusal shuts their door for a week and lowers the party's reputation here a little. |
 | `mods/teachers.c:138` | Go to the monastery and choose "inquire about tutoring in various disciplines". |
-| `mods/teachers.c:139` | Only for a party of good name (Virtue, Charisma, reputation here), and only while no other teacher is hired in the town. After a refusal, wait two days. |
+| `mods/teachers.c:139` | Only for a party of good name ({Virtue}, {Charisma}, reputation here), and only while no other teacher is hired in the town. After a refusal, wait two days. |
 | `mods/teachers.c:146` | In the daytime, go to the physician and choose "beg him to allow you to be his students". |
-| `mods/teachers.c:147` | He takes no one who already heals better than he does himself (his own Healing changes from week to week; visiting him shows it). Some years he takes no students. |
-| `mods/teachers.c:158` | His own Healing is %d this week, and the party's best is %d: he will not teach you. |
-| `mods/teachers.c:159` | His own Healing is at most %d, and the party's best is %d: he will not teach you. |
+| `mods/teachers.c:147` | He takes no one who already heals better than he does himself (his own {Healing} changes from week to week; visiting him shows it). Some years he takes no students. |
+| `mods/teachers.c:158` | His own {Healing:%d} this week, and the party's best is %d: he will not teach you. |
+| `mods/teachers.c:159` | His own {Healing:%d} at most, and the party's best is %d: he will not teach you. |
 | `mods/teachers.c:160` | He takes no students this year. |
 | `mods/teachers.c:162` | He takes no students at the moment. |
-| `mods/teachers.c:163` | His own Healing is %d this week, and the party's best is %d: he will not teach you. |
-| `mods/teachers.c:164` | His own Healing is %d this week: he will teach you. |
-| `mods/teachers.c:165` | His own Healing is at most %d, and the party's best is %d: he will not teach you. |
-| `mods/teachers.c:166` | His own Healing is %d to %d this week (visiting him shows which): he teaches only if it is at least the party's best, %d. |
+| `mods/teachers.c:163` | His own {Healing:%d} this week, and the party's best is %d: he will not teach you. |
+| `mods/teachers.c:164` | His own {Healing:%d} this week: he will teach you. |
+| `mods/teachers.c:165` | His own {Healing:%d} at most, and the party's best is %d: he will not teach you. |
+| `mods/teachers.c:166` | His own {Healing:%d to %d} this week (visiting him shows which): he teaches only if it is at least the party's best, %d. |
 | `mods/teachers.c:171` | In the daytime, go to Astrologists' Lane and choose "receiving additional instruction in alchemy". |
-| `mods/teachers.c:172` | They may say no (it depends on Charisma, Speak Common, the party's best Alchemy and reputation here). After a refusal, wait two and a half days. |
+| `mods/teachers.c:172` | They may say no (it depends on {Charisma}, {Speak Common}, the party's best {Alchemy} and reputation here). After a refusal, wait two and a half days. |
 | `mods/teachers.c:183` | Another teacher is hired in the town, so the monks will not teach for now. |
 | `mods/teachers.c:187` | Already hired: the teacher is at the inn now. |
 | `mods/teachers.c:224` | The guild's masters |
 | `mods/teachers.c:225` | Here: choose "inquire about special training". |
-| `mods/teachers.c:226` | They may say no (it depends on Charisma, reputation here and fame); they always agree if the guild owes the party a favor. |
+| `mods/teachers.c:226` | They may say no (it depends on {Charisma}, reputation here and fame); they always agree if the guild owes the party a favor. |
 | `mods/teachers.c:229` | A bug in the original game: this guild's teacher teaches no skill at all. |
 | `mods/travel.c:243` | No way there from here. |
 | `mods/travel.c:269` | how far is it |
 | `mods/travel.c:366` | Travel stopped: the party could not get any further this way. |
-| `mods/travel.c:516` | the marked place |
+| `mods/travel.c:518` | the marked place |
 | `mods/war.c:98` | pics\gate4.pic: No such file |
 | `mods/war.c:147` | ...hidden option |
 

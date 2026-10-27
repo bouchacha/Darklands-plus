@@ -31,6 +31,7 @@
 #include "money.h"
 #include "teachersui.h"
 #include "skillicons.h"
+#include "richtext.h"
 #include "gamepics.h"
 #include "quests.h"
 
@@ -571,23 +572,25 @@ extern "C" void cardview_draw(void)
                     if (knows_saint) why = "knows this saint already";
                     if (why) dl->AddText(fs, size * 0.78f, ImVec2(tx + f->CalcTextSizeA(size * 0.95f, FLT_MAX, 0, et.c_str()).x + 0.6f * size, ey + 0.12f * h), ink_soft, why);
                     /* a saint to call on: the Virtue it asks of the one who prays, at the row's end - Virtue's shield and
-                       the number, red when this member's is below it (more Divine Favor does not help then) */
+                       the number, greyed when this member's is below it (more Divine Favor does not help then), as on the
+                       Saints page and the prayer screen */
                     if (c.popup_kind == 2 && !saint_learning && en.vmin > 0) {
                         char vb[16]; snprintf(vb, sizeof vb, "%d", en.vmin);
                         float vs = size * 0.82f, ish = size * 0.8f;
-                        ImVec2 vt = fs->CalcTextSizeA(vs, FLT_MAX, 0, vb);
-                        float vx = X1 - 0.5f * size - vt.x;
+                        float vw = UI_SHIELD_W * ish + ish * 0.2f + fs->CalcTextSizeA(vs, FLT_MAX, 0, vb).x;
                         bool low = en.virtue < en.vmin;
-                        ImU32 vc = low ? (dark ? IM_COL32(250, 125, 100, 255) : IM_COL32(150, 30, 18, 255)) : ink_soft;
-                        ui_skill_icon(dl, ImVec2(vx - ish * 0.7f, ey + 0.46f * h), ish, SKILL_VIRTUE);
-                        dl->AddText(fs, vs, ImVec2(vx, ey + 0.46f * h - vt.y * 0.52f), vc, vb);
-                        ImVec2 m0(vx - ish * 1.3f, ey), m1(vx + vt.x, ey + h);
+                        ImVec2 m0(X1 - 0.5f * size - vw, ey), m1(X1 - 0.5f * size, ey + h);
+                        int v0 = dl->VtxBuffer.Size;
+                        ui_shield_value(dl, ImVec2(m0.x, ey + 0.46f * h), ish, UI_KEY_SKILL + SKILL_VIRTUE, vb, fs, vs, ink_soft);
+                        if (low) ui_dim_since(dl, v0, 0.38f);
                         if (ImGui::IsMouseHoveringRect(m0, m1, false) && !ui_is_open()) {
                             ui_tip_beside(m0, m1);
                             ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
-                            ImGui::Text("This saint asks a Virtue of %d of the one who prays.", en.vmin);
+                            ui_rich_textf("This saint asks a {Virtue} of %d of the one who prays.", en.vmin);
                             if (low) { char nm[24]; g_str(G_DGROUP, (u16)(G_MEMBER(en.member) + G_M_SHORTNAME), nm, sizeof nm);
-                                       ImGui::TextDisabled("%s has %d: too low to call on this saint, however much Divine Favor is spent.", game_text(nm, strlen(nm)).c_str(), en.virtue); }
+                                       ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+                                       ui_rich_textf("%s has %d: too low to call on this saint, however much {Divine Favor} is spent.", game_text(nm, strlen(nm)).c_str(), en.virtue);
+                                       ImGui::PopStyleColor(); }
                             ImGui::PopTextWrapPos(); ImGui::EndTooltip();
                         }
                     }
@@ -670,9 +673,9 @@ extern "C" void cardview_draw(void)
         ImGui::BeginTooltip();
         ImGui::TextDisabled("Brings a teacher to the inn");
         ImGui::PushTextWrapPos(ww);
-        ImGui::TextUnformatted(ui_teacher_text(teach[c.hover]).c_str());
+        ui_rich_text(ui_teacher_text(teach[c.hover]).c_str());
         std::string hired = ui_teachers_hired_line((s16)g_rw(GV_cur_loc));
-        if (!hired.empty()) ImGui::TextDisabled("Hired here now: %s.", hired.c_str());
+        if (!hired.empty()) ui_rich_textf_dim("Hired here now: %s.", hired.c_str());
         if (const char *why = greyed_hint(c.piece[c.hover])) { ImGui::Separator(); ImGui::TextDisabled("Not possible now"); ImGui::TextUnformatted(why); }
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();

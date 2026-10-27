@@ -12,6 +12,7 @@
 // planets' signs for the metals, the elements' triangles for the four humours' bases, sulphur's
 // triangle and cross ...), or for the herbs and roots a small drawing as in a herbal (the mandrake
 // a little man).
+#include "marks.h"
 #include "../runtime/config.h"
 #include "imgui.h"
 #include <math.h>
@@ -76,9 +77,7 @@ void grade_dots(const Pen &p, int tier)
     if (gm == 3 || gm == 4) {                                    /* chevrons, as a rank's: one to three, stacked */
         float hw = fmaxf(2.4f, 3.4f / p.u), hh = hw * 0.62f, th = fmaxf(1.1f, 1.7f / p.u), step = hh + th * 1.25f;
         float x = gm == 3 ? 5.6f : 5.8f, y0 = gm == 3 ? -10.4f : 9.6f - (tier - 1) * step;
-        if (gm == 4) {                                           /* a dark badge in the corner, the chevrons on it */
-            p.dl->AddRectFilled(p.P(x - hw - th, y0 - hh * 0.5f - th * 1.3f), p.P(x + hw + th, y0 + (tier - 1) * step + hh * 0.5f + th * 1.6f), C(0.16f, 0.10f, 0.05f, 0.92f), th * p.u);
-        }
+        if (gm == 4) { ui_mark_chevrons(p.dl, p.P(x, 9.6f), hw * p.u, th * p.u, tier, false); return; }   /* a dark badge in the corner, the chevrons on it (ui/marks.h) */
         for (int k = 0; k < tier; k++) {
             float y = y0 + k * step;
             ImVec2 pts[3] = { p.P(x - hw, y + hh * 0.5f), p.P(x, y - hh * 0.5f), p.P(x + hw, y + hh * 0.5f) };

@@ -17,6 +17,7 @@ std::string ns_quality_words(int id, int qual)
     return ", " + std::to_string(qual) + "q";
 }
 
+extern "C" const char *gm_skill_short(int k);
 std::string ns_item_line(int id, int q)
 {
     const ItemDef *d = ns_itemdef(id);
@@ -28,9 +29,8 @@ std::string ns_item_line(int id, int q)
     }
     if (d->type >= 0 && d->type <= 33 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
         int w = d->type, sk = rb(G_FAR20A5, (u16)(0x75ac + w)), cp = rb(G_FAR20A5, (u16)(0x76a8 + w)), dmg = rb(G_FAR20A5, (u16)(0x76e7 + w));
-        static const char *SK[7] = { "Edged", "Impact", "Flail", "Polearm", "Thrown", "Bow", "Missile Device" };
         int tm = rb(G_FAR20A5, (u16)(0x7669 + w)), rl = rb(G_FAR20A5, (u16)(0x77e3 + w));
-        std::string r = std::string(sk < 7 ? SK[sk] : "?") + ", " + ((cp >> 4) >= 2 ? "two hands" : "one hand") + ", damage " + std::to_string(dmg) + ", penetration " + std::to_string(cp & 15);
+        std::string r = (sk < 7 ? "{" + std::string(gm_skill_short(sk)) + "}" : std::string("?")) + ", " + ((cp >> 4) >= 2 ? "two hands" : "one hand") + ", damage " + std::to_string(dmg) + ", penetration " + std::to_string(cp & 15);
         if (tm) r += ", time for a blow " + std::to_string(tm);
         if (rl) r += std::string(", time to ") + (w >= 30 ? "reload " : w >= 27 ? "draw and loose " : "throw ") + std::to_string(rl);
         return r;
@@ -78,12 +78,11 @@ std::string ns_item_compare(int id, int q, int m)
         return who + " carries " + name_of(t, wq) + " (" + std::to_string(wq) + "q): this is " + cmpq(q, wq) + ".";
     }
     if (d->type >= 0 && d->type <= 62 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
-        static const char *SKN[7] = { "Edged", "Impact", "Flail", "Polearm", "Thrown", "Bow", "Missile Device" };
         int w = d->type, sk = rb(G_FAR20A5, (u16)(0x75ac + w)), smin = rb(G_FAR20A5, (u16)(0x7765 + w));
         bool missile = sk == 5 || sk == 6;
-        std::string r = who + "'s " + (sk < 7 ? SKN[sk] : "?") + " skill: " + std::to_string(sk < 7 ? gm_member_skill(m, sk) : 0) + ".";
+        std::string r = who + "'s " + (sk < 7 ? "{" + std::string(gm_skill_short(sk)) + ":" + std::to_string(gm_member_skill(m, sk)) + "}" : std::string("skill: ?")) + ".";
         int str, strmax; gm_member_attr(m, 1, &str, &strmax);
-        if (smin > 0 && strmax < smin) r += " Too heavy: it needs Strength " + std::to_string(smin) + ".";
+        if (smin > 0 && strmax < smin) r += " Too heavy: it needs {Strength:" + std::to_string(smin) + "}.";
         int t, wq;
         if (slot(missile ? 0x0e : 0x3d, missile ? 0x46 : 0x44, t, wq) && t <= 62) {
             int cp = rb(G_FAR20A5, (u16)(0x76a8 + t)), dmg = rb(G_FAR20A5, (u16)(0x76e7 + t));
@@ -136,7 +135,6 @@ std::string ns_item_compare_party(int id, int q)
         return r.empty() ? "Everyone's shield is as good or better." : r;
     }
     if (d->type >= 0 && d->type <= 62 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
-        static const char *SKN[7] = { "Edged", "Impact", "Flail", "Polearm", "Thrown", "Bow", "Missile Device" };
         int w = d->type, sk = rb(G_FAR20A5, (u16)(0x75ac + w)), smin = rb(G_FAR20A5, (u16)(0x7765 + w));
         if (sk >= 7) return "";
         std::vector<std::pair<int, std::string>> v; std::vector<std::string> heavy;
@@ -146,10 +144,10 @@ std::string ns_item_compare_party(int id, int q)
             if (smin > 0 && strmax < smin) heavy.push_back(nm(m));
         }
         std::sort(v.begin(), v.end(), [](const std::pair<int, std::string> &a, const std::pair<int, std::string> &b) { return a.first > b.first; });
-        std::string r = std::string(SKN[sk]) + " skill: ";
+        std::string r = "{" + std::string(gm_skill_short(sk)) + "}: ";
         for (size_t i = 0; i < v.size(); i++) r += (i ? ", " : "") + v[i].second + " " + std::to_string(v[i].first);
         r += ".";
-        if (!heavy.empty()) r += " Too heavy for " + join(heavy) + " (it needs Strength " + std::to_string(smin) + ").";
+        if (!heavy.empty()) r += " Too heavy for " + join(heavy) + " (it needs {Strength:" + std::to_string(smin) + "}).";
         return r;
     }
     return "";
@@ -267,8 +265,8 @@ std::string ns_potion_effect(int id)
     bool fixed = fix_is_on("potions") != 0;
     std::string day = fixed ? " for about a day (19 to 21 hours)." : " permanently, adding up with the next dose.";
     switch (id) {
-    case 95: return "Thrown in a battle: a reeking cloud (up to 4 by 4 paces). Whoever it hits loses half their Agility, Perception and weapon skills and everyone else in the cloud a quarter, allies and enemies alike, while it lasts (longer at higher grades).";
-    case 96: return "Thrown: blinding powder. The target loses a third of their Agility, Perception and weapon skills and is blinded (cannot shoot, throw or take orders well); those beside them lose a quarter. Lasts longer at higher grades.";
+    case 95: return "Thrown in a battle: a reeking cloud (up to 4 by 4 paces). Whoever it hits loses half their {Agility}, {Perception} and weapon skills and everyone else in the cloud a quarter, allies and enemies alike, while it lasts (longer at higher grades).";
+    case 96: return "Thrown: blinding powder. The target loses a third of their {Agility}, {Perception} and weapon skills and is blinded (cannot shoot, throw or take orders well); those beside them lose a quarter. Lasts longer at higher grades.";
     case 97: return "Thrown: a cloud of black smoke. Shots through any cloud hit far less often (a fifth of the chance), and fighting from inside one costs 15 to hit. Lasts longer at higher grades. (The battle menu never offers it to the party: it is used on cards, and enemies throw it.)";
     case 98: return "Thrown: itching powder. Weapon skills fall by five times the armor worn on the body and limbs: the heavier the armor, the worse the itch. Lasts longer at higher grades.";
     case 99: return "Thrown: acid that eats the target's armor, lowering its quality by 4, 6 or 8 (grade 1, 2, 3) plus up to 8 more at random; armor eaten to nothing is destroyed, and where there is no armor (or damage is left over) it wounds the target. Also dissolves locks.";
@@ -288,7 +286,7 @@ std::string ns_potion_effect(int id)
               return "Used by a member: +1, +2 or +3 (grade 1, 2, 3) to their armor against every hit, blow or shot, permanently; doses add up.";
     case 110: return "Drinking it yields just one florin: it is meant for cards, where an encounter asks for it (to purify, or to make gold).";
     case 111: case 112: case 113: case 114: {
-        static const char *const ATT[4] = { "Perception", "Endurance", "Strength", "Agility" };
+        static const char *const ATT[4] = { "{Perception}", "{Endurance}", "{Strength}", "{Agility}" };
         static const char *const AMT[4] = { "9-14, 15-21 or 22-29", "6-11, 8-13 or 10-15", "6-11, 8-13 or 10-15", "6-11, 8-15 or 10-17" };
         int a = id - 111;
         std::string t = std::string("Drunk: ") + ATT[a] + " up by " + AMT[a] + " (grade 1, 2, 3) for about a day: the current value rises, past the maximum if need be; the maximum itself does not change. ";
@@ -296,7 +294,7 @@ std::string ns_potion_effect(int id)
         else t += "When it wears off, what it added is lost.";
         return t + " A second dose while the first is active adds only what goes beyond it.";
     }
-    case 115: return "Drunk: permanently heals 50, 70 or 90% of the Strength lost to wounds (grade 1, 2, 3), and raises Endurance by 9-14, 15-21 or 22-29 for about 30 hours.";
+    case 115: return "Drunk: permanently heals 50, 70 or 90% of the {Strength} lost to wounds (grade 1, 2, 3), and raises {Endurance} by 9-14, 15-21 or 22-29 for about 30 hours.";
     case 116: {
         if (fix_is_on("armorday")) return "Drunk: protection against fire for about a day (19 to 21 hours): Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3). A second dose keeps the stronger.";
         return std::string("Drunk: permanent protection against fire: Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3).") + (fix_is_on("fireward") ? "" : " It also adds 16 to the armor permanently."); }

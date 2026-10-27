@@ -17,6 +17,8 @@
 #include <vector>
 #include <map>
 #include "imgui.h"
+#include "richtext.h"
+#include "skillicons.h"
 #include "ui.h"
 #include "gamedata.h"
 extern "C" {
@@ -78,7 +80,7 @@ static void add(int kind, const std::string &t)
     lines.push_back({ plat_ticks_ms(), t, kind });
     if (lines.size() > 400) lines.erase(lines.begin(), lines.begin() + 100);
     static int lg = -1; if (lg < 0) lg = getenv("DL_BATTLE_LOG") != 0;
-    if (lg) fprintf(stderr, "battle: %s\n", t.c_str());
+    if (lg) fprintf(stderr, "battle: %s\n", rich_plain(t.c_str()).c_str());
 }
 
 static void start_battle(void)
@@ -179,7 +181,7 @@ static void launch_hook(void)               /* s018 1ef8:0000 missile_launch(who
  * or a click. Where the party panel is drawn anew it covered them: the panel shows it in the
  * member's box instead (partypanel_note), the log keeps it, and the game goes on at once. */
 extern "C" int partypanel_shown(void);
-void ui_battle_float(int m, const std::string &t, bool good);   /* battleoverlay.cpp */
+void ui_battle_float(int m, int key, const std::string &t, bool good);   /* battleoverlay.cpp */
 extern "C" void partypanel_note(int row, const char *text, int good);
 static void sidemsg_hook(void)
 {
@@ -194,16 +196,19 @@ static void sidemsg_hook(void)
         if (at != std::string::npos && sscanf(t.c_str() + at, " changed from %d to %d", &x, &y) == 2 && x != y) {
             std::string sk = t.substr(0, at);
             if (sk.size() > 5 && sk.compare(sk.size() - 5, 5, " Wpns") == 0) sk.erase(sk.size() - 5);   /* ("Edged Wpns": Edged) */
-            char nb[96]; snprintf(nb, sizeof nb, "%s %+d (now %d)", sk.c_str(), y - x, y);
+            int key = ui_key_of(sk.c_str(), (int)sk.size());
+            char nb[96];
+            if (key >= 0) snprintf(nb, sizeof nb, "{%s:%+d (now %d)}", ui_key_name(key), y - x, y);   /* (its shield: ui/richtext.h) */
+            else snprintf(nb, sizeof nb, "%s %+d (now %d)", sk.c_str(), y - x, y);
             t = nb;
-            char fl[64]; snprintf(fl, sizeof fl, "%+d %s", y - x, sk.c_str());
-            if (game_mode() == GM_BATTLE) ui_battle_float(row, fl, y > x);
+            char fl[64]; snprintf(fl, sizeof fl, key >= 0 ? "%+d" : "%+d %s", y - x, sk.c_str());
+            if (game_mode() == GM_BATTLE) ui_battle_float(row, key, fl, y > x);
         }
     }
     partypanel_note(row, t.c_str(), colour != 12);
     if (row >= 0 && row < 5) add(colour != 12 ? 4 : 2, name_of(row) + ": " + t);
     else add(4, t);
-    fprintf(stderr, "side message (row %d): %s\n", row, t.c_str());
+    fprintf(stderr, "side message (row %d): %s\n", row, rich_plain(t.c_str()).c_str());
     hook_return_far(0);
 }
 extern "C" void battlelog_init(void) { hook_install(GF_missile_launch, launch_hook); hook_install(21, 0x1ef8, 0x01e2, sidemsg_hook); hook_install(43, 0x150b, 0x1f40, sidemsg_hook);   /* (the cards' own copy: add_skill, s029 via vec_1e91) */ }
@@ -289,11 +294,11 @@ extern "C" int battlelog_margin(float x, float w, float h, float fs)
     for (int k = (int)lines.size() - 1; k >= 0 && y > top + lh; k--) {
         /* wrapped to the margin's width, so a long line takes two rows */
         const char *t = lines[k].text.c_str();
-        ImVec2 sz = f->CalcTextSizeA(fs, FLT_MAX, w - 2 * pad, t);
+        ImVec2 sz = rich_size(f, fs, w - 2 * pad, t);
         float a = k == (int)lines.size() - 1 && plat_ticks_ms() - lines[k].t < 400 ? 1.0f : 0.92f;
         y -= sz.y + fs * 0.3f;
         if (y < top) break;
-        dl->AddText(f, fs, ImVec2(x + pad, y), colour(lines[k].kind, a), t, 0, w - 2 * pad);
+        rich_draw(dl, f, fs, ImVec2(x + pad, y), w - 2 * pad, colour(lines[k].kind, a), t);
     }
     return 1;
 }
@@ -320,10 +325,10 @@ extern "C" void battlelog_overlay(void)
         float a = age < SHOW ? 1.0f : 1.0f - (float)(age - SHOW) / FADE;
         if (a <= 0) continue;
         const char *t = lines[k].text.c_str();
-        ImVec2 sz = f->CalcTextSizeA(fs, FLT_MAX, 0, t);
+        ImVec2 sz = rich_size(f, fs, 0, t);
         ImVec2 p(x1 - pad - sz.x, y);
         dl->AddRectFilled(ImVec2(p.x - pad, y - fs * 0.08f), ImVec2(x1 - pad * 0.5f, y + lh - fs * 0.12f), IM_COL32(16, 10, 6, (int)(150 * a)), fs * 0.25f);
-        dl->AddText(f, fs, p, colour(lines[k].kind, a), t);
+        rich_draw(dl, f, fs, p, 0, colour(lines[k].kind, a), t);
     }
 }
 
@@ -340,7 +345,7 @@ extern "C" void battlelog_tab(void)
     ImGui::TextDisabled("%d lines.", (int)v.size());
     ImGui::BeginChild("blog", ImVec2(0, 0));
     static const ImVec4 C[5] = { ImVec4(0.12f, 0.24f, 0.50f, 1), ImVec4(0.45f, 0.25f, 0.08f, 1), ImVec4(0.62f, 0.18f, 0.10f, 1), ImVec4(0.75f, 0.08f, 0.05f, 1), ImVec4(0.30f, 0.26f, 0.20f, 1) };
-    for (const BLine &l : v) ImGui::TextColored(C[l.kind < 0 || l.kind > 4 ? 4 : l.kind], "%s", l.text.c_str());
+    for (const BLine &l : v) { ImGui::PushStyleColor(ImGuiCol_Text, C[l.kind < 0 || l.kind > 4 ? 4 : l.kind]); ui_rich_text(l.text.c_str()); ImGui::PopStyleColor(); }
     if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY() - 4) ImGui::SetScrollHereY(1.0f);
     ImGui::EndChild();
 }

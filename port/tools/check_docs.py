@@ -170,6 +170,21 @@ def main():
                 if re.search(r'ui_(skill|attr)_icon\([^;]*,\s*\d+\s*\)', line):
                     bad.append('%s/%s:%d: a shield drawn by a fixed number (name the skill: a constant, or the thing it shows)' % (d, f, i + 1))
 
+    # a shield written into a text ({Strength}, {Edged:+3}: ui/richtext.h) names an attribute or skill the
+    # pictures know (ui_key_of in ui/skillicons.cpp); any other name would be printed in its braces
+    gm = rd('port/mods/gamemodel.c')
+    known = set(re.findall(r'"([^"]+)"', gm[gm.index('const char *gm_attr_name'):gm.index('/* the months')]))
+    known |= {'Latin', 'Reputation', 'Fame', 'Missile Device', 'Missile Weapons', 'Edged Weapon', 'Impact Weapon', 'Flail', 'Polearm', 'Thrown Weapon', 'Bow'}
+    known |= set(re.findall(r'"([^"]+)"', gm[gm.index('const char *gm_skill_short'):][:400]))
+    for d in ('port/ui', 'port/mods'):
+        for f in sorted(os.listdir(os.path.join(TOP, d))):
+            if not f.endswith(('.c', '.cpp')): continue
+            for i, line in enumerate(rd(os.path.join(d, f)).splitlines()):
+                for lit in re.findall(r'"((?:[^"\\]|\\.)*)"', line):
+                    for m in re.finditer(r'\{([A-Z][a-z][A-Za-z &]*)(?::[^{}]*)?\}', lit):   # (not a controller button's {A}, {LSTICK})
+                        if m.group(1) not in known:
+                            bad.append('%s/%s:%d: "{%s}" - no attribute or skill of that name for its shield (ui/richtext.h)' % (d, f, i + 1, m.group(1)))
+
     for b_ in bad: print('  ' + b_)
     print('docs: %s (%d fixes, %d saints, %d texts)' % ('as the code' if not bad else '%d mismatches' % len(bad), n_fix, n_saints, len(texts)))
     sys.exit(1 if bad else 0)

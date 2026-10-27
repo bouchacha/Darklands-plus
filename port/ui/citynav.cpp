@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "richtext.h"
 #include "imgui.h"
 #include "ornament.h"
 #include "ui.h"
@@ -864,11 +865,11 @@ static void place_pane(float w, float h, float scale)
         if (ui_font_bold) ImGui::PushFont(ui_font_bold);
         ImGui::TextUnformatted(DEST[pane_d].label);
         if (ui_font_bold) ImGui::PopFont();
-        if (DEST[pane_d].desc[0]) ImGui::TextUnformatted(DEST[pane_d].desc);
+        if (DEST[pane_d].desc[0]) ui_rich_text(rich_auto(DEST[pane_d].desc).c_str());   /* (the skills and attributes it names as their shields) */
         for (const TipPart &x : pane_parts) {
             ImGui::Spacing();
             if (!x.head.empty()) ImGui::TextColored(ImVec4(0.55f, 0.24f, 0.13f, 1), "%s", x.head.c_str());
-            ImGui::TextUnformatted(x.text.c_str());
+            ui_rich_text(x.text.c_str());
         }
         if (!pane_absent) { ImGui::Spacing(); ImGui::TextDisabled("Click the tile and the party walks there."); }
     }
@@ -1073,8 +1074,12 @@ extern "C" int citynav_window(void)
                     dl->AddText(ImVec2(tx, ny), fg, lab.c_str());
                     float ly = ny + lh + 1 * scale, room = p.x + bw - pad - tx;
                     for (const TileLine &L : T.lines) {
-                        std::string s2 = fit(L.text, sfs, room);
-                        dl->AddText(ImGui::GetFont(), sfs, ImVec2(tx, ly), hov ? IM_COL32(240, 214, 180, 255) : L.col, s2.c_str());
+                        ImU32 lc = hov ? IM_COL32(240, 214, 180, 255) : L.col;
+                        if (rich_has(L.text.c_str())) {                   /* (shields in it: cut at the tile's edge) */
+                            dl->PushClipRect(ImVec2(tx, ly), ImVec2(tx + room, ly + slh), true);
+                            rich_draw(dl, ImGui::GetFont(), sfs, ImVec2(tx, ly), 0, lc, L.text.c_str());
+                            dl->PopClipRect();
+                        } else dl->AddText(ImGui::GetFont(), sfs, ImVec2(tx, ly), lc, fit(L.text, sfs, room).c_str());
                         ly += slh;
                     }
                     if (hov) { hov_now = d; hov_now_parts = T.tip; }

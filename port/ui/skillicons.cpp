@@ -1,10 +1,13 @@
 // skillicons.cpp - the skills', attributes' and F12 tabs' pictures, drawn with ImGui shapes so they
 // read at any size (the character sheet, character creation, the roster, card chances, the tabs).
 #include <math.h>
+#include <string.h>
+#include <float.h>
 #include "imgui.h"
 #include "uitabs.h"
 #include "ordericons.h"
 #include "skillicons.h"
+#include "marks.h"
 
 /* a closed outline built of straight runs and curves, filled (concave too) and edged */
 struct IconPath {
@@ -237,6 +240,34 @@ static void shield(ImDrawList *dl, ImVec2 c, float s, ImU32 field)   /* 20 x 23 
     dl->AddConvexPolyFilled(pts, n, field);
     dl->AddPolyline(pts, n, IM_COL32(210, 170, 70, 255), ImDrawFlags_Closed, 1.1f * u);
 }
+/* how much, on the shield itself: the charge raised into the upper part, and in the lower 1 to 3 chevronels,
+   argent (a saint's help on the Saints page, set against the other saints'); reversed and red, what it costs.
+   The arms run to the shield's edge, inside its rounded foot. ui_icon_rank: set by the caller for the next
+   picture, 0 none */
+int ui_icon_rank = 0;
+static void rank_chevrons(ImDrawList *dl, ImVec2 c, float s, int rank)
+{
+    float u = s / 16.0f;
+    int n = rank < 0 ? -rank : rank; if (n > 3) n = 3;
+    bool down = rank < 0;
+    auto half = [](float y) {                                   /* the shield's half width at y (shield(): straight to 0, then curving to the point at 12) */
+        if (y <= 0) return 10.0f;
+        if (y >= 12) return 0.0f;
+        float t = 1 - sqrtf(1 - y / 12.0f);
+        return 10.0f * (1 - t) * (1 - t);
+    };
+    static const float AP[3][3] = { { 3.2f }, { 2.0f, 5.2f }, { 1.0f, 3.9f, 6.8f } };   /* (the points, down the lower part) */
+    const float m = down ? -0.5f : 0.5f, t = 1.8f;
+    for (int i = 0; i < n; i++) {
+        float ya = AP[n - 1][i] + (down ? 2.6f : 0);
+        float lo = 0, hi = 9.4f;                                /* where the arm meets the edge (less a little) */
+        for (int it = 0; it < 14; it++) { float x = (lo + hi) * 0.5f; if (half(ya + m * x) - 0.6f > x) lo = x; else hi = x; }
+        float xe = lo, ye = ya + m * xe;
+        ImVec2 pts[3] = { ImVec2(c.x - xe * u, c.y + ye * u), ImVec2(c.x, c.y + ya * u), ImVec2(c.x + xe * u, c.y + ye * u) };
+        dl->AddPolyline(pts, 3, down ? IM_COL32(250, 226, 196, 255) : IM_COL32(40, 24, 8, 255), 0, (t + 1.0f) * u);
+        dl->AddPolyline(pts, 3, down ? IM_COL32(200, 44, 32, 255) : IM_COL32(236, 238, 242, 255), 0, t * u);
+    }
+}
 static void styled(ImDrawList *dl, ImVec2 c, float s, int group, void (*body)(ImDrawList *, ImVec2, float, int), int k)
 {
     int st = style_override >= 0 ? style_override : icon_style();
@@ -244,11 +275,12 @@ static void styled(ImDrawList *dl, ImVec2 c, float s, int group, void (*body)(Im
         static const ImU32 FIELD[5] = { IM_COL32(36, 30, 30, 255), IM_COL32(160, 30, 30, 255), IM_COL32(30, 60, 140, 255), IM_COL32(30, 110, 50, 255),
                                         IM_COL32(100, 38, 110, 255) };   /* (sable the attributes, gules the weapons, azure knowledge, vert the abilities, purpure the party's standing) */
         shield(dl, c, s, FIELD[group]);
+        if (ui_icon_rank) rank_chevrons(dl, c, s, ui_icon_rank);
         /* the charge: as large as the shield allows, in gold with a dark edge under it (it must read when
            small); only near-white details (a page, a highlight) take the field's colour, so a steel key
            or a blade stays gold */
-        float cs = s * 0.74f, sh = fmaxf(1.0f, s * 0.045f);
-        ImVec2 cc(c.x, c.y - s * 0.05f);
+        float cs = s * (ui_icon_rank ? 0.54f : 0.74f), sh = fmaxf(1.0f, s * 0.045f);   /* (over chevronels: smaller, in the upper part) */
+        ImVec2 cc(c.x, c.y - s * (ui_icon_rank ? 0.2f : 0.05f));
         int v0 = dl->VtxBuffer.Size;
         body(dl, ImVec2(cc.x + sh, cc.y + sh), cs, k);
         recolor_since(dl, v0, IM_COL32(20, 10, 4, 230), IM_COL32(20, 10, 4, 230), 256);
@@ -259,6 +291,10 @@ static void styled(ImDrawList *dl, ImVec2 c, float s, int group, void (*body)(Im
     }
     if (ui_icon_disc) dl->AddCircleFilled(c, s * 0.66f, IM_COL32(24, 14, 6, 150));   /* a dark disc: the picture reads on any background */
     body(dl, c, s, k);
+    if (ui_icon_rank) {                                         /* (no shield in this look: the chevrons on a badge in the corner, ui/marks.h) */
+        float hw = fmaxf(2.6f, s * 0.12f);
+        ui_mark_chevrons(dl, ImVec2(c.x + s * 0.42f, c.y + s * 0.4f), hw, fmaxf(1.1f, hw * 0.46f), ui_icon_rank < 0 ? -ui_icon_rank : ui_icon_rank, ui_icon_rank < 0);
+    }
 }
 /* the party's standing, which some cards weigh: 0 the town's opinion of the party (its reputation
    here), a medal on its ribbon; 1 the party's fame, Fame's trumpet with its banner */
@@ -292,6 +328,49 @@ void ui_standing_icon(ImDrawList *dl, ImVec2 c, float s, int k) { styled(dl, c, 
 void ui_skill_icon(ImDrawList *dl, ImVec2 c, float s, int k) { styled(dl, c, s, k < 7 ? 1 : k < 13 ? 2 : 3, skill_body, k); }
 void ui_attr_icon(ImDrawList *dl, ImVec2 c, float s, int k) { if (k >= 0 && k < 7) styled(dl, c, s, 0, attr_body, k); }
 void ui_age_icon(ImDrawList *dl, ImVec2 c, float s) { styled(dl, c, s, 0, attr_body, 7); }   /* (sable, as the attributes: the member's own) */
+
+extern "C" const char *gm_attr_name(int a); extern "C" const char *gm_skill_name(int k); extern "C" const char *gm_skill_short(int k);
+void ui_key_icon(ImDrawList *dl, ImVec2 c, float s, int key)
+{
+    if (key >= 0 && key < UI_KEY_SKILL) ui_attr_icon(dl, c, s, key);
+    else if (key < UI_KEY_REP) ui_skill_icon(dl, c, s, key - UI_KEY_SKILL);
+    else if (key < UI_KEYS) ui_standing_icon(dl, c, s, key - UI_KEY_REP);
+}
+const char *ui_key_name(int key)
+{
+    return key >= 0 && key < UI_KEY_SKILL ? gm_attr_name(key) : key < UI_KEY_REP ? gm_skill_name(key - UI_KEY_SKILL) : key == UI_KEY_REP ? "Reputation" : key == UI_KEY_FAME ? "Fame" : "?";
+}
+int ui_key_of(const char *name, int len)
+{
+    auto is = [&](const char *t) { return (int)strlen(t) == len && !strncmp(t, name, (size_t)len); };
+    for (int k = 0; k < UI_KEYS; k++) if (is(ui_key_name(k))) return k;
+    for (int k = 0; k < 7; k++) if (is(gm_skill_short(k))) return UI_KEY_SKILL + k;
+    if (is("Latin")) return UI_KEY_SKILL + 11;
+    if (is("Missile Device") || is("Missile Weapons")) return UI_KEY_SKILL + 6;
+    static const char *const ONE[6] = { "Edged Weapon", "Impact Weapon", "Flail", "Polearm", "Thrown Weapon", "Bow" };   /* (the game's "Flail Wpns" less " Wpns") */
+    for (int k = 0; k < 6; k++) if (is(ONE[k])) return UI_KEY_SKILL + k;
+    return -1;
+}
+float ui_shield_value(ImDrawList *dl, ImVec2 left_mid, float s, int key, const char *value, ImFont *f, float fs, ImU32 col)
+{
+    float sw = UI_SHIELD_W * s;
+    extern int ui_icon_disc; int disc = ui_icon_disc; ui_icon_disc = 0;
+    ui_key_icon(dl, ImVec2(left_mid.x + sw * 0.5f, left_mid.y), s, key);
+    ui_icon_disc = disc;
+    if (!value || !*value) return sw;
+    float gap = s * 0.2f;
+    ImVec2 ts = f->CalcTextSizeA(fs, FLT_MAX, 0, value);
+    dl->AddText(f, fs, ImVec2(left_mid.x + sw + gap, left_mid.y - ts.y * 0.5f), col, value);
+    return sw + gap + ts.x;
+}
+void ui_dim_since(ImDrawList *dl, int v0, float k)
+{
+    for (int i = v0; i < dl->VtxBuffer.Size; i++) {
+        ImU32 &c = dl->VtxBuffer[i].col;
+        unsigned al = (c >> IM_COL32_A_SHIFT) & 255;
+        c = (c & ~IM_COL32_A_MASK) | ((ImU32)(al * k) << IM_COL32_A_SHIFT);
+    }
+}
 
 /* a skill's picture in the flow of a window's text, then the text goes on beside it */
 void ui_skill_icon_inline(int k)

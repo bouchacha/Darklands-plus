@@ -11,3 +11,7 @@ void ui_mark_falling_bars(ImDrawList *dl, ImVec2 c, float r, ImU32 col);        
 void ui_mark_blast(ImDrawList *dl, ImVec2 c, float r);                                    /* an explosion */
 void ui_mark_stink(ImDrawList *dl, ImVec2 c, float r, float th);                          /* a stink */
 void ui_mark_lost(ImDrawList *dl, ImVec2 c, float r, int item, float th);                 /* the ingredients lost (item: one of them) */
+/* how much, as a rank's chevrons: n (1..3) stacked on a dark badge, the lowest one's middle at base; hw the
+   chevrons' half width, th their stroke (pixels). Gold pointing up; down (a cost, a loss): red pointing down.
+   A potion's grade (ui/alchemyicons.cpp); a saint's help where the pictures are not shields (ui_icon_rank). Returns the badge's half width */
+float ui_mark_chevrons(ImDrawList *dl, ImVec2 base, float hw, float th, int n, bool down);

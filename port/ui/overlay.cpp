@@ -13,6 +13,7 @@
 #include <strings.h>
 #include <algorithm>
 #include <vector>
+#include "richtext.h"
 #include "imgui.h"
 #include "padglyphs.h"
 #include <SDL.h>
@@ -190,13 +191,13 @@ extern "C" void ui_notice_for(const char *msg, unsigned ms)
 {
     snprintf(notice, sizeof notice, "%s", msg);
     notice_t = plat_ticks_ms(); notice_ms = ms < 1000 ? 1000 : ms;
-    fprintf(stderr, "notice: %s\n", msg);
+    fprintf(stderr, "notice: %s\n", rich_plain(msg).c_str());
 }
 extern "C" void ui_notice(const char *msg)
 {
     snprintf(notice, sizeof notice, "%s", msg);
     notice_t = plat_ticks_ms(); notice_ms = 3000;
-    fprintf(stderr, "notice: %s\n", msg);
+    fprintf(stderr, "notice: %s\n", rich_plain(msg).c_str());
 }
 /* once, soon after the start: which controller is connected, with its main buttons, or none
    (runtime/platform_sdl.c pad_hello); small, in the bottom right corner, for a few seconds */
@@ -247,12 +248,12 @@ extern "C" void ui_draw_notice(void)
     float a = age + 600 < notice_ms ? 1.0f : (notice_ms - age) / 600.0f;
     ImGuiIO &io = ImGui::GetIO();
     ImGui::PushFont(ui_font_overlay);
-    ImVec2 ts = ImGui::CalcTextSize(notice);
+    ImVec2 ts = rich_size(ImGui::GetFont(), ImGui::GetFontSize(), 0, notice);   /* (shields in it: ui/richtext.h) */
     ImVec2 p((io.DisplaySize.x - ts.x) * 0.5f, io.DisplaySize.y - ts.y - 28);
     ImDrawList *dl = ImGui::GetForegroundDrawList();
     dl->AddRectFilled(ImVec2(p.x - 14, p.y - 7), ImVec2(p.x + ts.x + 14, p.y + ts.y + 7), IM_COL32(28, 20, 12, (int)(225 * a)), 6);
     dl->AddRect(ImVec2(p.x - 14, p.y - 7), ImVec2(p.x + ts.x + 14, p.y + ts.y + 7), IM_COL32(190, 150, 90, (int)(255 * a)), 6, 0, 1.5f);
-    dl->AddText(p, IM_COL32(250, 232, 190, (int)(255 * a)), notice);
+    rich_draw(dl, ImGui::GetFont(), ImGui::GetFontSize(), p, 0, IM_COL32(250, 232, 190, (int)(255 * a)), notice);
     ImGui::PopFont();
 }
 
@@ -481,11 +482,11 @@ static void draw_learned(void)
     float w = (br.x - tl.x) * 0.46f, pad = size * 0.5f;
     /* the legend, then what the saint's help does (the game's code: mods/saintinfo.h) in gold */
     size_t at = saint_effect_at(t.text);
-    std::string lore = t.text.substr(0, at), eff = std::string(saint_info_does(learned_saint)) + (*saint_info_note(learned_saint) ? " " : "") + saint_info_note(learned_saint);
+    std::string lore = t.text.substr(0, at), eff = saint_effects_text(learned_saint) + (*saint_info_note(learned_saint) ? " " : "") + saint_info_note(learned_saint);
     while (!lore.empty() && lore.back() == ' ') lore.pop_back();
     ImVec2 hs = f->CalcTextSizeA(size * 1.05f, FLT_MAX, 0, head.c_str());
     ImVec2 ls = lore.empty() ? ImVec2(0, 0) : f->CalcTextSizeA(size, FLT_MAX, w, lore.c_str());
-    ImVec2 es = eff.empty() ? ImVec2(0, 0) : f->CalcTextSizeA(size, FLT_MAX, w, eff.c_str());
+    ImVec2 es = eff.empty() ? ImVec2(0, 0) : rich_size(f, size, w, eff.c_str());
     float gap = !lore.empty() && !eff.empty() ? size * 0.4f : 0;
     float bh = hs.y + ls.y + gap + es.y + pad * 2.4f;
     float bottom = card_help_top > 0 ? card_help_top - size * 0.4f : br.y;
@@ -496,7 +497,7 @@ static void draw_learned(void)
     dl->AddText(f, size * 1.05f, ImVec2(p0.x + pad, p0.y + pad * 0.8f), IM_COL32(250, 246, 236, (int)(255 * a)), head.c_str());
     float ty = p0.y + pad * 1.4f + hs.y;
     if (!lore.empty()) dl->AddText(f, size, ImVec2(p0.x + pad, ty), IM_COL32(215, 202, 180, (int)(255 * a)), lore.c_str(), 0, w);
-    if (!eff.empty()) dl->AddText(f, size, ImVec2(p0.x + pad, ty + ls.y + gap), IM_COL32(255, 222, 140, (int)(255 * a)), eff.c_str(), 0, w);
+    if (!eff.empty()) rich_draw(dl, f, size, ImVec2(p0.x + pad, ty + ls.y + gap), w, IM_COL32(255, 222, 140, (int)(255 * a)), eff.c_str());
 }
 
 extern "C" void travel_overlay(void);

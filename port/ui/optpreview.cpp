@@ -4,6 +4,7 @@
 #include <math.h>
 #include <float.h>
 #include <string.h>
+#include "richtext.h"
 #include "imgui.h"
 #include "gamepics.h"
 
@@ -18,7 +19,7 @@ struct S {                                     /* the scene's box: x, y in 0..10
     ImVec2 p(float x, float y) const { return ImVec2(a.x + x * k, a.y + y * k); }
     void rect(float x0, float y0, float x1, float y1, ImU32 c, float r = 0) const { dl->AddRectFilled(p(x0, y0), p(x1, y1), c, r * k); }
     void frame(float x0, float y0, float x1, float y1, ImU32 c, float w = 1, float r = 0) const { dl->AddRect(p(x0, y0), p(x1, y1), c, r * k, 0, w); }
-    void text(float x, float y, float size, ImU32 c, const char *t) const { dl->AddText(ImGui::GetFont(), size * 1.45f * k, p(x, y), c, t); }   /* (larger than drawn to scale: to be read) */
+    void text(float x, float y, float size, ImU32 c, const char *t) const { rich_draw(dl, ImGui::GetFont(), size * 1.45f * k, p(x, y), 0, c, t); }   /* (larger than drawn to scale: to be read; shields as ui/richtext.h) */
     void ground() const { rect(0, 0, 100, 60, GRASS); for (int i = 0; i < 14; i++) { float x = fmodf(i * 37.0f, 100), y = fmodf(i * 23.0f, 60); rect(x, y, x + 3, y + 1, GRASS_D); } }
     /* a fighter standing at x (feet at y) */
     void figure(float x, float y, ImU32 body) const {       /* (drawn large: the scene is small) */
@@ -98,13 +99,13 @@ void skill_gain(const S &s)
 {
     s.ground();
     s.figure(46, 56, OURS);
-    s.text(36, 8, 5.4f, IM_COL32(240, 200, 70, 255), "+2 Edged");
+    s.text(38, 8, 5.4f, IM_COL32(240, 200, 70, 255), "{Edged} +2");
     s.rect(44, 57, 60, 58.6f, IM_COL32(10, 6, 2, 200)); s.rect(44.3f, 57.3f, 54, 58.3f, IM_COL32(230, 160, 50, 255));   /* (the reload bar) */
 }
 void battle_log(const S &s)
 {
     s.rect(0, 0, 100, 60, IM_COL32(236, 222, 190, 255));
-    static const char *L[5] = { "Jorg hits the bandit", "The bandit parries", "Anna shoots: a wound", "The bandit falls", "Jorg: +1 Edged" };
+    static const char *L[5] = { "Jorg hits the bandit", "The bandit parries", "Anna shoots: a wound", "The bandit falls", "Jorg: {Edged:+1 (now 31)}" };
     for (int i = 0; i < 5; i++) s.text(5, 4 + i * 11, 4.4f, i == 3 ? IM_COL32(150, 40, 25, 255) : INK, L[i]);
 }
 void shoot_switch(const S &s)

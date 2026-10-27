@@ -212,7 +212,7 @@ extern "C" void lodgeview_draw(void)
         ImU32 mc = soft;
         if (act == 6 && p.skill >= 0 && p.skill < 19) {
             int ti = -1; for (int t = 0; t < m.nteach; t++) if (m.t[t].skill == p.skill && (m.t[t].used || ti < 0)) ti = t;
-            line = std::string("Studies ") + gm_skill_name(p.skill);
+            line = std::string("Studies {") + gm_skill_name(p.skill) + "}";
             if (ti >= 0) {
                 const auto &T = m.t[ti];
                 int now = gm_member_skill(i, p.skill), c = teach_chance(T.val);
@@ -225,17 +225,17 @@ extern "C" void lodgeview_draw(void)
                 int fm = p.brew_f[k];
                 line += (k ? ", " : "") + std::to_string(p.brew_n[k]) + " " + (fm >= 0 && fm < (int)gamedata.formula_names.size() ? gamedata.formula_names[fm] : std::string("?"));
             }
-        } else if (act == 0) { line = "Relaxes"; more = p.end < p.end_max ? "Endurance back to full (" + std::to_string(p.end) + " of " + std::to_string(p.end_max) + ")" : p.can[4] ? "Already rested: earning would be better" : "Already rested"; if (p.end >= p.end_max && p.can[4]) mc = IM_COL32(150, 70, 20, 255); }
-        else if (act == 1) more = "Strength " + std::to_string(p.str) + " of " + std::to_string(p.str_max);
-        else if (act == 5) { line = "Keeps watch"; more = "Woodwise " + std::to_string(gm_member_skill(i, 18)) + ", Stealth " + std::to_string(gm_member_skill(i, 15)); }
-        else if (act == 2) more = "Divine Favor " + std::to_string(p.df) + " of " + std::to_string(p.df_max);
-        else if (act == 4) more = p.end < p.end_max ? "Endurance stays down (" + std::to_string(p.end) + " of " + std::to_string(p.end_max) + ")" : "";
+        } else if (act == 0) { line = "Relaxes"; more = p.end < p.end_max ? "back to full: {Endurance:" + std::to_string(p.end) + " of " + std::to_string(p.end_max) + "}" : p.can[4] ? "Already rested: earning would be better" : "Already rested"; if (p.end >= p.end_max && p.can[4]) mc = IM_COL32(150, 70, 20, 255); }
+        else if (act == 1) more = "{Strength:" + std::to_string(p.str) + " of " + std::to_string(p.str_max) + "}";
+        else if (act == 5) { line = "Keeps watch"; more = "{Woodwise:" + std::to_string(gm_member_skill(i, 18)) + "}  {Stealth:" + std::to_string(gm_member_skill(i, 15)) + "}"; }
+        else if (act == 2) more = "{Divine Favor:" + std::to_string(p.df) + " of " + std::to_string(p.df_max) + "}";
+        else if (act == 4) more = p.end < p.end_max ? "stays down: {Endurance:" + std::to_string(p.end) + " of " + std::to_string(p.end_max) + "}" : "";
         P.text(fo, NsDraw::FS_BODY, nx, y + 8.6f, IM_COL32(92, 40, 12, 255), line, -1, LX1 - 1);
         if (!more.empty() && rh >= 20) P.text(fo, NsDraw::FS_SMALL, nx, y + 15.0f, mc, more, -1, LX1 - 1);
         /* the wounded: End / Str short, on the right of the name */
         std::string shortv;
-        if (p.end_max > 0 && p.end < p.end_max) shortv = "End " + std::to_string(p.end);
-        if (p.str_max > 0 && p.str < p.str_max) shortv += (shortv.empty() ? "" : "  ") + std::string("Str ") + std::to_string(p.str);
+        if (p.end_max > 0 && p.end < p.end_max) shortv = "{Endurance:" + std::to_string(p.end) + "}";
+        if (p.str_max > 0 && p.str < p.str_max) shortv += (shortv.empty() ? "" : "  ") + std::string("{Strength:") + std::to_string(p.str) + "}";
         if (!shortv.empty()) P.text(fo, NsDraw::FS_SMALL, 0, y + 2.2f, NsDraw::RED, shortv, LX1 - 1);
         y += rh;
     }
@@ -247,12 +247,12 @@ extern "C" void lodgeview_draw(void)
         const LodgeMember &p = m.m[m.sel];
         snprintf(b, sizeof b, "%s's day", ns_gtext(p.name).c_str());
         P.text(f, NsDraw::FS_HEAD, RX0, TY - 1.5f, ink, b);
-        static const char *ACT[7] = { "Regain Endurance", "Regain Strength", "Pray for Divine Favor", "Alchemy work", "Earn a little money", "Guard the camp", "Train or study" };
-        static const char *WHY[7] = { "Endurance is full: earning money is the better day.", "Already at full Strength.", "Divine Favor is full.", "Knows no formula to make.", "Only at an inn in a town.", "Only when camping in the wild.", "No teachers retained in this town." };
-        static const char *WHAT[7] = { "Rest: Endurance comes back to full. Nothing else is gained.", "Rest and care: Strength comes back; the better the party's Healing, the more (Endurance too).",
-            "Prayer: Divine Favor comes back; the better Religion and Virtue, the more. Endurance does not come back that day.", "Make potions from a known formula (the ingredients are used up). Endurance does not come back that day.",
-            "Work in the town: the job that pays this member best, by their attributes and skills (wounds lower the pay; a bad name in the town too). Endurance does not come back that day.",
-            "Keep watch: the risk that the lord's men find the party living off his land grows more slowly each day. Woodwise helps most, then Stealth, then a weapon skill of 30 or more.", "Lessons from a teacher hired in this town, for a fee each day. Endurance does not come back that day." };
+        static const char *ACT[7] = { "Regain {Endurance}", "Regain {Strength}", "Pray for {Divine Favor}", "Alchemy work", "Earn a little money", "Guard the camp", "Train or study" };
+        static const char *WHY[7] = { "{Endurance} is full: earning money is the better day.", "Already at full {Strength}.", "{Divine Favor} is full.", "Knows no formula to make.", "Only at an inn in a town.", "Only when camping in the wild.", "No teachers retained in this town." };
+        static const char *WHAT[7] = { "Rest: {Endurance} comes back to full. Nothing else is gained.", "Rest and care: {Strength} comes back; the better the party's {Healing}, the more ({Endurance} too).",
+            "Prayer: {Divine Favor} comes back; the better {Religion} and {Virtue}, the more. {Endurance} does not come back that day.", "Make potions from a known formula (the ingredients are used up). {Endurance} does not come back that day.",
+            "Work in the town: the job that pays this member best, by their attributes and skills (wounds lower the pay; a bad name in the town too). {Endurance} does not come back that day.",
+            "Keep watch: the risk that the lord's men find the party living off his land grows more slowly each day. {Woodwise} helps most, then {Stealth}, then a weapon skill of 30 or more.", "Lessons from a teacher hired in this town, for a fee each day. {Endurance} does not come back that day." };
         /* the teachers, one row a skill: the one who teaches it (the best, with the bestteacher fix) */
         int tl[LV_TEACHERS], ntl = 0;
         for (int t = 0; t < m.nteach; t++) {
@@ -327,9 +327,9 @@ extern "C" void lodgeview_draw(void)
             int c = teach_chance(T.val), days = c > 0 ? (100 + c / 2) / c : 0;
             int same = 0; for (int t = 0; t < m.nteach; t++) same += m.t[t].skill == T.skill;
             if (teach_capped(m.sel, T.skill, T.val))
-                snprintf(b, sizeof b, "The teacher of %s knows %d; %s has %d already: nothing more to learn here.", sk, T.val, ns_gtext(p.name).c_str(), now);
+                snprintf(b, sizeof b, "The teacher of {%s} knows %d; %s has %d already: nothing more to learn here.", sk, T.val, ns_gtext(p.name).c_str(), now);
             else
-                snprintf(b, sizeof b, "Teacher of %s (skill %d), %d more day%s hired. Each day: %d%% chance of +1 (about one point in %d day%s)%s. %s has %d.%s",
+                snprintf(b, sizeof b, "Teacher of {%s} (skill %d), %d more day%s hired. Each day: %d%% chance of +1 (about one point in %d day%s)%s. %s has %d.%s",
                          sk, T.val, T.days_left, T.days_left == 1 ? "" : "s", c, days, days == 1 ? "" : "s", fix_is_on("teachcap") ? ", up to the teacher's skill" : "",
                          ns_gtext(p.name).c_str(), now, same > 1 ? (fix_is_on("bestteacher") ? " (The best of the teachers of it hired here teaches.)" : " (The one hired first teaches.)") : "");
             about = b;

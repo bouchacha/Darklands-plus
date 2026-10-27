@@ -74,7 +74,7 @@ static void draw_notes(NsDraw &P, int k, float x0, float y0, float x1, float y1)
     for (int i = (int)v.size() - 1; i >= 0; i--) {
         const PNote &n = v[i];
         float a = now - n.t > 12000 ? (14000 - (now - n.t)) / 2000.0f : 1.0f;
-        float th = P.fo->CalcTextSizeA(P.size(P.fo, 4.3f), FLT_MAX, (x1 - x0 - 4) * P.kx, n.text.c_str()).y / P.k + 2.4f;
+        float th = P.para_height(P.fo, 4.3f, x1 - x0 - 4, n.text) + 2.4f;
         float h = k < 5 ? fmaxf(th, (y1 - y0) / 3.0f) : th;    /* (on a member: at least a bar's row - half a row covered looked broken) */
         if (y - h < y0) break;
         y -= h;
@@ -437,9 +437,10 @@ extern "C" void partypanel_draw(void)
             if (P.over(wx - r, wy - r, wx + r, wy + r)) {
                 int e, em, s2, sm; gm_member_attr(m, 0, &e, &em); gm_member_attr(m, 1, &s2, &sm);
                 const char *ui_load_effect(int band);
-                ImGui::SetTooltip("%s carries %s: %d against %d (Endurance + Strength; only equipped items count).\n%s %s.",
+                char t[700]; snprintf(t, sizeof t, "%s carries %s: %d against %d ({Endurance} + {Strength}; only equipped items count).\n%s %s.",
                                   name.c_str(), band == 3 ? "far too much" : "a heavy load", gm_member_load(m), e + s2, ui_load_effect(band),
                                   battle && config_get_int("battle.panel_select", 1) ? "Right-click to open the sheet" : "Click to open the sheet");
+                ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 30); ui_rich_text(t); ImGui::PopTextWrapPos(); ImGui::EndTooltip();
             }
         }
         /* a saint's help or a potion at work: a halo on the picture's upper corner, gold (or a dull red

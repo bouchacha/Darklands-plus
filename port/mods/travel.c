@@ -432,8 +432,10 @@ void travel_set(int on, int fast)
 }
 
 /* how often the road brings an encounter (travel.encounters, % of the game's rate). Each step
- * on the map the game rolls rand(1000) against (days without one + 1) x a weight for the
- * terrain and the nearest place (s030 1462:2d44); the weight is what is scaled here: below
+ * on the map the game rolls rand(1000) against (n + 1) x a weight for the terrain and the
+ * nearest place (s030 1462:2d44), n a count set to 0 each time the party comes onto the map
+ * (overland_open: out of a town, after a card) that grows by 1 at about 1 step in 50, to 10 at
+ * most (D_e488, 1462:1300); the weight is what is scaled here: below
  * 100 % a step's weight is 0 (no encounter) that often, above it the weight grows. */
 static void encounter_weight_hook(void)
 {

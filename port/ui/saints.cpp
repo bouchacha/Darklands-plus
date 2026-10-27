@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include "richtext.h"
 #include "imgui.h"
 ImU32 ns_tier_colour(int n);   /* ui/nsdraw.cpp */
 #include "ui.h"
@@ -219,13 +220,13 @@ void ui_saint_info(int s)
     ImGui::TextWrapped("%s", gamedata.saints[s].text.c_str());
     ImGui::Spacing();
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.10f, 0.25f, 0.52f, 1));
-    ImGui::TextWrapped("What it does: %s", saint_info_does(s));
+    ImGui::PushTextWrapPos(0); ui_rich_text(("What it does:\n" + saint_effects_text(s)).c_str()); ImGui::PopTextWrapPos();
     ImGui::PopStyleColor();
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
     if (*saint_info_note(s)) ImGui::TextWrapped("%s", saint_info_note(s));
     ImGui::PopStyleColor();
     const char *u = saint_info_unlike(s);
-    if (*u) { ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.55f, 0.20f, 0.12f, 1)); ImGui::TextWrapped("Differs from the description: %s", u); ImGui::PopStyleColor(); }
+    if (*u) { ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.55f, 0.20f, 0.12f, 1)); ImGui::PushTextWrapPos(0); ui_rich_text(("Differs from the description: " + rich_auto(u)).c_str()); ImGui::PopTextWrapPos(); ImGui::PopStyleColor(); }
     {   int n = saint_info_cards(s);                       /* (coloured: many green, some blue, a few brown, none grey) */
         ImU32 c = ns_tier_colour(n >= 10 ? 20 : n >= 3 ? 5 : n);
         ImGui::PushStyleColor(ImGuiCol_Text, c); ImGui::TextWrapped("%s", saint_encounters_line(s)); ImGui::PopStyleColor(); }

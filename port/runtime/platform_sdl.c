@@ -774,6 +774,14 @@ static void run_script(void)
             ev.key.keysym.scancode = sc; ev.key.keysym.sym = SDL_GetKeyFromScancode(sc); SDL_PushEvent(&ev);
             ev.type = SDL_KEYUP; ev.key.state = SDL_RELEASED; SDL_PushEvent(&ev);
         }
+        else if (!strcmp(s->cmd, "uhovercb")) {          /* test: the pointer over battle combatant n (ui/battleoverlay.cpp) */
+            int ui_battle_combatant_px(int, int *, int *), wx, wy;
+            if (ui_battle_combatant_px(atoi(s->arg), &wx, &wy)) {
+                SDL_Event ev; memset(&ev, 0, sizeof ev);
+                if (win) SDL_WarpMouseInWindow(win, wx, wy);
+                ev.type = SDL_MOUSEMOTION; ev.motion.windowID = win ? SDL_GetWindowID(win) : 0; ev.motion.x = wx; ev.motion.y = wy; SDL_PushEvent(&ev);
+            } else fprintf(stderr, "uhovercb: no combatant %s\n", s->arg);
+        }
         else if (!strcmp(s->cmd, "uhover")) {            /* the pointer over the interface, window pixels */
             SDL_Event ev; memset(&ev, 0, sizeof ev);
             if (win) SDL_WarpMouseInWindow(win, x, y);
