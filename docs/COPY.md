@@ -2760,11 +2760,11 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/orders.c:691` | Click: attack (Berserk) |
 | `mods/orders.c:692` | Click: parry its blows |
 | `mods/orders.c:696` | No clear shot: walks up to fight |
-| `mods/pathfix.c:455` |  (stuck: around everyone) |
-| `mods/pathfix.c:635` | cells unreachable |
-| `mods/pathfix.c:635` | search gave up |
-| `mods/pathfix.c:640` | over 20 cells |
-| `mods/pathfix.c:644` | time native %u us, original %u us; where both: %ld vs %ld steps  |
+| `mods/pathfix.c:465` |  (stuck: around everyone) |
+| `mods/pathfix.c:645` | cells unreachable |
+| `mods/pathfix.c:645` | search gave up |
+| `mods/pathfix.c:650` | over 20 cells |
+| `mods/pathfix.c:654` | time native %u us, original %u us; where both: %ld vs %ld steps  |
 | `mods/politics.c:205` | While you were away, the rebels marched on the %s: the city has a new government. |
 | `mods/politics.c:206` | While you were away, the rebels marched on the %s and were scattered: the old government holds. |
 | `mods/politics.c:207` | While you were away, the city guard arrested the rebel leaders: the old government holds. |
