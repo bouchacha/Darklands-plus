@@ -393,37 +393,31 @@ static void path_find_hook(void)
     if (target >= 13) target = -1;
     if (target >= 0 && g_rb((u16)(GV_cbt_floor + target)) != g_rb((u16)(GV_cbt_floor + i))) { hook_call_original(); return; }
 
-    /* a combatant asking again from where it stood the last time has not got on: the route went
-       through friends on the move (who do not block a plan), and they stand in the way. Then plan
-       around everyone. (Asks within a few ticks are one: the enemies' choice of a foe asks for
-       each foe in turn.) Asked eight times from one spot, it is told there is no way: the game
-       then gives the foe up, or the member looks for a spot near it (2cca), and does not go on
-       asking for ever */
+    /* asking from one spot again and again. A combatant that asks again from where it stood the last time
+       has not got on: the route went through friends on the move (who do not block a plan), and they stand
+       in the way; it then plans around everyone. (Asks within a few ticks are one: the enemies' choice of
+       a foe asks for each foe in turn.) The eighth ask from one spot is told there is no way, and the game
+       gives the foe up, or the member looks for a spot near it (2cca), instead of asking for ever. Who that
+       holds for:
+       - enemies, and the party in a fight going for a foe: as said;
+       - the party in a fight walking somewhere, with only friends in the way (two in a doorway, paths
+         crossing): four rounds more, asking again at different moments (crowd_step_hook), so that one gets
+         round while the other stands;
+       - the party out of a fight, or following a friend (single file): never. It waits behind the one in
+         front and goes on when that one does. Told so for good, a follower that stood in the line while the
+         leader went round a corner never moved again, and one such member made every order of a group fail
+         ("can't walk there": s014 19cd stops them all when one has no way), until the next fight.
+       A member of the party asking for another goal (a new order; the one it follows gone on) starts afresh. */
     int stuck = 0;
     u16 now = g_rw(GV_combat_clock);
-    /* (a member of the party asking for somewhere else: a new order, or the one it follows gone on, is
-       a new start. Else the eight asks of a follower that stood in the line behind a friend while the
-       leader went round a corner, or of one who stood still for a while, held for good: "no way" from
-       that spot to anywhere, and the member never moved again, even out of a fight) */
     if (i < 5 && abs(tx - stall[i].tx) + abs(ty - stall[i].ty) > 24) stall[i].n = 0;
     stall[i].tx = (s16)tx; stall[i].ty = (s16)ty;
     if (abs(x - stall[i].x) <= 3 && abs(y - stall[i].y) <= 3) {
         if ((u16)(now - stall[i].clk) >= 6 && stall[i].n < 250) { stall[i].n++; stall[i].clk = now; }
         stuck = stall[i].n;
     } else { stall[i].x = (s16)x; stall[i].y = (s16)y; stall[i].n = 0; stall[i].clk = now; }
-    /* a member of the party out of a fight, or following a friend (single file: the target is one of the
-       party), is never told there is no way for having asked from one spot: it waits behind the one in front
-       and goes on when that one does, planning around everyone meanwhile (the game asks again and again
-       while it stands; each ask is a few steps). Else one member left so in a group made every order of
-       the group fail ("can't walk there", s014 19cd: one member without a way stops them all) until the
-       next fight */
     if (stuck >= 8 && i < 5 && ((target >= 0 && target < 5) || g_rb(GV_real_combat) != 1)) stuck = 7;
-    /* two of the party in each other's way (paths crossing in a doorway or a corridor): both
-       planned around everyone from where they stood, both stepped the same way, and after eight
-       tries both were told there is no way and stopped ("waits"). Now, with only the party in the
-       way, a member keeps asking a few times over before it gives up; they ask again at different
-       moments (12 to 24 ticks, crowd_step_hook), so one gets round while the other stands */
-    if (stuck >= 8 && i < 5 && target < 0 && stall_resets[i] < 4) {
+    else if (stuck >= 8 && i < 5 && target < 0 && stall_resets[i] < 4) {
         u16 blk = g_rw((u16)(D_BLOCKER + 2 * i)) & 0x1fff;
         if (blk && !(blk & ~0x1fu)) { stall[i].n = 3; stuck = 3; stall_resets[i]++; }
     }
