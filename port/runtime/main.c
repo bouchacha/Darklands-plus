@@ -317,6 +317,7 @@ int main(int argc, char **argv)
 
     { void ui_late_init(void); ui_late_init(); }
     { void saves_backup_once(void); saves_backup_once(); }   /* the saves copied once a version, before it writes any (mods/saves.c) */
+    { void dos_saves_aliases(void); dos_saves_aliases(); }   /* saves past 99 under long names: their short ones (runtime/dos.c) */
     if (getenv("DL_DUMP_SWITCHES")) { int options_dump_markdown(const char *); exit(options_dump_markdown(getenv("DL_DUMP_SWITCHES")) ? 0 : 1); }   /* docs/SWITCHES.md */
     { void options_sync_bundles(void); options_sync_bundles(); }   /* (New screens: its members as it says, before the modules read them) */
     mods_init();

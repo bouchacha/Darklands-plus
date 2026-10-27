@@ -61,6 +61,27 @@ static void get_str(u16 seg, u16 off, char *buf, int n)
     buf[i] = 0;
 }
 
+/* ---- saved games past 99. The game names a new save saves\dksaveN.sav, N the first number not used
+ * (save_game, s037 1462:2ace: itoa, then _dos_findfirst until none); from 100 on that is no DOS name (nine
+ * letters before the dot). DOS cut it to dksave10 (the game then looked for a free number for ever); here
+ * it stayed a long file that no listing showed (wild_match takes 8.3 names only) and that the game,
+ * not finding it, wrote over at every save after. Saves 100 to 1035 are named dksave + a letter and a
+ * letter or digit instead: the game asks for dksave100.sav, gets dksavea0.sav (101 dksavea1, ... 135
+ * dksaveaz, 136 dksaveb0), an 8.3 name of the same family that none of the game's own can take. */
+int dos_name_alias(const char *in, char *out, size_t n)
+{
+    if (strncasecmp(in, "dksave", 6)) return 0;
+    const char *d = in + 6;
+    int v = 0, nd = 0;
+    while (isdigit((u8)d[nd])) { if (++nd > 4) return 0; v = v * 10 + d[nd - 1] - '0'; }
+    if (nd < 3 || d[nd] != '.' || v < 100 || v >= 100 + 26 * 36) return 0;
+    const char *ext = d + nd + 1;
+    if (!*ext || strlen(ext) > 3 || strpbrk(ext, "*?./\\")) return 0;
+    int k = v - 100, b = k % 36;
+    snprintf(out, n, "dksave%c%c.%s", 'a' + k / 36, b < 10 ? '0' + b : 'a' + b - 10, ext);
+    return 1;
+}
+
 /* case-insensitive resolution of one path component inside dir */
 static int find_ci(const char *dir, const char *name, char *out, size_t outn)
 {
@@ -92,8 +113,8 @@ static void path_in(const char *root, const char *dos, char *out, size_t outn)
         char *sl = strchr(tok, '/');
         if (sl) *sl = 0;
         if (*tok && strcmp(tok, ".")) {
-            char nxt[1024];
-            find_ci(tmp, tok, nxt, sizeof nxt);
+            char nxt[1024], al[32];
+            find_ci(tmp, dos_name_alias(tok, al, sizeof al) ? al : tok, nxt, sizeof nxt);
             snprintf(tmp, sizeof tmp, "%s", nxt);
         }
         if (!sl) break;
@@ -129,7 +150,8 @@ static void norm_rel(const char *dos, char *rel, size_t n)
         if (!strcmp(tok, "..")) { while (o && rel[o - 1] != '/') o--; if (o) o--; rel[o] = 0; }
         else if (*tok && strcmp(tok, ".")) {
             if (o && o + 1 < n) rel[o++] = '/';
-            for (const char *q = tok; *q && o + 1 < n; q++) rel[o++] = (char)toupper((u8)*q);
+            char al[32]; const char *w = dos_name_alias(tok, al, sizeof al) ? al : tok;
+            for (const char *q = w; *q && o + 1 < n; q++) rel[o++] = (char)toupper((u8)*q);
             rel[o] = 0;
         }
         if (!c) break;
@@ -260,6 +282,36 @@ int dos_delete(const char *dos)
 unsigned dos_save_read_ms;      /* when the game last opened a saved game for reading (a load, or its list) */
 /* (for the port's own readers: saves, the Honor Roll, enemy names) the file as the game would read it */
 void dos_host_path(const char *dos, char *out, size_t outn) { read_path(dos, out, outn); }
+
+/* at the start: saves made past 99 under their long names (dksave100.sav ..., by Darklands+ up to 1.3.1's
+   first download) take their short name (dos_name_alias), in the game folder and in the shadow folder,
+   unless one of that name is there already. A game folder that cannot be written gets the short-named
+   copy in the shadow folder. */
+void dos_saves_aliases(void)
+{
+    const char *roots[2] = { game_dir, dos_shadow };
+    for (int r = 0; r < 2; r++) {
+        if (!roots[r][0]) continue;
+        char dir[1100]; path_in(roots[r], "SAVES", dir, sizeof dir);
+        DIR *d = opendir(dir);
+        if (!d) continue;
+        char names[64][64]; int nn = 0;
+        struct dirent *e;
+        while ((e = readdir(d)) && nn < 64) { char al[32]; if (strlen(e->d_name) < 64 && dos_name_alias(e->d_name, al, sizeof al)) snprintf(names[nn++], 64, "%s", e->d_name); }
+        closedir(d);
+        for (int i = 0; i < nn; i++) {
+            char al[32], from[1200], to[1200];
+            dos_name_alias(names[i], al, sizeof al);
+            snprintf(from, sizeof from, "%s/%s", dir, names[i]);
+            if (find_ci(dir, al, to, sizeof to)) { fprintf(stderr, "saves: %s kept (%s is there already)\n", names[i], al); continue; }
+            if (!rename(from, to)) { fprintf(stderr, "saves: %s named %s\n", names[i], al); continue; }
+            char sd[1100], dn[64];
+            snprintf(dn, sizeof dn, "SAVES\\%s", al);
+            if (r == 0 && dos_shadow[0]) { path_in(dos_shadow, dn, sd, sizeof sd); mkdirs_for(sd); if (!file_exists(sd) && copy_file(from, sd)) { fprintf(stderr, "saves: %s copied as %s\n", names[i], al); continue; } }
+            fprintf(stderr, "saves: %s could not be named %s\n", names[i], al);
+        }
+    }
+}
 /* ... and where a write of it goes */
 void dos_host_path_write(const char *dos, char *out, size_t outn) { write_path(dos, out, outn, 1); shadow_made(dos); }
 
@@ -746,7 +798,7 @@ void dos_int21(void)
         char *bs = strrchr(name, '\\'), dirpart[256] = "";
         const char *pat = name;
         if (bs) { *bs = 0; snprintf(dirpart, sizeof dirpart, "%s", name); pat = bs + 1; }
-        snprintf(find_pat, sizeof find_pat, "%s", pat);
+        { char al[32]; snprintf(find_pat, sizeof find_pat, "%s", dos_name_alias(pat, al, sizeof al) ? al : pat); }
         free(find_list);
         find_n = dos_list_dos(dirpart[0] ? dirpart : ".", find_pat, &find_list);
         find_pos = 0;

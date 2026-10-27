@@ -3016,32 +3016,32 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/sainttexts.c:298` | a modest increase to Charisma, a good increase to all weapons skills |
 | `mods/sainttexts.c:305` | Enhances ALL skills by a small amount plus one for every five points of virtue |
 | `mods/sainttexts.c:310` | every skill by a modest amount |
-| `mods/saves.c:64` | Ironman 3f2a |
-| `mods/saves.c:67` | An Ironman game cannot go back to a save. To load another game, quit to the start screen. |
-| `mods/saves.c:182` | Could not save. |
-| `mods/saves.c:185` | Saved (an Ironman game keeps one save, saved over as you go) |
-| `mods/saves.c:228` | The game does not allow saving while staying at an inn or camping: leave first (the days already spent are not given back). |
-| `mods/saves.c:229` | The game does not allow saving during a battle. |
-| `mods/saves.c:230` | The game does not allow saving on this screen: leave it first (saving works on a card, in the overland view or in a town). |
-| `mods/saves.c:248` | The game does not allow loading here. |
-| `mods/saves.c:257` | Difficulty is now set to ... |
-| `mods/saves.c:270` | Loading is irreversable. Proceed? |
-| `mods/saves.c:313` | That save could not be read. |
-| `mods/saves.c:328` | Loaded %s: a battle, paused (Space resumes it) |
-| `mods/saves.c:347` | Saved (an Ironman game keeps one save, saved over as you go) |
-| `mods/saves.c:363` | Saved: %s (%s), in place of the old save |
-| `mods/saves.c:364` | Saved: %s (%s) |
-| `mods/saves.c:387` | use your horses |
-| `mods/saves.c:404` | Autosave: battle |
-| `mods/saves.c:436` | Ironman %04x |
-| `mods/saves.c:438` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
-| `mods/saves.c:470` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:471` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:492` | Start or load a game first. |
-| `mods/saves.c:499` | Loading from here works once a game is running; until then, load from the start screen. |
-| `mods/saves.c:501` | Buffer dealloc error |
-| `mods/saves.c:503` | That save could not be read. |
-| `mods/saves.c:523` | No quicksave yet (Ctrl+S makes one). |
+| `mods/saves.c:73` | Ironman 3f2a |
+| `mods/saves.c:76` | An Ironman game cannot go back to a save. To load another game, quit to the start screen. |
+| `mods/saves.c:191` | Could not save. |
+| `mods/saves.c:194` | Saved (an Ironman game keeps one save, saved over as you go) |
+| `mods/saves.c:237` | The game does not allow saving while staying at an inn or camping: leave first (the days already spent are not given back). |
+| `mods/saves.c:238` | The game does not allow saving during a battle. |
+| `mods/saves.c:239` | The game does not allow saving on this screen: leave it first (saving works on a card, in the overland view or in a town). |
+| `mods/saves.c:257` | The game does not allow loading here. |
+| `mods/saves.c:266` | Difficulty is now set to ... |
+| `mods/saves.c:279` | Loading is irreversable. Proceed? |
+| `mods/saves.c:322` | That save could not be read. |
+| `mods/saves.c:337` | Loaded %s: a battle, paused (Space resumes it) |
+| `mods/saves.c:356` | Saved (an Ironman game keeps one save, saved over as you go) |
+| `mods/saves.c:372` | Saved: %s (%s), in place of the old save |
+| `mods/saves.c:373` | Saved: %s (%s) |
+| `mods/saves.c:396` | use your horses |
+| `mods/saves.c:413` | Autosave: battle |
+| `mods/saves.c:445` | Ironman %04x |
+| `mods/saves.c:447` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
+| `mods/saves.c:479` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:480` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:501` | Start or load a game first. |
+| `mods/saves.c:508` | Loading from here works once a game is running; until then, load from the start screen. |
+| `mods/saves.c:510` | Buffer dealloc error |
+| `mods/saves.c:512` | That save could not be read. |
+| `mods/saves.c:532` | No quicksave yet (Ctrl+S makes one). |
 | `mods/savesview.c:51` | %.14s %d %.3s |
 | `mods/sfx.c:50` | an attack that misses |
 | `mods/sfx.c:50` | a parried or blocked blow |

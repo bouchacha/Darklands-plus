@@ -14,7 +14,7 @@ The runtime: the CPU and DOS the game runs on, the window, sound, saves, the con
 | `runtime/config.c` | 96 | settings kept in darklands_port.ini next to the game (key = value lines) |
 | `runtime/cpu.c` | 202 | flags and arithmetic helpers for recompiled code |
 | `runtime/dispatch.c` | 192 | calls and jumps to computed addresses |
-| `runtime/dos.c` | 785 | high-level emulation of the DOS services the game uses (int 21h) |
+| `runtime/dos.c` | 837 | high-level emulation of the DOS services the game uses (int 21h) |
 | `runtime/drivers.c` | 98 | the run-time loaded driver images (MGRAPHIC.EXE, MISC.EXE, *SOUND.DLC). |
 | `runtime/ems.c` | 211 | LIM EMS 4.0 expanded memory (int 67h), which Darklands requires. |
 | `runtime/gamecall.c` | 192 | calling the game's own functions from native code (the new interface uses the game's inventory routines so equipment, weights and stacks stay consistent). |
@@ -23,7 +23,7 @@ The runtime: the CPU and DOS the game runs on, the window, sound, saves, the con
 | `runtime/gensplit.c` | 76 | the game module's side of split.h (compiled with DL_GENSPLIT, together with the generated code, cpu.c and overrides.c): the runtime's variables are pointers set here, its functions are reached through the stubs below, and dl_game_init hands the generated tables back. |
 | `runtime/hooks.c` | 110 | see hooks.h |
 | `runtime/interp.c` | 423 | fallback x86 real-mode interpreter. |
-| `runtime/main.c` | 354 | start-up of the native Darklands: load the original DARKLAND.EXE image into the emulated address space (the recompiled code reads its data, code-segment tables and overlay sections from there), set up DOS structures, and run the program. |
+| `runtime/main.c` | 355 | start-up of the native Darklands: load the original DARKLAND.EXE image into the emulated address space (the recompiled code reads its data, code-segment tables and overlay sections from there), set up DOS structures, and run the program. |
 | `runtime/mpu.c` | 166 | MPU-401 MIDI interface (ports 330h/331h). |
 | `runtime/mt32.c` | 380 | a Roland MT-32 / CM-32L / LAPC-I inside Darklands+ (Munt's libmt32emu, LGPL 2.1+, third_party/mt32emu). |
 | `runtime/native.c` | 35 | native functions the game calls through far pointers (native.h) |
@@ -95,7 +95,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/rosterview.c` | 307 | the party of a new game as a native screen (display.native_roster; the view is ui/rosterview.cpp). |
 | `mods/saintinfo.c` | 502 | what each saint's help does in the game's code, beside the description the game shows (DARKLAND.SNT), for Darklands+'s screens (saintinfo.h). |
 | `mods/sainttexts.c` | 434 | the "sainttexts" fix: saints whose help, in the game's code, plainly falls short of or departs from their own description (DARKLAND.SNT) do what the description says. |
-| `mods/saves.c` | 646 | quick save and quick load, autosaves, and loading any save from the Darklands+ menu. |
+| `mods/saves.c` | 655 | quick save and quick load, autosaves, and loading any save from the Darklands+ menu. |
 | `mods/savesview.c` | 170 | the game's Save and Load as native dialogs (display.native_saves; the Full Original preset keeps the game's). |
 | `mods/sfx.c` | 608 | battle sound effects. The battle driver (PSOUND.DB and the others) makes every combat sound on the FM chip or MIDI synthesizer ("random notes rather than clashing swords"). Here they are played as recorded-style sounds i |
 | `mods/sharedstore.c` | 224 | one store room for every inn (store.shared, F12 > Settings; on by default): what is left with one innkeeper (a town's inn, a village's old woman) is there at every other, like a chest that follows the party. |

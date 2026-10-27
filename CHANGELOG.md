@@ -9,6 +9,7 @@ Fixes to 1.3, nothing else. The first start makes the game's code again (a minut
 - **Enemies spring the dart and spell traps they walk into**, as in the original game (the same fault kept them from it).
 - **Fighters find their way around obstacles:** party members no longer get stuck for good. One who had waited a while behind a friend or a corner was told from then on that there was no way from where it stood: the three behind the leader stayed put, and in a group that one member made every order of the group fail. It lasted until the next fight, or until the switch was turned off.
 - **Scrolling a battle or dungeon by resting the pointer on an edge** (or with Shift) no longer flickers: each step showed the field without its people for a moment, and at the edge of the field, where the view no longer moves, at every step.
+- **More than 100 saves:** the game names a new save after the first free number, and from 100 on that was no longer a name the game could list: save 100 did not show on the Load page, and every later save was written over it. Saves 100 and on are now named dksavea0, dksavea1 and so on (up to 1035), and a save 100 already made is renamed so at the first start.
 
 ## 1.3
 
