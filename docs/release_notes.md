@@ -4,6 +4,15 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 
 **Install:** unpack the zip anywhere and start `darklands.exe`. It finds a GOG or Steam installation by itself or asks for the folder once. The first start takes about two minutes while Darklands+ translates the game program from your `DARKLAND.EXE`; after that it starts at once. Your saved games stay where they always were. `Darklands+ README.txt` in the zip has the details.
 
+**New in 1.3.1**
+
+Fixes to 1.3, nothing else. The first start makes the game's code again (a minute or two), as after installing.
+
+- **A door or passage a card opens now opens** (GitHub issue 2): in the mines, after the dwarves' riddle and the talk, the party stood again before the same shut iron door and could not reach the next floor. The translated program compared the game's routines without the place the program sits in memory, so the card's "the door slides open" never reached the floor; the translation is fixed.
+- **Saving inside a castle, mine or dungeon** kept the level's traps, secret doors, alarms and such doors as they are: through the same fault, a battle save turned every one into a trapdoor the whole party had to stand on, and after loading it the dwarves' door showed no riddle. Battle saves made by earlier versions are put right as they load.
+- **Enemies spring the dart and spell traps they walk into**, as in the original game (the same fault kept them from it).
+- **Fighters find their way around obstacles:** party members following in single file or as a group no longer stop for good behind the one in front: after waiting there for a while they would not move again, even out of a fight, until the switch was turned off.
+
 **New in 1.3**
 
 **Battles**

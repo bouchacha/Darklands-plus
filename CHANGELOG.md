@@ -2,12 +2,8 @@
 
 ## 1.4 (not yet released)
 
-What changed since 1.3.
+What changed since 1.3.1.
 
-- **A door or passage a card opens now opens** (GitHub issue 2): in the mines, after the dwarves' riddle and the talk, the party stood again before the same shut iron door and could not reach the next floor. The translated program compared the game's routines without the place the program sits in memory, so the card's "the door slides open" never reached the floor; the translation is fixed (the program is made again on its first start).
-- **Saving inside a castle, mine or dungeon** kept the level's traps, secret doors, alarms and such doors as they are: through the same fault, a battle save turned every one into a trapdoor the whole party had to stand on, and after loading it the dwarves' door showed no riddle. Battle saves made by earlier versions are put right as they load.
-- **Enemies spring the dart and spell traps they walk into**, as in the original game (the same fault kept them from it).
-- **Fighters find their way around obstacles:** party members following in single file or as a group no longer stop for good behind the one in front: after waiting there for a while they would not move again, even out of a fight, until the switch was turned off.
 - **Level map (Tab), floors:** in a castle, mine or dungeon with more than one floor, a small chart at the top right, a square a floor: the floors the party has been on, the stairs seen between them, the party's floor outlined, and "?" for a floor its stairs lead to that nobody has been on; a click on a floor these stairs lead to walks the party there. The map also keeps what the party saw through a card in the middle of the dungeon (a riddle, a talk).
 - **Camp:** Guard the camp has a picture of its own (the watch's lantern), and under it the chance that the lord's men find the party, before the next day and the day after; Train or study, never possible in the wild, is gone.
 - **Praying:** the favor to spend stops where the chance reaches its best (99% at most); the rest of the bar is hatched, kept.
@@ -23,6 +19,15 @@ What changed since 1.3.
 - **Report a problem** (F12 > About): one click makes a zip of what a bug report needs (this session's log and the last one's, the settings, the two newest saves; your own name taken out of the folder paths in them), opens its folder and the GitHub bug form with the version, system and preset filled in; drag the zip into the form (posting takes a free GitHub account).
 - **Aging:** pointing at a member's age on the character sheet tells what the years will take next, and by five years on.
 - **The Philosopher's Stone on sale:** each town's alchemist and university always sell the same quality; the town's row in the margin shows the best (dim when no better than the party's), and the card's option to buy one is dimmed where it would gain nothing (a failed attempt still costs time).
+
+## 1.3.1
+
+Fixes to 1.3, nothing else. The first start makes the game's code again (a minute or two), as after installing.
+
+- **A door or passage a card opens now opens** (GitHub issue 2): in the mines, after the dwarves' riddle and the talk, the party stood again before the same shut iron door and could not reach the next floor. The translated program compared the game's routines without the place the program sits in memory, so the card's "the door slides open" never reached the floor; the translation is fixed.
+- **Saving inside a castle, mine or dungeon** kept the level's traps, secret doors, alarms and such doors as they are: through the same fault, a battle save turned every one into a trapdoor the whole party had to stand on, and after loading it the dwarves' door showed no riddle. Battle saves made by earlier versions are put right as they load.
+- **Enemies spring the dart and spell traps they walk into**, as in the original game (the same fault kept them from it).
+- **Fighters find their way around obstacles:** party members following in single file or as a group no longer stop for good behind the one in front: after waiting there for a while they would not move again, even out of a fight, until the switch was turned off.
 
 ## 1.3
 
