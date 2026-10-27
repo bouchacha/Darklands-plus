@@ -142,6 +142,7 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "ureload")) { int m = 0, t = 100; sscanf(arg, "%d,%d", &m, &t); u16 now = g_rw(GV_combat_clock); g_wb((u16)(GV_cbt_action + m), 9); g_ww((u16)(0xd948 + 2 * m), (u16)(now + 10 - t / 3)); g_ww((u16)(0xdabd + 2 * m), (u16)(now + t / 3)); g_ww((u16)(0xdaa3 + 2 * m), (u16)(now + t)); }   /* test: member m reloading (a third done) */
         else if (!strcmp(cmd, "uhall")) { void halloffame_open(void); int halloffame_record(void); if (arg[0] == 'r') fprintf(stderr, "hall record: %d\n", halloffame_record()); else halloffame_open(); }   /* test */
         else if (!strcmp(cmd, "ulevelmap")) { void levelmap_toggle(void); levelmap_toggle(); }   /* test: Tab in a battle */
+        else if (!strcmp(cmd, "udoor")) { int n = 0, o = 1; sscanf(arg, "%d,%d", &n, &o); u16 a[3] = { (u16)n, (u16)o, 1 }; game_call_far(23, 0x1ef8, 0x04ac, 3, a); }   /* test: door n opened (o 1) or shut (0): door_set, s023 1ef8:04ac */
         else if (!strcmp(cmd, "artexport")) { char m[400]; hdart_export(m, sizeof m); fprintf(stderr, "%s\n", m); }
         else if (!strcmp(cmd, "artrescan")) hdart_rescan();
         else if (!strcmp(cmd, "ufight")) {              /* test: a battle (type, seed[, 3 x (enemy type, quality, number)]) at the next card */
