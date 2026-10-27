@@ -417,8 +417,7 @@ void ui_draw_battle_info(void)
                 for (int m = 0; m < size; m++) {
                     u16 mb = (u16)(0x9c55 + m * 0x80);
                     if (g_rb((u16)(mb + CB_STATUS)) != 1) continue;
-                    char nm[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), nm, sizeof nm);
-                    /* each weapon in hand as its picture, then what it does in its colour: green pierces, amber
+                    /* the member's head, then each weapon in hand as its picture, then what it does in its colour: green pierces, amber
                        half damage, red mostly deflected */
                     struct Seg { int id; const char *word; ImVec4 col; };
                     std::vector<Seg> seg;
@@ -431,8 +430,8 @@ void ui_draw_battle_info(void)
                                         r == 0 ? ImVec4(0.18f, 0.40f, 0.16f, 1) : r == 1 ? ImVec4(0.69f, 0.49f, 0.0f, 1) : ImVec4(0.62f, 0.20f, 0.12f, 1) });
                     }
                     if (seg.empty()) continue;
-                    ImGui::TextUnformatted((game_text(nm, sizeof nm) + ":").c_str());
                     float fsz = ImGui::GetFontSize();
+                    { ImVec2 q = ImGui::GetCursorScreenPos(); ImGui::Dummy(ImVec2(fsz * 1.05f / 1.2f, fsz)); ui_member_head(ImGui::GetWindowDrawList(), m, ImVec2(q.x, q.y), fsz * 1.05f); }
                     for (size_t g = 0; g < seg.size(); g++) {
                         ImGui::SameLine(0, fsz * (g ? 0.9f : 0.4f));
                         ImVec2 q = ImGui::GetCursorScreenPos();

@@ -659,9 +659,9 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/battleoverlay.cpp:413` | %s (hardness %d) |
 | `ui/battleoverlay.cpp:414` | Natural armor, hardness %d (as %s) |
 | `ui/battleoverlay.cpp:415` | No armor (hardness 0) |
-| `ui/battleoverlay.cpp:430` | mostly deflected |
-| `ui/battleoverlay.cpp:459` | \xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z) |
-| `ui/battleoverlay.cpp:462` | >> fast forward  (Z) |
+| `ui/battleoverlay.cpp:429` | mostly deflected |
+| `ui/battleoverlay.cpp:458` | \xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z) |
+| `ui/battleoverlay.cpp:461` | >> fast forward  (Z) |
 | `ui/bestiary.cpp:38` | Could not read DARKLAND.ENM. |
 | `ui/bestiary.cpp:42` | DARKLAND.ENM has an unexpected size. |
 | `ui/bestiary.cpp:90` | natural weapons |
@@ -927,7 +927,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/enemyview.cpp:93` |  (enchanted) |
 | `ui/enemyview.cpp:96` | Natural armor |
 | `ui/enemyview.cpp:97` | Natural weapons |
-| `ui/enemyview.cpp:114` | mostly deflected |
+| `ui/enemyview.cpp:113` | mostly deflected |
 | `ui/figures.cpp:32` | two-handed sword |
 | `ui/figures.cpp:33` | great hammer |
 | `ui/figures.cpp:34` | potion throw |

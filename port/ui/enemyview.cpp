@@ -106,7 +106,6 @@ extern "C" void enemyview_draw(void)
                    the weapon's name under the pointer) */
                 struct Seg { int id; std::string word; ImU32 col; };
                 std::vector<Seg> seg;
-                char nm[24]; gm_member_name(p, nm, sizeof nm);
                 for (int k = 0; k < 2; k++) {
                     int mw = (s8)g_rb((u16)(G_MEMBER(p) + (k ? 0x0e : 0x3d)));
                     if (mw < 0 || mw > 62) continue;
@@ -116,7 +115,7 @@ extern "C" void enemyview_draw(void)
                 }
                 if (seg.empty() || ly >= y + ch - 4) continue;
                 float lh2 = P.para_height(fo, 4.4f, 1000, "X"), lx = tx, iw = lh2 * P.k / P.kx;
-                std::string head = ns_gtext(nm) + ":";
+                std::string head = rich_member(p);                   /* (their head: the name under the pointer) */
                 P.text(fo, 4.4f, lx, ly, NsDraw::INK, head); lx += P.width(fo, 4.4f, head) + 1.5f;
                 for (const Seg &g : seg) {
                     float w = iw + 0.8f + P.width(fo, 4.4f, g.word) + 3;
