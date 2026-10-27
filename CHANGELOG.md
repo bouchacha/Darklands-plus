@@ -15,6 +15,8 @@ What changed since 1.3.
 - **Battle, a foe's tooltip and Enemy Info:** each of your weapons shown as its picture, then whether it pierces the foe's armor, does half damage or is mostly deflected.
 - **A shop's Formulae tab:** each formula's ingredients as pictures, what the party carries against what a batch needs and the price here; a click on one finds it in For sale. The +1 and +5 buttons are gone.
 - **World map:** the quests alone at the left; at the top right, finding a town (by name, the towns with something, where to buy an ingredient or any ware) and, merged, what the map shows (the layers and the kinds of place); each panel folds away. The party's pulsing mark centers the map on it. The ingredient and ware finders sort by a column's head (name, carried or quality, nearest), and the ware finder lists every ware seen until a name narrows it.
+- **Report a problem** (F12 > About): one click makes a zip of what a bug report needs (this session's log and the last one's, the settings, the two newest saves; your own name taken out of the folder paths in them), opens its folder and the GitHub bug form with the version, system and preset filled in; drag the zip into the form (posting takes a free GitHub account).
+- **Aging:** pointing at a member's age on the character sheet tells what the years will take next, and by five years on.
 - **The Philosopher's Stone on sale:** each town's alchemist and university always sell the same quality; the town's row in the margin shows the best (dim when no better than the party's), and the card's option to buy one is dimmed where it would gain nothing (a failed attempt still costs time).
 
 ## 1.3

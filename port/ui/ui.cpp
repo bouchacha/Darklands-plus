@@ -8,6 +8,7 @@
 #include <math.h>
 #include <ctype.h>
 #include <string>
+#include "richtext.h"
 #include "padglyphs.h"
 #include "imgui.h"
 #include "tablesort.h"
@@ -257,7 +258,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     gamedata_load(game_dir);
     if (getenv("DL_RESTARTED")) {
         const char *ee = getenv("DL_ERROR_EXIT");
-        if (ee && atoi(ee)) ui_notice_for("Darklands stopped because of an error (see darklands_port.log; F12 > About says where it is). Your saves are safe: Load is in the Game menu (right-click).", 30000);
+        if (ee && atoi(ee)) ui_notice_for("Darklands stopped because of an error. Your saves are safe: Load is in the Game menu (right-click). F12 > About > Report a problem makes a report of it.", 30000);
         else ui_notice_for("The party's journey has ended. Load a saved game to go on: Load in the Game menu (right-click).", 20000);
     }
     halloffame_set_renderer(ren);
@@ -687,6 +688,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     dc_frame_end();
     worldmap_icon_sheet_draw(); orn_test_sheet_draw(); niche_test_sheet_draw(); clock_test_sheet_draw();
     orn_windows();
+    ui_rich_tip_flush();                                   /* (a shield's name under the pointer, if nothing else took the place: ui/richtext.h) */
     ui_tip_audit(); ui_panel_audit(); ui_pointer_audit();   /* (the checks: tools/uitour.py) */
     ImGui::Render();
     ui_build_us = SDL_GetPerformanceCounter();

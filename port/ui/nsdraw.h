@@ -98,11 +98,12 @@ struct NsDraw {
         else if (clip_to >= 0) { ImVec4 cr(p.x, p.y - sz, w(clip_to, 0).x, p.y + 2 * sz); dl->AddText(ff, sz, p, c, s.c_str(), nullptr, 0, &cr); }
         else dl->AddText(ff, sz, p, c, s.c_str());
     }
-    /* the pointer on a shield just written (rich_draw): its name beside it */
+    /* the pointer on a shield just written (rich_draw): its name beside it, unless the screen gives that place a
+       tooltip of its own this frame (ui_rich_tip_flush, at the frame's end) */
     void shield_tip() const
     {
         int key = rich_key_at(w((float)mx + 0.5f, (float)my + 0.5f));
-        if (key >= 0) ns_tip(ui_key_name(key), 14);
+        if (key >= 0) ui_rich_tip_later(key);
     }
     /* a shield and its value after it ("[Virtue] 43": ui_shield_value), its left end at x, the line's middle at y;
        is the shield's size (rows), the value in the plain type at gs; returns its width (columns). _width: what it takes */
@@ -219,7 +220,7 @@ static inline void ns_tip_begin(float width_em = 24)
     ImGui::PushTextWrapPos(ImGui::GetFontSize() * width_em);
 }
 static inline void ns_tip_end(void) { ImGui::PopTextWrapPos(); ImGui::PopStyleVar(); if (ui_font_overlay) ImGui::PopFont(); ImGui::EndTooltip(); }
-static inline void ns_tip(const char *text, float width_em) { ns_tip_begin(width_em); ui_rich_text(text); ns_tip_end(); }
+static inline void ns_tip(const char *text, float width_em) { ui_rich_tip_taken(); ns_tip_begin(width_em); ui_rich_text(text); ns_tip_end(); }
 
 static inline std::string ns_item_name(int id) { const ItemDef *d = ns_itemdef(id); return d ? game_text(d->name.c_str(), d->name.size()) : "?"; }
 /* a quality worth showing: equipment and tools; not for the things a shop always sells at 25

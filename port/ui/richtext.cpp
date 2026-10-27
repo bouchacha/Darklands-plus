@@ -181,7 +181,7 @@ void ui_rich_text(const char *s)
     ImGui::ItemSize(size);
     if (!(w->Flags & ImGuiWindowFlags_Tooltip) && ImGui::IsWindowHovered()) {   /* (a shield under the pointer: its name; not inside a tooltip) */
         int k = rich_key_at(ImGui::GetIO().MousePos);
-        if (k >= 0) ImGui::SetTooltip("%s", ui_key_name(k));
+        if (k >= 0) ui_rich_tip_later(k);
     }
 }
 
@@ -204,4 +204,16 @@ void ui_rich_textf_dim(const char *fmt, ...)
     char b[2048];
     va_list ap; va_start(ap, fmt); vsnprintf(b, sizeof b, fmt, ap); va_end(ap);
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); ui_rich_text(b); ImGui::PopStyleColor();
+}
+
+static int tip_key = -1, tip_frame = -1, taken_frame = -1;
+void ui_rich_tip_later(int key) { tip_key = key; tip_frame = ImGui::GetFrameCount(); }
+void ui_rich_tip_taken(void) { taken_frame = ImGui::GetFrameCount(); }
+void ui_rich_tip_flush(void)
+{
+    int f = ImGui::GetFrameCount();
+    ImGuiWindow *prev = GImGui->TooltipPreviousWindow;       /* (any tooltip opened this frame, by any screen: it has the place) */
+    bool other = taken_frame == f || (prev && prev->LastFrameActive == f);
+    if (tip_frame == f && !other && tip_key >= 0) ImGui::SetTooltip("%s", ui_key_name(tip_key));
+    tip_key = -1;
 }

@@ -334,11 +334,12 @@ void ui_key_icon(ImDrawList *dl, ImVec2 c, float s, int key)
 {
     if (key >= 0 && key < UI_KEY_SKILL) ui_attr_icon(dl, c, s, key);
     else if (key < UI_KEY_REP) ui_skill_icon(dl, c, s, key - UI_KEY_SKILL);
-    else if (key < UI_KEYS) ui_standing_icon(dl, c, s, key - UI_KEY_REP);
+    else if (key < UI_KEY_AGE) ui_standing_icon(dl, c, s, key - UI_KEY_REP);
+    else if (key == UI_KEY_AGE) ui_age_icon(dl, c, s);
 }
 const char *ui_key_name(int key)
 {
-    return key >= 0 && key < UI_KEY_SKILL ? gm_attr_name(key) : key < UI_KEY_REP ? gm_skill_name(key - UI_KEY_SKILL) : key == UI_KEY_REP ? "Reputation" : key == UI_KEY_FAME ? "Fame" : "?";
+    return key >= 0 && key < UI_KEY_SKILL ? gm_attr_name(key) : key < UI_KEY_REP ? gm_skill_name(key - UI_KEY_SKILL) : key == UI_KEY_REP ? "Reputation" : key == UI_KEY_FAME ? "Fame" : key == UI_KEY_AGE ? "Age" : "?";
 }
 int ui_key_of(const char *name, int len)
 {

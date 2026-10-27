@@ -208,14 +208,20 @@ const GamePic *statue(int cls)
 
 extern "C" int sheetview_showing(void) { return ns_screen == NS_SHEET && sheet_model.open && !ns_hidden(); }
 
+extern "C" void aging_forecast(int m, char *out, int n);         /* mods/aging.c */
 static void header(NsDraw &P, const SheetModel &s)
 {
     ImFont *f = P.f, *fo = P.fo;
     P.text(f, NsDraw::FS_HEAD, 63.5f, 2.2f, NsDraw::INK, ns_gtext(s.fullname), -1, 290);
     if (P.button(296, 2.5f, 318, 10.2f, "Close", IM_COL32(112, 40, 22, 235), NsDraw::FS_SMALL, PB_Y)) ns_push(SV_CLOSE, 0, 0, 0);
-    char sub[96]; snprintf(sub, sizeof sub, "%s, age %d", s.female ? "Woman" : "Man", s.age);
+    char sub[96]; snprintf(sub, sizeof sub, "%s, {Age:%d}", s.female ? "Woman" : "Man", s.age);   /* (the age as its hourglass: ui/richtext.h) */
+    float aw = P.width(fo, NsDraw::FS_SMALL, sub);
     for (const Eff &e : EFF) if (e.m == s.who && e.kind == 0x43) { snprintf(sub + strlen(sub), sizeof sub - strlen(sub), "; leaves the party in %s", hours_left(e.left).c_str()); break; }
     P.text(fo, NsDraw::FS_SMALL, 63.5f, 12.4f, NsDraw::INK_SOFT, sub);
+    if (P.over(63.5f, 11.6f, 63.5f + aw, 18.8f)) {                /* the age: what the years will take (mods/aging.c) */
+        char t[700]; aging_forecast(s.who, t, sizeof t);
+        ns_tip(t, 24);
+    }
     float lx = 63.5f + P.width(fo, NsDraw::FS_SMALL, sub) + 3;
     if (s.who == s.leader) {
         P.rect(lx, 11.6f, lx + 17, 18.8f, IM_COL32(214, 172, 60, 255), 1.2f);

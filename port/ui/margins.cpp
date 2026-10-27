@@ -114,6 +114,7 @@ bool item_hovered(void)
 /* a tooltip from the margin: in the tooltips' own ink (the margin's text is light, for its black) */
 void margin_tip(const char *text)
 {
+    ui_rich_tip_taken();
     ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(44, 26, 10, 255));
     ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 20); ui_rich_text(text); ImGui::PopTextWrapPos(); ImGui::EndTooltip();
     ImGui::PopStyleColor();

@@ -14,6 +14,7 @@
  * from the age alone, so loading an older save simply ages from there. The losses are lost for
  * good (the maximum and the attribute now), and told in a window to click through. */
 #include <stdio.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -88,6 +89,61 @@ void aging_month(int n)
                            "Beside each name, the age (the hourglass); then each attribute's maximum lowered: what it was, and what it is now. "
                            "These losses are permanent, as with aging at character creation: from age 30, a little each month, and more as the years go by. "
                            "(Aging during play is a Darklands+ switch: F12 > Settings > The party and its items.)");
+}
+
+/* (out of n chars, written up to *len: more added, never past the end) */
+static void add(char *out, int n, int *len, const char *fmt, ...)
+{
+    if (*len >= n - 1) return;
+    va_list ap; va_start(ap, fmt);
+    int w = vsnprintf(out + *len, (size_t)(n - *len), fmt, ap);
+    va_end(ap);
+    *len += w < 0 ? 0 : w;
+    if (*len > n - 1) *len = n - 1;
+}
+/* what the years will take from member m, for the character sheet (the pointer on the age): the next losses
+   and those of the next five years, the attributes as their shields (ui/richtext.h); the birth month sets when
+   (each member's own: the party's losses come at different times) */
+void aging_forecast(int m, char *out, int n)
+{
+    int len = 0; out[0] = 0;
+    if (!aging_on()) { add(out, n, &len, "Aging in play is off: characters age only while they are made (F12 > Settings > The party and its items)."); return; }
+    int A = age_months(m);
+    add(out, n, &len, "The years take their toll from 30, a little each month, for good (as aging at character creation).");
+    if (A < 360) {
+        int y = (360 - A) / 12, mo = (360 - A) % 12;
+        add(out, n, &len, "\nIt begins in ");
+        if (y) add(out, n, &len, "%d year%s%s", y, y == 1 ? "" : "s", mo ? " and " : "");
+        if (mo || !y) add(out, n, &len, "%d month%s", mo, mo == 1 ? "" : "s");
+        add(out, n, &len, ".");
+        return;
+    }
+    /* the next month that takes a point of each, the soonest first (at most three months named) */
+    int when[6];
+    for (int a = 0; a < 6; a++) {
+        when[a] = 0;
+        int now = (int)floor(due(a, A) + 1e-9);
+        for (int k = 1; k <= 240; k++) if ((int)floor(due(a, A + k) + 1e-9) > now) { when[a] = k; break; }
+    }
+    int shown = 0;
+    for (int k = 1; k <= 240 && shown < 3; k++) {
+        int any = 0;
+        for (int a = 0; a < 6; a++) if (when[a] == k) any = 1;
+        if (!any) continue;
+        add(out, n, &len, shown ? "; " : "\nNext: ");
+        if (k == 1) add(out, n, &len, "next month"); else if (k < 24) add(out, n, &len, "in %d months", k); else add(out, n, &len, "in about %d years", (k + 6) / 12);
+        for (int a = 0; a < 6; a++) if (when[a] == k) add(out, n, &len, " {%s:-1}", gm_attr_name(a));
+        shown++;
+    }
+    /* the next five years */
+    int first = 1;
+    for (int a = 0; a < 6; a++) {
+        int d = (int)floor(due(a, A + 60) + 1e-9) - (int)floor(due(a, A) + 1e-9);
+        if (d <= 0) continue;
+        if (first) add(out, n, &len, "\nBy %d:", (A + 60) / 12);
+        add(out, n, &len, " {%s:-%d}", gm_attr_name(a), d);
+        first = 0;
+    }
 }
 
 static void month_hook(void)                 /* s029 0e76:281c (months): a month has begun; birthdays counted */

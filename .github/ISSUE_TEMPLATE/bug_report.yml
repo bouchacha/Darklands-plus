@@ -10,14 +10,14 @@ body:
     id: version
     attributes:
       label: Darklands+ version
-      description: The start screen shows it (for example 1.2).
+      description: The start screen shows it (for example 1.4), or F12 > About.
     validations:
       required: true
-  - type: dropdown
+  - type: input
     id: system
     attributes:
       label: System
-      options: [Windows 11, Windows 10, Linux (Wine or Proton), Steam Deck, Other]
+      description: Windows 11, Windows 10, Linux (Wine or Proton), Steam Deck ... (a report from the game fills it in).
     validations:
       required: true
   - type: input
@@ -41,4 +41,4 @@ body:
     id: files
     attributes:
       label: The log and a save
-      description: Drag in darklands_port.log from the game folder, and if you can a save from just before the problem (the DKSAVEn.SAV and DKSAVEn.BSV files from SAVES, zipped). A screenshot (Ctrl+F12) helps too.
+      description: In the game, F12 > About > Report a problem makes a zip of the log, the settings and the two newest saves, and opens this form; drag the zip in here. Otherwise drag in darklands_port.log from the game folder and, if you can, a save from just before the problem (the DKSAVEn.SAV and DKSAVEn.BSV files from SAVES, zipped). A screenshot (Ctrl+F12) helps too.

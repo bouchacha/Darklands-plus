@@ -36,7 +36,7 @@ The runtime: the CPU and DOS the game runs on, the window, sound, saves, the con
 | `runtime/sounddev.c` | 128 | which sound driver the game gets. |
 | `runtime/speaker.c` | 77 | the PC speaker, which the port had not made at all ("PC speaker" in F12 > Settings > Sound played nothing). |
 | `runtime/stb_impl.c` | 16 | the stb image reader and PNG writer (public domain, third_party/stb) for replacement art (mods/hdart.c, platform_sdl.c) |
-| `runtime/testcmds.c` | 529 | the test commands that look at or change the game's state, for the scripted sessions (port/tools/nctl.py "ucmd NAME:ARGS", release_check.py, monkey.py): a battle at the next card, hits, items, saves, the native screens' actions, dumps of what the game holds ... |
+| `runtime/testcmds.c` | 530 | the test commands that look at or change the game's state, for the scripted sessions (port/tools/nctl.py "ucmd NAME:ARGS", release_check.py, monkey.py): a battle at the next card, hits, items, saves, the native screens' actions, dumps of what the game holds ... |
 
 ## mods
 
@@ -44,7 +44,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 
 | File | Lines | What it is |
 |---|---:|---|
-| `mods/aging.c` | 99 | the years take their toll in play, as they do while a character is made. |
+| `mods/aging.c` | 155 | the years take their toll in play, as they do while a character is made. |
 | `mods/alchemyview.c` | 231 | the alchemy screen as a native screen (nscreen.h; the view is ui/alchemyview.cpp). |
 | `mods/ammo.c` | 73 | arrows, quarrels and balls that never run out (assist.infinite_ammo, on by default; the Full Original preset turns it off). |
 | `mods/assist.c` | 513 | playing aids of the native port that watch the game through hooks: |
@@ -149,7 +149,7 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/lootview.cpp` | 167 | draws the loot screen (mods/lootview.c runs it; docs/NATIVE_SCREENS.md). |
 | `ui/mapmsg.cpp` | 43 | a message of the travel map (mods/mapmsg.c runs it) in the cards' style: the text in the game's typeface on parchment over the map, and what goes on. |
 | `ui/marchview.cpp` | 90 | Change Marching Order drawn by Darklands+ (mods/marchview.c runs it): a dialog with the members in their order, each with its figure and a handle to drag it to its place; Done keeps the new order, Cancel the old. |
-| `ui/margins.cpp` | 987 | on a wide screen the 4:3 picture leaves dark margins; they can show what the game otherwise keeps behind menus: the date and hour, where the party is, the purse, the tasks the party has taken on (with their deadlines), and on the other side the town the party is in, the blessings and potions working on the party, and who carries too much. |
+| `ui/margins.cpp` | 988 | on a wide screen the 4:3 picture leaves dark margins; they can show what the game otherwise keeps behind menus: the date and hour, where the party is, the purse, the tasks the party has taken on (with their deadlines), and on the other side the town the party is in, the blessings and potions working on the party, and who carries too much. |
 | `ui/margins_battle.cpp` | 402 | the margins in a battle: the right margin's fighters, their orders as buttons (with the potions' pictures), the enemies still waiting; the order buttons at the foot of the field when the window has no margin. |
 | `ui/marks.cpp` | 73 | small signs drawn with ImGui shapes (marks.h) |
 | `ui/menuview.cpp` | 172 | the game's menu bar drawn by Darklands+ (mods/menuview.c runs it): the bar over the top of the picture, the open menu under its title, a sub-menu beside its item. |
@@ -171,8 +171,9 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/pstone.cpp` | 246 | the Philosopher's Stone, as the alchemists pictured it (display.pstone_look). |
 | `ui/questicons.cpp` | 207 | a picture for each kind of quest (ui/quests.h QuestCat), drawn with ImGui's shapes on a small parchment roundel, in the manner of a woodcut or a guild's sign: a great helm before crossed swords for a robber knight, a purse for a reward waiting, the miners' hammer and pick (Schlägel und Eisen) for a mine's trouble, a horn for the Wild Hunt, a lowered portcullis for a town that bars the party, the pillory where the watch wants it ... |
 | `ui/quests.cpp` | 643 | the quest list (on the world map, M): the game keeps its quests as timed events (far table 2e38:1b2c, 300 pointers to 0x30-byte records) but never lists them; players used MicroProse's own DKQUE.EXE or other tools for that. |
+| `ui/report.cpp` | 238 | "Report a problem" (F12 > About): what a bug report on GitHub needs, in one zip - this session's log and the last one's, the settings, the two newest saves (each .SAV with its .BSV) and a short summary (the build, the system, the preset) - the user's own name taken out of the paths in them; then the zip's folder and GitHub's bug form opened, the form's version, system and preset filled in (.github/ISSUE_TEMPLATE/bug_report.yml, its fields by id). |
 | `ui/repwatch.cpp` | 65 | a town's opinion of the party (its reputation, location +0x12) watched while a card or the map is up: each change is remembered with what was going on when it came (the card, the option just chosen on it, the date), flashed beside "Reputation" in the right margin (ui/margins.cpp) and listed in its tooltip, and written to the log. |
-| `ui/richtext.cpp` | 207 | text with the attributes' and skills' shields in it (richtext.h): the text cut into words and shields, laid out a line at a time like ImGui's own wrapped text, each shield the size of the type's capitals (UI_SHIELD_W wide), its value after it; shields side by side (a group sharing one value) joined by a bracket under them. |
+| `ui/richtext.cpp` | 219 | text with the attributes' and skills' shields in it (richtext.h): the text cut into words and shields, laid out a line at a time like ImGui's own wrapped text, each shield the size of the type's capitals (UI_SHIELD_W wide), its value after it; shields side by side (a group sharing one value) joined by a bracket under them. |
 | `ui/rosterview.cpp` | 259 | the party of a new game, drawn by Darklands+ (mods/rosterview.c runs it). |
 | `ui/rules.cpp` | 263 | game rules as data. The weapon numbers live in tables of the game's code (far segment 20a5, read by the battle module s014: skill used, time for a blow, hands and penetration, damage, skill and strength wanted, reload ti |
 | `ui/saints.cpp` | 243 | the saints as Darklands+ tells them (the character sheet's Saints, the prayer screen, the tooltips): where a description's legend ends and its promise begins, the game's description with what the help really does (mods/saintinfo.h), whether encounters call on a saint; and the blessings and potions at work now and how long they last (effects_now: the margin's "In force"). |
@@ -182,16 +183,16 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/settings.cpp` | 602 | the Darklands+ window's Settings page (F12), and its Mods and Reconstructed Content tabs. |
 | `ui/settings_look.cpp` | 274 | the Settings page's sections on what things look like (ui/settings.cpp draws the page): Text (the original lettering or the new text, the typeface, the coins) and Frames and clock (the band around the windows, the frames, the buttons, the clock, the potions' grade marks). |
 | `ui/settings_setup.cpp` | 422 | the Settings page's sections on the game on this computer (ui/settings.cpp draws the page): Screen, Intro, Sound and Controller. |
-| `ui/sheetview.cpp` | 1493 | draws a member's sheet (mods/sheetview.c runs it; docs/NATIVE_SCREENS.md), the whole page anew beside the party panel. |
-| `ui/skillicons.cpp` | 532 | the skills', attributes' and F12 tabs' pictures, drawn with ImGui shapes so they read at any size (the character sheet, character creation, the roster, card chances, the tabs). |
+| `ui/sheetview.cpp` | 1499 | draws a member's sheet (mods/sheetview.c runs it; docs/NATIVE_SCREENS.md), the whole page anew beside the party panel. |
+| `ui/skillicons.cpp` | 533 | the skills', attributes' and F12 tabs' pictures, drawn with ImGui shapes so they read at any size (the character sheet, character creation, the roster, card chances, the tabs). |
 | `ui/teachersui.cpp` | 143 | the teachers a town can offer, as shown (ui/teachersui.h). |
 | `ui/tipplace.cpp` | 144 | where every tooltip goes: beside the thing it describes, never over it nor over the pointer - below it, or above when there is no room below, else at its side, and inside the window. |
 | `ui/tips.cpp` | 155 | the first words of advice, each in a window the game waits behind (ui_is_open): at the first battle of a session with Improved combat, how the party fights now (the start screen's note pointing to the New Player Guide went with the guide; the welcome, the very first time, stays). |
 | `ui/titleview.cpp` | 110 | the start screen, drawn by Darklands+ (mods/titleview.c runs it): laid out as the game lays out a card, the words on the parchment at the left and a picture at the right (the castle at dusk the game shows on the road to a town, pics\aproch1.pic), the Darklands lettering of the original start screen (pics\startscr.pic) cut from its stone. |
 | `ui/townicons.cpp` | 384 | see townicons.h. Drawn with ImGui's shapes (pen.h) in the manner of the quests' pictures: bold shapes with an ink outline, readable at the size of a line of text. |
 | `ui/travel.cpp` | 37 | the route of auto-travel drawn over the overland map (mods/travel.c walks it; the world map, ui/worldmap.cpp, is where a journey is chosen). |
-| `ui/ui.cpp` | 767 | the native port's own interface, drawn over the game: the Darklands+ window (F12) and its pages (the settings pages in settings.cpp), help, notices. |
-| `ui/ui_windows.cpp` | 441 | the interface's side windows: About, the welcome on the first start, the news of a new version, getting the MT-32 working, and F11's keys and clicks for the screen in view. |
+| `ui/ui.cpp` | 769 | the native port's own interface, drawn over the game: the Darklands+ window (F12) and its pages (the settings pages in settings.cpp), help, notices. |
+| `ui/ui_windows.cpp` | 443 | the interface's side windows: About, the welcome on the first start, the news of a new version, getting the MT-32 working, and F11's keys and clicks for the screen in view. |
 | `ui/worldmap.cpp` | 1085 | the world map: the whole of the Holy Roman Empire as the travel screen draws it (mods/worldmap.c), to pan and zoom, with towns and places named, the party, the route of auto-travel and the places the quest log points to. |
 | `ui/worldmap_draw.cpp` | 585 | the world map's pictures (the places' seals and painted icons, the frame, the compass rose, the boats' red ink and ships, the layer buttons' glyphs, a quest's halo), its list of places, the names over the game's own travel map, and a test sheet of the pictures. |
 

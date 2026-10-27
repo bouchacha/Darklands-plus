@@ -12,8 +12,9 @@ void ui_skill_icon_inline(int k);                                 /* in the flow
 void ui_attr_icon(ImDrawList *dl, ImVec2 c, float s, int k);      /* attribute k (0 End .. 6 DF) */
 void ui_age_icon(ImDrawList *dl, ImVec2 c, float s);              /* a member's age: an hourglass on the attributes' sable */
 void ui_standing_icon(ImDrawList *dl, ImVec2 c, float s, int k);  /* the party's standing: 0 the town's opinion (reputation), 1 fame */
-/* one key for every shield: 0..6 the attributes (ATTR_*), 7..25 the skills (UI_KEY_SKILL + SKILL_*), the town's opinion, fame */
-enum { UI_KEY_SKILL = 7, UI_KEY_REP = 26, UI_KEY_FAME = 27, UI_KEYS = 28 };
+/* one key for every shield: 0..6 the attributes (ATTR_*), 7..25 the skills (UI_KEY_SKILL + SKILL_*), the town's opinion, fame,
+   a member's age (the hourglass) */
+enum { UI_KEY_SKILL = 7, UI_KEY_REP = 26, UI_KEY_FAME = 27, UI_KEY_AGE = 28, UI_KEYS = 29 };
 void ui_key_icon(ImDrawList *dl, ImVec2 c, float s, int key);     /* the shield of that key at c, size s */
 const char *ui_key_name(int key);                                 /* its name ("Strength", "Edged Weapons", "Reputation", "Fame") */
 int ui_key_of(const char *name, int len);                         /* the key of a name (the sheet's, the short weapon names, "Latin"); -1 */

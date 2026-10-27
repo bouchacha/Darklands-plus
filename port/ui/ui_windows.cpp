@@ -89,7 +89,7 @@ void tab_about(void)
         extern char dlp_user_dir[];
         bulletf("mods, replacement art and sounds: the mods, art and sounds folders in %s", own ? dlp_user_dir : "the game folder");
         bulletf("screenshots (Ctrl+F12, the window as you see it): the screenshots folder in %s", own ? dlp_data_dir : "the game folder");
-        bulletf("the session log: darklands_port.log (Windows) in %s; send it along when you report a problem", own ? dlp_data_dir : "the game folder");
+        bulletf("the session log: darklands_port.log (Windows) in %s; Report a problem below puts it in a zip with what else a report needs", own ? dlp_data_dir : "the game folder");
 #ifdef DL_RTSPLIT
         bulletf("the game's program, made from your DARKLAND.EXE on the first start: %s (delete it to have it made again)",
 #ifdef _WIN32
@@ -99,6 +99,8 @@ void tab_about(void)
 #endif
 #endif
     }
+    ImGui::PushFont(font_head); orn_septext("Report a problem"); ImGui::PopFont();
+    { void ui_report_section(void); ui_report_section(); }   /* (ui/report.cpp) */
     ImGui::PushFont(font_head); orn_septext("Made with"); ImGui::PopFont();
     ui_hint("Dear ImGui (MIT license); Nuked OPL3, the Sound Blaster FM synthesis (LGPL 2.1); Munt's libmt32emu, the Roland MT-32 (LGPL 2.1); stb_image, stb_image_write, "
          "stb_vorbis (public domain); SDL2 (zlib license); fonts EB Garamond, Alegreya, Atkinson Hyperlegible, IM Fell English, "
