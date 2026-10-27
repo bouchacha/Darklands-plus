@@ -160,7 +160,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:178` | a thin amber line under a member readying a shot (bow, crossbow, gun or thrown weapon), filling up until they shoot. |
 | `mods/options.c:179` | every blow, parry, wound and fall, in the left margin on a wide window, otherwise over the field (F12 > Journal > Battle log keeps it). |
 | `mods/options.c:180` | Level map (Tab) |
-| `mods/options.c:180` | Tab in battles, castles, mines and dungeons: a map of the level as far as the party has seen it; a click on it walks the party there. |
+| `mods/options.c:180` | Tab in battles, castles, mines and dungeons: a map of the level as far as the party has seen it, with the floors and the stairs seen between them; a click on it walks the party there. |
 | `mods/options.c:181` | The whole level on the level map |
 | `mods/options.c:181` | Tab shows the whole level, not only what the party has seen. |
 | `mods/options.c:182` | More day jobs |
@@ -1251,14 +1251,22 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/journal.cpp:1155` | No shop's wares noted yet. |
 | `ui/journal.cpp:1155` | Not seen in any shop yet. |
 | `ui/journal.cpp:1160` | Town (nearest first) |
-| `ui/levelmap.cpp:295` | The whole level  (floor %d) |
-| `ui/levelmap.cpp:295` | The level, as far as the party has seen it  (floor %d) |
-| `ui/levelmap.cpp:304` | enemies seen |
-| `ui/levelmap.cpp:306` | arrows: who targets whom |
-| `ui/levelmap.cpp:309` | stairs, ways out |
-| `ui/levelmap.cpp:310` | not yet revealed |
-| `ui/levelmap.cpp:311` | Click the floor to walk the party there. Tab or Esc closes the level map; the game is paused until then. |
-| `ui/levelmap.cpp:311` | Tab or Esc closes the level map; the game is paused until then. |
+| `ui/levelmap.cpp:159` | Floor %d: the party is here.%s%s |
+| `ui/levelmap.cpp:159` |  Stairs seen to floor  |
+| `ui/levelmap.cpp:159` |  Stairs seen to floors  |
+| `ui/levelmap.cpp:160` | Floor %d: the party has been here.%s%s |
+| `ui/levelmap.cpp:160` |  Stairs seen to floor  |
+| `ui/levelmap.cpp:160` |  Stairs seen to floors  |
+| `ui/levelmap.cpp:161` | A floor nobody has been on yet: stairs from floor %s lead there. |
+| `ui/levelmap.cpp:162` |  Click: the party walks to those stairs and takes them. |
+| `ui/levelmap.cpp:410` | The whole level  (floor %d) |
+| `ui/levelmap.cpp:410` | The level, as far as the party has seen it  (floor %d) |
+| `ui/levelmap.cpp:419` | enemies seen |
+| `ui/levelmap.cpp:421` | arrows: who targets whom |
+| `ui/levelmap.cpp:424` | stairs, ways out |
+| `ui/levelmap.cpp:425` | not yet revealed |
+| `ui/levelmap.cpp:426` | Click the floor to walk the party there. Tab or Esc closes the level map; the game is paused until then. |
+| `ui/levelmap.cpp:426` | Tab or Esc closes the level map; the game is paused until then. |
 | `ui/lodgeview.cpp:168` | Camping in the wild |
 | `ui/lodgeview.cpp:168` | Staying here |
 | `ui/lodgeview.cpp:190` | The room: %s a day.%s |
@@ -2881,11 +2889,11 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/orders.c:697` | Click: attack (Berserk) |
 | `mods/orders.c:698` | Click: parry its blows |
 | `mods/orders.c:702` | No clear shot: walks up to fight |
-| `mods/pathfix.c:455` |  (stuck: around everyone) |
-| `mods/pathfix.c:635` | cells unreachable |
-| `mods/pathfix.c:635` | search gave up |
-| `mods/pathfix.c:640` | over 20 cells |
-| `mods/pathfix.c:644` | time native %u us, original %u us; where both: %ld vs %ld steps  |
+| `mods/pathfix.c:465` |  (stuck: around everyone) |
+| `mods/pathfix.c:645` | cells unreachable |
+| `mods/pathfix.c:645` | search gave up |
+| `mods/pathfix.c:650` | over 20 cells |
+| `mods/pathfix.c:654` | time native %u us, original %u us; where both: %ld vs %ld steps  |
 | `mods/politics.c:205` | While you were away, the rebels marched on the %s: the city has a new government. |
 | `mods/politics.c:206` | While you were away, the rebels marched on the %s and were scattered: the old government holds. |
 | `mods/politics.c:207` | While you were away, the city guard arrested the rebel leaders: the old government holds. |

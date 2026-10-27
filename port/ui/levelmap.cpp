@@ -1,7 +1,8 @@
 // levelmap.cpp - Tab in a battle or while exploring a castle, mine or dungeon (the tactical
 // view, which shows only 14 x 10 cells around the party): a map of the level as far as the
 // party has seen it, in the view's own slant, with the party, the enemies in sight, doors and
-// furniture. The game waits while it is open; Tab or Esc closes it.
+// furniture, and at its top right the floors in short (a square a floor, the stairs seen between
+// them). The game waits while it is open; Tab or Esc closes it.
 //
 // The level is floor_img (far 20a5:0000, level%d.flr): long cells[40][40] (column-major,
 // cell (x, y) at (x * 40 + y) * 4), a negative cell is solid rock; byte 0 high nibble: door art,
@@ -23,6 +24,7 @@ extern "C" {
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
+#include "../runtime/hooks.h"
 }
 extern ImFont *ui_font_small;
 extern "C" int levelwalk_x, levelwalk_y, levelwalk_floor;   /* mods/levelwalk.c */
@@ -30,7 +32,17 @@ extern "C" int levelwalk_x, levelwalk_y, levelwalk_floor;   /* mods/levelwalk.c 
 #define NFLOORS 16
 static unsigned char seen[NFLOORS][40][40];
 static bool open_lm;
-static int prev_mode = -1;
+/* the ways between floors, as each floor's records stood when the party was last on it (only the
+   floor shown is in memory): map pixels x, y, w, h and the floor led to (20a5:2fb8, +6) */
+struct Exit { s16 x, y; u8 w, h; s8 to; };
+static Exit exits[NFLOORS][6]; static int nexits[NFLOORS];
+#define GV_NFLOORS 0xd661               /* the battle's number of floors (s002 tac start, D_d661) */
+/* what the party saw is forgotten when a battle's floors are made (a new battle, castle, mine or dungeon:
+   s004 0e76:0000, from s002's tac start) or come out of a save (EXPLODE, s003 1016:0d07, the battle save's
+   blocks); the same dungeon taken up again after a card (a riddle, a talk) keeps it */
+static void forget(void) { memset(seen, 0, sizeof seen); memset(nexits, 0, sizeof nexits); }
+static void floors_made_hook(void) { forget(); hook_call_original(); }
+static void save_read_hook(void) { forget(); hook_call_original(); }
 
 static inline s32 cell(int x, int y)
 {
@@ -43,20 +55,119 @@ extern "C" int levelmap_is_open(void) { return open_lm; }
 extern "C" int levelmap_available(void) { return game_mode() == GM_BATTLE && config_get_int("assist.level_map", 1) && !config_get_int("original", 0); }
 extern "C" void levelmap_toggle(void) { open_lm = !open_lm && levelmap_available(); }
 
-/* every frame: the cells in the view count as seen; a new battle or dungeon starts afresh */
+/* every frame: the cells in the view count as seen, and the floor's ways to the others are noted */
 extern "C" void levelmap_frame(void)
 {
+    static bool hooked;
+    if (!hooked) { hooked = true; hook_install(4, 0x0e76, 0x0000, floors_made_hook); hook_install(3, 0x1016, 0x0d07, save_read_hook); }
     int gm = game_mode();
-    if (gm != GM_BATTLE) { prev_mode = gm; open_lm = false; return; }
-    if (prev_mode != GM_BATTLE) memset(seen, 0, sizeof seen);
-    prev_mode = gm;
+    if (gm != GM_BATTLE) { open_lm = false; return; }
     int fl = floor_now();
     if (fl < 0 || fl >= NFLOORS) return;
+    int ne = (s8)rb(G_FAR20A5, 0x2fb6);
+    if (ne < 0 || ne > 6) ne = 0;
+    for (int k = 0; k < ne; k++) {
+        u16 r0 = (u16)(0x2fb8 + 14 * k);
+        exits[fl][k] = { (s16)rw(G_FAR20A5, r0), (s16)rw(G_FAR20A5, (u16)(r0 + 2)), rb(G_FAR20A5, (u16)(r0 + 4)), rb(G_FAR20A5, (u16)(r0 + 5)), (s8)rb(G_FAR20A5, (u16)(r0 + 6)) };
+    }
+    nexits[fl] = ne;
     int cx = (s8)g_rb(0xc866), cy = (s8)g_rb(0xc886);
     for (int k = 0; k < 140; k++) {
         int x = cx + (s8)g_rb((u16)(0x1fc6 + k)), y = cy + (s8)g_rb((u16)(0x2052 + k));
         if (x >= 0 && x < 40 && y >= 0 && y < 40) seen[fl][x][y] = 1;
     }
+}
+
+/* the floors of a castle, mine or dungeon in short, at the level map's top right: a square a floor, the
+   floors the party has been on and those its stairs lead to (a "?" while nobody has been there), lines
+   for the stairs seen, the party's floor outlined; a click on a floor its stairs on this floor lead to
+   walks the party to them. Laid out by how many stairs each is from the first floor (the way in). */
+template <class Known>
+static ImVec2 floors_draw(ImDrawList *dl, ImVec2 o, ImVec2 sz, int fl, Known known, bool measure)   /* the panel's size (0, 0: none) */
+{
+    int nf = g_rb(GV_NFLOORS);
+    if (nf < 2 || nf > NFLOORS || fl < 0 || fl >= nf) return ImVec2(0, 0);
+    bool visited[NFLOORS] = {}, shown[NFLOORS] = {};
+    bool edge[NFLOORS][NFLOORS] = {};
+    int via[NFLOORS]; for (int t = 0; t < NFLOORS; t++) via[t] = -1;    /* a seen exit of this floor to floor t */
+    for (int f = 0; f < nf; f++) {
+        for (int x = 0; x < 40 && !visited[f]; x++) for (int y = 0; y < 40; y++) if (seen[f][x][y]) { visited[f] = true; break; }
+    }
+    visited[fl] = true;
+    for (int f = 0; f < nf; f++) {
+        if (!visited[f]) continue;
+        shown[f] = true;
+        for (int k = 0; k < nexits[f]; k++) {
+            const Exit &e = exits[f][k];
+            int t = e.to;
+            if (t < 0 || t >= nf || t == f) continue;
+            bool ks = false;                                   /* the stairs seen on that floor */
+            for (int cx = e.x / 32; cx <= (e.x + e.w - 1) / 32 && !ks; cx++) for (int cy = e.y / 16; cy <= (e.y + e.h - 1) / 16; cy++)
+                if (cx >= 0 && cx < 40 && cy >= 0 && cy < 40 && (f == fl ? known(cx, cy) : seen[f][cx][cy] != 0)) { ks = true; break; }
+            if (!ks) continue;
+            edge[f][t] = edge[t][f] = true; shown[t] = true;
+            if (f == fl && via[t] < 0) via[t] = k;
+        }
+    }
+    /* rows: stairs from floor 0 (or from the first floor shown), then the floor's number */
+    int depth[NFLOORS]; for (int f = 0; f < NFLOORS; f++) depth[f] = -1;
+    int q[NFLOORS], qh = 0, qt = 0;
+    for (int f0 = 0; f0 < nf; f0++) {
+        if (!shown[f0] || depth[f0] >= 0) continue;
+        int base = 0; for (int f = 0; f < nf; f++) if (depth[f] + 1 > base) base = depth[f] + 1;
+        depth[f0] = base; q[qt++] = f0;
+        while (qh < qt) { int f = q[qh++]; for (int t = 0; t < nf; t++) if (edge[f][t] && depth[t] < 0) { depth[t] = depth[f] + 1; q[qt++] = t; } }
+    }
+    int rows = 0, col[NFLOORS], rowlen[NFLOORS] = {};
+    for (int f = 0; f < nf; f++) if (shown[f]) { col[f] = rowlen[depth[f]]++; if (depth[f] + 1 > rows) rows = depth[f] + 1; }
+    int maxw = 1; for (int r = 0; r < rows; r++) if (rowlen[r] > maxw) maxw = rowlen[r];
+    ImFont *f = ui_font_small ? ui_font_small : ImGui::GetFont();
+    float qs = UIS(30), gx = UIS(20), gy = UIS(24), pad = UIS(12), th = UIS(22);
+    float pw = maxw * qs + (maxw - 1) * gx + 2 * pad, ph = th + rows * qs + (rows - 1) * gy + 2 * pad;
+    if (pw < UIS(120)) pw = UIS(120);
+    if (measure) return ImVec2(pw, ph);
+    ImVec2 p0(o.x + sz.x - pw - UIS(16), o.y + UIS(14)), p1(p0.x + pw, p0.y + ph);
+    dl->AddRectFilled(p0, p1, IM_COL32(26, 22, 18, 235), UIS(6));
+    dl->AddRect(p0, p1, IM_COL32(120, 100, 70, 255), UIS(6), 0, 1.5f);
+    dl->AddText(f, UIS(18), ImVec2(p0.x + pad, p0.y + pad * 0.6f), IM_COL32(230, 214, 180, 255), "Floors");
+    auto centre = [&](int fi) {
+        float rw = rowlen[depth[fi]] * qs + (rowlen[depth[fi]] - 1) * gx;
+        return ImVec2(p0.x + (pw - rw) * 0.5f + col[fi] * (qs + gx) + qs * 0.5f, p0.y + pad + th + depth[fi] * (qs + gy) + qs * 0.5f);
+    };
+    for (int a = 0; a < nf; a++) for (int b = a + 1; b < nf; b++)
+        if (edge[a][b]) dl->AddLine(centre(a), centre(b), IM_COL32(196, 170, 90, 255), fmaxf(1.5f, UIS(2.5f)));
+    bool party_on[NFLOORS] = {};
+    for (int i = 0; i < 5; i++) { int st = g_rb(CBF(i, CB_STATUS)), pf = (s8)g_rb((u16)(GV_cbt_floor + i)); if ((st == 1 || st == 2) && pf >= 0 && pf < NFLOORS) party_on[pf] = true; }
+    ImGuiIO &io = ImGui::GetIO();
+    int hover = -1;
+    for (int fi = 0; fi < nf; fi++) {
+        if (!shown[fi]) continue;
+        ImVec2 c = centre(fi), a(c.x - qs * 0.5f, c.y - qs * 0.5f), b(c.x + qs * 0.5f, c.y + qs * 0.5f);
+        bool here = fi == fl;
+        dl->AddRectFilled(a, b, here ? IM_COL32(150, 140, 120, 255) : visited[fi] ? IM_COL32(110, 102, 88, 255) : IM_COL32(44, 38, 32, 255), UIS(3));
+        dl->AddRect(a, b, here ? IM_COL32(250, 220, 120, 255) : visited[fi] ? IM_COL32(30, 26, 22, 255) : IM_COL32(120, 104, 80, 255), UIS(3), 0, here ? 2.5f : 1.2f);
+        char num[8]; snprintf(num, sizeof num, visited[fi] ? "%d" : "?", fi + 1);
+        ImVec2 ts = f->CalcTextSizeA(UIS(18), FLT_MAX, 0, num);
+        dl->AddText(f, UIS(18), ImVec2(c.x - ts.x * 0.5f, c.y - ts.y * 0.5f), visited[fi] ? IM_COL32(20, 16, 12, 255) : IM_COL32(200, 180, 140, 255), num);
+        if (party_on[fi]) dl->AddCircleFilled(ImVec2(b.x - UIS(5), a.y + UIS(5)), UIS(4.5f), IM_COL32(70, 150, 230, 255));
+        if (io.MousePos.x >= a.x && io.MousePos.x < b.x && io.MousePos.y >= a.y && io.MousePos.y < b.y) hover = fi;
+    }
+    if (hover >= 0) {
+        char tip[200], tos[80] = "";
+        int n = 0;
+        for (int t = 0; t < nf; t++) if (edge[hover][t]) { char w[12]; snprintf(w, sizeof w, "%s%d", n ? ", " : "", t + 1); strncat(tos, w, sizeof tos - strlen(tos) - 1); n++; }
+        if (hover == fl) snprintf(tip, sizeof tip, "Floor %d: the party is here.%s%s", hover + 1, n ? (n == 1 ? " Stairs seen to floor " : " Stairs seen to floors ") : "", tos);
+        else if (visited[hover]) snprintf(tip, sizeof tip, "Floor %d: the party has been here.%s%s", hover + 1, n ? (n == 1 ? " Stairs seen to floor " : " Stairs seen to floors ") : "", tos);
+        else snprintf(tip, sizeof tip, "A floor nobody has been on yet: stairs from floor %s lead there.", tos);
+        if (via[hover] >= 0 && hover != fl) strncat(tip, "\nClick: the party walks to those stairs and takes them.", sizeof tip - strlen(tip) - 1);
+        ImGui::SetTooltip("%s", tip);
+        if (via[hover] >= 0 && hover != fl && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+            const Exit &e = exits[fl][via[hover]];
+            levelwalk_x = e.x + e.w / 2; levelwalk_y = e.y + e.h / 2; levelwalk_floor = fl;
+            open_lm = false;
+        }
+    }
+    return ImVec2(pw, ph);
 }
 
 static unsigned char view_now[40][40];
@@ -115,9 +226,11 @@ extern "C" void levelmap_draw(void)
     }
     float top = UIS(54), bottom = UIS(40);
     if (!any) { minx = 0; maxx = 40; miny = 0; maxy = 20; }
-    float s = fminf((sz.x - 80) / (maxx - minx + 2), (sz.y - top - bottom) / (maxy - miny + 2));
+    ImVec2 fp = floors_draw(dl, o, sz, fl, known, true);     /* (the floors' panel at the top right: the map beside it) */
+    float right = fp.x > 0 ? fp.x + UIS(24) : 0;
+    float s = fminf((sz.x - 80 - right) / (maxx - minx + 2), (sz.y - top - bottom) / (maxy - miny + 2));
     if (s > 60) s = 60;
-    ImVec2 org(o.x + sz.x * 0.5f - (minx + maxx) * 0.5f * s, o.y + top + (sz.y - top - bottom) * 0.5f - (miny + maxy) * 0.5f * s);
+    ImVec2 org(o.x + (sz.x - right) * 0.5f - (minx + maxx) * 0.5f * s, o.y + top + (sz.y - top - bottom) * 0.5f - (miny + maxy) * 0.5f * s);
     auto P = [&](float X, float Y) { return ImVec2(org.x + (X * SX + Y * YX) * s, org.y + Y * YY * s); };
 
     const ImU32 FLOOR = IM_COL32(120, 112, 98, 255), FLOOR_NOW = IM_COL32(150, 140, 120, 255), ROCK = IM_COL32(52, 46, 40, 255),
@@ -251,7 +364,8 @@ extern "C" void levelmap_draw(void)
     /* a click on a floor cell, a door or stairs the party has seen: the party walks there
        (mods/levelwalk.c) */
     bool walk = true;                                   /* (always with the map; assist.level_map_walk retired) */
-    if (walk && ImGui::IsWindowHovered()) {
+    bool on_floors = fp.x > 0 && io.MousePos.x >= o.x + sz.x - fp.x - UIS(16) && io.MousePos.y < o.y + UIS(14) + fp.y;
+    if (walk && ImGui::IsWindowHovered() && !on_floors) {
         ImVec2 mp = io.MousePos;
         float Yf = (mp.y - org.y) / s / YY, Xf = ((mp.x - org.x) / s - Yf * YX) / SX;
         int hx = (int)floorf(Xf), hy = (int)floorf(Yf);
@@ -290,6 +404,7 @@ extern "C" void levelmap_draw(void)
             }
         }
     }
+    floors_draw(dl, o, sz, fl, known, false);
     /* title and legend */
     char t[160];
     snprintf(t, sizeof t, all ? "The whole level  (floor %d)" : "The level, as far as the party has seen it  (floor %d)", fl + 1);
@@ -310,4 +425,41 @@ extern "C" void levelmap_draw(void)
     if (all) legend(HIDDEN, "not yet revealed", false);
     dl->AddText(f, UIS(18), ImVec2(lx + 10, ly), IM_COL32(170, 155, 125, 255), walk ? "Click the floor to walk the party there. Tab or Esc closes the level map; the game is paused until then." : "Tab or Esc closes the level map; the game is paused until then.");
     ImGui::End();
+}
+
+/* test (ufloor): the floor shown, as text in the log - the cells ('#' rock, '.' floor, 'P' a member), the doors
+   (x, y, w, h map pixels, open), the ways out (and the floor they lead to) and the trigger areas (20a5:2184 count,
+   14-byte records at 2186: int x, y, byte w, h (map pixels), the routine's far address, int a, b: its arguments) */
+extern "C" void levelmap_dump(void)
+{
+    int fl = floor_now();
+    fprintf(stderr, "floor %d\n", fl);
+    char rows[40][41];
+    for (int y = 0; y < 40; y++) { for (int x = 0; x < 40; x++) rows[y][x] = cell(x, y) < 0 ? '#' : '.'; rows[y][40] = 0; }
+    for (int i = 0; i < 5; i++) {
+        u16 b = (u16)(0x9c55 + i * 0x80);
+        if (g_rb((u16)(b + 0x14)) == 0 || (s8)g_rb((u16)(GV_cbt_floor + i)) != fl) continue;
+        int x = (s16)g_rw((u16)(b + 4)) / 32, y = (s16)g_rw((u16)(b + 6)) / 16;
+        if (x >= 0 && x < 40 && y >= 0 && y < 40) rows[y][x] = (char)('0' + i);
+    }
+    for (int y = 0; y < 40; y++) fprintf(stderr, "  %2d %s\n", y, rows[y]);
+    int nd = (s8)rb(G_FAR20A5, 0x1f52);
+    for (int k = 0; k < nd && k < 40; k++) {
+        u16 r0 = (u16)(0x1f54 + 14 * k);
+        fprintf(stderr, "  door %d at %d,%d %dx%d open %d (cell %d,%d)\n", k, (s16)rw(G_FAR20A5, r0), (s16)rw(G_FAR20A5, (u16)(r0 + 2)), rb(G_FAR20A5, (u16)(r0 + 4)), rb(G_FAR20A5, (u16)(r0 + 5)),
+                rb(G_FAR20A5, (u16)(0x33d3 + k)), (s16)rw(G_FAR20A5, r0) / 32, (s16)rw(G_FAR20A5, (u16)(r0 + 2)) / 16);
+    }
+    int ne = (s8)rb(G_FAR20A5, 0x2fb6);
+    for (int k = 0; k < ne && k < 6; k++) {
+        u16 r0 = (u16)(0x2fb8 + 14 * k);
+        fprintf(stderr, "  exit %d at %d,%d %dx%d to %d (cell %d,%d)\n", k, (s16)rw(G_FAR20A5, r0), (s16)rw(G_FAR20A5, (u16)(r0 + 2)), rb(G_FAR20A5, (u16)(r0 + 4)), rb(G_FAR20A5, (u16)(r0 + 5)),
+                (s8)rb(G_FAR20A5, (u16)(r0 + 6)), (s16)rw(G_FAR20A5, r0) / 32, (s16)rw(G_FAR20A5, (u16)(r0 + 2)) / 16);
+    }
+    int nh = (s8)rb(G_FAR20A5, 0x2184);
+    for (int k = 0; k < nh && k < 50; k++) {
+        u16 r0 = (u16)(0x2186 + 14 * k);
+        s16 x = (s16)rw(G_FAR20A5, r0), y = (s16)rw(G_FAR20A5, (u16)(r0 + 2));
+        fprintf(stderr, "  handler %d fn %04x:%04x a %d b %d at %d,%d %dx%d (cell %d,%d)\n", k, rw(G_FAR20A5, (u16)(r0 + 8)), rw(G_FAR20A5, (u16)(r0 + 6)),
+                (s16)rw(G_FAR20A5, (u16)(r0 + 10)), (s16)rw(G_FAR20A5, (u16)(r0 + 12)), x, y, rb(G_FAR20A5, (u16)(r0 + 4)), rb(G_FAR20A5, (u16)(r0 + 5)), x / 32, y / 16);
+    }
 }
