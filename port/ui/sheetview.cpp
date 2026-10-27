@@ -38,8 +38,11 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <map>
+#include <regex>
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../mods/sheetview.h"
 #include "../mods/gamemodel.h"
 #include "../mods/saintinfo.h"
@@ -716,19 +719,180 @@ static float head_tag(NsDraw &P, int m, float x1, float ry, float rh, bool who, 
     return sz;
 }
 
-/* the first n letters of a name (UTF-8: letters, not bytes, "Ülrich") */
-static std::string letters(const std::string &t, int n)
-{
-    size_t e = 0;
-    for (int c = 0; c < n && e < t.size(); c++) { e++; while (e < t.size() && ((unsigned char)t[e] & 0xC0) == 0x80) e++; }
-    return t.substr(0, e);
-}
 static float small_tag(NsDraw &P, float x_end, float ry, float rowh, const char *label)
 {
     float w = P.width(P.fo, 4.2f, label) + 2.4f;
     P.frame(x_end - w, ry + 1.3f, x_end, ry + rowh - 1.2f, NsDraw::GREEN, 1.1f);
     P.text(P.fo, 4.2f, x_end - w + 1.2f, ry + 1.7f, NsDraw::GREEN, label);
     return w;
+}
+
+/* a saint's help in short, for its row on the Saints page: what saint_info_does says, a chip a part -
+   a shield and how much it rises ("+6–11"), healing (a green cross, the shield, how much), the town's
+   opinion, the weapon skills (all of them: three shields; those of the weapons in hand: "in hand"),
+   and a few words for the rest; the part in full under the pointer */
+enum { CH_RAISE, CH_HEAL, CH_REP, CH_WEAPONS, CH_INHAND, CH_WORDS };
+struct SaintChip { int kind, key; std::string val; bool bad; std::string part; };
+static std::string span_of(const std::string &t)            /* "6 to 11" -> "6–11"; "half its maximum" -> "half" */
+{
+    std::string r = t;
+    size_t p = r.find(" to "); if (p != std::string::npos) r.replace(p, 4, "\x01");   /* (a dash drawn: chip_text) */
+    if (r == "half its maximum") r = "half";
+    return r;
+}
+static int saint_key_of(const std::string &name)             /* an attribute (0..6) or a skill (7..25) by the account's word; -1 */
+{
+    for (int a = 0; a < 7; a++) if (name == gm_attr_name(a)) return a;
+    for (int k = 0; k < 19; k++) if (name == SAINT_SKILL_WORD[k]) return 7 + k;
+    return -1;
+}
+static const struct { const char *has, *say; bool bad; } SAINT_WORDS[] = {
+    { "travels", "faster travel", false }, { "ire protection", "fire ward", false }, { "armor", "better armor", false },
+    { "better in quality", "better weapons", false }, { "cross water", "walks on water", false }, { "ambush", "no ambush", false },
+    { "long sword", "a long sword", false }, { "Costs a point", "costs Strength, Virtue", true }, { "musical instrument", "with music: the town's opinion", false },
+    { "nearest town", "carried to a town", false }, { "groschen", "a little money", false }, { "Teaches", "teaches a saint", false },
+    { "Virtue is raised", "Virtue 20 at least, a quarter of the money", false }, { "No help of its own", "encounters only", false }, { "Fugger", "the bankers' favor", false },
+    { "death from wounds", "no death from wounds", false }, { "loses a tenth", "may cost money", true }, { "loses 3 to 8", "may cost Endurance", true },
+    { "Costs", "costs something", true }, { "below 9 are raised", "Endurance, Strength 9", false },
+};
+static void saint_chips_parse(const std::string &does, std::vector<SaintChip> &out)
+{
+    out.clear();
+    /* the sentences, and in them the parts (", " and "; ") */
+    std::vector<std::string> sent;
+    for (size_t a = 0; a < does.size(); ) {
+        size_t e = does.find(". ", a);
+        std::string t = does.substr(a, e == std::string::npos ? std::string::npos : e - a);
+        while (!t.empty() && (t.back() == '.' || t.back() == ' ')) t.pop_back();
+        if (!t.empty()) sent.push_back(t);
+        if (e == std::string::npos) break;
+        a = e + 2;
+    }
+    static const std::regex heal("(all|half the|[0-9]+%|[0-9]+ to [0-9]+)( of)?( lost)? (Endurance|Strength)( and (Endurance|Strength))?");
+    static const std::regex amount("^(.*?)\\s*(\\+[0-9]+( to [0-9]+)?|lowered by ([0-9]+ to [0-9]+|half its maximum))(.*)$");
+    static const std::regex rep("by ([0-9]+ to [0-9]+)");
+    for (const std::string &st : sent) {
+        std::string low = lower(st);
+        bool used = false;
+        if (low.find("heals") != std::string::npos || low.find("healed") != std::string::npos) {
+            for (std::sregex_iterator it(st.begin(), st.end(), heal), end; it != end; ++it) {
+                std::string v = (*it)[1].str(); if (v == "half the") v = "half";
+                SaintChip c{ CH_HEAL, (*it)[4].str() == "Endurance" ? ATTR_END : ATTR_STR, span_of(v), false, st };
+                out.push_back(c);
+                if ((*it)[6].matched) { c.key = (*it)[6].str() == "Endurance" ? ATTR_END : ATTR_STR; out.push_back(c); }
+                used = true;
+            }
+        }
+        static const std::regex cost("^Costs ([0-9]+ to [0-9]+) (Endurance|Strength)");
+        { std::smatch m; if (std::regex_search(st, m, cost)) { out.push_back({ CH_RAISE, m[2].str() == "Endurance" ? ATTR_END : ATTR_STR, "-" + span_of(m[1].str()), true, st }); used = true; } }
+        if (low.find("reputation") != std::string::npos) {
+            std::smatch m; std::string v = std::regex_search(st, m, rep) ? span_of(m[1].str()) : "";
+            bool down = low.find("lower") != std::string::npos;
+            out.push_back({ CH_REP, KEY_REP, (down ? "-" : "+") + v, down, st });
+            used = true;
+        }
+        /* the rises and falls: names (", " and " and ") before "+a to b" or "lowered by" */
+        std::vector<std::string> pending; std::string pend_part;
+        size_t a = 0;
+        while (a <= st.size()) {
+            size_t e = st.find_first_of(",;", a);
+            std::string part = st.substr(a, e == std::string::npos ? std::string::npos : e - a);
+            while (!part.empty() && part[0] == ' ') part.erase(0, 1);
+            if (part.rfind("and ", 0) == 0) part.erase(0, 4);
+            if (part.rfind("Every member's ", 0) == 0) part.erase(0, 15);
+            std::smatch m;
+            if (std::regex_match(part, m, amount) && lower(part).find("heal") == std::string::npos) {
+                std::string names = m[1].str(), v = m[2].str();
+                bool down = v.rfind("lowered", 0) == 0;
+                std::string val = down ? "-" + span_of(m[4].str()) : "+" + span_of(v.substr(1));
+                std::string pl = pend_part + (pend_part.empty() ? "" : ", ") + part;
+                /* the names: "A and B", "every weapon skill", "the skills of the weapons in hand" */
+                std::vector<std::string> ns = pending;
+                for (size_t b = 0; b <= names.size(); ) {
+                    size_t f = names.find(" and ", b);
+                    std::string n = names.substr(b, f == std::string::npos ? std::string::npos : f - b);
+                    if (n.rfind("A woman: ", 0) == 0 || n.rfind("a woman: ", 0) == 0) n = n.substr(9);
+                    if (n.rfind("in a town, ", 0) == 0) n = n.substr(11);
+                    if (!n.empty()) ns.push_back(n);
+                    if (f == std::string::npos) break;
+                    b = f + 5;
+                }
+                for (const std::string &n : ns) {
+                    std::string ln = lower(n);
+                    if (ln.find("weapons in hand") != std::string::npos) out.push_back({ CH_INHAND, -1, val, down, pl });
+                    else if (ln.find("weapon skill") != std::string::npos) out.push_back({ CH_WEAPONS, -1, val, down, pl });
+                    else if (ln.find("skill") != std::string::npos || ln.find("attribute") != std::string::npos) out.push_back({ CH_WORDS, -1, n + " " + val, down, pl });
+                    else { int k = saint_key_of(n); if (k >= 0) out.push_back({ CH_RAISE, k, val, down, pl }); else out.push_back({ CH_WORDS, -1, n + " " + val, down, pl }); }
+                }
+                pending.clear(); pend_part.clear(); used = true;
+            } else if (saint_key_of(part) >= 0) { pending.push_back(part); pend_part += (pend_part.empty() ? "" : ", ") + part; }
+            if (e == std::string::npos) break;
+            a = e + 1;
+        }
+        if (!used) {                                           /* the rest: a few words */
+            const char *say = nullptr; bool bad = false;
+            for (const auto &w : SAINT_WORDS) if (st.find(w.has) != std::string::npos) { say = w.say; bad = w.bad; break; }
+            out.push_back({ CH_WORDS, -1, say ? say : st.substr(0, 18) + "...", bad, st });
+        }
+    }
+}
+static const std::vector<SaintChip> &saint_chips(int s)
+{
+    static std::map<int, std::pair<std::string, std::vector<SaintChip>>> cache;
+    std::string d = saint_info_does(s);
+    auto &c = cache[s];
+    if (c.first != d || c.second.empty()) { c.first = d; saint_chips_parse(d, c.second); }
+    return c.second;
+}
+/* a chip's words, "\x01" a short dash drawn between two numbers (the typeface has no en dash); the width */
+static float chip_text(NsDraw &P, float fs, float x, float y, ImU32 col, const std::string &t, bool draw)
+{
+    float w = 0;
+    for (size_t a = 0; a <= t.size(); ) {
+        size_t e = t.find('\x01', a);
+        std::string part = t.substr(a, e == std::string::npos ? std::string::npos : e - a);
+        if (draw) P.text(P.fo, fs, x + w, y, col, part);
+        w += P.width(P.fo, fs, part);
+        if (e == std::string::npos) break;
+        if (draw) P.dl->AddRectFilled(NsDraw::w(x + w + 0.3f, y + fs * 0.5f), NsDraw::w(x + w + 1.5f, y + fs * 0.5f + 0.32f), col);
+        w += 1.8f; a = e + 1;
+    }
+    return w;
+}
+/* the chips in a row from x to x1 at y (a line's middle); the part under the pointer, or "" */
+static std::string saint_chips_draw(NsDraw &P, int s, float x, float x1, float y)
+{
+    std::string tip;
+    const float fs = 3.9f, is = 4.3f;
+    const ImU32 ink = NsDraw::INK_SOFT, bad = NsDraw::RED;
+    extern int ui_icon_disc;
+    for (const SaintChip &c : saint_chips(s)) {
+        std::string v = c.kind == CH_INHAND ? "in hand " + c.val : c.val;
+        float w = chip_text(P, fs, 0, 0, 0, v, false) + 1.6f;
+        float iw = c.kind == CH_WEAPONS ? is * 1.5f : c.kind == CH_HEAL ? is * 1.7f : c.kind == CH_WORDS ? 0 : is;
+        if (x + iw + w > x1) { P.text(P.fo, fs, x, y - 2.1f, ink, "..."); break; }
+        float x0 = x;
+        ui_icon_disc = 0;
+        if (c.kind == CH_HEAL) {                                  /* a green cross, then the shield */
+            float cx = x + is * 0.3f, r = is * 0.28f;
+            P.dl->AddRectFilled(NsDraw::w(cx - r * 0.33f, y - r), NsDraw::w(cx + r * 0.33f, y + r), IM_COL32(40, 130, 50, 255));
+            P.dl->AddRectFilled(NsDraw::w(cx - r, y - r * 0.33f), NsDraw::w(cx + r, y + r * 0.33f), IM_COL32(40, 130, 50, 255));
+            ui_attr_icon(P.dl, NsDraw::w(x + is * 1.15f, y), is * P.k, c.key);
+        } else if (c.kind == CH_RAISE) {
+            if (c.key < 7) ui_attr_icon(P.dl, NsDraw::w(x + is * 0.5f, y), is * P.k, c.key); else ui_skill_icon(P.dl, NsDraw::w(x + is * 0.5f, y), is * P.k, c.key - 7);
+        } else if (c.kind == CH_REP) ui_standing_icon(P.dl, NsDraw::w(x + is * 0.5f, y), is * 0.92f * P.k, 0);
+        else if (c.kind == CH_WEAPONS) {                          /* every weapon skill: three of their shields, fanned */
+            ui_skill_icon(P.dl, NsDraw::w(x + is * 0.4f, y), is * 0.85f * P.k, SKILL_BOW);
+            ui_skill_icon(P.dl, NsDraw::w(x + is * 0.75f, y), is * 0.85f * P.k, SKILL_IMPACT);
+            ui_skill_icon(P.dl, NsDraw::w(x + is * 1.1f, y), is * 0.85f * P.k, SKILL_EDGED);
+        } else if (c.kind == CH_INHAND) ui_skill_icon(P.dl, NsDraw::w(x + is * 0.5f, y), is * P.k, SKILL_EDGED);
+        ui_icon_disc = 1;
+        x += iw + 0.4f;
+        chip_text(P, fs, x, y - 2.1f, c.bad ? bad : ink, v, true);
+        x += w;
+        if (P.over(x0, y - 2.6f, x - 0.8f, y + 2.6f)) tip = c.part;
+    }
+    return tip;
 }
 
 static void saints(NsDraw &P, const SheetModel &s)
@@ -783,7 +947,7 @@ static void saints(NsDraw &P, const SheetModel &s)
             x += SW;
         }
     }
-    float LY0 = y + 8.5f, LX0 = 62, LX1 = 168, ROWH = 7.6f;
+    float LY0 = y + 8.5f, LX0 = 62, LX1 = 168, ROWH = 12.6f;   /* (a row: the name and who knows it, then the help in short) */
     int NROWS = (int)((197 - LY0) / ROWH);
     std::vector<int> rows;
     for (int t = 0; t < ns; t++) {
@@ -801,7 +965,7 @@ static void saints(NsDraw &P, const SheetModel &s)
     if (sc < 0) sc = 0;
     P.rect(LX0, LY0 - 0.5f, LX1, LY0 + NROWS * ROWH + 0.5f, IM_COL32(250, 242, 222, 255), 1.5f);
     if (!n) P.para(fo, NsDraw::FS_SMALL, LX0 + 3, LY0 + 2, LX1 - LX0 - 6, dim, V.saints_all ? "No saint helps with that." : "Nobody in the party knows a saint that helps with that. (All saints shows the others too.)");
-    int hover = -1;
+    int hover = -1; std::string chip_tip;
     int cl = (s16)g_rw(G_CUR_LOC);
     const Library *here = cl >= 0 && cl < G_NLOC ? library_at(cl) : nullptr;   /* (the library of the place the party is in: what it teaches, tagged) */
     for (int r = 0; r < NROWS && sc + r < n; r++) {
@@ -809,30 +973,38 @@ static void saints(NsDraw &P, const SheetModel &s)
         float ry = LY0 + r * ROWH;
         bool h = P.over(LX0, ry, LX1, ry + ROWH);
         if (h) hover = t;
-        if (h || t == V.pin_saint) P.rect(LX0 + 0.5f, ry, LX1 - 0.5f, ry + ROWH, t == V.pin_saint ? IM_COL32(218, 196, 150, 255) : IM_COL32(226, 204, 160, 255));
-        if (P.hit(LX0, ry, LX1, ry + ROWH)) V.pin_saint = V.pin_saint == t ? -1 : t;
+        bool sel = t == (V.pin_saint >= 0 ? V.pin_saint : rows[0]);
+        if (h || sel) P.rect(LX0 + 0.5f, ry, LX1 - 0.5f, ry + ROWH, sel ? IM_COL32(218, 196, 150, 255) : IM_COL32(226, 204, 160, 255));
+        if (P.hit(LX0, ry, LX1, ry + ROWH)) V.pin_saint = t;
         /* who knows it: their heads, right */
+        const float NH = 7.4f;                                   /* (the first line's height) */
         float ix = LX1 - 2;
         for (int m = 4; m >= 0; m--) {
             if (!s.present[m] || !s.saint[m][t]) continue;
             bool lowv = t < s.nsaints && s.saint_vmin[t] > 0 && s.pskill[m][9] < s.saint_vmin[t];   /* (Virtue below what the saint asks: faded) */
-            ix -= head_tag(P, m, ix, ry, ROWH, m == s.who, lowv) + 0.6f;
+            ix -= head_tag(P, m, ix, ry, NH, m == s.who, lowv) + 0.6f;
         }
         bool known = false; for (int m = 0; m < 5; m++) if (s.present[m] && s.saint[m][t]) known = true;
         if (here && !known) for (int k = 0; k < 4; k++) if (here->saint[k] == t) {
-            ix -= small_tag(P, ix, ry, ROWH, "taught here") + 0.8f; break;
+            ix -= small_tag(P, ix, ry, NH, "taught here") + 0.8f; break;
         }
         bool any_can = false, knowers = false;                   /* nobody who knows it has the Virtue it asks: slate grey */
         for (int m = 0; m < 5; m++) if (s.present[m] && s.saint[m][t]) { knowers = true; if (!(t < s.nsaints && s.saint_vmin[t] > 0 && s.pskill[m][9] < s.saint_vmin[t])) any_can = true; }
         P.text(f, 5.4f, LX0 + 2.5f, ry + 0.9f, knowers && !any_can ? IM_COL32(110, 116, 128, 255) : ink, gamedata.saints[t].name, -1, ix - 1);
+        std::string ct = saint_chips_draw(P, t, LX0 + 2.5f, LX1 - 2, ry + 9.4f);   /* the help, in short */
+        if (!ct.empty()) chip_tip = ct;
     }
+    if (!chip_tip.empty()) ns_tip(chip_tip.c_str(), 22);
     if (n > NROWS) {
         float LY1 = LY0 + NROWS * ROWH, th = (LY1 - LY0) * NROWS / n, ty = LY0 + (LY1 - LY0 - th) * sc / (float)(n - NROWS);
         P.rect(LX1 - 1.4f, ty, LX1 - 0.3f, ty + th, IM_COL32(120, 80, 36, 140), 0.5f);
     }
     /* the saint: the statue, the name, who knows it (or where it is taught), what the help does
        (mods/saintinfo.h) and where the text says otherwise, whether encounters call on it, the legend */
-    int t = V.pin_saint >= 0 ? V.pin_saint : hover >= 0 ? hover : n ? rows[sc] : -1;   /* (one clicked stays shown until clicked again) */
+    (void)hover;
+    bool pinned_shown = false; for (int r : rows) if (r == V.pin_saint) pinned_shown = true;
+    int t = pinned_shown ? V.pin_saint : n ? rows[0] : -1;      /* (the one clicked; else the first) */
+    sheet_model.pray_ask = t;                                     /* (each member's chance with it: mods/sheetview.c) */
     const float DX0 = 171, DX1 = 318, DY0 = LY0 - 0.5f, DY1 = 197;
     P.rect(DX0, DY0, DX1, DY1, IM_COL32(236, 224, 196, 255), 1.5f);
     if (t < 0 || t >= ns) return;
@@ -874,18 +1046,25 @@ static void saints(NsDraw &P, const SheetModel &s)
         ty += P.para(fo, 4.4f, tx, ty, tw, low.empty() ? soft : IM_COL32(90, 98, 112, 255), b) + 1;
     }
     if (!where.empty()) ty += P.para(fo, 4.4f, tx, ty, tw, soft, where) + 1.5f;
-    else {                                               /* pray: a button for each who knows it (the original: a click on the saint) */
-        float bx = tx, bh = 8.5f;
+    else {                                               /* each who knows it: the best chance, the favor it takes, Pray (the original: a click on the saint) */
+        const float bh = 7.5f;
         for (int m = 0; m < 5; m++) {
             if (!s.present[m] || !s.saint[m][t]) continue;
-            std::string lb = ns_gtext(s.names[m]) + " prays";
-            float bw = P.width(P.fo, NsDraw::FS_SMALL, lb) + 6;
-            if (bx + bw > DX1 - 1 && bx > tx) { bx = tx; ty += bh + 1; }
-            if (P.button(bx, ty, bx + bw, ty + bh, lb, IM_COL32(40, 70, 130, 235))) ns_push(SV_PRAY, m, t, 0);
-            if (P.over(bx, ty, bx + bw, ty + bh)) ns_tip("Call on this saint now: the prayer screen, where you choose how much Divine Favor to spend.", 20);
-            bx += bw + 1.5f;
+            float hx = tx + head_tag(P, m, tx + 6.5f, ty, bh + 0.6f, false, false) + 1.2f;
+            char b[96];
+            bool asked = s.pray_saint == t && s.pray_best[m] >= 0;
+            if (!asked) snprintf(b, sizeof b, "%s", ns_gtext(s.names[m]).c_str());
+            else if (s.pray_best[m] > 0) snprintf(b, sizeof b, "%s: %d%% with %d of %d favor", ns_gtext(s.names[m]).c_str(), s.pray_best[m], s.pray_df[m], s.df[m]);
+            else snprintf(b, sizeof b, "%s: no chance now", ns_gtext(s.names[m]).c_str());
+            P.text(P.fo, NsDraw::FS_SMALL, hx, ty + 1.2f, asked && !s.pray_best[m] ? NsDraw::RED : ink, b, -1, DX1 - 16);
+            if (P.over(hx, ty, DX1 - 16, ty + bh))
+                ns_tip(asked && s.pray_best[m] > 0 ? "The best chance of being heard, and the least Divine Favor that gives it: more is spent for nothing. The prayer screen sets the favor."
+                                                   : "Virtue too low for this saint, or too little Divine Favor: see above and the prayer screen.", 22);
+            if (s.able[m] && P.button(DX1 - 15, ty, DX1 - 2, ty + bh, "Pray", IM_COL32(40, 70, 130, 235))) ns_push(SV_PRAY, m, t, 0);
+            if (P.over(DX1 - 15, ty, DX1 - 2, ty + bh)) ns_tip("Call on this saint now: the prayer screen, where you choose how much Divine Favor to spend.", 20);
+            ty += bh + 1.2f;
         }
-        ty += bh + 2;
+        ty += 1;
     }
     ty += P.para(fo, NsDraw::FS_SMALL, tx, ty, tw, IM_COL32(26, 64, 132, 255), saint_info_does(t)) + 1.5f;
     const char *un = saint_info_unlike(t);
@@ -1069,13 +1248,13 @@ static void formulae(NsDraw &P, const SheetModel &s)
     }
     int b = batches_of(s, k);
     y += 0.5f;
-    if (b) { char bl[48]; snprintf(bl, sizeof bl, "Enough for %d batch%s.", b, b == 1 ? "" : "es"); y += P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, NsDraw::GREEN, bl) + 1.5f; }
+    if (b) { char bl[64]; snprintf(bl, sizeof bl, "Enough ingredients to make %d potion%s.", b, b == 1 ? "" : "s"); y += P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, NsDraw::GREEN, bl) + 1.5f; }
     else y += P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, dim, kn ? "The party lacks an ingredient: brewing must wait." : "The party lacks an ingredient.") + 1.5f;
     if (kn) {
         P.text(fo, 4.3f, DX0 + 2.5f, y, soft, "Chance of brewing one batch"); y += 6;
         for (int m : al) {
             if (!s.formula[m][k]) continue;
-            int pc = s.intel[m] + (s.alch[m] - fm.mystic) + 100 + (s16)g_rw(0x9078);  /* (the alchemy screen's, one batch, with the party's Philosopher's Stone) */
+            int pc = s.intel[m] + (s.alch[m] - fm.mystic) + 100 + (s16)g_rw(GV_philosophers_stone);  /* (the alchemy screen's, one batch, with the party's Philosopher's Stone) */
             pc = pc < 0 ? 0 : pc > 99 ? 99 : pc;
             char v[64]; snprintf(v, sizeof v, "%s: %d%%", ns_gtext(s.names[m]).c_str(), pc);
             P.text(fo, NsDraw::FS_SMALL, DX0 + 4, y, ink, v); y += 6;

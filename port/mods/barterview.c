@@ -38,7 +38,6 @@ int barterview_is_on(void) { return bv_on; }
 void barterview_set(int on) { bv_on = on; config_set_int("display.native_shops", on); }
 
 
-static int g_side(int m) { return (s16)g_rw((u16)(GV_barter_side + 2 * m)); }
 static void s_int(u16 a, int v) { g_ww(a, (u16)v); }
 
 void money_cstr(long pf, char *out, size_t n);       /* ui/money.cpp */

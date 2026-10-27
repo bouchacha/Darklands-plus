@@ -73,7 +73,6 @@ static void replacement_art(void)
     bool ha = hdart_on;
     if (ImGui::Checkbox("Use replacement art from the \"art\" folder", &ha)) { hdart_set(ha); ui_dirty_config = 1; }
     {
-        extern char game_dir[1024];
         int n = hdart_count();
         extern char dlp_user_dir[];
         if (n) ui_hint("%d replacement picture%s in %s%sart.", n, n == 1 ? "" : "s", dlp_user_dir, PATH_SEP);

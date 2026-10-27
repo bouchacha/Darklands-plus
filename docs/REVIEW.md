@@ -199,3 +199,18 @@ covered and found, and what it could not check.
   flickered: a recording of a drag had frames with nobody on the field). Card chances one look everywhere (the
   alchemist's formulae showed every member's chip). gamevars.h had three names added by hand, which the next
   run of its generator would have dropped: made from the headers again, and check_docs.py checks it.
+- 2026-10-26 (evening, 1.4 under way): the release check's inn step failed three runs running (Go to Inn "not
+  found": the market's options read empty). Go to read the card's text from the game's buffer (msg_file, DS:a895),
+  which the loot, a level's enemy table and screens opened from the menus share: after Party Info and the
+  marching order it held another text. Not patched with a fallback this time (the $SIDES01 lesson): the text is
+  now copied as it is loaded (msg_load hooked, ui/citynav.cpp card_blocks), and Go to never reads the shared
+  buffer. One name for what was written as numbers: the attributes and skills (gamemodel.h ATTR_*, SKILL_*; the
+  teachers' own SK_ enum and the card's VIRTUE = 9 gone); the Philosopher's Stone's drawing declared in one header
+  (ui/pstone.h, was three copies, one reading the stone at a raw 0x9078); the alerts' declaration (ui/alerts.h, was
+  three) and their rows of shields; the alchemy screen's signs (star, put aside, pentacle, the batches' bars, the
+  ingredients lost, a stink, an explosion) moved to ui/marks.cpp and onto the icon sheet (uiconstyles:2) with the
+  age's hourglass. The teachers drawn once (teacher_row) for the margin's tooltip and the map's panel (the margin
+  had a text copy). A town's Philosopher's Stone worked out from the cards' own rule (town_stone_offer) instead of
+  noted from the card's words: the journal's alchemist facts dropped. Dead code the compiler's -Wall named, gone:
+  the margin's old teachers lines, two clock plates and a throne never drawn, unused helpers and variables in nine
+  files (orders.c's "engaged", left from an older rule, computed and never read).

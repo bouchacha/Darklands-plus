@@ -147,28 +147,6 @@ static float eased(int slot, int hour)
     last[slot] = now;
     return shown[slot];
 }
-static void clock_plate(ImDrawList *dl, ImVec2 tl, float kx, float k, int hour, int day, int month, ImU32 fill, ImU32 edge, ImU32 gold)
-{
-    float py0 = tl.y + 79 * k, py1 = tl.y + 101 * k;
-    ImVec2 a0(tl.x + 2 * kx, py0), a1(tl.x + 118 * kx, py1);
-    dl->AddRectFilled(a0, a1, fill, 3 * k);
-    dl->AddRect(a0, a1, edge, 3 * k, 0, fmaxf(1.0f, k));
-    ImFont *f = ui_font_overlay ? ui_font_overlay : ImGui::GetFont();
-    char bell[24]; gm_hour_name(hour, bell, sizeof bell);
-    std::string b = ns_gtext(bell);
-    char dd[8], mm[8]; snprintf(dd, sizeof dd, "%d", day); snprintf(mm, sizeof mm, "%d", month % 12 + 1);
-    auto win = [&](float x0, float x1, const char *t, const char *lab) {
-        ImVec2 w0(tl.x + x0 * kx, py0 + 2 * k), w1(tl.x + x1 * kx, py0 + 12 * k);
-        dl->AddRectFilled(w0, w1, IM_COL32(24, 14, 6, 255), 1.5f * k);
-        dl->AddRect(w0, w1, gold, 1.5f * k, 0, fmaxf(1.0f, 0.8f * k));
-        float fs = 8.0f * k; ImVec2 ts = f->CalcTextSizeA(fs, FLT_MAX, 0, t);
-        if (ts.x > w1.x - w0.x - 3) { fs *= (w1.x - w0.x - 3) / ts.x; ts = f->CalcTextSizeA(fs, FLT_MAX, 0, t); }
-        dl->AddText(f, fs, ImVec2((w0.x + w1.x - ts.x) * 0.5f, (w0.y + w1.y - ts.y) * 0.5f), IM_COL32(252, 236, 84, 255), t);
-        float ls = 5.5f * k; ImVec2 lsz = f->CalcTextSizeA(ls, FLT_MAX, 0, lab);
-        dl->AddText(f, ls, ImVec2((w0.x + w1.x - lsz.x) * 0.5f, w1.y + 0.8f * k), IM_COL32(250, 214, 140, 255), lab);
-    };
-    win(7, 61, b.c_str(), "HOURS"); win(68, 87, dd, "DAYS"); win(93, 113, mm, "MONTHS");
-}
 static void gear(ImDrawList *dl, ImVec2 c, float r, int teeth, float rot, ImU32 col, float w)
 {
     const float PI = 3.14159265f;
@@ -176,16 +154,6 @@ static void gear(ImDrawList *dl, ImVec2 c, float r, int teeth, float rot, ImU32 
     dl->AddCircle(c, r * 0.3f, col, 20, w);
     for (int s = 0; s < 4; s++) { float a = rot + s * PI / 2; dl->AddLine(ImVec2(c.x + cosf(a) * r * 0.3f, c.y + sinf(a) * r * 0.3f), ImVec2(c.x + cosf(a) * r, c.y + sinf(a) * r), col, w); }
     for (int t = 0; t < teeth; t++) { float a = rot + t * 2 * PI / teeth; dl->AddLine(ImVec2(c.x + cosf(a) * r, c.y + sinf(a) * r), ImVec2(c.x + cosf(a) * r * 1.15f, c.y + sinf(a) * r * 1.15f), col, w * 1.6f); }
-}
-static void throne(ImDrawList *dl, ImVec2 top, float R, ImU32 gold, ImU32 dark)
-{
-    /* the throne: a crown-like bracket on the rim, the shackle and its ring above */
-    ImVec2 q[6] = { ImVec2(top.x - R * 0.22f, top.y + R * 0.04f), ImVec2(top.x - R * 0.14f, top.y - R * 0.12f), ImVec2(top.x - R * 0.06f, top.y - R * 0.06f),
-                    ImVec2(top.x + R * 0.06f, top.y - R * 0.06f), ImVec2(top.x + R * 0.14f, top.y - R * 0.12f), ImVec2(top.x + R * 0.22f, top.y + R * 0.04f) };
-    dl->AddConvexPolyFilled(q, 6, gold);
-    dl->AddPolyline(q, 6, dark, ImDrawFlags_Closed, fmaxf(1.0f, R * 0.025f));
-    dl->AddCircleFilled(ImVec2(top.x, top.y - R * 0.14f), R * 0.05f, gold, 12);
-    dl->AddCircle(ImVec2(top.x, top.y - R * 0.24f), R * 0.09f, gold, 20, fmaxf(1.5f, R * 0.035f));
 }
 
 /* 3: an astrolabe in the game's own manner (TIMER01.PIC): its broad copper oval, lit from the upper

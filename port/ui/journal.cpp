@@ -579,10 +579,10 @@ static void chronicle_page(void)
 }
 
 /* ---------------------------------------------------------------- what the party learned of a town's
- * physician and alchemist, from the cards' own words as they are shown (per game, in
- * darklands_townfacts_<seed>.txt beside the journal): $Physi00 block 8 "... decides that $NamedOneName
- * has $Text1 skill." and block 10 "... is a complete idiot"; $Alche00 block 7 "... improve your
- * philosopher's stone to quality $Number1" and block 5 "your abilities are beyond my own" */
+ * physician, from the card's own words as they are shown (per game, in darklands_townfacts_<seed>.txt
+ * beside the journal): $Physi00 block 8 "... decides that $NamedOneName has $Text1 skill." and block 10
+ * "... is a complete idiot". (The alchemist's Philosopher's Stone needs no learning: each town's is
+ * always the same, town_stone_offer; lines "alchemist" left by earlier versions are not read.) */
 static std::map<int, std::map<std::string, std::string>> facts; static int facts_seed = -1;
 static std::string facts_path(int seed) { extern char dlp_data_dir[]; char b[1200]; snprintf(b, sizeof b, "%s/darklands_townfacts_%u.txt", dlp_data_dir, (unsigned)seed); return b; }
 static void facts_sync(void)
@@ -612,7 +612,7 @@ static void facts_set(int loc, const char *key, const std::string &v)
     for (auto &t : facts) for (auto &kv : t.second) fprintf(f, "%d|%s|%s\n", t.first, kv.first.c_str(), kv.second.c_str());
     fclose(f);
 }
-/* "physician" / "alchemist": what is known, or NULL */
+/* "physician": what is known, or NULL */
 extern "C" const char *journal_town_fact(int loc, const char *key)
 {
     if (game_mode() == GM_OTHER) return nullptr;
@@ -626,17 +626,13 @@ static void facts_scan(int block)
     if (loc < 0 || loc >= 92 || game_mode() == GM_OTHER) return;
     char cn[13]; g_str(G_DGROUP, 0xe3d4, cn, sizeof cn);
     for (char *p = cn; *p; p++) *p = (char)toupper((unsigned char)*p);
-    bool phys = !strcmp(cn, "$PHYSI00"), alch = !strcmp(cn, "$ALCHE00");
-    if (!phys && !alch) return;
+    bool phys = !strcmp(cn, "$PHYSI00");
+    if (!phys) return;
     std::string t = chron_text_now();
     if (phys && block == 8) {
         size_t e = t.rfind(" skill"), h = e == std::string::npos ? e : t.rfind(" has ", e);
         if (h != std::string::npos) { std::string w = t.substr(h + 5, e - h - 5); if (!w.empty()) w[0] = (char)tolower((unsigned char)w[0]); facts_set(loc, "physician", w + " skill"); }
     } else if (phys && block == 10) facts_set(loc, "physician", "a complete idiot: worse than none");
-    else if (alch && block == 7) {
-        size_t q = t.find("to quality ");
-        if (q != std::string::npos) facts_set(loc, "alchemist", "can raise a Philosopher's Stone to " + std::to_string(atoi(t.c_str() + q + 11)) + "q");
-    } else if (alch && block == 5) facts_set(loc, "alchemist", "no better Philosopher's Stone than the party's");
 }
 
 static void text_expand_hook(void)         /* s043 150b:06fe text_expand(idx, out): the block shown before is done */
@@ -1062,8 +1058,10 @@ extern "C" void journal_test_where(int id)   /* test (uwhere:id): where an item 
 
 /* the world map's two finders (ui/worldmap.cpp, its buttons), each a window of its own. what 0:
    every alchemical ingredient - how many the party carries, the nearest town seen selling it with
-   the days of travel, the other towns; 1: any ware, found by name, one row a town (the best quality
-   seen there). A click on a town returns it (-1 none), for the map to show it. */
+   the days of travel, the other towns; 1: every ware seen, narrowed as a name is typed, one row a
+   ware and a town (the best quality seen there). Each sorts by a column (a click on its head): the
+   name, the number carried or the quality, the nearest. A click on a town returns it (-1 none), for
+   the map to show it. */
 extern "C" int journal_buy_window(bool *open, int what)
 {
     ensure_game();
@@ -1085,23 +1083,41 @@ extern "C" int journal_buy_window(bool *open, int what)
         if (ImGui::IsItemHovered()) ImGui::SetTooltip("Show %s on the world map", loc_name(loc).c_str());
         ImGui::PopID(); ImGui::PopID();
     };
+    /* the columns' headers sort (a click; again the other way) */
+    auto sort_of = [](int *col, bool *asc) {
+        if (ImGuiTableSortSpecs *ss = ImGui::TableGetSortSpecs()) if (ss->SpecsCount > 0) { *col = ss->Specs[0].ColumnIndex; *asc = ss->Specs[0].SortDirection == ImGuiSortDirection_Ascending; }
+    };
+    const ImGuiTableFlags TF = ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_Sortable | ImGuiTableFlags_ScrollY;
     if (what == 0) {
-        ImGui::TextDisabled("Bought ingredients are always quality 25. The nearest town first%s.", here ? "" : " (for now by name: the party's position is not known)");
-        if (ImGui::BeginTable("ingr", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH)) {
-            ImGui::TableSetupColumn("Ingredient", ImGuiTableColumnFlags_WidthFixed, UIS(230));
-            ImGui::TableSetupColumn("Carried", ImGuiTableColumnFlags_WidthFixed, UIS(70));
-            ImGui::TableSetupColumn("Nearest town", ImGuiTableColumnFlags_WidthFixed, UIS(230));
-            ImGui::TableSetupColumn("Also sold at", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TextDisabled("Bought ingredients are always quality 25. A click on a column's head sorts by it%s.", here ? "" : " (the nearest: not known now, the party's position is not)");
+        struct Row { int id; struct Seen { int loc, dist; }; std::vector<Seen> at; };
+        std::vector<Row> rows;
+        for (int id = 72; id <= 94; id++) {
+            Row r; r.id = id;
+            for (auto &kv : towns) {
+                bool sold = false;
+                for (const Shop &sh : kv.second.shops) for (const SeenItem &i : sh.items) if (i.id == id) sold = true;
+                if (sold) { int m = travel_min_to(kv.first); r.at.push_back({ kv.first, m >= 0 ? m : here ? loc_distance(kv.first, px, py) * 600 : 1 << 29 }); }
+            }
+            std::stable_sort(r.at.begin(), r.at.end(), [&](const Row::Seen &a, const Row::Seen &b) { return here ? a.dist < b.dist : loc_name(a.loc) < loc_name(b.loc); });
+            rows.push_back(r);
+        }
+        if (ImGui::BeginTable("ingr", 4, TF)) {
+            ImGui::TableSetupScrollFreeze(0, 1);
+            ImGui::TableSetupColumn("Ingredient", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultSort, UIS(230));
+            ImGui::TableSetupColumn("Carried", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_PreferSortDescending, UIS(80));
+            ImGui::TableSetupColumn("Nearest town", ImGuiTableColumnFlags_WidthFixed, UIS(240));
+            ImGui::TableSetupColumn("Also sold at", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoSort);
             ImGui::TableHeadersRow();
-            for (int id = 72; id <= 94; id++) {
-                struct Seen { int loc, dist; };
-                std::vector<Seen> at;
-                for (auto &kv : towns) {
-                    bool sold = false;
-                    for (const Shop &sh : kv.second.shops) for (const SeenItem &i : sh.items) if (i.id == id) sold = true;
-                    if (sold) { int m = travel_min_to(kv.first); at.push_back({ kv.first, m >= 0 ? m : here ? loc_distance(kv.first, px, py) * 600 : 1 << 29 }); }
-                }
-                std::stable_sort(at.begin(), at.end(), [&](const Seen &a, const Seen &b) { return here ? a.dist < b.dist : loc_name(a.loc) < loc_name(b.loc); });
+            int col = 0; bool asc = true; sort_of(&col, &asc);
+            std::stable_sort(rows.begin(), rows.end(), [&](const Row &a, const Row &b) {
+                long ka, kb;
+                if (col == 1) { ka = have[a.id]; kb = have[b.id]; }
+                else if (col == 2) { ka = a.at.empty() ? 1L << 30 : a.at[0].dist; kb = b.at.empty() ? 1L << 30 : b.at[0].dist; }
+                else return asc ? item_name(a.id) < item_name(b.id) : item_name(b.id) < item_name(a.id);
+                return asc ? ka < kb : ka > kb; });
+            for (const Row &r : rows) {
+                int id = r.id; const auto &at = r.at;
                 ImGui::TableNextRow();
                 ImGui::PushID(id);                                /* (a town's button in each ingredient's row: one id a row) */
                 ImGui::TableNextColumn(); icon_name_cell(id, item_name(id).c_str());
@@ -1124,39 +1140,46 @@ extern "C" int journal_buy_window(bool *open, int what)
         static char q_buf[48];
         ImGui::SetNextItemWidth(UIS(320));
         if (ImGui::IsWindowAppearing()) ImGui::SetKeyboardFocusHere();
-        ImGui::InputTextWithHint("##wtb", "a ware's name, e.g. plate or crossbow", q_buf, sizeof q_buf);
+        ImGui::InputTextWithHint("##wtb", "type to narrow: a ware's name, e.g. plate or crossbow", q_buf, sizeof q_buf);
+        ImGui::SameLine(); ImGui::TextDisabled("A click on a column's head sorts by it.");
         std::string q = q_buf; std::transform(q.begin(), q.end(), q.begin(), ::tolower);
-        if (!q.empty()) {
-            struct H { int id, q, loc, min; std::string shop; };
-            std::map<std::pair<int, int>, H> best;              /* one row a ware and a town: its best quality there */
-            for (auto &kv : towns) for (const Shop &sh : kv.second.shops) for (const SeenItem &i : sh.items) {
-                std::string n = item_name(i.id); std::transform(n.begin(), n.end(), n.begin(), ::tolower);
-                if (n.find(q) == std::string::npos) continue;
-                auto key = std::make_pair(i.id, kv.first);
-                auto it = best.find(key);
-                if (it == best.end() || i.q > it->second.q) { int m = travel_min_to(kv.first); best[key] = { i.id, i.q, kv.first, m >= 0 ? m : 1 << 29, sh.name }; }
-            }
-            std::vector<H> hits; for (auto &kv : best) hits.push_back(kv.second);
-            std::stable_sort(hits.begin(), hits.end(), [](const H &a, const H &b) { return a.id != b.id ? item_name(a.id) < item_name(b.id) : a.min < b.min; });
-            if (hits.empty()) ImGui::TextDisabled("Not seen in any shop yet.");
-            else if (ImGui::BeginTable("wares", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH)) {
-                ImGui::TableSetupColumn("Ware", ImGuiTableColumnFlags_WidthFixed, UIS(260));
-                ImGui::TableSetupColumn("Quality", ImGuiTableColumnFlags_WidthFixed, UIS(70));
-                ImGui::TableSetupColumn("Town", ImGuiTableColumnFlags_WidthFixed, UIS(230));
-                ImGui::TableSetupColumn("Shop", ImGuiTableColumnFlags_WidthStretch);
-                ImGui::TableHeadersRow();
-                int shown = 0;
-                for (const H &h : hits) {
-                    if (++shown > 150) break;
+        struct H { int id, q, loc, min; std::string shop; };
+        std::map<std::pair<int, int>, H> best;              /* one row a ware and a town: its best quality there */
+        for (auto &kv : towns) for (const Shop &sh : kv.second.shops) for (const SeenItem &i : sh.items) {
+            if (!q.empty()) { std::string n = item_name(i.id); std::transform(n.begin(), n.end(), n.begin(), ::tolower); if (n.find(q) == std::string::npos) continue; }
+            auto key = std::make_pair(i.id, kv.first);
+            auto it = best.find(key);
+            if (it == best.end() || i.q > it->second.q) { int m = travel_min_to(kv.first); best[key] = { i.id, i.q, kv.first, m >= 0 ? m : 1 << 29, sh.name }; }
+        }
+        std::vector<H> hits; for (auto &kv : best) hits.push_back(kv.second);
+        if (hits.empty()) ImGui::TextDisabled(q.empty() ? "No shop's wares noted yet." : "Not seen in any shop yet.");
+        else if (ImGui::BeginTable("wares", 4, TF)) {
+            ImGui::TableSetupScrollFreeze(0, 1);
+            ImGui::TableSetupColumn("Ware", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultSort, UIS(260));
+            ImGui::TableSetupColumn("Quality", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_PreferSortDescending, UIS(80));
+            ImGui::TableSetupColumn("Town (nearest first)", ImGuiTableColumnFlags_WidthFixed, UIS(260));
+            ImGui::TableSetupColumn("Shop", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoSort);
+            ImGui::TableHeadersRow();
+            int col = 0; bool asc = true; sort_of(&col, &asc);
+            std::stable_sort(hits.begin(), hits.end(), [&](const H &a, const H &b) {
+                if (col == 1 && a.q != b.q) return asc ? a.q < b.q : a.q > b.q;
+                if (col == 2 && a.min != b.min) return asc ? a.min < b.min : a.min > b.min;
+                if (a.id != b.id) return (col == 0 && !asc) ? item_name(b.id) < item_name(a.id) : item_name(a.id) < item_name(b.id);
+                return a.min < b.min; });
+            ImGuiListClipper clip; clip.Begin((int)hits.size());
+            while (clip.Step())
+                for (int k = clip.DisplayStart; k < clip.DisplayEnd; k++) {
+                    const H &h = hits[k];
                     ImGui::TableNextRow();
+                    ImGui::PushID(k);
                     ImGui::TableNextColumn(); icon_name_cell(h.id, item_name(h.id).c_str());
                     ImGui::TableNextColumn(); ImGui::Text("%dq", h.q);
-                    ImGui::TableNextColumn(); ImGui::PushID(h.id); town_link(h.loc, "w"); ImGui::PopID(); { std::string t = travel_days(h.min < (1 << 29) ? h.min : -1); if (!t.empty()) { ImGui::SameLine(); ImGui::TextDisabled("%s", t.c_str()); } }
+                    ImGui::TableNextColumn(); town_link(h.loc, "w"); { std::string t = travel_days(h.min < (1 << 29) ? h.min : -1); if (!t.empty()) { ImGui::SameLine(); ImGui::TextDisabled("%s", t.c_str()); } }
                     ImGui::TableNextColumn(); ImGui::TextUnformatted(h.shop.c_str());
+                    ImGui::PopID();
                 }
-                ImGui::EndTable();
-            }
-        } else ImGui::TextDisabled("Type a name: every town seen selling it, the nearest first.");
+            ImGui::EndTable();
+        }
     }
     ImGui::End();
     return pick;

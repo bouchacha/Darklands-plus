@@ -24,7 +24,7 @@
 #include "../runtime/config.h"
 #include "gamemodel.h"
 
-void ui_alert(const char *title, const char *body, const char *foot);
+#include "../ui/alerts.h"
 void ui_text_utf8(const char *game, char *out, int n);     /* (ui: the game's characters as UTF-8) */
 void losses_retake(int m);                                  /* (losses.c: told here, not there too) */
 
@@ -56,10 +56,12 @@ void aging_month(int n)
 {
     char body[1600]; size_t len = 0; body[0] = 0;
     int any = 0;
+    UiAlertRow rows[5]; int nr = 0;
     for (int m = 0; m < 5; m++) {
         int st = gm_member_status(m);
         if (!gm_member_present(m) || (st != 1 && st != 2)) continue;
         int A = age_months(m);
+        UiAlertRow *row = &rows[nr]; row->n = 0; row->age = A / 12; gm_member_name(m, row->name, sizeof row->name);
         char part[300]; size_t pl = 0; part[0] = 0;
         for (int a = 0; a < 6; a++) {
             int d = (int)floor(due(a, A) + 1e-9) - (int)floor(due(a, A - n) + 1e-9);
@@ -71,18 +73,21 @@ void aging_month(int n)
             int c = (s8)g_rb(cu); if (c > 0) { c -= was - now; if (c < 1) c = 1; g_wb(cu, (u8)c); }
             pl += (size_t)snprintf(part + pl, sizeof part - pl, "%s%s %d (was %d)", pl ? ", " : "", gm_attr_name(a), now, was);
             if (pl >= sizeof part) pl = sizeof part - 1;
+            row->ch[row->n].key = a; row->ch[row->n].was = was; row->ch[row->n].now = now; row->n++;
         }
         losses_retake(m);
         if (!part[0]) continue;
+        nr++;
         char nm[40], nu[80]; gm_member_name(m, nm, sizeof nm); ui_text_utf8(nm, nu, sizeof nu);
         len += (size_t)snprintf(body + len, sizeof body - len, "%s%s, now %d: %s.", len ? "\n" : "", nu, A / 12, part);
         if (len >= sizeof body) len = sizeof body - 1;
         any = 1;
     }
     if (getenv("DL_AGING_LOG")) fprintf(stderr, "aging: %d month(s): %s\n", n, any ? body : "nothing");
-    if (any) ui_alert("The years take their toll", body,
-                      "These losses are permanent, as with aging at character creation: from age 30, a little each month, and more as the years go by. "
-                      "(Aging during play is a Darklands+ switch: F12 > Settings > The party and its items.)");
+    if (any) ui_alert_rows("The years take their toll", body, rows, nr,
+                           "Beside each name, the age (the hourglass); then each attribute's maximum lowered: what it was, and what it is now. "
+                           "These losses are permanent, as with aging at character creation: from age 30, a little each month, and more as the years go by. "
+                           "(Aging during play is a Darklands+ switch: F12 > Settings > The party and its items.)");
 }
 
 static void month_hook(void)                 /* s029 0e76:281c (months): a month has begun; birthdays counted */

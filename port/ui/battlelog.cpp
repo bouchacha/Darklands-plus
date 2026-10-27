@@ -39,7 +39,6 @@ static std::vector<BLine> lines, prev_lines;
 static int known_end[13], known_str[13], known_st[13], last_st[13];   /* last_st: the last status that was not 0 (the game clears the fallen's records) */
 static bool in_battle;
 static bool met[13];                               /* named in a blow this battle (seen or not: the log told of it) */
-static int names_gen;
 static std::string names[13];
 static std::map<std::string, int> kind_named;      /* how many of each kind of foe have had a name this battle */
 static bool naming_start;                          /* (the names given at the start: numbered as they stand) */

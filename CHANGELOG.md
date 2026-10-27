@@ -5,9 +5,16 @@
 What changed since 1.3.
 
 - **Camp:** Guard the camp has a picture of its own (the watch's lantern), and under it the chance that the lord's men find the party, before the next day and the day after; Train or study, never possible in the wild, is gone.
-- **Saints on the character sheet** can be picked by what they raise: a row of the attributes' and skills' shields and the town's opinion (all saints that raise Perception, say).
+- **Praying:** the favor to spend stops where the chance reaches its best (99% at most); the rest of the bar is hatched, kept.
+- **Saints on the character sheet** can be picked by what they raise: a row of the attributes' and skills' shields and the town's opinion (all saints that raise Perception, say). Each saint's help shows under its name in short (shields and how much), and the saint clicked shows each member's best chance of being heard with the least favor it takes, and Pray.
 - **A relic found deep in a mine** (dwarfs, kobolds, vulcans) is as good as the relic itself: the original made every one quality 35 and not its own kind of thing, so the saints' weapons among them could not be wielded. (61 fixes now.)
 - **World map, a town's panel:** its saints (those the party knows greyed), formulae as potions (known ones greyed) and teachers as the skills' shields, as in the margin; its boats as a dock, a boat and an arrow (leaving, arriving, both ways) before the towns.
+- **Alchemy:** a chart of the chance for every number of batches the ingredients allow (a click sets it), and under it what may come of the brew in pictures: the potions, the ingredients lost, a stink or an explosion at the inn. The chance's parts are shown as shields and signs. Formulae can be starred (first in the list) or put aside (last). The list says how many potions the ingredients make, and the Philosopher's Stone's plaque what its quality adds.
+- **Shields for attributes and skills:** the years' toll and "Lost for good" show each member's age (an hourglass) and each attribute or skill lowered as its shield with what it was and is; the town's teachers show who would learn which skill, by its shield, and from what; the margin's blessings and potions show each raised attribute or skill as its shield and how much; a card's chance names what it rests on beside each shield.
+- **The pointer:** the game's armored gauntlet drawn anew, crisp at any size: a fist while something is dragged; on its cuff the pause while a battle is paused, crossed blades over a foe, an hourglass while Go to walks (F12 > Settings: the game's own little picture if preferred).
+- **A shop's Formulae tab:** each formula's ingredients as pictures, what the party carries against what a batch needs and the price here; a click on one finds it in For sale. The +1 and +5 buttons are gone.
+- **World map:** the quests alone at the left; at the top right, finding a town (by name, the towns with something, where to buy an ingredient or any ware) and, merged, what the map shows (the layers and the kinds of place); each panel folds away. The party's pulsing mark centers the map on it. The ingredient and ware finders sort by a column's head (name, carried or quality, nearest), and the ware finder lists every ware seen until a name narrows it.
+- **The Philosopher's Stone on sale:** each town's alchemist and university always sell the same quality; the town's row in the margin shows the best (dim when no better than the party's), and the card's option to buy one is dimmed where it would gain nothing (a failed attempt still costs time).
 
 ## 1.3
 

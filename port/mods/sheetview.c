@@ -153,6 +153,37 @@ static void build(int who)
     s->seq++;
 }
 
+/* for the saint chosen on the Saints page: each member's best chance of being heard and the least
+   Divine Favor that gives it (handler (who, favor, 7), within 0 and 99, the chance rising with the
+   favor: the least found by halves), the game put back after each ask */
+static int pray_chance(u16 seg, u16 off, void *snap, int m, int d)
+{
+    u16 a[3] = { (u16)m, (u16)d, 7 };
+    u32 r = game_call_ptr(seg, off, 3, a, 0);
+    eval_restore(snap);
+    int v = game_call_timed_out ? 0 : (s16)r;
+    return v < 0 ? 0 : v > 99 ? 99 : v;
+}
+static void pray_reckon(void)
+{
+    SheetModel *s = &sheet_model;
+    int t = s->pray_ask;
+    s->pray_saint = t;
+    for (int m = 0; m < 5; m++) { s->pray_best[m] = -1; s->pray_df[m] = 0; }
+    if (t < 0 || t >= saint_cls_n) return;
+    u16 tseg = (u16)(LOADSEG + 0x290e), seg = rw(tseg, (u16)(0x2937 + 4 * t + 2)), off = rw(tseg, (u16)(0x2937 + 4 * t));
+    void *snap = eval_snapshot();
+    for (int m = 0; m < 5; m++) {
+        if (!gm_member_present(m) || !gm_knows_saint(m, t)) continue;
+        int c, mx; gm_member_attr(m, ATTR_DF, &c, &mx);
+        if (c < 0) c = 0;
+        int best = pray_chance(seg, off, snap, m, c), lo = 0, hi = c;
+        while (best > 0 && lo < hi) { int mid = (lo + hi) / 2; if (pray_chance(seg, off, snap, m, mid) >= best) hi = mid; else lo = mid + 1; }
+        s->pray_best[m] = best; s->pray_df[m] = best > 0 ? lo : 0;
+    }
+    eval_free(snap);
+}
+
 static void item_name(int id, char *out, int n) { gm_itemdef_name(id, out, n); }
 
 /* another member: the whole original sheet drawn for them (their doll, frame, load) */
@@ -379,8 +410,10 @@ static void sheet_hook(void)                /* member_sheet(who), s031 1462:0124
     ns_clear();
     ns_input_begin();
     int leave = 0;
+    sheet_model.pray_ask = sheet_model.pray_saint = -1;
     while (!leave) {
         if (!ns_round()) break;
+        if (sheet_model.pray_ask != sheet_model.pray_saint) pray_reckon();
         int cx, cy;
         if (ns_in.click && ns_in.cx < 0x3c && !sheetview_dragging) {   /* the party panel: another member, or this one: close (not the end of a drag: a give) */
             ns_take_click(&cx, &cy);

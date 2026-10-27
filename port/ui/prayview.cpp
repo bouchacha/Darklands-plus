@@ -51,7 +51,7 @@ extern "C" void prayview_draw(void)
     P.rect(tx - 1.5f, by, 317, 196, IM_COL32(236, 224, 196, 255), 1.5f);
     float x = tx + 1.5f, yy = by + 2.5f;
     P.text(f, NsDraw::FS_HEAD, x, yy, ink, "Divine Favor to spend");
-    char b[64]; snprintf(b, sizeof b, "%d", p.df);
+    char b[200]; snprintf(b, sizeof b, "%d", p.df);
     float bx = 316 - 2;
     if (p.why != 1 && P.button(bx - 9, yy, bx, yy + 8.5f, "+", IM_COL32(40, 92, 34, 235), NsDraw::FS_BODY)) ns_push(PV_MORE, 0, 0, 0);
     P.text(f, NsDraw::FS_HEAD, 0, yy, ink, b, bx - 12);
@@ -67,6 +67,11 @@ extern "C" void prayview_draw(void)
         P.rect(x0 + 0.5f, y0 + 0.5f, x0 + 0.5f + (x1 - x0 - 1) * f, y1 - 0.5f, IM_COL32(222, 186, 70, 255), 1.2f);
         if (p.df99 >= 0 && p.maxdf > 0) {
             float mx2 = x0 + (x1 - x0) * p.df99 / p.maxdf;
+            if (p.df99 < p.maxdf) {                               /* past the best chance: the favor kept, not to be spent (hatched) */
+                P.rect(mx2, y0 + 0.5f, x1 - 0.5f, y1 - 0.5f, IM_COL32(150, 136, 110, 255), 1.2f);
+                for (float hx = mx2 + 1.2f; hx < x1 - 0.5f; hx += 1.6f)
+                    P.dl->AddLine(NsDraw::w(hx, y1 - 0.6f), NsDraw::w(fminf(hx + 1.6f, x1 - 0.5f), y0 + 0.6f), IM_COL32(110, 96, 74, 255), 1.0f);
+            }
             P.rect(mx2 - 0.4f, y0 - 1.5f, mx2 + 0.4f, y1 + 1.5f, NsDraw::GREEN);
         }
         float hx = x0 + (x1 - x0) * f;
@@ -78,13 +83,13 @@ extern "C" void prayview_draw(void)
         if (drag && p.maxdf > 0) {
             float t = (P.mx - x0) / (x1 - x0); t = t < 0 ? 0 : t > 1 ? 1 : t;
             int v = (int)(t * p.maxdf + 0.5f);
-            if (p.df99 >= 0 && v > p.df99 && v < p.df99 + p.maxdf / 40 + 1) v = p.df99;   /* (snaps to the best chance's mark) */
+            if (p.df99 >= 0 && v > p.df99) v = p.df99;                                       /* (no further than the best chance's mark) */
             if (v != p.df) ns_push(PV_SET, v, 0, 0);
             if (!ns_in.down) drag = false;
         }
         yy += 8;
     }
-    snprintf(b, sizeof b, p.df99 >= 0 && p.df > p.df99 ? "%s has %d; %d will be left. Past the green mark the chance rises no more." : "%s has %d; %d will be left.", who.c_str(), p.maxdf, p.maxdf - p.df);
+    snprintf(b, sizeof b, p.df99 >= 0 && p.df99 < p.maxdf ? "%s has %d; %d will be left. Past the green mark the chance rises no more." : "%s has %d; %d will be left.", who.c_str(), p.maxdf, p.maxdf - p.df);
     P.text(fo, NsDraw::FS_SMALL, x, yy, soft, b);
     yy += 7.5f;
     snprintf(b, sizeof b, "Chance the saint hears: %d%%", p.chance);

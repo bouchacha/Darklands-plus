@@ -38,6 +38,7 @@ int datamods_generation(void);
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "../runtime/hle.h"
+#include "../runtime/hooks.h"
 #include "../mods/assist.h"
 #include "../mods/cardview.h"
 #include "../mods/fixes.h"
@@ -127,6 +128,29 @@ static std::vector<std::string> live_blocks(void)
         blocks.push_back(t);
     }
     return blocks;
+}
+/* the text of the card last loaded (msg_load, s043 150b:020e: its name and blocks), copied as it is
+   loaded: the game's buffer (msg_file, DS:a895) is shared - the loot, a level's enemy table, the
+   screens opened from the menus write over it - so it holds the card's text only just after */
+static std::string loaded_name;
+static std::vector<std::string> loaded_blocks;
+static void msg_load_hook(void)
+{
+    u16 off = rw(SS, (u16)(SP + 4));                         /* (char *name, DGROUP) */
+    hook_call_original();
+    char n[16]; g_str(G_DGROUP, off, n, sizeof n);
+    for (char *q = n; *q; q++) *q = (char)toupper((unsigned char)*q);
+    loaded_name = n; loaded_blocks = live_blocks();
+}
+extern "C" void citynav_init(void) { hook_install(GF_msg_load, msg_load_hook); }
+/* card's text: as it was loaded (a mod's card, a restored one, the game's own: what is on show), else as
+   MSGFILES has it */
+static std::vector<std::string> card_blocks(const std::string &card)
+{
+    if (loaded_name == card && !loaded_blocks.empty()) return loaded_blocks;
+    if (!cards_loaded) load_cards();
+    auto it = cards.find(card);
+    return it != cards.end() ? it->second : std::vector<std::string>();
 }
 extern "C" void citynav_test_live(void)                    /* (test ulivecard: the loaded card against MSGFILES) */
 {
@@ -461,6 +485,7 @@ static void click_line(int i)
    card at the gate ($Selec00 ...) answered with the plain way out ("simply walk out", "leave"),
    never a sneak or a bribe: when there is none, the player chooses */
 static int leaving; static u32 leaving_t;
+extern "C" int citynav_walking(void) { return goal >= 0 || leaving; }   /* (the pointer's hourglass: ui/overlay_text.cpp) */
 extern "C" void citynav_go(int dest);
 static bool walk_out_option(const std::string &t)
 {
@@ -479,8 +504,7 @@ static void leaving_tick(void)
     if (g_rb(GV_card_box_shown)) return;
     std::string card = card_now();
     int blk = (s16)g_rw(GV_shown_block);
-    std::vector<std::string> blocks = live_blocks();
-    if (blocks.empty()) { auto it = cards.find(card); if (it != cards.end()) blocks = it->second; }
+    std::vector<std::string> blocks = card_blocks(card);
     if (blk < 0 || blk >= (int)blocks.size()) return;
     std::vector<std::string> opts = block_options(blocks[blk]);
     int n = (s8)g_rb(GV_card_layout);
@@ -529,8 +553,7 @@ extern "C" void citynav_tick(void)
     if (kb == last_key) { if (++same_count > 3) { stop("the way is blocked."); return; } } else { last_key = kb; same_count = 0; }
     /* the card's text as the game loaded it (a mod's card, a restored one, the game's own: what is on
        show), else as MSGFILES has it */
-    std::vector<std::string> blocks = live_blocks();
-    if (blocks.empty()) { auto it = cards.find(card); if (it != cards.end()) blocks = it->second; }
+    std::vector<std::string> blocks = card_blocks(card);
     if (blk < 0 || blk >= (int)blocks.size()) {
         LOG("%s: its option block %d not among the card's %d\n", kb, blk, (int)blocks.size());
         stop("cannot find the way from this card."); return;
@@ -674,7 +697,7 @@ static bool present_at(int d, int cur)
         if (d == D_MEDICI && !rb(ls, (u16)(lo + 0x16))) return false;
         if (d == D_HANSE && !rb(ls, (u16)(lo + 0x17))) return false;
     }
-    s16 q = (s16)(c.seed + (s16)g_rw(G_PARTY_SEED));             /* loc_query 0x21 (16-bit arithmetic, as the game) */
+    s16 q = (s16)town_seed(cur);                                 /* loc_query 0x21 (16-bit arithmetic, as the game) */
     if (d == D_PHYSICIAN && c.size <= 3 && !((s16)(q + (s16)g_rw(G_CUR_YEAR)) % 3)) return false;
     if (d == D_ALCHEMIST && ((c.size <= 3 && !(q % 2)) || (c.size == 4 && !(q % 3)))) return false;
     return true;
@@ -987,17 +1010,24 @@ extern "C" int citynav_window(void)
                     T.tip.insert(T.tip.begin(), { "", b });
                 }
             }
-            /* what the party learned of the physician or the alchemist here */
-            if (d == D_PHYSICIAN || d == D_ALCHEMIST) {
-                const char *fact = journal_town_fact(cur, d == D_PHYSICIAN ? "physician" : "alchemist");
+            /* what the party learned of the physician here */
+            if (d == D_PHYSICIAN) {
+                const char *fact = journal_town_fact(cur, "physician");
                 if (fact) {
-                    std::string f = fact, l;
-                    if (d == D_PHYSICIAN) { l = f; size_t cl = l.find(':'); if (cl != std::string::npos) l.erase(cl); }
-                    else { size_t q = f.rfind(" to "); l = q != std::string::npos ? "Raises a Philosopher's Stone to" + f.substr(q + 3) : "No better stone than the party's"; }
+                    std::string f = fact, l = f;
+                    size_t cl = l.find(':'); if (cl != std::string::npos) l.erase(cl);
                     if (!l.empty()) l[0] = (char)toupper((unsigned char)l[0]);
                     T.lines.push_back({ l, BROWN });
-                    T.tip.push_back({ "What you learned", std::string(d == D_PHYSICIAN ? "The physician: " : "The alchemist: ") + f + "." });
+                    T.tip.push_back({ "What you learned", "The physician: " + f + "." });
                 }
+            }
+            /* the Philosopher's Stone the alchemist or the university sells (always the same: town_stone_offer) */
+            if (d == D_ALCHEMIST || d == D_UNIVERSITY) {
+                int q = town_stone_offer(cur, d == D_UNIVERSITY), have = (s16)g_rw(GV_philosophers_stone);
+                char b[80]; snprintf(b, sizeof b, q > have ? "Philosopher's Stone %dq" : "Stone %dq, no better", q);
+                T.lines.push_back({ b, q > have ? GREEN : GREY });
+                snprintf(b, sizeof b, have ? "A Philosopher's Stone of quality %d; the party's is %d." : "A Philosopher's Stone of quality %d; the party has none.", q, have);
+                T.tip.push_back({ "", b });
             }
             return T;
         };

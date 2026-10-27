@@ -43,6 +43,11 @@ typedef struct {
     signed char saint_class[160];     /* the statue a saint is shown with (its handler's class, 0..13; -1 not known) */
     signed char saint_vmin[160];      /* the Virtue a saint asks of the one who prays (0 none) */
     int nsaints;
+    /* the saint chosen on the Saints page (pray_ask, the view's): each member's best chance of being
+       heard (0: none, -1: does not know it) and the least Divine Favor that gives it, as the prayer
+       screen reckons them (the saint's handler, what 7) */
+    int pray_ask, pray_saint;
+    int pray_best[5], pray_df[5];
     /* things left behind on this sheet, to take back */
     int ndrops;
     SvDrop drops[16];

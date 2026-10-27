@@ -36,7 +36,6 @@ static void restart_end(int v) { saves_restart = v; }
 static const int V_CHANCES[] = { 2, 1, 0 };
 static const int V_PICTURE[] = { 0, 1, 2, 3 };
 static const int V_TIPDELAY[] = { 0, 500, 1000 };
-static const int V_CLOCK[] = { 0, 1 };
 static const int V_SPEED[] = { 100, 150, 200, 300 };
 static const int V_PACE[] = { 0, 1, 2 };
 static const int V_RATE[] = { 25, 50, 100, 200 };
@@ -220,6 +219,7 @@ static Option OPTIONS[] = {
     { "display.scaler", S_OTHER, 0, "Rounded edges", "the stair-steps of diagonal edges rounded off (Rounded edges in F12 > Settings > Screen): 0 as drawn, 1 and 2 rounded.", OC_LOOK, 0, 0, 0, 0, 0, 0, 0, OF_ELSEWHERE },
     { "display.system_cursor", S_OTHER, 0, "System pointer", "the system's mouse pointer over the game too.", OC_LOOK, 0, 0, 0, 0, 0, 0, 0, OF_ELSEWHERE },
     { "display.live_pointer", S_OTHER, 0, "Smooth pointer", "the game's mouse pointer moves as smoothly as the system's.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
+    { "display.pointer_drawn", S_OTHER, 0, "Drawn pointer", "the game's armored gauntlet drawn anew, crisp at any size: a fist while something is dragged; on its cuff the pause in a paused battle, crossed blades over a foe, an hourglass while Go to walks (else the game's little picture).", OC_LOOK, 0, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
     { "display.ui_scale", S_OTHER, 0, "Size of the menus", "the size of Darklands+'s menus in percent (0: the system's scale), after a restart.", OC_LOOK, 0, 0, 0, 0, 0, 0, 0, OF_ELSEWHERE },
     { "display.pause_unfocused", S_OTHER, 0, "Pause in the background", "the game pauses while its window is in the background.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
     { "display.opening", S_OTHER, 0, "Intro at start-up", "the intro: 0 nothing, 1 the last scene, 2 the whole (-1: the whole the first time).", OC_LOOK, -1, -1, -1, 0, 0, 0, 0, OF_ELSEWHERE },

@@ -185,6 +185,17 @@ static void attr_body(ImDrawList *dl, ImVec2 c, float s, int k)
             dl->AddCircleFilled(P(cosf(a) * 2.6f, sinf(a) * 2.6f), 2.5f * u, red); dl->AddCircle(P(cosf(a) * 2.6f, sinf(a) * 2.6f), 2.5f * u, ink, 0, 0.6f * u); }
         dl->AddCircleFilled(P(0, 0), 2.2f * u, seed); dl->AddCircle(P(0, 0), 2.2f * u, ink, 0, 0.6f * u);           /* the seeds */
         break; }
+    case 7: { /* age (not an attribute: ui_age_icon): an hourglass in its frame, the sand run half down */
+        ImU32 sand = C(226, 182, 64), glass = C(238, 226, 196), wood = C(134, 88, 46);
+        dl->AddRectFilled(P(-7, -10), P(7, -7.6f), wood); dl->AddRectFilled(P(-7, 7.6f), P(7, 10), wood);
+        dl->AddRect(P(-7, -10), P(7, -7.6f), ink, 0, 0, 0.7f * u); dl->AddRect(P(-7, 7.6f), P(7, 10), ink, 0, 0, 0.7f * u);
+        ImVec2 top[3] = { P(-5.4f, -7.4f), P(5.4f, -7.4f), P(0, -0.6f) }, bot[3] = { P(0, 0.6f), P(5.4f, 7.4f), P(-5.4f, 7.4f) };
+        dl->AddTriangleFilled(top[0], top[1], top[2], glass); dl->AddTriangleFilled(bot[0], bot[1], bot[2], glass);
+        dl->AddTriangleFilled(P(-2.6f, -4.0f), P(2.6f, -4.0f), P(0, -0.8f), sand);                 /* the sand left above */
+        dl->AddTriangleFilled(P(-5.0f, 7.2f), P(5.0f, 7.2f), P(0, 3.4f), sand);                     /* the sand run down */
+        dl->AddLine(P(0, -0.8f), P(0, 3.6f), sand, 0.8f * u);
+        dl->AddTriangle(top[0], top[1], top[2], ink, 0.7f * u); dl->AddTriangle(bot[0], bot[1], bot[2], ink, 0.7f * u);
+        break; }
     case 6: /* divine favor: a chalice */
         dl->AddBezierQuadratic(P(-7, -9), P(-6, 2), P(0, 2), gold, 2.2f * u); dl->AddBezierQuadratic(P(7, -9), P(6, 2), P(0, 2), gold, 2.2f * u);
         dl->AddQuadFilled(P(-7, -9), P(7, -9), P(5, -1), P(-5, -1), gold);
@@ -279,7 +290,8 @@ static void standing_body(ImDrawList *dl, ImVec2 c, float s, int k)
 }
 void ui_standing_icon(ImDrawList *dl, ImVec2 c, float s, int k) { styled(dl, c, s, 4, standing_body, k); }
 void ui_skill_icon(ImDrawList *dl, ImVec2 c, float s, int k) { styled(dl, c, s, k < 7 ? 1 : k < 13 ? 2 : 3, skill_body, k); }
-void ui_attr_icon(ImDrawList *dl, ImVec2 c, float s, int k) { styled(dl, c, s, 0, attr_body, k); }
+void ui_attr_icon(ImDrawList *dl, ImVec2 c, float s, int k) { if (k >= 0 && k < 7) styled(dl, c, s, 0, attr_body, k); }
+void ui_age_icon(ImDrawList *dl, ImVec2 c, float s) { styled(dl, c, s, 0, attr_body, 7); }   /* (sable, as the attributes: the member's own) */
 
 /* a skill's picture in the flow of a window's text, then the text goes on beside it */
 void ui_skill_icon_inline(int k)
@@ -351,7 +363,7 @@ void ui_page_icon(ImDrawList *dl, ImVec2 c, float s, int page)
     float u = s / 16.0f;
     auto P = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
     auto C = [](int r, int g, int b, int a = 255) { return IM_COL32(r, g, b, a); };
-    ImU32 ink = C(40, 26, 14), gold = C(226, 182, 64), parch = C(238, 226, 196);
+    ImU32 ink = C(40, 26, 14), parch = C(238, 226, 196);
     if (page == UI_PAGE_RESTORED) {
         dl->AddRectFilled(P(-6, -7), P(6, 7), parch); dl->AddRect(P(-6, -7), P(6, 7), ink, 0, 0, 0.7f * u);
         dl->AddCircleFilled(P(-6, -7), 2.2f * u, C(210, 196, 160), 10); dl->AddCircleFilled(P(6, 7), 2.2f * u, C(210, 196, 160), 10);   /* the rolled ends */

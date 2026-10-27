@@ -741,7 +741,6 @@ static int pot_table(PotEv *out, int max)
     }
     return n;
 }
-static int pot_same(const PotEv *a, const PotEv *b) { return a->m == b->m && a->type0 == b->type0 && a->t == b->t && !memcmp(a->end, b->end, sizeof a->end); }
 /* all the party's running potions: the table's (while the cards are closed: those drunk in the
    battle), and while the cards are closed those kept from before */
 static int pot_all(PotEv *out, int max)

@@ -9,8 +9,6 @@
 #include "fixes.h"
 #include "teachers.h"
 
-enum { SK_EDGED = 0, SK_IMPACT = 1, SK_THROWN = 4, SK_BOWS = 5, SK_MISSILE = 6, SK_ALCHEMY = 7, SK_RELIGION = 8,
-       SK_LATIN = 11, SK_RW = 12, SK_HEALING = 13, SK_ARTIFICE = 14 };
 
 int teach_chance(int s)
 {
@@ -111,11 +109,11 @@ int teach_town(int loc, const TchTown *t, TchSource *out, int max)
         o->cond = GUILDS[k].need ? GUILD_COND : "While the guild is split by a dispute, its masters want help with that first.";
         o->strength = q + (int)(seed % 15) - 5;
         switch (GUILDS[k].src) {
-        case TCH_BLACKSMITHS: add(o, SK_EDGED, 50); add(o, SK_IMPACT, 50); break;
-        case TCH_SWORDSMITHS: add(o, SK_EDGED, 50); break;
-        case TCH_ARMORERS: add(o, SK_EDGED, 50); add(o, SK_ARTIFICE, 50); break;
-        case TCH_BOWYERS: { int w = (int)((u16)((s16)g_rw(G_PARTY_SEED) + loc) % 3); add(o, w == 0 ? SK_BOWS : w == 1 ? SK_THROWN : SK_MISSILE, 50); } break;
-        default: add(o, SK_ARTIFICE, 50); break;
+        case TCH_BLACKSMITHS: add(o, SKILL_EDGED, 50); add(o, SKILL_IMPACT, 50); break;
+        case TCH_SWORDSMITHS: add(o, SKILL_EDGED, 50); break;
+        case TCH_ARMORERS: add(o, SKILL_EDGED, 50); add(o, SKILL_ARTIFICE, 50); break;
+        case TCH_BOWYERS: { int w = (int)((u16)((s16)g_rw(G_PARTY_SEED) + loc) % 3); add(o, w == 0 ? SKILL_BOW : w == 1 ? SKILL_THROWN : SKILL_MISSILE, 50); } break;
+        default: add(o, SKILL_ARTIFICE, 50); break;
         }
         if (here) {
             if (dispute_at(loc)) snprintf(o->now, sizeof o->now, "A guild here is split by a dispute, and its masters want help with that first.");
@@ -132,7 +130,7 @@ int teach_town(int loc, const TchTown *t, TchSource *out, int max)
         o->ask = "In the daytime, go to the university and choose \"a teacher you can hire\".";
         o->cond = "They may say no (it depends on Perception, Intelligence, Latin, the party's best Alchemy and fame). A refusal shuts their door for a week and lowers the party's reputation here a little.";
         o->strength = (int)(seed % 15) + 45;
-        add(o, SK_ALCHEMY, 90); add(o, SK_RELIGION, 70); add(o, SK_LATIN, 50); add(o, SK_RW, 50); add(o, SK_HEALING, 110);
+        add(o, SKILL_ALCHEMY, 90); add(o, SKILL_RELIGION, 70); add(o, SKILL_LATIN, 50); add(o, SKILL_RW, 50); add(o, SKILL_HEALING, 110);
     }
     if (t->buildings & 0x80) {
         TchSource *o = NEXT(); if (!o) return n;
@@ -140,7 +138,7 @@ int teach_town(int loc, const TchTown *t, TchSource *out, int max)
         o->ask = "Go to the monastery and choose \"inquire about tutoring in various disciplines\".";
         o->cond = "Only for a party of good name (Virtue, Charisma, reputation here), and only while no other teacher is hired in the town. After a refusal, wait two days.";
         o->strength = 50;
-        add(o, SK_RELIGION, 50); add(o, SK_LATIN, 25); add(o, SK_RW, 25);
+        add(o, SKILL_RELIGION, 50); add(o, SKILL_LATIN, 25); add(o, SKILL_RW, 25);
     }
     if (t->physician) {
         TchSource *o = NEXT(); if (!o) return n;
@@ -148,14 +146,14 @@ int teach_town(int loc, const TchTown *t, TchSource *out, int max)
         o->ask = "In the daytime, go to the physician and choose \"beg him to allow you to be his students\".";
         o->cond = "He takes no one who already heals better than he does himself (his own Healing changes from week to week; visiting him shows it). Some years he takes no students.";
         o->strength = 50;
-        add(o, SK_HEALING, 60);
+        add(o, SKILL_HEALING, 60);
         int year = (s16)g_rw(G_CUR_YEAR);
         /* his own skill this week: the game's roll (s050 1838:0000), or its range before a visit */
         int k = (int)(seed % 10), lo = k * (t->size - 3), hi = k * (t->size);
         if (lo < 1) lo = 1; if (hi < 1) hi = 1; if (lo > 99) lo = 99; if (hi > 99) hi = 99;
         int P = -1;
         if (here) { int e = event_at(0x37, loc, -1); if (e >= 0) { u32 p = g_event(e); P = (s16)rw((u16)(p >> 16), (u16)((u16)p + 0x1e)); } }
-        int best = party_best_skill(SK_HEALING);
+        int best = party_best_skill(SKILL_HEALING);
         /* (in the game's order: the party healing better first, then the year) */
         if (P > 1 && best > P) { snprintf(o->now, sizeof o->now, "His own Healing is %d this week, and the party's best is %d: he will not teach you.", P, best); o->off = 1; }
         else if (P < 0 && best > hi) { snprintf(o->now, sizeof o->now, "His own Healing is at most %d, and the party's best is %d: he will not teach you.", hi, best); o->off = 1; }
@@ -173,7 +171,7 @@ int teach_town(int loc, const TchTown *t, TchSource *out, int max)
         o->ask = "In the daytime, go to Astrologists' Lane and choose \"receiving additional instruction in alchemy\".";
         o->cond = "They may say no (it depends on Charisma, Speak Common, the party's best Alchemy and reputation here). After a refusal, wait two and a half days.";
         o->strength = t->size * 3 + (int)((u16)(seed + 4) % 41) + ((t->buildings & 0x100) ? (int)((u16)(seed + 9) % 11) + 10 : 0);
-        add(o, SK_ALCHEMY, o->strength / 4 + 12);
+        add(o, SKILL_ALCHEMY, o->strength / 4 + 12);
     }
     #undef NEXT
     /* what is hired here already: a guild, the physician make no second teacher of a skill; the monks
@@ -229,8 +227,8 @@ int teach_card_option(const char *card, int opt, TchSource *out)
         int q = bit == 2 || bit == 0x10 ? t.shopq[0] : bit == 4 ? t.shopq[2] : bit == 8 ? t.shopq[5] : t.shopq[6];
         out->strength = q + (int)(seed % 15) - 5;
         if (bit == 8) snprintf(out->now, sizeof out->now, "A bug in the original game: this guild's teacher teaches no skill at all.");
-        else if (bit == 2 || bit == 0x10 || bit == 4) { add(out, SK_EDGED, 50); add(out, SK_IMPACT, 50); }
-        else add(out, SK_ARTIFICE, 50);
+        else if (bit == 2 || bit == 0x10 || bit == 4) { add(out, SKILL_EDGED, 50); add(out, SKILL_IMPACT, 50); }
+        else add(out, SKILL_ARTIFICE, 50);
         return 1;
     }
     TchSource all[12];

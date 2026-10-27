@@ -276,9 +276,11 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
 }
 
 /* what needs the game's code in place (hooks): after the game module is loaded (split.h) */
+extern "C" void citynav_init(void);
 extern "C" void ui_late_init(void)
 {
     if (ui_window) { journal_init(); void battlelog_init(void); battlelog_init(); }
+    citynav_init();                                           /* (Go to: the card texts as they are loaded) */
 }
 
 /* (third_party/imgui/imconfig.h: a failed check of ImGui's, logged once a place) */
@@ -399,13 +401,6 @@ extern "C" int ui_event(const SDL_Event *e)
     return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
 }
 
-/* a wrapped, dimmed explanation */
-static void item_name(int id, char *out, int n)
-{
-    u32 d = g_itemdef(id);
-    if (!d || id <= 0) { snprintf(out, (size_t)n, "#%d", id); return; }
-    g_str((u16)(d >> 16), (u16)d, out, n);
-}
 
 /* F12 > Appendices: the tables read from the game's own data (the weapons, the enemies). The New Player
    Guide's text (ui/guide.cpp, "How Darklands works") is withdrawn until each statement in it is checked in

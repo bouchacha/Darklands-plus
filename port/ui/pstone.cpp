@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <float.h>
 #include "../runtime/config.h"
+#include "pstone.h"
 
 namespace {
 const float PI = 3.14159265f;

@@ -272,3 +272,19 @@ std::string loc_display_name(int loc)
     for (const auto &c : CUT) if (!strcmp(b, c.cut)) return c.full;
     return game_text(b, sizeof b);
 }
+
+/* a town's number for its cards: loc_query 0x21, the city's +0x56 + party_seed (16-bit, as the game) */
+int town_seed(int loc)
+{
+    if (loc < 0 || loc >= (int)gamedata.cities.size()) return 0;
+    return (u16)(gamedata.cities[loc].seed + g_rw(G_PARTY_SEED));
+}
+/* the quality an alchemist's ($Alche00, s066 190c:04c9: (seed + 4) mod 25 + 1, unsigned) or a university's
+   ($Unive00, s056 18c0:0137: ((seed + 7) & 15) + 14) better Philosopher's Stone has in town loc: the same
+   all game; either card sells it only when it is better than the party's, and says so only after its roll */
+extern "C" int town_stone_offer(int loc, int university)
+{
+    if (loc < 0 || loc >= (int)gamedata.cities.size()) return 0;
+    unsigned s = (unsigned)town_seed(loc);
+    return university ? (int)(((s + 7) & 15) + 14) : (int)((u16)(s + 4) % 25 + 1);
+}

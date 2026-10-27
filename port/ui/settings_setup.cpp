@@ -159,6 +159,9 @@ void setup_screen(void)
             ImGui::EndCombo();
         }
     }
+    { bool pd = config_get_int("display.pointer_drawn", 1) != 0;
+      if (ImGui::Checkbox("The game's gauntlet pointer drawn anew, crisp at any size", &pd)) { config_set_int("display.pointer_drawn", pd); ui_dirty_config = 1; }
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("A fist while something is dragged; on its cuff the pause in a paused battle, crossed blades over a foe, an hourglass while Go to walks. Off: the game's little picture."); }
     { bool sc = ui_sys_cursor != 0;
       if (ImGui::Checkbox("Show the system mouse pointer over the game too", &sc)) { ui_sys_cursor = sc; config_set_int("display.system_cursor", sc); ui_dirty_config = 1; } }
     {   /* the menus' size (fonts are baked at start-up) */

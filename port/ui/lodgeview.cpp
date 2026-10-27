@@ -9,12 +9,14 @@
 #include "drawcache.h"
 #include "alchemydesk.h"
 #include "skillicons.h"
+#include "pstone.h"
 void ui_draw_hourglass(ImDrawList *dl, ImVec2 tl, float kx, float k, int hour, int day, int month);   /* ui/hourglass.cpp */
 #include "gamepics.h"
 const GamePic *ns_figure_pic(int cache, const char *code, const unsigned char *mp, const char *suffix);
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
 #include "../mods/lodgeview.h"
 #include "../mods/gamemodel.h"
 #include "money.h"
@@ -114,8 +116,7 @@ static void act_icon(ImDrawList *dl, ImVec2 c, float s, int a)
         dl->AddRectFilled(Q(-0.7f, 5), Q(0.7f, 10), CROSS); dl->AddRectFilled(Q(-2.3f, 6.4f), Q(2.3f, 7.7f), CROSS);
         break; }
     case 3: {                                                  /* Alchemy: the party's Philosopher's Stone (ui/pstone.cpp), without its number */
-        void ui_pstone_draw(ImDrawList *dl, ImVec2 c, float s, int look, int quality, float t);
-        int q = (s16)g_rw(0x9078);
+        int q = (s16)g_rw(GV_philosophers_stone);
         ui_pstone_draw(dl, c, s * 0.92f, 2, q > 0 ? -q : -1, (float)ImGui::GetTime());
         break; }
     case 4: {                                                  /* Earn a little money: a day's wage, not a fortune (a quest's reward is the purse,

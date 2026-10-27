@@ -22,6 +22,7 @@
 void plat_hold(int ms);
 #include "gamemodel.h"
 #include "alchemyview.h"
+#include "keep.h"
 
 AlchemyModel alchemy_model;
 static int av_on = 1;
@@ -43,6 +44,14 @@ static void set_row_count(int r, int n) { ww(ROWS_SEG, (u16)(6 * r + 2), (u16)n)
 static u32 formula_ptr(int f) { return ((u32)rw(G_FAR2E38, (u16)(0x35e4 + 4 * f + 2)) << 16) | rw(G_FAR2E38, (u16)(0x35e4 + 4 * f)); }
 static int have(int item) { return (s16)g_rw((u16)(GV_alchemy_have + 2 * item)); }
 
+int alchemy_batch_part(int n) { return n > 2 ? 100 / (n >> 1) : 100; }
+int alchemy_chance(const AlchemyModel *a, int n)
+{
+    if (n <= 0) return 0;
+    int i = a->intel + (a->alch - a->mystic) + a->stone + alchemy_batch_part(n);
+    return i < 0 ? 0 : i > 99 ? 99 : i;
+}
+
 static void build(void)
 {
     AlchemyModel *a = &alchemy_model;
@@ -62,7 +71,8 @@ static void build(void)
             if (have(it) < c) w->can = 0;
         }
     }
-    a->ningr = 0; a->count = 0;
+    a->ningr = 0; a->count = 0; a->most = 0;
+    a->at_place = (s16)g_rw(GV_cur_loc) != -1;
     if (a->sel >= 0 && a->sel < a->nrows) {
         int f = row_formula(a->sel);
         u32 p = formula_ptr(f);
@@ -73,20 +83,20 @@ static void build(void)
         a->stone = (s16)g_rw(GV_philosophers_stone);
         a->mystic = p ? (s16)rw((u16)(p >> 16), (u16)((u16)p + 0x50)) : 0;
         a->risk = p ? (s16)rw((u16)(p >> 16), (u16)((u16)p + 0x52)) : 0;
-        int n = a->count, m = n > 2 ? 100 / (n >> 1) : 100;        /* (as alchemy_draw_page and alchemy_brew) */
-        a->base = m;
-        int i = a->intel + (a->alch - a->mystic) + a->stone + m;
-        a->pct = i < 0 || n == 0 ? 0 : i > 99 ? 99 : i;
-        int i1 = a->intel + (a->alch - a->mystic) + a->stone + 100;
-        a->pct1 = i1 < 0 ? 0 : i1 > 99 ? 99 : i1;
+        a->base = alchemy_batch_part(a->count);                     /* (as alchemy_draw_page and alchemy_brew) */
+        a->pct = alchemy_chance(a, a->count);
+        a->pct1 = alchemy_chance(a, 1);
         a->can_more = 1;
+        int more = 1 << 20;                                         /* (what is left after the batches set: have() counts them out) */
         for (int k = 0; p && k < 5; k++) {
             int c = (s8)rb((u16)(p >> 16), (u16)((u16)p + 0x54 + 4 * k)), it = (s16)rw((u16)(p >> 16), (u16)((u16)p + 0x56 + 4 * k));
             if (!c) break;
             a->ingr[a->ningr].item = it; a->ingr[a->ningr].need = c; a->ingr[a->ningr].have = have(it);
             if (have(it) < c) a->can_more = 0;
+            if (have(it) / c < more) more = have(it) / c;
             a->ningr++;
         }
+        a->most = (a->page ? a->count : 0) + (a->ningr ? more : 0);
     }
     a->seq++;
 }
@@ -109,6 +119,30 @@ static void choose(int r)
     g_ww(GV_alchemy_row, (u16)r);
     g_ww(GV_alchemy_top, (u16)(r < 17 ? r : 16));
     ns_call(GF_alchemy_list_key, 1, 0x1655);                 /* U: its page, one batch if the ingredients are there */
+}
+
+/* the chosen formula's batches set to n, one at a time as the page's own M and F (each reserves or
+   gives back a batch's ingredients), as far as the ingredients go */
+static void set_batches(int n)
+{
+    int r = (s16)g_rw(GV_alchemy_row);
+    if ((s16)g_rw(GV_alchemy_page) != 1) choose(r);
+    for (int guard = 0; guard < 2000 && !ns_unwinding && (s16)g_rw(GV_alchemy_page) == 1; guard++) {
+        int c = row_count(r);
+        if (c < n) { build(); if (!alchemy_model.can_more) break; ns_call(GF_alchemy_page_key, 1, 0x324d); }
+        else if (c > n) ns_call(GF_alchemy_page_key, 1, 0x2146);
+        else break;
+        if (row_count(r) == c) break;                               /* (no change: the page would not) */
+    }
+}
+
+/* the row shown first: the first formula starred, else the first not put aside (keep.c) */
+static int first_row(void)
+{
+    int n = (s16)g_rw(GV_alchemy_nrows);
+    for (int r = 0; r < n; r++) if (formula_mark(row_formula(r)) == FMARK_FIRST) return r;
+    for (int r = 0; r < n; r++) if (formula_mark(row_formula(r)) != FMARK_LAST) return r;
+    return 0;
 }
 
 static void screen_hook(void)                /* alchemy_screen(who, hours), s033 1462:0000 */
@@ -135,7 +169,7 @@ static void screen_hook(void)                /* alchemy_screen(who, hours), s033
     ns_call(GF_screen_release, 0);
     if (ns_unwinding) return;
     memset(alchemy_model.note, 0, sizeof alchemy_model.note);
-    if ((s16)g_rw(GV_alchemy_nrows) > 0) choose(0);
+    if ((s16)g_rw(GV_alchemy_nrows) > 0) choose(first_row());
     build();
     alchemy_model.open = 1;
     fprintf(stderr, "alchemy: open (member %d, %d formulae)\n", who, alchemy_model.nrows);
@@ -166,6 +200,7 @@ static void screen_hook(void)                /* alchemy_screen(who, hours), s033
                 else ns_call(GF_alchemy_page_key, 1, 0x324d);
                 break;
             case AV_FEWER: if ((s16)g_rw(GV_alchemy_page) == 1) ns_call(GF_alchemy_page_key, 1, 0x2146); break;
+            case AV_SET: set_batches(a.a); break;
             case AV_START: {
                 int r = (s16)g_rw(GV_alchemy_row);
                 if ((s16)g_rw(GV_alchemy_page) != 1 || row_count(r) <= 0) { note("Choose a formula and at least one batch first."); break; }

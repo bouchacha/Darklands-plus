@@ -11,9 +11,13 @@
 #include "ui.h"
 #include "uiinternal.h"
 #include "gamedata.h"
+#include "alerts.h"
+#include "skillicons.h"
+#include <vector>
+#include "../mods/gamemodel.h"
 
 namespace {
-struct Alert { std::string title, body, foot; };
+struct Alert { std::string title, body, foot; std::vector<UiAlertRow> rows; };
 std::deque<Alert> queue;
 bool auto_pass(void) { return getenv("DL_CTL") && !getenv("DL_ALERT_KEEP"); }
 }
@@ -24,7 +28,51 @@ extern "C" void ui_alert(const char *title, const char *body, const char *foot)
     if (auto_pass()) return;
     queue.push_back({ title ? title : "", body ? body : "", foot ? foot : "" });
 }
+extern "C" void ui_alert_rows(const char *title, const char *body, const UiAlertRow *rows, int nrows, const char *foot)
+{
+    fprintf(stderr, "alert: %s: %s\n", title, body);
+    if (auto_pass()) return;
+    Alert a{ title ? title : "", body ? body : "", foot ? foot : "", {} };
+    for (int i = 0; i < nrows; i++) a.rows.push_back(rows[i]);
+    queue.push_back(a);
+}
 extern "C" int ui_alert_open(void) { return !queue.empty(); }
+
+/* the rows: a member's name, the age, then each attribute's or skill's shield with was and now */
+static void alert_rows(const std::vector<UiAlertRow> &rows)
+{
+    ImDrawList *dl = ImGui::GetWindowDrawList();
+    float lh = ImGui::GetTextLineHeight(), is = lh * 1.35f, gap = lh * 0.6f, right = ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
+    for (const UiAlertRow &r : rows) {
+        ImGui::PushFont(ui_font_head); ImGui::TextUnformatted(game_text(r.name, strlen(r.name)).c_str()); ImGui::PopFont();
+        bool first = true;
+        auto chip = [&](float w) { if (!first) { ImGui::SameLine(0, gap); if (ImGui::GetCursorScreenPos().x + w > right) ImGui::NewLine(); } first = false;
+                                   ImVec2 p = ImGui::GetCursorScreenPos(); ImGui::Dummy(ImVec2(w, is)); return p; };
+        if (r.age >= 0) {                                       /* the age: an hourglass and the years */
+            char t[16]; snprintf(t, sizeof t, "%d", r.age);
+            ImVec2 p = chip(is + lh * 0.25f + ImGui::CalcTextSize(t).x);
+            ui_age_icon(dl, ImVec2(p.x + is * 0.5f, p.y + is * 0.5f), is * 0.92f);
+            dl->AddText(ImVec2(p.x + is + lh * 0.25f, p.y + (is - lh) * 0.5f), ImGui::GetColorU32(ImGuiCol_Text), t);
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip("Age %d", r.age);
+        }
+        for (int i = 0; i < r.n; i++) {                         /* each change: the shield, was (dim), an arrow, now (red) */
+            const UiAlertChange &c = r.ch[i];
+            char was[12], now[12]; snprintf(was, sizeof was, "%d", c.was); snprintf(now, sizeof now, "%d", c.now);
+            float ww = ImGui::CalcTextSize(was).x, nw = ImGui::CalcTextSize(now).x, aw = lh * 0.8f;
+            ImVec2 p = chip(is + lh * 0.25f + ww + aw + nw);
+            ImVec2 ic(p.x + is * 0.5f, p.y + is * 0.5f);
+            if (c.key < 7) ui_attr_icon(dl, ic, is * 0.92f, c.key); else ui_skill_icon(dl, ic, is * 0.92f, c.key - 7);
+            float x = p.x + is + lh * 0.25f, y = p.y + (is - lh) * 0.5f;
+            dl->AddText(ImVec2(x, y), ImGui::GetColorU32(ImGuiCol_TextDisabled), was); x += ww;
+            float ay = y + lh * 0.52f;
+            dl->AddTriangleFilled(ImVec2(x + aw * 0.25f, ay - lh * 0.22f), ImVec2(x + aw * 0.25f, ay + lh * 0.22f), ImVec2(x + aw * 0.75f, ay), ImGui::GetColorU32(ImGuiCol_TextDisabled));
+            x += aw;
+            dl->AddText(ImVec2(x, y), IM_COL32(170, 40, 30, 255), now);
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s: %d, was %d", c.key < 7 ? gm_attr_name(c.key) : gm_skill_name(c.key - 7), c.now, c.was);
+        }
+        ImGui::Spacing();
+    }
+}
 extern "C" void ui_alert_dismiss(void) { if (!queue.empty()) queue.pop_front(); }   /* (the test command ualert) */
 
 void ui_alert_draw(void)
@@ -46,7 +94,8 @@ void ui_alert_draw(void)
         ImGui::TextColored(ImVec4(0.55f, 0.16f, 0.10f, 1), "%s", a.title.c_str());
         ImGui::PopFont();
         ImGui::Spacing();
-        ImGui::TextWrapped("%s", a.body.c_str());
+        if (a.rows.empty()) ImGui::TextWrapped("%s", a.body.c_str());
+        else alert_rows(a.rows);
         if (!a.foot.empty()) { ImGui::Spacing(); ui_hint("%s", a.foot.c_str()); }
         ImGui::Spacing(); ImGui::Spacing();
         char lab[48]; snprintf(lab, sizeof lab, queue.size() > 1 ? "  Next (%d more)  " : "  Continue  ", (int)queue.size() - 1);

@@ -106,7 +106,6 @@ void grade_dots(const Pen &p, int tier)
         p.disc(x - r * 0.3f, y - r * 0.3f, r * 0.35f, C(1.0f, 0.97f, 0.75f));
     }
 }
-void puff(const Pen &p, float x, float y, float r, ImU32 k) { p.disc(x, y, r, k); }
 void flame(const Pen &p, float x, float y, float h, ImU32 outer, ImU32 inner)
 {
     p.tri(x - h * 0.35f, y, x + h * 0.35f, y, x, y - h, outer);
@@ -274,7 +273,6 @@ static bool draw_ingredient_signs(Pen &p, int id)
     };
     Stroke S{ p };
     auto L = [&](float x0, float y0, float x1, float y1, ImU32 k, float w = 1.5f) { p.line(x0, y0, x1, y1, k, w); };
-    auto ellipse_line = [&](float x, float y, float rx, float ry, float rot, ImU32 k, float w = 1.5f) { p.dl->AddEllipse(p.P(x, y), ImVec2(rx * p.u, ry * p.u), k, rot, 0, p.W(w)); };
     switch (id) {
     /* the metals and their ores: the planets' signs */
     case 72: p.ring(0, 0, 5.5f, gold, W); p.disc(0, 0, 1.4f, gold); break;                                     // Pure Gold: the Sun

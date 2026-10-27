@@ -605,8 +605,7 @@ static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchange
           if (r >= 0) { fprintf(stderr, "orders: member %d goes to help: %d fights one of the party a few paces off\n", i, r); to_melee(i, r, 0); continue; } }
         /* (a foe some paces off, coming: the shooter goes on shooting it, and fights hand to hand once it is beside) */
         if (t < 5 || t >= 13 || g_rb(CBF(t, CB_STATUS)) != 1) continue;
-        int st = g_rb((u16)(GV_cbt_state + i)), engaged = 0;
-        for (int p = 0; p < 5; p++) if (p != i && rb(G_FAR20A5, (u16)(0x7900 + p * 13 + t))) engaged = 1;
+        int st = g_rb((u16)(GV_cbt_state + i));
         if (st == 2) to_melee(i, t, 0);                                  /* (nothing left to shoot; a line blocked is the stepping aside's: mods/battlerules.c) */
     }
 }

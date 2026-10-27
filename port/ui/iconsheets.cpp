@@ -1,6 +1,7 @@
 // iconsheets.cpp - the test command uiconstyles:N: sheets of the pictures drawn with ImGui shapes, to
 // compare them across families and to look at new line art large (docs/REVIEW.md). 2: the towns',
-// quests', careers', pages' and settings' sections' pictures, the inn's and camp's; 3: the battle
+// quests', careers', pages' and settings' sections' pictures, the inn's and camp's, the small signs
+// (ui/marks.h), the age and the pointer drawn anew; 3: the battle
 // orders', the ingredients and potions as items, the world map's; 4: the ingredients by family with
 // their names; 7: the ingredients large; 8: the attributes, skills and standing large, in colour and
 // heraldic; 1000+id: one ingredient window-large; any other: the skills and attributes in both looks.
@@ -11,6 +12,8 @@
 #include "skillicons.h"
 #include "townicons.h"
 #include "quests.h"
+#include "marks.h"
+#include "pointer.h"
 
 extern int ui_icon_disc;
 void ui_icon_style_preview(int st);
@@ -31,7 +34,7 @@ extern "C" void ui_icon_styles_draw(void)
     if (sheet_on == 2) {   /* every other set of icons, to look for one drawn twice for two things (uiconstyles:2) */
         static const char *SECT[] = { "Preset", "New screens", "Text", "Frames and clock", "Cards and towns", "The party and its items", "Battles", "Travel",
                                       "Fixes for bugs of the original", "Screen", "Intro", "Sound", "Controller" };
-        float cell = ds.x / 14, sz = cell * 0.5f; int n = 0;
+        float cell = fminf(ds.x / 14, ds.y / 9.1f), sz = cell * 0.5f; int n = 0;   /* (its ten rows all in the window) */
         auto at = [&](int k) { return ImVec2(cell * 0.5f + (k % 14) * cell, cell * 0.45f + (k / 14) * cell * 0.9f); };
         for (int i = 0; i < 40; i++) ui_draw_town_icon(dl, at(n++), sz, i);                 /* (the town icons: as many as there are) */
         n = (n + 13) / 14 * 14;
@@ -45,6 +48,20 @@ extern "C" void ui_icon_styles_draw(void)
         n = (n + 13) / 14 * 14;                                                          /* the inn's and camp's day choices, the camp's fire */
         for (int i = 0; i < 7; i++) ui_lodge_act_icon(dl, at(n++), sz * 0.9f, i);
         ui_campfire_icon(dl, at(n++), sz * 0.8f);
+        n = (n + 13) / 14 * 14;                                                          /* the small signs (ui/marks.h), the age */
+        { float r = sz * 0.4f, th = fmaxf(1.0f, sz * 0.06f);
+          ui_mark_star(dl, at(n++), r, IM_COL32(222, 168, 40, 255), IM_COL32(120, 70, 10, 255), th);
+          ui_mark_aside(dl, at(n++), r, IM_COL32(120, 80, 36, 255), th);
+          ui_mark_pentacle(dl, at(n++), r, IM_COL32(110, 60, 140, 255), th);
+          ui_mark_falling_bars(dl, at(n++), r, IM_COL32(120, 80, 36, 255));
+          ui_mark_lost(dl, at(n++), r, 72, th);
+          ui_mark_stink(dl, at(n++), r, th);
+          ui_mark_blast(dl, at(n++), r);
+          ui_age_icon(dl, at(n++), sz * 0.8f); }
+        n = (n + 13) / 14 * 14;                                                          /* the pointer drawn anew (ui/pointer.h): its hands and badges */
+        { float pk = cell / 30.0f;
+          for (int b = 0; b < 4; b++) { ImVec2 c = at(n++); ui_pointer_draw(dl, ImVec2(c.x - 13 * pk, c.y - 7 * pk), pk, PTR_POINT, b); }
+          ImVec2 c = at(n++); ui_pointer_draw(dl, ImVec2(c.x - 13 * pk, c.y - 7 * pk), pk, PTR_GRAB, PTR_PLAIN); }
         return;
     }
     if (sheet_on >= 1000) {   /* one ingredient's sign as large as the window allows (uiconstyles:1000+id) */

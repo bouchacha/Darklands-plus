@@ -221,6 +221,18 @@ extern "C" void cardview_draw(void)
                 if (c.piece[j].is_opt && c.piece[j].state == 1 && c.piece[j].type == 0 && strstr(c.piece[j].text, "walk out")) gate_piece = j;
     }
     auto fights = [&](int j) { const CvPiece &p = c.piece[j]; return p.is_opt && (p.type == -1 || j == gate_piece); };
+    /* a better Philosopher's Stone ($Alche00 option 0, $Unive00 option 2): what it is (each town's is
+       always the same, town_stone_offer), the option's words dim when it is no better than the party's */
+    int stone_piece = -1, stone_offer = 0, stone_uni = 0;
+    if (menu && assist_card_help) {
+        char cn[16]; g_str(G_DGROUP, GV_card_name, cn, sizeof cn);
+        stone_uni = !strcasecmp(cn, "$UNIVE00") ? 1 : !strcasecmp(cn, "$ALCHE00") ? 0 : -1;
+        if (stone_uni >= 0)
+            for (int j = 0; j < c.npieces; j++)
+                if (c.piece[j].is_opt && c.piece[j].state && c.piece[j].opt == (stone_uni ? 2 : 0)) { stone_piece = j; stone_offer = town_stone_offer((s16)g_rw(G_CUR_LOC), stone_uni); }
+    }
+    const int stone_have = (s16)g_rw(GV_philosophers_stone);
+    auto no_gain = [&](int j) { return j == stone_piece && stone_offer > 0 && stone_offer <= stone_have; };
     /* an option that leads to one of the party's tasks here (a reward waiting, a thing to get from an
        office): the task's picture at the row's end, the task under the pointer (ui/citynav.cpp) */
     std::vector<int> task_of(c.npieces, -1);
@@ -382,7 +394,7 @@ extern "C" void cardview_draw(void)
             dl->AddRectFilled(ImVec2(X0 - 1.5f * k, y0), ImVec2(X1 + 1.5f * k, y1), hl, 1.5f * k);
             dl->AddRectFilled(ImVec2(X0 - 1.5f * k, y0), ImVec2(X0 - 0.6f * k, y1), dark ? IM_COL32(240, 190, 100, 220) : IM_COL32(150, 60, 20, 220));
         }
-        ImU32 col = !p.is_opt ? ink : p.state == 1 ? ink : ink_dim;
+        ImU32 col = !p.is_opt ? ink : p.state == 1 && !no_gain(j) ? ink : ink_dim;
         if (p.is_opt && menu && p.state == 1 && p.line >= 0 && p.line < 10) {          /* the key that chooses it (0: the tenth) */
             char n[4]; snprintf(n, sizeof n, "%d", (p.line + 1) % 10);
             ImVec2 cpos(X0 + pad * 0.42f, la.lines.empty() ? y0 + 0.5f * L : la.lines[0].y - shift + size * 0.52f);
@@ -567,8 +579,7 @@ extern "C" void cardview_draw(void)
                         float vx = X1 - 0.5f * size - vt.x;
                         bool low = en.virtue < en.vmin;
                         ImU32 vc = low ? (dark ? IM_COL32(250, 125, 100, 255) : IM_COL32(150, 30, 18, 255)) : ink_soft;
-                        const int VIRTUE = 9;                       /* (the skills' numbering: gm_skill_name) */
-                        ui_skill_icon(dl, ImVec2(vx - ish * 0.7f, ey + 0.46f * h), ish, VIRTUE);
+                        ui_skill_icon(dl, ImVec2(vx - ish * 0.7f, ey + 0.46f * h), ish, SKILL_VIRTUE);
                         dl->AddText(fs, vs, ImVec2(vx, ey + 0.46f * h - vt.y * 0.52f), vc, vb);
                         ImVec2 m0(vx - ish * 1.3f, ey), m1(vx + vt.x, ey + h);
                         if (ImGui::IsMouseHoveringRect(m0, m1, false) && !ui_is_open()) {
@@ -616,19 +627,34 @@ extern "C" void cardview_draw(void)
     if (chance_tip >= 0 && !ui_is_open()) {
         const CvPiece &p = c.piece[chance_tip];
         int who = cc.line[p.line].who; u32 reads = cc.line[p.line].reads;
-        std::string w, r;
+        std::string w;
         if (who >= 0 && who < 5) { char nm[24]; g_str(G_DGROUP, (u16)(G_MEMBER(who) + G_M_SHORTNAME), nm, sizeof nm); w = game_text(nm, strlen(nm)) + " tries it"; }
         else if (who == -2) w = "Each member tries it";
-        for (int q = 0; q < 19; q++) if (reads & CC_SKILL(q)) r += (r.empty() ? "" : ", ") + game_text(gm_skill_name(q), 40);
-        for (int q = 0; q < 7; q++) if (reads & CC_ATTR(q)) r += (r.empty() ? "" : ", ") + game_text(gm_attr_name(q), 40);
-        if (reads & CC_REP) r += std::string(r.empty() ? "" : ", ") + "the town's opinion of the party (its reputation here)";
-        if (reads & CC_FAME) r += std::string(r.empty() ? "" : ", ") + "the party's fame";
-        if (!w.empty() || !r.empty()) {
+        /* what it rests on: each its shield and its name (the skills, the attributes, the town's opinion, fame) */
+        struct Rest { int kind, k; std::string name; };
+        std::vector<Rest> rest;
+        for (int q = 0; q < 19; q++) if (reads & CC_SKILL(q)) rest.push_back({ 1, q, game_text(gm_skill_name(q), 40) });
+        for (int q = 0; q < 7; q++) if (reads & CC_ATTR(q)) rest.push_back({ 0, q, game_text(gm_attr_name(q), 40) });
+        if (reads & CC_REP) rest.push_back({ 2, 0, "the town's opinion of the party (its reputation here)" });
+        if (reads & CC_FAME) rest.push_back({ 2, 1, "the party's fame" });
+        if (!w.empty() || !rest.empty()) {
             ui_tip_beside(chance_tip_a0, chance_tip_a1);
             ImGui::BeginTooltip();
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
             if (!w.empty()) ImGui::TextUnformatted((w + ".").c_str());
-            if (!r.empty()) ImGui::TextUnformatted(("It rests on: " + r + ".").c_str());
+            if (!rest.empty()) {
+                ImGui::TextUnformatted("It rests on:");
+                float lh = ImGui::GetTextLineHeight(), is = lh * 1.2f;
+                for (const Rest &x : rest) {
+                    ImVec2 a = ImGui::GetCursorScreenPos();
+                    ImGui::Dummy(ImVec2(is, lh)); ImGui::SameLine(0, lh * 0.3f);
+                    ImVec2 c(a.x + is * 0.5f, a.y + lh * 0.5f);
+                    if (x.kind == 1) ui_skill_icon(ImGui::GetWindowDrawList(), c, is * 0.9f, x.k);
+                    else if (x.kind == 0) ui_attr_icon(ImGui::GetWindowDrawList(), c, is * 0.9f, x.k);
+                    else ui_standing_icon(ImGui::GetWindowDrawList(), c, is * 0.9f, x.k);
+                    ImGui::TextUnformatted(x.name.c_str());
+                }
+            }
             if (cc.line[p.line].pick) ImGui::TextDisabled("The leader speaks for the party, and what is traded is the speaker's to know, unless you pick another (the arrow at the end shows each member's chance).");
             else if (cc.line[p.line].dep) ImGui::TextDisabled(assist_best_leader ? "Whoever speaks for the party tries it: the best at it, unless you pick another (the arrow at the end shows each member's chance)."
                                                                            : "Whoever speaks for the party tries it: the leader, unless you pick another (the arrow at the end shows each member's chance).");
@@ -648,6 +674,24 @@ extern "C" void cardview_draw(void)
         std::string hired = ui_teachers_hired_line((s16)g_rw(GV_cur_loc));
         if (!hired.empty()) ImGui::TextDisabled("Hired here now: %s.", hired.c_str());
         if (const char *why = greyed_hint(c.piece[c.hover])) { ImGui::Separator(); ImGui::TextDisabled("Not possible now"); ImGui::TextUnformatted(why); }
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
+    else if (tipmenu && c.hover >= 0 && c.hover == stone_piece && stone_offer > 0 && c.piece[c.hover].state == 1) {
+        float ww = tip_place(21);                                  /* the stone on offer, against the party's */
+        ImGui::BeginTooltip();
+        ImGui::TextDisabled("%s", no_gain(c.hover) ? "Nothing to gain here" : "A better Philosopher's Stone");
+        ImGui::PushTextWrapPos(ww);
+        char b[400];
+        if (!no_gain(c.hover) && stone_have > 0) snprintf(b, sizeof b, "The stone %s offers is of quality %d; the party's is %d. A batch's chance of success would rise by %d.",
+                                                          stone_uni ? "the university" : "this alchemist", stone_offer, stone_have, stone_offer - stone_have);
+        else if (!no_gain(c.hover)) snprintf(b, sizeof b, "The stone %s offers is of quality %d; the party has none. It would add %d to a batch's chance of success.",
+                                             stone_uni ? "the university" : "this alchemist", stone_offer, stone_offer);
+        else if (stone_uni) snprintf(b, sizeof b, "The university's best stone is of quality %d, no better than the party's %d. Asking gains nothing, and if it goes wrong it costs "
+                                                  "two hours, a point of the party's reputation here and the question for a week.", stone_offer, stone_have);
+        else snprintf(b, sizeof b, "This alchemist's best stone is of quality %d, no better than the party's %d. Asking gains nothing, and if the alchemist "
+                                   "will not talk the party is turned away for 60 hours.", stone_offer, stone_have);
+        ImGui::TextUnformatted(b);
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
@@ -677,6 +721,7 @@ extern "C" void cardview_draw(void)
         ImGui::TextDisabled("Not possible now");
         ImGui::PushTextWrapPos(ww);
         ImGui::TextUnformatted(greyed_hint(c.piece[c.hover]));
+        if (no_gain(c.hover)) ImGui::TextDisabled("Nor would it gain anything: the stone sold here is of quality %d, the party's %d.", stone_offer, stone_have);
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }

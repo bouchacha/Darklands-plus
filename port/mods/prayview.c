@@ -111,7 +111,10 @@ static void screen_hook(void)                 /* saint_screen(who, saint, party)
                 if (H(p->saint, p->who, cur, 7) < 99) { cur++; if (cur > (s8)g_rb(D_MAXDF(p->who))) cur = (s8)g_rb(D_MAXDF(p->who)); g_ww(GV_pray_df, (u16)cur); }
                 break;
             case PV_LESS: if (cur > 0) g_ww(GV_pray_df, (u16)(cur - 1)); break;
-            case PV_SET: { int v = a.a, mx = (s8)g_rb(D_MAXDF(p->who)); if (v < 0) v = 0; if (v > mx) v = mx; g_ww(GV_pray_df, (u16)v); break; }
+            case PV_SET: {                                   /* (no more than gives the best chance: the rest would be spent for nothing) */
+                int v = a.a, mx = (s8)g_rb(D_MAXDF(p->who));
+                if (p->df99 >= 0 && mx > p->df99) mx = p->df99;
+                if (v < 0) v = 0; if (v > mx) v = mx; g_ww(GV_pray_df, (u16)v); break; }
             case PV_PRAY:
                 if (!H(p->saint, p->who, cur, 7)) break;
                 if (a.a >= 0 && (a.a >= gm_party_size() || !gm_member_present(a.a))) break;

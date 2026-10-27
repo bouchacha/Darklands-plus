@@ -19,7 +19,12 @@ void gm_member_fullname(int m, char *out, int n);
 int gm_member_female(int m);
 void gm_money(int *fl, int *gr, int *pf);
 
-/* attributes (0 END, 1 STR, 2 AGL, 3 PER, 4 INT, 5 CHR, 6 DF), skills (19, DARKLAND.LST order) */
+/* attributes (0 END, 1 STR, 2 AGL, 3 PER, 4 INT, 5 CHR, 6 DF), skills (19, DARKLAND.LST order);
+   by name, for the code that means one of them (its shield, its value) */
+enum { ATTR_END, ATTR_STR, ATTR_AGL, ATTR_PER, ATTR_INT, ATTR_CHR, ATTR_DF };
+enum { SKILL_EDGED, SKILL_IMPACT, SKILL_FLAIL, SKILL_POLEARM, SKILL_THROWN, SKILL_BOW, SKILL_MISSILE,
+       SKILL_ALCHEMY, SKILL_RELIGION, SKILL_VIRTUE, SKILL_SPEAK, SKILL_LATIN, SKILL_RW, SKILL_HEALING,
+       SKILL_ARTIFICE, SKILL_STEALTH, SKILL_STREETWISE, SKILL_RIDING, SKILL_WOODWISE };
 void gm_member_attr(int m, int k, int *cur, int *max);
 int gm_member_skill(int m, int k);
 /* the game's rules (no state): what a shield of type 95 (small), 96 (medium) or 97 (large) and

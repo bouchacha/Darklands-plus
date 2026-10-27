@@ -431,6 +431,8 @@ static void cursor_rect(int *x, int *y, int *w, int *h)
     *x = (s16)rw(ds, 0x20a); *y = (s16)rw(ds, 0x20c); *w = (s16)rw(ds, 0x20e); *h = (s16)rw(ds, 0x210);
 }
 
+/* the sprite the game's pointer is now (its segment: cursor_default's, a battle's ...), 0 none */
+unsigned hdtext_cursor_seg(void) { return drvseg_mgraphic ? rw((u16)(drvseg_mgraphic + 0x140), 0x200) : 0; }
 /* where the game's own mouse pointer is drawn (1), or 0 when it is hidden */
 int hdtext_game_cursor(int *x, int *y, int *w, int *h) { cursor_rect(x, y, w, h); return *w > 0; }
 

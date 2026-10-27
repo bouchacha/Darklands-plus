@@ -13,8 +13,7 @@
 #include "drawcache.h"
 #include "repwatch.h"
 #include "alchemydesk.h"
-void ui_pstone_draw(ImDrawList *dl, ImVec2 c, float s, int look, int quality, float t);
-int ui_pstone_look(void);
+#include "pstone.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../mods/infoview.h"
@@ -28,7 +27,7 @@ extern "C" void infoview_draw(void)
     if (!P.begin()) return;
     ImFont *f = P.f, *fo = P.fo;
     const ImU32 ink = NsDraw::INK, soft = NsDraw::INK_SOFT, dim = NsDraw::INK_DIM;
-    const ImU32 PANEL = IM_COL32(244, 234, 210, 255), HOVER = IM_COL32(232, 214, 176, 255), HERE = IM_COL32(222, 196, 146, 255);
+    const ImU32 HOVER = IM_COL32(232, 214, 176, 255), HERE = IM_COL32(222, 196, 146, 255);
     static int by_name = 0; static float scroll = 0; static unsigned seen_seq;
     char b[256];
     /* on the table: the party's charter at the left, sealed; the roll of the cities at the right */

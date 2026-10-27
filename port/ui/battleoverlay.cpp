@@ -1,14 +1,15 @@
-#include "../mods/losaim.h"
-#include <stdlib.h>
 // battleoverlay.cpp - drawn over a battle: a bar over each fighter (endurance, and strength once it is
 // down by half), who the pointer is on (condition, attack, defence, weapon, and against the party's
 // weapons), and the fast-forward badge (Z). overlay.cpp calls these within its layer.
+#include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <string.h>
 #include <math.h>
 #include <float.h>
 #include <string>
+#include "alerts.h"
+#include "../mods/losaim.h"
 #include <vector>
 #include "imgui.h"
 #include "../mods/nscreen.h"
@@ -238,7 +239,6 @@ static const ImGuiWindowFlags INFO_FLAGS = ImGuiWindowFlags_NoDecoration | ImGui
                                            ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings;
 
 /* the first battle with the easier controls: what changed, once (battle.intro_seen) */
-extern "C" void ui_alert(const char *title, const char *body, const char *foot);
 static void battle_intro(void)
 {
     if (config_get_int("battle.intro_seen", 0) || !config_get_int("battle.quick_orders", 1)) return;

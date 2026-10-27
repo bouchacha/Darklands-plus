@@ -18,7 +18,7 @@
 #include "../runtime/dispatch.h"
 #include "gamemodel.h"
 
-void ui_alert(const char *title, const char *body, const char *foot);
+#include "../ui/alerts.h"
 void ui_text_utf8(const char *game, char *out, int n);
 int ui_is_open(void);
 u32 plat_ticks_ms(void);
@@ -81,26 +81,35 @@ void losses_frame(void)
     if (fresh) { for (int m = 0; m < 5; m++) take(m); snap_seed = seed; return; }
     char body[1600]; size_t len = 0; body[0] = 0;
     int ek = events_known();
+    UiAlertRow rows[5]; int nr = 0;
     for (int m = 0; m < 5; m++) {
         char nm[24]; gm_member_name(m, nm, sizeof nm);
         int present = gm_member_present(m);
         if (!present || !snap[m].have || strcmp(nm, snap[m].name)) { take(m); continue; }   /* (a member gone, come or moved) */
+        UiAlertRow *row = &rows[nr]; row->n = 0; row->age = -1; snprintf(row->name, sizeof row->name, "%s", nm);
         char part[400]; size_t pl = 0; part[0] = 0;
         for (int a = 0; a < 7; a++) {
             int v = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + a));
-            if (v < snap[m].max[a]) { pl += (size_t)snprintf(part + pl, sizeof part - pl, "%s%s %d (was %d)", pl ? ", " : "", gm_attr_name(a), v, snap[m].max[a]); if (pl >= sizeof part) pl = sizeof part - 1; }
+            if (v < snap[m].max[a]) {
+                pl += (size_t)snprintf(part + pl, sizeof part - pl, "%s%s %d (was %d)", pl ? ", " : "", gm_attr_name(a), v, snap[m].max[a]); if (pl >= sizeof part) pl = sizeof part - 1;
+                row->ch[row->n].key = a; row->ch[row->n].was = snap[m].max[a]; row->ch[row->n].now = v; row->n++;
+            }
         }
         for (int k = 0; k < 19 && ek; k++) {          /* (the skills only while their boosts can be told) */
             int v = (s8)(g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + k)) - temp_of(0x49, m, k));
-            if (v < snap[m].skill[k]) { pl += (size_t)snprintf(part + pl, sizeof part - pl, "%s%s %d (was %d)", pl ? ", " : "", gm_skill_name(k), v, snap[m].skill[k]); if (pl >= sizeof part) pl = sizeof part - 1; }
+            if (v < snap[m].skill[k]) {
+                pl += (size_t)snprintf(part + pl, sizeof part - pl, "%s%s %d (was %d)", pl ? ", " : "", gm_skill_name(k), v, snap[m].skill[k]); if (pl >= sizeof part) pl = sizeof part - 1;
+                row->ch[row->n].key = 7 + k; row->ch[row->n].was = snap[m].skill[k]; row->ch[row->n].now = v; row->n++;
+            }
         }
         take(m);
         if (!part[0]) continue;
+        nr++;
         char nu[80]; ui_text_utf8(nm, nu, sizeof nu);
         len += (size_t)snprintf(body + len, sizeof body - len, "%s%s: %s.", len ? "\n" : "", nu, part);
         if (len >= sizeof body) len = sizeof body - 1;
     }
-    if (body[0]) ui_alert("Lost for good", body, "The maximum of an attribute, or a skill, is lower now, and will not come back by itself.");
+    if (body[0]) ui_alert_rows("Lost for good", body, rows, nr, "The maximum of an attribute, or a skill, is lower now (what it was, and what it is now), and will not come back by itself.");
 }
 
 /* ---------------------------------------------------------------- armour worn down */

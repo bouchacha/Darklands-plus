@@ -465,6 +465,7 @@ int testcmd_run(const char *cmd, const char *arg)
             for (int k = 0; k < 19; k++) fprintf(stderr, " %d", (s8)g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + k)));
             fprintf(stderr, "\n");
         }
+        else if (!strcmp(cmd, "uexportart")) { char m[400]; int hdart_export(char *, int); hdart_export(m, sizeof m); fprintf(stderr, "exportart: %s\n", m); }   /* test: F12's "Export the original pictures" */
         else if (!strcmp(cmd, "uexport")) { char w[1300]; int datamods_export_cards(char *, size_t); int r = datamods_export_cards(w, sizeof w); fprintf(stderr, "export: %d to %s\n", r, w); }
         else if (!strcmp(cmd, "umissile")) { int i = 0, t = 5; sscanf(arg, "%d,%d", &i, &t); void battlerules_test_missile(int, int); battlerules_test_missile(i, t); }   /* test: member i shoots at t (the missile order) */
         else if (!strcmp(cmd, "ucardhas")) {            /* test: ucardhas:$VILLA02,13,$SabbatLocation (a card block's raw text) */

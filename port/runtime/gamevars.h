@@ -24,6 +24,8 @@
 #define GV_back_win_font                0x2816    /* its font */
 #define GV_cursor_default               0x9c42    /* mouse cursor shapes: default */
 #define GV_cursor_current               0xa68f    /* the cursor set last */
+#define GV_cursor_battle                0xa693    /* a battle's pointer, unpaused (s002: the battle's sprites) */
+#define GV_cursor_battle_paused         0xa691    /* a battle's pointer, paused (its "P") */
 #define GV_party_icons_dirty            0x9c46    /* party changed: reload the icons */
 #define GV_menu_bar_active              0xa2e3    /* a menu of the menu bar is open */
 #define GV_font_flag_a                  0x9920    /* 2 while a screen with lists is up (barter, sheet), else 1 */

@@ -157,6 +157,8 @@
 #define back_win_font            D_2816               /* its font */
 #define cursor_default           D_9c42               /* mouse cursor shapes: default */
 #define cursor_current           D_a68f               /* the cursor set last */
+#define cursor_battle            D_a693               /* a battle's pointer, unpaused (s002: the battle's sprites) */
+#define cursor_battle_paused     D_a691               /* a battle's pointer, paused (its "P") */
 #define party_icons_dirty        D_9c46               /* party changed: reload the icons */
 #define menu_bar_active          D_a2e3               /* a menu of the menu bar is open */
 #define font_flag_a              D_9920               /* 2 while a screen with lists is up (barter, sheet), else 1 */

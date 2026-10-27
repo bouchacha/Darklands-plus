@@ -27,19 +27,6 @@ ImU32 mixc(ImU32 a, ImU32 b, float t)
     int al = (int)((a >> 24 & 255) * (1 - t) + (b >> 24 & 255) * t);
     return IM_COL32(r, g, bl, al);
 }
-/* a band between two ellipses, lit at the upper left */
-void lit_band(ImDrawList *dl, ImVec2 c, ImVec2 ro, ImVec2 ri, ImU32 dark, ImU32 mid, ImU32 light)
-{
-    const int N = 96;
-    for (int i = 0; i < N; i++) {
-        float a0 = i * 2 * PI / N, a1 = (i + 1) * 2 * PI / N, am = (a0 + a1) * 0.5f;
-        float l = cosf(am - PI * 1.25f);
-        ImU32 col = l > 0 ? mixc(mid, light, l) : mixc(mid, dark, -l);
-        ImVec2 q[4] = { ImVec2(c.x + cosf(a0) * ro.x, c.y + sinf(a0) * ro.y), ImVec2(c.x + cosf(a1) * ro.x, c.y + sinf(a1) * ro.y),
-                        ImVec2(c.x + cosf(a1) * ri.x, c.y + sinf(a1) * ri.y), ImVec2(c.x + cosf(a0) * ri.x, c.y + sinf(a0) * ri.y) };
-        dl->AddConvexPolyFilled(q, 4, col);
-    }
-}
 /* a soft round glow (light or shadow): rings fading out */
 void glow(ImDrawList *dl, ImVec2 c, ImVec2 r, ImU32 col, int steps = 14)
 {
