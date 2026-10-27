@@ -62,31 +62,37 @@ void ui_pointer_draw(ImDrawList *dl, ImVec2 tip, float k, int pose, int badge)
     g.at(20.6f, 1.6f).curve(21.4f, 7.0f, 20.9f, 12.6f).stroke(LO, 0.4f);
     g.at(22.6f, 0.9f).curve(23.5f, 7.0f, 23.0f, 13.1f).stroke(LO, 0.4f);
     g.rivet(21.7f, 2.6f); g.rivet(22.0f, 11.3f);
+    /* the hand shows its thumb side: a clenched fist, the forefinger out on top, the thumb laid along under
+       it (a thumb at the bottom would make the finger out the little one) */
     /* the back of the hand: a domed plate, two lames across it toward the knuckles */
-    g.at(11.2f, 0.9f).curve(15.0f, -0.4f, 18.8f, 0.6f).curve(20.2f, 6.0f, 19.2f, 11.4f).curve(16.0f, 13.0f, 12.4f, 11.8f).to(13.0f, 6.0f).curve(11.0f, 4.0f, 11.2f, 0.9f).plate(-0.2f, 12.6f);
-    g.at(14.2f, 0.7f).curve(15.2f, 6.0f, 14.8f, 11.9f).stroke(GAP, 0.45f);
-    g.at(16.6f, 0.5f).curve(17.6f, 6.0f, 17.2f, 12.1f).stroke(GAP, 0.45f);
-    g.at(17.2f, 0.9f).curve(18.0f, 0.7f, 18.6f, 1.1f).stroke(HI, 0.5f);
-    /* the thumb, folded under the palm: two lames */
-    g.at(12.6f, 10.4f).curve(14.6f, 10.6f, 15.8f, 11.8f).curve(15.6f, 13.2f, 14.6f, 13.8f).curve(13.0f, 13.6f, 11.6f, 12.8f).curve(11.8f, 11.2f, 12.6f, 10.4f).plate(10.4f, 13.8f);
-    g.at(9.6f, 10.8f).curve(11.4f, 10.2f, 12.8f, 10.8f).curve(12.6f, 12.2f, 11.8f, 12.9f).curve(10.2f, 13.2f, 9.0f, 12.6f).curve(9.0f, 11.6f, 9.6f, 10.8f).plate(10.2f, 13.2f);
-    /* the other three fingers, curled: rounded knuckle plates one under another */
-    for (int f = 2; f >= 0; f--) {
-        float y = 3.9f + f * 2.2f, x0 = 8.7f + f * 0.5f, x1 = 13.6f;
-        g.at(x0 + 0.9f, y).to(x1, y - 0.1f).curve(x1 + 0.6f, y + 1.0f, x1, y + 2.1f).to(x0 + 0.9f, y + 2.2f).curve(x0 - 0.4f, y + 1.1f, x0 + 0.9f, y).plate(y, y + 2.3f);
-        g.at(x0 + 1.2f, y + 0.45f).to(x1 - 0.6f, y + 0.4f).stroke(HI, 0.35f);
+    g.at(11.4f, 0.6f).curve(15.0f, -0.6f, 18.8f, 0.6f).curve(20.2f, 6.0f, 19.2f, 11.6f).curve(16.0f, 13.2f, 12.6f, 12.2f).to(12.8f, 6.0f).curve(11.0f, 3.6f, 11.4f, 0.6f).plate(-0.4f, 12.8f);
+    g.at(14.6f, 0.3f).curve(15.6f, 6.0f, 15.2f, 12.3f).stroke(GAP, 0.45f);
+    g.at(17.0f, 0.4f).curve(18.0f, 6.0f, 17.6f, 12.2f).stroke(GAP, 0.45f);
+    g.at(17.4f, 0.8f).curve(18.1f, 0.6f, 18.6f, 1.0f).stroke(HI, 0.5f);
+    /* the middle, ring and little fingers curled under: their middle joints a rounded column, the little finger's
+       the smallest; drawn from the bottom up */
+    static const float CURL[3][3] = { { 9.5f, 12.0f, 10.0f }, { 7.0f, 9.8f, 9.2f }, { 4.2f, 7.3f, 8.6f } };   /* top, bottom, front */
+    for (const float *c : CURL) {
+        float y0 = c[0], y1 = c[1], x0 = c[2], x1 = 13.4f, r = (y1 - y0) * 0.5f, ym = (y0 + y1) * 0.5f;
+        g.at(x0 + r, y0).to(x1, y0).curve(x1 + 0.6f, ym, x1, y1).to(x0 + r, y1).curve(x0 - r * 0.9f, ym, x0 + r, y0).plate(y0, y1 + 0.3f);
+        g.at(x0 + r * 0.7f, y0 + 0.5f).curve(x0 + 0.2f, y0 + 0.9f, x0 + 0.25f, ym).stroke(HI, 0.4f);
     }
     if (pose == PTR_GRAB) {                                  /* a fist: the forefinger curled with the rest */
-        g.at(9.0f, 1.4f).to(13.4f, 1.1f).curve(14.0f, 2.5f, 13.4f, 3.9f).to(9.0f, 4.0f).curve(7.6f, 2.7f, 9.0f, 1.4f).plate(1.1f, 4.0f);
-        g.at(9.4f, 1.8f).to(12.8f, 1.6f).stroke(HI, 0.35f);
-    } else {                                                  /* the forefinger out: three lames to a rounded point */
-        g.at(7.8f, 0.5f).to(12.0f, 0.4f).curve(12.6f, 2.2f, 12.1f, 3.9f).to(7.9f, 3.8f).curve(7.4f, 2.1f, 7.8f, 0.5f).plate(0.4f, 3.9f);
-        g.at(4.1f, 0.5f).to(8.1f, 0.4f).curve(8.6f, 2.0f, 8.2f, 3.6f).to(4.3f, 3.5f).curve(3.8f, 2.0f, 4.1f, 0.5f).plate(0.4f, 3.6f);
-        g.at(0.0f, 0.0f).curve(2.0f, 0.2f, 4.4f, 0.5f).curve(4.9f, 1.9f, 4.5f, 3.4f).curve(2.4f, 3.4f, 1.0f, 2.2f).curve(0.2f, 1.3f, 0.0f, 0.0f).plate(0.0f, 3.4f);
-        g.at(0.9f, 0.55f).curve(2.6f, 0.6f, 4.0f, 0.95f).stroke(HI, 0.4f);
-        g.at(4.6f, 0.9f).to(7.7f, 0.85f).stroke(HI, 0.35f);
-        g.at(8.3f, 0.9f).to(11.6f, 0.85f).stroke(HI, 0.35f);
+        g.at(9.4f, 1.0f).to(13.4f, 0.8f).curve(14.0f, 2.5f, 13.4f, 4.3f).to(9.4f, 4.4f).curve(7.6f, 2.7f, 9.4f, 1.0f).plate(0.8f, 4.4f);
+        g.at(8.9f, 2.4f).curve(9.2f, 1.4f, 10.0f, 1.4f).stroke(HI, 0.4f);
+    } else {                                                  /* the forefinger out: three broad lames, the tip blunt */
+        g.at(7.6f, 0.2f).to(12.6f, 0.0f).curve(13.3f, 2.2f, 12.6f, 4.4f).to(7.7f, 4.2f).curve(7.1f, 2.2f, 7.6f, 0.2f).plate(0.0f, 4.4f);
+        g.at(3.6f, 0.2f).to(8.0f, 0.2f).curve(8.6f, 2.1f, 8.1f, 4.0f).to(3.8f, 3.9f).curve(3.2f, 2.0f, 3.6f, 0.2f).plate(0.1f, 4.0f);
+        g.at(0.0f, 0.0f).to(4.0f, 0.2f).curve(4.6f, 2.0f, 4.1f, 3.8f).to(1.6f, 3.8f).curve(-0.6f, 3.6f, -0.2f, 1.4f).curve(-0.2f, 0.4f, 0.0f, 0.0f).plate(0.0f, 3.8f);
+        g.at(0.6f, 0.55f).to(3.5f, 0.65f).stroke(HI, 0.4f);
+        g.at(4.2f, 0.7f).to(7.5f, 0.7f).stroke(HI, 0.35f);
+        g.at(8.2f, 0.6f).to(12.2f, 0.5f).stroke(HI, 0.35f);
     }
+    /* the thumb, over the middle finger: two lames to a rounded tip */
+    g.at(13.0f, 4.2f).curve(15.6f, 3.8f, 17.2f, 4.8f).curve(17.4f, 6.6f, 16.2f, 7.6f).curve(14.4f, 7.6f, 12.8f, 7.2f).curve(12.4f, 5.6f, 13.0f, 4.2f).plate(3.9f, 7.6f);
+    g.at(10.2f, 4.6f).to(13.6f, 4.3f).curve(14.2f, 5.8f, 13.6f, 7.1f).to(10.6f, 6.9f).curve(9.0f, 6.6f, 9.2f, 5.6f).curve(9.3f, 4.8f, 10.2f, 4.6f).plate(4.3f, 7.1f);
+    g.at(10.0f, 5.1f).to(13.0f, 4.9f).stroke(HI, 0.35f);
+    g.at(13.6f, 4.7f).curve(15.4f, 4.4f, 16.6f, 5.2f).stroke(HI, 0.35f);
     /* the cuff's badge: on a little dark plate */
     if (badge != PTR_PLAIN) {
         ImVec2 c = g.P(23.2f, 7.0f); float r = 2.9f * k;

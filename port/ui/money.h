@@ -13,8 +13,11 @@ extern "C++" {                     /* (included from extern "C" blocks too) */
 bool money_coins(void);                          // display.coins (on by default)
 std::string money_str(long pf);                  // "1● 12● 4●" (coins) or "1fl 12gr 4pf"; 0: "0" + copper
 std::string money_fgp(long fl, long gr, long pf); // the same for an amount kept in three parts (a purse)
-std::string money_with_total(long pf);           // money_str, and "(105 pf)" after it from a groschen up
+std::string money_with_total(long pf);           // money_str, and the whole in pfennigs after it from a groschen up ("(105" + copper + ")")
 std::string money_total(long pf);                // "388 pfennigs in all" (for a tooltip or a strip)
+// an amount in words with its coin in place of the word, display.coins on ("3 groschen" -> "3" + silver,
+// "12pfs" -> "12" + copper; "fl", "gr", "pf", "pfs" only joined to the figure); else s as it is
+std::string money_words(const std::string &s);
 void money_tooltip(long pf);                     // that, as a tooltip, when the last ImGui item is hovered and the amount has two parts or more
 
 struct ImFontAtlas; struct ImDrawList; struct ImVec2;

@@ -249,7 +249,7 @@ extern "C" void cardview_draw(void)
     float size = 0, L = 0, gap = 0, pad = 0, cap = 0, total = 0;
     std::vector<std::string> ws;
     std::vector<std::string> utf(c.npieces);
-    for (int j = 0; j < c.npieces; j++) utf[j] = gamedata_spell_text(gtext(c.piece[j].text));   /* (names the game cut short, in full) */
+    for (int j = 0; j < c.npieces; j++) utf[j] = money_words(gamedata_spell_text(gtext(c.piece[j].text)));   /* (names the game cut short, in full; money with its coins) */
     /* a narrow column beside a picture: the first letter in the line (an initial two lines high
        would leave a word or two a line beside it) */
     const int dropcap = c.dropcap && c.w < 110 ? 0 : c.dropcap;
@@ -676,7 +676,7 @@ extern "C" void cardview_draw(void)
         ui_rich_text(ui_teacher_text(teach[c.hover]).c_str());
         std::string hired = ui_teachers_hired_line((s16)g_rw(GV_cur_loc));
         if (!hired.empty()) ui_rich_textf_dim("Hired here now: %s.", hired.c_str());
-        if (const char *why = greyed_hint(c.piece[c.hover])) { ImGui::Separator(); ImGui::TextDisabled("Not possible now"); ImGui::TextUnformatted(why); }
+        if (const char *why = greyed_hint(c.piece[c.hover])) { ImGui::Separator(); ImGui::TextDisabled("Not possible now"); ui_rich_text(why); }
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
@@ -723,7 +723,7 @@ extern "C" void cardview_draw(void)
         ImGui::BeginTooltip();
         ImGui::TextDisabled("Not possible now");
         ImGui::PushTextWrapPos(ww);
-        ImGui::TextUnformatted(greyed_hint(c.piece[c.hover]));
+        ui_rich_text(greyed_hint(c.piece[c.hover]));        /* (an amount with its coin: ui/richtext.h) */
         if (no_gain(c.hover)) ImGui::TextDisabled("Nor would it gain anything: the stone sold here is of quality %d, the party's %d.", stone_offer, stone_have);
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
@@ -734,7 +734,6 @@ extern "C" void cardview_draw(void)
            (even when nobody does: the option is then greyed) */
         const CvPiece &p = c.piece[c.hover];
         int npar = (s16)g_rw(G_PARTY_SIZE);
-        auto name_of = [](int m) { char n[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), n, sizeof n); return game_text(n, strlen(n)); };
         auto alive = [](int m) { int st = g_rb((u16)(G_MEMBER(m) + G_M_STATUS)); return st != 0 && st != 3; };
         std::vector<std::pair<std::string, std::string>> rows;
         bool formulas = false;
@@ -745,12 +744,12 @@ extern "C" void cardview_draw(void)
                 if (id < 0 || id >= (int)gamedata.saints.size()) continue;
                 what = gamedata.saints[id].name;
                 for (int m = 0; m < npar && m < 5; m++)
-                    if (alive(m) && (rb(G_FAR2E38, (u16)(0x082c + m * 0x14 + (id >> 3))) & (0x80 >> (id & 7)))) { if (!who.empty()) who += ", "; who += name_of(m); }
+                    if (alive(m) && (rb(G_FAR2E38, (u16)(0x082c + m * 0x14 + (id >> 3))) & (0x80 >> (id & 7)))) { if (!who.empty()) who += " "; who += rich_member(m); }
             } else if (cv_formula_of_slot(j) >= 0) {             /* a formula on sale: who knows it already */
                 int fo = cv_formula_of_slot(j);
                 what = gamedata.formula_names[fo] + " (" + cv_formula_price(j) + ")";
                 for (int m = 0; m < npar && m < 5; m++)
-                    if (alive(m) && gm_knows_formula(m, fo)) { if (!who.empty()) who += ", "; who += name_of(m); }
+                    if (alive(m) && gm_knows_formula(m, fo)) { if (!who.empty()) who += " "; who += rich_member(m); }
                 rows.push_back({ what, who.empty() ? "nobody knows it yet" : "known to " + who });
                 formulas = true;
                 continue;
@@ -761,7 +760,7 @@ extern "C" void cardview_draw(void)
                     if (!alive(m)) continue;
                     int n = 0, k = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
                     for (int i = 0; i < k && i < 64; i++) if ((rw(G_FAR2E38, G_ITEM(m, i)) & 0xfff) == id) n += rb(G_FAR2E38, (u16)(G_ITEM(m, i) + 4));
-                    if (n) { if (!who.empty()) who += ", "; who += name_of(m) + (n > 1 ? " (" + std::to_string(n) + ")" : ""); }
+                    if (n) { if (!who.empty()) who += "  "; who += rich_member(m, n > 1 ? std::to_string(n) : ""); }
                 }
             }
             rows.push_back({ what, who.empty() ? (p.type == 2 ? "nobody knows this saint" : "nobody carries one") : who });
@@ -770,12 +769,12 @@ extern "C" void cardview_draw(void)
             float ww = tip_place(30);                              /* beside the option (the pointer may be the game's only) */
             ImGui::BeginTooltip();
             ImGui::TextDisabled("%s", p.type == 2 ? "Saints who help here" : formulas ? "Formulae for sale" : "Items that help here");
-            for (auto &r : rows) { ImGui::TextUnformatted(r.first.c_str()); ImGui::SameLine(); ImGui::TextDisabled("  %s", r.second.c_str()); }
+            for (auto &r : rows) { ImGui::TextUnformatted(r.first.c_str()); ImGui::SameLine(); ui_rich_textf_dim("  %s", r.second.c_str()); }
             if (const char *why = greyed_hint(p)) {                 /* greyed for a reason of the card's own */
                 ImGui::Separator();
                 ImGui::PushTextWrapPos(fminf(ww, ImGui::GetFontSize() * 21));
                 ImGui::TextDisabled("Not possible now");
-                ImGui::TextUnformatted(why);
+                ui_rich_text(why);
                 ImGui::PopTextWrapPos();
             }
             if (formulas) ImGui::TextDisabled("(click to choose who learns one; point at a formula there for its details)");

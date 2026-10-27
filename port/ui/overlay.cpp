@@ -61,10 +61,18 @@ void text_edged(ImDrawList *dl, ImFont *f, float size, ImVec2 p, ImU32 c, const 
         bool light = bg < 0 ? lum > 115000 : lum >= ((bg >> 16 & 255) * 299 + (bg >> 8 & 255) * 587 + (bg & 255) * 114);
         ImU32 e = light ? IM_COL32(0, 0, 0, (int)(a * 0.80f)) : IM_COL32(255, 244, 225, (int)(a * 0.45f));
         float th = size * 0.055f; if (th < 1.0f) th = 1.0f;
-        if (edge == 1) dl->AddText(f, size, ImVec2(p.x + th, p.y + th), e, t);
-        else {
-            static const float D[8][2] = { {1,0},{-1,0},{0,1},{0,-1},{0.7f,0.7f},{-0.7f,0.7f},{0.7f,-0.7f},{-0.7f,-0.7f} };
-            for (int i = 0; i < 8; i++) dl->AddText(f, size, ImVec2(p.x + D[i][0] * th, p.y + D[i][1] * th), e, t);
+        static const float D[8][2] = { {1,0},{-1,0},{0,1},{0,-1},{0.7f,0.7f},{-0.7f,0.7f},{0.7f,-0.7f},{-0.7f,-0.7f} };
+        /* the letters' edge only: a coin (U+E000..E002, drawn in its own colours) has its own rim */
+        for (const char *s0 = t; ; ) {
+            const char *c = strstr(s0, "\xee\x80");
+            const char *e1 = c ? c : s0 + strlen(s0);
+            if (e1 > s0) {
+                float x = p.x + (s0 > t ? f->CalcTextSizeA(size, FLT_MAX, 0, t, s0).x : 0);
+                if (edge == 1) dl->AddText(f, size, ImVec2(x + th, p.y + th), e, s0, e1);
+                else for (int i = 0; i < 8; i++) dl->AddText(f, size, ImVec2(x + D[i][0] * th, p.y + D[i][1] * th), e, s0, e1);
+            }
+            if (!c) break;
+            s0 = c + (c[2] ? 3 : 2);
         }
     }
     dl->AddText(f, size, p, c, t);
@@ -372,14 +380,13 @@ static void draw_card_help(void)
     }
     std::vector<std::pair<std::string, std::string>> lines;
     std::vector<int> ids;                                   /* a saint, or 1000 + an item */
-    auto name_of = [](int m) { char n[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), n, sizeof n); return game_text(n, sizeof n); };
     auto alive = [](int m) { int st = g_rb((u16)(G_MEMBER(m) + G_M_STATUS)); return st != 0 && st != 3; };   /* the dead know no saints and carry nothing */
     for (int j = 0; j < 4; j++) {
         int s = (s16)g_rw((u16)(GV_card_saints + 2 * j));
         if (s < 0 || s >= (int)gamedata.saints.size()) continue;
         std::string who;
         for (int m = 0; m < npar; m++)
-            if (alive(m) && (rb(G_FAR2E38, (u16)(0x082c + m * 0x14 + (s >> 3))) & (0x80 >> (s & 7)))) { if (!who.empty()) who += ", "; who += name_of(m); }
+            if (alive(m) && (rb(G_FAR2E38, (u16)(0x082c + m * 0x14 + (s >> 3))) & (0x80 >> (s & 7)))) { if (!who.empty()) who += " "; who += rich_member(m); }
         lines.push_back({ gamedata.saints[s].name, who.empty() ? "nobody knows" : who });
         ids.push_back(s);
     }
@@ -392,7 +399,7 @@ static void draw_card_help(void)
             if (!alive(m)) continue;
             int n = 0, k = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
             for (int i = 0; i < k && i < 64; i++) if ((rw(G_FAR2E38, G_ITEM(m, i)) & 0xfff) == it) n += rb(G_FAR2E38, (u16)(G_ITEM(m, i) + 4));
-            if (n) { if (!who.empty()) who += ", "; who += name_of(m) + (n > 1 ? " (" + std::to_string(n) + ")" : ""); }
+            if (n) { if (!who.empty()) who += "  "; who += rich_member(m, n > 1 ? std::to_string(n) : ""); }
         }
         lines.push_back({ game_text(gamedata.items[it].name.c_str(), 64), who.empty() ? "nobody has one" : who });
         ids.push_back(1000 + it);
@@ -410,7 +417,7 @@ static void draw_card_help(void)
     for (int tries = 0; tries < 6; tries++, size *= 0.93f) {
         lh = size * 1.12f; gapx = size * 0.8f; padx = size * 0.55f; pady = size * 0.3f;
         w = f->CalcTextSizeA(size * 0.92f, FLT_MAX, 0, hs).x;
-        for (auto &l : lines) { float a = f->CalcTextSizeA(size, FLT_MAX, 0, l.first.c_str()).x + gapx + f->CalcTextSizeA(size, FLT_MAX, 0, l.second.c_str()).x; if (a > w) w = a; }
+        for (auto &l : lines) { float a = f->CalcTextSizeA(size, FLT_MAX, 0, l.first.c_str()).x + gapx + rich_size(f, size, 0, l.second.c_str()).x; if (a > w) w = a; }
         h = lh * nrows + 2 * pady;
         p0 = ImVec2(br.x - w - 2 * padx, br.y - h); p1 = br;
         bool hit = false;
@@ -436,8 +443,9 @@ static void draw_card_help(void)
         bool none = lines[i].second == "nobody knows" || lines[i].second == "nobody has one";
         dl->AddText(f, size, ImVec2(x + size * 0.4f, y), IM_COL32(248, 236, 205, 255), lines[i].first.c_str());
         float nx = x + size * 0.4f + namew + gapx * 0.6f;
-        if (nx + f->CalcTextSizeA(size, FLT_MAX, 0, lines[i].second.c_str()).x > p1.x - padx * 0.5f) nx = p1.x - padx * 0.5f - f->CalcTextSizeA(size, FLT_MAX, 0, lines[i].second.c_str()).x;
-        dl->AddText(f, size, ImVec2(nx, y), none ? IM_COL32(175, 155, 130, 220) : IM_COL32(150, 230, 120, 255), lines[i].second.c_str());
+        float ww = rich_size(f, size, 0, lines[i].second.c_str()).x;   /* (who: their heads; an item's count after it) */
+        if (nx + ww > p1.x - padx * 0.5f) nx = p1.x - padx * 0.5f - ww;
+        rich_draw(dl, f, size, ImVec2(nx, y), 0, none ? IM_COL32(175, 155, 130, 220) : IM_COL32(150, 230, 120, 255), lines[i].second.c_str());
         if (hp.x >= p0.x && hp.x < p1.x && hp.y >= y && hp.y < y + lh) tip = i;
         y += lh;
     }

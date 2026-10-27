@@ -50,8 +50,7 @@ std::string ns_item_compare(int id, int q, int m)
 {
     const ItemDef *d = ns_itemdef(id);
     if (!d || m < 0 || m >= 5 || !gm_member_present(m)) return "";
-    char nm[24]; gm_member_name(m, nm, sizeof nm);
-    std::string who = ns_gtext(nm);
+    std::string who = rich_member(m);                       /* (the member's head: ui/richtext.h) */
     u16 b = G_MEMBER(m);
     auto slot = [&](int toff, int qoff, int &t, int &wq) { t = (s8)g_rb((u16)(b + toff)); wq = g_rb((u16)(b + qoff)); return t >= 0; };
     auto name_of = [&](int t, int wq) {                     /* the record in use of that type */
@@ -80,7 +79,7 @@ std::string ns_item_compare(int id, int q, int m)
     if (d->type >= 0 && d->type <= 62 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
         int w = d->type, sk = rb(G_FAR20A5, (u16)(0x75ac + w)), smin = rb(G_FAR20A5, (u16)(0x7765 + w));
         bool missile = sk == 5 || sk == 6;
-        std::string r = who + "'s " + (sk < 7 ? "{" + std::string(gm_skill_short(sk)) + ":" + std::to_string(gm_member_skill(m, sk)) + "}" : std::string("skill: ?")) + ".";
+        std::string r = who + " " + (sk < 7 ? "{" + std::string(gm_skill_short(sk)) + ":" + std::to_string(gm_member_skill(m, sk)) + "}" : std::string("skill: ?")) + ".";
         int str, strmax; gm_member_attr(m, 1, &str, &strmax);
         if (smin > 0 && strmax < smin) r += " Too heavy: it needs {Strength:" + std::to_string(smin) + "}.";
         int t, wq;
@@ -100,10 +99,10 @@ std::string ns_item_compare_party(int id, int q)
     if (!d) return "";
     std::vector<int> ms;
     for (int m = 0; m < gm_party_size() && m < 5; m++) if (gm_member_present(m) && gm_member_status(m) != 3) ms.push_back(m);
-    auto nm = [](int m) { char b[24]; gm_member_name(m, b, sizeof b); return ns_gtext(b); };
+    auto nm = [](int m) { return rich_member(m); };          /* (each member's head: ui/richtext.h) */
     auto join = [](const std::vector<std::string> &v) {
         std::string r;
-        for (size_t i = 0; i < v.size(); i++) r += (i == 0 ? "" : i + 1 == v.size() ? " and " : ", ") + v[i];
+        for (size_t i = 0; i < v.size(); i++) r += (i == 0 ? "" : " ") + v[i];
         return r;
     };
     if (d->type >= 67 && d->type <= 84) {
@@ -137,15 +136,15 @@ std::string ns_item_compare_party(int id, int q)
     if (d->type >= 0 && d->type <= 62 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
         int w = d->type, sk = rb(G_FAR20A5, (u16)(0x75ac + w)), smin = rb(G_FAR20A5, (u16)(0x7765 + w));
         if (sk >= 7) return "";
-        std::vector<std::pair<int, std::string>> v; std::vector<std::string> heavy;
+        std::vector<std::pair<int, int>> v; std::vector<std::string> heavy;
         for (int m : ms) {
-            v.push_back({ gm_member_skill(m, sk), nm(m) });
+            v.push_back({ gm_member_skill(m, sk), m });
             int str, strmax; gm_member_attr(m, 1, &str, &strmax);
             if (smin > 0 && strmax < smin) heavy.push_back(nm(m));
         }
-        std::sort(v.begin(), v.end(), [](const std::pair<int, std::string> &a, const std::pair<int, std::string> &b) { return a.first > b.first; });
+        std::stable_sort(v.begin(), v.end(), [](const std::pair<int, int> &a, const std::pair<int, int> &b) { return a.first > b.first; });
         std::string r = "{" + std::string(gm_skill_short(sk)) + "}: ";
-        for (size_t i = 0; i < v.size(); i++) r += (i ? ", " : "") + v[i].second + " " + std::to_string(v[i].first);
+        for (size_t i = 0; i < v.size(); i++) r += (i ? "  " : "") + rich_member(v[i].second, std::to_string(v[i].first));
         r += ".";
         if (!heavy.empty()) r += " Too heavy for " + join(heavy) + " (it needs {Strength:" + std::to_string(smin) + "}).";
         return r;
@@ -341,9 +340,8 @@ float ns_item_strip(NsDraw &P, float y0, const NsStripThing &t)
             static const char *BAND[4] = { "a light load: no hindrance", "a normal load: blows hand to hand a fifth slower",
                                            "a heavy load: blows a fifth slower, dodging hampered", "overloaded: blows two thirds slower, little or no dodging" };
             int b0 = band(cur), b1 = band(after);
-            char nm[24]; gm_member_name(m, nm, sizeof nm);
             char line[200];
-            snprintf(line, sizeof line, "Worn by %s: load %d \xc2\xbb %d of %d, %s%s", ns_gtext(nm).c_str(), cur, after, cap, BAND[b1],
+            snprintf(line, sizeof line, "Worn by %s: load %d \xc2\xbb %d of %d, %s%s", rich_member(m).c_str(), cur, after, cap, BAND[b1],
                      b1 > b0 ? " (now " : b1 < b0 ? " (now " : "");
             std::string l = line;
             if (b1 != b0) { static const char *SHORT[4] = { "light", "normal", "heavy", "overloaded" }; l += SHORT[b0]; l += ")"; }

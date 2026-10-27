@@ -223,6 +223,23 @@ const GamePic *ns_figure_head(int cache, const char *code, const unsigned char *
     *uv0 = ImVec2(f.hx0, f.hy0); *uv1 = ImVec2(f.hx1, f.hy1);
     return g;
 }
+/* member m's head, sz tall from p0 (ui/richtext.h): in the game's own pixels, 1.2 times as tall as wide */
+bool ui_member_head(ImDrawList *dl, int m, ImVec2 p0, float sz, ImU32 tint)
+{
+    if (m < 0 || m > 4) return false;
+    char code[8]; gm_member_figure_code(m, code, sizeof code);
+    unsigned char mp[24]; gm_member_palette(m, mp);
+    ImVec2 u0, u1;
+    const GamePic *g = ns_figure_head(60 + m, code, mp, &u0, &u1);
+    if (!g) return false;
+    dl->AddImage((ImTextureID)(intptr_t)g->tex, p0, ImVec2(p0.x + sz / 1.2f, p0.y + sz), u0, u1, tint);
+    return true;
+}
+std::string ui_member_name(int m)
+{
+    char nm[24]; gm_member_name(m, nm, sizeof nm);
+    return ns_gtext(nm);
+}
 /* a member's figure beside a battle */
 static const GamePic *figure(int m)
 {

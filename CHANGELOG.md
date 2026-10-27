@@ -7,12 +7,14 @@ What changed since 1.3.1.
 **Shields and the pointer**
 
 - **Shields for attributes and skills, in place of their names:** the years' toll and "Lost for good" show each member's age (an hourglass) and each attribute or skill lowered as its shield with what it was and is; the town's teachers show who would learn which skill, by its shield, and from what; the margin's blessings and potions show each raised attribute or skill as its shield and how much; a card's chance names what it rests on beside each shield. In texts too, wherever an attribute or skill is named, changed or asked for: the inn's and camp's days, a weapon's skill and the Strength it needs, the load, the prayer screen, a profession's needs at character creation, the teachers' and audiences' conditions, the potions, the battle log and the skill raised in a battle; the pointer on a shield names it.
-- **The pointer:** the game's armored gauntlet drawn anew, crisp at any size: a fist while something is dragged; on its cuff the pause while a battle is paused, crossed blades over a foe a click would attack (a member chosen), an hourglass while Go to walks (F12 > Settings: the game's own little picture if preferred).
+- **Strength's shield** is an arm embowed (a flexed arm): the weight it was is the sign of a heavy load.
+- **The party's members by their heads:** wherever a list gives the members with a value or a part (the party line under an attribute or skill on the character sheet, each member's Virtue against a saint's, who knows a saint or a formula, the chances of brewing, who carries an ingredient, the cards' saints and items, a weapon or armor against the party, who would learn from a teacher, the margin's blessings and potions), each is the head of their figure; the name under the pointer.
+- **The pointer:** the game's armored gauntlet drawn anew, crisp at any size, a clenched fist pointing its forefinger: a fist while something is dragged; on its cuff the pause while a battle is paused, crossed blades over a foe a click would attack (a member chosen), an hourglass while Go to walks (F12 > Settings: the game's own little picture if preferred).
 - **Battle, a foe's tooltip and Enemy Info:** each of your weapons shown as its picture, then whether it pierces the foe's armor, does half damage or is mostly deflected.
 
 **Saints**
 
-- **Saints on the character sheet** can be picked by what they raise: a row of the attributes' and skills' shields and the town's opinion (all saints that raise Perception, say), the saint who gives the most of it first. Each saint's help shows under its name as shields, the most first, with one to three chevrons on each for how much it gives against what the other saints give (red, reversed, for what it costs); the Virtue it asks is a shield and number beside its name, greyed when nobody in the party has as much (the same on the cards' list of saints and the prayer screen). The saint clicked shows each member's best chance of being heard with the least favor it takes, and Pray, and what its help does an effect a line: shields that share a value side by side, the value once.
+- **Saints on the character sheet** can be picked by what they raise: a row of the attributes' and skills' shields and the town's opinion (all saints that raise Perception, say), the saint who gives the most of it first. Each saint's help shows under its name as shields, the most first, with one to three chevrons on each for how much it gives against what the other saints give (red, reversed, for what it costs); the Virtue it asks is a small, faded shield and number beside its name, fainter still when nobody in the party has as much (on the cards' list of saints and the prayer screen, a shield and number). The page shows the saints the party knows or every saint in the game, then a line to pick by what they help with, a line to pick by what they raise. The saint clicked shows each member's best chance of being heard with the least favor it takes, and Pray, and what its help does an effect a line: shields that share a value side by side, the value once.
 - **Praying:** the favor to spend stops where the chance reaches its best (99% at most); the rest of the bar is hatched, kept.
 
 **Alchemy**
@@ -23,14 +25,17 @@ What changed since 1.3.1.
 
 **The world map**
 
-- **World map:** the quests alone at the left; at the top right, finding a town (by name, the towns with something, where to buy an ingredient or any ware) and, merged, what the map shows (the layers and the kinds of place); each panel folds away. The party's pulsing mark centers the map on it. The ingredient and ware finders sort by a column's head (name, carried or quality, nearest), and the ware finder lists every ware seen until a name narrows it.
+- **World map:** the quests alone at the left; at the top right, Find... (any place by its name, alchemical ingredients, any ware, a town with something) and what the map shows (the layers and the kinds of place); each panel folds away. A place a quest's picture stands on is always shown under it, at any zoom. The line at the top keeps only how to move the map. The party's pulsing mark centers the map on it. The ingredient and ware finders sort by a column's head (name, carried or quality, nearest), and the ware finder lists every ware seen until a name narrows it.
 - **World map, a town's panel:** its saints (those the party knows greyed), formulae as potions (known ones greyed) and teachers as the skills' shields, as in the margin; its boats as a dock, a boat and an arrow (leaving, arriving, both ways) before the towns.
 
 **Dungeons, camp and the party**
 
 - **Level map (Tab), floors:** in a castle, mine or dungeon with more than one floor, a small chart at the top right, a square a floor: the floors the party has been on, the stairs seen between them, the party's floor outlined, and "?" for a floor its stairs lead to that nobody has been on; a click on a floor these stairs lead to walks the party to them and, outside a fight, takes them. The map also keeps what the party saw through a card in the middle of the dungeon (a riddle, a talk).
 - **Camp:** Guard the camp has a picture of its own (the watch's lantern), and under it the chance that the lord's men find the party, before the next day and the day after; Train or study, never possible in the wild, is gone.
-- **Aging:** pointing at a member's age on the character sheet tells what the years will take next, and by five years on.
+- **Aging:** pointing at a member's age on the character sheet tells what the years have taken so far and what they will take within a year.
+- **The character sheet's header:** the sex as a plain sign, the age as its hourglass, and the leader as a pennant, lit for the one who leads (a click on another member's makes them leader; what the leader does under the pointer).
+- **The character sheet's things:** the kinds of things in the pack fold away (a click on the heading; the ingredients folded at first), and the sheet's lists open at their top.
+- **Money as coins** (F12 > Settings) gives amounts in words their coins too: a card's "3 groschen", the game's own "12pfs", a hint's "2 florins".
 
 **Saves and bug reports**
 

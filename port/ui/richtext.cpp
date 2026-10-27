@@ -1,10 +1,13 @@
 // richtext.cpp - text with the attributes' and skills' shields in it (richtext.h): the text cut into words
 // and shields, laid out a line at a time like ImGui's own wrapped text, each shield the size of the
 // type's capitals (UI_SHIELD_W wide), its value after it; shields side by side (a group sharing one value)
-// joined by a bracket under them. The shields drawn last are kept, so that the pointer on one names it.
+// joined by a bracket under them; a member's head ({@m}) square, the type's height. With display.coins on, an
+// amount in words is given its coin first (money_words). The shields and heads drawn last are kept, so that the
+// pointer on one names it.
 #include "richtext.h"
 #include "imgui_internal.h"
 #include "skillicons.h"
+#include "money.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -24,14 +27,17 @@ int token_at(const char *s, size_t i, std::string *value, size_t *end)
     if (!e) return -1;
     const char *colon = (const char *)memchr(s + i, ':', (size_t)(e - (s + i)));
     const char *ne = colon ? colon : e;
-    int key = ui_key_of(s + i + 1, (int)(ne - (s + i + 1)));
+    int key = ne == s + i + 3 && s[i + 1] == '@' && s[i + 2] >= '0' && s[i + 2] <= '4' ? RICH_MEMBER + (s[i + 2] - '0')
+                                                                                     : ui_key_of(s + i + 1, (int)(ne - (s + i + 1)));
     if (key < 0) return -1;
     *value = colon ? std::string(colon + 1, e) : std::string();
     *end = (size_t)(e - s) + 1;
     return key;
 }
-std::vector<Atom> atoms_of(const char *s)
+std::vector<Atom> atoms_of(const char *s0)
 {
+    std::string coined = money_words(s0);
+    const char *s = coined.c_str();
     std::vector<Atom> out;
     bool space = false, br = false;
     std::string word;
@@ -51,12 +57,12 @@ std::vector<Atom> atoms_of(const char *s)
     return out;
 }
 float shield_size(float fs) { return fs * 0.66f; }
+float pic_width(float fs, int key) { return key >= RICH_MEMBER ? fs * 0.92f / 1.2f : UI_SHIELD_W * shield_size(fs); }   /* a head; a shield */
 float atom_width(ImFont *f, float fs, const Atom &a)
 {
     float w = a.text.empty() ? 0 : f->CalcTextSizeA(fs, FLT_MAX, 0, a.text.c_str()).x;
     if (a.key < 0) return w;
-    float is = shield_size(fs);
-    return UI_SHIELD_W * is + (a.text.empty() ? 0 : is * 0.25f + w);
+    return pic_width(fs, a.key) + (a.text.empty() ? 0 : shield_size(fs) * 0.25f + w);
 }
 /* a shield alone, straight after another (no space): one of a group */
 bool grouped(const std::vector<Atom> &at, size_t i) { return i + 1 < at.size() && at[i].key >= 0 && at[i].text.empty() && at[i + 1].key >= 0 && !at[i + 1].space && !at[i + 1].br; }
@@ -86,8 +92,14 @@ bool rich_has(const char *s)
         std::string value; size_t end;
         if (token_at(s, (size_t)(p - s), &value, &end) >= 0) return true;
     }
-    return false;
+    return s && money_coins() && money_words(s) != s;
 }
+
+std::string rich_member(int m, const std::string &value)
+{
+    return "{@" + std::to_string(m) + (value.empty() ? "" : ":" + value) + "}";
+}
+std::string rich_key_name(int key) { return key >= RICH_MEMBER ? ui_member_name(key - RICH_MEMBER) : ui_key_name(key); }
 
 ImVec2 rich_size(ImFont *f, float fs, float wrap, const char *s)
 {
@@ -100,23 +112,27 @@ ImVec2 rich_draw(ImDrawList *dl, ImFont *f, float fs, ImVec2 pos, float wrap, Im
     std::vector<Atom> at = atoms_of(s);
     std::vector<ImVec2> ps;
     ImVec2 size = layout(f, fs, wrap, at, &ps);
-    float is = shield_size(fs), sw = UI_SHIELD_W * is;
+    float is = shield_size(fs);
     hits.clear();
     for (size_t i = 0; i < at.size(); i++) {
         const Atom &a = at[i];
         ImVec2 p(pos.x + ps[i].x, pos.y + ps[i].y);
         if (a.key < 0) { dl->AddText(f, fs, p, col, a.text.c_str()); continue; }
-        extern int ui_icon_disc; int disc = ui_icon_disc; ui_icon_disc = 0;
+        float sw = pic_width(fs, a.key);
         int v0 = dl->VtxBuffer.Size;
-        ui_key_icon(dl, ImVec2(p.x + sw * 0.5f, p.y + fs * 0.52f), is, a.key);
-        ui_icon_disc = disc;
+        if (a.key >= RICH_MEMBER) ui_member_head(dl, a.key - RICH_MEMBER, ImVec2(p.x, p.y + fs * 0.04f), fs * 0.92f);
+        else {
+            extern int ui_icon_disc; int disc = ui_icon_disc; ui_icon_disc = 0;
+            ui_key_icon(dl, ImVec2(p.x + sw * 0.5f, p.y + fs * 0.52f), is, a.key);
+            ui_icon_disc = disc;
+        }
         unsigned al = (col >> IM_COL32_A_SHIFT) & 255;
         if (al < 250) ui_dim_since(dl, v0, al / 255.0f);          /* (a greyed or fading text: its shields with it) */
         hits.push_back({ p, ImVec2(p.x + sw, p.y + fs), a.key });
         if (!a.text.empty()) dl->AddText(f, fs, ImVec2(p.x + sw + is * 0.25f, p.y), col, a.text.c_str());
         if (grouped(at, i) && (i == 0 || !grouped(at, i - 1))) {    /* a group's first shield: a bracket under the group */
             size_t j = i; while (grouped(at, j) && ps[j + 1].y == ps[i].y) j++;
-            float x0 = p.x + sw * 0.15f, x1 = pos.x + ps[j].x + sw * 0.85f, y = p.y + fs * 1.03f, t = fmaxf(1.0f, fs * 0.07f), tk = fs * 0.14f;
+            float x0 = p.x + sw * 0.15f, x1 = pos.x + ps[j].x + pic_width(fs, at[j].key) * 0.85f, y = p.y + fs * 1.03f, t = fmaxf(1.0f, fs * 0.07f), tk = fs * 0.14f;
             ImU32 bc = (col & ~IM_COL32_A_MASK) | ((ImU32)(((col >> IM_COL32_A_SHIFT) & 255) * 0.75f) << IM_COL32_A_SHIFT);
             ImVec2 br[4] = { ImVec2(x0, y - tk), ImVec2(x0, y), ImVec2(x1, y), ImVec2(x1, y - tk) };
             dl->AddPolyline(br, 4, bc, 0, t);
@@ -139,7 +155,7 @@ std::string rich_plain(const char *s)
         int key = s[i] == '{' ? token_at(s, i, &value, &end) : -1;
         if (key < 0) { out += s[i++]; continue; }
         const char *colon = (const char *)memchr(s + i, ':', end - i);
-        out += std::string(s + i + 1, colon ? colon : s + end - 1);   /* (the name as written) */
+        out += key >= RICH_MEMBER ? rich_key_name(key) : std::string(s + i + 1, colon ? colon : s + end - 1);   /* (the name as written) */
         if (!value.empty()) out += " " + value;
         i = end;
     }
@@ -214,6 +230,6 @@ void ui_rich_tip_flush(void)
     int f = ImGui::GetFrameCount();
     ImGuiWindow *prev = GImGui->TooltipPreviousWindow;       /* (any tooltip opened this frame, by any screen: it has the place) */
     bool other = taken_frame == f || (prev && prev->LastFrameActive == f);
-    if (tip_frame == f && !other && tip_key >= 0) ImGui::SetTooltip("%s", ui_key_name(tip_key));
+    if (tip_frame == f && !other && tip_key >= 0) ImGui::SetTooltip("%s", rich_key_name(tip_key).c_str());
     tip_key = -1;
 }

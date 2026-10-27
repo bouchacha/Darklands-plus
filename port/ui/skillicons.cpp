@@ -153,11 +153,16 @@ static void attr_body(ImDrawList *dl, ImVec2 c, float s, int k)
         dl->AddCircleFilled(P(-3.6f, -2.5f), 4.6f * u, red); dl->AddCircleFilled(P(3.6f, -2.5f), 4.6f * u, red);
         dl->AddTriangleFilled(P(-8.1f, -1.2f), P(8.1f, -1.2f), P(0, 9), red);
         dl->AddCircleFilled(P(-4.5f, -4), 1.3f * u, C(250, 170, 160)); break; }
-    case 1: /* strength: an iron weight */
-        dl->AddCircle(P(0, -6), 3.2f * u, C(110, 110, 118), 0, 2.0f * u);
-        dl->AddQuadFilled(P(-6, -3), P(6, -3), P(8.5f, 8), P(-8.5f, 8), C(96, 96, 104));
-        dl->AddQuad(P(-6, -3), P(6, -3), P(8.5f, 8), P(-8.5f, 8), ink, 0.9f * u);
-        dl->AddLine(P(-4, 1), P(-5, 6), C(150, 150, 160), 1.0f * u); break;
+    case 1: { /* strength: an arm embowed, the fist up (the heralds' arm; not a weight: that is the load's sign) */
+        IconPath a;
+        a.to(P(-9.5f, 8.2f)).quad(P(-6.0f, 8.6f), P(-1.0f, 8.4f)).quad(P(4.6f, 8.4f), P(6.8f, 5.6f)).quad(P(7.9f, 3.0f), P(7.4f, -2.6f))   /* under the arm, the elbow, the forearm */
+         .quad(P(8.4f, -5.4f), P(7.4f, -8.0f)).quad(P(5.4f, -10.4f), P(2.2f, -9.2f)).quad(P(0.4f, -8.0f), P(1.2f, -5.6f))                   /* the fist */
+         .to(P(2.6f, -3.6f)).quad(P(2.6f, -0.6f), P(1.6f, 1.0f)).quad(P(-0.2f, -4.4f), P(-5.0f, -3.6f)).quad(P(-8.0f, -3.0f), P(-9.5f, -0.8f));   /* the wrist, the bent arm's crook, the swelling muscle */
+        a.fill(dl, C(214, 160, 120), ink, 0.8f * u);
+        dl->AddBezierQuadratic(P(1.6f, -6.6f), P(3.4f, -7.4f), P(5.4f, -6.6f), ink, 0.6f * u);   /* the fingers */
+        dl->AddBezierQuadratic(P(1.9f, -4.6f), P(3.6f, -5.2f), P(5.6f, -4.4f), ink, 0.6f * u);
+        dl->AddBezierQuadratic(P(1.6f, 1.0f), P(3.6f, 2.4f), P(4.0f, 5.0f), ink, 0.6f * u);     /* the forearm against the arm */
+        break; }
     case 2: {  /* agility: steps, their treads and risers only, one line climbing (light of foot) */
         ImU32 stone = C(214, 204, 182);
         ImVec2 st[8] = { P(-8.5f, 6.4f), P(-4.25f, 6.4f), P(-4.25f, 2.1f), P(0, 2.1f), P(0, -2.1f), P(4.25f, -2.1f), P(4.25f, -6.4f), P(8.5f, -6.4f) };

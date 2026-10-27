@@ -410,9 +410,12 @@ extern "C" void worldmap_draw(void)
     ImFont *fs = ui_font_overlay;
     float ks = ui_text_px() / 22.0f;
     float fsize = ui_text_px() * 0.68f * fminf(fmaxf(powf(zoom / fitz, 0.3f), 0.9f), 1.6f);
+    std::vector<int> quested;                                /* the places a quest's picture stands on: always shown under it */
+    if (show_quests) for (const auto &m : marks) quested.push_back(m.first);
     for (const Place &p : P) {
         int g = kind_group(p.kind);
-        if (!show_kind[icon_kind(p.kind)]) continue;
+        bool anchor = std::find(quested.begin(), quested.end(), p.loc) != quested.end();
+        if (!show_kind[icon_kind(p.kind)] && !anchor) continue;
         float x, y; tile_px(p.x, p.y, &x, &y);
         ImVec2 s = to_scr(x, y);
         if (s.x < o.x - 50 || s.y < o.y - 20 || s.x > o.x + sz.x + 50 || s.y > o.y + sz.y + 20) continue;
@@ -420,8 +423,8 @@ extern "C" void worldmap_draw(void)
         /* the towns at every zoom; every other place comes in slowly as one zooms closer (far out the map
            would be all icons) */
         float fade = g == 0 ? 1.0f : fminf(1.0f, fmaxf(0.0f, (zoom - 0.61f) / 0.48f));
-        if (fade <= 0.02f && p.loc != selected) continue;
-        if (p.loc == selected) fade = 1.0f;
+        if (fade <= 0.02f && p.loc != selected && !anchor) continue;
+        if (p.loc == selected || anchor) fade = 1.0f;
         int v_fade = dl->VtxBuffer.Size;
         bool unseen = g == 0 && p.loc < 92 && !journal_visited(p.loc);   /* a town the party has not been to: faded, a ring */
         if (show_icons) {                                    /* an icon for its kind, bigger as one zooms in */
@@ -777,11 +780,34 @@ extern "C" void worldmap_draw(void)
         }
         return click;
     };
-    bool find_open = fold_head("Find a town", FOLD_FIND);
+    bool find_open = fold_head("Find...", FOLD_FIND);
     if (find_open || wm_test_enter) {
+        /* a place by its name, then the finders: each a field or a button with its picture inside at the left */
+        const float fh = ImGui::GetFrameHeight(), fis = fh * 0.78f;
+        ImDrawList *fdl = ImGui::GetWindowDrawList();
+        auto pic_left = [&](auto draw) { ImVec2 a = ImGui::GetItemRectMin(); draw(ImVec2(a.x + fh * 0.62f, a.y + fh * 0.5f)); };
+        auto pic_button = [&](const char *label, bool on, auto draw) {
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(fh * 1.3f, ImGui::GetStyle().FramePadding.y));
+            ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0, 0.5f));
+            if (on) ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+            bool c = ImGui::Button(label, ImVec2(rw, 0));
+            if (on) ImGui::PopStyleColor();
+            ImGui::PopStyleVar(2);
+            pic_left(draw);
+            return c;
+        };
         char *find = wm_find;
         ImGui::SetNextItemWidth(rw);
-        bool enter = ImGui::InputTextWithHint("##find", "Find a place...", find, sizeof wm_find, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_EscapeClearsAll);
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(fh * 1.3f, ImGui::GetStyle().FramePadding.y));
+        bool enter = ImGui::InputTextWithHint("##find", "Any place", find, sizeof wm_find, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_EscapeClearsAll);
+        ImGui::PopStyleVar();
+        pic_left([&](ImVec2 c) {                                    /* a magnifying glass */
+            float r = fis * 0.3f; ImU32 ink = IM_COL32(70, 44, 20, 255);
+            ImVec2 lc(c.x - fis * 0.08f, c.y - fis * 0.08f);
+            fdl->AddCircleFilled(lc, r, IM_COL32(236, 240, 244, 200), 20);
+            fdl->AddCircle(lc, r, ink, 20, fmaxf(1.5f, fis * 0.1f));
+            fdl->AddLine(ImVec2(lc.x + r * 0.72f, lc.y + r * 0.72f), ImVec2(c.x + fis * 0.42f, c.y + fis * 0.42f), ink, fmaxf(2.0f, fis * 0.14f));
+        });
         if (wm_test_enter) { enter = true; wm_test_enter = 0; }
         if (find[0]) {                                         /* the places named so, the nearest first on the travel map, with the journey */
             std::string f = fold_name(find, false);
@@ -819,8 +845,23 @@ extern "C" void worldmap_draw(void)
             if (hits.size() > 8) ImGui::TextDisabled("and %d more: type more of the name to narrow the list", (int)hits.size() - 8);
             if (hits.empty()) ImGui::TextDisabled("No place of that name.");
         }
-        ImGui::Spacing();
-        if (fold_head(tfind < 0 ? "Towns with ..." : (std::string("Towns with ") + TFIND[tfind].label + "###tw").c_str(), FOLD_TOWNS)) {
+        {   /* the two finders: windows of their own (ui/journal.cpp); a click on a town there shows it here */
+            static bool buy_open[2];
+            if (pic_button("Alchemical ingredients", buy_open[0], [&](ImVec2 c) { ui_draw_town_icon(fdl, c, fis * 1.1f, TI_PHARMACY); })) buy_open[0] = !buy_open[0];   /* (sold by the apothecaries) */
+            if (pic_button("Any ware", buy_open[1], [&](ImVec2 c) { ui_draw_town_icon(fdl, c, fis * 1.1f, TI_MARKET); })) buy_open[1] = !buy_open[1];
+            for (int w = 0; w < 2; w++) if (buy_open[w]) {
+                int pick = journal_buy_window(&buy_open[w], w);
+                if (pick >= 0) for (const Place &p : P) if (p.loc == pick) { tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; selected = pick; }
+            }
+        }
+        int fo = config_get_int("map.folded", FOLD_LEGEND | FOLD_TOWNS | FOLD_BUY);   /* (the towns' kinds: shown or not, kept) */
+        bool towns_open = !(fo & FOLD_TOWNS);
+        if (pic_button(tfind < 0 ? "A town with ..." : (std::string("A town with ") + TFIND[tfind].label + "###tw").c_str(), towns_open,
+                       [&](ImVec2 c) { ui_draw_town_icon(fdl, c, fis * 1.1f, tfind < 0 ? TI_UNIVERSITY : TFIND[tfind].icon); })) {
+            towns_open = !towns_open;
+            config_set_int("map.folded", towns_open ? fo & ~FOLD_TOWNS : fo | FOLD_TOWNS); extern int ui_dirty_config; ui_dirty_config = 1;
+        }
+        if (towns_open) {
             if (ui_font_small) ImGui::PushFont(ui_font_small);
             ImGui::TextDisabled("Click one to circle those towns on the map.");
             for (int k = 0; k < NTFIND; k++)
@@ -846,15 +887,6 @@ extern "C" void worldmap_draw(void)
                     else linew = w;
                     if (ImGui::SmallButton(lb)) { tile_px(e.second->x, e.second->y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; selected = e.second->loc; }
                 }
-            }
-        }
-        {   /* the two finders: windows of their own (ui/journal.cpp); a click on a town there shows it here */
-            static bool buy_open[2];
-            if (ImGui::Button("Find alchemical ingredients", ImVec2(rw, 0))) buy_open[0] = !buy_open[0];
-            if (ImGui::Button("Find any ware", ImVec2(rw, 0))) buy_open[1] = !buy_open[1];
-            for (int w = 0; w < 2; w++) if (buy_open[w]) {
-                int pick = journal_buy_window(&buy_open[w], w);
-                if (pick >= 0) for (const Place &p : P) if (p.loc == pick) { tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; selected = pick; }
             }
         }
     }
@@ -923,16 +955,12 @@ extern "C" void worldmap_draw(void)
             ImGui::End();
         }
     }
-    {   /* at the top, between the panels: what the map is, how to move it, the journey under way */
+    {   /* at the top, between the panels: how to move the map, the journey under way (the map's name is on it: "Map of Greater Germany") */
         float l = wm_panel_right, r = fminf(wm_find_left, sz.x);
         ImGui::SetNextWindowPos(ImVec2(o.x + (l + r) * 0.5f, o.y + pad), ImGuiCond_Always, ImVec2(0.5f, 0));
         ImGui::SetNextWindowBgAlpha(0.8f);
         ImGui::Begin("##wmcap", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing);
         ImGui::SetWindowFontScale(pk);
-        if (ui_font_bold) ImGui::PushFont(ui_font_bold);
-        ImGui::TextUnformatted("The Holy Roman Empire");
-        if (ui_font_bold) ImGui::PopFont();
-        ImGui::SameLine();
         if (ui_pad_prompts()) ui_pad_text("{LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes.", true);
         else ImGui::TextDisabled("Drag to move, wheel to zoom. M or Esc closes.");
         if (travel.active) {                                   /* the journey under way */

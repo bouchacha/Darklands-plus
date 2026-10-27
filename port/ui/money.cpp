@@ -4,6 +4,9 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+#include <ctype.h>
 #include <vector>
 #include "money.h"
 #include "../runtime/config.h"
@@ -34,7 +37,7 @@ std::string money_str(long pf)
 std::string money_with_total(long pf)
 {
     std::string s = money_str(pf);
-    if (pf >= 12) s += "  (" + std::to_string(pf) + " pf)";
+    if (pf >= 12) s += "  (" + std::to_string(pf) + (money_coins() ? COIN_PF ")" : " pf)");
     return s;
 }
 
@@ -42,8 +45,36 @@ extern "C" void money_cstr(long pf, char *out, size_t n) { snprintf(out, n, "%s"
 
 std::string money_total(long pf)
 {
-    char b[64]; snprintf(b, sizeof b, "%ld pfennig%s in all (1 florin = 20 groschen = 240 pfennigs)", pf, pf == 1 ? "" : "s");
+    char b[128];
+    if (money_coins()) snprintf(b, sizeof b, "%ld" COIN_PF " in all (1" COIN_FL " florin = 20" COIN_GR " groschen = 240" COIN_PF " pfennigs)", pf);   /* (the coins' names: here) */
+    else snprintf(b, sizeof b, "%ld pfennig%s in all (1 florin = 20 groschen = 240 pfennigs)", pf, pf == 1 ? "" : "s");
     return b;
+}
+
+std::string money_words(const std::string &s)
+{
+    if (!money_coins() || s.find_first_of("0123456789") == std::string::npos) return s;
+    static const struct { const char *w; const char *coin; bool word; } W[] = {
+        { "florins", COIN_FL, true }, { "florin", COIN_FL, true }, { "groschen", COIN_GR, true }, { "pfennigs", COIN_PF, true },
+        { "pfennig", COIN_PF, true }, { "pfs", COIN_PF, false }, { "fl", COIN_FL, false }, { "gr", COIN_GR, false }, { "pf", COIN_PF, false },
+    };
+    std::string out;
+    size_t i = 0, n = s.size();
+    while (i < n) {
+        if (!isdigit((unsigned char)s[i]) || (i > 0 && isalnum((unsigned char)s[i - 1]))) { out += s[i++]; continue; }
+        size_t j = i; while (j < n && isdigit((unsigned char)s[j])) j++;
+        out.append(s, i, j - i);
+        bool sp = j < n && s[j] == ' ';
+        size_t k = sp ? j + 1 : j;
+        i = j;
+        for (const auto &w : W) {
+            size_t l = strlen(w.w);
+            if ((sp && !w.word) || k + l > n || strncasecmp(s.c_str() + k, w.w, l) || (k + l < n && isalpha((unsigned char)s[k + l]))) continue;
+            out += w.coin; i = k + l;
+            break;
+        }
+    }
+    return out;
 }
 
 void money_tooltip(long pf)

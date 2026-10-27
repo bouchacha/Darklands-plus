@@ -101,49 +101,33 @@ static void add(char *out, int n, int *len, const char *fmt, ...)
     *len += w < 0 ? 0 : w;
     if (*len > n - 1) *len = n - 1;
 }
-/* what the years will take from member m, for the character sheet (the pointer on the age): the next losses
-   and those of the next five years, the attributes as their shields (ui/richtext.h); the birth month sets when
-   (each member's own: the party's losses come at different times) */
+/* the losses of the attributes between two ages (months), as their shields: those that share a loss side by
+   side, the loss once after them (ui/richtext.h), the most first; 0 when none */
+static int losses(char *out, int n, int *len, int from, int to)
+{
+    int d[6], any = 0;
+    for (int a = 0; a < 6; a++) { d[a] = (int)floor(due(a, to) + 1e-9) - (int)floor(due(a, from) + 1e-9); any |= d[a] > 0; }
+    for (int v = 99; v > 0; v--) {
+        int k = 0;
+        for (int a = 0; a < 6; a++) if (d[a] == v) { add(out, n, len, "%s{%s}", k ? "" : " ", gm_attr_name(a)); k++; }
+        if (k) add(out, n, len, " -%d", v);
+    }
+    return any;
+}
+/* what the years have taken from member m and will take within a year, for the character sheet (the pointer on
+   the age), the attributes as their shields. "So far": the toll the table sets at this age - creation takes it
+   at every fifth year from 30, and play adds each month's share from there (character creation's ages are
+   15 + 5k, and no row of the table takes more than 6 at once: the months past a birthday at the start round
+   to nothing) */
 void aging_forecast(int m, char *out, int n)
 {
     int len = 0; out[0] = 0;
     if (!aging_on()) { add(out, n, &len, "Aging in play is off: characters age only while they are made (F12 > Settings > The party and its items)."); return; }
     int A = age_months(m);
-    add(out, n, &len, "The years take their toll from 30, a little each month, for good (as aging at character creation).");
-    if (A < 360) {
-        int y = (360 - A) / 12, mo = (360 - A) % 12;
-        add(out, n, &len, "\nIt begins in ");
-        if (y) add(out, n, &len, "%d year%s%s", y, y == 1 ? "" : "s", mo ? " and " : "");
-        if (mo || !y) add(out, n, &len, "%d month%s", mo, mo == 1 ? "" : "s");
-        add(out, n, &len, ".");
-        return;
-    }
-    /* the next month that takes a point of each, the soonest first (at most three months named) */
-    int when[6];
-    for (int a = 0; a < 6; a++) {
-        when[a] = 0;
-        int now = (int)floor(due(a, A) + 1e-9);
-        for (int k = 1; k <= 240; k++) if ((int)floor(due(a, A + k) + 1e-9) > now) { when[a] = k; break; }
-    }
-    int shown = 0;
-    for (int k = 1; k <= 240 && shown < 3; k++) {
-        int any = 0;
-        for (int a = 0; a < 6; a++) if (when[a] == k) any = 1;
-        if (!any) continue;
-        add(out, n, &len, shown ? "; " : "\nNext: ");
-        if (k == 1) add(out, n, &len, "next month"); else if (k < 24) add(out, n, &len, "in %d months", k); else add(out, n, &len, "in about %d years", (k + 6) / 12);
-        for (int a = 0; a < 6; a++) if (when[a] == k) add(out, n, &len, " {%s:-1}", gm_attr_name(a));
-        shown++;
-    }
-    /* the next five years */
-    int first = 1;
-    for (int a = 0; a < 6; a++) {
-        int d = (int)floor(due(a, A + 60) + 1e-9) - (int)floor(due(a, A) + 1e-9);
-        if (d <= 0) continue;
-        if (first) add(out, n, &len, "\nBy %d:", (A + 60) / 12);
-        add(out, n, &len, " {%s:-%d}", gm_attr_name(a), d);
-        first = 0;
-    }
+    add(out, n, &len, "So far:");
+    if (!losses(out, n, &len, 0, A)) add(out, n, &len, " nothing");
+    add(out, n, &len, "\nWithin a year:");
+    if (!losses(out, n, &len, A, A + 12)) add(out, n, &len, " nothing");
 }
 
 static void month_hook(void)                 /* s029 0e76:281c (months): a month has begun; birthdays counted */

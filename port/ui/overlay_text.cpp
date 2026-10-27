@@ -2,6 +2,7 @@
 // runs; here they are drawn again at the window's resolution in the chosen typeface, with the
 // abbreviations spelled out and the skills' pictures), the chances beside the original cards'
 // options, and the pointer drawn live. Split from ui/overlay.cpp (overlay_parts.h).
+#include "money.h"
 #include "pointer.h"
 #include <stdio.h>
 #include <sys/stat.h>
@@ -424,6 +425,7 @@ extern "C" void hdtext_draw(void)
         }
         float bw = x1 - x0, bh = y1 - y0;
         float size = bh * 1.18f * fm.k;
+        t = money_words(t);                                          /* ("12pfs": with its coin, display.coins on) */
         ImVec2 ts = font->CalcTextSizeA(size, FLT_MAX, 0, t.c_str());
         bool num = t.size() <= 5 && strspn(t.c_str(), "0123456789/") == t.size();
         float allow = bw * 1.04f + (num ? bh * 0.5f : 0);            /* "11" is 5 pixels wide in the game's font */

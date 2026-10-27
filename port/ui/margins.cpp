@@ -209,7 +209,7 @@ extern "C" u32 plat_ticks_ms(void);
 extern "C" int ns_showing(void);
 static bool margin_town_row;                               /* (the margin's own row of the town's offers: the teachers too) */
 static int skill_of(int m, int k) { return (s8)g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + k)); }
-struct Learner { std::string name; int v; };       /* (name "": the party, its best) */
+struct Learner { int m; int v; };                  /* (m -1: the party, its best) */
 static bool teach_learners(int k, int to, std::vector<Learner> *out)
 {
     int best = -1;
@@ -220,11 +220,11 @@ static bool teach_learners(int k, int to, std::vector<Learner> *out)
         if (k <= 3) { v = 0; for (int j = 0; j <= 3; j++) v = std::max(v, skill_of(m, j)); }
         else if (k <= 6) { v = 0; for (int j = 4; j <= 6; j++) v = std::max(v, skill_of(m, j)); }
         else v = skill_of(m, k);
-        if (each) { if (v < to && out) { char nm[24]; gm_member_name(m, nm, sizeof nm); char nu[48]; ui_text_utf8(nm, nu, sizeof nu); out->push_back({ nu, v }); } else if (v < to) best = 0; }
+        if (each) { if (v < to && out) out->push_back({ m, v }); else if (v < to) best = 0; }
         else best = std::max(best, v);
     }
     if (each) return out ? !out->empty() : best == 0;
-    if (best >= 0 && best < to && out) out->push_back({ "", best });
+    if (best >= 0 && best < to && out) out->push_back({ -1, best });
     return best >= 0 && best < to;
 }
 /* a teacher in a row: the place's icon, the skills' shields, how far they teach (dim when nobody would
@@ -261,8 +261,8 @@ static void teacher_row(const TchSource &t, float is, bool lines)
         ui_skill_icon(dl, ImVec2(b.x + s2 * 0.45f, b.y + lh * 0.5f), s2 * 0.9f, t.skill[j]);
         ImGui::Dummy(ImVec2(s2, lh)); ImGui::SameLine(0, gap);
         std::string w;
-        for (const Learner &l : L) w += (w.empty() ? "" : ", ") + (l.name.empty() ? std::string("the party's best") : l.name) + " " + std::to_string(l.v);
-        if (L.empty()) ImGui::TextDisabled("nobody would learn"); else ImGui::TextColored(ImVec4(0.15f, 0.42f, 0.15f, 1), "%s", w.c_str());
+        for (const Learner &l : L) w += (w.empty() ? "" : "  ") + (l.m < 0 ? "the party's best " + std::to_string(l.v) : rich_member(l.m, std::to_string(l.v)));
+        if (L.empty()) ImGui::TextDisabled("nobody would learn"); else ui_rich_textf_c(ImVec4(0.15f, 0.42f, 0.15f, 1), "%s", w.c_str());
     }
     ImGui::Unindent(is + gap);
 }
@@ -707,7 +707,12 @@ static void right_panel(int size)
             for (const Eff &x : e) if (x.m == m) { any_m = true; if (lo < 0 || x.left < lo) lo = x.left; if (x.left > hi) hi = x.left; }
             if (!any_m) continue;
             std::string when = span(lo); if (span(hi) != when) when += " to " + span(hi);
-            ImGui::TextUnformatted((member_name(m) + ":").c_str());
+            {   /* who: the member's head (the name under the pointer) */
+                ImVec2 a = ImGui::GetCursorScreenPos();
+                ImGui::Dummy(ImVec2(is / 1.2f, lh));
+                ui_member_head(dl, m, ImVec2(a.x, a.y + (lh - is) * 0.5f), is);
+                if (item_hovered()) margin_tip(member_name(m).c_str());
+            }
             bool first = false;
             auto place = [&](float w) { if (!first) { ImGui::SameLine(0, gap); if (ImGui::GetCursorScreenPos().x + w > right) ImGui::NewLine(); } first = false; };
             for (const Eff &x : e) {

@@ -115,7 +115,7 @@ void ui_guide_tab(void)
     topic("Alchemy", {
         "Alchemy is strong but slow to build up: each member knows formulae of their own, and a formula makes one potion. Alchemists sell formulae.",
         "Each town's alchemist sells four formulae, the same for the whole game, and only the formulae of the first seven potions (Noxious Aroma to Sunburst) and one Thunderbolt formula are ever sold: the others are traded for or found.",
-        "+The character sheet's Formulae page, set to All formulae, names the nearest visited alchemist that sells each formula the party lacks; the margin (\"Formulae sold here\", with the prices) and the world map's tooltip on a town list what its alchemist sells.",
+        "+The character sheet's Formulae page, set to Every formula in the game, names the nearest visited alchemist that sells each formula the party lacks; the margin (\"Formulae sold here\", with the prices) and the world map's tooltip on a town list what its alchemist sells.",
         "The ingredients are sold by a marketplace's pharmacists, by universities and at some mines, and a physician or an alchemist will trade in them; ingredients carried by any member count.",
         "+In such a shop, the Formulae button lists the party's formulae; +1 or +5 beside one buys the ingredients for one or five more batches.",
         "A batch's chance of success: 100 + the Philosopher's Stone's quality + Intelligence + Alchemy - the formula's mystic number. The 100 is less when more batches are made at once: 50 for four or five, 33 for six or seven, and so on. The party has one Philosopher's Stone at most (Party Info, F6, shows its quality). Brewing takes a day of alchemy at an inn or in camp.",
@@ -127,7 +127,7 @@ void ui_guide_tab(void)
     topic("Saints", {
         "Saints are learned in a library (a town's monastery or university, or a monastery in the country) and called upon with Divine Favor, in a card's options or from the menu. Each saint helps with something different; the chance goes by the caller's Virtue and the Divine Favor spent, against what that saint asks for.",
         "Each library teaches four saints, the same for the whole game: one saint to one member a visit, for a small gift.",
-        "+The character sheet's Saints page, set to All saints, names the libraries visited that teach each saint the party lacks, and says what each saint really does; the margin (\"Saints taught here\") and the world map say what a town's library teaches.",
+        "+The character sheet's Saints page, set to Every saint in the game, names the libraries visited that teach each saint the party lacks, and says what each saint really does; the margin (\"Saints taught here\") and the world map say what a town's library teaches.",
         "+Darklands+ shows the chance on the prayer screen and in a card's options.",
         "Most saints' help lasts about a day; healing and a better name in a town stay, and St. Drogo's and St. Wilfrid's shelter from ambushes lasts a week. Some saints ask a price for it, a loss of Perception, Intelligence, Agility or Charisma for that day (the saint's legend says so), which comes back when the help runs out; St. Edward the Confessor takes a quarter of the party's money.",
         "+The margin's \"Blessings and potions\" shows what is at work on each member, and for how long; on the character sheet's Skills page a raised value is blue.",

@@ -294,7 +294,7 @@ extern "C" void barterview_draw(void)
         std::vector<FRow> rows;
         for (int fm = 0; fm < 66 && fm < (int)gamedata.formulas.size() && fm < (int)gamedata.formula_names.size(); fm++) {
             std::string who;
-            for (int m = 0; m < 5; m++) if (b.present[m] && gm_knows_formula(m, fm)) { if (!who.empty()) who += ", "; who += gt(b.names[m]); }
+            for (int m = 0; m < 5; m++) if (b.present[m] && gm_knows_formula(m, fm)) { if (!who.empty()) who += " "; who += rich_member(m); }
             if (who.empty()) continue;
             const Formula &F = gamedata.formulas[fm];
             bool here = false; int bt = 1 << 20;
