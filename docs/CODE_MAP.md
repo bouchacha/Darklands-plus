@@ -52,7 +52,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/barterview.c` | 300 | the shop screen as a native screen (nscreen.h). |
 | `mods/battleend.c` | 102 | the end of a battle said in words (battle.end_words, on by default; F12 > Settings > Battles). |
 | `mods/battlerules.c` | 418 | rules of the battles, switches (F12 > Settings > Battles). |
-| `mods/battlescroll.c` | 160 | scrolling the battle map at a pace a person can follow. |
+| `mods/battlescroll.c` | 163 | scrolling the battle map at a pace a person can follow. |
 | `mods/builtin.c` | 190 | the built-in mods. The same changes as the source mods in mods/ (built into a DOS executable there), done here as run-time hooks on the recompiled game. |
 | `mods/cacheview.c` | 288 | the store room as a native screen (nscreen.h; the view is ui/cacheview.cpp). |
 | `mods/cardview.c` | 612 | the card screen drawn by Darklands+ itself. |
@@ -88,7 +88,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/optwhy.c` | 156 | why each switch exists, one line each: beside what it does (the table's description, mods/options.c), the reason for it, for whoever carries a feature into another engine (the list docs/SWITCHES.md is made from both: DL_DUMP_SWITCHES, runtime/main.c). |
 | `mods/orders.c` | 904 | in a battle, a member who is not yet fighting can be sent at an enemy with a click on it (F12 > Settings; the Full Original preset leaves the game's way). |
 | `mods/pack.c` | 355 | the shared pack's housekeeping (inventory.shared, mods/sheetview.c): the party's spare things are one pack in Darklands+'s screens, but the game still keeps each thing with a member, and in a battle a bow, a crossbow or a gun shoots only what its bearer carries (can_fire, s014 18bf:0c02: the ammunition of the weapon's kind, far 20a5:7822[type]). |
-| `mods/pathfix.c` | 789 | better pathfinding in battles and dungeons. |
+| `mods/pathfix.c` | 792 | better pathfinding in battles and dungeons. |
 | `mods/playlist.c` | 201 | the soundtrack, piece by piece, in F12 > Settings > Sound (ui/settings_setup.cpp): each piece of the game's music (8 ... |
 | `mods/politics.c` | 729 | the political campaign MicroProse wrote and never switched on (docs/cut_politics.md), restored as an experimental option (rules.politics, off in every preset). |
 | `mods/prayview.c` | 142 | the prayer screen as a native screen (display.native_pray; the view is ui/prayview.cpp). |

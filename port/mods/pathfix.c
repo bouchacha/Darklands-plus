@@ -411,10 +411,13 @@ static void path_find_hook(void)
         if ((u16)(now - stall[i].clk) >= 6 && stall[i].n < 250) { stall[i].n++; stall[i].clk = now; }
         stuck = stall[i].n;
     } else { stall[i].x = (s16)x; stall[i].y = (s16)y; stall[i].n = 0; stall[i].clk = now; }
-    /* a member following a friend (single file, a group: the target is one of the party) is never told
-       there is no way: it waits behind the one in front and goes on when that one does, planning around
-       everyone meanwhile (the game asks again and again while it stands; each ask is a few steps) */
-    if (stuck >= 8 && i < 5 && target >= 0 && target < 5) stuck = 7;
+    /* a member of the party out of a fight, or following a friend (single file: the target is one of the
+       party), is never told there is no way for having asked from one spot: it waits behind the one in front
+       and goes on when that one does, planning around everyone meanwhile (the game asks again and again
+       while it stands; each ask is a few steps). Else one member left so in a group made every order of
+       the group fail ("can't walk there", s014 19cd: one member without a way stops them all) until the
+       next fight */
+    if (stuck >= 8 && i < 5 && ((target >= 0 && target < 5) || g_rb(GV_real_combat) != 1)) stuck = 7;
     /* two of the party in each other's way (paths crossing in a doorway or a corridor): both
        planned around everyone from where they stood, both stepped the same way, and after eight
        tries both were told there is no way and stopped ("waits"). Now, with only the party in the
