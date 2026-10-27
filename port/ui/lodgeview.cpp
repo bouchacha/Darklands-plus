@@ -80,7 +80,7 @@ static void backdrop(NsDraw &P, int camp)
         }
     });
 }
-/* the activities' pictures: a tankard, a bed, a rosary, the Stone, a few small coins, a polearm, the lectern */
+/* the activities' pictures: a tankard, a bed, a rosary, the Stone, a few small coins, the watch's lantern, the lectern */
 static void act_icon(ImDrawList *dl, ImVec2 c, float s, int a);
 void ui_lodge_act_icon(ImDrawList *dl, ImVec2 c, float s, int a) { act_icon(dl, c, s, a); }   /* (the icon sheet, uiconstyles:2) */
 static void act_icon(ImDrawList *dl, ImVec2 c, float s, int a)
@@ -127,7 +127,19 @@ static void act_icon(ImDrawList *dl, ImVec2 c, float s, int a)
         money_coin_draw(dl, Q(4.0f, 5.0f), 3.3f * u, 2);       /* (a pfennig fallen to the right) */
         money_coin_draw(dl, Q(-0.3f, 5.4f), 4.0f * u, 1);      /* (and a groschen on top) */
         break; }
-    case 5: ui_skill_icon(dl, c, s * 0.62f, 3); break;                 /* Guard the camp: a polearm */
+    case 5: {                                                  /* Guard the camp: the watch's lantern hung on its staff, lit */
+        const ImU32 IRON = IM_COL32(62, 58, 56, 255), WOOD = IM_COL32(120, 76, 38, 255), GLOW = IM_COL32(255, 214, 110, 255);
+        for (int i = 4; i >= 1; i--) dl->AddCircleFilled(Q(2.2f, 3.4f), (4.5f + i * 1.6f) * u, IM_COL32(255, 196, 90, 18 + 6 * (4 - i)), 16);   /* its light */
+        dl->AddLine(Q(-7.5f, 10), Q(-7.5f, -9.5f), WOOD, 1.9f * u);                       /* the staff */
+        dl->AddLine(Q(-8.2f, -9.2f), Q(2.2f, -9.2f), WOOD, 1.7f * u);                      /* its arm */
+        dl->AddLine(Q(2.2f, -9.2f), Q(2.2f, -6.2f), IRON, 1.0f * u);                       /* the hook */
+        dl->AddTriangleFilled(Q(-1.3f, -3.2f), Q(5.7f, -3.2f), Q(2.2f, -6.4f), IRON);       /* the cap */
+        dl->AddRectFilled(Q(-0.8f, -3.2f), Q(5.2f, 9.0f), GLOW, 0.6f * u);                 /* the glass, lit */
+        dl->AddCircleFilled(Q(2.2f, 3.6f), 1.5f * u, IM_COL32(255, 250, 220, 255), 8);       /* the flame */
+        dl->AddRect(Q(-0.8f, -3.2f), Q(5.2f, 9.0f), IRON, 0.6f * u, 0, 1.1f * u);          /* the frame */
+        dl->AddLine(Q(2.2f, -3.2f), Q(2.2f, 9.0f), IRON, 0.8f * u);
+        dl->AddRectFilled(Q(-1.6f, 8.6f), Q(6.0f, 10.2f), IRON, 0.5f * u);                 /* the base */
+        break; }
     default: {                                                 /* Train or study: the teachers' lectern, as on the cards (ui/teachersui.cpp) */
         void ui_draw_teach_mark(ImDrawList *dl, ImVec2 c, float s, unsigned ink, unsigned page);
         ui_draw_teach_mark(dl, Q(0, -0.5f), s * 0.98f, IM_COL32(80, 50, 24, 255), IM_COL32(252, 246, 228, 255));
@@ -173,9 +185,10 @@ extern "C" void lodgeview_draw(void)
             P.dl->AddTriangleFilled(ImVec2(c.x - wd * u, c.y + 1.5f * u), ImVec2(c.x + 0.8f * sinf(ph * 1.3f) * u, c.y - hgt * u), ImVec2(c.x + wd * u, c.y + 1.5f * u), col);
         }
     }
-    if (camp) snprintf(b, sizeof b, "The party lives off the land, and the lord may hear of it: after %d day%s the risk is %d in 10.", m.days, m.days == 1 ? "" : "s", m.risk);
-    else snprintf(b, sizeof b, "The room: %s a day.%s", money(m.lodging).c_str(), m.days ? ("   Days stayed: " + std::to_string(m.days)).c_str() : "");
-    P.text(fo, NsDraw::FS_SMALL, 70, 23.5f, soft, b, -1, 186);
+    if (!camp) {                                             /* (in camp the risk is told under Guard the camp) */
+        snprintf(b, sizeof b, "The room: %s a day.%s", money(m.lodging).c_str(), m.days ? ("   Days stayed: " + std::to_string(m.days)).c_str() : "");
+        P.text(fo, NsDraw::FS_SMALL, 70, 23.5f, soft, b, -1, 186);
+    }
 
     /* the left page: the party's days */
     const float LX0 = 68, LX1 = 185, TY = 30, BY = 164;
@@ -213,6 +226,7 @@ extern "C" void lodgeview_draw(void)
             }
         } else if (act == 0) { line = "Relaxes"; more = p.end < p.end_max ? "Endurance back to full (" + std::to_string(p.end) + " of " + std::to_string(p.end_max) + ")" : p.can[4] ? "Already rested: earning would be better" : "Already rested"; if (p.end >= p.end_max && p.can[4]) mc = IM_COL32(150, 70, 20, 255); }
         else if (act == 1) more = "Strength " + std::to_string(p.str) + " of " + std::to_string(p.str_max);
+        else if (act == 5) { line = "Keeps watch"; more = "Woodwise " + std::to_string(gm_member_skill(i, 18)) + ", Stealth " + std::to_string(gm_member_skill(i, 15)); }
         else if (act == 2) more = "Divine Favor " + std::to_string(p.df) + " of " + std::to_string(p.df_max);
         else if (act == 4) more = p.end < p.end_max ? "Endurance stays down (" + std::to_string(p.end) + " of " + std::to_string(p.end_max) + ")" : "";
         P.text(fo, NsDraw::FS_BODY, nx, y + 8.6f, IM_COL32(92, 40, 12, 255), line, -1, LX1 - 1);
@@ -237,7 +251,7 @@ extern "C" void lodgeview_draw(void)
         static const char *WHAT[7] = { "Rest: Endurance comes back to full. Nothing else is gained.", "Rest and care: Strength comes back; the better the party's Healing, the more (Endurance too).",
             "Prayer: Divine Favor comes back; the better Religion and Virtue, the more. Endurance does not come back that day.", "Make potions from a known formula (the ingredients are used up). Endurance does not come back that day.",
             "Work in the town: the job that pays this member best, by their attributes and skills (wounds lower the pay; a bad name in the town too). Endurance does not come back that day.",
-            "Keep watch and find food: the camp is safer.", "Lessons from a teacher hired in this town, for a fee each day. Endurance does not come back that day." };
+            "Keep watch: the risk that the lord's men find the party living off his land grows more slowly each day. Woodwise helps most, then Stealth, then a weapon skill of 30 or more.", "Lessons from a teacher hired in this town, for a fee each day. Endurance does not come back that day." };
         /* the teachers, one row a skill: the one who teaches it (the best, with the bestteacher fix) */
         int tl[LV_TEACHERS], ntl = 0;
         for (int t = 0; t < m.nteach; t++) {
@@ -254,7 +268,7 @@ extern "C" void lodgeview_draw(void)
         for (int a = 0; a < 7; a++) {
             bool can = p.can[a], cur = p.act == a;
             if (a == 0 && p.end >= p.end_max && p.can[4]) can = false;   /* (rested, with work to be had: nothing to regain) */
-            if (camp && a == 4) continue;                             /* (no work in the wild; no guard at an inn) */
+            if (camp && (a == 4 || a == 6)) continue;                 /* (no work and no teachers in the wild; no guard at an inn) */
             if (!camp && a == 5) continue;
             float x0 = RX0, x1 = RX1;
             bool h = P.over(x0, ay, x1, ay + ah - 0.6f);
@@ -266,6 +280,14 @@ extern "C" void lodgeview_draw(void)
             if (!can && (WHY[a][0] || a == 0)) P.text(fo, 3.6f, 0, ay + ah * 0.3f, dim, a <= 2 ? "full" : a == 3 ? "no formula" : a == 6 ? "none retained" : "", x1 - 1.5f);
             if (can && a != 6 && P.hit(x0, ay, x1, ay + ah - 0.6f) && !cur) ns_push(LV_ACT, a, m.sel, 0);
             ay += ah;
+            if (a == 5 && camp) {                                    /* the risk, as a chance: before the next day, and the day after */
+                ImU32 rc = m.risk_pct >= 50 ? NsDraw::RED : m.risk_pct >= 20 ? IM_COL32(150, 70, 20, 255) : soft;
+                if (m.risk_add == 0) snprintf(b, sizeof b, "No risk here: the lord's men will not come.");
+                else snprintf(b, sizeof b, "The lord's men: %d%% before the next day, %d%% the day after", m.risk_pct, m.risk_next_pct);
+                P.text(fo, NsDraw::FS_SMALL * fminf(1.0f, ah / 9.4f), x0 + 10, ay - 1.2f, rc, b, -1, x1 - 1);
+                if (P.over(x0, ay - 1.4f, x1, ay + 5.4f)) hover_act = 200;
+                ay += 6.4f;
+            }
             if (a == 6 && can) {
                 for (int j = 0; j < ntl; j++) {
                     int t = tl[j];
@@ -288,9 +310,16 @@ extern "C" void lodgeview_draw(void)
         }
         /* about the one under the pointer, in its own space at the page's foot */
         std::string about;
-        if (hover_act >= 0 && hover_act < 7) about = std::string(WHAT[hover_act]) + (p.can[hover_act] && !(hover_act == 0 && p.end >= p.end_max && p.can[4]) ? "" : std::string(" ") + WHY[hover_act]);
+        if (hover_act == 200) {
+            char b[400];
+            int g = 0; for (int i = 0; i < 5; i++) g += m.m[i].present && m.m[i].act == 5;
+            if (g) snprintf(b, sizeof b, "The lord's men may find the party living off his land, more likely each day. With %s on guard the day after is %d%% (%d%% unguarded). Camp broken, the risk stays half a day to two and a half.",
+                            g == 1 ? "this one" : "these", m.risk_next_pct, m.risk_next_unguarded_pct);
+            else snprintf(b, sizeof b, "The lord's men may find the party living off his land, more likely each day; members on guard slow it. Camp broken, the risk stays half a day to two and a half.");
+            about = b;
+        } else if (hover_act >= 0 && hover_act < 7) about = std::string(WHAT[hover_act]) + (p.can[hover_act] && !(hover_act == 0 && p.end >= p.end_max && p.can[4]) ? "" : std::string(" ") + WHY[hover_act]);
         if (hover_act == 3 && !camp) about += " At an inn a failed batch can blow up; in a camp in the wild it cannot.";
-        else if (hover_act >= 100) {
+        else if (hover_act >= 100 && hover_act < 200) {
             const auto &T = m.t[hover_act - 100];
             const char *sk = gm_skill_name(T.skill);
             int now = T.skill >= 0 && T.skill < 19 ? gm_member_skill(m.sel, T.skill) : 0;

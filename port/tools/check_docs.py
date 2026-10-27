@@ -8,6 +8,7 @@ notes (docs/release_notes.md, what is above "New in 1.2" and from "What it adds"
 the download (tools/release_readme.txt), docs/MODDING.md and the game's own welcome and news windows
 (ui/ui_windows.cpp). Older sections of the changelog and release notes are history and left alone.
 Checked:
+  - a skill's or attribute's shield is never drawn by a fixed number (it stands for that skill only);
   - counts: "N fixes" and "(N in all)" are the fixes of the original's bugs (mods/fixes.c FIXES, less
     "Skip the manual check", which is no bug); "N more fixed" is the count less the last release's
     (git tag of the version before); "N saints that" is mods/sainttexts.c's table;
@@ -159,6 +160,15 @@ def main():
         x, y = body(ch), body(rn[a:b if b > 0 else len(rn)])
         d = next((i for i in range(min(len(x), len(y))) if x[i] != y[i]), min(len(x), len(y)))
         bad.append('CHANGELOG.md newest section and docs/release_notes.md "New in": differ from line %d:\n      %s\n      %s' % (d + 1, x[d][:100] if d < len(x) else '(end)', y[d][:100] if d < len(y) else '(end)'))
+
+    # a skill's or attribute's shield stands for that skill or attribute only: never one drawn by a fixed
+    # number for something else (the camp's guard once borrowed Polearms); a constant is named for its skill
+    for d in ('port/ui', 'port/mods'):
+        for f in sorted(os.listdir(os.path.join(TOP, d))):
+            if not f.endswith(('.c', '.cpp')): continue
+            for i, line in enumerate(rd(os.path.join(d, f)).splitlines()):
+                if re.search(r'ui_(skill|attr)_icon\([^;]*,\s*\d+\s*\)', line):
+                    bad.append('%s/%s:%d: a shield drawn by a fixed number (name the skill: a constant, or the thing it shows)' % (d, f, i + 1))
 
     for b_ in bad: print('  ' + b_)
     print('docs: %s (%d fixes, %d saints, %d texts)' % ('as the code' if not bad else '%d mismatches' % len(bad), n_fix, n_saints, len(texts)))

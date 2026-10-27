@@ -242,6 +242,37 @@ static void day_line(char *out, int n, int act, int val, const char *detail)
     out[o] = 0;
 }
 
+/* camping (s036 1462): before each day the game rolls rand(50) + rand(50) against the risk (DS:8a34),
+   0..98, and on or under it the day does not come: trouble does (event 0x5f, the lord's men). Each
+   day then adds the place's base (DS:8a36) less each member on guard - by Woodwise (3 from 70, 2
+   from 30, else 1), by Stealth (2 from 70, 1 from 30) and by one for a weapon skill of 30 or more
+   (the original forgets Impact; the fix campguard counts it) - kept within 1..15 (1462:1b80). Broken
+   camp, the risk is kept for 12 to 60 hours (event 0x61, 1462:0000): camping again meanwhile goes on
+   from it */
+static int camp_risk_pct(int r)
+{
+    if (r < 0) return 0;
+    long n = 0;
+    for (int a = 0; a < 50; a++) { int b = r - a; if (b >= 0) n += b > 49 ? 50 : b + 1; }
+    return (int)((n * 100 + 1249) / 2500);
+}
+int fix_is_on(const char *id);
+static int camp_risk_add(int guards)
+{
+    if (ns_call(GF_event_started, 1, 0x60)) return 0;
+    int total = (s16)g_rw(0x8a36);
+    for (int i = 0; i < 5 && guards; i++) {
+        u16 r = G_MEMBER(i);
+        if (g_rb(r) != 1 || (s16)g_rw((u16)(GV_camp_activity + 2 * i)) != 5) continue;
+        int wood = (s8)g_rb((u16)(r + G_M_SKILLS + 18)), st = (s8)g_rb((u16)(r + G_M_SKILLS + 15)), armed = 0;
+        total -= wood >= 70 ? 3 : wood >= 30 ? 2 : 1;
+        if (st >= 70) total -= 2; else if (st >= 30) total--;
+        for (int k = 0; k < 7; k++) if ((k != 1 || fix_is_on("campguard")) && (s8)g_rb((u16)(r + G_M_SKILLS + k)) >= 30) armed = 1;
+        if (armed) total--;
+    }
+    return total >= 15 ? 15 : total <= 1 ? 1 : total;
+}
+
 static int day_changed(const LodgeModel *was, const LodgeModel *now, int until_rested);
 static void build(void)
 {
@@ -250,6 +281,11 @@ static void build(void)
     m->sel = (s16)g_rw(LV_SEL);
     m->days = (s16)g_rw(LV_NDAYS);
     m->risk = (s16)g_rw(LV_RISK) / 5;
+    if (lv_mode == 1) {
+        int r = (s16)g_rw(LV_RISK);
+        m->risk_add = camp_risk_add(1); m->risk_add_unguarded = camp_risk_add(0);
+        m->risk_pct = camp_risk_pct(r); m->risk_next_pct = camp_risk_pct(r + m->risk_add); m->risk_next_unguarded_pct = camp_risk_pct(r + m->risk_add_unguarded);
+    }
     teachers(m);
     m->resting = 0;
     long fees = 0, earn = 0;

@@ -1230,63 +1230,66 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/levelmap.cpp:310` | not yet revealed |
 | `ui/levelmap.cpp:311` | Click the floor to walk the party there. Tab or Esc closes the level map; the game is paused until then. |
 | `ui/levelmap.cpp:311` | Tab or Esc closes the level map; the game is paused until then. |
-| `ui/lodgeview.cpp:155` | Camping in the wild |
-| `ui/lodgeview.cpp:155` | Staying here |
-| `ui/lodgeview.cpp:176` | The party lives off the land, and the lord may hear of it: after %d day%s the risk is %d in 10. |
-| `ui/lodgeview.cpp:177` | The room: %s a day.%s |
-| `ui/lodgeview.cpp:177` |    Days stayed:  |
-| `ui/lodgeview.cpp:205` | %d now, %d%% a day for +1, up to %d; %s a day |
-| `ui/lodgeview.cpp:208` | Make 3 potions |
-| `ui/lodgeview.cpp:214` | Endurance back to full ( |
-| `ui/lodgeview.cpp:214` | Already rested: earning would be better |
-| `ui/lodgeview.cpp:214` | Already rested |
-| `ui/lodgeview.cpp:216` | Divine Favor  |
-| `ui/lodgeview.cpp:217` | Endurance stays down ( |
-| `ui/lodgeview.cpp:235` | Regain Endurance |
-| `ui/lodgeview.cpp:235` | Regain Strength |
-| `ui/lodgeview.cpp:235` | Pray for Divine Favor |
-| `ui/lodgeview.cpp:235` | Alchemy work |
-| `ui/lodgeview.cpp:235` | Earn a little money |
-| `ui/lodgeview.cpp:235` | Guard the camp |
-| `ui/lodgeview.cpp:235` | Train or study |
-| `ui/lodgeview.cpp:236` | Endurance is full: earning money is the better day. |
-| `ui/lodgeview.cpp:236` | Already at full Strength. |
-| `ui/lodgeview.cpp:236` | Divine Favor is full. |
-| `ui/lodgeview.cpp:236` | Knows no formula to make. |
-| `ui/lodgeview.cpp:236` | Only at an inn in a town. |
-| `ui/lodgeview.cpp:236` | Only when camping in the wild. |
-| `ui/lodgeview.cpp:236` | No teachers retained in this town. |
-| `ui/lodgeview.cpp:237` | Rest: Endurance comes back to full. Nothing else is gained. |
-| `ui/lodgeview.cpp:237` | Rest and care: Strength comes back; the better the party's Healing, the more (Endurance too). |
-| `ui/lodgeview.cpp:238` | Prayer: Divine Favor comes back; the better Religion and Virtue, the more. Endurance does not come back that day. |
-| `ui/lodgeview.cpp:238` | Make potions from a known formula (the ingredients are used up). Endurance does not come back that day. |
-| `ui/lodgeview.cpp:239` | Work in the town: the job that pays this member best, by their attributes and skills (wounds lower the pay; a bad name in the town too). Endurance does not come back that day. |
-| `ui/lodgeview.cpp:240` | Keep watch and find food: the camp is safer. |
-| `ui/lodgeview.cpp:240` | Lessons from a teacher hired in this town, for a fee each day. Endurance does not come back that day. |
-| `ui/lodgeview.cpp:266` | none retained |
-| `ui/lodgeview.cpp:280` | learned all (%d) |
-| `ui/lodgeview.cpp:281` | now %d, to %d  \xc2\xb7  %d%%  \xc2\xb7  %s  \xc2\xb7  %d day%s |
-| `ui/lodgeview.cpp:292` |  At an inn a failed batch can blow up; in a camp in the wild it cannot. |
-| `ui/lodgeview.cpp:300` | The teacher of %s knows %d; %s has %d already: nothing more to learn here. |
-| `ui/lodgeview.cpp:302` | Teacher of %s (skill %d), %d more day%s hired. Each day: %d%% chance of +1 (about one point in %d day%s)%s. %s has %d.%s |
-| `ui/lodgeview.cpp:303` | , up to the teacher's skill |
-| `ui/lodgeview.cpp:304` |  (The best of the teachers of it hired here teaches.) |
-| `ui/lodgeview.cpp:304` |  (The one hired first teaches.) |
-| `ui/lodgeview.cpp:306` | No teachers retained in this town: ask a guild's masters, the university, the monks, the physician or an alchemist (with the Darklands+ switch "Teachers" on, a lectern marks the option on their cards); a teacher stays a week. |
-| `ui/lodgeview.cpp:307` | Point at a choice to see what it does. |
-| `ui/lodgeview.cpp:329` | In the purse |
-| `ui/lodgeview.cpp:331` | Food: from the land |
-| `ui/lodgeview.cpp:331` | Room and lessons |
-| `ui/lodgeview.cpp:349` | Until rested |
-| `ui/lodgeview.cpp:351` | The purse cannot pay for a day. Members set to Earn a little money may make up the difference; otherwise, leave. |
-| `ui/lodgeview.cpp:352` | Days pass until no one is regaining Strength or praying (at most 14; it stops if anything happens). |
-| `ui/lodgeview.cpp:352` | Nobody is short of Strength, regaining it or praying. |
-| `ui/lodgeview.cpp:353` | Seven days, each member doing what was chosen (it stops if anything happens, or when a day cannot be paid). |
-| `ui/lodgeview.cpp:362` | A day in camp |
-| `ui/lodgeview.cpp:362` | A day at the inn |
-| `ui/lodgeview.cpp:364` | , until rested |
-| `ui/lodgeview.cpp:369` | Click or press a key to skip to the end |
-| `ui/lodgeview.cpp:369` | Click or press a key to skip |
+| `ui/lodgeview.cpp:167` | Camping in the wild |
+| `ui/lodgeview.cpp:167` | Staying here |
+| `ui/lodgeview.cpp:189` | The room: %s a day.%s |
+| `ui/lodgeview.cpp:189` |    Days stayed:  |
+| `ui/lodgeview.cpp:218` | %d now, %d%% a day for +1, up to %d; %s a day |
+| `ui/lodgeview.cpp:221` | Make 3 potions |
+| `ui/lodgeview.cpp:227` | Endurance back to full ( |
+| `ui/lodgeview.cpp:227` | Already rested: earning would be better |
+| `ui/lodgeview.cpp:227` | Already rested |
+| `ui/lodgeview.cpp:230` | Divine Favor  |
+| `ui/lodgeview.cpp:231` | Endurance stays down ( |
+| `ui/lodgeview.cpp:249` | Regain Endurance |
+| `ui/lodgeview.cpp:249` | Regain Strength |
+| `ui/lodgeview.cpp:249` | Pray for Divine Favor |
+| `ui/lodgeview.cpp:249` | Alchemy work |
+| `ui/lodgeview.cpp:249` | Earn a little money |
+| `ui/lodgeview.cpp:249` | Guard the camp |
+| `ui/lodgeview.cpp:249` | Train or study |
+| `ui/lodgeview.cpp:250` | Endurance is full: earning money is the better day. |
+| `ui/lodgeview.cpp:250` | Already at full Strength. |
+| `ui/lodgeview.cpp:250` | Divine Favor is full. |
+| `ui/lodgeview.cpp:250` | Knows no formula to make. |
+| `ui/lodgeview.cpp:250` | Only at an inn in a town. |
+| `ui/lodgeview.cpp:250` | Only when camping in the wild. |
+| `ui/lodgeview.cpp:250` | No teachers retained in this town. |
+| `ui/lodgeview.cpp:251` | Rest: Endurance comes back to full. Nothing else is gained. |
+| `ui/lodgeview.cpp:251` | Rest and care: Strength comes back; the better the party's Healing, the more (Endurance too). |
+| `ui/lodgeview.cpp:252` | Prayer: Divine Favor comes back; the better Religion and Virtue, the more. Endurance does not come back that day. |
+| `ui/lodgeview.cpp:252` | Make potions from a known formula (the ingredients are used up). Endurance does not come back that day. |
+| `ui/lodgeview.cpp:253` | Work in the town: the job that pays this member best, by their attributes and skills (wounds lower the pay; a bad name in the town too). Endurance does not come back that day. |
+| `ui/lodgeview.cpp:254` | Keep watch: the risk that the lord's men find the party living off his land grows more slowly each day. Woodwise helps most, then Stealth, then a weapon skill of 30 or more. |
+| `ui/lodgeview.cpp:254` | Lessons from a teacher hired in this town, for a fee each day. Endurance does not come back that day. |
+| `ui/lodgeview.cpp:280` | none retained |
+| `ui/lodgeview.cpp:285` | No risk here: the lord's men will not come. |
+| `ui/lodgeview.cpp:286` | The lord's men: %d%% before the next day, %d%% the day after |
+| `ui/lodgeview.cpp:302` | learned all (%d) |
+| `ui/lodgeview.cpp:303` | now %d, to %d  \xc2\xb7  %d%%  \xc2\xb7  %s  \xc2\xb7  %d day%s |
+| `ui/lodgeview.cpp:316` | The lord's men may find the party living off his land, more likely each day. With %s on guard the day after is %d%% (%d%% unguarded). Camp broken, the risk stays half a day to two and a half. |
+| `ui/lodgeview.cpp:318` | The lord's men may find the party living off his land, more likely each day; members on guard slow it. Camp broken, the risk stays half a day to two and a half. |
+| `ui/lodgeview.cpp:321` |  At an inn a failed batch can blow up; in a camp in the wild it cannot. |
+| `ui/lodgeview.cpp:329` | The teacher of %s knows %d; %s has %d already: nothing more to learn here. |
+| `ui/lodgeview.cpp:331` | Teacher of %s (skill %d), %d more day%s hired. Each day: %d%% chance of +1 (about one point in %d day%s)%s. %s has %d.%s |
+| `ui/lodgeview.cpp:332` | , up to the teacher's skill |
+| `ui/lodgeview.cpp:333` |  (The best of the teachers of it hired here teaches.) |
+| `ui/lodgeview.cpp:333` |  (The one hired first teaches.) |
+| `ui/lodgeview.cpp:335` | No teachers retained in this town: ask a guild's masters, the university, the monks, the physician or an alchemist (with the Darklands+ switch "Teachers" on, a lectern marks the option on their cards); a teacher stays a week. |
+| `ui/lodgeview.cpp:336` | Point at a choice to see what it does. |
+| `ui/lodgeview.cpp:358` | In the purse |
+| `ui/lodgeview.cpp:360` | Food: from the land |
+| `ui/lodgeview.cpp:360` | Room and lessons |
+| `ui/lodgeview.cpp:378` | Until rested |
+| `ui/lodgeview.cpp:380` | The purse cannot pay for a day. Members set to Earn a little money may make up the difference; otherwise, leave. |
+| `ui/lodgeview.cpp:381` | Days pass until no one is regaining Strength or praying (at most 14; it stops if anything happens). |
+| `ui/lodgeview.cpp:381` | Nobody is short of Strength, regaining it or praying. |
+| `ui/lodgeview.cpp:382` | Seven days, each member doing what was chosen (it stops if anything happens, or when a day cannot be paid). |
+| `ui/lodgeview.cpp:391` | A day in camp |
+| `ui/lodgeview.cpp:391` | A day at the inn |
+| `ui/lodgeview.cpp:393` | , until rested |
+| `ui/lodgeview.cpp:398` | Click or press a key to skip to the end |
+| `ui/lodgeview.cpp:398` | Click or press a key to skip |
 | `ui/lootview.cpp:61` |  in cash (added to the purse). |
 | `ui/lootview.cpp:61` | No money found. |
 | `ui/lootview.cpp:76` | The party's pack |
@@ -2666,10 +2669,10 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/lodgeview.c:150` | Mendicant Friar |
 | `mods/lodgeview.c:150` | Hospital Helper |
 | `mods/lodgeview.c:151` | Town Militia |
-| `mods/lodgeview.c:474` | The days stop: %s's teacher has gone. |
-| `mods/lodgeview.c:476` | The days stop: what %s does each day has changed. |
-| `mods/lodgeview.c:478` | The days stop: %s has regained all Strength. |
-| `mods/lodgeview.c:479` | The days stop: %s's Divine Favor is full. |
+| `mods/lodgeview.c:510` | The days stop: %s's teacher has gone. |
+| `mods/lodgeview.c:512` | The days stop: what %s does each day has changed. |
+| `mods/lodgeview.c:514` | The days stop: %s has regained all Strength. |
+| `mods/lodgeview.c:515` | The days stop: %s's Divine Favor is full. |
 | `mods/looks.c:85` | Gray-haired fighter |
 | `mods/looks.c:85` | Brown-haired woman |
 | `mods/looks.c:85` | Blond fighter |

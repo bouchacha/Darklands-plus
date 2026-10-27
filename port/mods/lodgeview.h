@@ -26,7 +26,10 @@ typedef struct {
     int mode;                         /* 0 an inn, 1 camping in the wild, 2 and 3 other stays */
     int sel;                          /* the member whose day is being chosen */
     int days;                         /* days spent here */
-    int risk;                         /* camping: the risk of being caught (of 10) */
+    int risk;                         /* camping: the risk of being caught (of 10, as the game's line says) */
+    int risk_pct, risk_next_pct;      /* camping: the chance of trouble before the next day, and before the one after (with the guards set) */
+    int risk_next_unguarded_pct;      /* camping: before the day after, with nobody on guard */
+    int risk_add, risk_add_unguarded; /* camping: what a day adds to the risk (of 98), with the guards set and with none */
     LodgeMember m[5];
     int nteach;
     struct { int skill, fee, val, days_left, used; } t[LV_TEACHERS];   /* (used: the teacher the inn uses for that skill, teach_best_here) */
