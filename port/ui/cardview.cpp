@@ -339,6 +339,7 @@ extern "C" void cardview_draw(void)
     }
 
     int tip_item = -1, tip_saint = -1, tip_formula = -1; ImVec2 tip_at;
+    int tip_head = -1; ImVec2 tip_head0, tip_head1;                              /* (the pointer on a member's head in an option's list: the name) */
     int chance_tip = -1; ImVec2 chance_tip_a0, chance_tip_a1;                   /* (the pointer on an option's chance: who tries it, and what it rests on) */
     /* each member's chip, their head and their chance: a click on one chooses the option with that member
        speaking. x: where they begin; t: how far slid out (0..1, the hover's); returns where they end */
@@ -539,14 +540,18 @@ extern "C" void cardview_draw(void)
                does not know; then those it knows already are dimmed */
             bool saint_learning = false;
             if (c.popup_kind == 2) for (int e = 0; e < c.nentries; e++) { const CvEntry &q = c.entry[e]; if (q.id >= 0 && q.member >= 0 && q.member < 5 && !gm_knows_saint(q.member, q.id)) saint_learning = true; }
-            float namew = 0;
-            for (int e = 0; e < c.nentries; e++) if (c.entry[e].who[0]) namew = fmaxf(namew, fs->CalcTextSizeA(size * 0.82f, FLT_MAX, 0, gtext(c.entry[e].who).c_str()).x);
+            float namew = 0, hs = L * 0.92f * 0.88f;                 /* (who: the member's head, before their first entry) */
+            for (int e = 0; e < c.nentries; e++) if (c.entry[e].who[0]) namew = hs / 1.2f;
             for (int e = 0; e < c.nentries; e++) {
                 const CvEntry &en = c.entry[e];
                 float h = L * 0.92f;
                 bool eh = c.hover_entry == e && en.on;
                 if (eh) dl->AddRectFilled(ImVec2(ex - 0.4f * size, ey - 0.1f * h), ImVec2(X1 + 1.0f * k, ey + 0.95f * h), dark ? IM_COL32(255, 214, 140, 50) : IM_COL32(150, 92, 30, 55), 1.2f * k);
-                if (en.who[0]) dl->AddText(fs, size * 0.82f, ImVec2(ex, ey + 0.08f * h), ink_soft, gtext(en.who).c_str());
+                if (en.who[0]) {
+                    ImVec2 h0(ex, ey + 0.02f * h), h1(ex + hs / 1.2f, ey + 0.02f * h + hs);
+                    ui_member_head(dl, en.member, h0, hs);
+                    if (ImGui::IsMouseHoveringRect(h0, h1, false)) { tip_head = en.member; tip_head0 = h0; tip_head1 = h1; }
+                }
                 ImU32 ec = !en.on || en.code == 0x83 ? ink_dim : en.code == 0x87 ? (dark ? IM_COL32(250, 210, 110, 255) : IM_COL32(150, 90, 0, 255)) : ink;
                 std::string et = gtext(en.text);
                 if (c.popup_kind == 2 && en.id >= 0 && en.id < (int)gamedata.saints.size() && !gamedata.saints[en.id].name.empty()) et = gamedata.saints[en.id].name;   /* (the saint's whole name, as the sheet writes it: not the card's "S.Christina") */
@@ -587,9 +592,8 @@ extern "C" void cardview_draw(void)
                             ui_tip_beside(m0, m1);
                             ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
                             ui_rich_textf("This saint asks a {Virtue} of %d of the one who prays.", en.vmin);
-                            if (low) { char nm[24]; g_str(G_DGROUP, (u16)(G_MEMBER(en.member) + G_M_SHORTNAME), nm, sizeof nm);
-                                       ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
-                                       ui_rich_textf("%s has %d: too low to call on this saint, however much {Divine Favor} is spent.", game_text(nm, strlen(nm)).c_str(), en.virtue);
+                            if (low) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+                                       ui_rich_textf("%s: too low to call on this saint, however much {Divine Favor} is spent.", rich_member(en.member, std::to_string(en.virtue)).c_str());
                                        ImGui::PopStyleColor(); }
                             ImGui::PopTextWrapPos(); ImGui::EndTooltip();
                         }
@@ -665,6 +669,7 @@ extern "C" void cardview_draw(void)
             ImGui::EndTooltip();
         }
     }
+    else if (tip_head >= 0 && !ui_is_open()) { ui_tip_beside(tip_head0, tip_head1); ImGui::SetTooltip("%s", ui_member_name(tip_head).c_str()); }
     else if (tip_formula >= 0) ui_card_formula_tip(tip_at, ImVec2(0, 0), tip_formula);
     else if (tip_item >= 0 || tip_saint >= 0) ui_card_tip(tip_at, ImVec2(0, 0), tip_item, tip_saint);
     else if (tipmenu && c.hover >= 0 && c.hover < c.npieces && teaches[c.hover]) {

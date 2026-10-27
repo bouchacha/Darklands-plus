@@ -705,53 +705,53 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/cardhints.cpp:23` | Needs a rope. |
 | `ui/cardhints.cpp:26` | Not for about three weeks after a sewer grate here defeated you. |
 | `ui/cardhints.cpp:28` | Not for two days after a guard refused your bribe here, nor if you cannot pay it. |
-| `ui/cardview.cpp:372` |  speaks for the party |
-| `ui/cardview.cpp:372` |  (the leader) |
-| `ui/cardview.cpp:372` | . A formula traded is  |
-| `ui/cardview.cpp:373` | Click to choose this with %s speaking. |
-| `ui/cardview.cpp:414` | not possible |
-| `ui/cardview.cpp:535` | Nobody in the party knows a saint who can help here. |
-| `ui/cardview.cpp:535` | Nobody in the party carries anything that helps here. |
-| `ui/cardview.cpp:562` | knows it already |
-| `ui/cardview.cpp:570` | knows the formula but carries none |
-| `ui/cardview.cpp:571` | at the easiest difficulty, the leader need not know the saint |
-| `ui/cardview.cpp:571` | at the easiest difficulty, the leader needs none |
-| `ui/cardview.cpp:572` | knows this saint already |
-| `ui/cardview.cpp:589` | This saint asks a {Virtue} of %d of the one who prays. |
-| `ui/cardview.cpp:592` | %s has %d: too low to call on this saint, however much {Divine Favor} is spent. |
-| `ui/cardview.cpp:635` | Each member tries it |
-| `ui/cardview.cpp:641` | the town's opinion of the party (its reputation here) |
-| `ui/cardview.cpp:642` | the party's fame |
-| `ui/cardview.cpp:649` | It rests on: |
-| `ui/cardview.cpp:661` | The leader speaks for the party, and what is traded is the speaker's to know, unless you pick another (the arrow at the end shows each member's chance). |
-| `ui/cardview.cpp:662` | Whoever speaks for the party tries it: the best at it, unless you pick another (the arrow at the end shows each member's chance). |
-| `ui/cardview.cpp:663` | Whoever speaks for the party tries it: the leader, unless you pick another (the arrow at the end shows each member's chance). |
-| `ui/cardview.cpp:674` | Brings a teacher to the inn |
-| `ui/cardview.cpp:678` | Hired here now: %s. |
-| `ui/cardview.cpp:679` | Not possible now |
-| `ui/cardview.cpp:686` | Nothing to gain here |
-| `ui/cardview.cpp:686` | A better Philosopher's Stone |
-| `ui/cardview.cpp:689` | The stone %s offers is of quality %d; the party's is %d. A batch's chance of success would rise by %d. |
-| `ui/cardview.cpp:690` | the university |
-| `ui/cardview.cpp:690` | this alchemist |
-| `ui/cardview.cpp:691` | The stone %s offers is of quality %d; the party has none. It would add %d to a batch's chance of success. |
-| `ui/cardview.cpp:692` | the university |
-| `ui/cardview.cpp:692` | this alchemist |
-| `ui/cardview.cpp:693` | The university's best stone is of quality %d, no better than the party's %d. Asking gains nothing, and if it goes wrong it costs two hours, a point of the party's reputation here and the question for a week. |
-| `ui/cardview.cpp:695` | This alchemist's best stone is of quality %d, no better than the party's %d. Asking gains nothing, and if the alchemist will not talk the party is turned away for 60 hours. |
-| `ui/cardview.cpp:704` | Perhaps a fight |
-| `ui/cardview.cpp:724` | Not possible now |
-| `ui/cardview.cpp:727` | Nor would it gain anything: the stone sold here is of quality %d, the party's %d. |
-| `ui/cardview.cpp:753` | nobody knows it yet |
-| `ui/cardview.cpp:766` | nobody knows this saint |
-| `ui/cardview.cpp:766` | nobody carries one |
-| `ui/cardview.cpp:771` | Saints who help here |
-| `ui/cardview.cpp:771` | Formulae for sale |
-| `ui/cardview.cpp:771` | Items that help here |
-| `ui/cardview.cpp:776` | Not possible now |
-| `ui/cardview.cpp:780` | (click to choose who learns one; point at a formula there for its details) |
-| `ui/cardview.cpp:781` | (click to choose who) |
-| `ui/cardview.cpp:797` | ..., for 3 groschen. |
+| `ui/cardview.cpp:373` |  speaks for the party |
+| `ui/cardview.cpp:373` |  (the leader) |
+| `ui/cardview.cpp:373` | . A formula traded is  |
+| `ui/cardview.cpp:374` | Click to choose this with %s speaking. |
+| `ui/cardview.cpp:415` | not possible |
+| `ui/cardview.cpp:536` | Nobody in the party knows a saint who can help here. |
+| `ui/cardview.cpp:536` | Nobody in the party carries anything that helps here. |
+| `ui/cardview.cpp:567` | knows it already |
+| `ui/cardview.cpp:575` | knows the formula but carries none |
+| `ui/cardview.cpp:576` | at the easiest difficulty, the leader need not know the saint |
+| `ui/cardview.cpp:576` | at the easiest difficulty, the leader needs none |
+| `ui/cardview.cpp:577` | knows this saint already |
+| `ui/cardview.cpp:594` | This saint asks a {Virtue} of %d of the one who prays. |
+| `ui/cardview.cpp:596` | %s: too low to call on this saint, however much {Divine Favor} is spent. |
+| `ui/cardview.cpp:639` | Each member tries it |
+| `ui/cardview.cpp:645` | the town's opinion of the party (its reputation here) |
+| `ui/cardview.cpp:646` | the party's fame |
+| `ui/cardview.cpp:653` | It rests on: |
+| `ui/cardview.cpp:665` | The leader speaks for the party, and what is traded is the speaker's to know, unless you pick another (the arrow at the end shows each member's chance). |
+| `ui/cardview.cpp:666` | Whoever speaks for the party tries it: the best at it, unless you pick another (the arrow at the end shows each member's chance). |
+| `ui/cardview.cpp:667` | Whoever speaks for the party tries it: the leader, unless you pick another (the arrow at the end shows each member's chance). |
+| `ui/cardview.cpp:679` | Brings a teacher to the inn |
+| `ui/cardview.cpp:683` | Hired here now: %s. |
+| `ui/cardview.cpp:684` | Not possible now |
+| `ui/cardview.cpp:691` | Nothing to gain here |
+| `ui/cardview.cpp:691` | A better Philosopher's Stone |
+| `ui/cardview.cpp:694` | The stone %s offers is of quality %d; the party's is %d. A batch's chance of success would rise by %d. |
+| `ui/cardview.cpp:695` | the university |
+| `ui/cardview.cpp:695` | this alchemist |
+| `ui/cardview.cpp:696` | The stone %s offers is of quality %d; the party has none. It would add %d to a batch's chance of success. |
+| `ui/cardview.cpp:697` | the university |
+| `ui/cardview.cpp:697` | this alchemist |
+| `ui/cardview.cpp:698` | The university's best stone is of quality %d, no better than the party's %d. Asking gains nothing, and if it goes wrong it costs two hours, a point of the party's reputation here and the question for a week. |
+| `ui/cardview.cpp:700` | This alchemist's best stone is of quality %d, no better than the party's %d. Asking gains nothing, and if the alchemist will not talk the party is turned away for 60 hours. |
+| `ui/cardview.cpp:709` | Perhaps a fight |
+| `ui/cardview.cpp:729` | Not possible now |
+| `ui/cardview.cpp:732` | Nor would it gain anything: the stone sold here is of quality %d, the party's %d. |
+| `ui/cardview.cpp:758` | nobody knows it yet |
+| `ui/cardview.cpp:771` | nobody knows this saint |
+| `ui/cardview.cpp:771` | nobody carries one |
+| `ui/cardview.cpp:776` | Saints who help here |
+| `ui/cardview.cpp:776` | Formulae for sale |
+| `ui/cardview.cpp:776` | Items that help here |
+| `ui/cardview.cpp:781` | Not possible now |
+| `ui/cardview.cpp:785` | (click to choose who learns one; point at a formula there for its details) |
+| `ui/cardview.cpp:786` | (click to choose who) |
+| `ui/cardview.cpp:802` | ..., for 3 groschen. |
 | `ui/citynav.cpp:188` | Market stalls: everyday goods to buy and sell. |
 | `ui/citynav.cpp:189` | Foreign trader |
 | `ui/citynav.cpp:189` | Pavilions of traders from distant lands: goods to buy and sell. |
@@ -1692,19 +1692,19 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/partypanel.cpp:495` | %s opens with the melee weapon: a click on an enemy makes %s close in and fight hand to hand. Click here: shoot first, then fight hand to hand once the enemies close in. |
 | `ui/prayview.cpp:38` |  calls on the saint for the whole party: |
 | `ui/prayview.cpp:38` |  calls on the saint: |
-| `ui/prayview.cpp:52` | This saint asks a {Virtue} of %d of the one who prays. %s's: %d%s |
-| `ui/prayview.cpp:53` | , too low: more Divine Favor will not help. |
-| `ui/prayview.cpp:60` | Saint's day:  |
-| `ui/prayview.cpp:66` | Differs from the description:  |
-| `ui/prayview.cpp:74` | {Divine Favor} to spend |
-| `ui/prayview.cpp:113` | %s has {Divine Favor:%d}; %d will be left. Past the green mark the chance rises no more. |
-| `ui/prayview.cpp:113` | %s has {Divine Favor:%d}; %d will be left. |
-| `ui/prayview.cpp:116` | Chance the saint hears: %d%% |
-| `ui/prayview.cpp:119` | More {Divine Favor} gives a better chance (up to 99%); it is spent either way. |
-| `ui/prayview.cpp:139` | %s's {Virtue:%d} is below the %d this saint asks: more {Divine Favor} will not help. |
-| `ui/prayview.cpp:140` | This saint asks at least {Divine Favor:%d}; %s has only %d. |
-| `ui/prayview.cpp:141` | This saint asks at least {Divine Favor:%d}: spend more. |
-| `ui/prayview.cpp:142` | No chance as it is: spend more {Divine Favor} (or the saint does not help here). |
+| `ui/prayview.cpp:52` | This saint asks a {Virtue} of %d of the one who prays. %s%s |
+| `ui/prayview.cpp:54` | , too low: more {Divine Favor} will not help. |
+| `ui/prayview.cpp:61` | Saint's day:  |
+| `ui/prayview.cpp:67` | Differs from the description:  |
+| `ui/prayview.cpp:75` | {Divine Favor} to spend |
+| `ui/prayview.cpp:114` | %s has {Divine Favor:%d}; %d will be left. Past the green mark the chance rises no more. |
+| `ui/prayview.cpp:114` | %s has {Divine Favor:%d}; %d will be left. |
+| `ui/prayview.cpp:117` | Chance the saint hears: %d%% |
+| `ui/prayview.cpp:120` | More {Divine Favor} gives a better chance (up to 99%); it is spent either way. |
+| `ui/prayview.cpp:140` | %s {Virtue:%d} is below the %d this saint asks: more {Divine Favor} will not help. |
+| `ui/prayview.cpp:141` | This saint asks at least {Divine Favor:%d}; %s has only %d. |
+| `ui/prayview.cpp:142` | This saint asks at least {Divine Favor:%d}: spend more. |
+| `ui/prayview.cpp:143` | No chance as it is: spend more {Divine Favor} (or the saint does not help here). |
 | `ui/professions.cpp:340` | Only for a man |
 | `ui/professions.cpp:345` | Not with this character's past |
 | `ui/professions.cpp:345` | , and not with this past |

@@ -34,7 +34,7 @@ extern "C" void prayview_draw(void)
         tx = 63 + sw + 4;
     }
     float tw = 316 - tx, y = 4;
-    std::string who = ns_gtext(p.names[p.who < 0 || p.who > 4 ? 0 : p.who]);
+    std::string who = rich_member(p.who < 0 || p.who > 4 ? 0 : p.who);   /* (the one who prays: their head, ui/richtext.h) */
     y += P.para(fo, NsDraw::FS_SMALL, tx, y, tw, soft, who + (p.party ? " calls on the saint for the whole party:" : " calls on the saint:")) + 0.5f;
     {   /* the name, and after it the Virtue the saint asks (greyed when the one who prays has less) */
         std::string nm = known ? gamedata.saints[p.saint].name : "?", vt = std::to_string(p.vmin);
@@ -49,8 +49,9 @@ extern "C" void prayview_draw(void)
             float bw = P.shield_value(bx, by, VIS, UI_KEY_SKILL + SKILL_VIRTUE, vt, VGS, soft);
             if (p.virtue < p.vmin) ui_dim_since(P.dl, v0, 0.38f);
             if (P.over(bx, by - 3.5f, bx + bw, by + 3.5f)) {
-                char t[200]; snprintf(t, sizeof t, "This saint asks a {Virtue} of %d of the one who prays. %s's: %d%s", p.vmin, who.c_str(), p.virtue,
-                                      p.virtue < p.vmin ? ", too low: more Divine Favor will not help." : ".");
+                char t[240]; snprintf(t, sizeof t, "This saint asks a {Virtue} of %d of the one who prays. %s%s", p.vmin,
+                                      rich_member(p.who < 0 || p.who > 4 ? 0 : p.who, std::to_string(p.virtue)).c_str(),
+                                      p.virtue < p.vmin ? ", too low: more {Divine Favor} will not help." : ".");
                 ns_tip(t, 22);
             }
             if (!beside) h += 7;
@@ -127,7 +128,7 @@ extern "C" void prayview_draw(void)
             float px = x + P.width(fo, NsDraw::FS_SMALL, "Pray for:") + 3, py = yy - 1.5f;
             for (int m = 0; m < 5; m++) {
                 if (!p.present[m]) continue;
-                std::string nm = ns_gtext(p.names[m]);
+                std::string nm = rich_member(m);              /* (a head a button: the name under the pointer) */
                 float w = P.width(fo, NsDraw::FS_SMALL, nm) + 6;
                 if (px + w > 316) { px = x; py += 10; }
                 if (P.button(px, py, px + w, py + 8.5f, nm, IM_COL32(40, 92, 34, 235))) ns_push(PV_PRAY, m, 0, 0);
@@ -136,7 +137,7 @@ extern "C" void prayview_draw(void)
         }
     } else {
         char b[160];
-        if (p.why == 1) snprintf(b, sizeof b, "%s's {Virtue:%d} is below the %d this saint asks: more {Divine Favor} will not help.", who.c_str(), p.virtue, p.vmin);
+        if (p.why == 1) snprintf(b, sizeof b, "%s {Virtue:%d} is below the %d this saint asks: more {Divine Favor} will not help.", who.c_str(), p.virtue, p.vmin);
         else if (p.why == 2 && p.maxdf < p.xmin) snprintf(b, sizeof b, "This saint asks at least {Divine Favor:%d}; %s has only %d.", p.xmin, who.c_str(), p.maxdf);
         else if (p.why == 2) snprintf(b, sizeof b, "This saint asks at least {Divine Favor:%d}: spend more.", p.xmin);
         else snprintf(b, sizeof b, "No chance as it is: spend more {Divine Favor} (or the saint does not help here).");
