@@ -2146,53 +2146,55 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/sheetview.cpp:755` | loses 3 to 8 |
 | `ui/sheetview.cpp:755` | may cost Endurance |
 | `ui/sheetview.cpp:756` | costs something |
-| `ui/sheetview.cpp:756` | below 9 are raised |
-| `ui/sheetview.cpp:756` | Endurance, Strength 9 |
-| `ui/sheetview.cpp:771` | (all\|half the\|[0-9]+%\|[0-9]+ to [0-9]+)( of)?( lost)? (Endurance\|Strength)( and (Endurance\|Strength))? |
-| `ui/sheetview.cpp:772` | ^(.*?)\\s*(\\+[0-9]+( to [0-9]+)?\|lowered by ([0-9]+ to [0-9]+\|half its maximum))(.*)$ |
-| `ui/sheetview.cpp:773` | by ([0-9]+ to [0-9]+) |
-| `ui/sheetview.cpp:786` | ^Costs ([0-9]+ to [0-9]+) (Endurance\|Strength) |
-| `ui/sheetview.cpp:802` | Every member's  |
-| `ui/sheetview.cpp:822` | weapons in hand |
-| `ui/sheetview.cpp:823` | weapon skill |
-| `ui/sheetview.cpp:906` | Known in the party |
-| `ui/sheetview.cpp:928` | Or what it raises: |
-| `ui/sheetview.cpp:928` | Or what it raises: |
-| `ui/sheetview.cpp:942` | %s: the %d saint%s whose help raises it%s |
-| `ui/sheetview.cpp:942` | The town's opinion of the party (its reputation) |
-| `ui/sheetview.cpp:943` |  (click again for all) |
-| `ui/sheetview.cpp:967` | No saint helps with that. |
-| `ui/sheetview.cpp:967` | Nobody in the party knows a saint that helps with that. (All saints shows the others too.) |
-| `ui/sheetview.cpp:1016` | No library the party has been to teaches this saint. |
-| `ui/sheetview.cpp:1018` | Taught in the library of  |
-| `ui/sheetview.cpp:1041` | Nobody in the party knows this saint. |
-| `ui/sheetview.cpp:1045` | Asks a Virtue of %d. |
-| `ui/sheetview.cpp:1045` | Asks a Virtue of %d: too low for %s, who cannot call on this saint. |
-| `ui/sheetview.cpp:1058` | %s: no chance now |
-| `ui/sheetview.cpp:1061` | The best chance of being heard, and the least Divine Favor that gives it: more is spent for nothing. The prayer screen sets the favor. |
-| `ui/sheetview.cpp:1062` | Virtue too low for this saint, or too little Divine Favor: see above and the prayer screen. |
-| `ui/sheetview.cpp:1064` | Call on this saint now: the prayer screen, where you choose how much Divine Favor to spend. |
-| `ui/sheetview.cpp:1071` | Differs from the description:  |
-| `ui/sheetview.cpp:1109` | The party has none. |
-| `ui/sheetview.cpp:1110` | The party has %d. |
-| `ui/sheetview.cpp:1111` | The party has %d (%s). |
-| `ui/sheetview.cpp:1113` | Where to buy: %s |
-| `ui/sheetview.cpp:1139` | All formulae |
-| `ui/sheetview.cpp:1139` | Known in the party |
-| `ui/sheetview.cpp:1160` | Nobody in the party knows a formula. All formulae shows every one, its ingredients and where it is sold. |
-| `ui/sheetview.cpp:1202` | The party's ingredients |
-| `ui/sheetview.cpp:1232` | Mystic number %d, %s. |
-| `ui/sheetview.cpp:1232` | risk unknown |
-| `ui/sheetview.cpp:1235` | The mystic number: the higher, the harder the formula is to brew (set against the alchemist's Alchemy and Intelligence). The risk: how badly a failed brew can go wrong. |
-| `ui/sheetview.cpp:1240` | Ingredients: the party has / needed |
-| `ui/sheetview.cpp:1251` | Enough ingredients to make %d potion%s. |
-| `ui/sheetview.cpp:1252` | The party lacks an ingredient: brewing must wait. |
-| `ui/sheetview.cpp:1252` | The party lacks an ingredient. |
-| `ui/sheetview.cpp:1254` | Chance of brewing one batch |
-| `ui/sheetview.cpp:1263` | Nobody in the party knows it. |
-| `ui/sheetview.cpp:1266` | No alchemist sells it: it is traded for or found. |
-| `ui/sheetview.cpp:1267` | No alchemist the party has been to sells it. |
-| `ui/sheetview.cpp:1272` | Sold by the alchemist of  |
+| `ui/sheetview.cpp:772` | (all\|half the\|[0-9]+%\|[0-9]+ to [0-9]+)( of)?( lost)? (Endurance\|Strength)( and (Endurance\|Strength))? |
+| `ui/sheetview.cpp:773` | ^(.*?)\\s*(\\+[0-9]+( to [0-9]+)?\|lowered by ([0-9]+ to [0-9]+\|half its maximum))(.*)$ |
+| `ui/sheetview.cpp:774` | by ([0-9]+ to [0-9]+) |
+| `ui/sheetview.cpp:787` | (Endurance\|Strength)( and (Endurance\|Strength))? below [0-9]+ (is\|are) raised to ([0-9]+) |
+| `ui/sheetview.cpp:792` | ^Costs ([0-9]+ to [0-9]+) (Endurance\|Strength) |
+| `ui/sheetview.cpp:808` | Every member's  |
+| `ui/sheetview.cpp:813` | Streetwise and Woodwise each +1 to 4 |
+| `ui/sheetview.cpp:818` | worn body and leg armor |
+| `ui/sheetview.cpp:818` | it gives the one prayed for armor |
+| `ui/sheetview.cpp:832` | weapons in hand |
+| `ui/sheetview.cpp:833` | weapon skill |
+| `ui/sheetview.cpp:937` | Known in the party |
+| `ui/sheetview.cpp:959` | Or what it raises: |
+| `ui/sheetview.cpp:959` | Or what it raises: |
+| `ui/sheetview.cpp:973` | %s: the %d saint%s whose help raises it%s |
+| `ui/sheetview.cpp:973` | The town's opinion of the party (its reputation) |
+| `ui/sheetview.cpp:974` |  (click again for all) |
+| `ui/sheetview.cpp:998` | No saint helps with that. |
+| `ui/sheetview.cpp:998` | Nobody in the party knows a saint that helps with that. (All saints shows the others too.) |
+| `ui/sheetview.cpp:1047` | No library the party has been to teaches this saint. |
+| `ui/sheetview.cpp:1049` | Taught in the library of  |
+| `ui/sheetview.cpp:1072` | Nobody in the party knows this saint. |
+| `ui/sheetview.cpp:1076` | Asks a Virtue of %d. |
+| `ui/sheetview.cpp:1076` | Asks a Virtue of %d: too low for %s, who cannot call on this saint. |
+| `ui/sheetview.cpp:1089` | %s: no chance now |
+| `ui/sheetview.cpp:1092` | The best chance of being heard, and the least Divine Favor that gives it: more is spent for nothing. The prayer screen sets the favor. |
+| `ui/sheetview.cpp:1093` | Virtue too low for this saint, or too little Divine Favor: see above and the prayer screen. |
+| `ui/sheetview.cpp:1095` | Call on this saint now: the prayer screen, where you choose how much Divine Favor to spend. |
+| `ui/sheetview.cpp:1102` | Differs from the description:  |
+| `ui/sheetview.cpp:1140` | The party has none. |
+| `ui/sheetview.cpp:1141` | The party has %d. |
+| `ui/sheetview.cpp:1142` | The party has %d (%s). |
+| `ui/sheetview.cpp:1144` | Where to buy: %s |
+| `ui/sheetview.cpp:1170` | All formulae |
+| `ui/sheetview.cpp:1170` | Known in the party |
+| `ui/sheetview.cpp:1191` | Nobody in the party knows a formula. All formulae shows every one, its ingredients and where it is sold. |
+| `ui/sheetview.cpp:1233` | The party's ingredients |
+| `ui/sheetview.cpp:1263` | Mystic number %d, %s. |
+| `ui/sheetview.cpp:1263` | risk unknown |
+| `ui/sheetview.cpp:1266` | The mystic number: the higher, the harder the formula is to brew (set against the alchemist's Alchemy and Intelligence). The risk: how badly a failed brew can go wrong. |
+| `ui/sheetview.cpp:1271` | Ingredients: the party has / needed |
+| `ui/sheetview.cpp:1282` | Enough ingredients to make %d potion%s. |
+| `ui/sheetview.cpp:1283` | The party lacks an ingredient: brewing must wait. |
+| `ui/sheetview.cpp:1283` | The party lacks an ingredient. |
+| `ui/sheetview.cpp:1285` | Chance of brewing one batch |
+| `ui/sheetview.cpp:1294` | Nobody in the party knows it. |
+| `ui/sheetview.cpp:1297` | No alchemist sells it: it is traded for or found. |
+| `ui/sheetview.cpp:1298` | No alchemist the party has been to sells it. |
+| `ui/sheetview.cpp:1303` | Sold by the alchemist of  |
 | `ui/skillicons.cpp:396` | Frames and clock |
 | `ui/skillicons.cpp:400` | Cards and towns |
 | `ui/skillicons.cpp:405` | The party and its items |

@@ -732,7 +732,7 @@ static float small_tag(NsDraw &P, float x_end, float ry, float rowh, const char 
    opinion, the weapon skills (all of them: three shields; those of the weapons in hand: "in hand"),
    and a few words for the rest; the part in full under the pointer */
 enum { CH_RAISE, CH_HEAL, CH_REP, CH_WEAPONS, CH_INHAND, CH_WORDS };
-struct SaintChip { int kind, key; std::string val; bool bad; std::string part; };
+struct SaintChip { int kind, key; std::string val; bool bad; std::string part; bool raw = false; };   /* raw: words the parse did not know (usaintchips) */
 static std::string span_of(const std::string &t)            /* "6 to 11" -> "6–11"; "half its maximum" -> "half" */
 {
     std::string r = t;
@@ -753,7 +753,7 @@ static const struct { const char *has, *say; bool bad; } SAINT_WORDS[] = {
     { "nearest town", "carried to a town", false }, { "groschen", "a little money", false }, { "Teaches", "teaches a saint", false },
     { "Virtue is raised", "Virtue 20 at least, a quarter of the money", false }, { "No help of its own", "encounters only", false }, { "Fugger", "the bankers' favor", false },
     { "death from wounds", "no death from wounds", false }, { "loses a tenth", "may cost money", true }, { "loses 3 to 8", "may cost Endurance", true },
-    { "Costs", "costs something", true }, { "below 9 are raised", "Endurance, Strength 9", false },
+    { "Costs", "costs something", true }
 };
 static void saint_chips_parse(const std::string &does, std::vector<SaintChip> &out)
 {
@@ -762,6 +762,7 @@ static void saint_chips_parse(const std::string &does, std::vector<SaintChip> &o
     std::vector<std::string> sent;
     for (size_t a = 0; a < does.size(); ) {
         size_t e = does.find(". ", a);
+        while (e != std::string::npos && e >= 2 && does.compare(e - 2, 2, "St") == 0) e = does.find(". ", e + 2);   /* ("St. Cosmas": no end) */
         std::string t = does.substr(a, e == std::string::npos ? std::string::npos : e - a);
         while (!t.empty() && (t.back() == '.' || t.back() == ' ')) t.pop_back();
         if (!t.empty()) sent.push_back(t);
@@ -783,6 +784,11 @@ static void saint_chips_parse(const std::string &does, std::vector<SaintChip> &o
                 used = true;
             }
         }
+        static const std::regex floor_("(Endurance|Strength)( and (Endurance|Strength))? below [0-9]+ (is|are) raised to ([0-9]+)");
+        { std::smatch m; if (std::regex_search(st, m, floor_)) {                /* healed up to a floor: "to 9" */
+            out.push_back({ CH_HEAL, m[1].str() == "Endurance" ? ATTR_END : ATTR_STR, "to " + m[5].str(), false, st });
+            if (m[3].matched) out.push_back({ CH_HEAL, m[3].str() == "Endurance" ? ATTR_END : ATTR_STR, "to " + m[5].str(), false, st });
+            used = true; } }
         static const std::regex cost("^Costs ([0-9]+ to [0-9]+) (Endurance|Strength)");
         { std::smatch m; if (std::regex_search(st, m, cost)) { out.push_back({ CH_RAISE, m[2].str() == "Endurance" ? ATTR_END : ATTR_STR, "-" + span_of(m[1].str()), true, st }); used = true; } }
         if (low.find("reputation") != std::string::npos) {
@@ -801,14 +807,18 @@ static void saint_chips_parse(const std::string &does, std::vector<SaintChip> &o
             if (part.rfind("and ", 0) == 0) part.erase(0, 4);
             if (part.rfind("Every member's ", 0) == 0) part.erase(0, 15);
             std::smatch m;
-            if (std::regex_match(part, m, amount) && lower(part).find("heal") == std::string::npos) {
+            std::string lp = lower(part);
+            if (std::regex_match(part, m, amount) && lp.find("heals") == std::string::npos && lp.find("healed") == std::string::npos) {   /* (the skill Healing is a name) */
                 std::string names = m[1].str(), v = m[2].str();
+                if (names.size() > 5 && names.compare(names.size() - 5, 5, " each") == 0) names.erase(names.size() - 5);   /* ("Streetwise and Woodwise each +1 to 4") */
                 bool down = v.rfind("lowered", 0) == 0;
                 std::string val = down ? "-" + span_of(m[4].str()) : "+" + span_of(v.substr(1));
                 std::string pl = pend_part + (pend_part.empty() ? "" : ", ") + part;
-                /* the names: "A and B", "every weapon skill", "the skills of the weapons in hand" */
+                /* the names: "A and B", "every weapon skill", "the skills of the weapons in hand"; the armor (one chip
+                   whatever its words: "worn body and leg armor", "it gives the one prayed for armor") */
                 std::vector<std::string> ns = pending;
-                for (size_t b = 0; b <= names.size(); ) {
+                if (lower(names).find("armor") != std::string::npos) { out.push_back({ CH_WORDS, -1, "armor " + val, down, pl }); names.clear(); }
+                for (size_t b = 0; b < names.size(); ) {
                     size_t f = names.find(" and ", b);
                     std::string n = names.substr(b, f == std::string::npos ? std::string::npos : f - b);
                     if (n.rfind("A woman: ", 0) == 0 || n.rfind("a woman: ", 0) == 0) n = n.substr(9);
@@ -822,7 +832,7 @@ static void saint_chips_parse(const std::string &does, std::vector<SaintChip> &o
                     if (ln.find("weapons in hand") != std::string::npos) out.push_back({ CH_INHAND, -1, val, down, pl });
                     else if (ln.find("weapon skill") != std::string::npos) out.push_back({ CH_WEAPONS, -1, val, down, pl });
                     else if (ln.find("skill") != std::string::npos || ln.find("attribute") != std::string::npos) out.push_back({ CH_WORDS, -1, n + " " + val, down, pl });
-                    else { int k = saint_key_of(n); if (k >= 0) out.push_back({ CH_RAISE, k, val, down, pl }); else out.push_back({ CH_WORDS, -1, n + " " + val, down, pl }); }
+                    else { int k = saint_key_of(n); if (k >= 0) out.push_back({ CH_RAISE, k, val, down, pl }); else out.push_back({ CH_WORDS, -1, n + " " + val, down, pl, true }); }
                 }
                 pending.clear(); pend_part.clear(); used = true;
             } else if (saint_key_of(part) >= 0) { pending.push_back(part); pend_part += (pend_part.empty() ? "" : ", ") + part; }
@@ -831,8 +841,8 @@ static void saint_chips_parse(const std::string &does, std::vector<SaintChip> &o
         }
         if (!used) {                                           /* the rest: a few words */
             const char *say = nullptr; bool bad = false;
-            for (const auto &w : SAINT_WORDS) if (st.find(w.has) != std::string::npos) { say = w.say; bad = w.bad; break; }
-            out.push_back({ CH_WORDS, -1, say ? say : st.substr(0, 18) + "...", bad, st });
+            for (const auto &w : SAINT_WORDS) if (low.find(lower(w.has)) != std::string::npos) { say = w.say; bad = w.bad; break; }
+            out.push_back({ CH_WORDS, -1, say ? say : st.substr(0, 18) + "...", bad, st, !say });
         }
     }
 }
@@ -843,6 +853,23 @@ static const std::vector<SaintChip> &saint_chips(int s)
     auto &c = cache[s];
     if (c.first != d || c.second.empty()) { c.first = d; saint_chips_parse(d, c.second); }
     return c.second;
+}
+/* test (usaintchips): every saint's help through the parse, with the saints' fixes on and then off; the parts
+   it did not know are logged, with a count at the end */
+extern "C" void sheetview_check_saint_chips(void)
+{
+    static const char *IDS[] = { "sainttexts", "armorday", "fireward", "pauls", "saintrep" };
+    int idx[5], was[5], n = 0, raw = 0;
+    for (int f = 0; f < 5; f++) { idx[f] = -1; for (int i = 0; i < FIX_COUNT; i++) if (!strcmp(FIXES[i].id, IDS[f])) idx[f] = i; was[f] = idx[f] >= 0 ? FIXES[idx[f]].on : 0; }
+    for (int pass = 1; pass >= 0; pass--) {
+        for (int f = 0; f < 5; f++) if (idx[f] >= 0) FIXES[idx[f]].on = pass;   /* (the texts only: no hook, no setting touched) */
+        for (int t = 0; t < SAINT_INFO_N; t++) {
+            std::vector<SaintChip> ch; saint_chips_parse(saint_info_does(t), ch); n++;
+            for (const SaintChip &c : ch) if (c.raw) { raw++; fprintf(stderr, "saintchips: %s (fixes %s) not understood: %s\n", gamedata.saints[t].name.c_str(), pass ? "on" : "off", c.part.c_str()); }
+        }
+    }
+    for (int f = 0; f < 5; f++) if (idx[f] >= 0) FIXES[idx[f]].on = was[f];
+    fprintf(stderr, "saintchips: %d helps, %d parts not understood\n", n, raw);
 }
 /* a chip's words, "\x01" a short dash drawn between two numbers (the typeface has no en dash); the width */
 static float chip_text(NsDraw &P, float fs, float x, float y, ImU32 col, const std::string &t, bool draw)
@@ -863,31 +890,35 @@ static float chip_text(NsDraw &P, float fs, float x, float y, ImU32 col, const s
 static std::string saint_chips_draw(NsDraw &P, int s, float x, float x1, float y)
 {
     std::string tip;
-    const float fs = 3.9f, is = 4.3f;
+    const float fs = 3.9f, is = 3.6f;
     const ImU32 ink = NsDraw::INK_SOFT, bad = NsDraw::RED;
     extern int ui_icon_disc;
     for (const SaintChip &c : saint_chips(s)) {
         std::string v = c.kind == CH_INHAND ? "in hand " + c.val : c.val;
         float w = chip_text(P, fs, 0, 0, 0, v, false) + 1.6f;
-        float iw = c.kind == CH_WEAPONS ? is * 1.5f : c.kind == CH_HEAL ? is * 1.7f : c.kind == CH_WORDS ? 0 : is;
+        /* the pictures' room, in the page's columns (a picture of size s rows is s * k / kx columns wide): a
+           shield UI_SHIELD_W times its size (ui/skillicons.h), the cross before a healed one 0.7 of it, three
+           fanned shields each 0.35 of the size right of the one before */
+        const float ix = is * P.k / P.kx, sw = UI_SHIELD_W * ix, cw = ix * 0.7f, fw = UI_SHIELD_W * ix * 0.85f;
+        float iw = c.kind == CH_WEAPONS ? fw + ix * 0.7f : c.kind == CH_HEAL ? cw + sw : c.kind == CH_WORDS ? 0 : sw;
         if (x + iw + w > x1) { P.text(P.fo, fs, x, y - 2.1f, ink, "..."); break; }
         float x0 = x;
         ui_icon_disc = 0;
         if (c.kind == CH_HEAL) {                                  /* a green cross, then the shield */
-            float cx = x + is * 0.3f, r = is * 0.28f;
-            P.dl->AddRectFilled(NsDraw::w(cx - r * 0.33f, y - r), NsDraw::w(cx + r * 0.33f, y + r), IM_COL32(40, 130, 50, 255));
-            P.dl->AddRectFilled(NsDraw::w(cx - r, y - r * 0.33f), NsDraw::w(cx + r, y + r * 0.33f), IM_COL32(40, 130, 50, 255));
-            ui_attr_icon(P.dl, NsDraw::w(x + is * 1.15f, y), is * P.k, c.key);
+            float cx = x + ix * 0.3f, rx = ix * 0.28f, r = is * 0.28f;
+            P.dl->AddRectFilled(NsDraw::w(cx - rx * 0.33f, y - r), NsDraw::w(cx + rx * 0.33f, y + r), IM_COL32(40, 130, 50, 255));
+            P.dl->AddRectFilled(NsDraw::w(cx - rx, y - r * 0.33f), NsDraw::w(cx + rx, y + r * 0.33f), IM_COL32(40, 130, 50, 255));
+            ui_attr_icon(P.dl, NsDraw::w(x + cw + sw * 0.5f, y), is * P.k, c.key);
         } else if (c.kind == CH_RAISE) {
-            if (c.key < 7) ui_attr_icon(P.dl, NsDraw::w(x + is * 0.5f, y), is * P.k, c.key); else ui_skill_icon(P.dl, NsDraw::w(x + is * 0.5f, y), is * P.k, c.key - 7);
-        } else if (c.kind == CH_REP) ui_standing_icon(P.dl, NsDraw::w(x + is * 0.5f, y), is * 0.92f * P.k, 0);
+            if (c.key < 7) ui_attr_icon(P.dl, NsDraw::w(x + sw * 0.5f, y), is * P.k, c.key); else ui_skill_icon(P.dl, NsDraw::w(x + sw * 0.5f, y), is * P.k, c.key - 7);
+        } else if (c.kind == CH_REP) ui_standing_icon(P.dl, NsDraw::w(x + sw * 0.5f, y), is * 0.92f * P.k, 0);
         else if (c.kind == CH_WEAPONS) {                          /* every weapon skill: three of their shields, fanned */
-            ui_skill_icon(P.dl, NsDraw::w(x + is * 0.4f, y), is * 0.85f * P.k, SKILL_BOW);
-            ui_skill_icon(P.dl, NsDraw::w(x + is * 0.75f, y), is * 0.85f * P.k, SKILL_IMPACT);
-            ui_skill_icon(P.dl, NsDraw::w(x + is * 1.1f, y), is * 0.85f * P.k, SKILL_EDGED);
-        } else if (c.kind == CH_INHAND) ui_skill_icon(P.dl, NsDraw::w(x + is * 0.5f, y), is * P.k, SKILL_EDGED);
+            ui_skill_icon(P.dl, NsDraw::w(x + fw * 0.5f, y), is * 0.85f * P.k, SKILL_BOW);
+            ui_skill_icon(P.dl, NsDraw::w(x + fw * 0.5f + ix * 0.35f, y), is * 0.85f * P.k, SKILL_IMPACT);
+            ui_skill_icon(P.dl, NsDraw::w(x + fw * 0.5f + ix * 0.7f, y), is * 0.85f * P.k, SKILL_EDGED);
+        } else if (c.kind == CH_INHAND) ui_skill_icon(P.dl, NsDraw::w(x + sw * 0.5f, y), is * P.k, SKILL_EDGED);
         ui_icon_disc = 1;
-        x += iw + 0.4f;
+        x += iw + (iw > 0 ? 0.5f : 0);
         chip_text(P, fs, x, y - 2.1f, c.bad ? bad : ink, v, true);
         x += w;
         if (P.over(x0, y - 2.6f, x - 0.8f, y + 2.6f)) tip = c.part;

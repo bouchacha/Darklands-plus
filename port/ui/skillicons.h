@@ -3,6 +3,10 @@
 #pragma once
 #include "imgui.h"
 
+/* c is the picture's middle. In the heraldic look a shield is wider and taller than s (UI_SHIELD_W, _H
+   times s): text beside one starts UI_SHIELD_W * s / 2 from c, and a little more */
+#define UI_SHIELD_W 1.25f
+#define UI_SHIELD_H 1.44f
 void ui_skill_icon(ImDrawList *dl, ImVec2 c, float s, int k);     /* skill k (0..18) at c, size s */
 void ui_skill_icon_inline(int k);                                 /* in the flow of a window's text */
 void ui_attr_icon(ImDrawList *dl, ImVec2 c, float s, int k);      /* attribute k (0 End .. 6 DF) */

@@ -223,7 +223,7 @@ static void recolor_since(ImDrawList *dl, int v0, ImU32 col, ImU32 light, int th
         c = (to & ~IM_COL32_A_MASK) | ((ImU32)a << IM_COL32_A_SHIFT);
     }
 }
-static void shield(ImDrawList *dl, ImVec2 c, float s, ImU32 field)
+static void shield(ImDrawList *dl, ImVec2 c, float s, ImU32 field)   /* 20 x 23 sixteenths of s: UI_SHIELD_W, _H */
 {
     float u = s / 16.0f;
     auto P = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
