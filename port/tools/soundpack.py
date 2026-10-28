@@ -7,7 +7,7 @@ OUT becomes a mod folder (put it in Darklands+'s mods folder and tick it in F12 
 
   OUT/mod.txt              the name and description shown in F12 > Mods
   OUT/sounds/NAME_N.ogg    the battle sounds (miss, parry, hit, knockback, death, bow, gun,
-                           burst, magic, ambush, cantgo), several takes of each
+                           burst, magic, ambush, cantgo, deathbeast), several takes of each
   OUT/CREDITS.txt          where every sound comes from, and the licence
 
 The recordings are 0 A.D.'s (Wildfire Games, CC BY-SA 3.0): sword clashes, shields, blows,
@@ -38,6 +38,7 @@ def need():
     f += [i + 'shield_metal_%02d.ogg' % k for k in (4, 9, 13, 14)] + [i + 'shield_wood_%02d.ogg' % k for k in (3, 5, 7, 14, 16)]
     f += [i + 'fleshimp_%d.ogg' % k for k in (10, 11, 12)] + [i + 'fleshstab_%02d.ogg' % k for k in (1, 2, 3)]
     f += [d + 'male_death_%02d.ogg' % k for k in DEATHS]
+    f += ['actor/fauna/death/Animal_death_generic_%d.ogg' % k for k in BEASTS]
     f += [w + 'bow_attack_%02d.ogg' % k for k in (1, 4, 7, 8)] + [w + 'arrowfly_%02d.ogg' % k for k in (1, 2, 5, 9)]
     f += [w + 'Musket_1.ogg', w + 'Musket_3.ogg']
     f += ['attack/fire/sp_%d.ogg' % k for k in (11, 13, 17)] + ['attack/fire/c_%d.ogg' % k for k in (12, 14, 16)]
@@ -45,6 +46,7 @@ def need():
     return f
 
 DEATHS = (11, 12, 19, 35, 37, 40, 53, 60)
+BEASTS = (10, 12, 13)                                  # an animal's death cry (a wolf, a spider, a demon: not a man's)
 
 def fetch(cache):
     """only the files the pack uses, from 0 A.D.'s repository (a sparse, blob-less clone)"""
@@ -215,6 +217,14 @@ def build():
         metal = from_onset(load('attack/impact/shield_metal_%02d.ogg' % (14 if k % 2 else 9)), length=0.35, fout=0.15)
         fall = mix((level(body, 1), 0, 1.0), (level(wood, 1), 0.01, 0.6), (level(metal, 1), 0.05, 0.2))
         S['death'].append(level(mix((level(cry, 1), 0, 1.0), (fall, max(0.25, end - 0.12), 0.45)), 0.6))
+    # deathbeast: an animal's cry, a little lower and rougher, then the body falling (no armour)
+    S['deathbeast'] = []
+    for k, (d, r) in enumerate([(10, 0.85), (12, 0.8), (13, 0.85), (10, 0.7)]):
+        x = load('actor/fauna/death/Animal_death_generic_%d.ogg' % d)
+        cry = fade(speed(tail(cut(x, onset(x) - 0.02 * FS)), r), 0.01, 0.15)
+        e = env(cry, 20); end = np.nonzero(e > e.max() * 0.1)[0][-1] / FS
+        body = speed(from_onset(tail(load('attack/impact/fleshimp_%d.ogg' % (12 if k % 2 else 11))), length=0.4), 0.6)
+        S['deathbeast'].append(level(mix((level(cry, 1), 0, 1.0), (level(body, 1), max(0.2, end - 0.15), 0.5)), 0.6))
     # bow: the string's release and the arrow going
     S['bow'] = []
     for b, a in [(1, 1), (4, 5), (7, 9), (8, 2)]:
@@ -274,6 +284,7 @@ Sources (binaries/data/mods/public/audio/ in 0 A.D.'s repository, github.com/0ad
   knockback  attack/impact/fleshimp_10, 11, 12; shield_wood_05, 07, 16; shield_metal_09, 14
   death      actor/human/death/male_death_%s;
              attack/impact/fleshimp_12, shield_wood_16, shield_metal_09, 14
+  deathbeast actor/fauna/death/Animal_death_generic_10, 12, 13; attack/impact/fleshimp_11, 12
   bow        attack/weapon/bow_attack_01, 04, 07, 08; arrowfly_01, 02, 05, 09
   gun        attack/weapon/Musket_1, Musket_3
   burst      attack/fire/sp_11, 13, 17; c_12, 14, 16 (and synthesized glass)
@@ -302,9 +313,9 @@ def main():
     with open(os.path.join(a.out, 'mod.txt'), 'w') as f:
         f.write('Battle sounds (0 A.D. recordings)\n'
                 'Real sounds for the battles in place of the synthesizer notes: swords clashing,\n'
-                'shields, blows landing, cries, the bow, the handgun, a war horn for an ambush.\n'
+                'shields, blows landing, cries (a beast\'s for a beast), the bow, the handgun, a war horn for an ambush.\n'
                 "Recordings from 0 A.D. by Wildfire Games, CC BY-SA 3.0 (see CREDITS.txt).\n"
-                'F12 > Settings > Display sets their volume; switch the mod off for the game\'s own sounds.\n')
+                'F12 > Settings > Window, sound and saves sets their volume; switch the mod off for the game\'s own sounds.\n')
     with open(os.path.join(a.out, 'CREDITS.txt'), 'w') as f:
         f.write(CREDITS % ', '.join('%02d' % d for d in DEATHS))
     print('%d sounds written to %s' % (n, sd))

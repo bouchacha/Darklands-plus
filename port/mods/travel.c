@@ -27,6 +27,7 @@
 #include "travel.h"
 #include "encounters.h"
 #include "sainttexts.h"
+#include "fixes.h"
 
 extern char game_dir[1024];
 
@@ -136,6 +137,12 @@ static HE hpop(void)
     return t;
 }
 
+/* the tiles the party's marker can stand on: the game keeps the marker within x 11..247, y 13..177 of the view
+   and the view within the map (s030 1462:0c44), so the first six rows, the last one, the first column and the
+   last are out of reach (Zürich is on the last row: a way along its road there left the party stuck at the
+   edge, 1.4-RC2) */
+static int reachable(int x, int y) { return y >= 6 && y <= mh - 2 && x >= 1 && x <= mw - 2; }
+
 static int nb(int x, int y, int k, int *nx, int *ny, int *steps)
 {
     int odd = y & 1;
@@ -165,7 +172,7 @@ static void field(int x0, int y0)
         if (e.i != s && is_site(e.i)) continue;           /* one can arrive at a location, not pass it */
         for (int k = 0; k < 6; k++) {
             int nx, ny, st;
-            if (!nb(x, y, k, &nx, &ny, &st)) continue;
+            if (!nb(x, y, k, &nx, &ny, &st) || !reachable(nx, ny)) continue;
             int ni = ny * mw + nx, t = terr[ni];
             if (blocked(t)) continue;
             int d = e.d + st * (minutes(terr[e.i]) + minutes(t)) / 2;
@@ -331,6 +338,29 @@ static u32 map_polled;                      /* when the overland loop last took 
  * message boxes */
 int travel_map_live(void) { return travel_enabled && plat_ticks_ms() - map_polled < 1200; }
 
+/* (fix mapfoot) when the step pulls the view down to the map's last rows (s030 1462:0c44, the clamp at the
+   foot) the original
+     - moves the marker up 5 pixels for each row the view went down instead of 4 (D_2868 += (occ - D_286c) * 5;
+       the top and the 23-row scrolls are right): the party jumps two to four rows north, near Basel beside a
+       village it then walked into;
+     - sets the view buffer's top row (D_286e) without reading the rows (1462:1dd4, as the other branches do):
+       until the next read the map's terrain is taken from rows two or so off, and the party met water that was
+       not there (beside Konstanz, stopping a journey).
+   Put the marker where the view's move leaves it; read the rows and draw the view and the marker again. */
+int ns_call(int sect, u16 seg, u16 off, int n, ...);
+static void foot_fix(int e0, int c0, int y0)
+{
+    if (!fix_is_on("mapfoot") || !load_map()) return;
+    int e1 = (s16)g_rw(GV_map_buf_row), c1 = (s16)g_rw(GV_map_view_row), y1 = (s16)g_rw(GV_map_marker_y);
+    if ((e1 == e0 && c1 == c0) || e1 != mh - 0x83 || c1 != mh - e1 - 0x30 || y0 < 150 || abs(y1 - y0 + 92) <= 1) return;   /* (the foot's clamp only) */
+    int y = y1 - 5 * (c0 - c1) - 4 * ((e1 + c1) - (e0 + c0));
+    if (getenv("DL_TRAVEL_LOG")) fprintf(stderr, "travel: the map's foot: marker y %d -> %d (view %d+%d -> %d+%d)\n", y1, y, e0, c0, e1, c1);
+    g_ww(GV_map_marker_y, (u16)y);
+    if (e1 != e0) ns_call(30, 0x1462, 0x1dd4, 3, g_rw(0xe3f4), e1, e0);                      /* (DS:e3f4 DARKLAND.MAP's FILE) */
+    ns_call(30, 0x1462, 0x20d2, 2, g_rw(GV_map_view_col), c1);                                  /* the view */
+    ns_call(30, 0x1462, 0x16c6, 4, g_rw(GV_map_marker_x), y, g_rw(0x2910), g_rw(0x8676));      /* the marker (frame, facing) */
+}
+
 static void step_hook(void)                 /* s030 1462:0c44 (key): one step of the overland loop */
 {
     int started = pending_check();                  /* (this step's key was read before: not the player's taking over) */
@@ -403,8 +433,10 @@ static void step_hook(void)                 /* s030 1462:0c44 (key): one step of
             }
         }
     }
+    int e0 = (s16)g_rw(GV_map_buf_row), c0 = (s16)g_rw(GV_map_view_row), y0 = (s16)g_rw(GV_map_marker_y);
     hook_call_original();
     int r = (s16)AX;
+    foot_fix(e0, c0, y0);
     travel_step_result = r;
     if (travel.active && r >= 0 && getenv("DL_TRAVEL_LOG")) { int px, py; travel_party_tile(&px, &py); fprintf(stderr, "travel: step result %d at (%d,%d), route %d/%d\n", r, px, py, travel.i, travel.n); }
     if (travel.active && r >= 0) {

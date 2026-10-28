@@ -37,14 +37,20 @@ What changed since 1.3.1.
 - **The character sheet's things:** the kinds of things in the pack fold away (a click on the heading; the ingredients folded at first), and the sheet's lists open at their top.
 - **Money as coins** (F12 > Settings) gives amounts in words their coins too: a card's "3 groschen", the game's own "12pfs", a hint's "2 florins".
 
+**Travel and sound**
+
+- **Fast travel near the map's edges:** a journey keeps to the land the party can walk on. Zürich's road runs along the map's last row, out of the marker's reach, and a journey along it stopped with the party stuck at the edge.
+- **A beast's or a monster's death** (a wolf's, a spider's, a demon's) has a sound of its own in a sound pack: in the sample battle sounds made from 0 A.D.'s an animal's cry, where it was a man's scream. A pack without one plays the game's own sound there.
+
 **Saves and bug reports**
 
 - **Report a problem** (F12 > About): one click makes a zip of what a bug report needs (this session's log and the last one's, the settings, the two newest saves; your own name taken out of the folder paths in them), opens its folder and the GitHub bug form with the version, system and preset filled in; drag the zip into the form (posting takes a free GitHub account).
 - **More than 100 saves:** the game names a new save after the first free number, and from 100 on that was no longer a name the game could list: save 100 did not show on the Load page, and every later save was written over it. Saves 100 and on are now named dksavea0, dksavea1 and so on (up to 1035), and a save 100 already made is renamed so at the first start.
 
-**A bug of the original fixed**
+**Bugs of the original fixed**
 
-- **A relic found deep in a mine** (dwarfs, kobolds, vulcans) is as good as the relic itself: the original made every one quality 35 and not its own kind of thing, so the saints' weapons among them could not be wielded. (61 fixes now.)
+- **A relic found deep in a mine** (dwarfs, kobolds, vulcans) is as good as the relic itself: the original made every one quality 35 and not its own kind of thing, so the saints' weapons among them could not be wielded.
+- **No jump at the foot of the travel map:** where the view reaches the map's last rows (Basel, Zürich, Konstanz), the party's marker was moved a fifth too far as the view scrolled down, so the party jumped two to four rows north (and could walk into a village beside it), and the land under it was read from rows a little off until the view scrolled again (water that was not there could stop a journey). (62 fixes now.)
 
 ## 1.3.1
 

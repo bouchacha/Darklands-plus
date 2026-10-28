@@ -35,6 +35,7 @@
 #include "datamods.h"
 #include "musicpack.h"
 
+int enemyview_human(int i);       /* (mods/enemyview.c: a man with armor and weapons, not a beast or a demon) */
 #define FS 44100
 extern char game_dir[1024];
 extern char dlp_user_dir[];
@@ -45,11 +46,11 @@ int sfx_volume = 100;
 int sfx_added_hits = 1;         /* hits make a sound too */
 static int logon;
 
-enum { S_MISS, S_PARRY, S_HIT, S_KNOCK, S_DEATH, S_BOW, S_GUN, S_BURST, S_MAGIC, S_AMBUSH, S_CANTGO, NS };
-const char *SFX_NAMES[NS] = { "miss", "parry", "hit", "knockback", "death", "bow", "gun", "burst", "magic", "ambush", "cantgo" };
+enum { S_MISS, S_PARRY, S_HIT, S_KNOCK, S_DEATH, S_BOW, S_GUN, S_BURST, S_MAGIC, S_AMBUSH, S_CANTGO, S_BEAST, NS };
+const char *SFX_NAMES[NS] = { "miss", "parry", "hit", "knockback", "death", "bow", "gun", "burst", "magic", "ambush", "cantgo", "deathbeast" };
 const char *SFX_DESC[NS] = { "an attack that misses", "a parried or blocked blow", "a blow that lands",
-    "a heavy blow that knocks back", "a death", "a bow or crossbow shot", "a handgun shot", "a potion bursting",
-    "a magical effect", "hidden enemies appear", "\"cannot go there\"" };
+    "a heavy blow that knocks back", "a man's death", "a bow or crossbow shot", "a handgun shot", "a potion bursting",
+    "a magical effect", "hidden enemies appear", "\"cannot go there\"", "a beast's or a monster's death (a wolf, a spider, a demon: not a man's cry)" };
 int SFX_COUNT = NS;
 
 #define MAXVAR 8
@@ -249,6 +250,14 @@ static Smp make(int kind)
         noise(b, n, tf, 0.9f, 0.10f, 0, 380, 0.7f);
         thump(b, n, tf + 0.2f, 45, 70, 0.4f, 0.1f);
         for (int k = 0; k < 9; k++) ping(b, n, tf + 0.4f * frand() * frand(), 2500 + 3500 * frand(), 0.08f + 0.15f * frand(), 0.02f + 0.03f * frand());
+        return finish(b, n, 0.55f);
+    }
+    case S_BEAST: {                                  /* a beast's death: a snarl that breaks off, the body falling (no armour) */
+        b = buf_new(1.0f, &n);
+        groan(b, n, 0, 0.35f + 0.15f * frand(), 95 + 30 * frand(), 55, 0.5f, 1);
+        float tf = 0.3f + 0.1f * frand();
+        thump(b, n, tf, 34, 80, 1.3f, 0.2f);
+        noise(b, n, tf, 0.8f, 0.12f, 0, 300, 0.7f);
         return finish(b, n, 0.55f);
     }
     case S_BOW: {                                    /* the string and the arrow */
@@ -505,6 +514,7 @@ void sfx_mix(short *out, int frames)
 
 /* ---------------------------------------------------------------- hooks */
 static int want = -1;            /* the sound battle_sound() is asking for */
+static int dying = -1;           /* the combatant whose death animation has just ended (cbt_dying): its death sound */
 static int impact = -1, impact_anim, impact_done;
 
 static void battle_sound_hook(void)          /* battle_sound(n) */
@@ -523,7 +533,10 @@ static void sound_play_hook(void)            /* sound_play(n): the driver */
     if (active() && want == n && n >= 10 && n <= 18) {
         int k = -1; float g = 1;
         switch (n) {
-        case 10: k = S_DEATH; break;
+        case 10:                                  /* a death: a man's cry, or a beast's (a spider does not scream) */
+            if (dying >= 5 && !enemyview_human(dying)) { k = S_BEAST; if (!bank[S_BEAST].nv) k = -1; }   /* (a pack without one: the game's own sound) */
+            else k = S_DEATH;
+            break;
         case 11: k = S_GUN; break;
         case 12: k = S_BURST; break;
         case 13: k = S_MAGIC; break;
@@ -537,6 +550,14 @@ static void sound_play_hook(void)            /* sound_play(n): the driver */
     }
     if (n >= 10 && n <= 18) impact_done = 1;
     hook_call_original();
+}
+
+static void dying_hook(void)                 /* cbt_dying(i, set), near (s014 0e76:2324): plays the death sound */
+{
+    int o = dying;
+    dying = (s16)rw(SS, (u16)(SP + 2));
+    hook_call_original();
+    dying = o;
 }
 
 static void melee_hook(void)                 /* melee_step(i, set, *again), near */
@@ -604,5 +625,6 @@ void sfx_init(void)
     hook_install(14, 0x0e76, 0x465e, battle_sound_hook);
     hook_install(GF_sound_play, sound_play_hook);
     if (!hook_install(14, 0x0e76, 0x199c, melee_hook)) fprintf(stderr, "sfx: no hook point for melee_step\n");
+    if (!hook_install(14, 0x0e76, 0x2324, dying_hook)) fprintf(stderr, "sfx: no hook point for cbt_dying\n");
     if (getenv("DL_SFX_EXPORT")) { char m[300]; sfx_export(m, sizeof m); fprintf(stderr, "%s\n", m); }
 }
