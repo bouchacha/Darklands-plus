@@ -79,8 +79,10 @@ void ui_card_tip(ImVec2 pos, ImVec2 pivot, int item, int saint);
 void ui_card_formula_tip(ImVec2 pos, ImVec2 pivot, int formula);
 extern "C" {
 #include "../mods/gamemodel.h"
+#include "../mods/encounters.h"
 extern "C" int ui_is_open(void);
 }
+#include "nsdraw.h"
 void ui_item_icon_q(ImDrawList *dl, ImVec2 c, float s, int id, int q);
 void ui_item_icon_tier(ImDrawList *dl, ImVec2 c, float s, int id, int tier);
 /* the quality of member m's best thing id (-1 none): a potion's picture shows its grade by it */
@@ -150,6 +152,51 @@ static void wrap(ImFont *f, float size, const std::string &t, float w, float ind
 }
 
 static std::string gtext(const char *s) { return game_text(s, strlen(s)); }
+
+/* what came of a new encounter's choice (mods/encounters.h), under the text that tells of it: each member's
+   changes as their head and shields with the amounts (the same for everyone: "Each" once), things gained or
+   lost, money, fame, a town's opinion, the time it took; "Nothing came of it." under the last text of a choice
+   that changed nothing. "" when it is not an encounter's text */
+static std::string encounter_outcome_text(void)
+{
+    EncOutcome o[64]; int fin = 0;
+    int n = encounters_outcome(o, 64, &fin);
+    if (n < 0) return "";
+    if (!n) return fin ? "Nothing came of it." : "";
+    auto num = [](long v) { char b[16]; snprintf(b, sizeof b, "%+ld", v); return std::string(b); };
+    std::string mem[5]; bool lost[5] = {};
+    for (int i = 0; i < n; i++) {
+        const EncOutcome &e = o[i];
+        if (e.m < 0 || e.m > 4) continue;
+        if (e.kind == EO_LOST) { lost[e.m] = true; continue; }
+        std::string key = e.kind == EO_SKILL ? ui_key_name(UI_KEY_SKILL + e.k) : ui_key_name(e.k);
+        mem[e.m] += (mem[e.m].empty() ? "{" : " {") + key + ":" + num(e.v) + (e.kind == EO_ATTRMAX ? " max" : "") + "}";
+    }
+    int nm = 0, same = 1; std::string first;
+    for (int m = 0; m < 5; m++) if (!mem[m].empty()) { if (!nm) first = mem[m]; else if (mem[m] != first) same = 0; nm++; }
+    int members = 0; for (int m = 0; m < 5; m++) if (gm_member_present(m) && gm_member_status(m) == 1) members++;
+    std::string a;
+    if (nm >= 2 && same && nm == members) a = "Each " + first;
+    else for (int m = 0; m < 5; m++) if (!mem[m].empty()) a += (a.empty() ? "" : "   ") + rich_member(m) + " " + mem[m];
+    for (int m = 0; m < 5; m++) if (lost[m]) a += (a.empty() ? "" : "   ") + game_text(encounters_outcome_name(m), strlen(encounters_outcome_name(m))) + " is gone";
+    std::string b;
+    for (int i = 0; i < n; i++) {
+        const EncOutcome &e = o[i];
+        std::string t;
+        if (e.kind == EO_ITEM) t = num(e.v) + " " + ns_item_name(e.k);
+        else if (e.kind == EO_MONEY) t = (e.v < 0 ? "-" : "+") + money_str(e.v < 0 ? -e.v : e.v);
+        else if (e.kind == EO_FAME) t = "{Fame:" + num(e.v) + "}";
+        else if (e.kind == EO_REP) t = "{Reputation:" + num(e.v) + "} in " + (e.k >= 0 && e.k < (int)gamedata.cities.size() ? gamedata.cities[e.k].name : std::string("a town"));
+        else if (e.kind == EO_HOURS) {
+            long h = e.v; char t2[64] = "";
+            if (h >= 24) snprintf(t2, sizeof t2, "%ld day%s%s", h / 24, h / 24 == 1 ? "" : "s", h % 24 ? " " : "");
+            if (h % 24) snprintf(t2 + strlen(t2), sizeof t2 - strlen(t2), "%ld hour%s", h % 24, h % 24 == 1 ? "" : "s");
+            t = std::string(t2) + " pass" + (h == 1 ? "es" : "");
+        }
+        if (!t.empty()) b += (b.empty() ? "" : "   ") + t;
+    }
+    return a + (!a.empty() && !b.empty() ? "\n" : "") + b;
+}
 
 /* the mark of the key that chooses an option: a red numeral, as a manuscript's rubric. c: the
    mark's middle; size: the card's letters; f: the card's face */
@@ -254,6 +301,9 @@ extern "C" void cardview_draw(void)
        would leave a word or two a line beside it) */
     const int dropcap = c.dropcap && c.w < 110 ? 0 : c.dropcap;
     if (c.dropcap && !dropcap && c.npieces > 0) { char t[2] = { (char)c.dropcap, 0 }; utf[0] = t + utf[0]; }
+    /* a new encounter's text: what came of the choice, under a rule (mods/encounters.h) */
+    const std::string outcome = menu ? std::string() : encounter_outcome_text();
+    float oc_y = 0, oc_fs = 0;
     for (int tries = 0; tries < 10; tries++) {
         size = 7.1f * k * fk * scale;
         L = 9.0f * k * scale;
@@ -289,6 +339,11 @@ extern "C" void cardview_draw(void)
             /* the members' saints or items under the option */
             if (p.is_opt && c.popup_piece == j) y += (float)c.nentries * L * 0.92f + (c.nentries ? 0.4f * L : L);
             if (!p.is_opt) y += gap;
+        }
+        if (!outcome.empty()) {                                  /* (a rule, "What came of it", the changes) */
+            oc_fs = size * 0.86f;
+            oc_y = y - 0.35f * gap;
+            y = oc_y + 0.35f * L + oc_fs * 1.15f + (outcome == "Nothing came of it." ? 0 : rich_size(fs, oc_fs, X1 - X0, outcome.c_str()).y) + 0.25f * L;
         }
         total = y - Y0;
         if (y <= bottom || scale < 0.74f) break;
@@ -603,6 +658,18 @@ extern "C" void cardview_draw(void)
                 if (c.hover_entry == e) { tip_at = ImVec2(X1 + 2 * k, ey); if (c.popup_kind == 2) tip_saint = en.id; else if (ef >= 0) tip_formula = ef; else tip_item = en.id; }
                 ey += h;
             }
+        }
+    }
+    if (!outcome.empty()) {                                      /* what came of it: a rule, a dim lead, the changes */
+        float ry = oc_y - shift;
+        dl->AddLine(ImVec2(X0, ry), ImVec2(X1, ry), ink_dim, fmaxf(1.0f, 0.3f * k));
+        float ly = ry + 0.35f * L;
+        bool none = outcome == "Nothing came of it.";
+        if (none) dl->AddText(fs, oc_fs, ImVec2(X0, ly), ink_soft, outcome.c_str());
+        else {
+            dl->AddText(fs, oc_fs * 0.9f, ImVec2(X0, ly), ink_soft, "What came of it:");
+            rich_draw(dl, fs, oc_fs, ImVec2(X0, ly + oc_fs * 1.15f), X1 - X0, ink, outcome.c_str());
+            if (!ui_is_open()) { int key = rich_key_at(ImGui::GetIO().MousePos); if (key >= 0) ui_rich_tip_later(key); }
         }
     }
     /* go on: a quiet sign at the end of a text that waits */

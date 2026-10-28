@@ -116,18 +116,34 @@ layout is in `formats/dlformats/enm.py`.
 
 ## New encounters
 
-A mod can add wilderness encounters of its own: cards like the game's, with a picture, text and
-options that test the party's skills, run by Darklands+ from a plain text script
-(`port/mods/encounters.c`). Darklands+ comes with one such mod, **New encounters** (sixteen of
-them; tick it in F12 > Mods). Its folder is the best place to start reading:
+A mod can add encounters of its own: cards like the game's, with a picture, text and options
+that test the party's skills, run by Darklands+ from a plain text script
+(`port/mods/encounters.c`). Darklands+ comes with one such mod, **New encounters** (tick it in
+F12 > Mods). Its folder is the best place to start reading:
 `mods/New encounters/ENCOUNTERS/*.TXT` and `MSGFILES/$NW*.TXT`.
 
-While a mod with an `ENCOUNTERS` folder is ticked, some of the random encounters in the overland
-view are new ones. Each new encounter counts as `weight` more entries of the game's own table of
-encounters for the terrain (9 to 29 entries), so with a weight of 1 it is about as common as one
-of the game's own; F12 > Mods sets an overall percentage, and none comes twice within a few days.
-A small red seal in the corner of the card marks a new encounter (its tooltip names it). Not in
-the Full Original preset (the game as it was).
+An encounter's `where` says where it comes up:
+
+| where | |
+|---|---|
+| `wild` (the default) | among the random encounters of the overland view. It counts as `weight` more entries of the game's own table of encounters for the terrain (9 to 29 entries), so with a weight of 1 it is about as common as one of the game's own |
+| `boat` | on a boat trip, before the landing (3 trips in 10 bring one, in place of the river pirates). `exit` lands the party |
+| `street` | as the party comes into a town's street: the main street by day 3 times in 100, at night or in a side street by day 6, a side street at night 10. `exit` goes on into the street; `card N` to another of the town's cards |
+| `camp` | after a night camping in the wild (12 nights in 100), as the party sets out again. `exit` goes on to the map |
+
+Within a place, `weight` sets how often one comes up against the others there. F12 > Mods sets an
+overall percentage, and none comes twice within a few days. A small red seal in the corner of the
+card marks a new encounter (its tooltip names it). Not in the Full Original preset (the game as it
+was).
+
+**What came of it.** Under the text a choice ends on (and under each text on the way), a band
+lists what changed since the last one: each member's attributes and skills (as their heads and
+shields: "Each" when all changed alike), members lost, things gained or lost, money, fame, a
+town's reputation and the time that passed; "Nothing came of it." when a choice that ends the
+encounter changed nothing. A battle's wounds and spoils are left to the battle's own screens: the
+band after it lists what came after it. A `text` is shown when the script next stops (another `text`, a menu,
+a battle, `exit`), so the actions after it on the same line are the ones listed under it: write
+`ok text 1; attr party, End, 4; exit`, not the other way round.
 
 An encounter is two files: its text, `MSGFILES/<CARD>.TXT` in the card text format above (block 0
 is usually the first menu), and its script, `ENCOUNTERS/<NAME>.TXT`:
@@ -137,6 +153,7 @@ is usually the first menu), and its script, `ENCOUNTERS/<NAME>.TXT`:
 name     The gallows oak             # shown in the seal's tooltip
 card     $NwGal00                    # the MSGFILES text (at most 8 letters)
 picture  XTREE                       # PICS\XTREE.PIC (pictures starting with X get white text)
+where    wild                        # wild (the default), boat, street or camp
 terrain  farmland plains woods forest
 when     any                         # day, night or any
 weight   2                           # how many table entries it counts as (0 to 100)
@@ -194,7 +211,7 @@ menu comes back unless its actions went elsewhere.
 | `text N` | show text block N (and wait for a key) |
 | `goto SECTION`, `exit` | go to another section; back to the map |
 | `card N` | on to the game's card N (in a town: 0x13 the church district ...) |
-| `tocity` | end at the nearest city's gate |
+| `tocity` | end at the nearest city's gate (in a street or on a boat: as `exit`) |
 | `if EXPR goto A else goto B` | |
 | `if EXPR then ACTION else ACTION` | an action, or several in `{ ... }` |
 | `set NAME = EXPR` | a number declared with `vars` |
@@ -226,10 +243,11 @@ menu comes back unless its actions went elsewhere.
 | the world | `daylight`, `night`, `hour`, `day` (1-31), `month` (1-12), `year`, `terrain`, `difficulty`, `event(K)` |
 | rolls | `random(N)` (0..N-1), `roll(C)` (a check of C %), `clamp(LO, HI, V)`, `min`, `max`, `abs` |
 | after | `result` (a battle), `q`, `item`, `saint` |
-| names | skills `Edged Impact Flails Polearms Thrown Bows Missile Alchemy Religion Virtue SpeakCommon Latin ReadWrite Healing Artifice Stealth Streetwise Riding Woodwise`; attributes `End Str Agl Per Int Cha DF` (or in full); enemies `Bandit BrigandSergeant RobberCaptain Mercenary Raubritter Villager Friar Huntsman Wolf Boar Bear Spider Kobold Gargoyle Schrat Tatzelwurm` and more (see `CONSTS` in encounters.c), or any DARKLAND.ENM number; battlefields `Wilds Surrounded Clearing` (`Cave` holds one enemy only) or another of the game's wilderness battlefields (0x2e-0x55, 0x61-0x63, 0x6f-0x79) |
+| names | skills `Edged Impact Flails Polearms Thrown Bows Missile Alchemy Religion Virtue SpeakCommon Latin ReadWrite Healing Artifice Stealth Streetwise Riding Woodwise`; attributes `End Str Agl Per Int Cha DF` (or in full); enemies `Bandit BrigandSergeant RobberCaptain Mercenary Raubritter Villager Friar Huntsman Wolf Boar Bear Spider Kobold Gargoyle Schrat Tatzelwurm` and more (see `CONSTS` in encounters.c), or any DARKLAND.ENM number; battlefields `Wilds Surrounded Clearing` (`Cave` holds one enemy only) or another of the game's wilderness battlefields (0x2e-0x55, 0x61-0x63, 0x6f-0x79); in a street `MainStreet` and `SideStreet` (or the game's other town fields, 0x11-0x17 and 0x56) |
 
-Terrains: `marsh woods farmland plains forest pinewood hills mountains road`, `wild` (all but
-farmland and road), `any`, or the map's terrain numbers.
+Terrains (for `where wild`; the others leave `terrain` out): `marsh woods farmland plains forest
+pinewood hills mountains road`, `wild` (all but farmland and road), `any`, or the map's terrain
+numbers.
 
 To keep a new encounter in step with the game's own, take its numbers from them: the chances of
 the game's cards are clamped (usually 1..99) sums such as `(4 * Cha + SpeakCommon) / 5` for
@@ -247,7 +265,7 @@ block. What can only be known while it runs is checked then: an item, saint, ski
 out of range, or sections that lead only to one another, end the encounter with a notice
 instead of upsetting the game. A battle holds at most 8 foes (a `Cave` one); groups beyond that
 are cut down, and qualities are kept within 0 to 9. For testing, the `uenc:N` step of `DL_CTL` /
-`DL_SCRIPT` makes the next wilderness encounter number N.
+`DL_SCRIPT` makes the next encounter in N's place number N (`uenc:` lists them).
 
 ## Party figures
 

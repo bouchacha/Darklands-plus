@@ -22,6 +22,11 @@ u32 native_far_ptr(NativeFn f, int a) { (void)f; (void)a; return 0; }
 void ovl_enter(int n) { (void)n; } void ovl_save(OvlSet *o) { (void)o; } void ovl_restore(const OvlSet *o) { (void)o; }
 int datamods_dirs(const char *sub, char out[][1200], int max) { (void)max; const char *m = getenv("ENC_MSG"); if (!m || strcasecmp(sub, "MSGFILES")) return 0; snprintf(out[0], 1200, "%s", m); return 1; }
 int datamods_generation(void) { return 0; }
+int gm_member_present(int m) { (void)m; return 0; } int gm_member_status(int m) { (void)m; return 0; }
+void gm_member_name(int m, char *o, int n) { (void)m; if (n) o[0] = 0; }
+void gm_member_attr(int m, int k, int *c, int *x) { (void)m; (void)k; *c = *x = 0; } int gm_member_skill(int m, int k) { (void)m; (void)k; return 0; }
+int gm_item_count(int m) { (void)m; return 0; } int gm_item(int m, int i, GmItem *o) { (void)m; (void)i; (void)o; return 0; }
+int cutcards_restored_on(void) { return 0; } int cutcards_scripts(const char **id, const char **t, int i) { (void)id; (void)t; (void)i; return 0; }
 int main(int argc, char **argv)
 {
     static u8 mem[0x110000]; M = mem;

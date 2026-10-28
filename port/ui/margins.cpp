@@ -43,6 +43,7 @@ extern ImFont *ui_font_overlay;          /* ui.cpp: the text over and beside the
 #include "money.h"
 #include "margins_parts.h"
 extern "C" int encounters_card_active(void);
+extern "C" int encounters_in_street(void);
 extern "C" int encounters_builtin(int i);
 extern "C" void ui_open_goto(void);
 extern "C" int citynav_available(void);
@@ -560,7 +561,7 @@ static void right_panel(int size)
     int cur = (s16)g_rw(G_CUR_LOC);
     bool any = false, near = false;
     if (cur < 0 && game_mode() == GM_MAP) { cur = ui_nearest_town(); near = true; camp_hint = true; }
-    else if (cur >= 0 && encounters_card_active() && !encounters_builtin(encounters_card_active() - 1)) near = true;    /* (a new encounter on the road out of town; not the restored hospice, a place in town) */
+    else if (cur >= 0 && encounters_card_active() && !encounters_builtin(encounters_card_active() - 1) && !encounters_in_street()) near = true;    /* (a new encounter on the road out of town; not the restored hospice or one in the streets, in town) */
     if (cur >= 0 && cur < (int)gamedata.cities.size()) {
         const City &c = gamedata.cities[cur];
         goto_hint = !near && citynav_available() && config_get_int("assist.city_goto", 1);   /* (at the foot, as the left margin's hints) */
@@ -866,6 +867,7 @@ static void night_streets(bool night)
 {
     int cur = (s16)g_rw(G_CUR_LOC);
     if (!night || game_mode() != GM_CARD || cur < 0 || cur >= (int)gamedata.cities.size() || config_get_int("original", 0)) return;
+    if (encounters_card_active() && !encounters_in_street()) return;     /* (a new encounter on a boat or the road: not in the streets) */
     int st = 0, sw = 0, n = 0;
     for (int m = 0; m < 5; m++) if (gm_member_status(m) == 1) { st += gm_member_skill(m, 15); sw += gm_member_skill(m, 16); n++; }  /* (party_avg_skill: the members on their feet) */
     if (!n) return;
