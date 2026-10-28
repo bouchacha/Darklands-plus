@@ -1667,9 +1667,11 @@ static int pick_where(int where, int pct, int force)
 }
 /* the street cards and the arrival by water (their functions, hooked at the start): a new encounter in their place, or
    the game's own */
+static int just_loaded;
 static void place_hook(void)
 {
     aborting = 0;
+    if (just_loaded) { just_loaded = 0; hook_call_original(); return; }   /* (a save loaded into a street: the street it was saved in) */
     int card = (s16)g_rw(V_CUR_CARD), prev = (s16)g_rw(GV_prev_screen), c = -1;
     if (card == 0x5a) {                          /* arriving by water */
         if (boat_done) { boat_done = 0; g_ww(GV_prev_screen, 0x11a); }   /* (after ours: as after the pirates) */
@@ -1722,6 +1724,11 @@ int encounters_errors(void) { reload(); return nerr; }
 const char *encounters_title(int i) { return i >= 0 && i < nenc ? encs[i].title : ""; }
 int encounters_card_active(void) { return rt.active ? rt.enc + 1 : 0; }
 int encounters_in_street(void) { return rt.active && rt.where == WH_STREET; }
+/* a save loaded: an encounter on the screen is gone with the game it was in (its native frame is left behind
+   by the unwinding: it stayed "on the screen", and Go to, the margins and the mods' reload took the town for
+   the road); a night in camp's encounter and a voyage's are the old game's too */
+static int just_loaded;                  /* the card a save resumes on: not a street newly come into */
+void encounters_after_load(void) { memset(&rt, 0, sizeof rt); rt.pending = -1; rt.result = -1; aborting = 0; camp_pending = 0; boat_done = 0; outc_on = 0; just_loaded = 1; }
 void encounters_force(int i)
 {
     reload();

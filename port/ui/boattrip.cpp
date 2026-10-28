@@ -270,7 +270,7 @@ extern "C" void boattrip_tick(void)
         Date d = today();
         int w = k >= 0 && k < 4 ? wait_days(cur, k, d) : -1;
         char m[200];
-        if (w > 0) snprintf(m, sizeof m, "no boat on to %s today (in %d day%s): choose how to go ashore; then the world map's \"By boat\" takes it on.", gamedata.cities[y].name.c_str(), w, w == 1 ? "" : "s");
+        if (w > 0) snprintf(m, sizeof m, "no boat on to %s today (in %d day%s): choose how to go ashore; then the world map's \"Go by boat\" takes it on.", gamedata.cities[y].name.c_str(), w, w == 1 ? "" : "s");
         else snprintf(m, sizeof m, "no boat on to %s from here now: choose how to go ashore.", gamedata.cities[y].name.c_str());
         boattrip_stop(m);
         return;

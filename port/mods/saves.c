@@ -340,7 +340,8 @@ static void loaded_hook(void)              /* the save is read (s037 1c7d:0d24) 
     load_stage = 0;
     loaded_t = plat_ticks_ms();
     auto_due[0] = 0;
-    { void travel_stop(void); void boattrip_stop(const char *); travel_stop(); boattrip_stop(0); }   /* (a journey under way is the old game's: it went on on the loaded map, 1.4-RC2) */
+    { void travel_stop(void); void boattrip_stop(const char *); void encounters_after_load(void);   /* (what was under way is the old game's: a journey went on */
+      travel_stop(); boattrip_stop(0); encounters_after_load(); }                                         /*  on the loaded map, 1.4-RC2) */
     loaded_since_title = 1; iron_check = 1;          /* (an Ironman game's save, or not: saves_frame) */
 }
 

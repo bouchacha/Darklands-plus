@@ -10,6 +10,7 @@ int encounters_errors(void);                /* files with errors */
 const char *encounters_title(int i);
 int encounters_card_active(void);           /* a new encounter's card is on the screen: 1 + its index, else 0 */
 int encounters_in_street(void);             /* the one on the screen came up in a town's street */
+void encounters_after_load(void);           /* a save loaded (mods/saves.c): no encounter under way */
 int encounters_offered(void);               /* new encounters may come up now (setting, mods, not the original game) */
 void encounters_force(int i);               /* test: the next wilderness encounter is new encounter i */
 int encounters_force_pending(void);

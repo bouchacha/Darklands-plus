@@ -46,7 +46,6 @@ What changed since 1.3.1.
 
 **Travel and sound**
 
-- **Loading a save stops a journey under way:** fast travel went on toward its goal on the loaded game's map.
 - **Fast travel near the map's edges:** a journey keeps to the land the party can walk on. Zürich's road runs along the map's last row, out of the marker's reach, and a journey along it stopped with the party stuck at the edge.
 - **A beast's or a monster's death** (a wolf's, a spider's, a demon's) has a sound of its own in a sound pack: in the sample battle sounds made from 0 A.D.'s an animal's cry, where it was a man's scream. A pack without one plays the game's own sound there.
 
@@ -54,6 +53,12 @@ What changed since 1.3.1.
 
 - **Report a problem** (F12 > About): one click makes a zip of what a bug report needs (this session's log and the last one's, the settings, the two newest saves; your own name taken out of the folder paths in them), opens its folder and the GitHub bug form with the version, system and preset filled in; drag the zip into the form (posting takes a free GitHub account).
 - **More than 100 saves:** the game names a new save after the first free number, and from 100 on that was no longer a name the game could list: save 100 did not show on the Load page, and every later save was written over it. Saves 100 and on are now named dksavea0, dksavea1 and so on (up to 1035), and a save 100 already made is renamed so at the first start.
+
+**Fixed in Darklands+ itself**
+
+- **Loading a save stops a journey under way:** fast travel went on toward its goal on the loaded game's map.
+- **Loading a save during a new encounter** left the encounter "on the screen" for Darklands+: in town, Go to stopped at once ("interrupted") and the margin named the town "Near ...", until the next new encounter.
+- **City politics keep the game's calendar:** they counted February 29 in years divisible by four (1400 among them), which the game never has, so the days of a season that ran across February could be counted one too many.
 
 **Bugs of the original fixed**
 

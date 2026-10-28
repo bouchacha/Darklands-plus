@@ -98,11 +98,11 @@ static const struct { int bit, shop_off; } GUILD[7] = {
     { 2, 0x62 }, { 4, 0x64 }, { 8, 0x67 }, { 0x10, 0x65 }, { 0x20, 0x68 }, { 0x40, 0x6a }, { 0x80, 0x69 } };
 
 /* ---------------------------------------------------------------- dates */
-static int leap(int y) { return y % 4 == 0; }                          /* (the Julian calendar) */
-static int mdays(int m, int y) { static const int D[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }; return D[m] + (m == 1 && leap(y)); }
+/* the game's calendar (s029 1367 days_per_month): no leap years - its February has 28 days in 1400 too */
+static int mdays(int m, int y) { static const int D[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }; (void)y; return D[m]; }
 static long serial(int y, int m, int d, int h)                        /* hours since a fixed day */
 {
-    long days = (long)y * 365 + y / 4;
+    long days = (long)y * 365;
     for (int k = 0; k < m; k++) days += mdays(k, y);
     return (days + d) * 24 + h;
 }
