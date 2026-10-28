@@ -1,0 +1,19 @@
+# $NSSTU00: the poor scholar (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A thin young man in a threadbare gown falls into step beside you, an ink-horn at his belt and his shoes tied on with string. "Masters! A poor scholar of Prague, on my way to Erfurt, I mean to Heidelberg, on foot and fasting. I write a fair hand in Latin and German: letters, petitions, a love-song. Or I can teach your honours your letters, and a little Latin, for only $Money1 the day." You...
+\14\15...\1dhire him for a day's lessons.
+\15...\1dbuy him a hot meal.
+\15...\1dtry his Latin.
+\15...\1dsend him on his way.
+=== card 1: 10 10 0 240 0 ===
+For six hours he sits with you over a slate and a stub of candle, scratching out letters, declining mensa and conjugating amo, amas, amat, and rapping knuckles with his quill whenever you yawn. He is a better teacher than he looks.
+\14He goes on his way with your $Money1 and many blessings. Whether any of his teaching has stayed with you, time will tell.
+=== card 2: 10 10 0 240 0 ===
+You buy him a bowl of pease pottage and a sausage at the nearest cookshop, and watch him eat it as if he had not eaten since Prague, which may well be true. He blesses you in Latin, in Greek and in German, and goes on his way standing a little straighter.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName tries him with a line of Virgil; he caps it with Ovid. Before long the two of them are disputing Aristotle on the cobbles while carters curse them out of the way, and two hours are gone before either notices.
+\14He is a scholar indeed, and $ChosenOneName has not had such exercise in years.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName tries him with a line of Virgil, and he answers in such a flood of Latin that $ChosenOneName follows one word in five. "Your honour is a little out of practice," he says kindly, and spends an hour correcting $his grammar.
+=== card 5: 10 10 0 240 0 ===
+You send him on his way. He bows, unoffended, and falls into step beside the next passer-by. "Masters! A poor scholar of Prague..."

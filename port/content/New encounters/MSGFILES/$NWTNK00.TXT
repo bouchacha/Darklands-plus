@@ -1,0 +1,32 @@
+# $NWTNK00: the tinker's cart (New encounters)
+=== card 0: 10 10 0 240 0 ===
+By the road stands a handcart hung all over with pots, kettles, lanterns and coils of wire. Beside it a tinker sits at a little anvil, beating a patch onto a kettle. "Pots mended, knives ground, buckles made new!" he sings out. "And for the gentlefolk, a fine brass lantern, only $Money1!"
+\14You...
+\14\15...\1dbuy the lantern.
+\15...\1dhaggle over the price.
+\15...\1dpay $Money2 to have your gear mended, and watch him work.
+\15...\1dwatch his hands while he deals.
+\15...\1drummage through his box of oddments.
+\15...\1dgo on your way.
+=== card 1: 10 10 0 240 0 ===
+The tinker wraps the lantern in sacking and pockets your money with a wink.
+\14Only that evening do you notice that the "brass" is tin, painted yellow. Still, it gives light, after a fashion.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName frowns over the lantern, finds a dent, a loose hinge and a blob of bad solder, and wonders aloud what the tinkers' guild would say. The tinker throws up his hands. "You'll beggar me! $Money1, then, and not a pfennig less."
+=== card 3: 10 10 0 240 0 ===
+The tinker only laughs. "Brass like that, at that price? I'd sooner sell my mother. $Money1, gentlefolk, or go without."
+=== card 4: 10 10 0 240 0 ===
+The tinker patches your kettle, rivets a loose strap and puts an edge on every blade you carry, while $ChosenOneName watches each stroke of his hammer. "Tin likes heat, but not too much," he says, "like a horse, or a bishop."
+\14By the time he is done, $ChosenOneName has learned a trick or two.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName watches the tinker make change for a peasant woman, and sees a good coin go up his sleeve and a clipped one come down. "Friend," says $ChosenOneName quietly, "the bailiff hangs coin-clippers."
+\14The tinker goes pale, gives the woman her coin back, and presses his best lantern, real brass, into $ChosenOneName's hands. "A gift. Between friends."
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName is sure $he saw the tinker palm a coin, and says so, loudly. The tinker turns out his sleeves, his purse and his cart: nothing. "Calling an honest man a thief! Every inn from here to $NearestCity will hear of you." He packs up his cart and rattles away, cursing.
+=== card 7: 10 10 0 240 0 ===
+Among bent nails and broken buckles $ChosenOneName finds a lump of heavy, glittering stone. The tinker shrugs. "That? Take it, if you want to carry it."
+\14$ChosenOneName pockets it without a word. Any alchemist would know it for $ItemName.
+=== card 8: 10 10 0 240 0 ===
+$ChosenOneName turns over bent nails, odd buttons and a saint's medal worn smooth, and finds nothing of use. An hour has gone by, and the tinker is smirking.
+=== card 9: 10 10 0 240 0 ===
+You wave the tinker goodbye. His hammering follows you a long way down the road.

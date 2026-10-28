@@ -1,0 +1,30 @@
+# The travelling players: jugglers and players at a crossroads, and a knife-thrower's wager.
+name     The travelling players
+card     $NwPly00
+picture  XMOBGLAD
+where    wild
+terrain  road farmland plains
+when     day
+weight   1
+
+[start]
+do       money1 36
+block    0
+chosen   bestattr(Cha)
+option 0                                   # watch the play (rest)
+  chance none
+  ok     text 1; pay min(money, size * 2); hours 2; attr party, End, 2 + random(2); exit
+option 1                                   # join in the show (a harp or flute helps)
+  who    bestattr(Cha)
+  chance clamp(5, 90, attr(who, Cha) + skill(who, SpeakCommon) / 2 + has(party, 0x41) * 10 + has(party, 0x42) * 10 - 5)
+  ok     chosen who; money1 random(30) + 18; text 2; gain money1; hours 3; practice who, SpeakCommon, 1, 10, 0; exit
+  fail   chosen who; text 3; hours 1; attr who, End, -2; practice who, SpeakCommon, 0, 10, 0; exit
+option 2                                   # the knife-throwing wager
+  need   money >= money1
+  who    bestskill(Thrown)
+  chance clamp(5, 85, skill(who, Thrown) + attr(who, Agl) / 3 - 15)
+  ok     chosen who; text 4; gain money1; practice who, Thrown, 1, 10, 0; exit
+  fail   chosen who; text 5; pay money1; practice who, Thrown, 0, 10, 0; exit
+option 3                                   # go on
+  chance none
+  ok     text 6; exit

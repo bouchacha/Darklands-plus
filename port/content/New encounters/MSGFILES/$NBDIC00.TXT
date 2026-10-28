@@ -1,0 +1,35 @@
+# $NBDIC00: dice on the deck (New encounters)
+=== card 0: 10 10 0 240 0 ===
+On the foredeck, between the bales, three boatmen squat around an upturned bucket, rattling dice in a horn cup. One of them, a gap-toothed fellow with a brass ring in his ear, grins up at you.
+\14"A throw or two to pass the time, masters? Only $Money1 a throw. The river is slow and the landing is a long way off."
+\14You...
+\14\15...\1dsit down and play.
+\15...\1dthank them, and watch the river go by.
+=== card 1: 10 10 0 240 0 ===
+The cup goes round. You lose the first throws, $Money1, and then $ChosenOneName sees why: whenever the man with the earring throws, his sixes come up a good deal more often than God intended.
+\14One of his dice is loaded.
+=== card 2: 10 10 0 240 0 ===
+The cup goes round, and round, and your luck never turns. By the time the landing is in sight you are $Money1 poorer, and only then does $ChosenOneName notice how the man with the earring always throws with the same die.
+=== card 3: 10 10 0 240 0 ===
+"Suit yourselves," says the earring man, and the cup rattles on without you. Before the landing a pilgrim has lost his shoes to them.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName keeps a straight face and $his eyes on the cup. You...
+\14\15...\1dshow the loaded die to the captain.
+\15...\1dslip it into your own hand and let it work for you.
+=== card 5: 10 10 0 240 0 ===
+$ChosenTwoName calls the captain over, picks the die out of the bucket and rolls it for him: six, six, six. The captain's face goes dark. He makes the earring man pay back what you lost, and twice as much again for the shame of his boat, $Money1, and throws the die into the river.
+=== card 6: 10 10 0 240 0 ===
+$ChosenTwoName calls the captain over and hands him the die. He rolls it once, gets a two, and shrugs. The earring man is on his feet. "Calling me a cheat? On my own river?"
+\14The captain will have no blood on his deck. He runs the boat in to the bank, and the boatmen jump ashore after you with knives and boathooks.
+=== card 7: 10 10 0 240 0 ===
+When the cup comes round again, $ChosenOneName's hand is quicker than the earring man's eye, and his own die is in $his palm. Now the sixes come to you. By the landing the boatmen have nothing left to wager, and you have won $Money1 from them.
+\14It was not honest. But then, neither were they.
+=== card 8: 10 10 0 240 0 ===
+The die slips from $ChosenOneName's fingers and rolls across the deck, and the earring man knows it at once. "Cheats! Thieves!"
+\14The captain will have no blood on his deck. He runs the boat in to the bank, and the boatmen jump ashore after you with knives and boathooks.
+=== card 9: 10 10 0 240 0 ===
+The boatmen limp back aboard, cursing, and the captain makes them pay for the trouble they caused: $Money1. Nobody offers you dice again.
+=== card 10: 10 10 0 240 0 ===
+You scramble back aboard as the boat pushes off, the boatmen jeering at your backs. Your stakes stay in their purses.
+=== card 11: 10 10 0 240 0 ===
+The boatmen beat you down on the bank and empty your purses, $Money1, before the captain hauls them off. "Next time," says the earring man, "lose more politely."

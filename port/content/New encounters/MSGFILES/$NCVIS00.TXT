@@ -1,0 +1,20 @@
+# $NCVIS00: a dream at the fire (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Before dawn $ChosenOneName wakes with a cry and sits up, shaking. In $his dream a man in a pilgrim's cloak stood by your fire, his face full of light, and pointed down the road you mean to take today. He spoke to $him slowly and gravely, in Latin, but the words are already slipping away like water through fingers. Something about water.
+\14You...
+\14\15...\1dkneel and pray over the dream.
+\15...\1dpiece together what the saint said.
+\15...\1dtell $ChosenOneName that dreams are only dreams.
+=== card 1: 10 10 0 240 0 ===
+$ChosenTwoName leads the prayer while the sky pales. As you pray, the dread goes out of $ChosenOneName's face, and a deep quiet settles on all of you, as if someone stood by the fire with a hand raised over your heads. Whatever waits on the road today, you will meet it in God's keeping.
+=== card 2: 10 10 0 240 0 ===
+$ChosenTwoName leads the prayer, but the words come out dry and heavy, and the sky stays grey. The dream has gone cold, and $ChosenOneName will not speak of it again.
+=== card 3: 10 10 0 240 0 ===
+$ChosenTwoName makes $ChosenOneName repeat every word $he can remember, and slowly the Latin comes together: "Not by the water, but by the hill."
+\14You leave the river road and take the long way over the hills. It costs you the morning, but from the ridge you see the ford below, swollen and brown, with a drowned cart wedged against its stones. You give thanks.
+=== card 4: 10 10 0 240 0 ===
+$ChosenTwoName turns the half-remembered words over all through breakfast, but they make no sense in Latin or in any other tongue, and in the end you set out late and none the wiser.
+=== card 5: 10 10 0 240 0 ===
+"Dreams are only dreams," you tell $ChosenOneName. "Too much cheese at supper." $He laughs, a little, and you break camp and go on as you meant to.
+=== card 6: 10 10 0 240 0 ===
+At midday the road crosses a ford, swollen with rain. Halfway over, $ChosenOneName's feet are swept from under $him, and the river rolls $him against the stones before you can drag $him out, bruised and bleeding. Nobody mentions the dream.

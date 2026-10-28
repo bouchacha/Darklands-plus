@@ -1,0 +1,30 @@
+# Snowbound: a mountain pass buried by a winter storm.
+name     Snowbound
+card     $NwSnw00
+picture  XMTRANGE
+where    wild
+terrain  hills mountains
+when     day
+weight   1
+only     month >= 11 or month <= 2
+
+[start]
+block    0
+saints   0x3c, 0x16, 0x6f, 0x5d          # Godehard (of the Gotthard), Christopher, Raphael, Martin of Tours
+option 0                                   # dig through (strength); failing, you end in the hut anyway
+  who    party
+  chance clamp(10, 90, avgattr(Str) + avgattr(End) / 2 - 5)
+  ok     text 1; hours 6; attr party, End, -(3 + random(3)); exit
+  fail   text 2; hours 5; attr party, End, -(4 + random(3)); goto hut
+option 1                                   # shelter in the hut (a day or two, rested)
+  chance assured
+  ok     goto hut
+option 2 saint
+  ok     text 4; hours 3; exit
+  fail   text 5
+option 3                                   # turn back (about a day lost)
+  chance none
+  ok     text 6; hours 20 + random(12); exit
+
+[hut]
+do       text 3; days 1 + random(2); heal party, End, 50; exit

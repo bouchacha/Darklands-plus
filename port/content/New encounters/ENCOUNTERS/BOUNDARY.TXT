@@ -1,0 +1,29 @@
+# The boundary stone: two villages quarrel over a boundary stone moved in the night.
+name     The boundary stone
+card     $NwBnd00
+picture  PARCHED2
+where    wild
+terrain  farmland plains
+when     day
+weight   1
+
+[start]
+block    0
+chosen   bestskillsum(Latin, ReadWrite)
+option 0                                   # read them the old charter
+  who    bestskillsum(Latin, ReadWrite)
+  chance clamp(5, 90, (skill(who, Latin) + skill(who, ReadWrite)) / 2 + attr(who, Int) / 4)
+  ok     chosen who; text 1; practice who, Latin, 1, 10, 0; practice who, ReadWrite, 1, 10, 0; reputation 1, 3; hours 2; exit
+  fail   chosen who; text 2; practice who, Latin, 0, 10, 0; disable 0; disable 1
+option 1                                   # read it as the other reeve pays you to
+  who    bestskillsum(Latin, ReadWrite)
+  chance none
+  ok     chosen who; money1 random(36) + 36; text 3; gain money1; attr party, DF, -4; hours 1; exit
+option 2                                   # judge between them yourselves
+  who    bestattr(Cha)
+  chance clamp(5, 85, (4 * attr(who, Cha) + skill(who, SpeakCommon)) / 5 + attr(who, Int) / 5 - 10)
+  ok     chosen who; text 4; practice who, SpeakCommon, 1, 10, 0; hours 2; attr party, End, 2; exit
+  fail   chosen who; text 5; practice who, SpeakCommon, 0, 10, 0; injure who, 1, 1, 5; reputation -1, -2; hours 1; exit
+option 3                                   # stay out of it
+  chance none
+  ok     text 6; exit

@@ -1,0 +1,24 @@
+# The forest child: a wild child steals from the camp at first light.
+name     The forest child
+card     $NcWch00
+picture  XWITBRGN
+where    camp
+when     any
+weight   1
+
+[start]
+block    0
+chosen   bestattrskill(Cha, Woodwise)
+option 0                                   # coax it closer (Charisma, Woodwise)
+  who    bestattrskill(Cha, Woodwise)
+  chance clamp(5, 85, (attr(who, Cha) + skill(who, Woodwise)) / 2 + 10)
+  ok     chosen who; text 1; hours 3; attr party, DF, 3; practice who, Woodwise, 1, 10, 0; reputation 1, 2; exit
+  fail   chosen who; text 2; hours 1; practice who, Woodwise, 0, 10, 0; disable 0
+option 1                                   # let it run, and follow it (Woodwise, Perception)
+  who    spotter
+  chance clamp(10, 90, maxskill(Woodwise) + maxattr(Per) / 2 - 10)
+  ok     money1 random(48) + 12; itemname 0x3d; text 3; gain money1; additem who, 0x3d; hours 2; practice party, Woodwise, 1, 10, 0; exit
+  fail   text 4; hours 4; attr party, End, -2; practice party, Woodwise, 0, 10, 0; exit
+option 2                                   # chase it off
+  chance assured
+  ok     text 5; attr party, DF, -1; exit

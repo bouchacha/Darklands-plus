@@ -1,0 +1,42 @@
+# The courier's letter: a sealed letter dropped on the road, and the silver it tells of.
+name     The courier's letter
+card     $NwCou00
+picture  PARCHED2
+where    wild
+terrain  road plains farmland woods
+when     day
+weight   1
+vars     opened
+
+[start]
+block    0
+option 0                                   # break the seal and read it (Latin)
+  who    bestskill(Latin)
+  chance clamp(5, 90, skill(who, Latin) + skill(who, ReadWrite) / 2 - 10)
+  ok     chosen who; set opened = 1; practice who, Latin, 1, 10, 0; goto letter
+  fail   chosen who; set opened = 1; text 8; hours 1; practice who, Latin, 0, 10, 0; disable 0
+option 1                                   # carry it to the town it is addressed to
+  chance assured
+  ok     if opened goto delopen else goto delseal
+option 2                                   # sell it
+  who    bestskill(Streetwise)
+  chance clamp(5, 90, skill(who, Streetwise) + attr(who, Cha) / 3 - 5)
+  ok     chosen who; money1 random(36) + 36; text 5; gain money1; attr party, DF, -2; practice who, Streetwise, 1, 10, 0; tocity
+  fail   chosen who; text 6; reputation -2, -4; practice who, Streetwise, 0, 10, 0; tocity
+option 3                                   # leave it
+  chance none
+  ok     text 7; exit
+
+[letter]
+block    1
+option 0                                   # dig up the silver
+  chance assured
+  ok     money1 random(72) + 48; text 2; hours 2; gain money1; attr party, DF, -3; exit
+option 1                                   # deliver it after all
+  chance assured
+  ok     goto delopen
+
+[delopen]
+do       money1 36; text 3; gain money1; reputation 1, 2; tocity
+[delseal]
+do       money1 60; text 4; gain money1; reputation 1, 3; tocity

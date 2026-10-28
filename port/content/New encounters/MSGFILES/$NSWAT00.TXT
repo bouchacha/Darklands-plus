@@ -1,0 +1,31 @@
+# $NSWAT00: the night watch (New encounters)
+=== card 0: 10 10 0 240 0 ===
+"Halt! Who walks after the curfew bell?" Lanterns swing round the corner, and behind them halberds and kettle hats: the night watch, four men and a sergeant with a voice like a bull.
+\14"Strangers, and armed, in the streets after curfew. That's a night in the tower and a fine before the council in the morning, by the law of this town." You...
+\14\15...\1dexplain yourselves.
+\15...\1doffer him $Money1 "for the watch's beer."
+\15...\1dslip away down the dark lanes.
+\15...\1dgo with them quietly.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName explains, with many bows, that you are honest travellers who have lost the way to your inn, and could the sergeant possibly direct you? The sergeant grumbles, but sends a man with a lantern to see you there: the long way round, past every tavern he knows.
+=== card 2: 10 10 0 240 0 ===
+"Lost, are you? They're all lost, after curfew." The sergeant is not moved, and his men close in around you.
+=== card 3: 10 10 0 240 0 ===
+The coins vanish into the sergeant's glove without a sound. "Honest travellers, I see," he says loudly, for his men to hear. "Off to your beds, then, and quick about it." The lanterns move on.
+=== card 4: 10 10 0 240 0 ===
+The sergeant weighs the coins, pockets them, and calls his men. "Offering money to the watch! That goes on the fine as well."
+=== card 5: 10 10 0 240 0 ===
+You back into a dark lane, then another, and crouch in a cellar stair while the lanterns go by overhead. It is an hour before you dare come out, but the watch never sees you again.
+=== card 6: 10 10 0 240 0 ===
+You run, but the watch know every lane of their town, and you do not. They run you down in a blind alley, lanterns high and halberds levelled.
+\14"Running from the watch!" bellows the sergeant. "Down on your knees!" You...
+\14\15...\1dsurrender.
+\06...\1dfight your way past them.
+=== card 7: 10 10 0 240 0 ===
+The watch march you to the tower by the gate and lock you in its cellar for the night, on straw that has had many guests before you. In the morning a clerk of the council reads out your offence, takes the fine from your purse, and turns you loose with a warning to mind the curfew bell.
+=== card 8: 10 10 0 240 0 ===
+The watchmen lie in the lane, and their lanterns gutter in the mud. Somewhere a bell begins to ring. You have struck down the town's own watch, and the council will not forget your faces.
+=== card 9: 10 10 0 240 0 ===
+You break through and run. Behind you horns are blowing and bells ringing. You lie hidden until dawn, and when you creep out, every gate-ward in town has your description.
+=== card 10: 10 10 0 240 0 ===
+The watch beat you senseless. You wake in chains in the tower cellar, and in the morning the council fines you heavily for the assault, takes it from your purse, and has you thrown out of the hall.

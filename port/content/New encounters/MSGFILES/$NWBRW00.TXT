@@ -1,0 +1,35 @@
+# $NWBRW00: the heathen barrow (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A long grassy mound rises from the heath, too even to be the work of God. At one end, great grey stones frame a dark passage leading down into it. Shepherds give such places a wide berth: the old heathen kings lie inside with their gold, they say, and they do not lie easy.
+\14You...
+\14\15...\1denter the passage.
+\15...\1dbless the mound and the dead within it.
+\15...\1ddig down into the mound from above.
+\15...\1dleave the heathen dead alone.
+=== card 1: 10 10 0 240 0 ===
+The passage leads down into a low stone chamber, lit only by the grey light from the door. On a bier of stone lies the dead king: a skeleton in green-crusted mail, an ancient sword across his breast, rings and arm-bands of tarnished gold on his bones. Broken pots stand around him. The air is very cold.
+\14You...
+\14\15...\1dtake the grave goods.
+\15...\1dsay a Christian prayer for him and climb out.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName walks three times around the mound, praying aloud and signing the cross over each of the great stones. The cold wind that blew out of the passage dies away, and the heath lies still and peaceful.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName begins the prayers, but a wind howls up out of the passage and tears the words from $his mouth. $He stumbles back, white-faced, and none of you wants to stay a moment longer.
+=== card 4: 10 10 0 240 0 ===
+You dig into the top of the mound for hours, heaving out turf and stones and black earth, until your spades ring on a great slab. Beneath it lies the dead king's chamber.
+=== card 5: 10 10 0 240 0 ===
+You kneel by the bier and pray for the soul of a king who never heard the name of Christ. Whether it helps him, God alone knows. But when you climb out into the open air, the cold has gone out of your bones.
+=== card 6: 10 10 0 240 0 ===
+You gather the grave goods: rings and arm-bands of old red gold, worth $Money1 to any goldsmith, and the king's sword, green with age but still keen, an ancient $ItemName.
+\14Nobody looks back as you leave.
+=== card 7: 10 10 0 240 0 ===
+As you lift the sword from his breast, the dead king's jaw falls open, and from the dark corners of the chamber comes a dry rattling. His household has not left him either.
+\14You scramble out into the open, and the dead come after you.
+=== card 8: 10 10 0 240 0 ===
+The dead lie still again, scattered over the heath in pieces. This time, you hope, they will stay that way.
+=== card 9: 10 10 0 240 0 ===
+You run until the mound is out of sight, and do not stop then. The dead king keeps his gold.
+=== card 10: 10 10 0 240 0 ===
+You come to on the heath, cold to the bone. The dead have gone back into their mound, and taken their gold with them.
+=== card 11: 10 10 0 240 0 ===
+You leave the mound to the wind and the heathen dead, and go on your way.

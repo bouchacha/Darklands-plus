@@ -1,0 +1,36 @@
+# The mauled huntsman: a hunter torn by a bear, and the bear still about.
+name     The mauled huntsman
+card     $NwHnt00
+picture  XGROVE1
+where    wild
+terrain  forest woods pinewood hills mountains
+when     day
+weight   1
+only     month >= 4 and month <= 10
+
+[start]
+block    0
+chosen   bestskill(Healing)
+option 0                                   # bind his wounds (he gives you his knife)
+  who    bestskill(Healing)
+  chance clamp(10, 90, skill(who, Healing) + attr(who, Int) / 3 - 10)
+  ok     chosen who; text 1; hours 1; additem who, 0x07, 40; attr party, DF, 2; practice who, Healing, 1, 10, 0; exit
+  fail   chosen who; text 2; hours 3; attr party, DF, 1; practice who, Healing, 0, 10, 0; exit
+option 1                                   # carry him home
+  chance assured
+  ok     text 3; hours 4 + random(3); attr party, End, -2; attr party, DF, 1; reputation 1, 3; exit
+option 2                                   # hunt the bear: stalking it decides who strikes first
+  who    party
+  chance clamp(10, 90, avgskill(Stealth) + avgskill(Woodwise) / 2 + 10)
+  ok     text 4; hours 2; practice party, Stealth, 1, 10, 0; goto bear
+  fail   chosen slowest; text 5; hours 2; injure slowest, 1, 1, 10; practice party, Stealth, 0, 10, 0; goto bear
+option 3                                   # leave him
+  chance none
+  ok     text 9; attr party, DF, -3; exit
+
+[bear]
+picture  XBEAR
+do       battle Clearing, Bear, lore / 4 + 1, 1
+         if result == Won then { text 6; hours 4; attr party, End, 3; fame 1; reputation 1, 3; exit }
+         if result == Fled then { rejoin; text 7; hours 2; exit }
+         text 8; hours 4; attr party, End, -2; exit

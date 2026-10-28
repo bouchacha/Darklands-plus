@@ -1,0 +1,24 @@
+# The storm: a summer storm breaks over the camp before dawn.
+name     The storm
+card     $NcStm00
+picture  XMS061
+where    camp
+when     any
+weight   1
+only     month >= 4 and month <= 9
+
+[start]
+block    0
+option 0                                   # find shelter under the rocks (Woodwise, Perception)
+  who    spotter
+  chance clamp(10, 90, maxskill(Woodwise) + maxattr(Per) / 2)
+  ok     chosen who; text 1; hours 2; practice party, Woodwise, 1, 10, 0; exit
+  fail   text 2; hours 3; attr party, End, -4; practice party, Woodwise, 0, 10, 0; exit
+option 1                                   # hold the tents down (the party's Strength)
+  who    party
+  chance clamp(10, 90, avgattr(Str) + 25)
+  ok     text 3; attr party, End, -2; exit
+  fail   chosen worstattr(Str); text 4; injure chosen, 1, 1, 5; attr party, End, -3; hours 3; exit
+option 2                                   # wrap up in your cloaks and sit it out (Endurance, time)
+  chance assured
+  ok     text 5; attr party, End, -(3 + random(3)); hours 3; exit

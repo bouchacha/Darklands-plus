@@ -1,0 +1,24 @@
+# $NBOVB00: man overboard (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A cry goes up at the stern. The steersman's boy, a lad of ten, has slipped from the wet gunwale into the river. The current is fast and brown here, and it takes him at once: his head comes up, goes under, comes up again farther off. His father cannot leave the steering oar, and the other boatmen are poling hard at the bow.
+\14You...
+\14\15...\1ddive in after him.
+\15...\1dthrow him a rope.
+\16...\1dpray to a saint for the boy.
+\15...\1dshout for the boatmen and leave it to them.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName is over the side before anyone can speak. The cold knocks the breath out of $him, but $he reaches the boy, gets an arm under his chin and fights back to the hull, where a dozen hands haul them both aboard.
+\14The steersman weeps and swears by every saint on the river that he will name his next child after $ChosenOneName.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName dives in, but the current is stronger than $he is. It rolls $him under and away, and it is the boatmen with their boathooks who drag out first the boy, then $ChosenOneName, half drowned. Much of what $he carried stays with the river.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName's rope uncoils across the water and falls right over the boy's arms. He clings to it like a cat, and you haul him in, coughing and wailing and alive. His father thanks you with the tears running into his beard, and makes $ChosenOneName keep the $ItemName. "It has a lucky soul."
+=== card 4: 10 10 0 240 0 ===
+The rope falls short, and the current carries the boy farther off. He is still afloat, but not for long.
+=== card 5: 10 10 0 240 0 ===
+As you pray, the current swirls and turns, and carries the boy straight back against the hull, where a boatman hooks him by the collar. He coughs up half the river and lives.
+\14The boatmen cross themselves and look at you strangely. At the landing the tale goes ashore before you do.
+=== card 6: 10 10 0 240 0 ===
+No sign is given. The boy's head goes under, and comes up again, farther away.
+=== card 7: 10 10 0 240 0 ===
+You shout for the boatmen. Two of them run a skiff out from the bow and, after a long and dreadful minute, fish the boy out with a boathook. Nobody thanks you for the shouting.

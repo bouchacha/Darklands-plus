@@ -1,0 +1,53 @@
+# The merchant's purse: a thief aboard, and armed strangers to blame.
+name     The merchant's purse
+card     $NbPrs00
+picture  BANKER
+where    boat
+when     any
+weight   1
+
+[start]
+block    0
+chosen   bestattrskill(Per, Streetwise)
+option 0                                   # find the real thief (Perception, Streetwise)
+  who    bestattrskill(Per, Streetwise)
+  chance clamp(5, 90, (attr(who, Per) + skill(who, Streetwise)) / 2 + 15)
+  ok     chosen who; goto caught
+  fail   chosen who; text 2; practice who, Streetwise, 0, 10, 0; goto accused
+option 1                                   # turn out your packs
+  chance assured
+  ok     hours 1; if roll(35) goto planted
+         money1 24; text 3; gain money1; exit
+option 2                                   # refuse, hands on your swords
+  who    bestattrsum(Str, Cha)
+  chance clamp(5, 90, (attr(who, Str) + attr(who, Cha)) / 2 + min(20, fame / 10) - 5)
+  ok     chosen who; text 5; reputation -1, -2; exit
+  fail   chosen who; text 6; hours 6 + random(6); attr party, End, -3; exit
+
+[caught]
+do       money1 random(96) + 48; text 1; gain money1; practice chosen, Streetwise, 1, 10, 0; reputation 1, 2; exit
+
+[planted]
+do       text 4; goto accused
+
+[accused]
+do       money1 clamp(48, 480, money / 4)
+block    7
+option 0                                   # pay him to keep the peace
+  need   money >= money1
+  chance none
+  ok     text 8; pay money1; exit
+option 1                                   # name the real thief
+  who    bestattrskill(Per, Streetwise)
+  chance clamp(5, 85, (attr(who, Per) + skill(who, Streetwise)) / 2)
+  ok     chosen who; goto caught
+  fail   chosen who; text 9; practice who, Streetwise, 0, 10, 0; goto fight
+option 2                                   # fight your way clear
+  chance combat
+  ok     text 10; goto fight
+
+[fight]
+do       battle 0x55, 0x0a, lore / 4 + 1, random(3) + 3
+         if result == Won then { text 11; hours 1; reputation -1, -3; exit }
+         if result == Fled then { rejoin; text 12; hours 4; reputation -1, -2; exit }
+         money1 min(money, 9600); text 13; pay money1; hours 1; exit

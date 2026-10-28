@@ -1,0 +1,32 @@
+# Pilgrims bound for Aachen: footsore pilgrims on their way to the relics, and robbers in the woods ahead.
+name     Pilgrims bound for Aachen
+card     $NwPlg00
+picture  PATH
+where    wild
+terrain  road farmland plains woods
+when     day
+weight   1
+
+[start]
+block    0
+chosen   bestskill(Religion)
+option 0                                   # share your supper (you go hungry)
+  chance assured
+  ok     text 1; attr party, End, -2; attr party, DF, 2; practice party, Virtue, 1, 10, 0; exit
+option 1                                   # escort them to the nearest town (robbers, perhaps)
+  chance unknown
+  ok     if roll(40) goto robbers
+         text 2; hours 6 + random(4); attr party, DF, 1; reputation 1, 3; tocity
+option 2                                   # join their prayers
+  chance assured
+  ok     text 7; hours 1; attr party, DF, 1 + skill(who, Religion) / 15; exit
+option 3                                   # go on
+  chance none
+  ok     text 8; exit
+
+[robbers]
+do       text 3; hours 3
+         battle Wilds, Brigand, lore / 4 + 1, random(4) + 3, BrigandSergeant, lore % 3 + 1, 1
+         if result == Won then { text 4; hours 4; attr party, DF, 2; reputation 1, 3; fame 1; tocity }
+         if result == Fled then { rejoin; text 5; hours 2; attr party, DF, -2; exit }
+         text 6; loseitems party; hours 2; exit

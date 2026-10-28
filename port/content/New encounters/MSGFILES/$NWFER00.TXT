@@ -1,0 +1,23 @@
+# $NWFER00: the ferryman's rope (New encounters)
+=== card 0: 10 10 0 240 0 ===
+The ferryman's raft is halfway across the river, sliding along its guide-rope, when the rope gives a twang like a bowstring. Where it runs through the iron ring on the raft it is frayed to a few strands, and the current is tugging hard. "Holy Christopher," mutters the ferryman, white to the lips. "It won't hold long!"
+\14You...
+\14\15...\1dsplice the rope before it parts.
+\15...\1dswim the horses ashore.
+\16...\1dpray to a saint that the rope holds.
+\15...\1dsit very still and shout for help.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName lashes the frayed strands together with belts and straps while the rest of you take the strain on the rope. Hand over hand you drag the raft to the far bank.
+\14The ferryman wrings your hands and swears he will tell every market in $NearestCity what you did.
+=== card 2: 10 10 0 240 0 ===
+The splice slips, the rope parts with a crack, and the raft spins away downstream. It runs aground on a sandbank a mile below, and by the time you have waded ashore, much of what $ChosenOneName carried has gone to the fishes.
+=== card 3: 10 10 0 240 0 ===
+You lead the horses off the raft and swim them ashore, clinging to the saddles. Lightened, the raft holds just long enough for the ferryman to haul himself across. You stand dripping on the bank and laugh at one another.
+=== card 4: 10 10 0 240 0 ===
+Halfway to the bank $ChosenOneName's horse panics, rolls in the current and throws $him. You drag $him out far downstream, battered and coughing up half the river.
+=== card 5: 10 10 0 240 0 ===
+As $ChosenOneName prays to $NamedOneName, the current eases, as if a great hand had been laid on the water. The frayed rope holds, strand by strand, until the raft bumps against the far bank. The ferryman falls on his knees and kisses the mud.
+=== card 6: 10 10 0 240 0 ===
+The rope creaks on, and another strand parts.
+=== card 7: 10 10 0 240 0 ===
+You sit very still while the ferryman bellows for his sons. At long last they row out with a new rope and haul you in, but the day is half gone, and so is the ferryman's temper.

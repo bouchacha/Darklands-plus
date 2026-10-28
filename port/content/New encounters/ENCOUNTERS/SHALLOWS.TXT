@@ -1,0 +1,24 @@
+# Aground in the shallows: low water, a gravel bar and a boat stuck fast.
+name     Aground in the shallows
+card     $NbSha00
+picture  ARIVE
+where    boat
+when     any
+weight   1
+only     month >= 7 and month <= 10            # the low water of late summer
+
+[start]
+block    0
+option 0                                   # heave with the boatmen (the party's Strength)
+  who    party
+  chance clamp(10, 90, avgattr(Str) + size * 5)
+  ok     money1 size * 12; text 1; hours 1; attr party, End, -(2 + random(2)); gain money1; exit
+  fail   text 2; hours 6; attr party, End, -(4 + random(3)); exit
+option 1                                   # wait for the river to rise
+  chance assured
+  ok     text 3; days 1 + random(2); attr party, End, 3; exit
+option 2                                   # lighten her: carry the cargo along the bar (the slowest one's Agility)
+  who    slowest
+  chance clamp(10, 95, attr(who, Agl) + 40)
+  ok     text 4; hours 3; attr party, End, -2; exit
+  fail   chosen who; text 5; hours 3; attr party, End, -2; keepitems who, clamp(1, 95, attr(who, Agl) + 40); exit

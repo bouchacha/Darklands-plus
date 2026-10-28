@@ -1,0 +1,20 @@
+# $NWALB00: the alchemist's hut (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A dull boom rolls through the forest and birds burst from the trees. Black smoke pours from a hut in a clearing, one wall blown out. From the wreck crawls a man with a scorched beard and a smouldering gown, coughing and blinking. Behind him, among broken flasks, a little furnace still glows.
+\14"Too much sal ammoniac," he wheezes. "Or too little. Who are you?" You...
+\14\15...\1dtend his burns.
+\15...\1dhelp him with his work.
+\15...\1dhelp yourselves to his stores while he is dazed.
+\15...\1dleave him to his smoking ruin.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName cools the burns with water from the spring, dresses them with goose grease and clean linen, and trims the worst of the singed beard. The alchemist is touchingly grateful, and gives you a stoppered flask from a shelf that survived. "Not the one that exploded," he promises.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName's salve stings so badly that the alchemist howls and calls $him a horse-doctor. He will tend his own burns, thank you.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName and the alchemist sort through his scorched notes and find the mistake: the proportions were copied backwards. Together you rebuild the furnace and try again, carefully. This time nothing explodes, and the alchemist shares the brew with you.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName stirs the crucible as the alchemist directs, and it explodes again, more loudly than before. $ChosenOneName is blown out through the hole in the wall, smoking. "Fascinating," says the alchemist.
+=== card 5: 10 10 0 240 0 ===
+While the alchemist sits dazed in the grass, you help yourselves to brimstone, naptha and orpiment from his shelves. He watches you go, blinking. Robbing a half-blind man sits ill on your souls.
+=== card 6: 10 10 0 240 0 ===
+You leave the alchemist sitting in the smoke, picking glass out of his beard.

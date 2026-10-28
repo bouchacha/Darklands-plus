@@ -1,0 +1,29 @@
+# $NWWED00: a village wedding (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Fiddles and bagpipes drift across the fields: a wedding! The whole village sits at long tables under the linden. "Strangers at a wedding bring luck!" cries the bride's father, pulling you to the benches.
+\14At the head table, though, the two fathers are red in the face over the dowry: a meadow, a cow, and who gets which. You...
+\14\15...\1ddance and drink with the village.
+\15...\1dtry to lift the garland stone, as the young men do.
+\15...\1dgive the couple a wedding gift of $Money1.
+\15...\1dsettle the quarrel over the dowry.
+\15...\1dwish them joy and go on.
+=== card 1: 10 10 0 240 0 ===
+You dance the round dances until your legs give out, eat roast pork until you can eat no more, and drink the bride's health more times than anyone can count. You sleep in the hay of the miller's barn and wake at dawn, rested and well fed.
+=== card 2: 10 10 0 240 0 ===
+The young men of the village have strained at the great stone all afternoon. $ChosenOneName spits on $his hands, heaves it up to $his chest and over $his head, and the whole wedding roars. The bride crowns $him with her garland, and the groom pretends not to mind.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName heaves the great stone up to $his knees, and there it slips, landing on $his foot. The village laughs until it weeps, and the bride's mother binds up the toes with vinegar and sympathy.
+=== card 4: 10 10 0 240 0 ===
+The bride blushes, the groom bows, and the priest blesses you along with the couple, before the whole village.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName sits down between the fathers, praises the meadow, praises the cow, and proposes that the first calf go to the bride's father and the meadow to the young couple. After much grumbling the two men shake hands, the village cheers, and you are guests of honour at the feast. Word of it will reach the market in $NearestCity.
+=== card 6: 10 10 0 240 0 ===
+"And who asked you?" roars the groom's father. The bride's father takes that as an insult to his family, and in a moment both families, the fiddlers and half the village are swinging at you.
+=== card 7: 10 10 0 240 0 ===
+You raise a cup to the couple and go on your way. The music fades behind you.
+=== card 8: 10 10 0 240 0 ===
+When the dust settles, groaning wedding guests lie all over the dancing floor and the bride is in tears. You leave quickly. This tale will be told at market, and not kindly.
+=== card 9: 10 10 0 240 0 ===
+You flee the furious wedding with turnips and curses flying after you, and gather again beyond the fields.
+=== card 10: 10 10 0 240 0 ===
+You wake in a ditch outside the village with ringing heads. They are peasants, not robbers: nothing is missing but your dignity.

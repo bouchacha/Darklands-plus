@@ -1,0 +1,50 @@
+# The street preacher: a barefoot friar preaches the end of days in the market.
+name     The street preacher
+card     $NsPre00
+picture  MS120
+where    street
+when     day
+weight   1
+
+[start]
+do       money1 size * 6
+block    0
+chosen   bestskill(Religion)
+option 0                                   # dispute his prophecy
+  who    bestskill(Religion)
+  chance clamp(5, 90, skill(who, Religion) + skill(who, Latin) / 2 + attr(who, Cha) / 4 - 15)
+  ok     chosen who; text 1; reputation 1, 3; practice who, Religion, 1, 10, 0; practice who, Latin, 1, 5, -1; hours 1; exit
+  fail   chosen who; text 2; practice who, Religion, 0, 10, 0; goto mob
+option 1                                   # give alms
+  need   money >= money1
+  chance none
+  ok     text 3; pay money1; attr party, DF, 1 + skill(who, Religion) / 15; exit
+option 2                                   # heckle him
+  who    bestattrskill(Cha, Streetwise)
+  chance clamp(5, 80, attr(who, Cha) + skill(who, Streetwise) / 2 - 20)
+  ok     chosen who; text 4; reputation 1, 2; attr party, DF, -2; practice who, Streetwise, 1, 10, 0; exit
+  fail   chosen who; text 5; practice who, Streetwise, 0, 10, 0; goto mob
+option 3                                   # walk on
+  chance none
+  ok     text 6; exit
+
+[mob]
+picture  XMOB
+block    7
+option 0                                   # kneel and beg his pardon
+  chance assured
+  ok     text 8; attr party, DF, 1; hours 2; exit
+option 1                                   # shove your way out
+  who    party
+  chance clamp(10, 90, avgagility + maxattr(Str) / 2 - 10)
+  ok     text 9; reputation -1, -2; exit
+  fail   text 10; injure party, 1, 1, 5; reputation -1, -2; exit
+option 2                                   # draw steel on them
+  chance combat
+  ok     goto fight
+
+[fight]
+do       battle MainStreet, Villager, lore / 4 + 1, clamp(size, 8, random(4) + lore / 3 + 3)
+         if result == Won then { text 11; attr party, DF, -8; reputation -3, -6; hours 1; exit }
+         if result == Fled then { rejoin; text 12; reputation -2, -4; exit }
+         money1 min(money, 240); text 13; pay money1; reputation -1, -3; until 8; exit

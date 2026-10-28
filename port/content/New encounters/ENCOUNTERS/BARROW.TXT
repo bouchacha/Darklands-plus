@@ -1,0 +1,48 @@
+# The heathen barrow: an old burial mound with a passage, and the dead who lie in it.
+name     The heathen barrow
+card     $NwBrw00
+picture  XMS103
+where    wild
+terrain  plains hills farmland woods marsh pinewood
+when     any
+weight   1
+vars     slain
+
+[start]
+block    0
+chosen   bestskill(Religion)
+option 0                                   # enter the passage
+  chance none
+  ok     hours 1; goto inside
+option 1                                   # bless the mound
+  who    bestskill(Religion)
+  chance clamp(10, 90, skill(who, Religion) + attr(who, DF) / 4 - 10)
+  ok     chosen who; text 2; hours 1; attr party, DF, 3; practice who, Religion, 1, 10, 0; exit
+  fail   chosen who; text 3; hours 1; attr who, DF, -3; practice who, Religion, 0, 10, 0; exit
+option 2                                   # dig down from above (the dead may rise)
+  chance unknown
+  ok     text 4; hours 5; attr party, End, -3; if roll(45) goto risen else goto goods
+option 3                                   # leave it
+  chance none
+  ok     text 11; exit
+
+[inside]
+picture  XGRV4
+block    1
+option 0                                   # take the grave goods (the dead may rise)
+  chance unknown
+  ok     if roll(55) goto risen else goto goods
+option 1                                   # pray for him and climb out
+  chance assured
+  ok     text 5; attr party, DF, 2 + skill(who, Religion) / 15; exit
+
+[goods]
+do       money1 random(96) + 48; text 6; gain money1; additem leader, 0x05, 15 + random(20); attr party, DF, -2
+         if slain then fame 1
+         exit
+[risen]
+do       picture XDEDKGHT; text 7
+         battle Clearing, Skeleton, lore / 4 + 1, random(3) + 2, Undead, lore % 3 + 1, 1
+         if result == Won then { set slain = 1; text 8; goto goods }
+         if result == Fled then { rejoin; text 9; hours 2; exit }
+         text 10; until 18; attr party, End, -2; exit

@@ -1,0 +1,40 @@
+# The tinker's cart: a travelling tinker mends gear and sells oddments, not always honestly.
+name     The tinker's cart
+card     $NwTnk00
+picture  MS015
+where    wild
+terrain  road farmland plains woods
+when     day
+weight   1
+vars     mend
+
+[start]
+do       money1 72; set mend = size * 6; money2 mend
+block    0
+option 0                                   # buy the lantern (painted tin: a poor one)
+  need   money >= money1
+  chance none
+  ok     text 1; pay money1; additem leader, 0x3d, 20; exit
+option 1                                   # haggle (a third off)
+  who    bestattr(Cha)
+  chance clamp(5, 90, (4 * attr(who, Cha) + skill(who, SpeakCommon)) / 5 + skill(who, Streetwise) / 4)
+  ok     chosen who; money1 money1 * 2 / 3; text 2; practice who, SpeakCommon, 1, 10, 0; disable 1
+  fail   chosen who; text 3; practice who, SpeakCommon, 0, 10, 0; disable 1
+option 2                                   # pay for mending, and learn from watching
+  need   money >= mend
+  who    bestskill(Artifice)
+  chance assured
+  ok     chosen who; text 4; pay mend; hours 2; skill who, Artifice, 1; exit
+option 3                                   # watch his hands
+  who    bestskill(Streetwise)
+  chance clamp(5, 90, skill(who, Streetwise) + attr(who, Per) / 3 - 5)
+  ok     chosen who; text 5; additem who, 0x3d, 40; practice who, Streetwise, 1, 10, 0; exit
+  fail   chosen who; text 6; reputation -1, -2; practice who, Streetwise, 0, 10, 0; exit
+option 4                                   # rummage through his oddments (Nikel, Pitchblende or Zinken)
+  who    bestskill(Alchemy)
+  chance clamp(5, 90, skill(who, Alchemy) + attr(who, Int) / 3 - 10)
+  ok     chosen who; text 7; additem who, 0x57 + random(3); practice who, Alchemy, 1, 10, 0; exit
+  fail   chosen who; text 8; hours 1; practice who, Alchemy, 0, 10, 0; disable 4
+option 5                                   # go on
+  chance none
+  ok     text 9; exit

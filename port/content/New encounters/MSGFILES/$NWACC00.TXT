@@ -1,0 +1,24 @@
+# $NWACC00: the witch-finder's prisoner (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A shouting crowd comes up the road, dragging an old woman on a rope. At its head strides a gaunt man in black with a book under his arm, a witch-finder, with a few hard-eyed zealots at his back.
+\14"She soured the milk and called the hail down on the rye! She burns at the crossroads!" There is no priest with them, and no judge. The old woman only says, "I set their bones. I sang to their cows." You...
+\14\15...\1dplead that she be tried by the bishop's court.
+\15...\1doffer the witch-finder $Money1 for her.
+\06...\1dfall upon the zealots.
+\15...\1dturn away.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName reminds the crowd that witchcraft is a matter for the bishop's court, and that whoever burns a soul without judgement has murdered a Christian. One by one the villagers lower their eyes. They will bring her before the court in $NearestCity, where cooler heads will hear her.
+=== card 2: 10 10 0 240 0 ===
+The witch-finder shouts $ChosenOneName down. "Hear how the Devil pleads for his own!" The crowd jeers and pushes on toward the crossroads.
+=== card 3: 10 10 0 240 0 ===
+The witch-finder weighs your silver, sniffs, and decides that God has shown the old woman mercy after all. She presses a bundle of dried camomile into your hands. "For your aches, dears. It's all I have." Then she hobbles off toward the woods, quicker than you would have thought.
+=== card 4: 10 10 0 240 0 ===
+You draw your weapons. "Defenders of witches!" howls the witch-finder. "Strike them down, and God will reward you!"
+=== card 5: 10 10 0 240 0 ===
+You turn away. The crowd's shouting dies away down the road toward the crossroads.
+=== card 6: 10 10 0 240 0 ===
+The zealots flee into the fields, their witch-finder with them. You untie the old woman. She weeps, blesses each of you, and is gone into the woods before anyone can follow. Whatever she was, she was no witch, and you feel God's approval.
+=== card 7: 10 10 0 240 0 ===
+You flee. Behind you, the crowd's howling goes on toward the crossroads.
+=== card 8: 10 10 0 240 0 ===
+The zealots beat you to the ground and bind you to a fence, so that you can watch. By the time you work yourselves loose, a column of smoke stands over the crossroads.

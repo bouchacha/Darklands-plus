@@ -1,0 +1,21 @@
+# $NWPLY00: the travelling players (New encounters)
+=== card 0: 10 10 0 240 0 ===
+At a crossroads a crowd of peasants has gathered round a painted cart. A juggler keeps five apples in the air, a girl walks on her hands, and a fool in a red cap plays the Devil getting the worst of it from Saint Michael. Their master, a lean fellow with a ring of knives at his belt, spies you. "Gentlefolk! Stay for the play, or wager $Money1 that one of you throws a knife truer than I do!"
+\14You...
+\14\15...\1dwatch the play.
+\15...\1djoin in the show.
+\15...\1dtake the wager.
+\15...\1dgo on your way.
+=== card 1: 10 10 0 240 0 ===
+The play is coarse, the Devil's tail falls off twice, and you laugh until your sides ache. You drop a few pfennigs in the hat when it comes round.
+\14It is a long while before you take to the road again, rested and in better spirits than you have been for weeks.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName climbs onto the cart and, between the juggler and the fool, tells of dragons and bishops, kobolds and alewives, until the peasants howl with laughter and coins rain onto the boards. The players' master shares out the take honestly: your part is $Money1.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName climbs onto the cart and begins a tale. Somewhere in the middle $he forgets how it ends. The peasants begin to jeer, then to throw turnips, and one of them has a very good arm.
+=== card 4: 10 10 0 240 0 ===
+The master's knives thud into the board around a painted heart. Then $ChosenOneName throws, and $his knife splits the heart down the middle. The crowd roars. The master stares, then laughs and pays: $Money1. "Come with us! We'll tour the Empire!"
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName's knife strikes the board a hand's breadth from the heart. The master's goes into the heart itself. He bows to the cheering crowd, then holds out his hand to you for $Money1.
+=== card 6: 10 10 0 240 0 ===
+You push on through the crowd. Behind you the Devil howls as Saint Michael beats him about the head with a pig's bladder.

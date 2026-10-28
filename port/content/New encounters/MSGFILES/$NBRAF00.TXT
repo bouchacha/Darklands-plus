@@ -1,0 +1,27 @@
+# $NBRAF00: the timber raft (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Round a bend the channel is blocked from bank to bank: a raft of lashed pine trunks, longer than a church, has swung across the current and grounded. Raftsmen run along the logs with poles and axes, and their master, a bull of a man, bellows that the only gap, by the far bank, will cost every boat a florin.
+\14"I'll not pay that thief," growls your captain.
+\14You...
+\14\15...\1dhelp the raftsmen free their raft.
+\15...\1drace through the gap without paying.
+\15...\1dsit and wait until they clear the channel.
+\06...\1dgo ashore with the captain and settle it.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName joins the raftsmen on the slippery logs, levering where the trunks are jammed against the gravel and rigging a line to your boat's mast for a better pull. Two hours later the raft swings free with a groan. The raft master slaps $ChosenOneName on the back and gives $him one of his raftsmen's axes: a good $ItemName.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName leaps onto the logs to help, but a trunk rolls under $his feet and pins $his leg against its neighbour. By the time the raftsmen have levered $him free and the raft at last swings loose, half the day is gone.
+=== card 3: 10 10 0 240 0 ===
+The captain leans on the steering oar, you all take poles, and the boat shoots the gap with her hull scraping the logs and the raft master roaring curses from the bank. Once you are clear, the captain, delighted, hands back part of your fares: $Money1.
+=== card 4: 10 10 0 240 0 ===
+The boat shoots for the gap, but the current throws her against the logs. She heels hard, water pours over the side, and $ChosenOneName's baggage slides overboard before anyone can grab it. The raftsmen laugh from their logs.
+=== card 5: 10 10 0 240 0 ===
+You sit on the bales and watch the raftsmen work. It takes them the rest of the day, with much shouting and a great deal of brandy, to swing the raft free.
+=== card 6: 10 10 0 240 0 ===
+The captain runs the boat in to the bank and climbs out with his boathook, and you go with him. The raft master spits, calls for his men, and they come ashore with poles and axes.
+=== card 7: 10 10 0 240 0 ===
+The raftsmen drag their master back onto his logs, groaning, and the gap is free. The captain shares out the florin he did not have to pay, and a little more besides: $Money1.
+=== card 8: 10 10 0 240 0 ===
+You retreat to the boat under a hail of curses and flying bark, and wait until the raftsmen have cleared the channel many hours later.
+=== card 9: 10 10 0 240 0 ===
+The raftsmen throw you into the shallows and take their florin, and more, out of your purses: $Money1.

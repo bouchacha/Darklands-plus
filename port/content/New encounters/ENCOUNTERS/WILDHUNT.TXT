@@ -1,0 +1,34 @@
+# The Wild Hunt: horns in the night sky, hounds, and the Huntsman's call.
+name     The Wild Hunt
+card     $NwWhn00
+picture  XHUNT
+where    wild
+terrain  wild
+when     night
+weight   1
+only     month >= 11 or month <= 1
+
+[start]
+block    0
+saints   0x45, 0x2f, 0x60, 0x16          # Hubert, Eustace, Michael, Christopher
+option 0                                   # hide in the undergrowth
+  who    party
+  chance clamp(5, 90, avgskill(Stealth) + avgagility * 2 / 3)
+  ok     text 1; practice party, Stealth, 1, 10, 0; hours 1; exit
+  fail   chosen slowest; text 2; injure chosen, 1, 1, 10; attr chosen, DF, -3; practice party, Stealth, 0, 10, 0; until 5; exit
+option 1 saint                             # stand fast and pray
+  ok     text 3; attr party, DF, 2; practice party, Virtue, 1, 10, 0; exit
+  fail   text 4
+option 2                                   # leave bread and oats for the Huntsman's horses
+  chance none
+  ok     text 5; attr party, End, -2; attr party, DF, -2; until 5; exit
+option 3                                   # answer the Huntsman's call
+  chance combat
+  ok     text 6; goto hunt
+
+[hunt]
+picture  XWHUNT
+do       battle Wilds, WildHunter, lore / 4 + 1, random(2) + 1 + lore / 4
+         if result == Won then { text 7; additem leader, 0x93; fame 1; until 5; exit }
+         if result == Fled then { rejoin; text 8; until 5; exit }
+         text 9; attr party, DF, -3; until 5; exit

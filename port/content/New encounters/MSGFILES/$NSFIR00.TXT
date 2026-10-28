@@ -1,0 +1,26 @@
+# $NSFIR00: fire! (New encounters)
+=== card 0: 10 10 0 240 0 ===
+"Fire! Fire!" The cry and the clang of a church bell come together. At the end of the street a house is burning, flames pouring from under its eaves, and the wind is carrying sparks onto the shingles of its neighbours. Half-dressed townsfolk run with leather buckets; somewhere the guilds' fire hooks are coming.
+\14A woman in her shift is screaming that her old father is still in the upper room. You...
+\14\15...\1djoin the bucket chain from the well.
+\15...\1drush into the house after the old man.
+\16...\1dcall on a saint against the fire.
+\15...\1dstand back out of the way.
+=== card 1: 10 10 0 240 0 ===
+You take your places in the chain from the well, and for two hours the buckets go up hand to hand, full one way and empty the other, until your arms are lead and your faces black. The burning house is lost, but the fire goes no further.
+\14When it is over, an alderman walks down the chain thanking every hand in it, strangers included.
+=== card 2: 10 10 0 240 0 ===
+You take your places in the chain, and for hours the buckets go up hand to hand. But the wind is against you: the fire leaps to the next roof, and the next, before the carpenters pull them down with hooks to stop it.
+\14Three houses are ash by the time it is over, and you are too tired to stand.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName wraps a wet cloak round $his head and plunges in through the smoke. A long, terrible moment, and then $he comes stumbling out with the old man over $his shoulder, both of them coughing and singed, as the stair falls in behind them.
+\14The street cheers, the daughter weeps, and by morning the tale is in every alehouse in town.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName plunges in through the smoke, but halfway up the stair the treads give way in a burst of sparks. The fire-hook men drag $him out by the belt, burned and choking.
+\14The carpenters bring the old man down a ladder from his window, alive, and nobody remembers to thank you.
+=== card 5: 10 10 0 240 0 ===
+As the prayer rises, the wind drops, then turns, and blows the flames back on the burning house and away from its neighbours. A thin rain begins to fall. The old man is handed down from his window, and the townsfolk, gasping by their buckets, see you kneeling in the street and cross themselves.
+=== card 6: 10 10 0 240 0 ===
+You pray, but the wind blows on, and the sparks fly.
+=== card 7: 10 10 0 240 0 ===
+You stand back out of the way while the townsfolk fight the fire. By the time the bell stops ringing it is out, and you go on your way, none the worse and none the better.

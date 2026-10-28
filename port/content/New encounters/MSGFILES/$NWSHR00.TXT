@@ -1,0 +1,26 @@
+# $NWSHR00: the wayside shrine (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Where two roads meet stands a wayside shrine: a stone pillar with a little roofed niche, where a wooden saint looks out over the fields. The roof has fallen in, the rain has washed the paint away, and the saint's name has crumbled from the stone. In the offering bowl lie a few old coins, green with age.
+\14You...
+\14\15...\1drepair the shrine.
+\15...\1dleave an offering of $Money1.
+\16...\1dpray at the shrine.
+\15...\1dtake the old coins from the bowl.
+\15...\1dgo on your way.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName sets the fallen stones back in place and splits fresh shingles from a dead birch to peg the little roof on again, while the rest of you cut back the nettles and set the saint upright.
+\14When you are done the shrine looks almost proud again, and so, a little, do you.
+=== card 2: 10 10 0 240 0 ===
+As $ChosenOneName heaves the capstone into place, it slips and comes down on $his hand. You patch the roof as best you can, but it is a poor job, and the faceless saint seems to regard it doubtfully.
+=== card 3: 10 10 0 240 0 ===
+Your coins clink into the bowl beside the green old ones. Some day, perhaps, someone will use them to paint the saint anew. Whoever the saint may be, the gift will not go unnoticed.
+=== card 4: 10 10 0 240 0 ===
+As $ChosenOneName prays, the clouds part and a shaft of sunlight falls on the worn wooden face. For a moment you could swear it smiles.
+\14Perhaps it was $NamedOneName all along.
+=== card 5: 10 10 0 240 0 ===
+You pray, but the faceless saint gives no sign.
+=== card 6: 10 10 0 240 0 ===
+You pick the old coins out of the bowl and rub them clean on your sleeves: $Money1, more or less.
+\14As you walk away it begins to rain, and it rains on you, and as far as you can tell only on you, for the rest of the day.
+=== card 7: 10 10 0 240 0 ===
+You leave the shrine to the nettles and the rain, and go on your way.

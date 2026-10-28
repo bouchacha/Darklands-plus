@@ -1,0 +1,40 @@
+# $NBPRS00: the merchant's purse (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A bellow from amidships: "Thief! My purse!" A stout merchant in a fur-trimmed gown is on his feet, clutching the cut strings at his belt. "Forty florins! Nobody leaves this boat until it is found!"
+\14The deck is crowded with pilgrims, a pedlar, two students and the boatmen, but it is at you, the armed strangers, that he points. "You there! Turn out your packs!"
+\14You...
+\14\15...\1dlook for the real thief among the passengers.
+\15...\1dturn out your packs and let him search.
+\15...\1drefuse, with your hands on your swords.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName has been watching faces, and now $he points: one of the students has gone very still by the rail. In his boot, wrapped in a stocking, are the merchant's forty florins.
+\14The merchant embraces you, then the florins, then you again, and counts out a finder's reward: $Money1. The student will meet the bailiff at the landing.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName studies the passengers, but every face looks as guilty, or as innocent, as the next. The merchant loses patience. "Enough! Search their baggage!"
+\14Under your bundles his servant finds the purse, slit open and empty. The real thief put it there, no doubt, but who will believe that?
+=== card 3: 10 10 0 240 0 ===
+The merchant pokes through your shirts and kettles for an hour, finds nothing, and turns red. "Well. Well, I beg your pardon," he mutters, and presses $Money1 into your hands for the insult. The real thief is never found.
+=== card 4: 10 10 0 240 0 ===
+The search goes on for an hour. Then the merchant's servant straightens up from your baggage with something in his hand: his master's purse, slit open and empty. Someone has slipped it in among your things.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName lays a hand on $his sword hilt. "Search us, merchant, and you will be searching for your teeth." The merchant backs away, white and silent. He will be telling everyone at the landing what sort of folk you are.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName lays a hand on $his sword hilt, and the boatmen lay hands on their poles. The captain will have none of it. He puts you ashore at the next bend with your baggage, and you walk the rest of the way to the landing: many hours of mud and towpath.
+=== card 7: 10 10 0 240 0 ===
+"Thieves!" cries the merchant, waving his empty purse. The boatmen take up their poles and close round you, and the captain looks from you to the merchant and says nothing.
+\14"Pay me $Money1," says the merchant, "and I will call no bailiff." You...
+\14\15...\1dpay him to keep the peace.
+\15...\1dname the real thief.
+\06...\1dfight your way clear.
+=== card 8: 10 10 0 240 0 ===
+You count $Money1 into the merchant's hand. He sniffs and pockets it. "Forty florins," he says, "and you think this makes us even?" But he calls no bailiff.
+=== card 9: 10 10 0 240 0 ===
+$ChosenOneName points at the student by the rail, but the student only stares back, wide-eyed, and there is nothing in his boots but his feet. "Liars as well as thieves!" roars the merchant. The captain runs the boat in to the bank to have it out there.
+=== card 10: 10 10 0 240 0 ===
+You draw your weapons. The captain runs the boat in to the bank, and the merchant's servants and the boatmen pile ashore after you with poles and knives.
+=== card 11: 10 10 0 240 0 ===
+The boatmen and the merchant's servants lie groaning on the bank. The captain takes you on to the landing in sullen silence, and the merchant promises, from the stern, to tell the whole town about you.
+=== card 12: 10 10 0 240 0 ===
+You break away along the towpath and walk the rest of the way to the landing. The merchant has told his tale there long before you arrive.
+=== card 13: 10 10 0 240 0 ===
+The boatmen hold you down while the merchant takes his forty florins out of your purses, or as much of them as he can find: $Money1.

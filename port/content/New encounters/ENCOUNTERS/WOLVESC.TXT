@@ -1,0 +1,29 @@
+# Eyes beyond the firelight: a hungry pack circles the camp in the night.
+name     Eyes beyond the firelight
+card     $NcWlf00
+picture  XDOGWOOD
+where    camp
+when     any
+weight   1
+only     month >= 10 or month <= 3             # the hungry months
+
+[start]
+block    0
+chosen   bestskill(Woodwise)
+option 0                                   # keep the fire blazing (Woodwise)
+  who    bestskill(Woodwise)
+  chance clamp(20, 95, skill(who, Woodwise) + attr(who, Int) / 3 + 30)
+  ok     chosen who; text 1; attr party, End, -2; practice who, Woodwise, 1, 10, 0; exit
+  fail   chosen who; text 2; practice who, Woodwise, 0, 10, 0; goto fight
+option 1                                   # drive them off with burning brands
+  chance combat
+  ok     text 3; goto fight
+option 2                                   # keep a double watch until morning (Endurance, time)
+  chance assured
+  ok     text 4; attr party, End, -(3 + random(3)); hours 3; exit
+
+[fight]
+do       battle Surrounded, Wolf, lore / 4 + 1, random(5) + 3
+         if result == Won then { itemname 0x93; text 5; additem leader, 0x93; hours 1; exit }
+         if result == Fled then { rejoin; text 6; attr party, End, -3; hours 2; exit }
+         text 7; injure party, 1, 1, 10; hours 2; exit

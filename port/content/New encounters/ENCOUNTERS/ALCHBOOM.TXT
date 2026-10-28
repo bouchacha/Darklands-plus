@@ -1,0 +1,28 @@
+# The alchemist's hut: a blast and black smoke from a hut in the forest.
+name     The alchemist's hut
+card     $NwAlb00
+picture  KABOOM2
+where    wild
+terrain  woods forest pinewood hills
+when     day
+weight   1
+
+[start]
+block    0
+chosen   bestskill(Healing)
+option 0                                   # tend his burns
+  who    bestskill(Healing)
+  chance clamp(10, 90, skill(who, Healing) + attr(who, Int) / 3 - 5)
+  ok     chosen who; text 1; additem who, 0x5f; practice who, Healing, 1, 10, 0; hours 1; exit
+  fail   chosen who; text 2; practice who, Healing, 0, 10, 0; hours 1; disable 0
+option 1                                   # help him with his work
+  who    bestskill(Alchemy)
+  chance clamp(5, 90, skill(who, Alchemy) + attr(who, Int) / 3 - 15)
+  ok     chosen who; text 3; additem who, 0x60; practice who, Alchemy, 1, 10, 0; hours 3; exit
+  fail   chosen who; text 4; injure who, 1, 1, 10; practice who, Alchemy, 0, 10, 0; hours 2; exit
+option 2                                   # help yourselves to his stores
+  chance none
+  ok     text 5; additem leader, 0x5a; additem leader, 0x4a; additem leader, 0x4f; attr party, DF, -5; exit
+option 3                                   # leave him to his ruin
+  chance none
+  ok     text 6; exit

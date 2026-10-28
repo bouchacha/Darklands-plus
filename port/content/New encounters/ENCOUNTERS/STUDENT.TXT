@@ -1,0 +1,28 @@
+# The poor scholar: a hungry student offers to write or teach for coin.
+name     The poor scholar
+card     $NsStu00
+picture  XINKWELL
+where    street
+when     any
+weight   1
+
+[start]
+do       money1 48
+block    0
+chosen   bestskill(Latin)
+option 0                                   # hire him for a day's lessons
+  need   money >= money1
+  chance none
+  ok     text 1; pay money1; hours 6; practice party, ReadWrite, 1, 20, 0; practice party, Latin, 1, 10, 0; exit
+option 1                                   # buy him a hot meal
+  need   money >= 6
+  chance none
+  ok     text 2; pay 6; attr party, DF, 1; practice party, Virtue, 1, 10, 0; hours 1; exit
+option 2                                   # try his Latin
+  who    bestskill(Latin)
+  chance clamp(5, 90, skill(who, Latin) + attr(who, Int) / 3 - 10)
+  ok     chosen who; text 3; hours 2; practice who, Latin, 1, 25, 0; practice who, ReadWrite, 1, 10, 0; exit
+  fail   chosen who; text 4; hours 1; practice who, Latin, 0, 10, 0; disable 2
+option 3                                   # send him on his way
+  chance none
+  ok     text 5; exit

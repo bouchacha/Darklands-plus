@@ -1,0 +1,22 @@
+# $NSSCF00: the falling beam (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Above the street, carpenters are hauling a great oak beam up to the frame of a new house. Something cracks. The rope runs screaming through its pulley, the scaffolding sags, and the beam comes down end first, straight at you.
+\14And in the gutter at your feet a little girl squats, building a dam of mud and straw, without so much as looking up. You...
+\14\15...\1dleap clear.
+\15...\1dbrace yourselves and catch the beam.
+\15...\1dsnatch the child out of its way.
+=== card 1: 10 10 0 240 0 ===
+You throw yourselves aside, and the beam smashes into the cobbles where you stood, a hand's breadth from the child, who bursts into tears over her ruined dam.
+\14The master carpenter comes running down his ladder, white as flour, and presses $Money1 on you: "For the fright, masters, and no need to trouble the council about it."
+=== card 2: 10 10 0 240 0 ===
+You throw yourselves aside, but $ChosenOneName is a moment too slow, and the end of the beam catches $him a glancing blow that sends $him sprawling.
+\14The master carpenter comes running down his ladder, white as flour, and presses $Money1 on you, begging you not to take it to the council.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName plants $his feet and takes the falling end on $his shoulders. For a moment it seems $his back must break, but the beam stops, and the carpenters swarm down to get a rope on it. The child never even looks up.
+\14The whole street saw it. By evening they are saying that $ChosenOneName caught a falling house.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName braces to take the beam, but it is oak and it is falling, and it bears $him down into the mud. It stops there, an inch above the child. They lever it off $him, bruised and bleeding. At least the street saw what $he tried.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName darts forward, scoops the girl out of the gutter and rolls clear as the beam smashes her dam to splinters. Her mother, the cooper's wife, comes screaming out of her door and calls down every saint in heaven on you, at the top of her lungs, for the whole street to hear.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName scoops the girl out of the gutter, but the end of the beam catches $him across the back as $he turns. The child is unhurt. Her mother, the cooper's wife, weeps over you both, and the street will not forget who took that blow.

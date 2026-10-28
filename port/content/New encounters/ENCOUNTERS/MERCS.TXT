@@ -1,0 +1,36 @@
+# Mercenaries home from Italy: a paid-off band on the road, with wine, loot and a champion.
+name     Mercenaries home from Italy
+card     $NwMrc00
+picture  MS019
+where    wild
+terrain  road plains farmland hills
+when     day
+weight   1
+vars     stake
+
+[start]
+do       money1 160; set stake = 48; money2 stake
+block    0
+chosen   bestskill2(Edged, Impact)
+option 0                                   # share their wine (the best fighter picks up a trick)
+  chance assured
+  ok     text 1; hours 3; attr party, End, 2 + random(2)
+         if skill(chosen, Edged) >= skill(chosen, Impact) then practice chosen, Edged, 1, 10, 0 else practice chosen, Impact, 1, 10, 0
+         exit
+option 1                                   # buy a fine long sword (quality 40)
+  need   money >= money1
+  chance none
+  ok     text 2; pay money1; additem leader, 0x03, 40; exit
+option 2                                   # a bout with their champion, for a stake
+  need   money >= stake
+  who    bestskill2(Edged, Impact)
+  chance clamp(5, 90, max(skill(who, Edged), skill(who, Impact)) + attr(who, Str) / 4 + attr(who, Agl) / 4 - 20)
+  ok     chosen who; text 3; gain stake; hours 1; fame 1
+         if skill(who, Edged) >= skill(who, Impact) then practice who, Edged, 1, 10, 0 else practice who, Impact, 1, 10, 0
+         exit
+  fail   chosen who; text 4; pay stake; hours 1; injure who, 1, 1, 5
+         if skill(who, Edged) >= skill(who, Impact) then practice who, Edged, 0, 10, 0 else practice who, Impact, 0, 10, 0
+         exit
+option 3                                   # go on
+  chance none
+  ok     text 5; exit

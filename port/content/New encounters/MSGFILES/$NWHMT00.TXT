@@ -1,0 +1,29 @@
+# $NWHMT00: the hermit's cell (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Where the path climbs among the rocks, a cell has been walled up against the cliff, with one small window and a wooden cross above it. At the window sits a gaunt old man in a hair shirt, his beard down to his belt.
+\14"Peace be with you, travellers. I have nothing to give but prayer, and that I give gladly."
+\14You...
+\14\15...\1dkneel and pray the hours with him.
+\15...\1dask for his blessing on your road.
+\15...\1dtest his holiness with hard questions.
+\15...\1dleave $Money1 in alms at his window.
+\15...\1dbow your heads and go on.
+=== card 1: 10 10 0 240 0 ===
+You kneel on the stones beneath his window while the hermit leads the prayers of the hours, one after another, until your knees ache and the shadows have crept far across the rock.
+\14When at last you rise, stiff and slow, there is a quiet in your hearts that you have not felt for a long time.
+=== card 2: 10 10 0 240 0 ===
+The hermit looks long into each of your faces. Then he raises a thin hand and blesses you, one by one. "Go with God. He has work for you yet."
+\14You take to the road lighter of heart, and your weariness seems to fall away with every step.
+=== card 3: 10 10 0 240 0 ===
+The hermit looks long into your faces and shakes his head. "Not yet. There is pride in you, and anger. First, carry water."
+\14For hours you haul water up from the stream to his cistern. When it is full he blesses you after all, with a dry smile. "Humility, my children, is learned with the back."
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName puts hard questions to him, in Latin and in German: on grace and works, on the sin of Adam, on why God lets the Devil roam the world. The hermit answers each one simply and without pride, out of a wisdom that owes little to the schools.
+\14$ChosenOneName walks away humbled, and $his faith the stronger for it.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName poses a learned question in Latin. The hermit only smiles. "I know no Latin, my child. But I know that a man who comes to test holiness has brought little of his own."
+\14$ChosenOneName has no answer to that, and the rest of you are careful not to laugh until you are out of sight.
+=== card 6: 10 10 0 240 0 ===
+You leave your coins and a loaf on the sill of his window. "I have no use for money," says the hermit, "but the poor who climb this path have. They will pray for you, and God listens to the poor."
+=== card 7: 10 10 0 240 0 ===
+You bow your heads to the old man and go on your way. Before you have gone ten paces, he has turned back to his prayers.

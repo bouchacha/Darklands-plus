@@ -1,0 +1,25 @@
+# $NWPLG00: pilgrims bound for Aachen (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A band of pilgrims comes limping along the road: a dozen men and women with staffs and scrips, lead badges pinned to their hats, their feet bound in rags. "We go to Aachen," says their leader, a grey-haired cooper, "to see Our Lady's cloak and the swaddling clothes of Our Lord. But our bread is gone, and they say there are robbers in the woods ahead."
+\14You...
+\14\15...\1dshare your own supper with them.
+\15...\1descort them as far as $NearestCity.
+\15...\1djoin them in their prayers.
+\15...\1dwish them God speed and go on.
+=== card 1: 10 10 0 240 0 ===
+You share out your bread, cheese and sausage, and the pilgrims fall on it like wolves. Tonight it is your own bellies that will grumble.
+\14"God sees what you have done," says the cooper, "and so does Saint James." The pilgrims bless you and limp on their way, singing.
+=== card 2: 10 10 0 240 0 ===
+You walk with the pilgrims at their pace, which is slow, and listen to their hymns, which are long. No robber shows his face. At the gates of $NearestCity the pilgrims kneel to thank God for sending them such guardians, loudly enough for every gatekeeper to hear.
+=== card 3: 10 10 0 240 0 ===
+Deep in the woods the robbers are waiting, as the cooper feared. They were expecting footsore pilgrims. They were not expecting you.
+=== card 4: 10 10 0 240 0 ===
+The robbers who can still run are gone into the trees. The pilgrims, weeping and laughing, see you to the gates of $NearestCity and tell everyone there who saved them.
+=== card 5: 10 10 0 240 0 ===
+You scatter before the robbers. When you find each other again, the pilgrims are gone, and you do not like to think where.
+=== card 6: 10 10 0 240 0 ===
+The robbers strip you as bare as the pilgrims, and take the pilgrims' alms-purse too. "God will provide," says the cooper as you limp on, and you cannot tell whether he means to console you or to reproach you.
+=== card 7: 10 10 0 240 0 ===
+You kneel with the pilgrims at a wayside cross while the cooper leads the litany of the saints and the women sing the Salve Regina. It takes the better part of an hour, and you rise from it with your spirits lifted.
+=== card 8: 10 10 0 240 0 ===
+"God speed!" you call. The pilgrims trudge on toward Aachen, and you go your own way.

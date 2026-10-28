@@ -1,0 +1,20 @@
+# $NBDRW00: the drowned man (New encounters)
+=== card 0: 10 10 0 240 0 ===
+The boat swings close under the bank to round a bend, and there in the reeds you see him: a man floating face down among the rushes, his cloak spread out on the water around him. A fat purse still hangs at his belt.
+\14The boatmen look away and mutter. A drowned man brings the river's anger, they say, and the bailiff's questions. But the captain will put in, if you ask it.
+\14You...
+\14\15...\1dput in, bring him out and give him a Christian burial.
+\15...\1dhook the purse with a boathook as you pass.
+\15...\1dleave him to the river.
+=== card 1: 10 10 0 240 0 ===
+You wade into the reeds and carry him up the bank above the flood line, and there you dig his grave, with a cross of willow and the prayers for the dead. A merchant, by his clothes, and nobody you know.
+\14At the landing you give his purse, unopened, to the town clerk for his heirs. The clerk writes your names down as honest folk.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName leans out with a boathook, cuts the strings with one sweep and lands the purse on the deck: $Money1, in good silver.
+\14The boatmen will not meet your eyes for the rest of the voyage, and the dead man turns slowly in the reeds behind you, as if to watch you go.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName leans out with a boathook, but it catches the cloak instead. The dead man rolls over and stares up at you with a white, swollen face, and the purse slides off into the black water. Nobody says anything for a long time.
+=== card 4: 10 10 0 240 0 ===
+You let the boat carry you past. The boatmen sing a little louder for a while, and none of them looks back.
+=== card 5: 10 10 0 240 0 ===
+At the landing a bailiff is waiting. One of the boatmen has told him of the drowned man and his purse, and of who took it. You keep the silver in the end, but the whole town knows how you came by it.

@@ -1,0 +1,28 @@
+# Fire! A house burns in the night, and the town turns out with buckets.
+name     Fire!
+card     $NsFir00
+picture  XFIRE2
+where    street
+when     night
+weight   1
+
+[start]
+block    0
+chosen   bestattrsum(Agl, End)
+saints   0x33, 0x01                      # Florian, Agatha
+option 0                                   # join the bucket chain
+  who    party
+  chance clamp(10, 90, avgattr(Str) + avgattr(End) / 2 + 10)
+  ok     text 1; attr party, End, -(2 + random(3)); reputation 1, 3; hours 2; exit
+  fail   text 2; attr party, End, -(3 + random(3)); reputation 0, 1; hours 3; exit
+option 1                                   # rush in after the old man
+  who    bestattrsum(Agl, End)
+  chance clamp(5, 80, attr(who, Agl) + attr(who, End) / 2 - 15)
+  ok     chosen who; text 3; attr who, End, -4; fame 1; reputation 1, 3; hours 1; exit
+  fail   chosen who; text 4; injure who, 1, 2, 10; attr who, End, -4; hours 1; exit
+option 2 saint                             # call on a saint against the fire
+  ok     text 5; attr party, DF, 1; reputation 1, 2; hours 1; exit
+  fail   text 6
+option 3                                   # stand back
+  chance none
+  ok     text 7; exit

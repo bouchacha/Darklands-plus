@@ -1,0 +1,34 @@
+# The tithe cart: an abbey's tithe cart with a split axle, and nervous monks.
+name     The tithe cart
+card     $NwTit00
+picture  PATH
+where    wild
+terrain  road farmland plains woods
+when     day
+weight   1
+
+[start]
+block    0
+chosen   bestskill(Artifice)
+option 0                                   # mend the axle
+  who    bestskill(Artifice)
+  chance clamp(10, 90, skill(who, Artifice) + attr(who, Str) / 3 + attr(who, Int) / 4 - 10)
+  ok     chosen who; text 1; hours 2; practice who, Artifice, 1, 10, 0; attr party, DF, 2; exit
+  fail   chosen who; text 2; hours 2; practice who, Artifice, 0, 10, 0; disable 0
+option 1                                   # guard the cart to the abbey
+  chance unknown
+  ok     hours 4; if roll(60) goto bandits
+         text 3; until 5; attr party, DF, 2; attr party, End, 2 + random(3); exit
+option 2                                   # rob the cart
+  chance none
+  ok     money1 random(96) + 48; text 4; gain money1; attr party, DF, -12; skill party, Virtue, -1; reputation -2, -4; exit
+option 3                                   # wish them luck and go on
+  chance none
+  ok     text 5; exit
+
+[bandits]
+picture  XBANDITS
+do       text 6; battle Wilds, Bandit, lore / 4 + 1, clamp(size, 7, random(4) + lore / 3 + 1), BanditSergeant, lore % 3 + 1, 1
+         if result == Won then { money1 random(60) + 60; text 7; gain money1; hours 2; attr party, DF, 3; fame 1; reputation 1, 2; exit }
+         if result == Fled then { rejoin; text 8; hours 1; exit }
+         loseitems party; text 9; hours 2; exit

@@ -1,0 +1,42 @@
+# The poacher's snare: one of you steps into a snare, and its owner comes to see what he has caught.
+name     The poacher's snare
+card     $NwSnr00
+picture  XGROVE1
+where    wild
+terrain  woods forest pinewood
+when     day
+weight   1
+
+[start]
+block    0
+chosen   worstskill(Woodwise)
+option 0                                   # free the snared one carefully
+  who    bestattrskill(Agl, Woodwise)
+  chance clamp(10, 95, skill(who, Woodwise) + attr(who, Agl) / 2 + 10)
+  ok     chosen2 who; text 1; practice who, Woodwise, 1, 10, 0; goto poacher
+  fail   chosen2 who; text 2; injure chosen, 1, 1, 5; practice who, Woodwise, 0, 10, 0; goto poacher
+option 1                                   # leave them hanging as bait
+  chance none
+  ok     text 3; hours 1; attr chosen, End, -2; goto poacher
+
+[poacher]
+picture  XUGLYMAN
+do       money1 size * 6
+block    4
+option 0                                   # buy his hares
+  need   money >= money1
+  chance none
+  ok     pay money1; text 5; hours 1; attr party, End, 2 + random(3); exit
+option 1                                   # learn his snares
+  who    bestskill(Woodwise)
+  chance clamp(10, 90, skill(who, Woodwise) + attr(who, Int) / 3)
+  ok     chosen who; text 6; hours 2; skill who, Woodwise, 1; exit
+  fail   chosen who; text 7; hours 2; practice who, Woodwise, 0, 10, 0; exit
+option 2                                   # seize him for the lord's foresters
+  who    party
+  chance clamp(10, 90, avgagility + avgskill(Woodwise) / 2 - 10)
+  ok     money1 60; text 8; gain money1; hours 3; reputation 1, 2; exit
+  fail   text 9; hours 1; practice party, Woodwise, 0, 10, 0; exit
+option 3                                   # let him go
+  chance none
+  ok     text 10; exit

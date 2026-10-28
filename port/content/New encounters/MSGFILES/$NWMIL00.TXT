@@ -1,0 +1,24 @@
+# $NWMIL00: the broken mill-dam (New encounters)
+=== card 0: 10 10 0 240 0 ===
+After days of rain the stream beside the road runs brown and roaring. Ahead, at a mill, men are shouting: the mill-dam is giving way, water spurting between its planks, while the miller and his boy heave sacks of earth against it. "Help us, for the love of God! If it goes, it takes the mill and every house below!"
+\14You...
+\14\15...\1dput your shoulders to the dam.
+\15...\1dbrace it with timbers.
+\15...\1dsend your swiftest for help from the village.
+\15...\1dleave them to it.
+=== card 1: 10 10 0 240 0 ===
+Up to your waists in the icy water, you heave sacks and stones into the breach until your backs crack. At last the spurting slows, and stops. The miller embraces each of you, wet as you are.
+\14"Whatever this mill can give you, for as long as I live!" Word of it will reach $NearestCity.
+=== card 2: 10 10 0 240 0 ===
+With a groan the planks give way, and the flood takes $ChosenOneName off $his feet. You fish $him out of the millrace far below, battered and half drowned, and some of what $he carried has gone downstream with the mill-wheel.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName looks at the dam, then at the miller's woodpile, and sets you all to work: two long beams wedged against the planks, a third across them, all driven home with the miller's mallet. The dam groans, and holds.
+\14"A master's work," says the miller, and he will say so in every tavern in $NearestCity.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName wedges beams against the planks, but the mud gives way beneath them and the dam bursts with a roar. You scramble clear, soaked and bruised. The miller sits down in the mud and weeps.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName makes for the village as fast as $he can go and sets the church bell ringing. Half the parish comes running with spades and carts, and by evening the dam is whole. The villagers will not forget who raised the alarm.
+=== card 6: 10 10 0 240 0 ===
+By the time help comes, the dam has burst and the mill-wheel is gone downstream. You spend the rest of the day helping the miller dig his house out of the mud.
+=== card 7: 10 10 0 240 0 ===
+You leave the miller to his dam and go on your way. Behind you there is a long roar, and then silence.

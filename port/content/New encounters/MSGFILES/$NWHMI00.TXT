@@ -1,0 +1,24 @@
+# $NWHMI00: the haunted mill (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Below the road, beside a dark stream, stands a mill. Its wheel is turning and the stones are grinding, though no light shows in the miller's house. Through the open door you see flour pouring from the spout onto the floor, with no one there to catch it.
+\14A peasant hurrying by crosses himself. "Old Kunz, who gave short measure all his life. He drowned in his own mill-race at Martinmas, and still he grinds." You...
+\14\15...\1dcast the restless spirit out in God's name.
+\15...\1dkeep watch in the mill to learn what it wants.
+\15...\1dhurry on past.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName stands in the doorway with a crucifix raised and commands the spirit, in the name of the Father, the Son and the Holy Ghost, to go to its judgement. The grinding falters. A long sigh passes through the mill, the wheel creaks to a stop, and the night is silent. The village will hear of it in the morning.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName begins the words of the rite, and the flour on the floor rises in a choking white cloud. Something cold flings $him against the millstones. When $he can stand again, the wheel is turning faster than ever.
+=== card 3: 10 10 0 240 0 ===
+You settle among the sacks to wait. Toward midnight the grinding stops, and a grey, dripping figure stands by the hopper: Kunz, a false measure in his hands. Weeping, he points at a loose board beneath the stones, and fades away.
+\14Under the board lies a clay pot full of coins: every pfennig he cheated from his neighbours.
+=== card 4: 10 10 0 240 0 ===
+You hurry on into the night, and the sound of the wheel fades behind you.
+=== card 5: 10 10 0 240 0 ===
+The pot of the dead miller's coins sits at your feet. You...
+\14\15...\1dkeep the coins.
+\15...\1dbring them to the parish priest in the morning, for the poor.
+=== card 6: 10 10 0 240 0 ===
+You pocket the miller's ill-gotten silver, $Money1. As you leave at dawn, the wheel begins to turn again behind you, and the grinding sounds very much like weeping.
+=== card 7: 10 10 0 240 0 ===
+In the morning you carry the pot to the village priest, who rings the bell and shares the coins among the families Kunz cheated. The mill wheel stands still. Whatever kept Kunz at his stones has let him go.

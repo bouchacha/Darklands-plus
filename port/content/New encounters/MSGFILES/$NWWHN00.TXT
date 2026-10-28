@@ -1,0 +1,25 @@
+# $NWWHN00: the Wild Hunt (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Out of nowhere the wind rises, tearing at the trees. High overhead horns blow, hounds bay and hooves drum on the clouds, coming closer: the Wild Hunt! Old folk say the dead ride with it, and that whoever answers the Huntsman's call gets a share of his quarry, or rides with him forever. You...
+\14\15...\1dthrow yourselves into the undergrowth and hide.
+\16...\1dstand fast and pray to a saint.
+\15...\1dleave your bread and oats on the road for his horses, as old folk do.
+\06...\1danswer the Huntsman's call.
+=== card 1: 10 10 0 240 0 ===
+You lie flat among the brambles as the storm of hooves and baying passes overhead, so close you feel the wind of it. Then it is gone, and only the ordinary night is left.
+=== card 2: 10 10 0 240 0 ===
+The hounds find you. A pack of shadows pours over $ChosenOneName, snapping and tearing, and is gone again. $He lies shaking until dawn, and will not speak of what $he saw in their eyes.
+=== card 3: 10 10 0 240 0 ===
+As the prayer rises, the baying turns aside. The Hunt sweeps past in a long arc of thunder and horns, well away from you, and dies away over the hills.
+=== card 4: 10 10 0 240 0 ===
+Your prayer is lost in the howling of the wind. The horns come closer.
+=== card 5: 10 10 0 240 0 ===
+You lay your bread and the horses' oats on the road and step back. The Hunt thunders down around you in a storm of wind, and when it has passed, the road is bare. It leaves you be. You go to sleep hungry, uneasy at having fed something that is surely no friend of God.
+=== card 6: 10 10 0 240 0 ===
+"Halloo!" you cry into the storm. The horns stop. Out of the wind ride the Huntsman's men, pale and terrible, spears levelled. "You called," says one. "Now take your share!"
+=== card 7: 10 10 0 240 0 ===
+The last of the Hunt's riders breaks into tatters of mist, and the storm blows itself out. Where one of the Huntsman's hounds fell, a black pelt lies on the grass. By daylight it looks like any wolf's pelt, but no one would wish to wear it at night.
+=== card 8: 10 10 0 240 0 ===
+You flee before the Hunt and scatter through the dark, and the horns follow each of you alone. At dawn you find one another again, white-faced.
+=== card 9: 10 10 0 240 0 ===
+The Hunt rides you down and passes on. You wake at dawn scattered across the hillside, cold to the bone, with the feeling that some part of you rode on with it.

@@ -1,0 +1,24 @@
+# The sleepwalker: a companion rises in the night and walks toward the bog.
+name     The sleepwalker
+card     $NcSlp00
+picture  XMS057
+where    camp
+when     any
+weight   1
+only     size >= 2
+
+[start]
+block    0
+chosen   worstattr(Per)                        # the sleepwalker
+option 0                                   # shake them awake
+  chance unknown
+  ok     if roll(60) then { text 1; attr chosen, End, -3; exit }
+         text 2; attr chosen, End, -3; attr chosen, DF, -2; exit
+option 1                                   # follow quietly (Woodwise, Perception)
+  who    spotter
+  chance clamp(10, 85, maxskill(Woodwise) + maxattr(Per) / 2)
+  ok     money1 random(48) + 24; text 3; gain money1; attr party, DF, 2; hours 2; practice party, Woodwise, 1, 10, 0; exit
+  fail   text 4; attr chosen, End, -5; keepitems chosen, clamp(1, 95, attr(chosen, Agl) + 50); hours 2; practice party, Woodwise, 0, 10, 0; exit
+option 2                                   # tie them to the tent pole
+  chance assured
+  ok     text 5; attr chosen, End, -(2 + random(2)); exit

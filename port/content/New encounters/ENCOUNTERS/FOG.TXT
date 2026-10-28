@@ -1,0 +1,43 @@
+# Fog on the river: a shape in the white, and the dip of muffled oars.
+name     Fog on the river
+card     $NbFog00
+picture  XMS056
+where    boat
+when     any
+weight   1
+vars     pirates
+
+[start]
+do       set pirates = roll(50)
+block    0
+chosen   bestattr(Per)
+option 0                                   # keep silent watch (Perception)
+  who    bestattr(Per)
+  chance clamp(10, 90, attr(who, Per) + 25)
+  ok     chosen who; if pirates goto slip
+         money1 random(48) + 24; text 2; gain money1; hours 1; exit
+  fail   if pirates goto ambush
+         text 4; hours 2; attr party, End, -2; exit
+option 1                                   # take the steering oar (Artifice)
+  who    bestskill(Artifice)
+  chance clamp(5, 90, skill(who, Artifice) + attr(who, Per) / 3)
+  ok     chosen who; text 5; practice who, Artifice, 1, 10, 0; hours 1; exit
+  fail   chosen who; text 6; practice who, Artifice, 0, 10, 0; hours 3; attr party, End, -3
+         if pirates goto ambush
+         exit
+option 2                                   # hail it
+  chance unknown
+  ok     if pirates then { text 7; goto fight }
+         money1 min(money, 18); text 8; pay money1; attr party, End, 3; hours 1; exit
+
+[slip]
+do       text 1; hours 2; practice party, Stealth, 1, 10, 0; exit
+
+[ambush]
+do       text 3; goto fight
+
+[fight]
+do       battle 0x55, 0x0a, lore / 4 + 1, random(4) + 3, BanditSergeant, lore % 3 + 1, 1
+         if result == Won then { money1 random(96) + 36; text 9; gain money1; fame 1; hours 1; exit }
+         if result == Fled then { rejoin; text 10; hours 1; exit }
+         text 11; hours 1; loseitems party; exit

@@ -1,0 +1,18 @@
+# $NCOWL00: the owl's cry (New encounters)
+=== card 0: 10 10 0 240 0 ===
+In the grey hour before dawn an owl lands on the ridge-pole of your tent and screeches, three times, so close that you all start awake. It stares down at you with round yellow eyes and will not go.
+\14$ChosenOneName has gone white. "The death-bird," $he whispers. "It comes to call one of us. It sat on my grandfather's roof the night before he died." $He will not touch $his breakfast.
+\14You...
+\14\15...\1dcomfort your companion with a prayer and good sense.
+\15...\1dshoot the bird off the tent.
+\15...\1dbreak camp at once and get away from it.
+=== card 1: 10 10 0 240 0 ===
+"An owl is God's creature like the rest of us," says $ChosenTwoName, "and it hunts mice, not Christians." Then the two of them kneel and pray to St. Michael, guardian of souls, until the sky pales. The owl blinks, loses interest and flaps away, and $ChosenOneName laughs shakily and asks for bread.
+=== card 2: 10 10 0 240 0 ===
+"An owl is God's creature like the rest of us," says $ChosenTwoName, but it comes out less sure than it was meant. The owl screeches again, as if in answer. $ChosenOneName shudders and says nothing, and all day $he walks like someone on the way to the gallows.
+=== card 3: 10 10 0 240 0 ===
+$ChosenTwoName's shot knocks the owl off the ridge-pole in a burst of feathers. "There. If it came for one of us, it goes home without." $ChosenOneName stares at the dead bird, then lies down again and sleeps a full hour, deep and quiet, while you break camp around $him.
+=== card 4: 10 10 0 240 0 ===
+$ChosenTwoName's shot goes wide. The owl spreads its wings and sails off slowly, low over $ChosenOneName's head: the worst omen of all. $ChosenOneName sits shaking by the dead fire, and nothing you say can make $him eat.
+=== card 5: 10 10 0 240 0 ===
+You pull up the tent pegs in the half-dark and get away down the road with the owl's eyes on your backs. It is a cold, stumbling start to the day, but by sunrise $ChosenOneName is breathing easier.

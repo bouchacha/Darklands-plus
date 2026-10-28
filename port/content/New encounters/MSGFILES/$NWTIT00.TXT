@@ -1,0 +1,26 @@
+# $NWTIT00: the tithe cart (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A heavy cart stands askew in the road, one wheel off and the axle split, piled high with sacks of grain, cheeses and a small iron-bound chest. Three monks in white habits hover about it, glancing at the woods.
+\14"The tithe of six villages, for our abbey," says the eldest. "And robbers have been seen on this road. Will you help us, in God's name?" You...
+\14\15...\1dmend the broken axle.
+\15...\1dguard the cart to the abbey.
+\15...\1dhelp yourselves to the tithe.
+\15...\1dwish the brothers luck and go on.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName cuts a stout ash pole, shapes it with $his knife and binds it in place of the split axle with rope and wedges. It is no wheelwright's work, but it will hold to the abbey. The brothers bless you and promise to remember you in their prayers.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName works for two hours, but the new axle splits under the load just like the old one. The monks thank $him kindly all the same, and glance at the woods again.
+=== card 3: 10 10 0 240 0 ===
+With a pole lashed under the axle, the cart creaks along at a snail's pace. No robber shows himself, and by nightfall you reach the abbey, where the brothers give you supper, beds and their blessing.
+=== card 4: 10 10 0 240 0 ===
+The monks wring their hands and pray aloud as you break open the chest and take the silver: $Money1. You leave them the cheeses. Robbing God's own house will be talked of all over $NearestCity, and the saints will not soon forget it.
+=== card 5: 10 10 0 240 0 ===
+You go on. Glancing back, you see the brothers kneeling in the road beside their cart, praying for a wheelwright.
+=== card 6: 10 10 0 240 0 ===
+Halfway to the abbey, men burst out of the bushes with clubs and swords. "Leave the cart, brothers, and your guards may live!"
+=== card 7: 10 10 0 240 0 ===
+The robbers scatter into the woods. At the abbey the abbot himself thanks you, gives you $Money1 from the tithe for your trouble, and promises masses for your souls. The tale will be told in $NearestCity.
+=== card 8: 10 10 0 240 0 ===
+You flee into the woods. When you creep back, the cart has been stripped and the monks are sitting in the road, weeping.
+=== card 9: 10 10 0 240 0 ===
+The robbers beat you senseless and take everything, from the cart and from you. The monks bind your wounds and pray over you, which is all they have left to give.

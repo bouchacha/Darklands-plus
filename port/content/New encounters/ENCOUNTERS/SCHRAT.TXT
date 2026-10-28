@@ -1,0 +1,34 @@
+# The woodcutters' oak: woodcutters fear to fell an old oak that a Schrat lives in.
+name     The woodcutters' oak
+card     $NwSch00
+picture  XSHRAT1
+where    wild
+terrain  forest woods pinewood
+when     day
+weight   1
+
+[start]
+block    0
+chosen   bestskill(Woodwise)
+option 0                                   # leave an offering and ask the Schrat's leave
+  who    bestskill(Woodwise)
+  chance clamp(5, 90, skill(who, Woodwise) + attr(who, Per) / 3 + attr(who, Cha) / 4 - 10)
+  ok     chosen who; money1 size * 12; text 1; gain money1; practice who, Woodwise, 1, 10, 0; hours 2; exit
+  fail   chosen who; text 2; practice who, Woodwise, 0, 10, 0; until 5; attr party, End, -3; exit
+option 1                                   # fell the oak yourselves
+  chance combat
+  ok     text 3; goto fight
+option 2                                   # talk the woodcutters out of it
+  who    bestattr(Cha)
+  chance clamp(5, 90, (4 * attr(who, Cha) + skill(who, SpeakCommon)) / 5 + skill(who, Woodwise) / 4)
+  ok     chosen who; text 4; practice who, SpeakCommon, 1, 10, 0; hours 1; attr party, End, 2 + random(2); exit
+  fail   chosen who; text 5; practice who, SpeakCommon, 0, 10, 0; goto fight
+option 3                                   # leave them to it
+  chance none
+  ok     text 9; exit
+
+[fight]
+do       battle Wilds, Schrat, lore / 4 + 1, 1 + lore / 6
+         if result == Won then { money1 random(48) + 48; text 6; gain money1; hours 2; fame 1; exit }
+         if result == Fled then { rejoin; text 7; hours 1; exit }
+         text 8; hours 3; attr party, End, -3; exit

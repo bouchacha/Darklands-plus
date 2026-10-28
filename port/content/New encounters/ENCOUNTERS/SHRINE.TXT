@@ -1,0 +1,32 @@
+# The wayside shrine: a crumbling shrine to a saint whose name has worn away.
+name     The wayside shrine
+card     $NwShr00
+picture  XGRV1
+where    wild
+terrain  road farmland plains woods forest hills
+when     day
+weight   1
+
+[start]
+do       money1 size * 6
+block    0
+chosen   bestskill(Artifice)
+saints   0x16, 0x39, 0x6f, 0x47          # Christopher, Gertrude of Nivelles, Raphael, Isidore
+option 0                                   # repair the shrine
+  who    bestskill(Artifice)
+  chance clamp(10, 90, skill(who, Artifice) + attr(who, Str) / 2 - 5)
+  ok     chosen who; text 1; hours 3; attr party, DF, 3; practice who, Artifice, 1, 10, 0; exit
+  fail   chosen who; text 2; hours 3; injure who, 1, 1, 5; attr party, DF, 1; practice who, Artifice, 0, 10, 0; exit
+option 1                                   # leave an offering
+  need   money >= money1
+  chance none
+  ok     text 3; pay money1; attr party, DF, 2; exit
+option 2 saint
+  ok     text 4; attr party, DF, 2; exit
+  fail   text 5
+option 3                                   # take the old coins
+  chance none
+  ok     money1 random(24) + 6; text 6; gain money1; attr party, DF, -4; exit
+option 4                                   # go on
+  chance none
+  ok     text 7; exit

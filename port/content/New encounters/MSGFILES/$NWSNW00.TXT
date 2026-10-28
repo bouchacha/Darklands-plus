@@ -1,0 +1,20 @@
+# $NWSNW00: snowbound (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Snow has been falling since dawn, and now the way over the pass is buried. Drifts stand chest-high between the rocks, and the wind flings ice in your faces. A little way below, half buried, you glimpse the roof of a herdsman's hut.
+\14You...
+\14\15...\1ddig your way through the drifts.
+\15...\1dshelter in the hut until the storm blows out.
+\16...\1dpray to a saint for a way through.
+\15...\1dturn back and go round by the valleys.
+=== card 1: 10 10 0 240 0 ===
+Taking turns at the front, you hack and shovel a trench through the drifts with shields, swords and bare hands. It takes the rest of the day and every ounce of strength you have, but at last you stagger down the far side of the pass.
+=== card 2: 10 10 0 240 0 ===
+You dig until your hands are numb, but the wind fills the trench behind you as fast as you dig it. At last, frozen and spent, you give up and struggle down to the hut.
+=== card 3: 10 10 0 240 0 ===
+The hut is empty but for a heap of hay and a stack of firewood. You bar the door, light a fire and wait while the storm howls over the roof. When at last it blows itself out, the pass lies white and still under a blue sky, and you cross it rested and warm.
+=== card 4: 10 10 0 240 0 ===
+As $ChosenOneName prays to $NamedOneName, the wind drops all at once. The clouds tear apart, and a shaft of sun lights a ridge where the snow lies thin. You are over it before the storm closes in again behind you.
+=== card 5: 10 10 0 240 0 ===
+The wind howls on, and the snow keeps falling.
+=== card 6: 10 10 0 240 0 ===
+You turn your backs on the pass and go round by the valleys: a long, cold, roundabout way, but at least it is downhill to begin with.

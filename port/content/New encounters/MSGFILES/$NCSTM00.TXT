@@ -1,0 +1,17 @@
+# $NCSTM00: the storm (New encounters)
+=== card 0: 10 10 0 240 0 ===
+In the last hour before dawn the wind rises to a roar in the treetops, and lightning splits the sky from end to end. Rain comes down like flung gravel. The fire dies in a hiss of steam, the tents strain at their pegs, and the horses scream at every crack of thunder. In one long flash you could swear there are eyes in the rain, watching.
+\14You...
+\14\15...\1drun for the rocks you passed at dusk.
+\15...\1dhold the tents down against the wind.
+\15...\1dwrap yourselves in your cloaks and sit it out.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName leads you through the streaming dark straight to the overhang you passed at dusk. You crouch under the rock, dry and almost warm, and watch the lightning walk across the hills until the storm has blown itself out.
+=== card 2: 10 10 0 240 0 ===
+You stumble off into the dark looking for the rocks, and never find them. For hours you wander the streaming hillside, soaked to the skin and dazzled by lightning, until the storm passes and you find your way back to the wreck of your camp.
+=== card 3: 10 10 0 240 0 ===
+You throw yourselves on the tent ropes and hang on. The wind howls and tugs at you until your arms ache, but the pegs hold, and when the storm moves off the tents are still standing and your gear is dry.
+=== card 4: 10 10 0 240 0 ===
+A gust tears a tent out of your hands, and the pole whips round and catches $ChosenOneName across the head. The tent goes cartwheeling away into the dark. You find it at dawn in a thorn bush, and spend the morning mending it.
+=== card 5: 10 10 0 240 0 ===
+You huddle together under your cloaks while the storm rages. Water runs down your necks and fills your boots. It is midmorning before the clouds break, and you set out wet, stiff and shivering.

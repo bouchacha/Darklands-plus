@@ -1,0 +1,29 @@
+# $NWSCH00: the woodcutters' oak (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Woodcutters stand about a mighty old oak with their axes on their shoulders, and not one of them will swing.
+\14"The steward wants it for the beams of the lord's new hall," says their foreman, "but a Schrat lives in that tree. Old Utz cut a branch from it once and never slept a whole night again."
+\14Grey moss hangs from the oak like a beard. You...
+\14\15...\1dleave an offering at its roots and ask the Schrat's leave.
+\06...\1dtake up the axes and fell the oak yourselves.
+\15...\1dtalk the woodcutters out of felling it.
+\15...\1dleave the woodcutters to it.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName sets bread and a pinch of salt among the roots and asks, courteously, for leave. The moss stirs without a wind. A grey, knotted face looks out of the bark, then turns toward a lightning-struck beech nearby.
+\14The steward gets his beams from the beech, and the relieved woodcutters share their pay with you: $Money1.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName lays out bread and asks for leave, but the oak gives no sign. You camp with the woodcutters, and in the night something heavy, smelling of wet moss, squats on each of your chests in turn. You wake at dawn as weary as when you lay down.
+=== card 3: 10 10 0 240 0 ===
+At the third stroke the oak groans like a living thing. The bark splits, and out of it unfolds a hairy, moss-bearded giant, roaring: the Schrat!
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName points out that an oak so old is surely rotten at the heart, and no steward wants hollow beams. The woodcutters, glad of any excuse, agree at once: they will choose a young, sound tree instead.
+\14They share their bread and beer with you before you go.
+=== card 5: 10 10 0 240 0 ===
+"Talk won't fill the steward's purse," growls the foreman, and swings. At the third stroke the bark splits, and out of the oak unfolds a hairy, moss-bearded giant, roaring: the Schrat!
+=== card 6: 10 10 0 240 0 ===
+The Schrat crashes down among its own roots and is still. By evening the old oak lies felled, and the woodcutters share the steward's pay with you: $Money1. They will tell this tale in every alehouse in the valley.
+=== card 7: 10 10 0 240 0 ===
+You run from the raging Schrat and do not stop until the forest is quiet again. The woodcutters have scattered too.
+=== card 8: 10 10 0 240 0 ===
+The Schrat flings you into the brambles one after another, then stalks back into its oak. The woodcutters shoulder their axes and go home. The steward can find his own beams.
+=== card 9: 10 10 0 240 0 ===
+You leave the woodcutters arguing beneath the oak and go on your way.

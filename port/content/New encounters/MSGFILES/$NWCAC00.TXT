@@ -1,0 +1,30 @@
+# $NWCAC00: the robbers' cache (New encounters)
+=== card 0: 10 10 0 240 0 ===
+$ChosenOneName stops beside a mossy boulder at the edge of the path. Someone has cut a sign into it, a cross with a hook, such as robbers use, and the moss below has been scraped away and pressed back. Robbers bury their plunder in such places, and come back for it.
+\14You...
+\14\15...\1dsearch for the hollow and dig it up.
+\15...\1dhide nearby and wait for the robbers to come for it.
+\15...\1dmark the place and tell the bailiff in $NearestCity.
+\15...\1dleave well alone.
+=== card 1: 10 10 0 240 0 ===
+Feeling around the boulder, $ChosenOneName finds where the earth is loose. A foot down lies a leather sack, heavy with coins: $Money1.
+=== card 2: 10 10 0 240 0 ===
+You dig around the boulder for two hours and find nothing but roots and stones. Whatever is hidden here, if anything is, eludes you.
+=== card 3: 10 10 0 240 0 ===
+You are still shaking the earth off the sack when a shout goes up from the trees. The robbers have come back for their savings, and you are standing in their hole.
+=== card 4: 10 10 0 240 0 ===
+You hide in the undergrowth downwind and wait. Toward dusk a band of men comes down the path, laughing, with spades on their shoulders. They never see you until you fall upon them.
+=== card 5: 10 10 0 240 0 ===
+You hide in the undergrowth and wait. Toward dusk the robbers come, but one of them spots a careless boot among the ferns. "We've company, lads!"
+=== card 6: 10 10 0 240 0 ===
+You cut a sign of your own on a tree nearby and go to $NearestCity. The bailiff's men dig up the cache, a sack of stolen coins, and the bailiff pays you a finder's share of $Money1. The merchants who lost those purses will hear of your honesty.
+=== card 7: 10 10 0 240 0 ===
+You leave the robbers' stone as you found it. Whatever lies under it is none of your business.
+=== card 8: 10 10 0 240 0 ===
+The surviving robbers flee into the forest, leaving their packs behind. In them you find another $Money1. The road will be safer for a while.
+=== card 9: 10 10 0 240 0 ===
+You flee into the forest, and gather again when the robbers' shouting has died away.
+=== card 10: 10 10 0 240 0 ===
+The robbers beat you senseless and take everything you carry. "Thieves," says their leader with feeling, "are the lowest sort."
+=== card 11: 10 10 0 240 0 ===
+The surviving robbers flee into the forest. In their packs, and in the hollow under the stone where they meant to dig, you find $Money1 in all. The road will be safer for a while.

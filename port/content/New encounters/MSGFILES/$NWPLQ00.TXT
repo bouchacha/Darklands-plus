@@ -1,0 +1,23 @@
+# $NWPLQ00: the village behind the cross (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Where the road enters a village, a rough wooden cross stands across the way, with a bowl of vinegar at its foot for coins. Beyond it every door is daubed with a cross in tar. The plague is here.
+\14A girl calls to you from behind the cross, keeping her distance. "Our priest died first, and the bath-keeper ran away. In God's name, help us!" You...
+\14\15...\1dgo in and tend the sick.
+\16...\1dpray to a saint for the village.
+\15...\1dleave $Money1 in the vinegar bowl for bread.
+\15...\1dgo around the village across the fields.
+=== card 1: 10 10 0 240 0 ===
+For two days $ChosenOneName lances swellings, burns the bedding of the dead and makes the living drink, while the rest of you fetch water and dig graves. Fewer die than the villagers feared, and on the second evening a child they had given up sits up and asks for soup.
+\14The villagers kneel to you in the street.
+=== card 2: 10 10 0 240 0 ===
+For two days $ChosenOneName does what $he can, but the sick die all the same, and on the second night the fever takes $him too. It breaks at last, but it leaves $him as weak as a kitten.
+=== card 3: 10 10 0 240 0 ===
+On the road out of the village, $ChosenOneName begins to shiver. The fever is a mild one, God be thanked, but it leaves $him pale and weak.
+=== card 4: 10 10 0 240 0 ===
+As the prayer rises, a soft rain begins to fall, washing the tar crosses from the doors. Before you go, the girl runs to tell you that in three houses the fever has broken. Word of it will reach $NearestCity.
+=== card 5: 10 10 0 240 0 ===
+You pray, but the church bell goes on tolling for the dead.
+=== card 6: 10 10 0 240 0 ===
+You drop the coins into the vinegar. "God reward you!" the girl calls. "We can buy bread from the next village now." Charity given in such a place is surely seen in heaven.
+=== card 7: 10 10 0 240 0 ===
+You give the village a wide berth, trudging through wet fields and over hedges until you strike the road again far beyond it. Half a day is lost, but no fever follows you.

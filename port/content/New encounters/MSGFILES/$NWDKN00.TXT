@@ -1,0 +1,21 @@
+# $NWDKN00: a dead knight in the brambles (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Something glints among the brambles beside the way: a knight in full harness, lying on his back where he fell, a broken lance beside him. He has been dead a week or more. His shield is hacked and scored, the arms on it half scraped away, and of his horse there is no sign but old hoofprints, dried hard in the mud.
+\14You...
+\14\15...\1dgive him a Christian burial.
+\15...\1dtake his sword and his purse.
+\15...\1dsearch him for some sign of who he was, and take word to his kin.
+\15...\1dleave him to the brambles.
+=== card 1: 10 10 0 240 0 ===
+It is hard work to dig a grave among the roots, and harder still to lay an armoured man in it. You leave him his harness, fold his hands on his breast and say the prayers for the dead over him.
+\14Whoever he was, he will not lie out for the crows.
+=== card 2: 10 10 0 240 0 ===
+You work the sword out of his stiff fingers and cut the purse from his belt: $Money1. The $ItemName is notched, but sound.
+\14The dead man's face is turned up to the sky. None of you cares to look at it.
+=== card 3: 10 10 0 240 0 ===
+In a pouch at his belt $ChosenOneName finds a letter, stained but legible, to Ritter Anshelm from his wife, begging him to come home safe to $NearestCity.
+\14You bury him beneath a cairn and carry the letter and his ring to $NearestCity, where his family hear the news with tears, and with gratitude to you.
+=== card 4: 10 10 0 240 0 ===
+The letter in his pouch has been rained on until the ink ran, and the badge on his ring is worn smooth. $ChosenOneName can make nothing of either.
+=== card 5: 10 10 0 240 0 ===
+You leave the dead knight to the brambles and the crows, and go on your way.

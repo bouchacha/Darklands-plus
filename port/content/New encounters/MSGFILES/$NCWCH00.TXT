@@ -1,0 +1,18 @@
+# $NCWCH00: the forest child (New encounters)
+=== card 0: 10 10 0 240 0 ===
+At first light you find your food sack slit open and half the bread gone. A small, thin figure crouches at the edge of the clearing, gnawing at a heel of it: a child of nine or ten, barefoot, in rags and a cloak of rabbit pelts, its hair matted with leaves. When it sees you looking, it bares its teeth like a fox. But it does not run.
+\14You...
+\14\15...\1dcoax it closer with food and kind words.
+\15...\1dlet it run, and follow it into the forest.
+\15...\1dchase it off with shouts and a thrown stick.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName sits down a little way off and holds out bread and cheese, talking softly, as to a strayed foal. Slowly the child creeps closer, snatches, eats, and creeps closer again. It is a girl. She has a name, Els, and a dead mother somewhere in the forest, and very little else.
+\14You take her to the priest of the nearest village, who promises to find her a home.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName holds out bread and edges closer, a little too quickly. The child snatches the bread out of $his hand and scrambles back to the edge of the trees, where it crouches again, watching you and chewing.
+=== card 3: 10 10 0 240 0 ===
+You let the child run and follow at a distance, through brambles and over a stream, to a hollow under the roots of a fallen oak. The child is gone, but the hollow is a magpie's nest of things stolen from travellers' camps: rags, bones, a good lantern and a scatter of coins. You take the $ItemName and the coins, $Money1, and leave the bread.
+=== card 4: 10 10 0 240 0 ===
+You follow the child into the forest, but it slips through the undergrowth like a fox, and within the hour you have lost it and the path as well. It is midday before you find your way back to your camp, scratched and weary.
+=== card 5: 10 10 0 240 0 ===
+You shout and wave, and $ChosenOneName flings a stick. The child flees into the trees with a thin cry that sounds very much like a child's after all. The bread is gone, and somehow your hearts are heavier than your packs.

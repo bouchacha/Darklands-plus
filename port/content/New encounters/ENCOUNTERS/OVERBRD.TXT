@@ -1,0 +1,27 @@
+# Man overboard: the steersman's boy falls into the river.
+name     Man overboard
+card     $NbOvb00
+picture  XSTMTIDE
+where    boat
+when     any
+weight   1
+
+[start]
+block    0
+saints   0x63, 0x16, 0x51, -1            # Nicholas, Christopher, Julian the Hospitaller
+option 0                                   # dive in after him (Strength, Endurance)
+  who    bestattrsum(Str, End)
+  chance clamp(10, 90, attr(who, End) + attr(who, Str) / 2)
+  ok     chosen who; text 1; attr who, End, -4; attr party, DF, 3; fame 1; exit
+  fail   chosen who; text 2; attr who, End, -6; keepitems who, clamp(1, 95, attr(who, Agl) + 50); exit
+option 1                                   # throw him a rope (Agility, Thrown)
+  who    bestattr(Agl)
+  chance clamp(10, 90, attr(who, Agl) + skill(who, Thrown) / 2)
+  ok     chosen who; itemname 0x3b; text 3; practice who, Thrown, 1, 10, 0; attr party, DF, 2; additem who, 0x3b; exit
+  fail   chosen who; text 4; practice who, Thrown, 0, 10, 0; disable 1
+option 2 saint
+  ok     text 5; reputation 1, 2; exit
+  fail   text 6
+option 3                                   # leave it to the boatmen
+  chance none
+  ok     text 7; exit

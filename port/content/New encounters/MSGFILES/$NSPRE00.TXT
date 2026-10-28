@@ -1,0 +1,42 @@
+# $NSPRE00: the street preacher (New encounters)
+=== card 0: 10 10 0 240 0 ===
+On the steps of the market cross a barefoot friar is preaching. "The Antichrist is born! The seventh seal is broken! Plague and the Turk are the scourges of God, and your fine cloth and dice and painted faces will burn with you!"
+\14Goodwives kneel weeping in the mud; journeymen who should be at their benches stand gaping. He fixes his burning eyes on you. "And you, strangers! What will you carry to the Judgement?" You...
+\14\15...\1ddispute his prophecy with him.
+\15...\1dgive $Money1 in alms.
+\15...\1dheckle him for the crowd.
+\15...\1dwalk on.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName answers him from Scripture, first in Latin and then in plain German: of that day and hour knoweth no man, not even the angels of heaven. Whoever claims to know it is a liar or a fool.
+\14The friar stammers and rages, but the goodwives are getting up off their knees, and the parish priest, watching from his door, gives you a nod. By evening half the town has heard of the learned strangers.
+=== card 2: 10 10 0 240 0 ===
+The friar hears $ChosenOneName out, then flings up his arms. "Hear how the Devil quotes Scripture! He comes in the garb of learning, to lull you to sleep while the fire is kindled!"
+\14The crowd's murmur turns to a growl.
+=== card 3: 10 10 0 240 0 ===
+The friar takes your coins without looking at them and drops them into a poor-box. "These, at least, will not burn!" he cries, and blesses you with a great sweep of his arm. Several goodwives hurry to follow your example.
+=== card 4: 10 10 0 240 0 ===
+"Shall we sell our shoes, then, Father, or will the Judgement wait till after Michaelmas?" calls $ChosenOneName. The crowd roars with laughter, and the spell is broken. The journeymen drift back to their benches, and their masters will be grateful.
+\14The friar stalks off, calling down fire on your heads. Mocking a man of God, however foolish, sits poorly on your souls.
+=== card 5: 10 10 0 240 0 ===
+"Shall we sell our shoes, then, Father?" calls $ChosenOneName. Nobody laughs. "Scoffers!" shrieks the friar. "Scoffers in the last days, as the Apostle foretold! There they stand!"
+\14The crowd turns.
+=== card 6: 10 10 0 240 0 ===
+You walk on. Behind you the friar's voice rises and falls, promising fire, until the clatter of the street drowns it out.
+=== card 7: 10 10 0 240 0 ===
+Clods and cabbage stalks start to fly, then a stone. Red faces press in around you, and above them the friar is shrieking for the scoffers to repent or be driven out. You...
+\14\15...\1dkneel and beg the friar's pardon.
+\15...\1dshove your way out of the crowd.
+\06...\1ddraw steel on them.
+=== card 8: 10 10 0 240 0 ===
+You kneel in the mud. The friar, mollified, makes you hear his whole sermon again on your knees: two hours of brimstone, the Beast and the Whore of Babylon. Then he blesses you, and the crowd loses interest.
+\14Your knees will never be the same, but humility is a virtue, and God is said to love it.
+=== card 9: 10 10 0 240 0 ===
+You shoulder through the crowd, taking a few clods and a great many curses, and leave the square at a fast walk. The tale of the scoffing strangers will go round the town without you.
+=== card 10: 10 10 0 240 0 ===
+The crowd closes around you. Fists, sticks and stones rain down before you break free and run, bruised and bleeding. The tale of the scoffing strangers will go round the town without you.
+=== card 11: 10 10 0 240 0 ===
+The townsfolk flee, leaving their hurt groaning on the cobbles. You have spilled Christian blood in the market place over a sermon. The town will not forget it, and your consciences will not either.
+=== card 12: 10 10 0 240 0 ===
+You break away and run, with stones whistling after you. By evening every alehouse in town knows of the strangers who drew steel on a friar's flock.
+=== card 13: 10 10 0 240 0 ===
+The mob beats you senseless. You come to in the cellar of the town hall and spend the night there on straw. In the morning the council fines you for breaking the peace, takes the fine from your purse, and turns you out.

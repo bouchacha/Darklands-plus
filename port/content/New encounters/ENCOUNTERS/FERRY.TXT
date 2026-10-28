@@ -1,0 +1,29 @@
+# The ferryman's rope: a rope ferry, and its guide-rope fraying in midstream.
+name     The ferryman's rope
+card     $NwFer00
+picture  XLANDHO
+where    wild
+terrain  plains farmland woods marsh road
+when     day
+weight   1
+
+[start]
+block    0
+saints   0x16, 0x51, 0x63, 0x6f          # Christopher, Julian the Hospitaller, Nicholas, Raphael
+option 0                                   # splice the rope (craft)
+  who    bestskill(Artifice)
+  chance clamp(10, 90, skill(who, Artifice) + attr(who, Str) / 3 - 5)
+  ok     chosen who; text 1; hours 1; practice who, Artifice, 1, 10, 0; reputation 1, 2; exit
+  fail   chosen who; text 2; hours 3; keepitems who, clamp(1, 95, attr(who, Agl) + 40); practice who, Artifice, 0, 10, 0; exit
+option 1                                   # swim the horses ashore (the poorest rider is tested)
+  need   mounted
+  who    worstskill(Riding)
+  chance clamp(10, 90, minskill(Riding) * 2 + 20)
+  ok     text 3; hours 2; practice party, Riding, 1, 10, 0; exit
+  fail   chosen who; text 4; hours 2; injure who, 1, 1, 10; attr who, End, -3; practice party, Riding, 0, 10, 0; exit
+option 2 saint
+  ok     text 5; hours 1; exit
+  fail   text 6
+option 3                                   # sit still and wait for help
+  chance none
+  ok     text 7; hours 4 + random(3); exit

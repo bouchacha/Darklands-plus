@@ -1,0 +1,26 @@
+# A dream at the fire: a saint, or a warning, in the night.
+name     A dream at the fire
+card     $NcVis00
+picture  MS041
+where    camp
+when     any
+weight   1
+only     size >= 2
+
+[start]
+block    0
+chosen   worstskill(Religion)                  # the dreamer (the others pray and puzzle)
+option 0                                   # pray over the dream (Religion)
+  who    bestskill(Religion)
+  chance clamp(10, 90, skill(who, Religion) + attr(who, DF) / 3)
+  ok     chosen2 who; text 1; hours 1; attr party, DF, 3; practice who, Religion, 1, 10, 0; exit
+  fail   chosen2 who; text 2; hours 1; practice who, Religion, 0, 10, 0; exit
+option 1                                   # piece together the saint's words (Latin, Intelligence)
+  who    bestskill(Latin)
+  chance clamp(5, 85, skill(who, Latin) + attr(who, Int) / 3 - 10)
+  ok     chosen2 who; text 3; hours 3; attr party, DF, 1; practice who, Latin, 1, 10, 0; exit
+  fail   chosen2 who; text 4; hours 2; practice who, Latin, 0, 10, 0; exit
+option 2                                   # dreams are only dreams
+  chance none
+  ok     text 5; if roll(40) then { text 6; injure chosen, 1, 1, 5 }
+         exit

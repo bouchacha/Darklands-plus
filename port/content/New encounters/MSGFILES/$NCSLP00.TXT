@@ -1,0 +1,19 @@
+# $NCSLP00: the sleepwalker (New encounters)
+=== card 0: 10 10 0 240 0 ===
+In the dead of night the watch sees $ChosenOneName rise from $his blanket and walk out of the firelight without a word: barefoot, eyes open and empty, straight toward the reeds where the ground turns to bog. $He does not answer to $his name.
+\14Old soldiers say you must never wake a sleepwalker, for the soul is out walking and may not find its way back in.
+\14You...
+\14\15...\1dshake $him awake at once.
+\15...\1dfollow quietly and see where $he goes.
+\15...\1dlead $him back and tie $him to the tent pole.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName wakes with a cry, ankle-deep in black water, with no idea where $he is. Back at the fire $he sits shivering until dawn, afraid to close $his eyes again.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName wakes screaming and strikes out at you as at a stranger. When at last $he knows you, $he weeps: in the dream someone out in the bog was calling $him by name, and $he was nearly there. $He will not say who, and $he does not pray that morning.
+=== card 3: 10 10 0 240 0 ===
+You follow at a distance. $ChosenOneName picks a sure way through the bog, as if walking a lit street, to a leaning stone cross half sunk in the moss, and kneels there. Then $he rises and walks back to bed.
+\14At dawn you go back and find bones in the moss by the cross, and a rotted purse: $Money1. You bury the bones and pray for the soul. $ChosenOneName remembers nothing.
+=== card 4: 10 10 0 240 0 ===
+You follow, but the mist swallows $ChosenOneName between one step and the next. When you find $him again $he is up to $his chest in the bog and sinking, still asleep. It takes all of you and the rest of the night to drag $him out, and the bog keeps some of what $he had on $him.
+=== card 5: 10 10 0 240 0 ===
+You lead $ChosenOneName back to $his blanket like a child and tie $him to the tent pole by the ankle. All night $he strains toward the bog, muttering. At dawn $he wakes stiff and rope-galled, furious with all of you, and very tired.

@@ -1,0 +1,32 @@
+# A stranger at the fire: an old traveller asks to share the warmth, and is not all he seems.
+name     A stranger at the fire
+card     $NcStr00
+picture  XGROVE27
+where    camp
+when     any
+weight   1
+vars     kind                                  # under 50 an old traveller, under 80 a thieves' scout, else something holier
+
+[start]
+do       set kind = random(100)
+block    0
+chosen   bestattr(Per)
+option 0                                   # welcome him and share your supper
+  chance assured
+  ok     goto welcome
+option 1                                   # welcome him, but watch him closely (Perception, Streetwise)
+  who    bestattr(Per)
+  chance clamp(10, 90, attr(who, Per) + skill(who, Streetwise) / 2 + 10)
+  ok     chosen who; if kind < 50 then { text 4; attr who, End, -3; exit }
+         if kind < 80 then { money1 random(72) + 24; text 5; gain money1; practice who, Streetwise, 1, 10, 0; exit }
+         itemname 0x3a; text 6; attr who, DF, 5; additem who, 0x3a; exit
+  fail   chosen who; practice who, Streetwise, 0, 10, 0; goto welcome
+option 2                                   # turn him away
+  chance assured
+  ok     if kind < 80 then { text 7; attr party, DF, -1; exit }
+         text 8; attr party, DF, -4; exit
+
+[welcome]
+do       if kind < 50 then { itemname 0x56; text 1; additem leader, 0x56; attr party, End, 2; exit }
+         if kind < 80 then { money1 min(money, random(96) + 24); text 2; pay money1; exit }
+         itemname 0x3a; text 3; attr party, DF, 4; additem leader, 0x3a; exit

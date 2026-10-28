@@ -1,0 +1,30 @@
+# $NSCUT00: the cutpurse (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Market day, and the street is packed from wall to wall: goodwives with baskets, a carter cursing his ox, apprentices, a pardoner crying his letters, pigs underfoot. In the press $ChosenOneName feels the lightest touch at $his belt, and looks down in time to see a little knife flick through the purse strings.
+\14A thin lad in a patched hood is already worming away through the crowd with the purse, and $Money1 in it. You...
+\14\15...\1dgo after him and seize him.
+\15...\1draise the hue and cry: "Stop, thief!"
+\15...\1dlet him go.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName shoulders through the crowd and catches the lad by the scruff at the mouth of an alley. Your purse drops out of his sleeve, and two more that are not yours.
+\14He is perhaps twelve, all bones and freckles. "Not the watch, master, please! They'll take my hand!" You...
+\14\15...\1dhand him over to the watch.
+\15...\1dbox his ears and let him run.
+\15...\1dkeep the other two purses for your trouble.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName lunges after him, collides with a fishwife and goes down among her herring. By the time $he is on $his feet again the lad has vanished, and $Money1 of yours with him.
+=== card 3: 10 10 0 240 0 ===
+"Stop, thief!" roars $ChosenOneName, and the cry runs down the street from mouth to mouth. A butcher's boy trips the lad, a cooper sits on him, and the watch come running to haul him off to the bailiff.
+\14The beadle hands back your purse with a bow, and you spend an hour telling the bailiff's clerk all about it. The town remembers strangers who help keep its peace.
+=== card 4: 10 10 0 240 0 ===
+"Stop, thief!" roars $ChosenOneName. The crowd surges, and a dozen hands seize... a journeyman tanner, who was only running late. By the time the mistake is plain and his guild-brothers have finished shouting at you, the thief is long gone, and $Money1 of yours with him.
+=== card 5: 10 10 0 240 0 ===
+You let him go. $Money1 is the price of the lesson, and from now on you carry your purses inside your shirts like everybody else in town.
+=== card 6: 10 10 0 240 0 ===
+The watch drag him off to the bailiff, howling, and you spend an hour with the clerk. The other two purses go back to a draper's wife and a stout priest, who both praise your vigilance to anyone who will listen.
+=== card 7: 10 10 0 240 0 ===
+$ChosenOneName boxes his ears soundly and lets go, and the lad is off like a hare. You give the other two purses to the beadle for their owners, and hope the boy finds honest bread before he finds the hangman.
+\14Mercy, they say, is pleasing to God.
+=== card 8: 10 10 0 240 0 ===
+You let the lad run and weigh the other two purses in your hands. Whoever owned them, they hold $Money1, and now it is yours.
+\14It is only what the cutpurse would have kept. Somehow that does not make it sit any easier.

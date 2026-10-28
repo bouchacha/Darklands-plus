@@ -1,0 +1,42 @@
+# The fallen messenger: a council messenger's horse has broken its leg, and he his own.
+name     The fallen messenger
+card     $NwRid00
+picture  HI-NOON
+where    wild
+terrain  road plains farmland
+when     day
+weight   1
+vars     hm, hc                            # who carries the horse to lend (-1: no one), and which horse
+
+[start]
+do       set hm = -1; set hc = 0           # the cheapest horse first: mule, pack horse, average, fast, superb
+         if able(0) then { if has(0, 0x47) then set hc = 0x47 else if has(0, 0x46) then set hc = 0x46 else if has(0, 0x45) then set hc = 0x45 else if has(0, 0x44) then set hc = 0x44 else if has(0, 0x43) then set hc = 0x43 }
+         if hc > 0 and hm < 0 then set hm = 0
+         if hm < 0 and able(1) then { if has(1, 0x47) then set hc = 0x47 else if has(1, 0x46) then set hc = 0x46 else if has(1, 0x45) then set hc = 0x45 else if has(1, 0x44) then set hc = 0x44 else if has(1, 0x43) then set hc = 0x43 }
+         if hc > 0 and hm < 0 then set hm = 1
+         if hm < 0 and able(2) then { if has(2, 0x47) then set hc = 0x47 else if has(2, 0x46) then set hc = 0x46 else if has(2, 0x45) then set hc = 0x45 else if has(2, 0x44) then set hc = 0x44 else if has(2, 0x43) then set hc = 0x43 }
+         if hc > 0 and hm < 0 then set hm = 2
+         if hm < 0 and able(3) then { if has(3, 0x47) then set hc = 0x47 else if has(3, 0x46) then set hc = 0x46 else if has(3, 0x45) then set hc = 0x45 else if has(3, 0x44) then set hc = 0x44 else if has(3, 0x43) then set hc = 0x43 }
+         if hc > 0 and hm < 0 then set hm = 3
+         if hm < 0 and able(4) then { if has(4, 0x47) then set hc = 0x47 else if has(4, 0x46) then set hc = 0x46 else if has(4, 0x45) then set hc = 0x45 else if has(4, 0x44) then set hc = 0x44 else if has(4, 0x43) then set hc = 0x43 }
+         if hc > 0 and hm < 0 then set hm = 4
+block    0
+chosen   bestskill(Healing)
+option 0                                   # set his leg
+  who    bestskill(Healing)
+  chance clamp(10, 90, skill(who, Healing) + attr(who, Int) / 3 - 5)
+  ok     chosen who; money1 36; text 1; gain money1; practice who, Healing, 1, 10, 0; attr party, DF, 1; hours 1; exit
+  fail   chosen who; text 2; practice who, Healing, 0, 10, 0; hours 1; exit
+option 1                                   # ride on with his letters
+  need   mounted
+  who    party
+  chance clamp(10, 90, minskill(Riding) * 2 + 20)
+  ok     money1 48; text 3; gain money1; practice party, Riding, 1, 10, 0; reputation 1, 3; hours 3; tocity
+  fail   chosen worstskill(Riding); text 4; injure chosen, 1, 1, 5; practice party, Riding, 0, 10, 0; hours 4; tocity
+option 2                                   # lend him a horse
+  need   hm >= 0
+  chance none
+  ok     itemname hc; text 5; takeitem hm, hc; reputation 1, 3; attr party, DF, 1; exit
+option 3                                   # wish him well and go on
+  chance none
+  ok     text 6; exit

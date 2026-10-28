@@ -1,0 +1,23 @@
+# $NWBEE00: the bee-tree (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A great hollow oak stands beside the path, humming like a church full of monks. Bees pour in and out of a split in the trunk, a man's height up, and from the crack runs a slow dark trickle. Wild honey, and plenty of it!
+\14You...
+\14\15...\1dsmoke the bees out with smouldering moss.
+\15...\1dclimb up and reach in for the comb.
+\15...\1dwait for dusk, when the bees grow drowsy.
+\15...\1dleave the bees in peace.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName builds a smudge of damp moss and green leaves at the foot of the tree. The bees boil out, dazed and grumbling, and you break off comb after dripping comb.
+\14You feast there and then, faces and fingers sticky, and take to the road again with new strength.
+=== card 2: 10 10 0 240 0 ===
+The moss flares up instead of smouldering, and the bees come out not drowsy but furious. You flee, flailing, with a humming cloud at your heels, and it is a long while before anyone can see out of both eyes.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName shins up the trunk, plunges an arm into the hollow and comes down with a slab of comb as big as a shield, and a dozen stings. You share it out on the spot. The honey, $he says between curses, is worth every sting.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName reaches into the hollow, and the bees answer. With a yell $he lets go of the trunk and comes down hard among the roots.
+=== card 5: 10 10 0 240 0 ===
+As the light fails, the humming sinks to a drowsy murmur. Moving softly, you take the comb without a single sting, and eat it by your fire that night.
+=== card 6: 10 10 0 240 0 ===
+As dusk falls you creep up to the tree. Someone treads on a dry stick; the murmur rises to a roar, and the bees pour out into the twilight after you.
+=== card 7: 10 10 0 240 0 ===
+You leave the bees to their honey and go on, mouths watering.

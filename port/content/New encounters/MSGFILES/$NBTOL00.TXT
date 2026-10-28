@@ -1,0 +1,19 @@
+# $NBTOL00: the toll castle (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Where the river narrows under a crag, a castle squats on the bank, and an iron chain hangs across the water from its tower to the far bank. A skiff puts out from the castle steps with the lord's toll-keeper in its bow: so much on every cask, every bale and every head. For you, $Money1.
+\14The captain spits over the side. "Last year it was half that." He looks at you sidelong. "Folk like you could talk to him for all of us."
+\14You...
+\14\15...\1dpay the toll.
+\15...\1dclaim to be pilgrims, free of all tolls.
+\15...\1dbargain for the whole boat, as the captain asks.
+=== card 1: 10 10 0 240 0 ===
+The toll-keeper licks his thumb, counts your coins and writes something in his ledger. The chain sinks into the water with a rattle and a splash, and you pass under the castle's frowning walls.
+=== card 2: 10 10 0 240 0 ===
+"Pilgrims," says $ChosenOneName piously, "bound for the shrine of the Three Kings at Cologne, and free of toll by the law of the Empire." The toll-keeper is no lawyer. He waves you through, grumbling.
+\14It was a lie told in the name of the holy Kings, and your consciences prick you for it.
+=== card 3: 10 10 0 240 0 ===
+"Pilgrims," sneers the toll-keeper, looking at your weapons. "And I am the Archbishop of Mainz. Liars pay double: $Money1."
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName climbs down into the skiff and haggles for an hour on behalf of the whole boat: the drought, the poor harvest, the old toll rolls of the lord's grandfather. At last the toll-keeper takes a cask of wine for the lot. The captain is so pleased that he hands back part of your fares: $Money1.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName haggles too hard. The toll-keeper snaps his ledger shut. "Then you can wait at the chain until you have learned manners." The boat waits there all night, and in the morning everyone pays in full. Your share is $Money1, and the captain does not thank you.

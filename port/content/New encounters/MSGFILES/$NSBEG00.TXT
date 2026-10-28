@@ -1,0 +1,27 @@
+# $NSBEG00: the blind beggar (New encounters)
+=== card 0: 10 10 0 240 0 ===
+By the church door sits a beggar with milky, staring eyes, a tin cup and the town's beggar-badge sewn to his rags. "Alms, for the love of Our Lady," he whines as your shadows fall across him. "Alms for poor blind Hensel, who never saw the sun."
+\14It seems to $ChosenOneName that his cup turns, just a little, to follow you. Or perhaps it doesn't. You...
+\14\15...\1ddrop $Money1 in his cup.
+\15...\1dput his blindness to the test.
+\15...\1dpass him by.
+=== card 1: 10 10 0 240 0 ===
+The coins clink into the cup. "God reward you, masters," says Hensel, "God and Our Lady and all the saints."
+\14Whatever is wrong with his eyes, alms are given before God, and God sees well enough.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName waves a hand before his face, then pretends to drop a coin and watches him grope in the dirt for it. It proves nothing at all, but the goodwives coming out of church have seen every bit of it.
+\14"Tormenting a blind man, at God's own door!" Word of it will go round.
+=== card 3: 10 10 0 240 0 ===
+You step around him. "God see you," he calls after you, which may be a blessing, or a joke.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName watches him closely and tries every trick of the street on him, and Hensel never so much as blinks. He is as blind as a stone, poor soul.
+\14Ashamed, $ChosenOneName presses a coin into his hand.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName flicks a pfennig into the dust a yard from the cup. Quick as a cat, Hensel's hand darts out and covers it. He freezes, then grins with all four of his teeth.
+\14"Ah. Well. A man must eat, masters. The beggar-warden would have my badge for this, and my back striped. But there's a share of today's cup for friends who keep quiet." You...
+\14\15...\1dfetch the beggar-warden.
+\15...\1dtake the share and keep quiet.
+=== card 6: 10 10 0 240 0 ===
+The beggar-warden, a fat man with a staff of office, takes Hensel's badge and drives him out of the town gate with the flat of it. The parish is glad to know its alms go to the truly needy, and glad to know who saw to it.
+=== card 7: 10 10 0 240 0 ===
+Hensel counts $Money1 into your hands from a purse a good deal fatter than his cup. "A pleasure, masters. God see you." He settles back against the church wall, and his eyes go milky again.

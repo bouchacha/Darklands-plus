@@ -1,0 +1,33 @@
+# The hermit's cell: a holy man walled up in a rock cell beside the path.
+name     The hermit's cell
+card     $NwHmt00
+picture  XOLDMAN
+where    wild
+terrain  forest woods pinewood hills mountains
+when     day
+weight   1
+
+[start]
+do       money1 size * 12
+block    0
+chosen   bestskill(Religion)
+option 0                                   # pray the hours with him
+  chance assured
+  ok     text 1; hours 5; attr party, DF, 2 + skill(who, Religion) / 15; practice party, Religion, 1, 5, -1; exit
+option 1                                   # ask his blessing (he judges your souls)
+  who    party
+  chance clamp(10, 95, avgskill(Virtue) + 35)
+  ok     text 2; attr party, DF, 3; heal party, End, 50; exit
+  fail   text 3; hours 4; attr party, End, -2; attr party, DF, 1; practice party, Virtue, 1, 5, -1; exit
+option 2                                   # test his holiness
+  who    bestskill(Religion)
+  chance clamp(5, 90, skill(who, Religion) + skill(who, Latin) / 2 + attr(who, Int) / 4 - 15)
+  ok     chosen who; text 4; hours 2; attr who, DF, 3; practice who, Religion, 1, 10, 0; practice who, Latin, 1, 5, -1; exit
+  fail   chosen who; text 5; hours 1; attr who, DF, -2; practice who, Religion, 0, 10, 0; exit
+option 3                                   # leave alms
+  need   money >= money1
+  chance none
+  ok     text 6; pay money1; attr party, DF, 2; practice party, Virtue, 1, 5, -1; exit
+option 4                                   # go on
+  chance none
+  ok     text 7; exit

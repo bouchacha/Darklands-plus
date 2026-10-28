@@ -1,0 +1,26 @@
+# $NWCHL00: a knight's challenge (New encounters)
+=== card 0: 10 10 0 240 0 ===
+On a narrow stone bridge stands a young knight in shining new harness, a lady's blue sleeve tied to his helm, while his squire holds his horse.
+\14"Halt! I have sworn to hold this bridge for thirty days, in honour of the Lady Kunigunde, fairest in all the Empire, against all comers! Let your best fighter meet me, and the road is yours!" He cannot be more than seventeen. You...
+\14\06...\1daccept his challenge.
+\15...\1ddecline with a courtesy worthy of his lady.
+\06...\1dmock him and his lady.
+\15...\1dturn back and cross by the ford downstream.
+=== card 1: 10 10 0 240 0 ===
+"Have at thee!" cries the knight, and comes on with his sword held high. He fights as he was taught, beautifully, and means every blow.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName bows low. "Sir knight, we are poor travellers, unworthy to cross swords with so noble a champion. But we shall praise the Lady Kunigunde in every inn from here to the sea." The knight blushes, and insists that you share his wine and pasties before you cross.
+=== card 3: 10 10 0 240 0 ===
+"Cowards," says the knight, with deep contempt. "Then go round by the ford, as cowards do." The ford is miles downstream, and you lose half a day.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName wonders aloud whether the Lady Kunigunde is fairest only by candlelight, and the squire snorts with laughter. The knight turns crimson, forgets every lesson his fencing master taught him, and charges, roaring.
+=== card 5: 10 10 0 240 0 ===
+You turn back and follow the river down to the ford, and wade across in water up to your waists. It costs you a few hours, and spares you the knight.
+=== card 6: 10 10 0 240 0 ===
+The furious boy lies groaning in the dust, and his squire pays you $Money1 from his master's purse to let them go. The tale of how you goaded a lovesick youth into a fight will not do your names any good.
+=== card 7: 10 10 0 240 0 ===
+At last the young knight yields, bleeding but proud. "Fairly won," he says, and pays you a ransom of $Money1, as the laws of chivalry require. "I shall tell my lady of you." No doubt he will tell everyone else, too.
+=== card 8: 10 10 0 240 0 ===
+You break off and run. The knight does not pursue; his vow binds him to his bridge. You go round by the ford.
+=== card 9: 10 10 0 240 0 ===
+The young knight beats you soundly, then sheathes his sword. "Yield, and swear to praise my lady to all you meet." You swear, and limp away to the ford downstream.

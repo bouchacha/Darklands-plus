@@ -1,0 +1,25 @@
+# $NWSHP00: the shepherd's lament (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A shepherd sits on a stone above his flock, his crook across his knees and his head in his hands. "Wolves," he says, before you can ask. "Every night they come. Seven ewes this month, and two lambs. The lord's huntsmen won't stir for a poor man's sheep, and the lord will take the loss out of my hide."
+\14You...
+\14\06...\1dwatch the flock with him tonight.
+\15...\1dtrack the wolves to their den.
+\15...\1dgive him $Money1 toward his losses.
+\15...\1dwish him better luck and go on.
+=== card 1: 10 10 0 240 0 ===
+Night falls. You sit wrapped in your cloaks among the sheep while the shepherd's dog growls at the dark. Near midnight eyes gleam at the edge of the firelight, many eyes, and the flock scatters bleating. The pack is here!
+=== card 2: 10 10 0 240 0 ===
+Tufts of wool, old blood, a print in the mud by a stream: $ChosenOneName follows the trail up into the rocks to a den beneath a fallen pine. The wolves are at home, gorged and drowsy, and they come out snarling, but slow.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName follows the trail into the hills, loses it on bare rock, finds it again, and loses it for good in a stream. Half the day is gone.
+=== card 4: 10 10 0 240 0 ===
+The last wolf limps howling away. The shepherd skins the dead ones and presses the best pelt on you. "My lord's huntsmen couldn't have done better. Not that they'd have tried."
+\14The tale will go round the villages.
+=== card 5: 10 10 0 240 0 ===
+You scatter among bolting sheep and snapping jaws, and it is hours before you find each other again.
+=== card 6: 10 10 0 240 0 ===
+The wolves drag you down and tear at you, and only the shepherd's torch and his dog drive them off at last. The flock is fewer by three, and you are torn and bloody.
+=== card 7: 10 10 0 240 0 ===
+The shepherd stares at the coins in his palm, then closes his fist on them. "God bless you, masters. That's two ewes, or one beating less."
+=== card 8: 10 10 0 240 0 ===
+The shepherd nods without looking up. You leave him counting his sheep.

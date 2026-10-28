@@ -1,0 +1,24 @@
+# $NWTAT00: the Tatzelwurm's cleft (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A herd-boy comes running down the slope, his goats scattering before him, his face as white as milk. "A Tatzelwurm! In the cleft above the high pasture! A cat's head as big as a calf's, and a body like a great worm, and it hissed at me! It took two of our goats!"
+\14Old folk say a Tatzelwurm's breath can fell a man. You...
+\14\06...\1dseek it out in its cleft.
+\15...\1dtether a goat as bait and lure it into the open.
+\15...\1dgo down and warn the boy's village.
+\15...\1dleave the cleft well alone.
+=== card 1: 10 10 0 240 0 ===
+You climb to the cleft and squeeze in among the rocks, where the stink of rotting goat is thick. Something stirs in the dark: a flat, whiskered cat's head on a long scaly body, two clawed forelegs, and a hiss like a kettle. The Tatzelwurm!
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName tethers a goat in the open below the cleft and picks your hiding places downwind. After two long hours the Tatzelwurm slithers out to feed, and you have it in the open, between you and its rocks.
+=== card 3: 10 10 0 240 0 ===
+The Tatzelwurm does not take the goat. It comes over the rocks behind you instead, and its hot, foul breath washes over $ChosenOneName, who staggers back, retching.
+=== card 4: 10 10 0 240 0 ===
+The boy's village thanks you with bread, cheese and fresh milk, and sets a watch on the high pasture. Their headman will send word of the beast to $NearestCity, and of who brought the warning.
+=== card 5: 10 10 0 240 0 ===
+You give the cleft a wide berth. The boy watches you go, then turns back to gather his goats.
+=== card 6: 10 10 0 240 0 ===
+The Tatzelwurm thrashes, hisses once more, and lies still. The whole village climbs up to stare at the carcass, and the headman presses $Money1 on you, all they could gather. The tale will be told in these mountains for years.
+=== card 7: 10 10 0 240 0 ===
+You scramble down the slope with the beast's hissing behind you, and do not stop until the pasture is far below.
+=== card 8: 10 10 0 240 0 ===
+The Tatzelwurm's claws and foul breath drive you down the mountain, retching and bleeding. Then it slithers back into its rocks.

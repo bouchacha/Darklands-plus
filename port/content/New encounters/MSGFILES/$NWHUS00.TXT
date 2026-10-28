@@ -1,0 +1,22 @@
+# $NWHUS00: the hidden preacher (New encounters)
+=== card 0: 10 10 0 240 0 ===
+In a hollow of the woods thirty peasants are listening to a lean man in a patched gown. He preaches in plain German: that the cup of the Sacrament belongs to all the faithful, and that a priest who sells God's grace is no priest.
+\14They fall silent when they see you. "Brother Matthias came to us from Bohemia," says an old man, offering you bread. "The bishop's riders are looking for him. You have seen nothing, have you?" You...
+\14\15...\1ddispute Scripture with the preacher.
+\15...\1dgo to $NearestCity and tell the bishop's men.
+\15...\1dlead him to safety by the back ways.
+\15...\1dkeep silent and go on.
+=== card 1: 10 10 0 240 0 ===
+For two hours $ChosenOneName and the preacher dispute in Latin and in German, the Fathers against the Gospels, the Council against the Cup, and $ChosenOneName holds every point. At last Matthias bows. "You argue honestly, friend. Pray for me, as I will for you." The peasants have listened to every word.
+=== card 2: 10 10 0 240 0 ===
+Matthias answers $ChosenOneName verse for verse, from Scripture and the Fathers, until the peasants are nodding along with him. $ChosenOneName walks away less certain of a good many things than $he was this morning.
+=== card 3: 10 10 0 240 0 ===
+You hurry to $NearestCity and tell the bishop's official where the Bohemian is hiding. He thanks you warmly and pays a bounty of $Money1, and that night his riders go out with torches.
+\14The peasants shared their bread with you. You try not to think of what becomes of them.
+=== card 4: 10 10 0 240 0 ===
+You lead Matthias away by deer-tracks and dry stream beds, through the night and over the hills, to friends who wait for him in the next valley. Twice you hear the bishop's riders on the road below.
+\14"God sees what you did," says Matthias at parting. Whether the bishop would agree is another matter.
+=== card 5: 10 10 0 240 0 ===
+At a ford the bishop's riders are waiting. They take Matthias away in chains, and their captain fines you $Money1 for harbouring a heretic. "The town will hear of this," he promises.
+=== card 6: 10 10 0 240 0 ===
+You eat the old man's bread, say nothing and go on your way. Behind you, the preaching begins again.

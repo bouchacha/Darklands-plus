@@ -1,0 +1,21 @@
+# $NSPIL00: the man in the pillory (New encounters)
+=== card 0: 10 10 0 240 0 ===
+In the market square a man stands locked in the pillory, head and hands through the boards and a little loaf hung round his neck: a baker, caught selling short weight. The crowd is pelting him with rotten cabbage, dung and worse, and the children have made a game of it.
+\14"Water," he croaks as you pass. "For Christ's mercy, a drop of water." You...
+\14\15...\1djoin in with a good rotten cabbage.
+\15...\1dgive him a drink.
+\15...\1dask him how he came here.
+=== card 1: 10 10 0 240 0 ===
+Your cabbage takes the baker square on the ear, and the crowd cheers the strangers who know a cheat when they see one. Short weight is theft from the poor, after all.
+\14Still, pelting a man in the pillory is not what Our Lord taught, and it sits a little uneasily with you.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName fills a dipper at the fountain and holds it to the baker's lips. When a boy draws back his arm to throw, $he looks at him, and the boy lowers it. "Let him that is without sin," $he says to the crowd, and the pelting stops for a while.
+\14The baker drinks and weeps. It is a small mercy, but a real one.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName holds a dipper of water to the baker's lips. The crowd does not like it. "Friends of short-weight bakers!" somebody shouts, and the next cabbage hits $ChosenOneName.
+\14The baker drinks anyway, and blesses you. The square will remember the strangers who took a cheat's part.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName squats by the pillory and listens. The baker swears his weights were true until the guild's assay-master tampered with them, to punish him for selling his loaves under the guild's price. It has the ring of truth: such is the way of guilds.
+\14His wife, who has been hovering nearby, presses a warm loaf on you for listening when nobody else would.
+=== card 5: 10 10 0 240 0 ===
+The baker only weeps and curses and begs for water, and in the hour you spend trying to make sense of him, a fair share of the crowd's cabbages land on you.

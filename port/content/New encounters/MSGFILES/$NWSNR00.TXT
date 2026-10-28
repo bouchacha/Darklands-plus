@@ -1,0 +1,31 @@
+# $NWSNR00: the poacher's snare (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Something snaps in the leaves. A noose of gut whips tight around $ChosenOneName's ankle, a bent sapling springs up, and $he is jerked off $his feet to dangle head down above the path, swearing.
+\14A poacher's snare, set for deer. $ChosenOneName's face is turning purple. You...
+\14\15...\1dcut $him down carefully.
+\15...\1dleave $him hanging as bait, and wait for whoever set it.
+=== card 1: 10 10 0 240 0 ===
+$ChosenTwoName bends the sapling down, eases the noose loose and lowers $ChosenOneName gently to the ground. As you coil up the line, a man steps out of the bushes.
+=== card 2: 10 10 0 240 0 ===
+$ChosenTwoName slashes the line, and $ChosenOneName drops like a sack of turnips, head first onto a root. While $he is still seeing stars, a man steps out of the bushes.
+=== card 3: 10 10 0 240 0 ===
+You settle down in the bushes, ignoring $ChosenOneName's opinion of the plan. An hour later, as $his face turns from purple to grey, a man creeps out of the undergrowth, and you cut $ChosenOneName down.
+=== card 4: 10 10 0 240 0 ===
+He is a gaunt, ragged fellow with a sack over his shoulder and two hares at his belt. "That snare was for the lord's deer, not for you," he says, eyeing your weapons. "No harm done? I'll sell you my hares for $Money1, and we never saw each other."
+\14You...
+\14\15...\1dbuy his hares and roast them.
+\15...\1dask him to show you how he sets his snares.
+\15...\1dseize him for the lord's foresters.
+\15...\1dlet him go about his business.
+=== card 5: 10 10 0 240 0 ===
+You roast the hares over a small, smokeless fire, as the poacher shows you, and eat well. "Hunger knows no law," he says with his mouth full, "and neither do hares."
+=== card 6: 10 10 0 240 0 ===
+Flattered, the poacher shows $ChosenOneName how to choose a run, how to bend a sapling and how to hide the smell of a man's hands. $ChosenOneName learns more in two hours than in a year of tramping through woods.
+=== card 7: 10 10 0 240 0 ===
+The poacher shows $ChosenOneName his knots and his runs, but talks too fast and laughs at every clumsy try. $ChosenOneName comes away with nothing but sore fingers.
+=== card 8: 10 10 0 240 0 ===
+You run him down in a bramble thicket and march him to the foresters' lodge. The head forester pays you $Money1, the lord's reward. You try not to wonder what the lord will do to his hands.
+=== card 9: 10 10 0 240 0 ===
+The poacher is off like one of his own hares. You crash after him through the thickets, but he knows every path, and you never see him again.
+=== card 10: 10 10 0 240 0 ===
+The poacher touches his cap and melts into the woods. You go on your way.

@@ -1,0 +1,34 @@
+# The monk and his reliquary: a tooth of St. Lawrence on its way to an abbey downriver.
+name     The monk and his reliquary
+card     $NbMnk00
+picture  XDCHURCH
+where    boat
+when     any
+weight   1
+vars     fake
+
+[start]
+do       set fake = roll(40)
+block    0
+chosen   bestskill(Religion)
+option 0                                   # pray with him
+  who    bestskill(Religion)
+  chance assured
+  ok     text 1; hours 2; attr party, DF, 2 + skill(who, Religion) / 10; practice party, Virtue, 1, 5, -1; exit
+option 1                                   # examine the relic (Religion: is it a fake?)
+  who    bestskill(Religion)
+  chance clamp(5, 90, skill(who, Religion) + attr(who, Int) / 3 - 10)
+  ok     chosen who; if fake goto fake
+         text 2; hours 1; practice who, Religion, 1, 10, 0; attr party, DF, 3; exit
+  fail   chosen who; text 4; practice who, Religion, 0, 10, 0; attr who, DF, -2; exit
+option 2                                   # guard it from the man in the good cloak (Perception)
+  who    bestattr(Per)
+  chance clamp(10, 90, attr(who, Per) + 25)
+  ok     chosen who; text 5; attr who, End, -3; attr party, DF, 2; reputation 1, 2; exit
+  fail   chosen who; money1 min(money, random(72) + 24); text 6; attr who, End, -3; pay money1; exit
+option 3                                   # keep to yourselves
+  chance none
+  ok     text 7; exit
+
+[fake]
+do       text 3; practice chosen, Religion, 1, 10, 0; attr party, DF, 1; hours 1; exit

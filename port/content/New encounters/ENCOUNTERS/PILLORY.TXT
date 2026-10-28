@@ -1,0 +1,24 @@
+# The man in the pillory: a baker who sold short weight, pelted by the crowd.
+name     The man in the pillory
+card     $NsPil00
+picture  XMOBGLAD
+where    street
+when     day
+weight   1
+
+[start]
+block    0
+chosen   bestattrskill(Cha, Religion)
+option 0                                   # join in
+  chance none
+  ok     text 1; reputation 1, 2; attr party, DF, -1; exit
+option 1                                   # give him a drink
+  who    bestattrskill(Cha, Religion)
+  chance clamp(5, 85, attr(who, Cha) + skill(who, Religion) / 2 - 10)
+  ok     chosen who; text 2; attr party, DF, 2; practice party, Virtue, 1, 10, 0; exit
+  fail   chosen who; text 3; attr party, DF, 2; reputation -1, -2; exit
+option 2                                   # ask him how he came here
+  who    bestskill(Streetwise)
+  chance clamp(10, 90, skill(who, Streetwise) + attr(who, Per) / 3)
+  ok     chosen who; text 4; hours 1; attr party, End, 2; practice who, Streetwise, 1, 20, 0; exit
+  fail   chosen who; text 5; hours 1; practice who, Streetwise, 0, 10, 0; disable 2

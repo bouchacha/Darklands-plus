@@ -1,0 +1,19 @@
+# $NSPIG00: the runaway sow (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A squeal splits the market. A great spotted sow comes barrelling between the stalls with a rope trailing from her neck, scattering hens, upsetting a barrow of turnips and a priest. Behind her, red-faced and puffing, comes a butcher in a bloody apron.
+\14"Stop her! Stop that sow! She's for the guild feast on Sunday!" You...
+\14\15...\1dthrow yourselves on her.
+\15...\1dspread out and corner her like a hunted boar.
+\15...\1dlean on a post and enjoy the show.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName dives, gets both arms round her neck and rides her the length of the fish stalls before she gives up, squealing like the damned. The butcher cannot thank you enough. He loads you with sausages and blood pudding, and swears the whole butchers' guild will hear of it.
+\14You eat well that day.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName dives, gets a hoof in the belly and rolls into the gutter, and the sow trots on with her rope trailing behind her. The whole market laughs. $ChosenOneName will smell of that gutter for days.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName spreads you out like beaters at a hunt, and step by step you drive the sow into a cooper's yard, where she stands at bay among the barrels until the butcher gets his rope on her.
+\14He presses $Money1 on you, still puffing. "Worth every pfennig. The guild master would have had my hide."
+=== card 4: 10 10 0 240 0 ===
+You spread out, but the sow breaks through your line like a boar through hounds, straight through a draper's stall and out the other side, trailing a bolt of good Flemish cloth. The draper holds you to blame, and you pay what you can for the spoiled cloth to be rid of him.
+=== card 5: 10 10 0 240 0 ===
+You lean on a post and watch. It is the best entertainment you have had in weeks: three apprentices, a priest, two dogs and the butcher all fail to catch her, and it is a full hour before a small girl leads her home with a turnip.

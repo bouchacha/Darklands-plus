@@ -1,0 +1,26 @@
+# $NCSTR00: a stranger at the fire (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Toward midnight a voice calls out of the dark: "Peace, friends! A poor old traveller begs the warmth of your fire." A grey-bearded man steps into the light, leaning on a staff, a pack on his back and no weapon that you can see. He waits at the edge of the firelight for your answer.
+\14It has rained all evening. Yet his cloak and his boots, you notice, are quite dry.
+\14You...
+\14\15...\1dwelcome him and share your supper.
+\15...\1dwelcome him, but watch him closely.
+\15...\1dturn him away into the night.
+=== card 1: 10 10 0 240 0 ===
+The old man eats your bread with a good appetite and repays it with news of the roads: which bridges are down, which lords are hanging robbers this year. You all sleep like stones. At dawn he is gone, but by the cold fire he has left a twist of herbs for your journey: $ItemName.
+=== card 2: 10 10 0 240 0 ===
+The old man eats your bread and talks pleasantly of the roads until you all drift off. At dawn he is gone, and so is $Money1 from your purses.
+\14He came from somewhere dry and close by, you realize too late: a thieves' den, no doubt, where his friends were waiting for his signal.
+=== card 3: 10 10 0 240 0 ===
+The old man blesses your bread before he eats it, and talks gently of saints and roads until you sleep. At dawn he is gone. The wet earth all around the camp shows no footprints but your own, and where he sat the grass is dry and green as in May. On the stone beside it a $ItemName is burning, though the rain falls all around.
+\14You set out with your hearts strangely light.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName keeps one eye open all night. The old man eats, prays, snores, and at dawn shuffles off with a nod. He was nothing but an old man after all, it seems, and $ChosenOneName is red-eyed and weary for nothing.
+=== card 5: 10 10 0 240 0 ===
+In the small hours $ChosenOneName sees the old man rise, quiet as a cat, and slide a hand into your baggage. $He seizes him by the collar. Out in the dark someone runs off through the trees, and in the old rogue's own pack are three purses that are not his. You send him off without them: $Money1.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName watches all night, and sees what the others do not: the firelight throws no shadow behind the old man, and the rain falls all around him and never on him. At dawn he rises, looks straight at $ChosenOneName and smiles. "Watchful eyes are no sin," he says. He makes the sign of the cross over $him, and then he is not there. Where he stood, a $ItemName burns in the rain.
+=== card 7: 10 10 0 240 0 ===
+The old man bows his head and goes back into the rain without a word. For a long while you hear him coughing out in the dark, and your supper sits heavy in you.
+=== card 8: 10 10 0 240 0 ===
+The old man bows his head and goes back into the dark without a word. At dawn you see that there are no footprints in the wet earth where he stood, none at all, and a chill goes through you that has nothing to do with the rain.

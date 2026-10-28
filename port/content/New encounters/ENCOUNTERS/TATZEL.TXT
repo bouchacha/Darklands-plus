@@ -1,0 +1,33 @@
+# The Tatzelwurm's cleft: a herd-boy has seen a Tatzelwurm in the rocks above the high pasture.
+name     The Tatzelwurm's cleft
+card     $NwTat00
+picture  XMTRANGE
+where    wild
+terrain  hills mountains
+when     day
+weight   1
+vars     q, field
+
+[start]
+block    0
+chosen   spotter
+option 0                                   # seek it out in its cleft
+  chance combat
+  ok     set q = lore / 4 + 1; set field = Cave; text 1; goto fight
+option 1                                   # lure it into the open with a goat
+  who    spotter
+  chance clamp(5, 85, maxskill(Woodwise) + maxattr(Per) / 2 - 10)
+  ok     chosen who; set q = max(0, lore / 4 - 1); set field = Wilds; text 2; hours 2; practice who, Woodwise, 1, 10, 0; goto fight
+  fail   chosen who; set q = lore / 4 + 1; set field = Wilds; text 3; hours 2; attr who, End, -4; practice who, Woodwise, 0, 10, 0; goto fight
+option 2                                   # warn the village below
+  chance none
+  ok     text 4; hours 3; attr party, End, 2 + random(2); reputation 1, 2; exit
+option 3                                   # leave the cleft well alone
+  chance none
+  ok     text 5; exit
+
+[fight]
+do       battle field, Tatzelwurm, q, 1
+         if result == Won then { money1 random(48) + 36; text 6; gain money1; hours 2; fame 1; exit }
+         if result == Fled then { rejoin; text 7; hours 1; exit }
+         text 8; hours 3; attr party, End, -2; exit

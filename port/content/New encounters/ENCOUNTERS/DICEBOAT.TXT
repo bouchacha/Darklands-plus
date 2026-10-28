@@ -1,0 +1,40 @@
+# Dice on the deck: boatmen invite the party to dice, and their dice are not honest.
+name     Dice on the deck
+card     $NbDic00
+picture  XRIVER
+where    boat
+when     any
+weight   2
+
+[start]
+do       money1 clamp(12, 120, money / 25)
+block    0
+chosen   bestskill(Streetwise)
+option 0                                   # sit down and play (Streetwise: spot the loaded die)
+  who    bestskill(Streetwise)
+  need   money >= money1
+  chance clamp(5, 90, skill(who, Streetwise) + attr(who, Per) / 3 - 10)
+  ok     chosen who; text 1; pay money1; practice who, Streetwise, 1, 10, 0; goto loaded
+  fail   chosen who; money1 min(money, money1 * 4); text 2; pay money1; practice who, Streetwise, 0, 10, 0; hours 2; exit
+option 1                                   # decline
+  chance none
+  ok     text 3; exit
+
+[loaded]
+block    4
+option 0                                   # show the loaded die to the captain
+  who    bestattr(Cha)
+  chance clamp(5, 90, (4 * attr(who, Cha) + skill(who, SpeakCommon)) / 5 + min(20, fame / 10))
+  ok     chosen2 who; money1 money1 * 3; text 5; gain money1; practice who, SpeakCommon, 1, 10, 0; exit
+  fail   chosen2 who; text 6; practice who, SpeakCommon, 0, 10, 0; goto fight
+option 1                                   # palm the die and let it work for you
+  who    chosen
+  chance clamp(5, 90, attr(who, Agl) + skill(who, Streetwise) / 2 - 10)
+  ok     money1 money1 * 4; text 7; gain money1; attr party, DF, -2; hours 2; exit
+  fail   text 8; goto fight
+
+[fight]
+do       battle 0x55, 0x0a, lore / 4 + 1, random(3) + 3
+         if result == Won then { money1 random(60) + 24; text 9; gain money1; hours 1; exit }
+         if result == Fled then { rejoin; text 10; exit }
+         money1 money / 3; text 11; pay money1; hours 1; exit

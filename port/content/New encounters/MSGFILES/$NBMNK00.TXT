@@ -1,0 +1,27 @@
+# $NBMNK00: the monk and his reliquary (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A young Benedictine shares the deck with you, hugging a little reliquary of gilded copper as if it might fly away. Inside, he says, is a tooth of the blessed martyr Lawrence, a bishop's gift to his abbey downriver, and he has not slept since he set out, for fear of thieves.
+\14"Will you pray with me, friends? The saint is very near."
+\14A man in a good cloak has been watching the reliquary all morning. You...
+\14\15...\1dkneel and pray with the monk.
+\15...\1dask to look closely at the relic.
+\15...\1dguard it with him until the landing.
+\15...\1dkeep to yourselves.
+=== card 1: 10 10 0 240 0 ===
+You kneel with him on the planks while the river slides by, and he leads you through the litany of the saints in a high, cracked voice. The boatmen fall silent; even the man in the good cloak takes off his hat. When the last amen is said, you feel lighter, as though something had been lifted from you.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName turns the reliquary in $his hands. The bishop's seals are whole, the letter of authentication is properly witnessed, and the tooth behind its crystal is old and brown. This is no pedlar's trinket.
+\14As $he hands it back, a warmth runs through all of you, like the sun coming out.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName looks for a long time, then quietly shows the monk what $he has found: the bishop's seal is pressed in new wax over an old scrape, and the tooth behind the crystal came from a calf.
+\14The young monk weeps, then dries his eyes. "Better to learn it from you than from my abbot." He blesses you for your honesty.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName fumbles with the clasp, and the little door of the reliquary swings open over the rail. The monk snatches it back with a cry. "Have you no fear of God?" He will not look at you again, and $ChosenOneName feels the saint's displeasure like a cold hand on $his neck.
+=== card 5: 10 10 0 240 0 ===
+All day and through the night $ChosenOneName stays at the monk's side. In the dark before dawn a hand creeps toward the reliquary, and $ChosenOneName seizes the wrist: the man in the good cloak.
+\14At the landing he goes ashore between two of the town's bailiffs, and the monk goes ashore singing.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName watches until $his eyes close of their own accord. At dawn the reliquary is gone, and so is the man in the good cloak, slipped ashore at some village landing in the night.
+\14He took $ChosenOneName's purse along with it: $Money1. The monk sits staring at the water and will not be comforted.
+=== card 7: 10 10 0 240 0 ===
+You leave the monk to his prayers. He mumbles them alone all the way to the landing, his arms wrapped around his saint.

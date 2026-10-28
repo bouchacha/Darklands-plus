@@ -1,0 +1,29 @@
+# A brawl spills out: a tavern brawl tumbles into the street at night.
+name     A brawl spills out
+card     $NsBrl00
+picture  XCHASE
+where    street
+when     night
+weight   1
+
+[start]
+block    0
+chosen   bestattrsum(Str, Cha)
+option 0                                   # wade in
+  chance combat
+  ok     text 1; goto fight
+option 1                                   # haul them apart and talk them down
+  who    bestattrsum(Str, Cha)
+  chance clamp(5, 90, attr(who, Str) / 2 + attr(who, Cha) / 2 + skill(who, SpeakCommon) / 3 + min(10, fame / 20))
+  ok     chosen who; text 2; reputation 1, 3; attr party, End, 2; practice who, SpeakCommon, 1, 10, 0; hours 1; exit
+  fail   chosen who; text 3; injure who, 1, 1, 5; practice who, SpeakCommon, 0, 10, 0; goto fight
+option 2                                   # keep out of it
+  chance none
+  ok     text 4; exit
+
+[fight]
+do       battle SideStreet, Thug, lore / 4 + 1, random(3) + 3, Villager, lore / 4, random(3) + 1
+         if result == Won then { text 5; additem leader, 0x07; reputation 1, 2; attr party, End, 2; hours 1; exit }
+         if result == Fled then { rejoin; text 6; reputation -1, -2; exit }
+         if money > 0 then { money1 min(money, random(96) + 24); text 7; pay money1 } else text 8
+         hours 2; exit

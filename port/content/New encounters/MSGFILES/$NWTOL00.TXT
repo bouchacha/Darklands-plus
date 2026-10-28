@@ -1,0 +1,28 @@
+# $NWTOL00: toll at the ford (New encounters)
+=== card 0: 10 10 0 240 0 ===
+The road runs down to a broad ford, and on the near bank stands a toll-house with a lord's arms painted over the door. Four men with halberds bar the way, and their sergeant holds out his hand. "Toll for the ford, by my lord's charter: eight pfennigs a head, and eight for every horse. $Money1."
+\14Eight pfennigs! Somebody's charter has grown in the telling.
+\14You...
+\14\15...\1dpay the toll.
+\15...\1ddemand to see the charter.
+\15...\1dride upstream and swim the horses across.
+\06...\1dforce your way across.
+=== card 1: 10 10 0 240 0 ===
+The sergeant counts your coins twice and waves you into the water. It is cold, it comes up to your knees, and it is the dearest water you have ever waded.
+=== card 2: 10 10 0 240 0 ===
+The sergeant fetches a parchment from the toll-house, holding it upside down. $ChosenOneName reads it out, first in Latin and then in German, slowly and loudly: two pfennigs a head, and two for a horse.
+\14There is a long silence. You pay the lawful toll, $Money1, and the halberdiers find something very interesting to look at in the river. The tale will be told with relish in $NearestCity.
+=== card 3: 10 10 0 240 0 ===
+The sergeant fetches a parchment from the toll-house. It is in a crabbed old Latin, crammed with abbreviations, and after an hour of squinting $ChosenOneName can make nothing of it. "As I said," says the sergeant, smiling. "$Money1."
+=== card 4: 10 10 0 240 0 ===
+A mile upstream the banks are low. The horses snort and balk, but you drive them in, and they swim strongly across with you clinging to their manes. You come out soaked and laughing on the far bank, a toll the richer.
+=== card 5: 10 10 0 240 0 ===
+Halfway across, $ChosenOneName's horse stumbles and throws $him into the river. $He comes out bruised and dripping, to find the toll-men waiting on the bank. "Swimming the toll, is it? That's double: $Money1."
+=== card 6: 10 10 0 240 0 ===
+The toll-men lie in the shallows or have fled. In the toll-house you find the day's takings, $Money1. But these were a lord's sworn men, and his bailiffs will speak of it in every town around.
+=== card 7: 10 10 0 240 0 ===
+You fall back from the ford and scatter. It is hours before you find each other again, and a crossing with no halberds at it.
+=== card 8: 10 10 0 240 0 ===
+You throw down your weapons. The sergeant takes his toll three times over, $Money1, and adds a few kicks of his own.
+=== card 9: 10 10 0 240 0 ===
+You wake in the stocks outside the toll-house. A day later the lord's steward lets you out, after taking $Money1 for breaking his master's peace.

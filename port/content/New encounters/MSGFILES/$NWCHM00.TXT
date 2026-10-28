@@ -1,0 +1,20 @@
+# $NWCHM00: the cunning man (New encounters)
+=== card 0: 10 10 0 240 0 ===
+An old man with a staff and a tray slung from his neck hails you from the wayside. On the tray: hares' feet, knotted red threads, wax discs stamped with the Lamb of God, little mannikins of root, and scraps of parchment covered in letters.
+\14"Charms, masters! Against wolves, the evil eye, fever, shot and steel! Blessed by three priests on Saint John's Eve! A charm for each of you, and a root-man for luck, only $Money1." You...
+\14\15...\1dbuy his charms.
+\15...\1dlook closely at his holy wax and relics.
+\15...\1dhaggle with him, rogue to rogue.
+\15...\1dshake your heads and go on.
+=== card 1: 10 10 0 240 0 ===
+You hang the charms about your necks. The red threads are only thread, and the Lamb is stamped in tallow, not holy wax. But the root-man, at least, is a true mondragora root, and some alchemist may pay for it.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName scrapes the "holy wax" with a thumbnail: tallow, smelling of mutton. The "relic thread" leaves red dye on $his fingers. $He holds both up for the peasants gathering round to see, and the cunning man packs his tray in a hurry and goes off followed by jeers. A good many poor folk keep their pennies today.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName frowns at the wax and the threads, and cannot say what is wrong with them. "Doubting Thomas!" cackles the old man. "Even the Apostle believed in the end!"
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName grins, the cunning man grins back, and the two of them understand each other perfectly. Charms and root-man change hands for $Money1. "And don't tell anyone what you paid," he mutters.
+=== card 5: 10 10 0 240 0 ===
+The old man is deeply wounded. "Haggle over holy things? Shame on you! For such as you, the price is $Money1."
+=== card 6: 10 10 0 240 0 ===
+You shake your heads. "Then may the wolves find you!" the old man calls cheerfully after you.

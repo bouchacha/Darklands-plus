@@ -1,0 +1,26 @@
+# $NWHNT00: the mauled huntsman (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A groan from the bracken beside the path: a huntsman lies there, his leather jerkin torn to ribbons and his thigh laid open to the bone. His boar-spear lies snapped in two beside him. "Bear," he gasps. "Great brown brute... came out of the thicket before I saw it. It's still out there."
+\14You...
+\14\15...\1dbind his wounds.
+\15...\1dcarry him home to his village.
+\15...\1dhunt down the bear.
+\15...\1dleave him and hurry on, before the bear comes back.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName cleans and stitches the terrible wound while the huntsman bites on a strap, then binds it tight. When it is done he can stand, leaning on a staff. "I owe you my leg, and maybe my life." He presses his hunting knife on $ChosenOneName. "My father's. Better in your hand than in a bear's belly."
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName works over him for an hour, but the bleeding will not stop. At last the huntsman grips $his hand, asks God's mercy, and is still. You bury him beneath the trees he hunted.
+=== card 3: 10 10 0 240 0 ===
+You make a litter of branches and cloaks and carry him down to his village: a long, heavy haul. His wife weeps over him, the barber takes him in hand, and the reeve swears you will never want for bread in their village. Word of it will reach $NearestCity.
+=== card 4: 10 10 0 240 0 ===
+You leave the huntsman hidden in the bracken and follow the bear's trail. You come upon it unawares, tearing at a rotten log for grubs. It rears up, roaring, but you are already upon it.
+=== card 5: 10 10 0 240 0 ===
+You leave the huntsman hidden in the bracken and follow the bear's trail, but the bear hears you first. It comes crashing out of a thicket and is on $ChosenOneName before $he can turn.
+=== card 6: 10 10 0 240 0 ===
+The great bear lies dead. You carry the huntsman home on a litter, with the bear's head for a trophy, and his village feasts you on bear's meat. They will tell of this hunt for years.
+=== card 7: 10 10 0 240 0 ===
+You scatter before the raging bear. When you gather again it has gone, and so has the huntsman: his own folk have found him and carried him home.
+=== card 8: 10 10 0 240 0 ===
+The bear mauls you and lumbers off into the forest. You crawl back to the huntsman, and there are more of you to carry home now.
+=== card 9: 10 10 0 240 0 ===
+You leave the huntsman lying in the bracken and hurry on, glancing over your shoulders. His calls follow you a long way.

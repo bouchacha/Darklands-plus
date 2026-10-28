@@ -1,0 +1,30 @@
+# $NBFOG00: fog on the river (New encounters)
+=== card 0: 10 10 0 240 0 ===
+At first light a fog rises off the water, so thick that the bow cannot be seen from the stern. The boatmen ship their oars and let her drift, listening. Then, close by, comes the soft dip of oars muffled with rags, and a dark shape slides past in the white and is gone again.
+\14"River thieves," breathes a boatman, "or the Devil's own ferry." He crosses himself.
+\14You...
+\14\15...\1dkeep silent watch for the shape.
+\15...\1dtake the steering oar yourselves.
+\15...\1dhail it boldly.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName sees it first: a low skiff full of crouching men with boathooks and cudgels, waiting for you to drift onto them. At $his whispered word the boatmen pole you silently into a side channel, and you hear the thieves cursing one another in the fog behind you. It takes two hours to find the main stream again.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName makes it out at last: an empty boat, torn loose somewhere upstream and drifting blind. The boatmen hook it alongside, and the captain claims it as salvage. He gives you a share for your sharp eyes: $Money1.
+=== card 3: 10 10 0 240 0 ===
+Grappling hooks bite into the gunwale out of the white, and men with cudgels come swarming over the side: river pirates! The boat lurches into the reeds of the bank, and you leap ashore to fight.
+=== card 4: 10 10 0 240 0 ===
+You stare into the white until your eyes ache. Then something strikes the hull with a hollow crash: an empty boat, torn loose upstream, as blind as you are. A plank is sprung, and everyone bails for two hours.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName takes the oar from the steersman, reads the current by the feel of it, and brings the boat silently into the lee of an island. You wait there, hardly breathing, until the fog thins and the river is empty.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName steers for where the bank should be, and finds a sunken tree instead. The boat slews and sticks fast. It takes hours of shoving and bailing, up to your waists in cold water, to work her free.
+=== card 7: 10 10 0 240 0 ===
+"Who goes there?" calls $ChosenOneName. "Friends!" answers a voice, much too cheerfully, and the shape turns toward you: a skiff crammed with armed men. River pirates! They drive you into the reeds of the bank, and you leap ashore to fight.
+=== card 8: 10 10 0 240 0 ===
+"Who goes there?" An old voice answers: a fisherman, out to his eel traps. He comes alongside and sells you a basket of smoked eels for $Money1, and you all eat like abbots while the fog burns away.
+=== card 9: 10 10 0 240 0 ===
+The pirates who can still swim are gone into the fog. In their skiff you find what they took from other travellers: $Money1. The boatmen will sing of this fight in every tavern on the river.
+=== card 10: 10 10 0 240 0 ===
+You scramble back aboard, and the boatmen pole furiously away into the fog with the pirates' curses fading behind you.
+=== card 11: 10 10 0 240 0 ===
+You come to on the deck with aching heads. The pirates have taken everything they could carry, from your boots to your purses, and gone back into the fog.

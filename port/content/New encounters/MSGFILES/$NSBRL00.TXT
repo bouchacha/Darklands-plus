@@ -1,0 +1,24 @@
+# $NSBRL00: a brawl spills out (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A shutter bangs, then a door, and a knot of roaring men tumbles out of a tavern into the dark lane: carters, a dyer with blue arms, two journeymen, a soldier with a broken jug in his fist. Someone has cheated at dice, or called someone's sister a name, or both. A bench comes flying after them, then the tavern-keeper, wringing his apron.
+\14"Masters, help! They'll wreck my house, and the watch never comes down this lane!" You...
+\14\06...\1dwade in and knock heads together.
+\15...\1dhaul them apart and talk them down.
+\15...\1dstand back in a doorway and keep out of it.
+=== card 1: 10 10 0 240 0 ===
+You wade in with fists and elbows. In a moment the brawlers forget their quarrel with one another and remember that they all hate strangers.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName plucks the soldier off the dyer by his collar, steps between them and starts talking: of the watch, of the bailiff's fines, of how much better beer tastes than blood. One by one the brawlers slink back inside, grumbling.
+\14The tavern-keeper sets out bread, sausage and a jug of his best for you. The whole lane will hear who kept the peace in it.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName steps between them and takes a bench across the shoulders for $his trouble. Now it is your fight too.
+=== card 4: 10 10 0 240 0 ===
+You stand back in a doorway while the brawl rolls up and down the lane, until the watch's horn sounds and the brawlers scatter like hens. It was none of your business, and you leave it that way.
+=== card 5: 10 10 0 240 0 ===
+The brawlers who can still stand stagger off into the night holding their heads, and one of them leaves a good dagger in the gutter. The tavern-keeper sets out bread, sausage and a jug of his best for you, and swears the whole lane will hear who saved his house.
+=== card 6: 10 10 0 240 0 ===
+You break away and run. Behind you the brawl rolls on, and by morning the lane is telling how a band of armed strangers started it.
+=== card 7: 10 10 0 240 0 ===
+You come to in the gutter with heads like cracked bells. Somebody in the brawl has helped himself to $Money1 from your purse.
+=== card 8: 10 10 0 240 0 ===
+You come to in the gutter with heads like cracked bells. Somebody in the brawl went through your purse, and found it as empty as you did.

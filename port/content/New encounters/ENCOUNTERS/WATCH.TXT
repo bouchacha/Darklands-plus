@@ -1,0 +1,50 @@
+# The night watch: stopped in the streets after the curfew bell.
+name     The night watch
+card     $NsWat00
+picture  XNW
+where    street
+when     night
+weight   1
+vars     fine
+
+[start]
+do       money1 12 + size * 12; set fine = 48 + size * 24
+block    0
+chosen   bestattr(Cha)
+option 0                                   # explain yourselves
+  who    bestattr(Cha)
+  chance clamp(1, 95, (4 * attr(who, Cha) + skill(who, SpeakCommon)) / 5 + standing / 5 + min(15, fame / 10))
+  ok     chosen who; text 1; practice who, SpeakCommon, 1, 10, 0; hours 1; exit
+  fail   chosen who; text 2; practice who, SpeakCommon, 0, 10, 0; disable 0
+option 1                                   # offer him beer money
+  need   money >= money1
+  who    bestskill(Streetwise)
+  chance clamp(10, 95, 45 + skill(who, Streetwise) / 2)
+  ok     chosen who; text 3; pay money1; practice who, Streetwise, 1, 10, 0; exit
+  fail   chosen who; text 4; pay money1; practice who, Streetwise, 0, 10, 0; set fine = fine * 3 / 2; goto arrest
+option 2                                   # slip away down the dark lanes
+  who    party
+  chance clamp(1, 95, avgskill(Stealth) + avgagility * 2 / 3 - 10)
+  ok     text 5; practice party, Stealth, 1, 10, 0; hours 1; exit
+  fail   practice party, Stealth, 0, 10, 0; goto cornered
+option 3                                   # go with them quietly
+  chance none
+  ok     goto arrest
+
+[cornered]
+block    6
+option 0                                   # surrender
+  chance none
+  ok     set fine = fine * 2; goto arrest
+option 1                                   # fight your way past them
+  chance combat
+  ok     goto fight
+
+[arrest]
+do       money1 min(money, fine); text 7; pay money1; until 8; reputation -1, -2; exit
+
+[fight]
+do       battle SideStreet, Guard, lore / 4 + 1, random(2) + 3, Sergeant, lore % 3 + 1, 1
+         if result == Won then { text 8; reputation -10, -20; hours 1; exit }
+         if result == Fled then { rejoin; text 9; reputation -5, -10; until 5; exit }
+         money1 min(money, fine * 3); text 10; pay money1; until 8; reputation -5, -10; exit

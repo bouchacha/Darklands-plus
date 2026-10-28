@@ -1,0 +1,19 @@
+# $NWMRC00: mercenaries home from Italy (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A band of mercenaries comes swaggering down the road: sunburnt men in slashed doublets and dented breastplates, singing a song in three languages, none of them decent. They have fought for Milan or Venice, or both, and are going home with their pay. Their captain hails you. "Friends! Drink with us, buy a blade, or put your best against our champion for $Money2!"
+\14You...
+\14\15...\1dshare their wine.
+\15...\1dbuy a sword of Milanese steel for $Money1.
+\15...\1dset your best fighter against their champion.
+\15...\1dgo on your way.
+=== card 1: 10 10 0 240 0 ===
+The wine is sour Italian red and the stories are long and mostly lies, but by the end of the afternoon you know all their songs. A grizzled sergeant shows $ChosenOneName a trick the Milanese masters teach, and swears it has saved his life a dozen times.
+\14You part friends, warmed through and rested.
+=== card 2: 10 10 0 240 0 ===
+The sword is long, light and wickedly sharp, with a Milanese armourer's mark on the blade. "Took it off a Venetian," says the captain. "He won't be needing it."
+=== card 3: 10 10 0 240 0 ===
+The mercenaries form a ring. Their champion, a scarred giant with a blunted sword, comes on fast; $ChosenOneName gives ground, gives more, then steps inside his cut and lays $his weapon against his neck. The ring roars. The captain pays $Money2 with a grin, and the champion stands $ChosenOneName a drink.
+=== card 4: 10 10 0 240 0 ===
+The mercenaries form a ring. Their champion, a scarred giant with a blunted sword, feints high, cuts low, and cracks $ChosenOneName across the ribs. The captain pockets $Money2 and helps $him up. "Not bad. Come to Italy, and we'll make a soldier of you."
+=== card 5: 10 10 0 240 0 ===
+You return the captain's salute and go on your way. Their song follows you a long way down the road.

@@ -1,0 +1,33 @@
+# The timber raft: raftsmen and their great raft block the channel.
+name     The timber raft
+card     $NbRaf00
+picture  XCOAST
+where    boat
+when     day
+weight   1
+
+[start]
+block    0
+chosen   bestattrskill(Str, Artifice)
+option 0                                   # help free the raft (Strength, Artifice)
+  who    bestattrskill(Str, Artifice)
+  chance clamp(10, 90, attr(who, Str) / 2 + skill(who, Artifice) + 15)
+  ok     chosen who; itemname 0x00; text 1; hours 2; attr party, End, -3; practice who, Artifice, 1, 10, 0; additem who, 0x00; exit
+  fail   chosen who; text 2; hours 4; attr party, End, -3; injure who, 1, 1, 5; practice who, Artifice, 0, 10, 0; exit
+option 1                                   # race through the gap without paying (a risk)
+  who    party
+  chance clamp(15, 75, 30 + maxskill(Artifice) / 2 + avgagility / 3)
+  ok     money1 size * 12; text 3; gain money1; exit
+  fail   chosen slowest; text 4; hours 2; keepitems slowest, clamp(1, 95, attr(slowest, Agl) + 50); exit
+option 2                                   # wait until they clear the channel
+  chance none
+  ok     text 5; hours 5 + random(4); exit
+option 3                                   # go ashore with the captain and settle it
+  chance combat
+  ok     text 6; goto fight
+
+[fight]
+do       battle 0x55, Villager, lore / 4 + 1, random(4) + 3, Thug, lore % 3 + 1, 1
+         if result == Won then { money1 size * 24; text 7; gain money1; hours 1; exit }
+         if result == Fled then { rejoin; text 8; hours 4; exit }
+         money1 min(money, 360); text 9; pay money1; hours 2; exit

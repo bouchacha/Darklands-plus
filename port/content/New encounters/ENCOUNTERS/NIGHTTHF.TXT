@@ -1,0 +1,31 @@
+# Thieves in the night: someone at your packs in the hour before dawn.
+name     Thieves in the night
+card     $NcThf00
+picture  XHIDDEN2
+where    camp
+when     any
+weight   1
+
+[start]
+do       money1 min(money, random(96) + 24)
+block    0
+chosen   bestattr(Per)
+option 0                                   # the watch wakes in time (Perception)
+  who    bestattr(Per)
+  chance clamp(10, 90, attr(who, Per) + 20)
+  ok     chosen who; itemname 0x07; text 1; additem who, 0x07; exit
+  fail   chosen who; text 2; pay money1; exit
+option 1                                   # run them down on foot (Agility)
+  who    bestattr(Agl)
+  chance clamp(10, 85, attr(who, Agl) + skill(who, Woodwise) / 2)
+  ok     chosen who; money1 random(36) + 12; text 3; gain money1; practice who, Woodwise, 1, 10, 0; exit
+  fail   chosen who; text 4; injure who, 1, 1, 5; keepitems who, 75; practice who, Woodwise, 0, 10, 0; exit
+option 2                                   # ride after them (Riding)
+  only   mounted
+  who    bestskill(Riding)
+  chance clamp(10, 90, skill(who, Riding) + attr(who, Agl) / 2)
+  ok     chosen who; money1 random(48) + 24; text 5; gain money1; practice who, Riding, 1, 10, 0; exit
+  fail   chosen who; text 6; pay money1; hours 4; practice who, Riding, 0, 10, 0; exit
+option 3                                   # lie still and count what is gone
+  chance none
+  ok     text 7; pay money1; exit

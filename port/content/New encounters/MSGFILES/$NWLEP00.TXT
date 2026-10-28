@@ -1,0 +1,28 @@
+# $NWLEP00: the lepers' clapper (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A wooden clapper rattles beside the road. Three figures in grey hooded cloaks stand well back among the bushes, as the law bids them, their faces wrapped in rags: lepers, cast out of their village to live on what travellers give. One holds out a bowl on the end of a long pole.
+\14"Alms, good masters, for the love of God!"
+\14You...
+\14\15...\1dput $Money1 in the bowl.
+\15...\1dgo to them and tend their sores.
+\16...\1dpray to a saint for them.
+\15...\1ddrive them off with stones.
+\15...\1dhurry past.
+=== card 1: 10 10 0 240 0 ===
+The bowl swings back on its pole, and the lepers bow until their foreheads touch the earth. "God reward you! We will pray for you at every hour."
+\14And whose prayers would God hear more gladly than theirs?
+=== card 2: 10 10 0 240 0 ===
+The lepers shrink back in astonishment as $ChosenOneName comes among them. $He washes their sores with wine, dresses them with salve and clean linen, and binds their feet so they can walk.
+\14It will not cure them. But for the first time in years someone has touched them without fear, and they weep.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName does what $he can, but the sores are deep and foul, and $his hands are clumsy with fear. That night a fever takes $him, from the foul air or from the fear itself, and in the morning $he is still weak and shaking.
+\14The lepers bless $him for trying all the same.
+=== card 4: 10 10 0 240 0 ===
+As $ChosenOneName prays to $NamedOneName, the lepers kneel in the dust and pray with $him. When they rise, the youngest, a girl of no more than twelve, is weeping. "The pain," she whispers. "It has gone out of my hands."
+\14They will remember you in their prayers for as long as they live.
+=== card 5: 10 10 0 240 0 ===
+The lepers pray with you, but no sign is given. They thank you all the same.
+=== card 6: 10 10 0 240 0 ===
+You shout and throw stones until the lepers stumble away into the bushes, their clapper rattling. The law is on your side. Whether God is, is another matter.
+=== card 7: 10 10 0 240 0 ===
+You give the lepers a wide berth and hurry on, as most travellers do. The clapper rattles on behind you.

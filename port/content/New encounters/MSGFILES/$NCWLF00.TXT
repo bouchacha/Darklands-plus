@@ -1,0 +1,21 @@
+# $NCWLF00: eyes beyond the firelight (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Late in the night the horses start and stamp at their tethers. Beyond the firelight there are eyes: green sparks that come and go between the trees, more of them each time you look. A long howl rises, and another answers it from the far side of the camp. Wolves, and hungry ones, to come so close to men.
+\14You...
+\14\15...\1dpile wood on the fire and keep it blazing until dawn.
+\06...\1dtake up burning brands and drive them off.
+\15...\1dkeep a double watch until morning.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName drags in dead branches and keeps the fire roaring all night. The eyes circle, and creep closer, and creep back again. At dawn the howling moves off into the hills. Nobody has slept much.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName piles on wood, but it is green and wet, and smothers the fire instead of feeding it. As the flames sink, grey shapes slip in from every side.
+=== card 3: 10 10 0 240 0 ===
+You snatch burning branches from the fire and rush at the eyes, shouting. The wolves give way, then turn: there are more of them than you thought.
+=== card 4: 10 10 0 240 0 ===
+Two of you stay awake at a time, back to back by the fire with weapons drawn. The eyes circle until the sky greys, then melt away. You sleep half the morning to make up for it, and set out stiff and heavy-eyed.
+=== card 5: 10 10 0 240 0 ===
+The last wolves slink off into the dark, yelping. When the sun comes up you skin the biggest of the dead: a $ItemName, thick with winter fur.
+=== card 6: 10 10 0 240 0 ===
+You scatter into the dark with the pack at your heels, and only after sunrise do you find one another again, and the cold ashes of your camp.
+=== card 7: 10 10 0 240 0 ===
+The wolves drag you down one after another, snapping and tearing, until the dawn and your flailing brands drive them off at last. You set out late, bandaged and limping.

@@ -1,0 +1,19 @@
+# $NBSHA00: aground in the shallows (New encounters)
+=== card 0: 10 10 0 240 0 ===
+With a long grinding shudder the boat runs onto a gravel bar and stops dead. The river is low after the dry months, and the steersman curses the channel, the drought and the saints, in that order. The boatmen leap over the side, knee-deep, and set their shoulders to the hull.
+\14"Masters!" calls the captain. "Lend us your backs, or we sit here till the autumn rains!"
+\14You...
+\14\15...\1djump in and heave with the boatmen.
+\15...\1dsit tight and wait for the river to rise.
+\15...\1dhelp lighten her: carry the cargo along the bar.
+=== card 1: 10 10 0 240 0 ===
+Boatmen and passengers together, you heave until your eyes bulge. Then, with a groan of timber, the boat slides off the gravel into deep water, and half of you fall into the river.
+\14Laughing and dripping, the captain hands back a groschen of each of your fares: $Money1. "The best crew I have had all year."
+=== card 2: 10 10 0 240 0 ===
+You heave until your backs crack, but the boat has settled into the gravel like a hen on her eggs. In the end you all sit on the bank until evening, when a barge comes down the river and drags her off with a hawser.
+=== card 3: 10 10 0 240 0 ===
+You stretch out on the bales and wait, while the boatmen fish and dice and quarrel. At last it rains in the hills, and after a day or two of idleness the river creeps up over the gravel, the boat lifts, and you float off as if nothing had happened, well rested.
+=== card 4: 10 10 0 240 0 ===
+Up to your knees in the cold river, you carry bales and casks along the bar to the deep water below it, while the lightened boat is walked over the gravel. It takes the whole morning, but nothing is lost.
+=== card 5: 10 10 0 240 0 ===
+Halfway along the bar $ChosenOneName slips on the weed-slick stones and goes down with a splash, and some of what $he carried goes bobbing away downstream before anyone can catch it.

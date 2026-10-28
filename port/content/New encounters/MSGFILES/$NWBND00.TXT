@@ -1,0 +1,20 @@
+# $NWBND00: the boundary stone (New encounters)
+=== card 0: 10 10 0 240 0 ===
+In a field two crowds of peasants with flails and pitchforks face each other across a single grey stone. Fresh earth lies about its foot: someone dug it up and set it down again in the night, and each village swears the other did it.
+\14The reeve of Unterbach waves a crumbling charter. "This says where the stone stands, but none of us can read it!" Behind his back, the reeve of Oberbach shows you a purse, and winks. You...
+\14\15...\1dread them the old charter.
+\15...\1dread the charter as Oberbach's reeve would like.
+\15...\1djudge between them as best you can.
+\15...\1dstay out of it.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName picks through the faded Latin: "...from the spring below the ash tree, forty rods to the stone marked with the cross..." The rods are paced out and the stone set back where it belongs. Oberbach grumbles, but even its reeve cannot argue with the abbot's seal. The tale of the learned strangers will reach $NearestCity.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName frowns over the cramped, abbreviated Latin, turns the charter this way and that, and has to admit defeat. Both crowds groan, and the reeves begin shouting again.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName reads out, with great solemnity, words that are nowhere on the parchment. The stone stays where it is, Oberbach cheers, and its reeve slips you $Money1 when no one is looking. Unterbach goes home cursing. The charter knows better, and so does God.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName walks the furrows, questions the oldest man of each village and sets the stone halfway between where each says it stood. Neither side is happy, which is the mark of a fair judgement, and both share their beer with you before you go.
+=== card 5: 10 10 0 240 0 ===
+Both villages agree on one thing at last: that $ChosenOneName is a meddling fool. A clod of earth with a stone in it catches $him on the head, and you leave under a hail of curses that will follow you to market.
+=== card 6: 10 10 0 240 0 ===
+You leave them to it. Behind you the shouting rises, but whether it comes to blows you never learn.

@@ -1,0 +1,29 @@
+# $NWCOU00: the courier's letter (New encounters)
+=== card 0: 10 10 0 240 0 ===
+In the mud of the road lies a leather wallet, dropped by some hurrying rider. Inside is a single letter, folded small and sealed with red wax, addressed in a fine hand to Konrad Weidner, merchant, at $NearestCity.
+\14You...
+\14\15...\1dbreak the seal and read it.
+\15...\1dcarry it to $NearestCity.
+\15...\1dsell it in $NearestCity to whoever will pay for it.
+\15...\1dleave it lying in the mud.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName breaks the seal and reads slowly, lips moving. It is from old Weidner to his son, in Latin to keep it from prying eyes: before the robber knights closed the road, he buried a strongbox of silver at the foot of the wayside cross by the old mill, on this very road. "Fetch it, and tell no one."
+\14You...
+\14\15...\1ddig up the silver for yourselves.
+\15...\1dtake the letter to his son after all.
+=== card 2: 10 10 0 240 0 ===
+The old mill is a mile on, and the cross stands where the letter says. Beneath it, wrapped in oiled cloth, is a little iron-bound box holding $Money1 in silver.
+\14Young Weidner will wait a long time for his inheritance.
+=== card 3: 10 10 0 240 0 ===
+In $NearestCity you ask your way to the Weidner house. Young Weidner reads the letter, looks at the broken seal and then hard at you. Then he laughs. "Honest thieves! Well, I'd have read it too." He gives you $Money1 for your trouble, and tells the story all over town.
+=== card 4: 10 10 0 240 0 ===
+In $NearestCity you ask your way to the Weidner house. Young Weidner breaks the seal and reads, goes pale, then red, then embraces you. "You don't know what you've brought me!" He gives you $Money1, and a good word all over the town.
+=== card 5: 10 10 0 240 0 ===
+In $NearestCity $ChosenOneName finds a notary's clerk who buys letters and asks no questions. He weighs this one in his hand and pays $Money1.
+\14Whose secrets you have sold, and to whom, you will never know.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName offers the letter around the taverns of $NearestCity, and the wrong ears hear of it. Young Weidner arrives with two men of the watch, takes back his letter and tells all the town what kind of folk you are.
+=== card 7: 10 10 0 240 0 ===
+You leave the letter where it lies. Whatever is in it, the rain will have it soon.
+=== card 8: 10 10 0 240 0 ===
+$ChosenOneName breaks the seal, but the letter is in a crabbed Latin full of abbreviations, and after an hour $he can make out only the greeting and "Christ keep you." The seal is broken for nothing.

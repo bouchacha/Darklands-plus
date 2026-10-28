@@ -1,0 +1,25 @@
+# The runaway sow: a butcher's sow loose in the market.
+name     The runaway sow
+card     $NsPig00
+picture  FOUNTAIN
+where    street
+when     day
+weight   1
+
+[start]
+do       money1 size * 6 + 12
+block    0
+chosen   bestattr(Agl)
+option 0                                   # throw yourselves on her
+  who    bestattr(Agl)
+  chance clamp(5, 85, attr(who, Agl) + attr(who, Str) / 3 - 15)
+  ok     chosen who; text 1; attr party, End, 2; reputation 1, 2; exit
+  fail   chosen who; text 2; attr who, End, -3; exit
+option 1                                   # corner her like a hunted boar
+  who    bestskill(Woodwise)
+  chance clamp(10, 90, skill(who, Woodwise) + avgagility / 2 - 5)
+  ok     chosen who; text 3; gain money1; practice party, Woodwise, 1, 10, 0; hours 1; exit
+  fail   chosen who; money1 min(money, 24); text 4; pay money1; practice party, Woodwise, 0, 10, 0; hours 1; exit
+option 2                                   # enjoy the show
+  chance none
+  ok     text 5; hours 1; exit

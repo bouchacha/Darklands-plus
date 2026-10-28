@@ -1,0 +1,29 @@
+# The fevered passenger: a girl burning with fever, and boatmen who fear the plague.
+name     The fevered passenger
+card     $NbSck00
+picture  XCOAST2
+where    boat
+when     any
+weight   1
+
+[start]
+block    0
+chosen   bestskill(Healing)
+saints   0x73, 0x75, 0x67, 0x1b          # Roch, Sebastian, Pantaleon, Cosmas
+items    0x73, 0x70                      # Essence o'Grace, New-wind
+option 0                                   # tend her through the night (Healing)
+  who    bestskill(Healing)
+  chance clamp(10, 90, skill(who, Healing) + attr(who, Int) / 3 - 5)
+  ok     chosen who; text 1; practice who, Healing, 1, 10, 0; attr who, End, -2; attr party, DF, 3; exit
+  fail   chosen who; text 2; practice who, Healing, 0, 10, 0; attr who, End, -4; exit
+option 1 potion                            # a healing draught
+  potion 0x73, clamp(0, 99, 60 + q / 2)
+  potion 0x70, clamp(0, 99, 25 + q / 2)
+  ok     text 3; attr party, DF, 3; exit
+  fail   text 4
+option 2 saint
+  ok     text 5; reputation 1, 2; exit
+  fail   text 6
+option 3                                   # keep your distance
+  chance none
+  ok     text 7; exit

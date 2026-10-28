@@ -1,0 +1,40 @@
+# A village wedding: you are drawn into a country wedding, where the two families quarrel over the dowry.
+name     A village wedding
+card     $NwWed00
+picture  VILLAGE
+where    wild
+terrain  farmland plains
+when     day
+weight   1
+only     month >= 5 and month <= 10
+
+[start]
+do       money1 size * 12
+block    0
+chosen   bestattr(Cha)
+option 0                                   # dance and drink with the village
+  chance assured
+  ok     text 1; until 5; attr party, End, 3 + random(4); exit
+option 1                                   # lift the stone for the bride's garland
+  who    bestattr(Str)
+  chance clamp(5, 90, attr(who, Str) + attr(who, End) / 2 - 15)
+  ok     chosen who; text 2; hours 2; fame 1; exit
+  fail   chosen who; text 3; injure who, 1, 1, 5; hours 2; exit
+option 2                                   # give the couple a gift
+  need   money >= money1
+  chance none
+  ok     pay money1; text 4; attr party, DF, 2; hours 1; exit
+option 3                                   # settle the quarrel over the dowry
+  who    bestattr(Cha)
+  chance clamp(5, 90, (4 * attr(who, Cha) + skill(who, SpeakCommon)) / 5 + skill(who, Streetwise) / 4 - 5)
+  ok     chosen who; text 5; practice who, SpeakCommon, 1, 10, 0; reputation 1, 3; hours 3; attr party, End, 2 + random(3); exit
+  fail   chosen who; text 6; practice who, SpeakCommon, 0, 10, 0; goto brawl
+option 4                                   # wish them joy and go on
+  chance none
+  ok     text 7; exit
+
+[brawl]
+do       battle Clearing, Villager, 0, clamp(size, 7, random(4) + 3)
+         if result == Won then { text 8; hours 1; reputation -1, -2; exit }
+         if result == Fled then { rejoin; text 9; hours 1; exit }
+         text 10; hours 3; exit

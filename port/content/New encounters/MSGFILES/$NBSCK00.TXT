@@ -1,0 +1,23 @@
+# $NBSCK00: the fevered passenger (New encounters)
+=== card 0: 10 10 0 240 0 ===
+In the night a woman shakes you awake. Her daughter, a girl of eleven or twelve, lies under a blanket by the mast, burning with fever and talking to people who are not there.
+\14"The boatmen want to put us off at the next village," the mother whispers. "They say it is the plague. It is not the plague, is it? You have travelled, you know things. Please."
+\14You...
+\14\15...\1dtend the girl through the night.
+\10...\1dgive her a healing draught.
+\16...\1dpray to a saint for her.
+\15...\1dkeep your distance.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName feels the girl's neck and armpits, finds no plague swellings, and tells the boatmen so in a voice that ends the argument. All night $he cools her brow with river water and spoons willow-bark tea between her lips. Toward dawn the fever breaks in a flood of sweat, and the girl asks, very crossly, for bread.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName sits up with the girl all night, cooling her brow, but the fever only climbs. At dawn the boatmen put mother and daughter ashore at a fishing village, and $ChosenOneName, aching and shivering, wonders whether the fever has touched $him too.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName coaxes the $ItemName between the girl's lips, a drop at a time. Within the hour her breathing eases, and by dawn the fever is gone. The mother kisses your hands, and the boatmen make room for them again by the mast.
+=== card 4: 10 10 0 240 0 ===
+The girl coughs the draught up again before it can do her any good. The fever burns on.
+=== card 5: 10 10 0 240 0 ===
+You pray by the girl's side through the dark hours. Before dawn she sighs and falls into a deep, quiet sleep, and when she wakes the fever has left her. The boatmen, who watched you pray, will tell of it at the landing.
+=== card 6: 10 10 0 240 0 ===
+You pray, but the girl only tosses and mutters. The fever burns on.
+=== card 7: 10 10 0 240 0 ===
+You keep to the stern and let the mother sit alone with her child. At the next village the boatmen put them both ashore, and the woman does not look back at you.

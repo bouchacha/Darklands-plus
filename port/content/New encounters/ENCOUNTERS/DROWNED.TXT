@@ -1,0 +1,28 @@
+# The drowned man: a body in the reeds, with a full purse at his belt.
+name     The drowned man
+card     $NbDrw00
+picture  XLANDHO
+where    boat
+when     day
+weight   1
+
+[start]
+block    0
+chosen   bestattr(Agl)
+option 0                                   # bring him out and bury him
+  who    bestskill(Religion)
+  chance assured
+  ok     text 1; hours 3; attr party, DF, skill(who, Religion) / 8 + 2; practice party, Virtue, 1, 10, 0; reputation 1, 3; exit
+option 1                                   # hook the purse as you pass (Agility)
+  who    bestattr(Agl)
+  chance clamp(10, 90, attr(who, Agl) + 35)
+  ok     chosen who; money1 random(96) + 48; text 2; gain money1; attr party, DF, -4
+         if roll(30) goto bailiff
+         exit
+  fail   chosen who; text 3; attr party, DF, -2; exit
+option 2                                   # leave him to the river
+  chance none
+  ok     text 4; exit
+
+[bailiff]
+do       text 5; reputation -1, -3; exit

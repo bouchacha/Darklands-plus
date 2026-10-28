@@ -1,0 +1,31 @@
+# $NSGLV00: the lady's glove (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A curtained litter sways down the street between two horses, with liveried servants and four men-at-arms clearing the way with their staves. As it passes, a white hand lets fall a glove of embroidered kid with pearl buttons, right into the muck at your feet. The curtain stays open a moment longer than it needs to.
+\14You...
+\14\15...\1dreturn it with your best courtesy.
+\15...\1dslip it into your sleeve while no one is looking.
+\15...\1dlet it lie where it fell.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName wipes the glove clean, steps up to the litter with a bow fit for a duchess, and returns it with a compliment on the hand that dropped it. A lady with a pale face and bright eyes laughs and asks $his name.
+\14By evening the tale of the courteous stranger has gone round every patrician house in town.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName stoops for the glove and steps toward the litter, a little too quickly. The men-at-arms see only an armed stranger rushing their lady. A stave cracks down across $his arm, and the glove falls back into the muck.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName sets a foot on the glove, and when the litter has passed, it is in $his sleeve. That evening a goldsmith pays $Money1 for the pearl buttons and asks no questions.
+\14Somewhere a lady is wondering why no one brought back her glove.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName sets a foot on the glove and stoops for it, just as a servant looks back. "Thief! My lady's glove!" The men-at-arms wheel round.
+=== card 5: 10 10 0 240 0 ===
+You leave the glove in the muck. A servant runs back for it, wipes it on his tunic and glares at you as if it were your fault, then hurries after the litter.
+=== card 6: 10 10 0 240 0 ===
+The men-at-arms surround $ChosenOneName, staves raised, and one has his sword half drawn. "Back, you dog! Down in the muck where you belong!" Behind the curtain the lady says nothing at all. You...
+\14\15...\1dkneel and hold out the glove.
+\06...\1dstand your ground and fight them.
+=== card 7: 10 10 0 240 0 ===
+$ChosenOneName kneels in the muck and holds up the glove. The sergeant snatches it and lays his stave across $ChosenOneName's back for good measure. The litter moves on, and the street laughs at the strangers on their knees.
+=== card 8: 10 10 0 240 0 ===
+The lady's men lie groaning in the street, and the litter has gone off at a gallop. You have beaten a noble house's men in broad daylight over a glove. Her kinsmen sit on the council, and they will not forget your faces.
+=== card 9: 10 10 0 240 0 ===
+You break away and run, with the men-at-arms bellowing behind you. By evening the whole town is talking of the armed strangers who set upon a lady's litter.
+=== card 10: 10 10 0 240 0 ===
+The men-at-arms beat you into the muck and leave you there. It is hours before you can stand, and by then the street has told the tale to anyone who will listen.

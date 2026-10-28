@@ -1,0 +1,22 @@
+# $NCTHF00: thieves in the night (New encounters)
+=== card 0: 10 10 0 240 0 ===
+In the black hour before dawn the fire has sunk to embers, and $ChosenOneName, on watch, has nodded off over $his knees. A small sound: the clink of a buckle, the creak of a pack strap. Shadows are crouched over your baggage at the edge of the camp, and one of them is already backing into the trees with a bundle in his arms.
+\14You...
+\14\15...\1dleap up and roar the camp awake.
+\15...\1drun the thieves down on foot.
+\15...\1dmount up and ride after them.
+\15...\1dlie still, let them go, and count what is gone.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName is on $his feet with a roar that would wake a churchyard. The thieves drop everything and bolt into the trees, so fast that one of them leaves his knife behind in the grass: a $ItemName. You lose nothing but the rest of the night's sleep.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName blinks, gropes for $his weapon and trips over a sleeping companion. By the time you are all on your feet the thieves are gone, and so is a purse from your baggage: $Money1.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName crashes through the brush after them and brings one down in a ditch: a scrawny lad, who throws down your bundle and a purse of his own and begs for his life. You let him run. The purse holds $Money1, no doubt honestly come by.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName plunges after them into the dark, and straight into a fallen tree. By the time $he is up again, bleeding from the shins, the thieves are long gone, and some of $ChosenOneName's own things with them.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName vaults onto $his horse bareback and rides them down in the meadow below the camp. They throw down your bundle and a purse they took from some other traveller, $Money1, and scatter like hares.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName vaults onto $his horse, but in the dark it shies at a ditch and throws $him. It takes half the morning to catch the beast again, and the thieves are long gone with a purse from your baggage: $Money1.
+=== card 7: 10 10 0 240 0 ===
+You lie still and let them work. They are quick and quiet and know their trade: when the light comes, a purse is gone from your baggage, $Money1. Nobody is hurt, at least.

@@ -1,0 +1,37 @@
+# The blind beggar: a beggar at the church door, who may or may not be blind.
+name     The blind beggar
+card     $NsBeg00
+picture  MS016
+where    street
+when     any
+weight   2
+vars     fake
+
+[start]
+do       set fake = roll(60); money1 clamp(6, 24, size * 4)
+block    0
+chosen   bestattrskill(Per, Streetwise)
+option 0                                   # alms
+  need   money >= money1
+  chance none
+  ok     text 1; pay money1; attr party, DF, 1 + skill(who, Religion) / 20; practice party, Virtue, 1, 10, 0; exit
+option 1                                   # put his blindness to the test
+  who    bestattrskill(Per, Streetwise)
+  chance clamp(5, 90, attr(who, Per) + skill(who, Streetwise) / 2 - 5)
+  ok     chosen who; practice who, Streetwise, 1, 10, 0; if fake goto exposed else goto blind
+  fail   chosen who; text 2; reputation -1, -2; practice who, Streetwise, 0, 10, 0; exit
+option 2                                   # pass him by
+  chance none
+  ok     text 3; exit
+
+[blind]
+do       money1 min(money, 12); text 4; pay money1; attr party, DF, 1; exit
+
+[exposed]
+block    5
+option 0                                   # fetch the beggar-warden
+  chance none
+  ok     text 6; reputation 1, 2; hours 1; exit
+option 1                                   # take his share and keep quiet
+  chance none
+  ok     money1 random(24) + 12; text 7; gain money1; attr party, DF, -2; exit

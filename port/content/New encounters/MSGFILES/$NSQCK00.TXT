@@ -1,0 +1,24 @@
+# $NSQCK00: the quack's cart (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A painted cart stands at the corner, hung with flasks, dried toads and a stuffed lizard from beyond the sea. On its tailboard a man in a doctor's red gown is crying his wares: "Theriac of Venice! The true water of life! For the plague, the stone, the falling sickness, worms, warts and a cold wife! Only $Money1 the flask!"
+\14A lame boy in the crowd drinks, throws away his crutch and capers. He seems to have had practice. You...
+\14\15...\1dbuy a flask.
+\15...\1dshow the crowd what he is.
+\15...\1dleave him to his customers.
+=== card 1: 10 10 0 240 0 ===
+The doctor takes your money with a flourish. Most of his flasks are surely ditch water, but by some theft or accident this one is not: when you unstop it, it smells of rosemary, wine and true alchemical art. A real healing draught, if not a strong one.
+=== card 2: 10 10 0 240 0 ===
+The doctor takes your money with a flourish. Later you unstop the flask and taste it: ditch water, burnt sugar and a splash of vinegar. The true water of life, at $Money1 the flask.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName starts to name what is in the flasks, but the doctor drowns $him in a torrent of Galen and Avicenna, in Latin, in Greek and in something that may be Arabic. The crowd jeers at the strangers who would grudge sick folk their cure.
+=== card 4: 10 10 0 240 0 ===
+You leave the doctor to his customers. By the time you turn the corner he has sold six more flasks, and the boy has found his crutch again.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName takes a flask, sniffs it, tastes it and laughs out loud: ditch water, burnt sugar and vinegar, and the "theriac" is treacle and pepper. The crowd begins to mutter.
+\14The doctor bends down from his tailboard and murmurs, "A quarter of today's takings, friend, and you found nothing wrong." You...
+\14\15...\1dtell the crowd what is in his flasks.
+\15...\1dtake his quarter and hold your tongue.
+=== card 6: 10 10 0 240 0 ===
+"Ditch water and treacle!" cries $ChosenOneName, and pours a flask into the gutter. The crowd roars. The doctor whips up his mule and flees across the square under a hail of cabbages, his flasks bursting behind him. The town's barber-surgeons and apothecaries will be glad to hear who chased him off.
+=== card 7: 10 10 0 240 0 ===
+The doctor counts $Money1 into $ChosenOneName's palm, loudly praising $his learning for the crowd to hear. Behind you a mother buys a flask for her feverish child. It will not help her, and you know it.

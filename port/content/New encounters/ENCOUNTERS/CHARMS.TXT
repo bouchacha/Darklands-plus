@@ -1,0 +1,35 @@
+# The cunning man: a charm-seller with amulets and a sly tongue.
+name     The cunning man
+card     $NwChm00
+picture  XOLDMAN
+where    wild
+terrain  road farmland plains woods
+when     day
+weight   1
+
+[start]
+do       money1 clamp(36, 180, size * 30)
+block    0
+chosen   bestskill2(Religion, Alchemy)
+option 0                                   # buy his charms
+  need   money >= money1
+  chance none
+  ok     text 1; pay money1; additem leader, 0x54; exit
+option 1                                   # look closely at his holy wax and relics
+  who    bestskill2(Religion, Alchemy)
+  chance clamp(5, 90, max(skill(who, Religion), skill(who, Alchemy)) + attr(who, Int) / 3 - 10)
+  ok     chosen who; text 2; attr party, DF, 1; reputation 1, 2
+         if skill(who, Religion) >= skill(who, Alchemy) then practice who, Religion, 1, 10, 0 else practice who, Alchemy, 1, 10, 0
+         exit
+  fail   chosen who; text 3
+         if skill(who, Religion) >= skill(who, Alchemy) then practice who, Religion, 0, 10, 0 else practice who, Alchemy, 0, 10, 0
+         disable 1
+option 2                                   # haggle with him, rogue to rogue
+  who    bestskill(Streetwise)
+  need   money >= money1 / 3
+  chance clamp(5, 90, skill(who, Streetwise) + attr(who, Cha) / 3)
+  ok     chosen who; money1 money1 / 3; text 4; pay money1; additem leader, 0x54; practice who, Streetwise, 1, 10, 0; exit
+  fail   chosen who; money1 money1 * 3 / 2; text 5; practice who, Streetwise, 0, 10, 0; disable 2
+option 3                                   # go on
+  chance none
+  ok     text 6; exit

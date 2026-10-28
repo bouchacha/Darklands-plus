@@ -1,0 +1,42 @@
+# The shepherd's lament: wolves take a poor shepherd's sheep night after night.
+name     The shepherd's lament
+card     $NwShp00
+picture  XWOLF
+where    wild
+terrain  hills plains farmland mountains pinewood
+when     day
+weight   1
+vars     atnight
+
+[start]
+do       money1 48
+block    0
+chosen   spotter
+option 0                                   # watch the flock tonight (the whole pack comes)
+  chance combat
+  ok     set atnight = 1; goto night
+option 1                                   # track them to their den (fewer wolves, by day)
+  who    spotter
+  chance clamp(10, 90, maxskill(Woodwise) + maxattr(Per) / 2 - 10)
+  ok     chosen who; text 2; hours 3; practice party, Woodwise, 1, 10, 0; goto fight
+  fail   chosen who; text 3; hours 4; practice party, Woodwise, 0, 10, 0; disable 1
+option 2                                   # give him coin
+  need   money >= money1
+  chance none
+  ok     text 7; pay money1; attr party, DF, 2; practice party, Virtue, 1, 5, -1; exit
+option 3                                   # go on
+  chance none
+  ok     text 8; exit
+
+[night]
+picture  XDOGWOOD
+do       text 1; until 23; goto fight
+
+[fight]
+do       if atnight then battle Wilds, Wolf, lore / 4 + 1, random(4) + 3 else battle Clearing, Wolf, lore / 4 + 1, random(3) + 2
+         if result == Won then { text 4; additem leader, 0x93; fame 1; reputation 1, 2; goto after }
+         if result == Fled then { rejoin; text 5; goto after }
+         text 6; injure party, 1, 1, 5; goto after
+[after]
+do       if atnight then until 6 else hours 2
+         exit

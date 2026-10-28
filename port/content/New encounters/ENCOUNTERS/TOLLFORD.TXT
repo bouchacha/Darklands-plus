@@ -1,0 +1,37 @@
+# Toll at the ford: a lord's men demand a toll at a river ford, rather more than the lord ever granted.
+name     Toll at the ford
+card     $NwTol00
+picture  ARIVE
+where    wild
+terrain  road plains farmland woods hills
+when     day
+weight   1
+
+[start]
+do       money1 size * 8 + mounted * size * 8
+block    0
+option 0                                   # pay the toll
+  need   money >= money1
+  chance none
+  ok     text 1; pay money1; exit
+option 1                                   # read the charter (the lawful toll is a quarter)
+  who    bestskill(ReadWrite)
+  chance clamp(5, 90, skill(who, ReadWrite) + skill(who, Latin) / 2 + attr(who, Int) / 3 - 10)
+  ok     chosen who; money1 min(money, size * 2 + mounted * size * 2); text 2; pay money1; practice who, ReadWrite, 1, 10, 0; reputation 1, 2; exit
+  fail   chosen who; text 3; hours 1; practice who, ReadWrite, 0, 10, 0; disable 1
+option 2                                   # swim the horses across upstream
+  need   mounted
+  who    worstskill(Riding)
+  chance clamp(10, 90, minskill(Riding) * 2 + 20)
+  ok     text 4; hours 2; practice party, Riding, 1, 10, 0; exit
+  fail   chosen who; money1 money1 * 2; text 5; injure who, 1, 1, 5; hours 1; practice party, Riding, 0, 10, 0; disable 2
+option 3                                   # force a way across (the lord's lawful men)
+  chance combat
+  ok     goto fight
+
+[fight]
+do       battle Clearing, Guard, lore / 4 + 1, random(3) + 3, Sergeant, lore % 3 + 1, 1
+         if result == Won then { money1 random(60) + 24; text 6; gain money1; hours 1; reputation -3, -6; exit }
+         if result == Fled then { rejoin; text 7; hours 4; exit }
+         if result == Surrendered then { money1 min(money, money1 * 3); text 8; pay money1; hours 1; exit }
+         money1 min(money, money1 * 3 + 120); text 9; pay money1; days 1; exit
