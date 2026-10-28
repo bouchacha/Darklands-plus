@@ -421,7 +421,8 @@ static void stop(const char *why)
 }
 
 static int leaving_flag(int v);
-extern "C" void citynav_user_input(void) { if (goal >= 0) stop("stopped."); leaving_flag(0); }
+extern "C" void boattrip_user_input(void);
+extern "C" void citynav_user_input(void) { if (goal >= 0) stop("stopped."); leaving_flag(0); boattrip_user_input(); }
 extern "C" int citynav_busy(void) { return goal >= 0; }
 extern "C" { extern int hdtext_fast_fades; }
 
@@ -608,6 +609,31 @@ extern "C" void citynav_tick(void)
     }
     if (best < 0 || bd >= 1000) { stop("not found in this city."); return; }
     click_line(best);
+}
+
+/* for the boats (ui/boattrip.cpp): Go to a place by its name in the list; the card on show; an option of the
+   menu on show chosen (0 when it is not among the lines); a text read on */
+extern "C" void citynav_go_place(const char *label) { for (int d = 0; d < D_N; d++) if (!strcmp(DEST[d].label, label)) { citynav_go(d); return; } }
+extern "C" const char *citynav_card_name(void) { static std::string c; c = card_now(); return c.c_str(); }
+extern "C" int citynav_choose_option(int opt)
+{
+    int n = (s8)g_rb(GV_card_layout);
+    for (int i = 0; i < n && i < 20; i++) if ((s8)g_rb((u16)(GV_card_layout_opt + i)) == opt) { click_line(i); return 1; }
+    return 0;
+}
+extern "C" void citynav_read_on(void) { plat_click_game(304, 12); last_act = plat_ticks_ms(); }
+extern "C" int citynav_choose_text(const char *words)          /* the line whose words (as the card file has them, lower case) hold `words` */
+{
+    if (!cards_loaded) load_cards();
+    std::vector<std::string> blocks = card_blocks(card_now());
+    int blk = (s16)g_rw(GV_shown_block), n = (s8)g_rb(GV_card_layout);
+    if (blk < 0 || blk >= (int)blocks.size()) return 0;
+    std::vector<std::string> opts = block_options(blocks[blk]);
+    for (int i = 0; i < n && i < 20; i++) {
+        int o = (s8)g_rb((u16)(GV_card_layout_opt + i));
+        if (o >= 0 && o < (int)opts.size() && opts[o].find(words) != std::string::npos) { click_line(i); return 1; }
+    }
+    return 0;
 }
 
 extern "C" void citynav_go(int dest)

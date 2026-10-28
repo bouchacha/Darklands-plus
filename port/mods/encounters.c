@@ -288,7 +288,10 @@ static int run_resume;                   /* the street card a street encounter c
    voyage on to the arrival ($Enter00, card 0x5a) */
 static void enc_leave(void)
 {
-    if (rt.where == WH_STREET) g_ww(V_NEXT_CARD, (u16)(rt.resume > 0 ? rt.resume : g_daylight() ? 6 : 8));   /* (a save made during one: the main street) */
+    if (rt.where == WH_STREET) {                 /* (the street as the hour has it now: a night in the tower ends by day; a save made during one: the main street) */
+        int side = rt.resume == 9 || rt.resume == 0x0a, day = g_daylight() != 0;
+        g_ww(V_NEXT_CARD, (u16)(side ? (day ? 9 : 0x0a) : (day ? 6 : 8)));
+    }
     else if (rt.where == WH_BOAT) { boat_done = 1; g_ww(V_NEXT_CARD, 0x5a); }
     else exit_to_map();
 }
@@ -466,7 +469,7 @@ static const struct { const char *n; int v; } CONSTS[] = {
     { "Brigand", 8 }, { "Madman", 9 }, { "Villager", 0x0b }, { "Thug", 0x0c }, { "Rebel", 0x0e }, { "Lackey", 0x10 },
     { "Henchman", 0x11 }, { "Soldier", 0x15 }, { "Raubritter", 0x23 }, { "Monk", 0x1d }, { "BadFriar", 0x1f }, { "Cultist", 0x29 },
     { "Dwarf", 0x2c }, { "Skeleton", 0x2d }, { "Gnome", 0x2e }, { "Kobold", 0x30 }, { "KoboldKing", 0x19 }, { "Undead", 0x32 },
-    { "WildHunter", 0x3c }, { "Zealot", 0x49 }, { "BanditSergeant", 0x4e },
+    { "WildHunter", 0x3c }, { "Zealot", 0x49 }, { "BanditSergeant", 0x4e }, { "Pirate", 0x0a },
     /* battlefields */
     { "Wilds", 0x2f }, { "Surrounded", 0x30 }, { "Clearing", 0x2e }, { "Cave", 0x68 },   /* (a cave holds one enemy only) */
     { "MainStreet", 0x14 }, { "SideStreet", 0x12 },              /* a town's streets (where street: the game's $CityT00 fields) */

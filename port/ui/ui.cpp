@@ -543,7 +543,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (vt_on < 0) { vt_on = getenv("DL_VTX_TRACE") != 0; vt_time = getenv("DL_UI_TIME") != 0; }
     vt_frame++;
     if (game_mode() == GM_MAP) assist_leader_restore();     /* (back on the map: the leader the player chose) */
-    if (!open_menu && !open_map && !open_goto) citynav_tick();
+    if (!open_menu && !open_map && !open_goto) { citynav_tick(); boattrip_tick(); }
     if (open_goto && !goto_allowed()) open_goto = false;
     levelmap_frame();
     if (game_mode() == GM_CARD || game_mode() == GM_MAP) libraries();   /* (kept for the character sheet, which cannot read them: ui/libraries.h) */

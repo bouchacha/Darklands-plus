@@ -321,6 +321,8 @@ int testcmd_run(const char *cmd, const char *arg)
             fprintf(stderr, "politics started at %d: %d\n", (s16)g_rw(G_CUR_LOC), politics_test_start());
         }
         else if (!strcmp(cmd, "upolitage")) { void politics_test_age(int); politics_test_age(atoi(arg)); }   /* test: the season here began N days earlier */
+        else if (!strcmp(cmd, "uchoose")) { void cardview_choose(int); cardview_choose(atoi(arg)); }   /* test: the card's option N chosen (by its number, as Go to does) */
+        else if (!strcmp(cmd, "uboat")) { void boattrip_test(int); boattrip_test(arg[0] ? atoi(arg) : -1); }   /* test: by boat from this town to TO (none: the best gain), ui/boattrip.cpp */
         else if (!strcmp(cmd, "ufind")) { void worldmap_test_find(const char *); worldmap_test_find(arg); }   /* test: the world map's Find, the text then Enter */
         else if (!strcmp(cmd, "uquicksave")) { void saves_quick_save(void); saves_quick_save(); }
         else if (!strcmp(cmd, "uquickload")) { void saves_quick_load(void); saves_quick_load(); }

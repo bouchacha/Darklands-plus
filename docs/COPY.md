@@ -438,117 +438,119 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:254` | The game no longer asks for an alchemical symbol from the printed manual when the party first sets out. |
 | `mods/fixes.c:255` | Weapon potions wear off and don't ruin weapons |
 | `mods/fixes.c:256` | Deadly Blade, Strongedge and Great Power never wore off, and their bonuses piled up past what the game can hold: after a few potions (or one Great Power), weapons, especially bows, hit for almost nothing. They now wear off after about a day, and several at once add up without going past that limit. |
-| `mods/fixes.c:257` | No quest destinations off the edge of the land |
-| `mods/fixes.c:258` | One cave, south-east of Basel, lies a row beyond the bottom edge of the land, where the party cannot walk, so quests sent there could never be finished. It is moved onto the land, where the party can reach it. |
-| `mods/fixes.c:259` | Weapon practice trains the leader's best weapon skill |
-| `mods/fixes.c:260` | Where a card lets the leader practice with the weapon he or she is best at, the original always trained Missile Devices. Now it trains the leader's best weapon skill. |
-| `mods/fixes.c:261` | Robbers take only what is there (no crash afterwards) |
-| `mods/fixes.c:262` | When robbers took the party's items, the game removed one item too many; a member left with nothing ended up with -1 items, and if he or she later died in battle, the game crashed. Now only what is there is taken; saved games with the fault are repaired automatically. |
-| `mods/fixes.c:263` | Nothing lost in store rooms |
-| `mods/fixes.c:264` | A store room holds 100 kinds of items, and its count of any one item ran over past 127 (shown as a negative number, then lost). Putting more in is now refused, with a message saying why. |
-| `mods/fixes.c:265` | No crash on the developers' test card |
-| `mods/fixes.c:266` | Card 0 is the developers' test card ("Try it...you will like it!"). A card that returns to the card it came from went to card 0 when it had come from no card, and the game stopped on the test card's missing picture (pics\\xhouse3.pic). It now goes on to the overland view, or to the town the party is in. |
-| `mods/fixes.c:267` | Only the armor worn wears out |
-| `mods/fixes.c:268` | Identical pieces of armor are kept as one stack, so when acid or fire wore down the one being worn, every spare of the same kind and quality carried by that member lost quality too, and all were destroyed with it. Now only the worn one suffers. |
-| `mods/fixes.c:269` | Training at the inn finds the town's teachers |
-| `mods/fixes.c:270` | When another town also had teachers at the same time, the inn's Train or Study listed nobody and showed a cost like -4096 pfennigs (and a purse that grew); the day then passed with nothing learned. The inn now lists this town's teachers and charges their fee. |
-| `mods/fixes.c:271` | Card options no longer grayed out by mistake |
-| `mods/fixes.c:272` | Getting out over a city wall, the bribe could be offered without the money (the money check was on the option to crawl out through the sewer instead); at a rebel crowd's fortress the climb with a rope was grayed out when the party had a rope; climbing a wall after the guards counted only the last member's rope; and at the wall by an old sally port each option from the second on did what the option below it should do (three "abandon the horses" options the game never handles pushed them out of step). Clothmakers' Street showed nothing by day but "leave": its shopfronts, which every other guild's street has, were switched off, so the clothmaker sold only at night, once woken, at a cost in reputation; they are open by day now. |
-| `mods/fixes.c:273` | Saints taught by a cathedral, or by St. Cosmas or St. Damian, are learned |
-| `mods/fixes.c:274` | Asking a cathedral about its patron saint was meant to teach the leader the saint, and St. Cosmas and St. Damian each teach the other; but the game gave it to no member: nobody learned the saint, and the fifth member was marked as knowing a formula instead. Now the saint is learned. |
-| `mods/fixes.c:275` | Debt notes are where the merchant says |
-| `mods/fixes.c:276` | A merchant who sends the party for debt notes names who holds them (the Medici or the Fugger), but the game hid them in another office above the marketplace, so breaking into the named one found nothing. They are now in the office named. |
-| `mods/fixes.c:277` | The risk levels of alchemy formulae work the right way around |
-| `mods/fixes.c:278` | Each formula is marked low, medium or high risk, and the risk decides how badly a failed batch at an inn, a village or a hideout goes: an explosion (the party hurt, damages to pay, no room at the inn for four months) or only a stink (one month). The game had it backwards: a failed low-risk formula exploded three times in four, a failed high-risk one only half the time. Now a failure explodes one time in four at low risk, one in three at medium risk and one in two at high risk. |
-| `mods/fixes.c:279` | Quests from a cathedral are the bishop's, not the merchants' |
-| `mods/fixes.c:280` | A cathedral's canon gave out quests as if for the town's merchants: the merchants paid for them (and gave no more quests of their own while one was open), the canon gave a new one at every visit, and the bishop's relic for a finished quest could be taken again and again. Now the quest counts as the bishop's, and his relic is the reward, given once. |
-| `mods/fixes.c:281` | No quests to a purged pagan altar |
-| `mods/fixes.c:282` | A pagan altar the party has destroyed vanishes from the overland view, but quests could still send the party there, and could then never be done (nor could their giver offer another). Such altars are no longer chosen; quests already sent to one go to the nearest altar still standing. |
-| `mods/fixes.c:283` | The item taken from a tomb goes to the winner of the fight |
-| `mods/fixes.c:284` | Taking the item a quest seeks from a tomb wakes its dead: winning that fight gave nothing (though the text says the party scrambles out with it) and losing it gave the item. Now the party gets the item when it wins. |
-| `mods/fixes.c:285` | The lord pays for his quests |
-| `mods/fixes.c:286` | In a town without a council, the lord of the fortress gives robber knights to hunt, but the game pays such a quest's reward only at a council's hall, so in such a town it could never be collected. The lord now pays it at an audience, as a council does. |
-| `mods/fixes.c:287` | Armor and fire protection from potions and saints last a day; Hardarmor works as the manual says |
-| `mods/fixes.c:288` | Hardarmor (+1 to +3 armor), St. Dunstan's (+1) and St. Patrick's (+2) blessings, St. Crispin's (+10 to the quality of everyone's armor) and the protection against fire of Firewall and St. Polycarp never wore off, and each new one added to the last. They now last about a day, as the manual says, and what piled up this way in a saved game goes back to normal. St. Charity, St. Erasmus and St. Pantaleon (and St. Polycarp) gave their protection against fire as armor instead: +32 or +48 armor for good (or nothing, with the fix "No invulnerability from fire protection" on); now the member gets fire protection 90 for a day, the same as St. Polycarp's. Hardarmor also does what the manual says: armor 20, 25 or 30 points better in quality and one or two levels thicker (the game gave 1 to 3 levels and no quality); a second used while one is still working keeps the stronger of the two. |
-| `mods/fixes.c:289` | Great Power raises the weapon's quality |
-| `mods/fixes.c:290` | According to the manual, Great Power raises the quality of the weapon by 14, 22 or 30 (up to 99), and quality is what makes blows hit harder. The original added those points to the member's damage and penetration bonuses instead: +14 penetration, or +1 damage and +6 penetration, or +1 damage and +14 penetration. Now it raises the quality of the weapon in hand (bows and guns too), for about a day. |
-| `mods/fixes.c:291` | Saved games keep the party's standing with the Fugger, the Medici and the Hanse |
-| `mods/fixes.c:292` | The companies' cards raise and lower the party's standing with them (if it, or the party's reputation in the town, is below zero, they give no quests), but a saved game did not keep it: after loading, it was whatever the previous game played had left, or zero after a restart. It is now kept in the save (the original game can still load such saves). |
-| `mods/fixes.c:293` | A saint's help called in a battle wears off |
-| `mods/fixes.c:294` | In the original, a saint called on in a battle raised attributes and skills for good (usually), and the price some saints ask (a lowered attribute) was never given back: the battle lost track of what was to wear off. Both now wear off, as with help called on outside a battle. |
-| `mods/fixes.c:295` | Healing no longer takes a boost away |
-| `mods/fixes.c:296` | Healing (Essence o'Grace, or a saint's) brings a wounded attribute part of the way back to its maximum, but the game also brought an attribute above its maximum part of the way down to it: a member whose Strength or Endurance stood above the maximum (Ironarm, New-wind, a saint) lost most of that boost to the potion meant to heal them. Healing now only raises an attribute, never lowers it. |
-| `mods/fixes.c:297` | Teachers teach only up to their own ability |
-| `mods/fixes.c:298` | The game's texts say a teacher cannot take a skill beyond the teacher's own ability (a line the game never shows), and the physician turns away a party that knows more than he does; yet a teacher of any ability took a skill to 99. Lessons now stop at the teacher's ability: a member who has reached it rests instead. |
-| `mods/fixes.c:299` | Each weapon oil works with the weapons the manual names |
-| `mods/fixes.c:300` | Deadly Blade works with every weapon but impact weapons and flails, Strongedge with blades and polearms, and Great Power with impact weapons, flails and handguns, as the manual and the potions' own labels say. The game gave every oil to whatever weapon the member struck with, bows and fists too. |
-| `mods/fixes.c:301` | The two St. Pauls do what their texts say |
-| `mods/fixes.c:302` | St. Paul the Apostle gave what the texts give St. Paul the Simple (all lost Strength and Endurance healed, half the Intelligence lost for a day, and his requirements: Virtue 70), and Paul the Simple gave a copy of St. Thomas Aquinas's help. The Apostle's own help (Speak Common, Latin, Read & Write, Charisma, Endurance, a little Strength healed; Virtue 19, as the manual says) was in the game's code but never used. Now each does what its text says. |
-| `mods/fixes.c:303` | A saint's reputation bonus goes to the right town |
-| `mods/fixes.c:304` | Called on in Prag, St. John Nepomuk raised the reputation of some unrelated place (or of no real place) instead of Prag's; St. Cecilia, called on away from any town (in the overland view), raised the reputation of no real place at all. Now Nepomuk's bonus goes to Prag and Cecilia's to the nearest town, as with the other saints. |
-| `mods/fixes.c:305` | Saints do what their texts say |
-| `mods/fixes.c:306` | For 43 saints, the help the game gives falls short of or strays from the saint's own description: St. Christopher, St. Drogo and St. Wilfrid never sped the party's travel (now faster travel for a week: fewer days on the road), nor St. Eustace through woods; St. Nicholas and St. Theodore gave Flails instead of Riding; St. Charity, St. Erasmus and St. Pantaleon gave the party no protection against fire; St. Lutgardis's ecstasies gave Endurance instead of costing it; St. George, St. Michael, St. Longinius, St. Maurice and St. Eligius never improved a weapon or armor; St. Crispin improved metal armor, St. Dunstan none; reputation went to the wrong lands or none ... Now each does what its text says (the new character sheet and the new prayer screen describe each one). The armor and fire saints need the fix "Armor and fire protection from potions and saints last a day". |
-| `mods/fixes.c:307` | The bowyer sells bows at night too |
-| `mods/fixes.c:308` | Woken at night, a bowyer opened a shop of the smiths' weapons and armor and no bows: the night card hands the shop the smiths' goods. It now sells what the bowyer sells by day. |
-| `mods/fixes.c:309` | Confession always takes at least an hour |
-| `mods/fixes.c:310` | The better the party's reputation in a town, the shorter a confession in its church: at a reputation of 110 it took no time, and from 120 it turned the clock back. It now takes at least an hour. |
-| `mods/fixes.c:311` | An audience promised for tomorrow is kept |
-| `mods/fixes.c:312` | A council's clerk or a lord's steward who "fits you into the audience schedule tomorrow" set up an appointment that was never actually made, and the next day the party had to ask again like anyone else. The audience is now certain the next day. |
-| `mods/fixes.c:313` | Many blows at once on one fighter all count |
-| `mods/fixes.c:314` | The wounds a fighter takes are added up until they are dealt, in a number that holds at most 127. Four heavy blows landing at once (a member mobbed by a pack) went past it and turned negative: the fighter regained Endurance and Strength instead of falling. The sum now stops at 127. |
-| `mods/fixes.c:315` | No freeze when placing the party in a castle |
-| `mods/fixes.c:316` | To place the party on some levels of a castle, the game draws rooms at random until one is not the gate room; when the gate room was the only one to draw, it drew for ever and the game froze. It now takes the first room in that case. |
-| `mods/fixes.c:317` | A failed search for formulae at a university shuts that search, not the saints' |
-| `mods/fixes.c:318` | Asking a university about alchemical formulae and failing marked the question about saints as asked instead: asking about saints was refused for a week, and the formulae could be asked about again at once. It now marks the question about formulae. |
-| `mods/fixes.c:319` | An item given to the whole party is given once |
-| `mods/fixes.c:320` | Where a card gives every member something (out of a dungeon, from footpads), each member who had one already got it twice: added to his stack, and again as a new stack. Now each gets it once. |
-| `mods/fixes.c:321` | A mount's quality helps when fleeing on horseback |
-| `mods/fixes.c:322` | Fleeing the Wild Hunt or a wolf pack on horseback adds the quality of the poorest rider's mount to the chance, but the game looked in the wrong place for the mounts and so added nothing. It now finds the mounts. |
-| `mods/fixes.c:323` | A church tithe blesses the right member |
-| `mods/fixes.c:324` | When the party gave a tenth in a town church, the Divine Favor meant first for the member best at Religion went to no member at all (the game took the skill's value for a member's number); and sneaking into a guild leader's house at night showed a garbled name instead of the member with the lowest Agility. Both now use the right member. |
-| `mods/fixes.c:325` | Small mistakes in single cards |
-| `mods/fixes.c:326` | Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said "Please accept this florin" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both its options were switched off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armor, and clearing the spider warehouse, healed the party, though their texts say it is hurt; and the warehouse's owner had no name of his own ("I am . Are ye hardy adventurers?"). When the party was paid for a robber knight, the Hanse's guide or the village's Schulz who had come along was said to leave by the toss of a coin (or even when he had never come), and then stayed on. A second fight with a town's gate guards cost no standing (the card kept the standing it had found on arrival), the docks said "You need a missile weapon" to a party short of the fare, trouble on the way to a town's grove at night led to the grove's night card even after day had come, and sneaking into a guild's quarters made the whole party practice once for each member. Each now does what its text says. |
-| `mods/fixes.c:327` | Climbing a city wall at night uses the right chances |
-| `mods/fixes.c:328` | Along a city's walls at night, the best climber's chance with a rope was a number left over from the last failed climb by everyone (0 the first time: he always fell), and the chance of everyone climbing without one compared each member with that number instead of taking the weakest (certain the first time). The first member was never chosen as the climber. Now the climber is the best of all, his chance is his own, and the chance of everyone climbing is the weakest member's. |
-| `mods/fixes.c:329` | A guard skilled with impact weapons keeps the camp safer |
-| `mods/fixes.c:330` | Each member on guard at camp lowers the risk of an attack, by one point more when skilled (30 or more) with a weapon; but the game forgot to count impact weapons (clubs, maces and hammers). Now they count too. |
-| `mods/fixes.c:331` | No group of enemies goes missing from a battle |
-| `mods/fixes.c:332` | When setting up a battle, the game drops the groups of enemies that turned out empty, but a mistake dropped every group after the first empty one too: some battles had fewer enemies than they were built with. Now only the empty groups are dropped. |
-| `mods/fixes.c:333` | A town on alert remembers the trouble |
-| `mods/fixes.c:334` | After a fight with the guards at the gate (and for weeks after a rising) a town is on alert, during which a standing of -10 or worse is meant to make it hostile (the guards at the gate, the docks, the town hall) instead of only -75 or worse. The original's test for the alert was the wrong way around, so the alert never counted. Now it does. |
-| `mods/fixes.c:335` | The friars' day jobs are offered |
-| `mods/fixes.c:336` | Two of the day jobs a member can find from the inn, preaching friar and mendicant friar, are meant to be open except in towns of a certain kind (which no town is); a mistake in the test closed them everywhere. Now a member who qualifies can be offered them. |
-| `mods/fixes.c:337` | Shots through smoke clouds are tested correctly |
-| `mods/fixes.c:338` | Whether a shot passes through a cloud (Black Cloud, smoke) was judged wrongly: shots were stopped by clouds that were not in the way, or went through ones that were. Now each cloud on the field is tested against the shot's own line. |
-| `mods/fixes.c:339` | Cards that test two attributes add both |
-| `mods/fixes.c:340` | Three cards look for the member best at two attributes added together (a passage in a dungeon, one in a town, one in the countryside): the game took the first attribute twice instead, from whichever member it compared last. Now each member's two attributes are added and the best sum counts. |
-| `mods/fixes.c:341` | No loot lost past 255 of a kind |
-| `mods/fixes.c:342` | Piles of loot gathered after a battle add up identical items in a count that holds at most 255: past that, the rest was lost (after a battle with many arrows or bolts). Now what does not fit goes into another row. |
-| `mods/fixes.c:343` | Castle corridor decorations in the right place |
-| `mods/fixes.c:344` | When laying out a castle, the game picks a spot along each passage's wall to decorate, counted from the passage's far end instead of its start: all but one possible roll put the spot past the passage's end, in another room. Now the spot is on the passage. |
-| `mods/fixes.c:345` | A hireling killed in battle doesn't later send away his replacement |
-| `mods/fixes.c:346` | When a hireling died in a battle, the end of his contract and his "has left" notice were not cancelled: later they could send away whoever had taken his place in the party. Now they are cancelled after the battle. |
-| `mods/fixes.c:347` | Esc in character creation doesn't reopen a childhood already chosen |
-| `mods/fixes.c:348` | In character creation, Esc on the childhood's points went back to the list of childhoods, though the childhood was already taken (the character was 15): picking a row there then started the adult profession with the same number on the other list. Now Esc there leads on to the professions, as Esc on a profession's points does. |
-| `mods/fixes.c:349` | The burnt-out keep lets the party go after searching it |
-| `mods/fixes.c:350` | Searching the burnt-out ruin of a robber knight's keep ends "as you resume your journey...", yet the card came back to its first page, as if the party had just arrived. Now the party is back on the road, as the text says. |
-| `mods/fixes.c:351` | A giver asks for a robber knight once |
-| `mods/fixes.c:352` | A town's lord or council (and any giver) always names the robber knight nearest its town; asked again a week later it gave the party the same knight a second time, as a second quest with its own deadline, though the party already had the first. Now a giver who already asked the party for that knight repeats the request instead of adding another. |
-| `mods/fixes.c:353` | Of two teachers of one skill, the better one teaches |
-| `mods/fixes.c:354` | When the party hired two teachers of the same skill in a town (the university's and the alchemist's, say), the inn always used whichever was hired first, its fee and its chance of a lesson taking, even when the other was far better. Now a member training in that skill learns from the best of them (the highest ability; the cheaper of two equals). |
-| `mods/fixes.c:355` | A relic found in a mine is as good as the relic itself |
-| `mods/fixes.c:356` | In the mines of dwarfs, kobolds and vulcans, the relic the party can find deep inside was always of quality 35, whatever relic it was (the relics' own qualities run from 50 to 99), and it was not even of its own kind of thing: Saint Arnulf's Greatsword or Saint Olaf's Battleaxe could not be wielded as the weapons they are. Now the relic is as the list of items has it. |
-| `mods/fixes.c:357` | Ordinary hits make a sound |
-| `mods/fixes.c:358` | In the original, a blow that hits without knocking the target back makes no sound at all: only misses, parries, knock-backs, shots and deaths are heard, so many blows that land pass in silence. Now an ordinary hit sounds like a blow (the game's own knock-back sound, or the hit sound of a custom sound pack). |
-| `mods/fixes.c:1126` | The store room keeps at most 127 of one item. |
-| `mods/fixes.c:1127` | The store room is full: it keeps 100 kinds of items. |
-| `mods/fixes.c:1297` | abandon the horses |
-| `mods/fixes.c:1679` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
-| `mods/fixes.c:1938` | claim friendship |
-| `mods/fixes.c:2242` | You need a missile weapon |
-| `mods/fixes.c:2308` | Not bought: nobody in the party has room for another kind of item. |
-| `mods/fixes.c:2326` | Nobody in the party has room for another kind of item. |
-| `mods/fixes.c:2551` | a hook (or { -2 }) for each fix, in the same order |
+| `mods/fixes.c:257` | No jump at the foot of the travel map |
+| `mods/fixes.c:258` | Where the travel map's view reaches the last rows of the land (Basel, Zurich, Konstanz), the party marker was moved a fifth too far when the view scrolled, and the party jumped two to four rows north: it could land beside a village and walk into it. And the land under the party was read from rows a little off until the view scrolled again: water that was not there could stop a journey. The party now stays where it was, on the land that is there. |
+| `mods/fixes.c:259` | No quest destinations off the edge of the land |
+| `mods/fixes.c:260` | One cave, south-east of Basel, lies a row beyond the bottom edge of the land, where the party cannot walk, so quests sent there could never be finished. It is moved onto the land, where the party can reach it. |
+| `mods/fixes.c:261` | Weapon practice trains the leader's best weapon skill |
+| `mods/fixes.c:262` | Where a card lets the leader practice with the weapon he or she is best at, the original always trained Missile Devices. Now it trains the leader's best weapon skill. |
+| `mods/fixes.c:263` | Robbers take only what is there (no crash afterwards) |
+| `mods/fixes.c:264` | When robbers took the party's items, the game removed one item too many; a member left with nothing ended up with -1 items, and if he or she later died in battle, the game crashed. Now only what is there is taken; saved games with the fault are repaired automatically. |
+| `mods/fixes.c:265` | Nothing lost in store rooms |
+| `mods/fixes.c:266` | A store room holds 100 kinds of items, and its count of any one item ran over past 127 (shown as a negative number, then lost). Putting more in is now refused, with a message saying why. |
+| `mods/fixes.c:267` | No crash on the developers' test card |
+| `mods/fixes.c:268` | Card 0 is the developers' test card ("Try it...you will like it!"). A card that returns to the card it came from went to card 0 when it had come from no card, and the game stopped on the test card's missing picture (pics\\xhouse3.pic). It now goes on to the overland view, or to the town the party is in. |
+| `mods/fixes.c:269` | Only the armor worn wears out |
+| `mods/fixes.c:270` | Identical pieces of armor are kept as one stack, so when acid or fire wore down the one being worn, every spare of the same kind and quality carried by that member lost quality too, and all were destroyed with it. Now only the worn one suffers. |
+| `mods/fixes.c:271` | Training at the inn finds the town's teachers |
+| `mods/fixes.c:272` | When another town also had teachers at the same time, the inn's Train or Study listed nobody and showed a cost like -4096 pfennigs (and a purse that grew); the day then passed with nothing learned. The inn now lists this town's teachers and charges their fee. |
+| `mods/fixes.c:273` | Card options no longer grayed out by mistake |
+| `mods/fixes.c:274` | Getting out over a city wall, the bribe could be offered without the money (the money check was on the option to crawl out through the sewer instead); at a rebel crowd's fortress the climb with a rope was grayed out when the party had a rope; climbing a wall after the guards counted only the last member's rope; and at the wall by an old sally port each option from the second on did what the option below it should do (three "abandon the horses" options the game never handles pushed them out of step). Clothmakers' Street showed nothing by day but "leave": its shopfronts, which every other guild's street has, were switched off, so the clothmaker sold only at night, once woken, at a cost in reputation; they are open by day now. |
+| `mods/fixes.c:275` | Saints taught by a cathedral, or by St. Cosmas or St. Damian, are learned |
+| `mods/fixes.c:276` | Asking a cathedral about its patron saint was meant to teach the leader the saint, and St. Cosmas and St. Damian each teach the other; but the game gave it to no member: nobody learned the saint, and the fifth member was marked as knowing a formula instead. Now the saint is learned. |
+| `mods/fixes.c:277` | Debt notes are where the merchant says |
+| `mods/fixes.c:278` | A merchant who sends the party for debt notes names who holds them (the Medici or the Fugger), but the game hid them in another office above the marketplace, so breaking into the named one found nothing. They are now in the office named. |
+| `mods/fixes.c:279` | The risk levels of alchemy formulae work the right way around |
+| `mods/fixes.c:280` | Each formula is marked low, medium or high risk, and the risk decides how badly a failed batch at an inn, a village or a hideout goes: an explosion (the party hurt, damages to pay, no room at the inn for four months) or only a stink (one month). The game had it backwards: a failed low-risk formula exploded three times in four, a failed high-risk one only half the time. Now a failure explodes one time in four at low risk, one in three at medium risk and one in two at high risk. |
+| `mods/fixes.c:281` | Quests from a cathedral are the bishop's, not the merchants' |
+| `mods/fixes.c:282` | A cathedral's canon gave out quests as if for the town's merchants: the merchants paid for them (and gave no more quests of their own while one was open), the canon gave a new one at every visit, and the bishop's relic for a finished quest could be taken again and again. Now the quest counts as the bishop's, and his relic is the reward, given once. |
+| `mods/fixes.c:283` | No quests to a purged pagan altar |
+| `mods/fixes.c:284` | A pagan altar the party has destroyed vanishes from the overland view, but quests could still send the party there, and could then never be done (nor could their giver offer another). Such altars are no longer chosen; quests already sent to one go to the nearest altar still standing. |
+| `mods/fixes.c:285` | The item taken from a tomb goes to the winner of the fight |
+| `mods/fixes.c:286` | Taking the item a quest seeks from a tomb wakes its dead: winning that fight gave nothing (though the text says the party scrambles out with it) and losing it gave the item. Now the party gets the item when it wins. |
+| `mods/fixes.c:287` | The lord pays for his quests |
+| `mods/fixes.c:288` | In a town without a council, the lord of the fortress gives robber knights to hunt, but the game pays such a quest's reward only at a council's hall, so in such a town it could never be collected. The lord now pays it at an audience, as a council does. |
+| `mods/fixes.c:289` | Armor and fire protection from potions and saints last a day; Hardarmor works as the manual says |
+| `mods/fixes.c:290` | Hardarmor (+1 to +3 armor), St. Dunstan's (+1) and St. Patrick's (+2) blessings, St. Crispin's (+10 to the quality of everyone's armor) and the protection against fire of Firewall and St. Polycarp never wore off, and each new one added to the last. They now last about a day, as the manual says, and what piled up this way in a saved game goes back to normal. St. Charity, St. Erasmus and St. Pantaleon (and St. Polycarp) gave their protection against fire as armor instead: +32 or +48 armor for good (or nothing, with the fix "No invulnerability from fire protection" on); now the member gets fire protection 90 for a day, the same as St. Polycarp's. Hardarmor also does what the manual says: armor 20, 25 or 30 points better in quality and one or two levels thicker (the game gave 1 to 3 levels and no quality); a second used while one is still working keeps the stronger of the two. |
+| `mods/fixes.c:291` | Great Power raises the weapon's quality |
+| `mods/fixes.c:292` | According to the manual, Great Power raises the quality of the weapon by 14, 22 or 30 (up to 99), and quality is what makes blows hit harder. The original added those points to the member's damage and penetration bonuses instead: +14 penetration, or +1 damage and +6 penetration, or +1 damage and +14 penetration. Now it raises the quality of the weapon in hand (bows and guns too), for about a day. |
+| `mods/fixes.c:293` | Saved games keep the party's standing with the Fugger, the Medici and the Hanse |
+| `mods/fixes.c:294` | The companies' cards raise and lower the party's standing with them (if it, or the party's reputation in the town, is below zero, they give no quests), but a saved game did not keep it: after loading, it was whatever the previous game played had left, or zero after a restart. It is now kept in the save (the original game can still load such saves). |
+| `mods/fixes.c:295` | A saint's help called in a battle wears off |
+| `mods/fixes.c:296` | In the original, a saint called on in a battle raised attributes and skills for good (usually), and the price some saints ask (a lowered attribute) was never given back: the battle lost track of what was to wear off. Both now wear off, as with help called on outside a battle. |
+| `mods/fixes.c:297` | Healing no longer takes a boost away |
+| `mods/fixes.c:298` | Healing (Essence o'Grace, or a saint's) brings a wounded attribute part of the way back to its maximum, but the game also brought an attribute above its maximum part of the way down to it: a member whose Strength or Endurance stood above the maximum (Ironarm, New-wind, a saint) lost most of that boost to the potion meant to heal them. Healing now only raises an attribute, never lowers it. |
+| `mods/fixes.c:299` | Teachers teach only up to their own ability |
+| `mods/fixes.c:300` | The game's texts say a teacher cannot take a skill beyond the teacher's own ability (a line the game never shows), and the physician turns away a party that knows more than he does; yet a teacher of any ability took a skill to 99. Lessons now stop at the teacher's ability: a member who has reached it rests instead. |
+| `mods/fixes.c:301` | Each weapon oil works with the weapons the manual names |
+| `mods/fixes.c:302` | Deadly Blade works with every weapon but impact weapons and flails, Strongedge with blades and polearms, and Great Power with impact weapons, flails and handguns, as the manual and the potions' own labels say. The game gave every oil to whatever weapon the member struck with, bows and fists too. |
+| `mods/fixes.c:303` | The two St. Pauls do what their texts say |
+| `mods/fixes.c:304` | St. Paul the Apostle gave what the texts give St. Paul the Simple (all lost Strength and Endurance healed, half the Intelligence lost for a day, and his requirements: Virtue 70), and Paul the Simple gave a copy of St. Thomas Aquinas's help. The Apostle's own help (Speak Common, Latin, Read & Write, Charisma, Endurance, a little Strength healed; Virtue 19, as the manual says) was in the game's code but never used. Now each does what its text says. |
+| `mods/fixes.c:305` | A saint's reputation bonus goes to the right town |
+| `mods/fixes.c:306` | Called on in Prag, St. John Nepomuk raised the reputation of some unrelated place (or of no real place) instead of Prag's; St. Cecilia, called on away from any town (in the overland view), raised the reputation of no real place at all. Now Nepomuk's bonus goes to Prag and Cecilia's to the nearest town, as with the other saints. |
+| `mods/fixes.c:307` | Saints do what their texts say |
+| `mods/fixes.c:308` | For 43 saints, the help the game gives falls short of or strays from the saint's own description: St. Christopher, St. Drogo and St. Wilfrid never sped the party's travel (now faster travel for a week: fewer days on the road), nor St. Eustace through woods; St. Nicholas and St. Theodore gave Flails instead of Riding; St. Charity, St. Erasmus and St. Pantaleon gave the party no protection against fire; St. Lutgardis's ecstasies gave Endurance instead of costing it; St. George, St. Michael, St. Longinius, St. Maurice and St. Eligius never improved a weapon or armor; St. Crispin improved metal armor, St. Dunstan none; reputation went to the wrong lands or none ... Now each does what its text says (the new character sheet and the new prayer screen describe each one). The armor and fire saints need the fix "Armor and fire protection from potions and saints last a day". |
+| `mods/fixes.c:309` | The bowyer sells bows at night too |
+| `mods/fixes.c:310` | Woken at night, a bowyer opened a shop of the smiths' weapons and armor and no bows: the night card hands the shop the smiths' goods. It now sells what the bowyer sells by day. |
+| `mods/fixes.c:311` | Confession always takes at least an hour |
+| `mods/fixes.c:312` | The better the party's reputation in a town, the shorter a confession in its church: at a reputation of 110 it took no time, and from 120 it turned the clock back. It now takes at least an hour. |
+| `mods/fixes.c:313` | An audience promised for tomorrow is kept |
+| `mods/fixes.c:314` | A council's clerk or a lord's steward who "fits you into the audience schedule tomorrow" set up an appointment that was never actually made, and the next day the party had to ask again like anyone else. The audience is now certain the next day. |
+| `mods/fixes.c:315` | Many blows at once on one fighter all count |
+| `mods/fixes.c:316` | The wounds a fighter takes are added up until they are dealt, in a number that holds at most 127. Four heavy blows landing at once (a member mobbed by a pack) went past it and turned negative: the fighter regained Endurance and Strength instead of falling. The sum now stops at 127. |
+| `mods/fixes.c:317` | No freeze when placing the party in a castle |
+| `mods/fixes.c:318` | To place the party on some levels of a castle, the game draws rooms at random until one is not the gate room; when the gate room was the only one to draw, it drew for ever and the game froze. It now takes the first room in that case. |
+| `mods/fixes.c:319` | A failed search for formulae at a university shuts that search, not the saints' |
+| `mods/fixes.c:320` | Asking a university about alchemical formulae and failing marked the question about saints as asked instead: asking about saints was refused for a week, and the formulae could be asked about again at once. It now marks the question about formulae. |
+| `mods/fixes.c:321` | An item given to the whole party is given once |
+| `mods/fixes.c:322` | Where a card gives every member something (out of a dungeon, from footpads), each member who had one already got it twice: added to his stack, and again as a new stack. Now each gets it once. |
+| `mods/fixes.c:323` | A mount's quality helps when fleeing on horseback |
+| `mods/fixes.c:324` | Fleeing the Wild Hunt or a wolf pack on horseback adds the quality of the poorest rider's mount to the chance, but the game looked in the wrong place for the mounts and so added nothing. It now finds the mounts. |
+| `mods/fixes.c:325` | A church tithe blesses the right member |
+| `mods/fixes.c:326` | When the party gave a tenth in a town church, the Divine Favor meant first for the member best at Religion went to no member at all (the game took the skill's value for a member's number); and sneaking into a guild leader's house at night showed a garbled name instead of the member with the lowest Agility. Both now use the right member. |
+| `mods/fixes.c:327` | Small mistakes in single cards |
+| `mods/fixes.c:328` | Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said "Please accept this florin" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both its options were switched off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armor, and clearing the spider warehouse, healed the party, though their texts say it is hurt; and the warehouse's owner had no name of his own ("I am . Are ye hardy adventurers?"). When the party was paid for a robber knight, the Hanse's guide or the village's Schulz who had come along was said to leave by the toss of a coin (or even when he had never come), and then stayed on. A second fight with a town's gate guards cost no standing (the card kept the standing it had found on arrival), the docks said "You need a missile weapon" to a party short of the fare, trouble on the way to a town's grove at night led to the grove's night card even after day had come, and sneaking into a guild's quarters made the whole party practice once for each member. Each now does what its text says. |
+| `mods/fixes.c:329` | Climbing a city wall at night uses the right chances |
+| `mods/fixes.c:330` | Along a city's walls at night, the best climber's chance with a rope was a number left over from the last failed climb by everyone (0 the first time: he always fell), and the chance of everyone climbing without one compared each member with that number instead of taking the weakest (certain the first time). The first member was never chosen as the climber. Now the climber is the best of all, his chance is his own, and the chance of everyone climbing is the weakest member's. |
+| `mods/fixes.c:331` | A guard skilled with impact weapons keeps the camp safer |
+| `mods/fixes.c:332` | Each member on guard at camp lowers the risk of an attack, by one point more when skilled (30 or more) with a weapon; but the game forgot to count impact weapons (clubs, maces and hammers). Now they count too. |
+| `mods/fixes.c:333` | No group of enemies goes missing from a battle |
+| `mods/fixes.c:334` | When setting up a battle, the game drops the groups of enemies that turned out empty, but a mistake dropped every group after the first empty one too: some battles had fewer enemies than they were built with. Now only the empty groups are dropped. |
+| `mods/fixes.c:335` | A town on alert remembers the trouble |
+| `mods/fixes.c:336` | After a fight with the guards at the gate (and for weeks after a rising) a town is on alert, during which a standing of -10 or worse is meant to make it hostile (the guards at the gate, the docks, the town hall) instead of only -75 or worse. The original's test for the alert was the wrong way around, so the alert never counted. Now it does. |
+| `mods/fixes.c:337` | The friars' day jobs are offered |
+| `mods/fixes.c:338` | Two of the day jobs a member can find from the inn, preaching friar and mendicant friar, are meant to be open except in towns of a certain kind (which no town is); a mistake in the test closed them everywhere. Now a member who qualifies can be offered them. |
+| `mods/fixes.c:339` | Shots through smoke clouds are tested correctly |
+| `mods/fixes.c:340` | Whether a shot passes through a cloud (Black Cloud, smoke) was judged wrongly: shots were stopped by clouds that were not in the way, or went through ones that were. Now each cloud on the field is tested against the shot's own line. |
+| `mods/fixes.c:341` | Cards that test two attributes add both |
+| `mods/fixes.c:342` | Three cards look for the member best at two attributes added together (a passage in a dungeon, one in a town, one in the countryside): the game took the first attribute twice instead, from whichever member it compared last. Now each member's two attributes are added and the best sum counts. |
+| `mods/fixes.c:343` | No loot lost past 255 of a kind |
+| `mods/fixes.c:344` | Piles of loot gathered after a battle add up identical items in a count that holds at most 255: past that, the rest was lost (after a battle with many arrows or bolts). Now what does not fit goes into another row. |
+| `mods/fixes.c:345` | Castle corridor decorations in the right place |
+| `mods/fixes.c:346` | When laying out a castle, the game picks a spot along each passage's wall to decorate, counted from the passage's far end instead of its start: all but one possible roll put the spot past the passage's end, in another room. Now the spot is on the passage. |
+| `mods/fixes.c:347` | A hireling killed in battle doesn't later send away his replacement |
+| `mods/fixes.c:348` | When a hireling died in a battle, the end of his contract and his "has left" notice were not cancelled: later they could send away whoever had taken his place in the party. Now they are cancelled after the battle. |
+| `mods/fixes.c:349` | Esc in character creation doesn't reopen a childhood already chosen |
+| `mods/fixes.c:350` | In character creation, Esc on the childhood's points went back to the list of childhoods, though the childhood was already taken (the character was 15): picking a row there then started the adult profession with the same number on the other list. Now Esc there leads on to the professions, as Esc on a profession's points does. |
+| `mods/fixes.c:351` | The burnt-out keep lets the party go after searching it |
+| `mods/fixes.c:352` | Searching the burnt-out ruin of a robber knight's keep ends "as you resume your journey...", yet the card came back to its first page, as if the party had just arrived. Now the party is back on the road, as the text says. |
+| `mods/fixes.c:353` | A giver asks for a robber knight once |
+| `mods/fixes.c:354` | A town's lord or council (and any giver) always names the robber knight nearest its town; asked again a week later it gave the party the same knight a second time, as a second quest with its own deadline, though the party already had the first. Now a giver who already asked the party for that knight repeats the request instead of adding another. |
+| `mods/fixes.c:355` | Of two teachers of one skill, the better one teaches |
+| `mods/fixes.c:356` | When the party hired two teachers of the same skill in a town (the university's and the alchemist's, say), the inn always used whichever was hired first, its fee and its chance of a lesson taking, even when the other was far better. Now a member training in that skill learns from the best of them (the highest ability; the cheaper of two equals). |
+| `mods/fixes.c:357` | A relic found in a mine is as good as the relic itself |
+| `mods/fixes.c:358` | In the mines of dwarfs, kobolds and vulcans, the relic the party can find deep inside was always of quality 35, whatever relic it was (the relics' own qualities run from 50 to 99), and it was not even of its own kind of thing: Saint Arnulf's Greatsword or Saint Olaf's Battleaxe could not be wielded as the weapons they are. Now the relic is as the list of items has it. |
+| `mods/fixes.c:359` | Ordinary hits make a sound |
+| `mods/fixes.c:360` | In the original, a blow that hits without knocking the target back makes no sound at all: only misses, parries, knock-backs, shots and deaths are heard, so many blows that land pass in silence. Now an ordinary hit sounds like a blow (the game's own knock-back sound, or the hit sound of a custom sound pack). |
+| `mods/fixes.c:1128` | The store room keeps at most 127 of one item. |
+| `mods/fixes.c:1129` | The store room is full: it keeps 100 kinds of items. |
+| `mods/fixes.c:1299` | abandon the horses |
+| `mods/fixes.c:1681` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
+| `mods/fixes.c:1940` | claim friendship |
+| `mods/fixes.c:2244` | You need a missile weapon |
+| `mods/fixes.c:2310` | Not bought: nobody in the party has room for another kind of item. |
+| `mods/fixes.c:2328` | Nobody in the party has room for another kind of item. |
+| `mods/fixes.c:2553` | a hook (or { -2 }) for each fix, in the same order |
 
 ## The interface (ui/)
 
@@ -685,6 +687,25 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/bestiary.cpp:234` | Could not write  |
 | `ui/bestiary.cpp:235` | . Tick the mod (F12 > Mods) and start the game again. |
 | `ui/bestiary.cpp:238` | Undo all changes##enm |
+| `ui/boattrip.cpp:170` | By boat to %s: %s |
+| `ui/boattrip.cpp:189` | By boat to %s (%s): the boat sails in %d day%s - a stay at the inn first. Press any key or click to stop. |
+| `ui/boattrip.cpp:191` | By boat to %s (%s): to the docks. Press any key or click to stop. |
+| `ui/boattrip.cpp:214` | take up residence |
+| `ui/boattrip.cpp:214` | spend some time |
+| `ui/boattrip.cpp:217` | the inn could not be reached. |
+| `ui/boattrip.cpp:220` | the stay at the inn did not end. |
+| `ui/boattrip.cpp:226` | the stay at the inn ended before the boat's day (the purse, or something that happened). Stay on, then try again. |
+| `ui/boattrip.cpp:234` | the docks could not be reached. |
+| `ui/boattrip.cpp:237` | no boat from these docks. |
+| `ui/boattrip.cpp:241` | the boat cannot be boarded here today: choose at the docks. |
+| `ui/boattrip.cpp:245` | You go aboard ... |
+| `ui/boattrip.cpp:247` | the voyage ended on the road. |
+| `ui/boattrip.cpp:250` | Arrived by boat: choose how to go ashore. |
+| `ui/boattrip.cpp:252` | the boat came to a town off the way. |
+| `ui/boattrip.cpp:273` | no boat on to %s today (in %d day%s): choose how to go ashore; then the world map's "By boat" takes it on. |
+| `ui/boattrip.cpp:274` | no boat on to %s from here now: choose how to go ashore. |
+| `ui/boattrip.cpp:279` | going ashore did not end in the streets. |
+| `ui/boattrip.cpp:282` | ashore in %s: from here the way by land is as quick (the world map's "Leave town and travel there"). |
 | `ui/cacheview.cpp:42` | The store room |
 | `ui/cacheview.cpp:43` | The party's items: one store room shared by every inn (Darklands+). |
 | `ui/cacheview.cpp:44` | The party's items kept in  |
@@ -705,53 +726,59 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/cardhints.cpp:23` | Needs a rope. |
 | `ui/cardhints.cpp:26` | Not for about three weeks after a sewer grate here defeated you. |
 | `ui/cardhints.cpp:28` | Not for two days after a guard refused your bribe here, nor if you cannot pay it. |
-| `ui/cardview.cpp:373` |  speaks for the party |
-| `ui/cardview.cpp:373` |  (the leader) |
-| `ui/cardview.cpp:373` | . A formula traded is  |
-| `ui/cardview.cpp:374` | Click to choose this with %s speaking. |
-| `ui/cardview.cpp:415` | not possible |
-| `ui/cardview.cpp:536` | Nobody in the party knows a saint who can help here. |
-| `ui/cardview.cpp:536` | Nobody in the party carries anything that helps here. |
-| `ui/cardview.cpp:567` | knows it already |
-| `ui/cardview.cpp:575` | knows the formula but carries none |
-| `ui/cardview.cpp:576` | at the easiest difficulty, the leader need not know the saint |
-| `ui/cardview.cpp:576` | at the easiest difficulty, the leader needs none |
-| `ui/cardview.cpp:577` | knows this saint already |
-| `ui/cardview.cpp:594` | This saint asks a {Virtue} of %d of the one who prays. |
-| `ui/cardview.cpp:596` | %s: too low to call on this saint, however much {Divine Favor} is spent. |
-| `ui/cardview.cpp:639` | Each member tries it |
-| `ui/cardview.cpp:645` | the town's opinion of the party (its reputation here) |
-| `ui/cardview.cpp:646` | the party's fame |
-| `ui/cardview.cpp:653` | It rests on: |
-| `ui/cardview.cpp:665` | The leader speaks for the party, and what is traded is the speaker's to know, unless you pick another (the arrow at the end shows each member's chance). |
-| `ui/cardview.cpp:666` | Whoever speaks for the party tries it: the best at it, unless you pick another (the arrow at the end shows each member's chance). |
-| `ui/cardview.cpp:667` | Whoever speaks for the party tries it: the leader, unless you pick another (the arrow at the end shows each member's chance). |
-| `ui/cardview.cpp:679` | Brings a teacher to the inn |
-| `ui/cardview.cpp:683` | Hired here now: %s. |
-| `ui/cardview.cpp:684` | Not possible now |
-| `ui/cardview.cpp:691` | Nothing to gain here |
-| `ui/cardview.cpp:691` | A better Philosopher's Stone |
-| `ui/cardview.cpp:694` | The stone %s offers is of quality %d; the party's is %d. A batch's chance of success would rise by %d. |
-| `ui/cardview.cpp:695` | the university |
-| `ui/cardview.cpp:695` | this alchemist |
-| `ui/cardview.cpp:696` | The stone %s offers is of quality %d; the party has none. It would add %d to a batch's chance of success. |
-| `ui/cardview.cpp:697` | the university |
-| `ui/cardview.cpp:697` | this alchemist |
-| `ui/cardview.cpp:698` | The university's best stone is of quality %d, no better than the party's %d. Asking gains nothing, and if it goes wrong it costs two hours, a point of the party's reputation here and the question for a week. |
-| `ui/cardview.cpp:700` | This alchemist's best stone is of quality %d, no better than the party's %d. Asking gains nothing, and if the alchemist will not talk the party is turned away for 60 hours. |
-| `ui/cardview.cpp:709` | Perhaps a fight |
-| `ui/cardview.cpp:729` | Not possible now |
-| `ui/cardview.cpp:732` | Nor would it gain anything: the stone sold here is of quality %d, the party's %d. |
-| `ui/cardview.cpp:758` | nobody knows it yet |
-| `ui/cardview.cpp:771` | nobody knows this saint |
-| `ui/cardview.cpp:771` | nobody carries one |
-| `ui/cardview.cpp:776` | Saints who help here |
-| `ui/cardview.cpp:776` | Formulae for sale |
-| `ui/cardview.cpp:776` | Items that help here |
-| `ui/cardview.cpp:781` | Not possible now |
-| `ui/cardview.cpp:785` | (click to choose who learns one; point at a formula there for its details) |
-| `ui/cardview.cpp:786` | (click to choose who) |
-| `ui/cardview.cpp:802` | ..., for 3 groschen. |
+| `ui/cardview.cpp:158` | Nothing came of it. |
+| `ui/cardview.cpp:165` | Nothing came of it. |
+| `ui/cardview.cpp:343` | What came of it |
+| `ui/cardview.cpp:346` | Nothing came of it. |
+| `ui/cardview.cpp:428` |  speaks for the party |
+| `ui/cardview.cpp:428` |  (the leader) |
+| `ui/cardview.cpp:428` | . A formula traded is  |
+| `ui/cardview.cpp:429` | Click to choose this with %s speaking. |
+| `ui/cardview.cpp:470` | not possible |
+| `ui/cardview.cpp:591` | Nobody in the party knows a saint who can help here. |
+| `ui/cardview.cpp:591` | Nobody in the party carries anything that helps here. |
+| `ui/cardview.cpp:622` | knows it already |
+| `ui/cardview.cpp:630` | knows the formula but carries none |
+| `ui/cardview.cpp:631` | at the easiest difficulty, the leader need not know the saint |
+| `ui/cardview.cpp:631` | at the easiest difficulty, the leader needs none |
+| `ui/cardview.cpp:632` | knows this saint already |
+| `ui/cardview.cpp:649` | This saint asks a {Virtue} of %d of the one who prays. |
+| `ui/cardview.cpp:651` | %s: too low to call on this saint, however much {Divine Favor} is spent. |
+| `ui/cardview.cpp:667` | Nothing came of it. |
+| `ui/cardview.cpp:670` | What came of it: |
+| `ui/cardview.cpp:706` | Each member tries it |
+| `ui/cardview.cpp:712` | the town's opinion of the party (its reputation here) |
+| `ui/cardview.cpp:713` | the party's fame |
+| `ui/cardview.cpp:720` | It rests on: |
+| `ui/cardview.cpp:732` | The leader speaks for the party, and what is traded is the speaker's to know, unless you pick another (the arrow at the end shows each member's chance). |
+| `ui/cardview.cpp:733` | Whoever speaks for the party tries it: the best at it, unless you pick another (the arrow at the end shows each member's chance). |
+| `ui/cardview.cpp:734` | Whoever speaks for the party tries it: the leader, unless you pick another (the arrow at the end shows each member's chance). |
+| `ui/cardview.cpp:746` | Brings a teacher to the inn |
+| `ui/cardview.cpp:750` | Hired here now: %s. |
+| `ui/cardview.cpp:751` | Not possible now |
+| `ui/cardview.cpp:758` | Nothing to gain here |
+| `ui/cardview.cpp:758` | A better Philosopher's Stone |
+| `ui/cardview.cpp:761` | The stone %s offers is of quality %d; the party's is %d. A batch's chance of success would rise by %d. |
+| `ui/cardview.cpp:762` | the university |
+| `ui/cardview.cpp:762` | this alchemist |
+| `ui/cardview.cpp:763` | The stone %s offers is of quality %d; the party has none. It would add %d to a batch's chance of success. |
+| `ui/cardview.cpp:764` | the university |
+| `ui/cardview.cpp:764` | this alchemist |
+| `ui/cardview.cpp:765` | The university's best stone is of quality %d, no better than the party's %d. Asking gains nothing, and if it goes wrong it costs two hours, a point of the party's reputation here and the question for a week. |
+| `ui/cardview.cpp:767` | This alchemist's best stone is of quality %d, no better than the party's %d. Asking gains nothing, and if the alchemist will not talk the party is turned away for 60 hours. |
+| `ui/cardview.cpp:776` | Perhaps a fight |
+| `ui/cardview.cpp:796` | Not possible now |
+| `ui/cardview.cpp:799` | Nor would it gain anything: the stone sold here is of quality %d, the party's %d. |
+| `ui/cardview.cpp:825` | nobody knows it yet |
+| `ui/cardview.cpp:838` | nobody knows this saint |
+| `ui/cardview.cpp:838` | nobody carries one |
+| `ui/cardview.cpp:843` | Saints who help here |
+| `ui/cardview.cpp:843` | Formulae for sale |
+| `ui/cardview.cpp:843` | Items that help here |
+| `ui/cardview.cpp:848` | Not possible now |
+| `ui/cardview.cpp:852` | (click to choose who learns one; point at a formula there for its details) |
+| `ui/cardview.cpp:853` | (click to choose who) |
+| `ui/cardview.cpp:869` | ..., for 3 groschen. |
 | `ui/citynav.cpp:188` | Market stalls: everyday goods to buy and sell. |
 | `ui/citynav.cpp:189` | Foreign trader |
 | `ui/citynav.cpp:189` | Pavilions of traders from distant lands: goods to buy and sell. |
@@ -812,67 +839,67 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/citynav.cpp:277` | connecting to important districts |
 | `ui/citynav.cpp:277` | to be determined |
 | `ui/citynav.cpp:419` | Go to %s: %s |
-| `ui/citynav.cpp:467` | think better of it |
-| `ui/citynav.cpp:467` | apologizes for disturbing |
-| `ui/citynav.cpp:467` | not to get involved |
-| `ui/citynav.cpp:467` | come back in the morning |
-| `ui/citynav.cpp:486` | simply walk out |
-| `ui/citynav.cpp:495` | leave the city |
-| `ui/citynav.cpp:496` | out of the city |
-| `ui/citynav.cpp:518` | The gate: choose how to get out, and the journey begins in the overland view. |
-| `ui/citynav.cpp:536` | left the city. |
-| `ui/citynav.cpp:537` | too many steps; stopped. |
-| `ui/citynav.cpp:546` | something happened on the way. |
-| `ui/citynav.cpp:546` | leave this place first. |
-| `ui/citynav.cpp:554` | the way is blocked. |
-| `ui/citynav.cpp:560` | cannot find the way from this card. |
-| `ui/citynav.cpp:570` | leading merchant |
-| `ui/citynav.cpp:575` | something happened on the way. |
-| `ui/citynav.cpp:577` | something happened on the way. |
-| `ui/citynav.cpp:577` | leave this place first. |
-| `ui/citynav.cpp:587` | the marketplace by night: choose how to get past the guards to the offices upstairs (press G again there for the office). |
-| `ui/citynav.cpp:588` | the marketplace by night: its stalls are shut until 5:00. |
-| `ui/citynav.cpp:609` | not found in this city. |
-| `ui/citynav.cpp:619` | Going to: %s. Press any key or click to stop. |
-| `ui/citynav.cpp:649` | Walking to the city gate |
-| `ui/citynav.cpp:649` | Walking to: %s |
-| `ui/citynav.cpp:662` | Any key or click stops the walk. |
-| `ui/citynav.cpp:804` | leading merchant |
-| `ui/citynav.cpp:815` | avoiding them |
-| `ui/citynav.cpp:819` | request an audience |
-| `ui/citynav.cpp:863` | Point at a place to read about it here: what it offers, its quests, its teachers. |
-| `ui/citynav.cpp:874` | Click the tile and the party walks there. |
-| `ui/citynav.cpp:913` | Pick a place and the party walks there through the streets. Press any key or click to stop them. |
-| `ui/citynav.cpp:915` | Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out. |
-| `ui/citynav.cpp:943` | Closed until 5:00 |
-| `ui/citynav.cpp:943` | Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same. |
-| `ui/citynav.cpp:947` | Turned away until %d %s |
-| `ui/citynav.cpp:947` | The alchemists turned the party away; they will see you again from %d %s, %d:00. |
-| `ui/citynav.cpp:948` | Library shut until %d %s |
-| `ui/citynav.cpp:948` | The monks' library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:949` | Prayers again from %d %s |
-| `ui/citynav.cpp:949` | The party prayed with the monks; they may again from %d %s, %d:00. |
-| `ui/citynav.cpp:950` | Library shut until %d %s |
-| `ui/citynav.cpp:950` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:968` | Quest chance %d%% |
-| `ui/citynav.cpp:969` | A merchant may offer a quest after you have bought or sold something. |
-| `ui/citynav.cpp:970` | No quests until %d %s |
-| `ui/citynav.cpp:971` | On a quest for them |
-| `ui/citynav.cpp:972` | Your reward is waiting |
-| `ui/citynav.cpp:973` | No quests: reputation too low |
-| `ui/citynav.cpp:978` |  Until %d %s, %d:00. |
-| `ui/citynav.cpp:986` | Your quest:  |
-| `ui/citynav.cpp:986` | see the world map (M) |
-| `ui/citynav.cpp:1008` | Wares %dq, better than most |
-| `ui/citynav.cpp:1010` | Wares of %dq (most shops sell about 25q). |
-| `ui/citynav.cpp:1022` | What you learned |
-| `ui/citynav.cpp:1022` | The physician:  |
-| `ui/citynav.cpp:1028` | Philosopher's Stone %dq |
-| `ui/citynav.cpp:1028` | Stone %dq, no better |
-| `ui/citynav.cpp:1030` | A Philosopher's Stone of quality %d; the party's is %d. |
-| `ui/citynav.cpp:1030` | A Philosopher's Stone of quality %d; the party has none. |
-| `ui/citynav.cpp:1106` | A teacher to hire (faint: not available now) |
-| `ui/citynav.cpp:1107` | A quest of yours leads here |
+| `ui/citynav.cpp:468` | think better of it |
+| `ui/citynav.cpp:468` | apologizes for disturbing |
+| `ui/citynav.cpp:468` | not to get involved |
+| `ui/citynav.cpp:468` | come back in the morning |
+| `ui/citynav.cpp:487` | simply walk out |
+| `ui/citynav.cpp:496` | leave the city |
+| `ui/citynav.cpp:497` | out of the city |
+| `ui/citynav.cpp:519` | The gate: choose how to get out, and the journey begins in the overland view. |
+| `ui/citynav.cpp:537` | left the city. |
+| `ui/citynav.cpp:538` | too many steps; stopped. |
+| `ui/citynav.cpp:547` | something happened on the way. |
+| `ui/citynav.cpp:547` | leave this place first. |
+| `ui/citynav.cpp:555` | the way is blocked. |
+| `ui/citynav.cpp:561` | cannot find the way from this card. |
+| `ui/citynav.cpp:571` | leading merchant |
+| `ui/citynav.cpp:576` | something happened on the way. |
+| `ui/citynav.cpp:578` | something happened on the way. |
+| `ui/citynav.cpp:578` | leave this place first. |
+| `ui/citynav.cpp:588` | the marketplace by night: choose how to get past the guards to the offices upstairs (press G again there for the office). |
+| `ui/citynav.cpp:589` | the marketplace by night: its stalls are shut until 5:00. |
+| `ui/citynav.cpp:610` | not found in this city. |
+| `ui/citynav.cpp:645` | Going to: %s. Press any key or click to stop. |
+| `ui/citynav.cpp:675` | Walking to the city gate |
+| `ui/citynav.cpp:675` | Walking to: %s |
+| `ui/citynav.cpp:688` | Any key or click stops the walk. |
+| `ui/citynav.cpp:830` | leading merchant |
+| `ui/citynav.cpp:841` | avoiding them |
+| `ui/citynav.cpp:845` | request an audience |
+| `ui/citynav.cpp:889` | Point at a place to read about it here: what it offers, its quests, its teachers. |
+| `ui/citynav.cpp:900` | Click the tile and the party walks there. |
+| `ui/citynav.cpp:939` | Pick a place and the party walks there through the streets. Press any key or click to stop them. |
+| `ui/citynav.cpp:941` | Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out. |
+| `ui/citynav.cpp:969` | Closed until 5:00 |
+| `ui/citynav.cpp:969` | Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same. |
+| `ui/citynav.cpp:973` | Turned away until %d %s |
+| `ui/citynav.cpp:973` | The alchemists turned the party away; they will see you again from %d %s, %d:00. |
+| `ui/citynav.cpp:974` | Library shut until %d %s |
+| `ui/citynav.cpp:974` | The monks' library (where saints are learned) is shut to the party until %d %s, %d:00. |
+| `ui/citynav.cpp:975` | Prayers again from %d %s |
+| `ui/citynav.cpp:975` | The party prayed with the monks; they may again from %d %s, %d:00. |
+| `ui/citynav.cpp:976` | Library shut until %d %s |
+| `ui/citynav.cpp:976` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
+| `ui/citynav.cpp:994` | Quest chance %d%% |
+| `ui/citynav.cpp:995` | A merchant may offer a quest after you have bought or sold something. |
+| `ui/citynav.cpp:996` | No quests until %d %s |
+| `ui/citynav.cpp:997` | On a quest for them |
+| `ui/citynav.cpp:998` | Your reward is waiting |
+| `ui/citynav.cpp:999` | No quests: reputation too low |
+| `ui/citynav.cpp:1004` |  Until %d %s, %d:00. |
+| `ui/citynav.cpp:1012` | Your quest:  |
+| `ui/citynav.cpp:1012` | see the world map (M) |
+| `ui/citynav.cpp:1034` | Wares %dq, better than most |
+| `ui/citynav.cpp:1036` | Wares of %dq (most shops sell about 25q). |
+| `ui/citynav.cpp:1048` | What you learned |
+| `ui/citynav.cpp:1048` | The physician:  |
+| `ui/citynav.cpp:1054` | Philosopher's Stone %dq |
+| `ui/citynav.cpp:1054` | Stone %dq, no better |
+| `ui/citynav.cpp:1056` | A Philosopher's Stone of quality %d; the party's is %d. |
+| `ui/citynav.cpp:1056` | A Philosopher's Stone of quality %d; the party has none. |
+| `ui/citynav.cpp:1132` | A teacher to hire (faint: not available now) |
+| `ui/citynav.cpp:1133` | A quest of yours leads here |
 | `ui/createview.cpp:109` | A new character |
 | `ui/createview.cpp:110` | %s, called %s, age %d |
 | `ui/createview.cpp:111` | %s, called %s |
@@ -1340,74 +1367,74 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/mapmsg.cpp:42` | press a key or click to go on |
 | `ui/marchview.cpp:44` | Marching order |
 | `ui/marchview.cpp:45` | The first leads the way; in single file the others follow in this order. |
-| `ui/margins.cpp:71` | In the wilds |
-| `ui/margins.cpp:72` | Traveling, near  |
-| `ui/margins.cpp:193` | University: new saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone, teachers to hire (it expects {Latin} and a sharp mind). |
-| `ui/margins.cpp:194` | Cathedral: donations for {Divine Favor} (and maybe {Virtue}), an errand for the canon (a relic), the patron saint's story, sanctuary. |
-| `ui/margins.cpp:196` | armor and shields |
-| `ui/margins.cpp:196` | bows, crossbows and guns |
-| `ui/margins.cpp:197` | hammers, maces, flails and polearms (pikes, halberds, spears, staves) |
-| `ui/margins.cpp:198` | clothing and soft armor (padded, leather, studded leather, cuir bouilli) |
-| `ui/margins.cpp:264` | the party's best  |
-| `ui/margins.cpp:265` | nobody would learn |
-| `ui/margins.cpp:294` | Teachers here: a lesson a day at the inn, for a fee |
-| `ui/margins.cpp:295` | Under each, who would learn, and their skill now. |
-| `ui/margins.cpp:309` | Philosopher's Stone %dq |
-| `ui/margins.cpp:324` | A better Philosopher's Stone, for a price: |
-| `ui/margins.cpp:326` |  the alchemist's, quality %d; |
-| `ui/margins.cpp:327` |  the university's, quality %d; |
-| `ui/margins.cpp:329` |  The party's is %d%s. |
-| `ui/margins.cpp:329` |  The party has none. |
-| `ui/margins.cpp:329` | : nothing to gain here |
-| `ui/margins.cpp:369` | Notable shops |
-| `ui/margins.cpp:369` | Notable shops |
-| `ui/margins.cpp:371` | %s: %s of %dq (most shops sell about 25q). |
-| `ui/margins.cpp:376` | St.Edward, Confessor |
-| `ui/margins.cpp:384` | Saints taught here |
-| `ui/margins.cpp:401` |  (someone in the party knows this saint):  |
-| `ui/margins.cpp:401` |  (nobody in the party knows this saint):  |
-| `ui/margins.cpp:416` | Formulae sold here |
-| `ui/margins.cpp:435` | Someone in the party knows this formula. |
-| `ui/margins.cpp:435` | Nobody in the party knows this formula. |
-| `ui/margins.cpp:456` | Teachers to be hired |
-| `ui/margins.cpp:466` | %s: %s, up to %d |
-| `ui/margins.cpp:466` | %s: %s (their skill %d) |
-| `ui/margins.cpp:468` | A lesson a day at the inn, for a fee. Who would learn, and their skill now: |
-| `ui/margins.cpp:588` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
-| `ui/margins.cpp:597` | Reputation %d |
-| `ui/margins.cpp:615` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
-| `ui/margins.cpp:615` | Below 0 its shops ask more and pay less (up to 9% from about -20 down). |
-| `ui/margins.cpp:619` |   Changes seen since this game was loaded: |
-| `ui/margins.cpp:622` | the overland view |
-| `ui/margins.cpp:622` | , after choosing " |
-| `ui/margins.cpp:640` | The town counts as hostile: its gates and people turn the party away. |
-| `ui/margins.cpp:642` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
-| `ui/margins.cpp:653` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
-| `ui/margins.cpp:665` | Preparing for war |
-| `ui/margins.cpp:666` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
-| `ui/margins.cpp:668` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
-| `ui/margins.cpp:692` | The party has goods stored here (F12 > Journal > Stored). |
-| `ui/margins.cpp:699` | Blessings and potions |
-| `ui/margins.cpp:741` | No blessings or potions at work. |
-| `ui/margins.cpp:750` | C: camp here |
-| `ui/margins.cpp:751` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
-| `ui/margins.cpp:755` | Go to a place here |
-| `ui/margins.cpp:755` | G: go to a place here |
-| `ui/margins.cpp:761` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
-| `ui/margins.cpp:810` | None taken on. |
-| `ui/margins.cpp:842` | Travel there |
-| `ui/margins.cpp:859` | ... %d more on the world map (M) |
-| `ui/margins.cpp:875` | Night in the streets |
-| `ui/margins.cpp:879` | almost always |
-| `ui/margins.cpp:880` | about %d time%s in 10 |
-| `ui/margins.cpp:881` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's {Stealth} and {Streetwise})%s. An inn is the safe place to wait for morning. |
-| `ui/margins.cpp:884` | , as set in F12 > Mods (Night encounters in the streets) |
-| `ui/margins.cpp:923` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
-| `ui/margins.cpp:923` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
-| `ui/margins.cpp:925` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
-| `ui/margins.cpp:925` | It is day (from 5:00 to 19:00). |
-| `ui/margins.cpp:952` | %s in bank notes |
-| `ui/margins.cpp:966` | F11: the keys and clicks of this screen. |
+| `ui/margins.cpp:72` | In the wilds |
+| `ui/margins.cpp:73` | Traveling, near  |
+| `ui/margins.cpp:194` | University: new saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone, teachers to hire (it expects {Latin} and a sharp mind). |
+| `ui/margins.cpp:195` | Cathedral: donations for {Divine Favor} (and maybe {Virtue}), an errand for the canon (a relic), the patron saint's story, sanctuary. |
+| `ui/margins.cpp:197` | armor and shields |
+| `ui/margins.cpp:197` | bows, crossbows and guns |
+| `ui/margins.cpp:198` | hammers, maces, flails and polearms (pikes, halberds, spears, staves) |
+| `ui/margins.cpp:199` | clothing and soft armor (padded, leather, studded leather, cuir bouilli) |
+| `ui/margins.cpp:265` | the party's best  |
+| `ui/margins.cpp:266` | nobody would learn |
+| `ui/margins.cpp:295` | Teachers here: a lesson a day at the inn, for a fee |
+| `ui/margins.cpp:296` | Under each, who would learn, and their skill now. |
+| `ui/margins.cpp:310` | Philosopher's Stone %dq |
+| `ui/margins.cpp:325` | A better Philosopher's Stone, for a price: |
+| `ui/margins.cpp:327` |  the alchemist's, quality %d; |
+| `ui/margins.cpp:328` |  the university's, quality %d; |
+| `ui/margins.cpp:330` |  The party's is %d%s. |
+| `ui/margins.cpp:330` |  The party has none. |
+| `ui/margins.cpp:330` | : nothing to gain here |
+| `ui/margins.cpp:370` | Notable shops |
+| `ui/margins.cpp:370` | Notable shops |
+| `ui/margins.cpp:372` | %s: %s of %dq (most shops sell about 25q). |
+| `ui/margins.cpp:377` | St.Edward, Confessor |
+| `ui/margins.cpp:385` | Saints taught here |
+| `ui/margins.cpp:402` |  (someone in the party knows this saint):  |
+| `ui/margins.cpp:402` |  (nobody in the party knows this saint):  |
+| `ui/margins.cpp:417` | Formulae sold here |
+| `ui/margins.cpp:436` | Someone in the party knows this formula. |
+| `ui/margins.cpp:436` | Nobody in the party knows this formula. |
+| `ui/margins.cpp:457` | Teachers to be hired |
+| `ui/margins.cpp:467` | %s: %s, up to %d |
+| `ui/margins.cpp:467` | %s: %s (their skill %d) |
+| `ui/margins.cpp:469` | A lesson a day at the inn, for a fee. Who would learn, and their skill now: |
+| `ui/margins.cpp:589` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
+| `ui/margins.cpp:598` | Reputation %d |
+| `ui/margins.cpp:616` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
+| `ui/margins.cpp:616` | Below 0 its shops ask more and pay less (up to 9% from about -20 down). |
+| `ui/margins.cpp:620` |   Changes seen since this game was loaded: |
+| `ui/margins.cpp:623` | the overland view |
+| `ui/margins.cpp:623` | , after choosing " |
+| `ui/margins.cpp:641` | The town counts as hostile: its gates and people turn the party away. |
+| `ui/margins.cpp:643` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
+| `ui/margins.cpp:654` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
+| `ui/margins.cpp:666` | Preparing for war |
+| `ui/margins.cpp:667` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
+| `ui/margins.cpp:669` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
+| `ui/margins.cpp:693` | The party has goods stored here (F12 > Journal > Stored). |
+| `ui/margins.cpp:700` | Blessings and potions |
+| `ui/margins.cpp:742` | No blessings or potions at work. |
+| `ui/margins.cpp:751` | C: camp here |
+| `ui/margins.cpp:752` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
+| `ui/margins.cpp:756` | Go to a place here |
+| `ui/margins.cpp:756` | G: go to a place here |
+| `ui/margins.cpp:762` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
+| `ui/margins.cpp:811` | None taken on. |
+| `ui/margins.cpp:843` | Travel there |
+| `ui/margins.cpp:860` | ... %d more on the world map (M) |
+| `ui/margins.cpp:877` | Night in the streets |
+| `ui/margins.cpp:881` | almost always |
+| `ui/margins.cpp:882` | about %d time%s in 10 |
+| `ui/margins.cpp:883` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's {Stealth} and {Streetwise})%s. An inn is the safe place to wait for morning. |
+| `ui/margins.cpp:886` | , as set in F12 > Mods (Night encounters in the streets) |
+| `ui/margins.cpp:925` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
+| `ui/margins.cpp:925` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
+| `ui/margins.cpp:927` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
+| `ui/margins.cpp:927` | It is day (from 5:00 to 19:00). |
+| `ui/margins.cpp:954` | %s in bank notes |
+| `ui/margins.cpp:968` | F11: the keys and clicks of this screen. |
 | `ui/margins_battle.cpp:80` | The battle runs again (the key: Space). Any order being given is given first. |
 | `ui/margins_battle.cpp:81` | This member's order is given; the battle stays paused, to give others theirs (the key: Enter). |
 | `ui/margins_battle.cpp:82` | Every kind of enemy on the field: attributes, weapons, armor (the key: E). |
@@ -2514,73 +2541,88 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui_windows.cpp:435` | held: Ctrl (in the overland view: Ctrl+click travels there) |
 | `ui/ui_windows.cpp:436` | pressed: F11 (this list) |
 | `ui/ui_windows.cpp:438` | F11, Esc or a click closes this. |
-| `ui/worldmap.cpp:74` | Unwelcome here |
-| `ui/worldmap.cpp:74` | The watch on alert here |
-| `ui/worldmap.cpp:74` | Wanted by the watch here |
-| `ui/worldmap.cpp:89` | a university |
-| `ui/worldmap.cpp:89` | an alchemist |
-| `ui/worldmap.cpp:90` | docks (boats) |
-| `ui/worldmap.cpp:91` | a swordsmith of 30q+ |
-| `ui/worldmap.cpp:91` | an armorer of 30q+ |
-| `ui/worldmap.cpp:91` | a bowyer of 30q+ |
-| `ui/worldmap.cpp:92` | an artificer of 30q+ |
-| `ui/worldmap.cpp:92` | Artificer 30q+ |
-| `ui/worldmap.cpp:110` | everyone knows the swordsmiths of Nuremberg |
-| `ui/worldmap.cpp:146` | Route planned: the party sets off once it is in the overland view. |
-| `ui/worldmap.cpp:211` | Its saints, formulae and teachers: known once the party has been there. |
-| `ui/worldmap.cpp:213` | The saints its library teaches: known once the party has been there. |
-| `ui/worldmap.cpp:221` | Not visited yet |
-| `ui/worldmap.cpp:233` | Quest markers |
-| `ui/worldmap.cpp:233` | Boat routes between the towns' docks |
-| `ui/worldmap.cpp:233` | Each place as an icon of its kind (else a dot) |
-| `ui/worldmap.cpp:234` | The days of travel from the party to every town, under its name (off at first: it crowds the map) |
-| `ui/worldmap.cpp:446` | Towns with ... |
-| `ui/worldmap.cpp:535` | the marked spot |
-| `ui/worldmap.cpp:552` | Click for what it offers, and to travel there |
-| `ui/worldmap.cpp:588` | No way there from here |
-| `ui/worldmap.cpp:589` | Travel there |
-| `ui/worldmap.cpp:594` | Travel there |
-| `ui/worldmap.cpp:597` | Leave town and travel there |
-| `ui/worldmap.cpp:602` | To travel, be in the overland view or in a town's streets |
-| `ui/worldmap.cpp:608` | Walk out of %s's gate and travel to %s? |
-| `ui/worldmap.cpp:609` | The party walks through the streets to a gate and out; in the overland view the journey begins. |
-| `ui/worldmap.cpp:610` | Leave and travel |
-| `ui/worldmap.cpp:629` | The wares noted here (%d shop%s) |
-| `ui/worldmap.cpp:646` | Boats leave here for these towns (not every day: the docks say which leave today). |
-| `ui/worldmap.cpp:647` | Boats from these towns call here; none sail back to them from here. |
-| `ui/worldmap.cpp:648` | Boats sail both ways between here and these towns (not every day: the docks say which leave today). |
-| `ui/worldmap.cpp:670` | Its docks have no boats leaving (the original game has none either). |
-| `ui/worldmap.cpp:712` | Collect your reward |
-| `ui/worldmap.cpp:712` | Robber knights |
-| `ui/worldmap.cpp:712` | Treasures to fetch |
-| `ui/worldmap.cpp:712` | Papers to get in a town |
-| `ui/worldmap.cpp:712` | City politics |
-| `ui/worldmap.cpp:712` | Cities at war |
-| `ui/worldmap.cpp:712` | The Wild Hunt |
-| `ui/worldmap.cpp:712` | Other quests |
-| `ui/worldmap.cpp:730` | %s (%d)###qg |
-| `ui/worldmap.cpp:736` | Sorted %s first: click for %s first. |
-| `ui/worldmap.cpp:736` | the soonest due |
-| `ui/worldmap.cpp:745` | No quests or rumors yet. |
-| `ui/worldmap.cpp:839` | cave near Köln |
-| `ui/worldmap.cpp:845` | and %d more: type more of the name to narrow the list |
-| `ui/worldmap.cpp:846` | No place of that name. |
-| `ui/worldmap.cpp:850` | Alchemical ingredients |
-| `ui/worldmap.cpp:866` | Click one to circle those towns on the map. |
-| `ui/worldmap.cpp:878` |  the party has been to: |
-| `ui/worldmap.cpp:882` | ... and %d more (circled on the map) |
-| `ui/worldmap.cpp:883` | %s %dq##tl%d |
-| `ui/worldmap.cpp:893` | Show on the map |
-| `ui/worldmap.cpp:910` | shown (click to hide) |
-| `ui/worldmap.cpp:910` | hidden (click to show) |
-| `ui/worldmap.cpp:925` | Places: click a kind to show or hide it. |
-| `ui/worldmap.cpp:954` | The party: a click shows it on the map. |
-| `ui/worldmap.cpp:958` | Map of Greater Germany |
-| `ui/worldmap.cpp:964` | {LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes. |
-| `ui/worldmap.cpp:965` | Drag to move, wheel to zoom. M or Esc closes. |
-| `ui/worldmap.cpp:967` | Traveling to %s |
-| `ui/worldmap.cpp:1030` | faded: leaves later this week |
-| `ui/worldmap.cpp:1095` | Click to take the boat. |
+| `ui/worldmap.cpp:75` | Unwelcome here |
+| `ui/worldmap.cpp:75` | The watch on alert here |
+| `ui/worldmap.cpp:75` | Wanted by the watch here |
+| `ui/worldmap.cpp:90` | a university |
+| `ui/worldmap.cpp:90` | an alchemist |
+| `ui/worldmap.cpp:91` | docks (boats) |
+| `ui/worldmap.cpp:92` | a swordsmith of 30q+ |
+| `ui/worldmap.cpp:92` | an armorer of 30q+ |
+| `ui/worldmap.cpp:92` | a bowyer of 30q+ |
+| `ui/worldmap.cpp:93` | an artificer of 30q+ |
+| `ui/worldmap.cpp:93` | Artificer 30q+ |
+| `ui/worldmap.cpp:111` | everyone knows the swordsmiths of Nuremberg |
+| `ui/worldmap.cpp:147` | Route planned: the party sets off once it is in the overland view. |
+| `ui/worldmap.cpp:212` | Its saints, formulae and teachers: known once the party has been there. |
+| `ui/worldmap.cpp:214` | The saints its library teaches: known once the party has been there. |
+| `ui/worldmap.cpp:222` | Not visited yet |
+| `ui/worldmap.cpp:234` | Quest markers |
+| `ui/worldmap.cpp:234` | Boat routes between the towns' docks |
+| `ui/worldmap.cpp:234` | Each place as an icon of its kind (else a dot) |
+| `ui/worldmap.cpp:235` | The days of travel from the party to every town, under its name (off at first: it crowds the map) |
+| `ui/worldmap.cpp:447` | Towns with ... |
+| `ui/worldmap.cpp:536` | the marked spot |
+| `ui/worldmap.cpp:553` | Click for what it offers, and to travel there |
+| `ui/worldmap.cpp:589` | No way there from here |
+| `ui/worldmap.cpp:590` | Travel there |
+| `ui/worldmap.cpp:595` | Travel there |
+| `ui/worldmap.cpp:598` | Leave town and travel there |
+| `ui/worldmap.cpp:607` | No way there by land from here. |
+| `ui/worldmap.cpp:609` | To travel, be in the overland view or in a town's streets |
+| `ui/worldmap.cpp:615` | Walk out of %s's gate and travel to %s? |
+| `ui/worldmap.cpp:616` | The party walks through the streets to a gate and out; in the overland view the journey begins. |
+| `ui/worldmap.cpp:617` | Leave and travel |
+| `ui/worldmap.cpp:636` | By boat about  |
+| `ui/worldmap.cpp:637` |  (%d to %d days) |
+| `ui/worldmap.cpp:638` | , by land about  |
+| `ui/worldmap.cpp:638` | , no way by land |
+| `ui/worldmap.cpp:648` | The way: %s (%d boat%s). |
+| `ui/worldmap.cpp:649` | The first boat sails in %d day%s: a stay at the inn until then. |
+| `ui/worldmap.cpp:650` | The first boat sails today. |
+| `ui/worldmap.cpp:651` | Each voyage from the docks takes two to four days; staying aboard on to the next town, hours. Boats sail on their own days (the docks say which today). |
+| `ui/worldmap.cpp:652` | In %d journeys of 10 the boats on sail on the day the boat arrives; else a stay ashore until they do. |
+| `ui/worldmap.cpp:653` | The fares are paid at the docks. Pirates may meet the boat on the river. |
+| `ui/worldmap.cpp:654` | No quicker than the way by land. |
+| `ui/worldmap.cpp:662` | The party walks to the inn and stays until the boat's day, then to the docks and aboard; at each stop it stays aboard while the boat on sails that day. |
+| `ui/worldmap.cpp:663` | The party walks to the docks and boards; at each stop it stays aboard while the boat on sails that day. |
+| `ui/worldmap.cpp:664` | It stops where you must choose: going ashore, pirates, an encounter. Any key or click stops the walk. |
+| `ui/worldmap.cpp:678` | The wares noted here (%d shop%s) |
+| `ui/worldmap.cpp:695` | Boats leave here for these towns (not every day: the docks say which leave today). |
+| `ui/worldmap.cpp:696` | Boats from these towns call here; none sail back to them from here. |
+| `ui/worldmap.cpp:697` | Boats sail both ways between here and these towns (not every day: the docks say which leave today). |
+| `ui/worldmap.cpp:719` | Its docks have no boats leaving (the original game has none either). |
+| `ui/worldmap.cpp:761` | Collect your reward |
+| `ui/worldmap.cpp:761` | Robber knights |
+| `ui/worldmap.cpp:761` | Treasures to fetch |
+| `ui/worldmap.cpp:761` | Papers to get in a town |
+| `ui/worldmap.cpp:761` | City politics |
+| `ui/worldmap.cpp:761` | Cities at war |
+| `ui/worldmap.cpp:761` | The Wild Hunt |
+| `ui/worldmap.cpp:761` | Other quests |
+| `ui/worldmap.cpp:779` | %s (%d)###qg |
+| `ui/worldmap.cpp:785` | Sorted %s first: click for %s first. |
+| `ui/worldmap.cpp:785` | the soonest due |
+| `ui/worldmap.cpp:794` | No quests or rumors yet. |
+| `ui/worldmap.cpp:888` | cave near Köln |
+| `ui/worldmap.cpp:894` | and %d more: type more of the name to narrow the list |
+| `ui/worldmap.cpp:895` | No place of that name. |
+| `ui/worldmap.cpp:899` | Alchemical ingredients |
+| `ui/worldmap.cpp:915` | Click one to circle those towns on the map. |
+| `ui/worldmap.cpp:927` |  the party has been to: |
+| `ui/worldmap.cpp:931` | ... and %d more (circled on the map) |
+| `ui/worldmap.cpp:932` | %s %dq##tl%d |
+| `ui/worldmap.cpp:942` | Show on the map |
+| `ui/worldmap.cpp:959` | shown (click to hide) |
+| `ui/worldmap.cpp:959` | hidden (click to show) |
+| `ui/worldmap.cpp:974` | Places: click a kind to show or hide it. |
+| `ui/worldmap.cpp:1003` | The party: a click shows it on the map. |
+| `ui/worldmap.cpp:1007` | Map of Greater Germany |
+| `ui/worldmap.cpp:1013` | {LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes. |
+| `ui/worldmap.cpp:1014` | Drag to move, wheel to zoom. M or Esc closes. |
+| `ui/worldmap.cpp:1016` | Traveling to %s |
+| `ui/worldmap.cpp:1079` | faded: leaves later this week |
+| `ui/worldmap.cpp:1144` | Click to take the boat. |
 | `ui/worldmap_draw.cpp:105` | ruined castle |
 | `ui/worldmap_draw.cpp:107` | ruined village |
 | `ui/worldmap_draw.cpp:108` | standing stone |
@@ -2681,65 +2723,67 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/cutcards.c:131` | ...\x1dvisit the Heilig-Geist-Spital, where injuries and the ill are tended. |
 | `mods/datamods.c:360` | # right edge). Bytes the game uses for layout are written \\xx (hex): \\14 new paragraph, \\15 an option, # \\1d after the option's "...", \\16 an option opening the saints, \\10 the potions, \\06 a battle, # \\01 ... \\13 a part shown or hidden by the game. { is o-umlaut, \| u-umlaut, \\1f a-umlaut. # Put the edited file into mods/<your mod>/MSGFILES/ (keep the name); lines starting with # are ignored.  |
 | `mods/datamods.c:397` | Describe your mod here (these lines show in F12 > Mods).  Put files into this folder laid out like the game folder; while the mod is on, the game reads them instead of its own: DARKLAND.LST, DARKLAND.ENM, PICS/NAME.PIC, a folder MSGFILES/ with single card files (.MSG, or .TXT as written by "Export the card texts"), art/ and sounds/ as in the game folder, music/ with recordings named by the piece's number (10.ogg, "11 market.ogg"; see F12 > Settings > Sound).  |
-| `mods/encounters.c:276` | A new encounter stopped because of a mistake in its file (see darklands_port.log); the party is back in the overland view. |
-| `mods/encounters.c:326` | '%s' expected |
-| `mods/encounters.c:429` | %s takes %d argument%s |
-| `mods/encounters.c:461` | %s: who, then an item (0 to 199) |
-| `mods/encounters.c:469` | wounds: an attribute |
-| `mods/encounters.c:476` | unknown function %s |
-| `mods/encounters.c:495` | unknown name %s |
-| `mods/encounters.c:498` | a value expected |
-| `mods/encounters.c:504` | nested too deeply |
-| `mods/encounters.c:562` | unexpected "%s" |
-| `mods/encounters.c:576` | %s takes %d to %d values |
-| `mods/encounters.c:587` | nested too deeply |
-| `mods/encounters.c:600` | no section [%s] |
-| `mods/encounters.c:627` | %s: %s expected |
-| `mods/encounters.c:633` | an action expected |
-| `mods/encounters.c:652` | 'then' or 'goto' expected |
-| `mods/encounters.c:662` | card: one of the game's cards, 1 to 0x16d |
-| `mods/encounters.c:675` | unknown variable %s |
-| `mods/encounters.c:681` | picture names have at most 8 letters |
-| `mods/encounters.c:690` | options are numbered 0 to 9 |
-| `mods/encounters.c:696` | battle: a battlefield, then enemy, quality, count for each group |
-| `mods/encounters.c:700` | battle: a wilderness battlefield (Wilds, Surrounded, Clearing, Cave, or 0x2e-0x55, 0x61-0x63, 0x6f-0x79) |
-| `mods/encounters.c:725` | %s: who, then a %s |
-| `mods/encounters.c:725` | skill (0 to 18) |
-| `mods/encounters.c:725` | attribute (0 to 6) |
-| `mods/encounters.c:747` | unknown action %s |
-| `mods/encounters.c:751` | text %ld: %s has blocks 0 to %d |
-| `mods/encounters.c:752` | text %ld: a card holds blocks 0 to 24 |
-| `mods/encounters.c:798` | ';' expected |
-| `mods/encounters.c:807` | unexpected "%s" |
-| `mods/encounters.c:941` | unknown setting %s |
-| `mods/encounters.c:947` | option: a number 0 to 9 |
-| `mods/encounters.c:949` | option %d twice |
-| `mods/encounters.c:952` | option %d: potion or saint |
-| `mods/encounters.c:965` | at most 4 potions |
-| `mods/encounters.c:967` | potion CODE, CHANCE |
-| `mods/encounters.c:989` | unknown key %s |
-| `mods/encounters.c:991` | no card (the MSGFILES text) given |
-| `mods/encounters.c:992` | no picture given |
-| `mods/encounters.c:993` | no [section] |
-| `mods/encounters.c:1069` | %s has %d text blocks: the game holds 25 |
-| `mods/encounters.c:1070` | %s is too long: %ld bytes as the game loads it, under 6000 fit |
-| `mods/encounters.c:1071` | %s has a block with %d option lines: at most %d |
-| `mods/encounters.c:1083` | [%s] has options but no block |
-| `mods/encounters.c:1086` | [%s] option %d: block %d of %s has %d option line%s |
-| `mods/encounters.c:1089` | [%s] option %d: %s |
-| `mods/encounters.c:1089` | its line (\\16) opens the saints: write option N saint |
-| `mods/encounters.c:1089` | a saint option needs a \\16 line |
-| `mods/encounters.c:1090` | [%s] option %d: %s |
-| `mods/encounters.c:1090` | its line (\\10) opens the potions: write option N potion |
-| `mods/encounters.c:1090` | a potion option needs a \\10 line |
-| `mods/encounters.c:1099` | [%s] option %d is a saint option, but there are no saints |
-| `mods/encounters.c:1100` | [%s] option %d is a potion option, but there are no items |
-| `mods/encounters.c:1102` | [%s] has a block but no options |
-| `mods/encounters.c:1104` | [%s] saints: numbers 0 to 135 (DARKLAND.LST), or -1 |
-| `mods/encounters.c:1105` | [%s] items: numbers 0 to 199 (DARKLAND.LST), or -1 |
-| `mods/encounters.c:1107` | [%s] block %d: the game holds 25 blocks (0 to 24) |
-| `mods/encounters.c:1154` | (Darklands+ %s) |
-| `mods/encounters.c:1172` | New encounters: %d file%s with errors left out (see darklands_port.log). |
+| `mods/encounters.c:404` | A new encounter stopped because of a mistake in its file (see darklands_port.log); the party is back in the overland view. |
+| `mods/encounters.c:454` | '%s' expected |
+| `mods/encounters.c:558` | %s takes %d argument%s |
+| `mods/encounters.c:590` | %s: who, then an item (0 to 199) |
+| `mods/encounters.c:598` | wounds: an attribute |
+| `mods/encounters.c:605` | unknown function %s |
+| `mods/encounters.c:624` | unknown name %s |
+| `mods/encounters.c:627` | a value expected |
+| `mods/encounters.c:633` | nested too deeply |
+| `mods/encounters.c:691` | unexpected "%s" |
+| `mods/encounters.c:705` | %s takes %d to %d values |
+| `mods/encounters.c:716` | nested too deeply |
+| `mods/encounters.c:729` | no section [%s] |
+| `mods/encounters.c:757` | %s: %s expected |
+| `mods/encounters.c:763` | an action expected |
+| `mods/encounters.c:782` | 'then' or 'goto' expected |
+| `mods/encounters.c:792` | card: one of the game's cards, 1 to 0x16d |
+| `mods/encounters.c:809` | unknown variable %s |
+| `mods/encounters.c:815` | picture names have at most 8 letters |
+| `mods/encounters.c:824` | options are numbered 0 to 9 |
+| `mods/encounters.c:830` | battle: a battlefield, then enemy, quality, count for each group |
+| `mods/encounters.c:835` | battle: a wilderness battlefield (Wilds, Surrounded, Clearing, Cave, or 0x2e-0x55, 0x61-0x63, 0x6f-0x79), or in a town's streets MainStreet, SideStreet |
+| `mods/encounters.c:837` | battle: MainStreet and SideStreet only in a town (where street) |
+| `mods/encounters.c:864` | %s: who, then a %s |
+| `mods/encounters.c:864` | skill (0 to 18) |
+| `mods/encounters.c:864` | attribute (0 to 6) |
+| `mods/encounters.c:886` | unknown action %s |
+| `mods/encounters.c:890` | text %ld: %s has blocks 0 to %d |
+| `mods/encounters.c:891` | text %ld: a card holds blocks 0 to 24 |
+| `mods/encounters.c:937` | ';' expected |
+| `mods/encounters.c:947` | unexpected "%s" |
+| `mods/encounters.c:1079` | where: wild, boat, street or camp |
+| `mods/encounters.c:1085` | unknown setting %s |
+| `mods/encounters.c:1091` | option: a number 0 to 9 |
+| `mods/encounters.c:1093` | option %d twice |
+| `mods/encounters.c:1096` | option %d: potion or saint |
+| `mods/encounters.c:1109` | at most 4 potions |
+| `mods/encounters.c:1111` | potion CODE, CHANCE |
+| `mods/encounters.c:1133` | unknown key %s |
+| `mods/encounters.c:1135` | no card (the MSGFILES text) given |
+| `mods/encounters.c:1136` | no picture given |
+| `mods/encounters.c:1137` | no [section] |
+| `mods/encounters.c:1213` | %s has %d text blocks: the game holds 25 |
+| `mods/encounters.c:1214` | %s is too long: %ld bytes as the game loads it, under 6000 fit |
+| `mods/encounters.c:1215` | %s has a block with %d option lines: at most %d |
+| `mods/encounters.c:1227` | [%s] has options but no block |
+| `mods/encounters.c:1230` | [%s] option %d: block %d of %s has %d option line%s |
+| `mods/encounters.c:1233` | [%s] option %d: %s |
+| `mods/encounters.c:1233` | its line (\\16) opens the saints: write option N saint |
+| `mods/encounters.c:1233` | a saint option needs a \\16 line |
+| `mods/encounters.c:1234` | [%s] option %d: %s |
+| `mods/encounters.c:1234` | its line (\\10) opens the potions: write option N potion |
+| `mods/encounters.c:1234` | a potion option needs a \\10 line |
+| `mods/encounters.c:1243` | [%s] option %d is a saint option, but there are no saints |
+| `mods/encounters.c:1244` | [%s] option %d is a potion option, but there are no items |
+| `mods/encounters.c:1246` | [%s] has a block but no options |
+| `mods/encounters.c:1248` | [%s] saints: numbers 0 to 135 (DARKLAND.LST), or -1 |
+| `mods/encounters.c:1249` | [%s] items: numbers 0 to 199 (DARKLAND.LST), or -1 |
+| `mods/encounters.c:1251` | [%s] block %d: the game holds 25 blocks (0 to 24) |
+| `mods/encounters.c:1298` | (Darklands+ %s) |
+| `mods/encounters.c:1316` | New encounters: %d file%s with errors left out (see darklands_port.log). |
 | `mods/fixgroups.c:10` | Crashes, freezes, items or progress lost, saved games spoiled, quests that can never be finished. Nobody wants these. |
 | `mods/fixgroups.c:11` | Plain mistakes |
 | `mods/fixgroups.c:11` | Something the game sets out to do and gets wrong: the wrong member, the wrong town, a check on the wrong option, a number lost on the way. |
@@ -3160,32 +3204,34 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/saves.c:279` | Loading is irreversable. Proceed? |
 | `mods/saves.c:322` | That save could not be read. |
 | `mods/saves.c:337` | Loaded %s: a battle, paused (Space resumes it) |
-| `mods/saves.c:356` | Saved (an Ironman game keeps one save, saved over as you go) |
-| `mods/saves.c:372` | Saved: %s (%s), in place of the old save |
-| `mods/saves.c:373` | Saved: %s (%s) |
-| `mods/saves.c:396` | use your horses |
-| `mods/saves.c:413` | Autosave: battle |
-| `mods/saves.c:445` | Ironman %04x |
-| `mods/saves.c:447` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
-| `mods/saves.c:479` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:480` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:501` | Start or load a game first. |
-| `mods/saves.c:508` | Loading from here works once a game is running; until then, load from the start screen. |
-| `mods/saves.c:510` | Buffer dealloc error |
-| `mods/saves.c:512` | That save could not be read. |
-| `mods/saves.c:532` | No quicksave yet (Ctrl+S makes one). |
+| `mods/saves.c:357` | Saved (an Ironman game keeps one save, saved over as you go) |
+| `mods/saves.c:373` | Saved: %s (%s), in place of the old save |
+| `mods/saves.c:374` | Saved: %s (%s) |
+| `mods/saves.c:397` | use your horses |
+| `mods/saves.c:414` | Autosave: battle |
+| `mods/saves.c:446` | Ironman %04x |
+| `mods/saves.c:448` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
+| `mods/saves.c:480` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:481` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:502` | Start or load a game first. |
+| `mods/saves.c:509` | Loading from here works once a game is running; until then, load from the start screen. |
+| `mods/saves.c:511` | Buffer dealloc error |
+| `mods/saves.c:513` | That save could not be read. |
+| `mods/saves.c:533` | No quicksave yet (Ctrl+S makes one). |
 | `mods/savesview.c:51` | %.14s %d %.3s |
-| `mods/sfx.c:50` | an attack that misses |
-| `mods/sfx.c:50` | a parried or blocked blow |
-| `mods/sfx.c:50` | a blow that lands |
-| `mods/sfx.c:51` | a heavy blow that knocks back |
-| `mods/sfx.c:51` | a bow or crossbow shot |
-| `mods/sfx.c:51` | a handgun shot |
-| `mods/sfx.c:51` | a potion bursting |
-| `mods/sfx.c:52` | a magical effect |
-| `mods/sfx.c:52` | hidden enemies appear |
-| `mods/sfx.c:52` | "cannot go there" |
-| `mods/sfx.c:593` | %d sounds written to %s |
+| `mods/sfx.c:51` | an attack that misses |
+| `mods/sfx.c:51` | a parried or blocked blow |
+| `mods/sfx.c:51` | a blow that lands |
+| `mods/sfx.c:52` | a heavy blow that knocks back |
+| `mods/sfx.c:52` | a man's death |
+| `mods/sfx.c:52` | a bow or crossbow shot |
+| `mods/sfx.c:52` | a handgun shot |
+| `mods/sfx.c:52` | a potion bursting |
+| `mods/sfx.c:53` | a magical effect |
+| `mods/sfx.c:53` | hidden enemies appear |
+| `mods/sfx.c:53` | "cannot go there" |
+| `mods/sfx.c:53` | a beast's or a monster's death (a wolf, a spider, a demon: not a man's cry) |
+| `mods/sfx.c:614` | %d sounds written to %s |
 | `mods/sharedstore.c:121` | This inn's own store room holds too many kinds of items to join the store room shared by every inn (Darklands+): its items stay at this inn until some are taken out. |
 | `mods/sheetview.c:222` | No %s is left in the party's pack. |
 | `mods/sheetview.c:224` | %s cannot carry another kind of item. |
@@ -3251,10 +3297,10 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/teachers.c:225` | Here: choose "inquire about special training". |
 | `mods/teachers.c:226` | They may say no (it depends on {Charisma}, reputation here and fame); they always agree if the guild owes the party a favor. |
 | `mods/teachers.c:229` | A bug in the original game: this guild's teacher teaches no skill at all. |
-| `mods/travel.c:243` | No way there from here. |
-| `mods/travel.c:269` | how far is it |
-| `mods/travel.c:366` | Travel stopped: the party could not get any further this way. |
-| `mods/travel.c:518` | the marked place |
+| `mods/travel.c:250` | No way there from here. |
+| `mods/travel.c:276` | how far is it |
+| `mods/travel.c:396` | Travel stopped: the party could not get any further this way. |
+| `mods/travel.c:550` | the marked place |
 | `mods/war.c:98` | pics\gate4.pic: No such file |
 | `mods/war.c:147` | ...hidden option |
 

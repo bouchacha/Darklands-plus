@@ -37,8 +37,16 @@ What changed since 1.3.1.
 - **The character sheet's things:** the kinds of things in the pack fold away (a click on the heading; the ingredients folded at first), and the sheet's lists open at their top.
 - **Money as coins** (F12 > Settings) gives amounts in words their coins too: a card's "3 groschen", the game's own "12pfs", a hint's "2 florins".
 
+**Encounters and boats**
+
+- **New encounters** (the mod that comes with Darklands+, F12 > Mods): eighty now, 64 of them new. 34 more in the wild, and three new places: the river boats (10: on three voyages in ten, instead of the river pirates), the towns' streets (12: as the party comes into a street, 3 times in 100 on the main street by day, 6 at night or in a side street, 10 in a side street at night) and camp (8: after a night camping in the wild, 12 nights in 100).
+- **What came of it:** under the text a new encounter's choice ends on, a band lists what changed: each member's attributes and skills (their heads and the shields with the amounts; "Each" when all changed alike), members lost, things gained or lost, money, fame, a town's opinion and the time that passed; "Nothing came of it." when the choice changed nothing. A battle's wounds and spoils are left to the battle's own screens.
+- **By boat from the world map:** in a town, the panel of a town the boats reach says how long the way by boat takes (the towns in between, a range) and the way by land. Where the boat is a day quicker or more, **Go by boat** walks the party to the docks (after a stay at the inn when the boat sails on a later day) and aboard; at each stop it stays aboard while the boat on sails that day, and when it does not, goes ashore through the wharf's toll and takes the journey on from there. It stops where the choice is yours: arriving, the pirates, an encounter. Which boats sail when is the game's own.
+- **For modders:** an encounter's `where` (wild, boat, street, camp), the street fields `MainStreet` and `SideStreet`, the river's `Pirate`s; `port/tools/enccheck.c` checks scripts without the game again.
+
 **Travel and sound**
 
+- **Loading a save stops a journey under way:** fast travel went on toward its goal on the loaded game's map.
 - **Fast travel near the map's edges:** a journey keeps to the land the party can walk on. Zürich's road runs along the map's last row, out of the marker's reach, and a journey along it stopped with the party stuck at the edge.
 - **A beast's or a monster's death** (a wolf's, a spider's, a demon's) has a sound of its own in a sound pack: in the sample battle sounds made from 0 A.D.'s an animal's cry, where it was a man's scream. A pack without one plays the game's own sound there.
 
