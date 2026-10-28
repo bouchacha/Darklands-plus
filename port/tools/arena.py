@@ -139,7 +139,7 @@ sc('way_charger', 'a Charger and a Berserker against archers and swords in the t
            r'orders: member 1 had no orders: joins the fight against \d+ \(walking to it, as Berserker\)'])
 sc('way_bodyguard', 'a Bodyguard and an archer, the foes coming: it keeps beside the archer and fights whoever comes at it',
    arms=[(2, BOW, 30)], pre=['ustyle:1,6'], groups=(BANDIT, 2, 3, 0, 1, 0, -1, 0, 0),
-   place=[(2, 0, 0), (1, -70, 40), (0, -60, -30), (3, -80, 0), (5, 220, 0), (6, 230, 20), (7, 230, -20)], end=False,
+   place=[(2, 0, 0), (1, -100, -50), (0, -60, -30), (3, -80, 0), (5, 220, 0), (6, 230, 20), (7, 230, -20)], end=False,
    expect=[r'orders: member 1 \(Bodyguard\) keeps beside 2'])
 sc('way_off', 'every member Off: nothing of the ways (the original\'s, the party given no order: they stand, and fight back as the game has them)',
    arms=[(2, BOW, 30)], pre=['ustyle:%d,0' % i for i in range(4)], end=False, secs=40,

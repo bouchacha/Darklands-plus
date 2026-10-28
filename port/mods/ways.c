@@ -125,6 +125,9 @@ static void leave_hook(void)                    /* s014 19cd:0738 order_mode_lea
     if (ov[i] != was && getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d's order (%#x): %s for the rest of the fight\n", i, k, ov[i] == OV_SHOOT ? "shooting" : ov[i] == OV_MELEE ? "hand to hand" : "holding");
     bow_given[i] = bow_hold[i] = 0; bow_flips[i] = 0;
 }     /* member i at foe t hand to hand (beside it, or walking to it), its melee weapon drawn; the kind of attack as its way has it */
+static signed char noway[5] = { -1, -1, -1, -1, -1 };   /* a foe member i found no way to, and when: left alone a while */
+static u16 noway_at[5];
+static int no_way_to(int i, int j) { return noway[i] == j && noway_at[i] && (u16)(g_rw(GV_combat_clock) - noway_at[i]) < 90; }
 static void to_melee(int i, int t, int beside)
 {
     u16 c = (u16)(D_CBT + i * 0x80);
@@ -139,7 +142,12 @@ static void to_melee(int i, int t, int beside)
     if (beside) { g_ww((u16)(c + CB_ORDER), (u16)kind); g_wb((u16)(GV_cbt_action + i), 7); }
     else {
         g_ww((u16)(c + CB_TO_X), g_rw(CBF(t, CB_X))); g_ww((u16)(c + CB_TO_Y), g_rw(CBF(t, CB_Y)));
-        if (ns_call(GF_path_find, 1, i) != 1) { g_ww((u16)(c + CB_ORDER), (u16)kind); g_wb((u16)(GV_cbt_action + i), 7); return; }   /* (no way: it fights when the foe comes) */
+        if (ns_call(GF_path_find, 1, i) != 1) {     /* (no way to it now: the member is free, and goes at another, or at this one when it comes) */
+            g_ww((u16)(c + CB_ORDER), 0); g_wb((u16)(GV_cbt_action + i), 7);
+            noway[i] = (signed char)t; noway_at[i] = g_rw(GV_combat_clock); if (!noway_at[i]) noway_at[i] = 1;
+            fprintf(stderr, "orders: member %d finds no way to %d: another for now\n", i, t);
+            return;
+        }
         ns_call(GF_path_give, 1, i);
         g_wb((u16)(GV_cbt_moving + i), 1); g_wb((u16)(GV_cbt_path_step + i), 0);
         g_ww((u16)(c + CB_ORDER), 1);
@@ -248,7 +256,7 @@ static int rescue_target(int i)
 {
     int fl = g_rb((u16)(GV_cbt_floor + i)), best = -1, best_on = 0; long bs = 0;
     for (int j = 5; j < 13; j++) {
-        if (g_rb(CBF(j, CB_STATUS)) != 1 || g_rb((u16)(GV_cbt_floor + j)) != fl || !ways_near_foe(i, j)) continue;
+        if (g_rb(CBF(j, CB_STATUS)) != 1 || g_rb((u16)(GV_cbt_floor + j)) != fl || !ways_near_foe(i, j) || no_way_to(i, j)) continue;
         long dx = (s16)g_rw(CBF(j, CB_X)) - (s16)g_rw(CBF(i, CB_X));
         long dy = 2 * ((s16)g_rw(CBF(j, CB_Y)) - (s16)g_rw(CBF(i, CB_Y)));
         long dd = dx * dx + dy * dy;
@@ -388,7 +396,7 @@ static int melee_pick(int i, int how, int *beside_out)
         int beside = adj(i, j);
         float d = dist(i, j), s;
         if (beside) s = 100000.0f + (j == cur ? 50.0f : 0.0f) - d;
-        else if (how == PICK_BESIDE) continue;
+        else if (how == PICK_BESIDE || no_way_to(i, j)) continue;
         else if (how == PICK_GUARD) {
             if (adj(g, j)) s = 50000.0f - d;
             else if (ways_near_foe(g, j)) s = 40000.0f - d;
@@ -417,19 +425,33 @@ static void guard_walk(int i)
     if (g < 0) return;
     u16 now = g_rw(GV_combat_clock);
     if (guard_at[i] && (u16)(now - guard_at[i]) < 60) return;
-    if (dist(i, g) <= 28.0f) return;
+    if (dist(i, g) <= 48.0f) return;                 /* (a cell off, or a diagonal one: beside them) */
     guard_at[i] = now ? now : 1;
     u16 c = (u16)(D_CBT + i * 0x80);
     int gx = (s16)g_rw(CBF(g, CB_X)), gy = (s16)g_rw(CBF(g, CB_Y)), nf = -1; float nd = 0;
     for (int j = 5; j < 13; j++)
         if (g_rb(CBF(j, CB_STATUS)) == 1 && g_rb((u16)(GV_cbt_floor + j)) == g_rb((u16)(GV_cbt_floor + g)) && (nf < 0 || dist(g, j) < nd)) { nf = j; nd = dist(g, j); }
-    float ux = 1.0f, uy = 0.0f;                     /* (towards the foe, on the field's scale) */
+    float ux = 1.0f, uy = 0.0f;                     /* (towards the foe, on the field's scale: rows half as tall) */
     if (nf >= 0 && nd > 1.0f) { ux = ((s16)g_rw(CBF(nf, CB_X)) - gx) / nd; uy = 2.0f * ((s16)g_rw(CBF(nf, CB_Y)) - gy) / nd; }
-    const float spots[4][2] = { { ux, uy }, { -uy, ux }, { uy, -ux }, { -ux, -uy } };
-    u16 tx = g_rw((u16)(c + CB_TO_X)), ty = g_rw((u16)(c + CB_TO_Y));
-    for (int k = 0; k < 4; k++) {
-        int x = gx + (int)(16.0f * spots[k][0]), y = gy + (int)(8.0f * spots[k][1]);
-        if (x < 0 || y < 0) continue;
+    /* the spots a cell or two from the one it guards (32 by 16 pixels, as levelwalk.c tries them: a spot
+       closer is within their own footprint, never free), the nearest to the side of the foe first */
+    float ix = gx + 32.0f * ux, iy = gy + 16.0f * uy;
+    int sx[24], sy[24], n = 0; float sd[24];
+    for (int r = 1; r <= 2; r++)
+        for (int dy = -r; dy <= r; dy++)
+            for (int dx = -r; dx <= r; dx++) {
+                if (dx > -r && dx < r && dy > -r && dy < r) continue;
+                int x = gx + dx * 32, y = gy + dy * 16;
+                if (x < 0 || y < 0 || x >= 40 * 32 || y >= 40 * 16 || n >= 24) continue;
+                sx[n] = x; sy[n] = y; sd[n] = (x - ix) * (x - ix) + 4.0f * (y - iy) * (y - iy); n++;
+            }
+    u16 tx = g_rw((u16)(c + CB_TO_X)), ty = g_rw((u16)(c + CB_TO_Y)); u8 tg = g_rb((u16)(c + CB_TARGET));
+    g_wb((u16)(c + CB_TARGET), 0xff);
+    for (int tries = 0; tries < 6 && n > 0; tries++) {
+        int k = 0;
+        for (int m = 1; m < n; m++) if (sd[m] < sd[k]) k = m;
+        int x = sx[k], y = sy[k];
+        sx[k] = sx[n - 1]; sy[k] = sy[n - 1]; sd[k] = sd[n - 1]; n--;
         g_ww((u16)(c + CB_TO_X), (u16)x); g_ww((u16)(c + CB_TO_Y), (u16)y);
         int found = ns_call(GF_path_find, 1, i) == 1;
         if (ns_unwinding) return;
@@ -437,11 +459,12 @@ static void guard_walk(int i)
         ns_call(GF_path_give, 1, i);
         if (ns_unwinding) return;
         g_wb((u16)(GV_cbt_moving + i), 1); g_wb((u16)(GV_cbt_path_step + i), 0);
-        g_ww((u16)(c + CB_ORDER), 1); g_wb((u16)(c + CB_TARGET), 0xff); g_wb((u16)(GV_cbt_state + i), 0);
-        fprintf(stderr, "orders: member %d (Bodyguard) keeps beside %d\n", i, g);
+        g_ww((u16)(c + CB_ORDER), 1); g_wb((u16)(GV_cbt_state + i), 0);
+        fprintf(stderr, "orders: member %d (Bodyguard) keeps beside %d: walks to %d,%d\n", i, g, x, y);
         return;
     }
-    g_ww((u16)(c + CB_TO_X), tx); g_ww((u16)(c + CB_TO_Y), ty);
+    g_ww((u16)(c + CB_TO_X), tx); g_ww((u16)(c + CB_TO_Y), ty); g_wb((u16)(c + CB_TARGET), tg);
+    if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d (Bodyguard) finds no way to %d\n", i, g);
 }
 
 /* a member with a missile weapon left without orders (the battle let run before the player gave any,
@@ -653,7 +676,7 @@ void orders_frame(void)
         for (int i = 0; i < 5; i++) {
             bow_given[i] = bow_hold[i] = 0; bow_flips[i] = 0;
             idle_since[i] = 0; shot_at[i] = -1; kept_kind[i] = -1; told[i] = 0;
-            ov[i] = OV_NONE; committed[i] = 0; pt[i] = -1; parried[i] = 0; guard_at[i] = 0; hold_try[i] = 0;
+            ov[i] = OV_NONE; committed[i] = 0; pt[i] = -1; parried[i] = 0; guard_at[i] = 0; hold_try[i] = 0; noway[i] = -1;
         }
         lines_met = 0;
         battlerules_battle_begins(); pathfix_battle_begins();   /* (every file's memory of a battle: forgotten at the next) */
