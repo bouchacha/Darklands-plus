@@ -702,7 +702,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/boattrip.cpp:247` | the voyage ended on the road. |
 | `ui/boattrip.cpp:250` | Arrived by boat: choose how to go ashore. |
 | `ui/boattrip.cpp:252` | the boat came to a town off the way. |
-| `ui/boattrip.cpp:273` | no boat on to %s today (in %d day%s): choose how to go ashore; then the world map's "By boat" takes it on. |
+| `ui/boattrip.cpp:273` | no boat on to %s today (in %d day%s): choose how to go ashore; then the world map's "Go by boat" takes it on. |
 | `ui/boattrip.cpp:274` | no boat on to %s from here now: choose how to go ashore. |
 | `ui/boattrip.cpp:279` | going ashore did not end in the streets. |
 | `ui/boattrip.cpp:282` | ashore in %s: from here the way by land is as quick (the world map's "Leave town and travel there"). |
@@ -728,6 +728,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/cardhints.cpp:28` | Not for two days after a guard refused your bribe here, nor if you cannot pay it. |
 | `ui/cardview.cpp:158` | Nothing came of it. |
 | `ui/cardview.cpp:165` | Nothing came of it. |
+| `ui/cardview.cpp:196` | +2 in Paderborn  ·  3 hours pass |
 | `ui/cardview.cpp:343` | What came of it |
 | `ui/cardview.cpp:346` | Nothing came of it. |
 | `ui/cardview.cpp:428` |  speaks for the party |
@@ -2784,6 +2785,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/encounters.c:1251` | [%s] block %d: the game holds 25 blocks (0 to 24) |
 | `mods/encounters.c:1298` | (Darklands+ %s) |
 | `mods/encounters.c:1316` | New encounters: %d file%s with errors left out (see darklands_port.log). |
+| `mods/encounters.c:1728` | on the screen |
 | `mods/fixgroups.c:10` | Crashes, freezes, items or progress lost, saved games spoiled, quests that can never be finished. Nobody wants these. |
 | `mods/fixgroups.c:11` | Plain mistakes |
 | `mods/fixgroups.c:11` | Something the game sets out to do and gets wrong: the wrong member, the wrong town, a check on the wrong option, a number lost on the way. |
@@ -3204,20 +3206,20 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/saves.c:279` | Loading is irreversable. Proceed? |
 | `mods/saves.c:322` | That save could not be read. |
 | `mods/saves.c:337` | Loaded %s: a battle, paused (Space resumes it) |
-| `mods/saves.c:357` | Saved (an Ironman game keeps one save, saved over as you go) |
-| `mods/saves.c:373` | Saved: %s (%s), in place of the old save |
-| `mods/saves.c:374` | Saved: %s (%s) |
-| `mods/saves.c:397` | use your horses |
-| `mods/saves.c:414` | Autosave: battle |
-| `mods/saves.c:446` | Ironman %04x |
-| `mods/saves.c:448` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
-| `mods/saves.c:480` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:481` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:502` | Start or load a game first. |
-| `mods/saves.c:509` | Loading from here works once a game is running; until then, load from the start screen. |
-| `mods/saves.c:511` | Buffer dealloc error |
-| `mods/saves.c:513` | That save could not be read. |
-| `mods/saves.c:533` | No quicksave yet (Ctrl+S makes one). |
+| `mods/saves.c:358` | Saved (an Ironman game keeps one save, saved over as you go) |
+| `mods/saves.c:374` | Saved: %s (%s), in place of the old save |
+| `mods/saves.c:375` | Saved: %s (%s) |
+| `mods/saves.c:398` | use your horses |
+| `mods/saves.c:415` | Autosave: battle |
+| `mods/saves.c:447` | Ironman %04x |
+| `mods/saves.c:449` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
+| `mods/saves.c:481` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:482` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:503` | Start or load a game first. |
+| `mods/saves.c:510` | Loading from here works once a game is running; until then, load from the start screen. |
+| `mods/saves.c:512` | Buffer dealloc error |
+| `mods/saves.c:514` | That save could not be read. |
+| `mods/saves.c:534` | No quicksave yet (Ctrl+S makes one). |
 | `mods/savesview.c:51` | %.14s %d %.3s |
 | `mods/sfx.c:51` | an attack that misses |
 | `mods/sfx.c:51` | a parried or blocked blow |
