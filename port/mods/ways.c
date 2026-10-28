@@ -664,14 +664,15 @@ void orders_style_changed(int m)
    to its foe (or whose foe falls) to a Std Attack on whoever it fights; the kind the player chose
    is kept for that fight too, until the member is given another order */
 static int kept_kind[5] = { -1, -1, -1, -1, -1 };
-/* every frame (runtime/platform_sdl.c): a battle begun, what this file remembers of the members is
+/* every frame (runtime/platform_sdl.c): a battle begun (the battle's screen, not back from a sheet or
+   Enemy Info opened in it: the game's in_battle flag stays set), what this file remembers of the members is
    cleared - the last battle's orders, kinds kept, marks, bow switches and ways given way to orders are
    not this one's (a member sent hand to hand there opened fire here no more) */
 void battlerules_battle_begins(void), pathfix_battle_begins(void);
 void orders_frame(void)
 {
     static int was;
-    int in = game_mode() == GM_BATTLE;
+    int in = game_mode() == GM_BATTLE || (was && gm_in_battle());   /* (a sheet or Enemy Info opened in the battle is not a new battle) */
     if (in && !was) {
         for (int i = 0; i < 5; i++) {
             bow_given[i] = bow_hold[i] = 0; bow_flips[i] = 0;
@@ -680,6 +681,7 @@ void orders_frame(void)
         }
         lines_met = 0;
         battlerules_battle_begins(); pathfix_battle_begins();   /* (every file's memory of a battle: forgotten at the next) */
+        if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: a battle begins\n");
     }
     was = in;
 }
