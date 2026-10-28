@@ -373,7 +373,7 @@ static void no_way(void)
     hook_return_far(0);
 }
 static u16 plan_clock[13]; static u8 plan_count[13];  /* when each combatant last had a route planned */
-/* a new battle (mods/orders.c orders_frame): what this file remembers of the last one forgotten - its
+/* a new battle (mods/ways.c orders_frame): what this file remembers of the last one forgotten - its
    clock restarts, so a time kept from before would mean nothing */
 void pathfix_battle_begins(void)
 {

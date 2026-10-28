@@ -63,7 +63,8 @@ def sections_of_docs():
 
 
 GENERATED = [('docs/CODE_MAP.md', 'port/tools/code_map.py'), ('docs/COPY.md', 'port/tools/copy_catalog.py'),
-             ('port/runtime/gamevars.h', 'port/tools/gen_gamevars.py --stdout')]
+             ('port/runtime/gamevars.h', 'port/tools/gen_gamevars.py --stdout'),
+             ('docs/MERGING.md', 'port/tools/switch_map.py')]   # (its section 4: every switch and the files that read it)
 
 
 def generated(fix):

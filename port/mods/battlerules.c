@@ -42,7 +42,7 @@
 #include "../runtime/config.h"
 #include "nscreen.h"
 #include "battlerules.h"
-int orders_may_move(int i);                     /* (mods/orders.c: not a Holdfast, not Off) */
+int orders_may_move(int i);                     /* (mods/ways.c: not a Holdfast; an Off member only when sent to shoot) */
 
 
 /* battle.improved: the rules of a fight in one switch (the shooters' ways, the next foe, the kinds of attack kept) */
@@ -86,7 +86,7 @@ static signed char walk_for[5] = { -1, -1, -1, -1, -1 };  /* the target a member
 static int walk_x[5], walk_y[5];                          /* to where */
 static signed char approach[5];                           /* the walk is towards the foe, until a line opens */
 static u16 last_try[5], seen_engage[5], walk_since[5];
-void battlerules_battle_begins(void)                         /* (mods/orders.c orders_frame: a new battle) */
+void battlerules_battle_begins(void)                         /* (mods/ways.c orders_frame: a new battle) */
 {
     for (int i = 0; i < 5; i++) { walk_for[i] = -1; approach[i] = 0; last_try[i] = seen_engage[i] = walk_since[i] = 0; }
 }
@@ -308,7 +308,7 @@ static void exchanges_hook(void)              /* melee_exchanges (), s014 0e76:2
         u16 c = CBT(i);
         if (g_rb((u16)(GV_cbt_state + i)) != 1 || g_rw((u16)(GV_cbt_engage_time + 2 * i)) == seen_engage[i]) continue;   /* (blocked just now) */
         if (g_rb((u16)(c + CB_STATUS)) != 1 || !(g_rw((u16)(c + CB_ORDER)) & 0x80) || g_rb((u16)(GV_cbt_moving + i)) || g_rb(HELD(i)) == 1) continue;
-        if (!orders_may_move(i)) continue;                      /* (a Holdfast stays: another mark with a line, mods/orders.c; Off: the game's way) */
+        if (!orders_may_move(i)) continue;                      /* (a Holdfast stays: another mark with a line, mods/ways.c; Off: the game's way) */
         if ((u16)(now - last_try[i]) < 120 && last_try[i]) continue;
         last_try[i] = now ? now : 1;
         step_aside(i);

@@ -282,7 +282,7 @@ static const char *order_word(char c, int place, bool shortw)
 }
 
 /* in a battle, on the picture's lower left: the member's way of fighting until given an order (mods/styles.c,
-   carried out by mods/orders.c); a click on it opens the chooser beside the box. The clicks come through
+   carried out by mods/ways.c); a click on it opens the chooser beside the box. The clicks come through
    partypanel_click (ui_event), not the game */
 extern "C" void plat_mouse_game(int *x, int *y);
 extern "C" int orders_member_style(int m, int *by_order);

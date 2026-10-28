@@ -2928,20 +2928,20 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/offices.c:92` | Each request for an audience with the lord has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's {Charisma} and {Speak Common}). An audience brings a robber knight to hunt. After a request the chance is 1%% for a week. |
 | `mods/offices.c:95` | No quests for three days: at your last visit none came, one was turned down, or a reward was paid. |
 | `mods/offices.c:97` | The offer comes after shopping: as the party leaves the stalls, about one time in seven a trader takes it aside with a purse and a job (mostly an item to fetch, sometimes a robber knight to hunt). If none comes, there is no other offer for three days. |
-| `mods/orders.c:933` | Click: throw here |
-| `mods/orders.c:933` | Click: flee here |
-| `mods/orders.c:934` | No clear throw |
-| `mods/orders.c:934` | Can't walk there |
-| `mods/orders.c:935` | No clear shot |
-| `mods/orders.c:935` | No clear throw |
-| `mods/orders.c:935` | No way there |
-| `mods/orders.c:942` | Click: shoot (moves for a clear line) |
-| `mods/orders.c:943` | Click: shoot |
-| `mods/orders.c:945` | Click: throw |
-| `mods/orders.c:946` | Click: attack (Vulnerable) |
-| `mods/orders.c:947` | Click: attack (Berserk) |
-| `mods/orders.c:948` | Click: parry its blows |
-| `mods/orders.c:952` | No clear shot: walks up to fight |
+| `mods/orders.c:199` | Click: throw here |
+| `mods/orders.c:199` | Click: flee here |
+| `mods/orders.c:200` | No clear throw |
+| `mods/orders.c:200` | Can't walk there |
+| `mods/orders.c:201` | No clear shot |
+| `mods/orders.c:201` | No clear throw |
+| `mods/orders.c:201` | No way there |
+| `mods/orders.c:208` | Click: shoot (moves for a clear line) |
+| `mods/orders.c:209` | Click: shoot |
+| `mods/orders.c:211` | Click: throw |
+| `mods/orders.c:212` | Click: attack (Vulnerable) |
+| `mods/orders.c:213` | Click: attack (Berserk) |
+| `mods/orders.c:214` | Click: parry its blows |
+| `mods/orders.c:218` | No clear shot: walks up to fight |
 | `mods/pathfix.c:409` | can't walk there |
 | `mods/pathfix.c:462` |  (stuck: around everyone) |
 | `mods/pathfix.c:642` | cells unreachable |

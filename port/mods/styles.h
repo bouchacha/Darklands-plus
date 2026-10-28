@@ -1,5 +1,5 @@
 /* styles.h - each party member's way of fighting (styles.c): what they do in a battle until the player
- * gives them an order, chosen on their box in the party panel; mods/orders.c carries it out. */
+ * gives them an order, chosen on their box in the party panel; mods/ways.c carries it out. */
 #ifndef DL_STYLES_H
 #define DL_STYLES_H
 #ifdef __cplusplus

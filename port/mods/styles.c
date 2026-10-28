@@ -1,5 +1,5 @@
 /* styles.c - each party member's way of fighting: what they do in a battle while the player gives them no
- * order (Improved combat, mods/orders.c carries it out; an order of the player's is theirs for the rest of
+ * order (Improved combat, mods/ways.c carries it out; an order of the player's is theirs for the rest of
  * that fight, in its manner: sent hand to hand, they go on hand to hand; sent to shoot, they go on shooting;
  * sent somewhere or halted, they hold there). Chosen on the member's box in the party panel (ui/partypanel.cpp)
  * and kept by the character's name (battle.style.<name>), so it holds from battle to battle and save to save.
