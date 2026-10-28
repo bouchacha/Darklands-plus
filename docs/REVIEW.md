@@ -238,3 +238,11 @@ covered and found, and what it could not check.
   itself (battlescroll.c view_redraw_hook), so every way of scrolling gets it. Saves past 99: the DOS layer's
   8.3 rule hid them; one alias (dos_name_alias) at path resolution, one reader of the save in play
   (saves_cur_name) in place of seven.
+- 2026-10-28 (1.4): the combat AI given a shape. Between orders the members' behaviour had grown as switches
+  and exceptions (a bow-or-sword toggle, the player's melee remembered in one array, "by our doing" in another,
+  a rescue check inside the bow's return): it is now one idea, each member's way of fighting (styles.c: eight
+  ways, kept by name), with an order of the player's taking the way's place for the rest of the fight (one
+  array, ov), and each step of the round (idle shooters, idle fighters, the stale foe, the bow's return, the
+  stances) asking only the way. It moved out of orders.c (the clicks) into ways.c. docs/MERGING.md's switch
+  table, written by hand at 1.2, had 17 switches since retired and lacked 125: it is now made from the switches
+  and the sources (switch_map.py, by check_docs --fix), and its classes and presets are those of options.h.
