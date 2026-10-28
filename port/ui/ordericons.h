@@ -11,3 +11,4 @@ enum OrderIcon {
 };
 void ui_draw_order_icon(ImDrawList *dl, ImVec2 c, float s, int icon);   // about s pixels across, centred on c
 int ui_order_icon_for(const char *name);                               // the picture for a battle menu entry's name, or OI_NONE
+void ui_draw_style_icon(ImDrawList *dl, ImVec2 c, float s, int style); // a member's way of fighting (mods/styles.h ST_*)

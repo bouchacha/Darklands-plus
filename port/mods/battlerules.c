@@ -42,6 +42,7 @@
 #include "../runtime/config.h"
 #include "nscreen.h"
 #include "battlerules.h"
+int orders_may_move(int i);                     /* (mods/orders.c: not a Holdfast, not Off) */
 
 
 /* battle.improved: the rules of a fight in one switch (the shooters' ways, the next foe, the kinds of attack kept) */
@@ -307,6 +308,7 @@ static void exchanges_hook(void)              /* melee_exchanges (), s014 0e76:2
         u16 c = CBT(i);
         if (g_rb((u16)(GV_cbt_state + i)) != 1 || g_rw((u16)(GV_cbt_engage_time + 2 * i)) == seen_engage[i]) continue;   /* (blocked just now) */
         if (g_rb((u16)(c + CB_STATUS)) != 1 || !(g_rw((u16)(c + CB_ORDER)) & 0x80) || g_rb((u16)(GV_cbt_moving + i)) || g_rb(HELD(i)) == 1) continue;
+        if (!orders_may_move(i)) continue;                      /* (a Holdfast stays: another mark with a line, mods/orders.c; Off: the game's way) */
         if ((u16)(now - last_try[i]) < 120 && last_try[i]) continue;
         last_try[i] = now ? now : 1;
         step_aside(i);

@@ -260,17 +260,38 @@ static void place_by_pointer(ImVec2 p)
 static const ImGuiWindowFlags INFO_FLAGS = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize |
                                            ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings;
 
+extern "C" int combat_improved(void);
+/* the first battle with the members' ways of fighting (1.4), for one who saw the intro below in an earlier
+   version: what they are, once (battle.ways_seen) */
+static void ways_intro(void)
+{
+    if (config_get_int("battle.ways_seen", 0) || !config_get_int("battle.intro_seen", 0) || !combat_improved() || !config_get_int("battle.volley_toggle", 1)) return;
+    config_set_int("battle.ways_seen", 1); config_save();
+    ui_alert("Each member's way of fighting",
+             "The picture at the lower left of each member's box is their way of fighting: what they do until you give them an order. "
+             "Click it to choose another:\n\n"
+             "Skirmisher: shoots while the enemies come, then fights hand to hand to the end (the usual way for one holding a missile weapon).\n"
+             "Archer: shoots all fight long; fights hand to hand only an enemy that reaches them, then shoots again.\n"
+             "Holdfast: never moves on their own; shoots what they can see, fights what reaches them.\n"
+             "Man-at-arms: waits while the others shoot, then joins a friend's fight or takes a free enemy (the usual way for the others).\n"
+             "Charger: at the enemy from the start, their shooters first. Berserker: the same, with Berserk blows.\n"
+             "Bodyguard: keeps beside the most exposed of the party and fights whoever comes at them.\n"
+             "Off: the original's ways; you give every order.\n\n"
+             "An order you give is that member's way for the rest of the fight. Each character keeps their way from battle to battle.",
+             "Darklands+; F12 > Settings > Battles > Improved combat.");
+}
 /* the first battle with the easier controls: what changed, once (battle.intro_seen) */
 static void battle_intro(void)
 {
+    ways_intro();
     if (config_get_int("battle.intro_seen", 0) || !config_get_int("battle.quick_orders", 1)) return;
+    config_set_int("battle.ways_seen", 1);
     config_set_int("battle.intro_seen", 1); config_save();
     ui_alert("Battles need fewer clicks",
              "Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. "
              "Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.\n\n"
-             "A member with a bow, crossbow, gun or thrown weapon shoots when you click an enemy and keeps shooting: at the next enemy when theirs falls, "
-             "moving for a clear line when a wall, a tree or someone stands in the way, and drawing their melee weapon only when an enemy is beside them. "
-             "A click on the bow or sword on their box at the left has them fight hand to hand instead.\n\n"
+             "Each member fights in their own way until you give them an order: the picture at the lower left of their box. Click it to choose another "
+             "(Skirmisher, Archer, Holdfast, Man-at-arms, Charger, Berserker, Bodyguard, or Off). An order you give is their way for the rest of that fight.\n\n"
              "Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.\n\n"
              "While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does.",
              "All this is Darklands+; each part can be switched off, for the game's own ways, in F12 > Settings > Battles. F11 lists the battle's keys and clicks.");

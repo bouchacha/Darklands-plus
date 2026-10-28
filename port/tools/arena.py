@@ -36,15 +36,18 @@ BOW, LONGBOW, XBOW, ARBALEST, GUN, JAVELIN, KNIFE = 28, 27, 30, 29, 31, 24, 1
 # [(member, weapon, ammo)], set (config before the battle), place [(i, dx, dy)] relative to the party's
 # first member once the battle is on (None: as the game puts them), orders [ucmd ...], seconds, end
 # (True: the battle should be over by then), expect [log regexes that must appear], shots [(member, at
-# least so many shots loosed)]
+# least so many shots loosed)], pre [test commands before the battle: ustyle:i,way sets member i's way of fighting,
+# mods/styles.h], before [(a, b): b logged only after a]
 S = []
 def sc(name, what, bf=CLEARING, seed=11, groups=(BANDIT, 2, 6, 0, 1, 0, -1, 0, 0), arms=(), set=(), place=(), orders=(), secs=70, end=True,
-       expect=(), shots=(), forbid=(), pre=()):
+       expect=(), shots=(), forbid=(), pre=(), before=()):
     S.append(dict(name=name, what=what, bf=bf, seed=seed, groups=groups, arms=list(arms), set=list(set), place=list(place),
-                  orders=list(orders), secs=secs, end=end, expect=list(expect), shots=list(shots), forbid=list(forbid), pre=list(pre)))
+                  orders=list(orders), secs=secs, end=end, expect=list(expect), shots=list(shots), forbid=list(forbid), pre=list(pre),
+                  before=list(before)))
 
-sc('volley', 'one archer, three swords against six bandits in the open: shoot, then the sword when they close, the bow again after',
-   arms=[(2, BOW, 30)])
+sc('volley', 'one archer, three swords against six bandits in the open, each in the usual way: the archer (Skirmisher) shoots, then the sword when they close, to the end; the swords (Men-at-arms) wait for the lines to meet',
+   arms=[(2, BOW, 30)], expect=[r'orders: member 2 had no orders: opens fire', r'orders: the lines meet'],
+   forbid=[r'orders: member 2 has no foe beside it now: the missile weapon again'], before=[(r'orders: the lines meet', r'orders: member [013] had no orders: joins the fight against \d+ \(walking')])
 sc('all_shooters', 'every member a shooter against six bandits: nobody shooting at point blank, nobody idle',
    arms=[(0, BOW, 30), (1, XBOW, 30), (2, LONGBOW, 30), (3, JAVELIN, 6)])
 sc('friend_in_line', 'the archer behind a friend, the foe straight beyond: step aside for a line, then shoot',
@@ -55,10 +58,10 @@ sc('moving_target', 'the archer must find a line while its mark walks behind the
    arms=[(2, LONGBOW, 30)], groups=(WOLF, 2, 5, 0, 1, 0, -1, 0, 0), bf=WILDS)
 sc('surrounded', 'enemies on every side, two shooters in the middle: put the bow away for a foe beside, help a friend set upon (a losing fight that can last: 100 s)',
    bf=SURROUNDED, arms=[(1, XBOW, 30), (2, BOW, 30)], groups=(BANDIT, 2, 8, 0, 1, 0, -1, 0, 0), secs=100)
-sc('rescue', 'a friend set upon by three a few paces off while the archer shoots at another: go and help',
+sc('rescue', 'a friend set upon by three a few paces off, the archer a Skirmisher: it goes and helps rather than shoot',
    arms=[(2, BOW, 30)], groups=(BANDIT, 1, 4, 0, 1, 0, -1, 0, 0),
-   place=[(2, 0, 0), (0, 40, 0), (5, 52, 0), (6, 40, 8), (7, 28, -8), (8, 220, 0), (1, -150, 60), (3, -150, 70)], orders=['ushoot:2,8'],
-   secs=110)   # (if the three win there, they then walk the long way to the two left far off: still fighting at 70 s is not a stall)
+   place=[(2, 0, 0), (0, 40, 0), (5, 52, 0), (6, 40, 8), (7, 28, -8), (8, 220, 0), (1, -150, 60), (3, -150, 70)],
+   expect=[r'orders: member 2 .*goes to help'], secs=110)   # (if the three win there, they then walk the long way to the two left far off: still fighting at 70 s is not a stall)
 sc('handgun', 'a slow handgun with foes closing: no putting away and taking up again over and over (each change starts the reloading anew)',
    arms=[(2, GUN, 20)], groups=(THUG, 2, 6, 0, 1, 0, -1, 0, 0))
 sc('enemy_archers', 'enemy archers at range and swords coming: our archer duels theirs, our swords close in',
@@ -121,6 +124,29 @@ sc('wolf_pack', 'eight wolves on four swords in the open: fast foes swarming, no
    groups=(WOLF, 2, 8, 0, 1, 0, -1, 0, 0), secs=90)
 sc('big_brawl', 'eight mercenaries and a captain against the party in the trees, two of ours shooting: a long crowded melee, routes round trunks and bodies',
    arms=[(1, XBOW, 30), (2, BOW, 30)], groups=(MERC, 3, 8, CAPTAIN, 3, 1, -1, 0, 0), bf=WILDS, secs=120)
+# the members' ways of fighting (mods/styles.h: 0 Off, 1 Archer, 2 Skirmisher, 3 Man-at-arms, 4 Charger, 5 Berserker,
+# 6 Bodyguard, 7 Holdfast), each pushed
+sc('way_archer', 'an Archer: shoots all fight long, the sword only for a foe that reaches it, then the bow again; never walks off to help',
+   arms=[(2, BOW, 30)], pre=['ustyle:2,1'], expect=[r'orders: member 2 had no orders: opens fire'],
+   forbid=[r'orders: member 2 \(Skirmisher\)', r'orders: member 2 (had no orders: )?goes to help'])
+sc('way_holdfast', 'a Holdfast archer behind a friend, its line blocked: it never steps aside nor walks, shoots a foe it can see or waits for one; parries when set upon by two',
+   arms=[(2, BOW, 30)], pre=['ustyle:2,7'], groups=(BANDIT, 2, 3, 0, 1, 0, -1, 0, 0),
+   place=[(2, 0, 0), (0, 16, 0), (5, 200, 0), (6, 210, 40), (7, 200, -40)], end=False,
+   forbid=[r'battlerules: 2 (steps aside|walks)', r'orders: member 2 .*\(walking to it', r'orders: member 2 (puts the missile weapon away for \d+ \(walking|goes to help)'])
+sc('way_charger', 'a Charger and a Berserker against archers and swords in the trees: at the enemy archers from the start, Berserk blows; the other two wait for the lines to meet',
+   groups=(ARCHER, 2, 3, BANDIT, 2, 3, -1, 0, 0), bf=WILDS, pre=['ustyle:0,4', 'ustyle:1,5'], secs=100,
+   expect=[r'orders: member 0 had no orders: joins the fight against \d+ \(walking to it, as Charger\)',
+           r'orders: member 1 had no orders: joins the fight against \d+ \(walking to it, as Berserker\)'])
+sc('way_bodyguard', 'a Bodyguard and an archer, the foes coming: it keeps beside the archer and fights whoever comes at it',
+   arms=[(2, BOW, 30)], pre=['ustyle:1,6'], groups=(BANDIT, 2, 3, 0, 1, 0, -1, 0, 0),
+   place=[(2, 0, 0), (1, -70, 40), (0, -60, -30), (3, -80, 0), (5, 220, 0), (6, 230, 20), (7, 230, -20)], end=False,
+   expect=[r'orders: member 1 \(Bodyguard\) keeps beside 2'])
+sc('way_off', 'every member Off: nothing of the ways (the original\'s, the party given no order: they stand, and fight back as the game has them)',
+   arms=[(2, BOW, 30)], pre=['ustyle:%d,0' % i for i in range(4)], end=False, secs=40,
+   forbid=[r'orders: member \d (had no orders|.s mark fell|has no foe|puts the missile|goes to help|.s foe|\()', r'battlerules: \d (steps aside|walks)'])
+sc('way_order_given', 'a Skirmisher sent hand to hand by the player before the foes come: it fights to the end, never the bow (the player\'s order is its way for the rest of the fight)',
+   arms=[(2, BOW, 30)], groups=(BANDIT, 2, 3, 0, 1, 0, -1, 0, 0), orders=['uattack:2,5'],
+   forbid=[r'orders: member 2 (had no orders: opens fire|has no foe beside it now|.s mark fell|stood idle with its bow)'])
 sc('original', 'Improved combat off: the game\'s own way, as a check that nothing of ours runs (no crash, no orders of ours)',
    arms=[(2, BOW, 30)], set=['battle.improved=0'], end=False)
 
@@ -192,9 +218,15 @@ def check(s, log):
     # a mark that never moved and that the shooter found no way to and no line to: walled off by the layout
     # (it cannot reach the party either), not a shooter waiting for nothing
     walled = {(int(t), int(m)) for m, t in re.findall(r'battlerules: (\d+) finds no spot near \S+ with a line to (\d+), nor a way to it', log) if int(t) in still}
+    # when a Skirmisher took to hand to hand for the rest of the fight (the battle clock of the arena's log line before)
+    commit_t, tnow = {}, 0
+    for line in log.splitlines():
+        if line.startswith('ARENA t='): tnow = int(line[8:].split(' ')[0].split('|')[0])
+        m = re.match(r'orders: member (\d) \(Skirmisher\) fights hand to hand from now on', line)
+        if m: commit_t.setdefault(int(m.group(1)), tnow)
     # per party member: runs of the same state
     for i in range(5):
-        idle = blank = stuck = bowidle = noline = 0; last = None; flips = []; worst_idle = worst_blank = worst_stuck = worst_bowidle = worst_noline = 0; nshots = 0
+        idle = blank = stuck = bowidle = noline = 0; last = None; flips = []; worst_idle = worst_blank = worst_stuck = worst_bowidle = worst_noline = 0; nshots = 0; worst_bowidle_t = 0
         prev_w_ord = None
         for t, cb in ticks:
             c = cb.get(i)
@@ -218,7 +250,8 @@ def check(s, log):
                 blank = 0
             # a missile weapon and no orders, standing, no foe beside, foes about: Improved combat should have it shoot
             if c['w'] >= 0 and c['o'] == 0 and c['m'] == 0 and c['b'] == 0 and foes:
-                bowidle += 10; worst_bowidle = max(worst_bowidle, bowidle)
+                bowidle += 10
+                if bowidle > worst_bowidle: worst_bowidle = bowidle; worst_bowidle_t = t - bowidle
             else:
                 bowidle = 0
             if c['a'] in (9, 13) and (not last or last['a'] not in (9, 13)):   # (13: the last shot, its ammunition gone)
@@ -233,13 +266,16 @@ def check(s, log):
             prev_w_ord = ordk
             last = c
         held_i = any(o == 'uhold:%d,1' % i for o in s['orders'])   # (told to hold with its line blocked: standing is right, it may not step aside)
+        way = next((int(p.split(',')[1]) for p in s.get('pre', []) if p.startswith('ustyle:%d,' % i)), -1)
+        held_i = held_i or way == 7                                  # (a Holdfast: waits for a line where it stands)
+        no_bow = way in (0, 3, 4, 5, 6) or any(o.startswith('uattack:%d,' % i) for o in s['orders'])   # (a way that does not shoot, or sent hand to hand: its missile weapon stays put)
         if worst_idle >= 150 and not held_i:                         # (held, its line blocked: ready to loose and never loosing is right)
             probs.append('member %d idle with a shooting order for %d ticks' % (i, worst_idle))
         if worst_noline >= 600 and not held_i:                       # (a line blocked for long, the shooter neither stepping aside nor picking another mark)
             probs.append('member %d waited for a clear line for %d ticks' % (i, worst_noline))
         if worst_blank >= 60:
             probs.append('member %d kept a shooting order with a foe beside it for %d ticks' % (i, worst_blank))
-        if worst_bowidle >= 150 and re.sub(r'_\d+$', '', s['name']) != 'original' and not held_i:   # (the seeds' runs too: original_1 ...)
+        if worst_bowidle >= 150 and re.sub(r'_\d+$', '', s['name']) != 'original' and not held_i and not no_bow and worst_bowidle_t < commit_t.get(i, 1 << 30):   # (the seeds' runs too: original_1 ...; a Skirmisher fighting hand to hand from then on)
             probs.append('member %d stood with its missile weapon and no orders for %d ticks' % (i, worst_bowidle))
         # (a shot's draw and loosing can fall between two samples: the battle log's "<name>'s shot" lines count too)
         if i < len(QUICK_PARTY): nshots = max(nshots, len(re.findall(r"battle: %s's shot" % QUICK_PARTY[i], log)))
@@ -257,6 +293,10 @@ def check(s, log):
     for rx in s.get('expect', []):
         if not re.search(rx, log):
             probs.append('never logged: %s' % rx)
+    for a, b in s.get('before', []):
+        ma, mb = re.search(a, log), re.search(b, log)
+        if mb and (not ma or mb.start() < ma.start()):
+            probs.append('logged before %s: %s' % (a, mb.group(0)))
     for rx in s.get('forbid', []):
         m = re.search(rx, log)
         if m:

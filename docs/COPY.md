@@ -108,7 +108,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:150` | Warn about permanent losses |
 | `mods/options.c:150` | anything lost for good (an attribute's maximum, a skill, armor eaten by acid or fire, the toll of the years) pauses the game with a window saying exactly what was lost, and by whom. |
 | `mods/options.c:152` | Easier battle controls |
-| `mods/options.c:152` | click a member (or their box in the party panel), then an enemy to attack it or the ground to walk there: one click gives the order, and while paused the next member without orders is chosen. A bow or sword on each shooter's box says whether a click shoots or fights. Order buttons with icons, right-drag to move the view, selecting a member doesn't move the view, a shorter wait at the end of a battle, and Z to fast-forward (Z again: back to the chosen speed). |
+| `mods/options.c:152` | click a member (or their box in the party panel), then an enemy to attack it or the ground to walk there: one click gives the order, and while paused the next member without orders is chosen. Order buttons with icons, right-drag to move the view, selecting a member doesn't move the view, a shorter wait at the end of a battle, and Z to fast-forward (Z again: back to the chosen speed). |
 | `mods/options.c:153` | Battle info on screen |
 | `mods/options.c:153` | a bar over each wounded enemy, and pointing at someone shows who it is, how badly hurt, their melee rating, aim and weapons; the line of a shot with what is in the way; what a click will do; an arrow to enemies off screen; skill gains rising over the fighter; a reload bar under a shooter; and the battle log (every blow, parry and fall). |
 | `mods/options.c:154` | Pauses in battle |
@@ -121,11 +121,11 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:158` | Pause when enemies come out |
 | `mods/options.c:158` | the battle pauses when enemies waiting in a castle, dungeon or mine come out to fight. |
 | `mods/options.c:159` | Improved combat |
-| `mods/options.c:159` | the party fights on sensibly between orders. A member with a bow, crossbow, gun or thrown weapon shoots first and keeps shooting: when the target falls, at the nearest enemy in sight; with no clear line (a wall, a tree or someone standing between, as the aiming line shows), the member moves to the nearest spot a few paces off that has one (or walks up until there is one); hand to hand only once an enemy is close or there is nothing left to shoot. A member whose enemy falls turns on one close by, Parry, Berserk and Vulnerable stay as ordered, and a click on an enemy opens with a Vulnerable attack (aimed at the gaps in its armor) when only that would get through its armor. When off: the original's ways. |
+| `mods/options.c:159` | the party fights on sensibly between orders, each member in their way of fighting, chosen on their box in the party panel: Skirmisher (shoots while the enemies come, then fights hand to hand to the end; the usual way for one holding a bow, crossbow, gun or thrown weapon), Archer, Holdfast, Man-at-arms (the usual way for the others), Charger, Berserker, Bodyguard, or Off. An order of yours is the member's way for the rest of that fight: sent hand to hand they stay hand to hand, sent to shoot they keep shooting, sent somewhere they hold there. A shooter whose target falls takes the nearest enemy in sight; with no clear line (a wall, a tree or someone standing between, as the aiming line shows), they move to the nearest spot a few paces off that has one (a Holdfast takes another enemy instead). Parry, Berserk and Vulnerable stay as ordered, and a click on an enemy opens with a Vulnerable attack (aimed at the gaps in its armor) when only that would get through its armor. When off: the original's ways. |
 | `mods/options.c:160` | Click an enemy to attack it |
 | `mods/options.c:160` | a click on an enemy sends the selected member to attack it, even before an attack is chosen: a standard attack, or with Improved combat a Vulnerable one where only that gets through the enemy's armor. |
-| `mods/options.c:161` | Bow or sword on each member's box |
-| `mods/options.c:161` | in a battle, a member holding a missile weapon shows a bow or a sword on their box in the party panel: whether a click on an enemy makes them shoot or fight hand to hand. Click it to switch; each member keeps their choice. |
+| `mods/options.c:161` | Way of fighting on each member's box |
+| `mods/options.c:161` | in a battle, each member's box in the party panel shows their way of fighting, what they do until you give them an order. Click it to choose another; each character keeps their way from battle to battle. A gold ring round it: an order of yours is their way for the rest of this fight. |
 | `mods/options.c:162` | Click a member's box to give them orders |
 | `mods/options.c:162` | in a battle, a click on a member's box in the party panel selects them for orders, as 1 to 5 do (a double-click also moves the view to them); a right-click on the box opens their character sheet. When off: a click on the box opens the sheet, as in the original. |
 | `mods/options.c:163` | One click gives an order |
@@ -134,8 +134,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:164` | while the battle is paused, giving an order selects the next member on screen who has no order, so at the start of a battle each order is a single click on an enemy. Space resumes the battle. |
 | `mods/options.c:165` | Order buttons over the field |
 | `mods/options.c:165` | while a member is selected, their orders appear as buttons in a strip at the foot of the battlefield, grouped by what they do (attacks, moving, the things at hand, potions and items, the battle), so no right-click menu is needed. Fast forward and Resume stand at the top of the right margin (in the strip when the window has no right margin). |
-| `mods/options.c:166` | Icons on the order buttons |
-| `mods/options.c:166` | each order button shows an icon beside its name: a sword for a standard attack, a shield for Parry, footprints for Walk towards, a white flag for Surrender. |
+| `mods/options.c:166` | Order buttons as pictures |
+| `mods/options.c:166` | each order button is its picture alone (a sword for a standard attack, a shield for Parry, footprints for Walk towards, a potion as its flask with how many), the member's head at the strip's start; the order's name and what it does under the pointer. When off: each button with its name beside the picture. |
 | `mods/options.c:167` | Show the line of a shot |
 | `mods/options.c:167` | when a member is about to shoot or throw at the enemy under the pointer, a line runs from them to it. Anything in the way (a wall, a tree, someone standing between) is outlined in red, and the line turns red past it: the shot can't be taken from there. |
 | `mods/options.c:168` | Say what a click will do |
@@ -356,9 +356,9 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/optwhy.c:68` | (part of Pauses in battle) |
 | `mods/optwhy.c:69` | (part of Pauses in battle) |
 | `mods/optwhy.c:70` | (part of Pauses in battle) |
-| `mods/optwhy.c:71` | Between orders the original's members stand idle or fight poorly (shooters walk into melee, freeze without a line of fire); this is what a player would order each time. |
+| `mods/optwhy.c:71` | Between orders the original's members stand idle or fight poorly (shooters walk into melee, freeze without a line of fire); this is what a player would order each time, in the way chosen for each member. |
 | `mods/optwhy.c:72` | (part of Easier battle controls) |
-| `mods/optwhy.c:73` | (part of Easier battle controls) |
+| `mods/optwhy.c:73` | The ways run whether shown or not; the picture says what each member will do, and is where to change it. |
 | `mods/optwhy.c:74` | (part of Easier battle controls) |
 | `mods/optwhy.c:75` | (part of Easier battle controls) |
 | `mods/optwhy.c:76` | (part of Easier battle controls) |
@@ -648,22 +648,25 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/battlelog.cpp:342` | The battle before |
 | `ui/battleoverlay.cpp:239` | Click: attack |
 | `ui/battleoverlay.cpp:239` | No clear shot |
-| `ui/battleoverlay.cpp:268` | Battles need fewer clicks |
-| `ui/battleoverlay.cpp:269` | Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.  A member with a bow, crossbow, gun or thrown weapon shoots when you click an enemy and keeps shooting: at the next enemy when theirs falls, moving for a clear line when a wall, a tree or someone stands in the way, and drawing their melee weapon only when an enemy is beside them. A click on the bow or sword on their box at the left has them fight hand to hand instead.  Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.  While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does. |
-| `ui/battleoverlay.cpp:276` | All this is Darklands+; each part can be switched off, for the game's own ways, in F12 > Settings > Battles. F11 lists the battle's keys and clicks. |
-| `ui/battleoverlay.cpp:339` | The nearest enemy is this way: click to look |
-| `ui/battleoverlay.cpp:382` | a little hurt |
-| `ui/battleoverlay.cpp:383` | gravely wounded |
-| `ui/battleoverlay.cpp:392` | Melee rating %d, aim %d |
-| `ui/battleoverlay.cpp:393` | Melee rating %d |
-| `ui/battleoverlay.cpp:395` | The master of this place: once this enemy has fallen and the fight is over, the place is won. |
-| `ui/battleoverlay.cpp:405` | Natural weapons |
-| `ui/battleoverlay.cpp:413` | %s (hardness %d) |
-| `ui/battleoverlay.cpp:414` | Natural armor, hardness %d (as %s) |
-| `ui/battleoverlay.cpp:415` | No armor (hardness 0) |
-| `ui/battleoverlay.cpp:429` | mostly deflected |
-| `ui/battleoverlay.cpp:458` | \xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z) |
-| `ui/battleoverlay.cpp:461` | >> fast forward  (Z) |
+| `ui/battleoverlay.cpp:270` | Each member's way of fighting |
+| `ui/battleoverlay.cpp:271` | The picture at the lower left of each member's box is their way of fighting: what they do until you give them an order. Click it to choose another:  Skirmisher: shoots while the enemies come, then fights hand to hand to the end (the usual way for one holding a missile weapon). Archer: shoots all fight long; fights hand to hand only an enemy that reaches them, then shoots again. Holdfast: never moves on their own; shoots what they can see, fights what reaches them. Man-at-arms: waits while the others shoot, then joins a friend's fight or takes a free enemy (the usual way for the others). Charger: at the enemy from the start, their shooters first. Berserker: the same, with Berserk blows. Bodyguard: keeps beside the most exposed of the party and fights whoever comes at them. Off: the original's ways; you give every order.  An order you give is that member's way for the rest of the fight. Each character keeps their way from battle to battle. |
+| `ui/battleoverlay.cpp:281` | Darklands+; F12 > Settings > Battles > Improved combat. |
+| `ui/battleoverlay.cpp:290` | Battles need fewer clicks |
+| `ui/battleoverlay.cpp:291` | Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.  Each member fights in their own way until you give them an order: the picture at the lower left of their box. Click it to choose another (Skirmisher, Archer, Holdfast, Man-at-arms, Charger, Berserker, Bodyguard, or Off). An order you give is their way for the rest of that fight.  Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.  While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does. |
+| `ui/battleoverlay.cpp:297` | All this is Darklands+; each part can be switched off, for the game's own ways, in F12 > Settings > Battles. F11 lists the battle's keys and clicks. |
+| `ui/battleoverlay.cpp:360` | The nearest enemy is this way: click to look |
+| `ui/battleoverlay.cpp:403` | a little hurt |
+| `ui/battleoverlay.cpp:404` | gravely wounded |
+| `ui/battleoverlay.cpp:413` | Melee rating %d, aim %d |
+| `ui/battleoverlay.cpp:414` | Melee rating %d |
+| `ui/battleoverlay.cpp:416` | The master of this place: once this enemy has fallen and the fight is over, the place is won. |
+| `ui/battleoverlay.cpp:426` | Natural weapons |
+| `ui/battleoverlay.cpp:434` | %s (hardness %d) |
+| `ui/battleoverlay.cpp:435` | Natural armor, hardness %d (as %s) |
+| `ui/battleoverlay.cpp:436` | No armor (hardness 0) |
+| `ui/battleoverlay.cpp:450` | mostly deflected |
+| `ui/battleoverlay.cpp:479` | \xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z) |
+| `ui/battleoverlay.cpp:482` | >> fast forward  (Z) |
 | `ui/bestiary.cpp:38` | Could not read DARKLAND.ENM. |
 | `ui/bestiary.cpp:42` | DARKLAND.ENM has an unexpected size. |
 | `ui/bestiary.cpp:90` | natural weapons |
@@ -1177,7 +1180,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/iconsheets.cpp:106` | Phlegmatic Base |
 | `ui/iconsheets.cpp:106` | Sanguine Base |
 | `ui/iconsheets.cpp:106` | Melancholic Base |
-| `ui/iconsheets.cpp:135` | Drawn in color (no disc) |
+| `ui/iconsheets.cpp:136` | Drawn in color (no disc) |
 | `ui/infoview.cpp:70` | %d (the next title at %d) |
 | `ui/infoview.cpp:80` | Reputation here: %s (%d) |
 | `ui/infoview.cpp:89` | Bank notes: %s |
@@ -1436,52 +1439,52 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/margins.cpp:927` | It is day (from 5:00 to 19:00). |
 | `ui/margins.cpp:954` | %s in bank notes |
 | `ui/margins.cpp:968` | F11: the keys and clicks of this screen. |
-| `ui/margins_battle.cpp:80` | The battle runs again (the key: Space). Any order being given is given first. |
-| `ui/margins_battle.cpp:81` | This member's order is given; the battle stays paused, to give others theirs (the key: Enter). |
-| `ui/margins_battle.cpp:82` | Every kind of enemy on the field: attributes, weapons, armor (the key: E). |
-| `ui/margins_battle.cpp:83` | Then click a spot: the member walks there. |
-| `ui/margins_battle.cpp:84` | Then click a spot: the member runs there without stopping to fight or striking back (to get out of a melee). |
-| `ui/margins_battle.cpp:85` | The member stops where they are and waits. |
-| `ui/margins_battle.cpp:86` | The party moves together as a group. |
-| `ui/margins_battle.cpp:87` | The party moves in single file, the leader first. |
-| `ui/margins_battle.cpp:88` | Open or shut the door beside the member. |
-| `ui/margins_battle.cpp:89` | Take the stairs beside the member to another floor. |
-| `ui/margins_battle.cpp:90` | Open the chest beside the member. |
-| `ui/margins_battle.cpp:91` | Pick the lock beside the member. |
-| `ui/margins_battle.cpp:92` | Dissolve the lock beside the member with an Eater-Water potion. |
-| `ui/margins_battle.cpp:93` | Disarm the trap on the chest beside the member. |
-| `ui/margins_battle.cpp:94` | The whole party gives up the fight. |
-| `ui/margins_battle.cpp:95` | Search the fallen for their belongings. |
-| `ui/margins_battle.cpp:96` | Leave the battlefield by the way out beside the member. |
-| `ui/margins_battle.cpp:97` | Stop giving this member an order (the key: Esc); the battle stays paused. |
-| `ui/margins_battle.cpp:98` | Then click an enemy: a standard attack, balanced between blows and guard. |
-| `ui/margins_battle.cpp:99` | Then click an enemy: blows aimed at the gaps in the armor (1 to 4 more penetration), but slower and a little less likely to land. |
-| `ui/margins_battle.cpp:100` | Then click an enemy: quick, furious blows without thought of defense. |
-| `ui/margins_battle.cpp:101` | Then click an enemy: the member mostly defends, hard to hit, striking back only now and then. |
-| `ui/margins_battle.cpp:102` | Then click an enemy: shoot or throw at it with the missile weapon (a clear line needed). |
-| `ui/margins_battle.cpp:194` | <name> finished |
-| `ui/margins_battle.cpp:199` | Potions and items |
-| `ui/margins_battle.cpp:239` | Back to the chosen speed |
-| `ui/margins_battle.cpp:239` | Back to the chosen speed (Z) |
-| `ui/margins_battle.cpp:239` | Fast forward |
-| `ui/margins_battle.cpp:239` | Fast forward (Z) |
-| `ui/margins_battle.cpp:254` | Resume (Space) |
-| `ui/margins_battle.cpp:261` | The battle is running: Space pauses it, or click one of the party. |
-| `ui/margins_battle.cpp:269` | does not end |
-| `ui/margins_battle.cpp:278` | Enemies not yet met |
-| `ui/margins_battle.cpp:280` | No one else waits in this place. |
-| `ui/margins_battle.cpp:284` | No one on this floor (%d). |
-| `ui/margins_battle.cpp:288` | %sfloor %d: %d |
-| `ui/margins_battle.cpp:291` | Elsewhere: %s. |
-| `ui/margins_battle.cpp:294` | The master of this place waits on this floor. |
-| `ui/margins_battle.cpp:295` | The master of this place waits on floor %d. |
-| `ui/margins_battle.cpp:342` | a little hurt |
-| `ui/margins_battle.cpp:343` | gravely wounded |
-| `ui/margins_battle.cpp:348` | The master of this place: once this one has fallen and the fight is over, the place is won. |
-| `ui/margins_battle.cpp:353` | None in sight yet. |
-| `ui/margins_battle.cpp:355` | To explore: in Single File (Q) or as a Group (G), click a door, a passage or stairs and the party walks there%s. |
-| `ui/margins_battle.cpp:356` | ; Tab shows the level map (as far as the party has seen it), and a click on it walks the party there |
-| `ui/margins_battle.cpp:365` | The fight is won. To go on, walk the party out of this place: click a way out (the edge of the street, a door, stairs). |
+| `ui/margins_battle.cpp:82` | The battle runs again (the key: Space). Any order being given is given first. |
+| `ui/margins_battle.cpp:83` | This member's order is given; the battle stays paused, to give others theirs (the key: Enter). |
+| `ui/margins_battle.cpp:84` | Every kind of enemy on the field: attributes, weapons, armor (the key: E). |
+| `ui/margins_battle.cpp:85` | Then click a spot: the member walks there. |
+| `ui/margins_battle.cpp:86` | Then click a spot: the member runs there without stopping to fight or striking back (to get out of a melee). |
+| `ui/margins_battle.cpp:87` | The member stops where they are and waits. |
+| `ui/margins_battle.cpp:88` | The party moves together as a group. |
+| `ui/margins_battle.cpp:89` | The party moves in single file, the leader first. |
+| `ui/margins_battle.cpp:90` | Open or shut the door beside the member. |
+| `ui/margins_battle.cpp:91` | Take the stairs beside the member to another floor. |
+| `ui/margins_battle.cpp:92` | Open the chest beside the member. |
+| `ui/margins_battle.cpp:93` | Pick the lock beside the member. |
+| `ui/margins_battle.cpp:94` | Dissolve the lock beside the member with an Eater-Water potion. |
+| `ui/margins_battle.cpp:95` | Disarm the trap on the chest beside the member. |
+| `ui/margins_battle.cpp:96` | The whole party gives up the fight. |
+| `ui/margins_battle.cpp:97` | Search the fallen for their belongings. |
+| `ui/margins_battle.cpp:98` | Leave the battlefield by the way out beside the member. |
+| `ui/margins_battle.cpp:99` | Stop giving this member an order (the key: Esc); the battle stays paused. |
+| `ui/margins_battle.cpp:100` | Then click an enemy: a standard attack, balanced between blows and guard. |
+| `ui/margins_battle.cpp:101` | Then click an enemy: blows aimed at the gaps in the armor (1 to 4 more penetration), but slower and a little less likely to land. |
+| `ui/margins_battle.cpp:102` | Then click an enemy: quick, furious blows without thought of defense. |
+| `ui/margins_battle.cpp:103` | Then click an enemy: the member mostly defends, hard to hit, striking back only now and then. |
+| `ui/margins_battle.cpp:104` | Then click an enemy: shoot or throw at it with the missile weapon (a clear line needed). |
+| `ui/margins_battle.cpp:223` | <name> finished |
+| `ui/margins_battle.cpp:228` | Potions and items |
+| `ui/margins_battle.cpp:279` | Back to the chosen speed |
+| `ui/margins_battle.cpp:279` | Back to the chosen speed (Z) |
+| `ui/margins_battle.cpp:279` | Fast forward |
+| `ui/margins_battle.cpp:279` | Fast forward (Z) |
+| `ui/margins_battle.cpp:294` | Resume (Space) |
+| `ui/margins_battle.cpp:301` | The battle is running: Space pauses it, or click one of the party. |
+| `ui/margins_battle.cpp:309` | does not end |
+| `ui/margins_battle.cpp:318` | Enemies not yet met |
+| `ui/margins_battle.cpp:320` | No one else waits in this place. |
+| `ui/margins_battle.cpp:324` | No one on this floor (%d). |
+| `ui/margins_battle.cpp:328` | %sfloor %d: %d |
+| `ui/margins_battle.cpp:331` | Elsewhere: %s. |
+| `ui/margins_battle.cpp:334` | The master of this place waits on this floor. |
+| `ui/margins_battle.cpp:335` | The master of this place waits on floor %d. |
+| `ui/margins_battle.cpp:382` | a little hurt |
+| `ui/margins_battle.cpp:383` | gravely wounded |
+| `ui/margins_battle.cpp:388` | The master of this place: once this one has fallen and the fight is over, the place is won. |
+| `ui/margins_battle.cpp:393` | None in sight yet. |
+| `ui/margins_battle.cpp:395` | To explore: in Single File (Q) or as a Group (G), click a door, a passage or stairs and the party walks there%s. |
+| `ui/margins_battle.cpp:396` | ; Tab shows the level map (as far as the party has seen it), and a click on it walks the party there |
+| `ui/margins_battle.cpp:405` | The fight is won. To go on, walk the party out of this place: click a way out (the edge of the street, a door, stairs). |
 | `ui/menuview.cpp:106` | Arrows, Enter; Esc closes |
 | `ui/menuview.cpp:106` | Click to choose; Esc or a click elsewhere closes |
 | `ui/money.cpp:49` |  florin = 20 |
@@ -1692,32 +1695,33 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/party.cpp:24` | The ways of the city streets and their underworld. |
 | `ui/party.cpp:25` | Handling horses. |
 | `ui/party.cpp:26` | Life in the wild: finding the way, hunting, reading tracks. |
-| `ui/partypanel.cpp:256` | attacks (Std Attack, a standard attack) |
-| `ui/partypanel.cpp:257` | attacks with Vulnerable: aims at the gaps in the armor (1 to 4 more penetration), slower and a little less likely to land |
-| `ui/partypanel.cpp:258` | is berserk: attacks without thought of defense |
-| `ui/partypanel.cpp:260` | picks the lock of the door given |
-| `ui/partypanel.cpp:261` | picks the lock of the chest given |
-| `ui/partypanel.cpp:262` | parries: mostly defends, hard to hit, striking back slower and less surely |
-| `ui/partypanel.cpp:263` | shoots at the target given |
-| `ui/partypanel.cpp:264` | throws a potion at the target given |
-| `ui/partypanel.cpp:265` | walks to the spot given |
-| `ui/partypanel.cpp:266` | flees to the spot given: does not stop to fight or strike back |
-| `ui/partypanel.cpp:267` | takes the stairs given |
-| `ui/partypanel.cpp:267` | opens or shuts the door given |
-| `ui/partypanel.cpp:268` | dissolves the lock given |
-| `ui/partypanel.cpp:269` | opens the chest given |
-| `ui/partypanel.cpp:270` | leaves the battlefield by the chosen exit |
-| `ui/partypanel.cpp:271` | halts and stands where they are |
-| `ui/partypanel.cpp:274` | has no clear line of fire to the target: steps aside or nearer until there is one |
-| `ui/partypanel.cpp:275` | has no clear line of fire to the target and waits for one (or give another order) |
-| `ui/partypanel.cpp:276` | has nothing left to shoot or throw: give another order |
-| `ui/partypanel.cpp:277` | waits for an order: click them here or on the battlefield, then an enemy, a spot or a choice from the Orders menu |
-| `ui/partypanel.cpp:457` | %s carries %s: %d against %d ({Endurance} + {Strength}; only equipped items count). %s %s. |
-| `ui/partypanel.cpp:458` | far too much |
-| `ui/partypanel.cpp:458` | a heavy load |
-| `ui/partypanel.cpp:480` | In effect on %s:%s |
-| `ui/partypanel.cpp:494` | %s opens with the missile weapon: a click on an enemy makes %s shoot while the line is clear, then fight hand to hand once the enemies close in. Click here: melee from the start. |
-| `ui/partypanel.cpp:495` | %s opens with the melee weapon: a click on an enemy makes %s close in and fight hand to hand. Click here: shoot first, then fight hand to hand once the enemies close in. |
+| `ui/partypanel.cpp:257` | attacks (Std Attack, a standard attack) |
+| `ui/partypanel.cpp:258` | attacks with Vulnerable: aims at the gaps in the armor (1 to 4 more penetration), slower and a little less likely to land |
+| `ui/partypanel.cpp:259` | is berserk: attacks without thought of defense |
+| `ui/partypanel.cpp:261` | picks the lock of the door given |
+| `ui/partypanel.cpp:262` | picks the lock of the chest given |
+| `ui/partypanel.cpp:263` | parries: mostly defends, hard to hit, striking back slower and less surely |
+| `ui/partypanel.cpp:264` | shoots at the target given |
+| `ui/partypanel.cpp:265` | throws a potion at the target given |
+| `ui/partypanel.cpp:266` | walks to the spot given |
+| `ui/partypanel.cpp:267` | flees to the spot given: does not stop to fight or strike back |
+| `ui/partypanel.cpp:268` | takes the stairs given |
+| `ui/partypanel.cpp:268` | opens or shuts the door given |
+| `ui/partypanel.cpp:269` | dissolves the lock given |
+| `ui/partypanel.cpp:270` | opens the chest given |
+| `ui/partypanel.cpp:271` | leaves the battlefield by the chosen exit |
+| `ui/partypanel.cpp:272` | halts and stands where they are |
+| `ui/partypanel.cpp:275` | has no clear line of fire to the target: steps aside or nearer until there is one |
+| `ui/partypanel.cpp:276` | has no clear line of fire to the target and waits for one (or give another order) |
+| `ui/partypanel.cpp:277` | has nothing left to shoot or throw: give another order |
+| `ui/partypanel.cpp:278` | waits for an order: click them here or on the battlefield, then an enemy, a spot or a choice from the Orders menu |
+| `ui/partypanel.cpp:466` | %s carries %s: %d against %d ({Endurance} + {Strength}; only equipped items count). %s %s. |
+| `ui/partypanel.cpp:467` | far too much |
+| `ui/partypanel.cpp:467` | a heavy load |
+| `ui/partypanel.cpp:489` | In effect on %s:%s |
+| `ui/partypanel.cpp:504` | %s fights as %s for the rest of this fight: your order. Their way: %s. Click to choose a way of fighting (it applies at once). |
+| `ui/partypanel.cpp:505` | %s fights as %s until you give them an order: %s Click to choose another way. |
+| `ui/partypanel.cpp:572` |  The usual way for one with what they hold, until you choose another. |
 | `ui/prayview.cpp:38` |  calls on the saint for the whole party: |
 | `ui/prayview.cpp:38` |  calls on the saint: |
 | `ui/prayview.cpp:52` | This saint asks a {Virtue} of %d of the one who prays. %s%s |
@@ -2924,20 +2928,20 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/offices.c:92` | Each request for an audience with the lord has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's {Charisma} and {Speak Common}). An audience brings a robber knight to hunt. After a request the chance is 1%% for a week. |
 | `mods/offices.c:95` | No quests for three days: at your last visit none came, one was turned down, or a reward was paid. |
 | `mods/offices.c:97` | The offer comes after shopping: as the party leaves the stalls, about one time in seven a trader takes it aside with a purse and a job (mostly an item to fetch, sometimes a robber knight to hunt). If none comes, there is no other offer for three days. |
-| `mods/orders.c:683` | Click: throw here |
-| `mods/orders.c:683` | Click: flee here |
-| `mods/orders.c:684` | No clear throw |
-| `mods/orders.c:684` | Can't walk there |
-| `mods/orders.c:685` | No clear shot |
-| `mods/orders.c:685` | No clear throw |
-| `mods/orders.c:685` | No way there |
-| `mods/orders.c:692` | Click: shoot (moves for a clear line) |
-| `mods/orders.c:693` | Click: shoot |
-| `mods/orders.c:695` | Click: throw |
-| `mods/orders.c:696` | Click: attack (Vulnerable) |
-| `mods/orders.c:697` | Click: attack (Berserk) |
-| `mods/orders.c:698` | Click: parry its blows |
-| `mods/orders.c:702` | No clear shot: walks up to fight |
+| `mods/orders.c:933` | Click: throw here |
+| `mods/orders.c:933` | Click: flee here |
+| `mods/orders.c:934` | No clear throw |
+| `mods/orders.c:934` | Can't walk there |
+| `mods/orders.c:935` | No clear shot |
+| `mods/orders.c:935` | No clear throw |
+| `mods/orders.c:935` | No way there |
+| `mods/orders.c:942` | Click: shoot (moves for a clear line) |
+| `mods/orders.c:943` | Click: shoot |
+| `mods/orders.c:945` | Click: throw |
+| `mods/orders.c:946` | Click: attack (Vulnerable) |
+| `mods/orders.c:947` | Click: attack (Berserk) |
+| `mods/orders.c:948` | Click: parry its blows |
+| `mods/orders.c:952` | No clear shot: walks up to fight |
 | `mods/pathfix.c:409` | can't walk there |
 | `mods/pathfix.c:462` |  (stuck: around everyone) |
 | `mods/pathfix.c:642` | cells unreachable |
@@ -3261,6 +3265,14 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/sheetview.c:374` | Left behind: the %s (%d). Undo takes them back. |
 | `mods/sheetview.c:374` | Left behind: a %s. Undo takes it back. |
 | `mods/sheetview.c:381` | %s drinks the %s. |
+| `mods/styles.c:20` | No orders of its own: the original game's ways. You give every order. |
+| `mods/styles.c:21` | Shoots from the start and all fight long, each archer at a foe of its own, the enemy's shooters first; fights only a foe that reaches it, then takes up the bow again. |
+| `mods/styles.c:22` | Shoots while the enemies come; once one is close, draws the melee weapon for the rest of the fight and fights as a Man-at-arms. |
+| `mods/styles.c:23` | Stays with the party while the others shoot; when the enemies are close, joins a friend's fight (two on one) or takes a foe no one fights yet, until the end. |
+| `mods/styles.c:24` | Goes at the enemies from the start: their shooters first, then the nearest one no one of the party fights yet. |
+| `mods/styles.c:25` | As the Charger, with Berserk blows (quick, furious, unguarded); Vulnerable where only that gets through the armor; Standard once badly hurt. |
+| `mods/styles.c:26` | Keeps beside the most exposed of the party (a shooter, or the one in the lightest armor) and fights whoever comes at them; parries when outnumbered. |
+| `mods/styles.c:27` | Never moves on its own: shoots what it can see from where it stands, fights only a foe that reaches it, and parries when set upon by several. |
 | `mods/teachers.c:25` | Blacksmiths' guild |
 | `mods/teachers.c:25` | In the daytime, go to the blacksmiths' guild and choose "request a meeting with the guild's masters". |
 | `mods/teachers.c:26` | Swordsmiths' guild |

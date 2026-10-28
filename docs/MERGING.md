@@ -43,6 +43,7 @@ Each file's header says what the original does, with the function's address
 | Battle AI: choosing the next foe; line of fire; shooters | `port/mods/battlerules.c` |
 | Pathfinding: the original's wall-following trackers and their limits | `port/mods/pathfix.c` |
 | The order a click gives in battle; weapon types and the skills they use | `port/mods/orders.c` |
+| The members' ways of fighting (Skirmisher, Archer, Man-at-arms ...): their names, what each does, how they are kept | `port/mods/styles.c`; carried out in `port/mods/orders.c` |
 | The end of a battle (how long the field is held) | `port/mods/battleend.c` |
 | Saints taught by each library, formulae sold by each alchemist (fixed per game: the seed formulas) | `port/mods/gamemodel.h`, `port/ui/libraries.cpp` |
 | The game's state by meaning (party, items, what is in use, what is known, events) | `port/mods/gamemodel.h`, `port/runtime/game.h` (`g_event`, the `G_EV_` fields) |
@@ -155,7 +156,7 @@ To add a feature: one line in `OPTIONS[]`, and the module reads its key (and `or
 | `battle.pause_foes` | Pause when enemies come out | convenience | autopause.c |
 | `battle.click_attack` | Click an enemy to attack it | convenience | orders.c |
 | `battle.click_best` | Attack with the better weapon | convenience | orders.c |
-| `battle.volley_toggle` | Shoot or melee on each member's box | interface | orders.c, partypanel.cpp |
+| `battle.volley_toggle` | Way of fighting on each member's box | interface | styles.c, orders.c, partypanel.cpp |
 | `battle.volley_melee` | Shooters fight hand to hand once the enemies close in | convenience | orders.c |
 | `battle.panel_select` | Click a member's box to give them orders | convenience | partypanel.cpp |
 | `battle.quick_orders` | One click gives an order | convenience | orders.c |

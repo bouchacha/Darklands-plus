@@ -38,6 +38,8 @@ extern ImFont *ui_font_overlay;          /* ui.cpp: the text over and beside the
 #include <set>
 #include "money.h"
 #include "margins_parts.h"
+#include "richtext.h"
+#include "skillicons.h"
 extern "C" int encounters_card_active(void);
 extern "C" int encounters_builtin(int i);
 extern "C" void ui_open_goto(void);
@@ -105,7 +107,16 @@ static const char *order_tip(int kind)
 }
 /* the battle menus' Attack and Orders entries (s016 1ef8's), each with what it is: kind (ordericons.h),
    a potion's picture, its label */
-struct OrderEntry { int j, k, s2, kind, pid, pq; std::string label; };
+struct OrderEntry { int j, k, s2, kind, pid, pq, count = 0; std::string label, key; };
+/* the orders as pictures alone (battle.order_icons): the words in the tooltip */
+static bool icons_only(void) { return config_get_int("battle.order_icons", 1) != 0; }
+/* a thing among the orders that is not a potion (a lantern, a rope ...): its picture; -1 none */
+static int item_of(const std::string &name)
+{
+    for (int id = 0; id < (int)gamedata.items.size(); id++)
+        if (!gamedata.items[id].shortname.empty() && (name == gamedata.items[id].shortname || name == gamedata.items[id].name)) return id;
+    return -1;
+}
 static std::vector<OrderEntry> order_entries(void)
 {
     std::vector<OrderEntry> v;
@@ -125,9 +136,13 @@ static std::vector<OrderEntry> order_entries(void)
                 o.label = game_text(e.name, strlen(e.name));
                 if (s2 >= 0) o.label = game_text(it.name, strlen(it.name)) + ": " + (e.count > 1 ? std::to_string(e.count) + " " : "") + o.label;
                 o.pid = s2 >= 0 ? potion_of(game_text(e.name, strlen(e.name)), e.key, &o.pq) : -1;
+                if (s2 >= 0 && o.pid < 0) { o.pid = item_of(game_text(e.name, strlen(e.name))); o.pq = -1; }
+                o.count = e.count;
                 o.kind = s2 < 0 ? ui_order_icon_for(game_text(e.name, strlen(e.name)).c_str()) : OI_NONE;
                 if (o.kind == OI_ATTACK) o.label = "Standard";                  /* (the game's "Std Attack") */
+                if (e.key[0] && o.pq < 0) o.key = e.key;
                 if (e.key[0] && o.pid < 0) o.label += std::string(" (") + e.key + ")";   /* (a potion's quality: the dots on its picture) */
+                else if (e.key[0] && o.pq >= 0) o.label += std::string(", quality ") + (e.key[0] == 'q' ? e.key + 1 : e.key);
                 v.push_back(o);
             }
         }
@@ -136,31 +151,45 @@ static std::vector<OrderEntry> order_entries(void)
 }
 /* one order button at a (its size from its label); hovered: its tip. The click comes through
    margins_order_click */
-static ImVec2 order_button_size(const OrderEntry &e)
+/* a button: in icons_only, a square with the order's picture (a potion's or a thing's, with how many), the
+   words under the pointer; else the picture and the words */
+static bool pictured(const OrderEntry &e) { return e.pid >= 0 || e.kind != OI_NONE; }
+static ImVec2 order_button_size(const OrderEntry &e, bool words = false)
 {
     float lh = ImGui::GetTextLineHeight(), pad = lh * 0.3f;
-    int oi = e.pid < 0 && config_get_int("battle.order_icons", 1) ? e.kind : OI_NONE;
-    float iw = e.pid >= 0 || oi != OI_NONE ? lh * 1.15f : 0;
+    if (!words && icons_only() && pictured(e)) return ImVec2(lh * 2.0f, lh * 2.0f);
+    float iw = pictured(e) ? lh * 1.15f : 0;
     return ImVec2(ImGui::CalcTextSize(e.label.c_str()).x + pad * 2 + iw, lh + pad);
 }
-static void order_button(ImDrawList *dl, ImVec2 a, const OrderEntry &e, bool enabled = true)
+static void order_button(ImDrawList *dl, ImVec2 a, const OrderEntry &e, bool enabled = true, bool words = false)
 {
     float lh = ImGui::GetTextLineHeight(), pad = lh * 0.3f;
-    int oi = e.pid < 0 && config_get_int("battle.order_icons", 1) ? e.kind : OI_NONE;
-    float iw = e.pid >= 0 || oi != OI_NONE ? lh * 1.15f : 0;
-    ImVec2 sz = order_button_size(e), b(a.x + sz.x, a.y + sz.y), mp = ImGui::GetIO().MousePos;
+    bool square = !words && icons_only() && pictured(e);
+    float iw = square ? lh * 1.55f : pictured(e) ? lh * 1.15f : 0;
+    ImVec2 sz = order_button_size(e, words), b(a.x + sz.x, a.y + sz.y), mp = ImGui::GetIO().MousePos;
     bool hov = enabled && mp.x >= a.x && mp.x < b.x && mp.y >= a.y && mp.y < b.y;
     float h = sz.y;
     dl->AddRectFilled(a, b, !enabled ? IM_COL32(70, 58, 42, 200) : hov ? IM_COL32(150, 112, 56, 255) : IM_COL32(96, 70, 36, 255), h * 0.2f);
     dl->AddRect(a, b, IM_COL32(170, 132, 70, enabled ? 255 : 120), h * 0.2f);
-    if (e.pid >= 0) ui_item_icon_q(dl, ImVec2(a.x + pad + iw * 0.45f, a.y + h * 0.5f), iw, e.pid, e.pq);
-    else if (oi != OI_NONE) ui_draw_order_icon(dl, ImVec2(a.x + pad + iw * 0.42f, a.y + h * 0.5f), iw * 0.95f, oi);
-    dl->AddText(ImVec2(a.x + pad + iw, a.y + pad * 0.5f), enabled ? IM_COL32(244, 232, 204, 255) : IM_COL32(160, 146, 120, 255), e.label.c_str());
+    ImVec2 ic = square ? ImVec2((a.x + b.x) * 0.5f, (a.y + b.y) * 0.5f) : ImVec2(a.x + pad + iw * 0.45f, a.y + h * 0.5f);
+    int v0 = dl->VtxBuffer.Size;
+    if (e.pid >= 0) ui_item_icon_q(dl, ic, iw, e.pid, e.pq);
+    else if (e.kind != OI_NONE) ui_draw_order_icon(dl, ic, iw * 0.95f, e.kind);
+    if (!enabled) ui_dim_since(dl, v0, 0.45f);
+    if (square && e.count > 1) {                                  /* (how many: in the top corner, the quality's marks at the foot) */
+        char n[12]; snprintf(n, sizeof n, "%d", e.count);
+        float fs = ImGui::GetFontSize() * 0.8f; ImVec2 ts = ImGui::GetFont()->CalcTextSizeA(fs, FLT_MAX, 0, n);
+        ImVec2 p(b.x - ts.x - pad * 0.45f, a.y + pad * 0.15f);
+        dl->AddText(ImGui::GetFont(), fs, ImVec2(p.x + 1, p.y + 1), IM_COL32(0, 0, 0, 220), n);
+        dl->AddText(ImGui::GetFont(), fs, p, IM_COL32(250, 236, 200, 255), n);
+    }
+    if (!square) dl->AddText(ImVec2(a.x + pad + iw, a.y + pad * 0.5f), enabled ? IM_COL32(244, 232, 204, 255) : IM_COL32(160, 146, 120, 255), e.label.c_str());
     if (enabled) order_btns.push_back({ a, b, e.j, e.k, e.s2 });
-    if (hov && order_tip(e.kind)) {   /* (beside the button; in the strip at the field's foot, above the whole strip, not over its buttons) */
+    if (hov && (square || order_tip(e.kind))) {   /* (beside the button; in the strip at the field's foot, above the whole strip, not over its buttons) */
         if (a.y > ImGui::GetIO().DisplaySize.y * 0.5f) { ImVec2 wp = ImGui::GetWindowPos(), ws = ImGui::GetWindowSize(); ui_tip_beside(ImVec2(a.x, wp.y), ImVec2(b.x, wp.y + ws.y)); }   /* (the strip's whole height: above it) */
         else ui_tip_beside(a, b);
-        margin_tip(order_tip(e.kind));
+        std::string t = square ? e.label + (order_tip(e.kind) ? std::string("\n") + order_tip(e.kind) : std::string()) : order_tip(e.kind);
+        margin_tip(t.c_str());
     }
 }
 /* the group of an order: 0 attacks, 1 moving, 2 things on the field, 3 potions and items, 4 the rest */
@@ -197,19 +226,30 @@ static void order_buttons(float width, bool with_resume)
         grp[order_group(e)].push_back(e);
     }
     static const char *GNAME[5] = { "Attack", "Move", "Here", "Potions and items", "Battle" };
-    heading(("Orders for " + who).c_str());
+    const bool ic = icons_only();
+    if (!ic) heading(("Orders for " + who).c_str());
     ImDrawList *dl = ImGui::GetWindowDrawList();
     ImVec2 o0 = ImGui::GetCursorScreenPos();
-    float lh = ImGui::GetTextLineHeight(), pad = lh * 0.3f, gap = lh * 0.25f, cap = lh * 0.85f, ggap = lh * 0.9f;
+    float lh = ImGui::GetTextLineHeight(), pad = lh * 0.3f, gap = lh * 0.25f, cap = ic ? 0 : lh * 0.85f, ggap = ic ? lh * 0.7f : lh * 0.9f;
     float x0 = o0.x, x1 = o0.x + width - ImGui::GetStyle().WindowPadding.x * 2, x = x0, y = o0.y, rowh = 0, xmax = x0;
+    if (ic) {                                                     /* (whose orders: their head, the name under the pointer) */
+        float hs = lh * 2.0f;
+        ImVec2 h0(x0, y), h1(x0 + hs / 1.2f, y + hs);
+        ui_member_head(dl, sel, h0, hs);
+        if (ImGui::IsMouseHoveringRect(h0, h1, false)) { ui_tip_beside(h0, h1); margin_tip(("Orders for " + who).c_str()); }
+        x = x0 = h1.x + ggap * 0.6f; xmax = x;
+    }
     ImFont *f = ImGui::GetFont(); float cfs = ImGui::GetFontSize() * 0.72f;
+    bool first = true;
     for (int g = 0; g < 5; g++) {
         if (grp[g].empty()) continue;
         float gw = 0; for (const OrderEntry &e : grp[g]) gw += order_button_size(e).x + gap;
         gw -= gap;
-        float bh = lh + pad;
+        float bh = 0; for (const OrderEntry &e : grp[g]) bh = fmaxf(bh, order_button_size(e).y);
         if (x > x0 && x + gw > x1) { x = x0; y += rowh + gap; rowh = 0; }  /* (a group to the next row whole, when it fits there) */
-        dl->AddText(f, cfs, ImVec2(x + 1, y), IM_COL32(200, 178, 136, 230), GNAME[g]);
+        else if (ic && !first) dl->AddLine(ImVec2(x - ggap * 0.5f, y + bh * 0.15f), ImVec2(x - ggap * 0.5f, y + bh * 0.85f), IM_COL32(170, 132, 70, 150), 1.0f);   /* (between groups: a thin rule) */
+        first = false;
+        if (!ic) dl->AddText(f, cfs, ImVec2(x + 1, y), IM_COL32(200, 178, 136, 230), GNAME[g]);
         float by = y + cap, gx = x;
         for (const OrderEntry &e : grp[g]) {
             ImVec2 bs = order_button_size(e);
@@ -251,13 +291,13 @@ static void top_buttons(void)
     }
     if (menuview_is_on() && game_mode() == GM_BATTLE) {           /* Resume: the Orders menu's own entry, given as a click on it */
         bool paused = g_rb(GV_order_mode) == 1;
-        OrderEntry r{ -1, -1, -1, OI_RESUME, -1, -1, padp ? "Resume" : "Resume (Space)" };
+        OrderEntry r{ -1, -1, -1, OI_RESUME, -1, -1, 0, padp ? "Resume" : "Resume (Space)", "" };
         if (paused) for (const OrderEntry &e : order_entries()) if (e.kind == OI_RESUME) { r.j = e.j; r.k = e.k; r.s2 = e.s2; }
         bool ok = paused && r.j >= 0;
         if (bar_frame != ImGui::GetFrameCount()) order_btns.clear();   /* (no order strip this frame: the list holds Resume alone) */
-        order_button(dl, ImVec2(bx, p.y), r, ok);
+        order_button(dl, ImVec2(bx, p.y), r, ok, true);              /* (in the margin, with its words) */
         if (ok) order_btns_frame = ImGui::GetFrameCount();
-        ImVec2 rs = order_button_size(r);
+        ImVec2 rs = order_button_size(r, true);
         if (!ok && mp.x >= bx && mp.x < bx + rs.x && mp.y >= p.y && mp.y < p.y + rs.y) ui_tip_beside(ImVec2(bx, p.y), ImVec2(bx + rs.x, p.y + rs.y)), margin_tip("The battle is running: Space pauses it, or click one of the party.");
         p.y += rs.y + gap;
     }

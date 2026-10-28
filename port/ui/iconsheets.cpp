@@ -123,6 +123,7 @@ extern "C" void ui_icon_styles_draw(void)
         float cell = ds.x / 14, sz = cell * 0.5f; int n = 0;
         auto at = [&](int k) { return ImVec2(cell * 0.5f + (k % 14) * cell, cell * 0.45f + (k / 14) * cell * 0.9f); };
         for (int i = 0; i < OI_N; i++) ui_draw_order_icon(dl, at(n++), sz * 0.8f, i);
+        for (int i = 0; i < 8; i++) ui_draw_style_icon(dl, at(n++), sz * 0.8f, i);     /* (the members' ways of fighting: mods/styles.h) */
         n = (n + 13) / 14 * 14;                                                          /* the alchemists' ingredients (72-94) and potions (95-116) */
         for (int i = 72; i <= 116; i++) { if (i == 95) n = (n + 13) / 14 * 14; ui_item_icon(dl, at(n++), sz * 0.95f, i); }
         n = (n + 13) / 14 * 14;                                                          /* the world map: its places, its layers, a quest's way */

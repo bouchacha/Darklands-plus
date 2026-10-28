@@ -344,7 +344,7 @@ void help_window(void)
                 row("Click a member", "then click an enemy (attack) or a spot (walk there): that click gives the order");
                 row("1 to 5", "select a member; Esc: cancel the order being given");
                 if (config_get_int("battle.panel_select", 1)) row("A member's box at the left", "click: select them (double-click: and move the view to them); right-click: their sheet");
-                if (config_get_int("battle.volley_toggle", 1)) row("Bow or sword on a member's box", "that member shoots or fights hand to hand when you click an enemy (click it to switch)");
+                if (config_get_int("battle.volley_toggle", 1) && config_get_int("battle.improved", 1)) row("The picture at a box's lower left", "that member's way of fighting, what they do until you give them an order: click it to choose another");
                 row("The buttons at the foot of the field", "the selected member's orders, grouped (Attack, Move, Here, Potions and items, Battle); for a member already fighting, an attack is given against that enemy at once. Fast forward and Resume stand at the top of the right margin");
             } else
                 row("Click a member", "then click an enemy, a spot or a menu choice; Enter gives the order");

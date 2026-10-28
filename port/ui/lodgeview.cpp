@@ -188,7 +188,7 @@ extern "C" void lodgeview_draw(void)
     }
     if (!camp) {                                             /* (in camp the risk is told under Guard the camp) */
         snprintf(b, sizeof b, "The room: %s a day.%s", money(m.lodging).c_str(), m.days ? ("   Days stayed: " + std::to_string(m.days)).c_str() : "");
-        P.text(fo, NsDraw::FS_SMALL, 70, 23.5f, soft, b, -1, 186);
+        P.text(fo, NsDraw::FS_SMALL, 70, 23.5f, soft, b, -1, 180);       /* (clear of the fold: 1.3.1's camp line ran into it) */
     }
 
     /* the left page: the party's days */
