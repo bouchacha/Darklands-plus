@@ -193,7 +193,7 @@ static std::string encounter_outcome_text(void)
             if (h % 24) snprintf(t2 + strlen(t2), sizeof t2 - strlen(t2), "%ld hour%s", h % 24, h % 24 == 1 ? "" : "s");
             t = std::string(t2) + " pass" + (h == 1 ? "es" : "");
         }
-        if (!t.empty()) b += (b.empty() ? "" : "   ") + t;
+        if (!t.empty()) b += (b.empty() ? "" : "  \u00b7  ") + t;          /* (a dot between: "+2 in Paderborn  ·  3 hours pass") */
     }
     return a + (!a.empty() && !b.empty() ? "\n" : "") + b;
 }
