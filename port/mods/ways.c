@@ -1,16 +1,17 @@
 /* ways.c - Improved combat (battle.improved): each party member fights in their way (mods/styles.c) between
  * the player's orders, after each round of blows (melee_exchanges, s014 0e76:2a4a: melee_hook). mods/orders.c
  * is the player's side (a click gives an order); this file is what the members do without one:
- *   the shooters (Skirmisher, Archer, Holdfast) open fire by themselves (idle_shooters), each at a foe of its
- *   own (shot_target), take a new mark when theirs falls (retarget_shooters), step aside for a clear line
- *   (mods/battlerules.c; not a Holdfast), fight hand to hand a foe that reaches them (the volley at the end
- *   of melee_hook) and take up the missile weapon again after it (back_to_bow; a Skirmisher fights hand to
- *   hand to the end once the enemies are close);
- *   the fighters (Man-at-arms, Charger, Berserker, Bodyguard, and the shooters with nothing left to loose)
- *   go at a foe as their way has it (idle_fighters, melee_pick, guard_walk), turn on a foe beside them when
- *   theirs falls (stale_melee) and parry when set upon by several (stances);
- *   an order of the player's is the member's way for the rest of that fight (leave_hook); Off is the
- *   original's way for that member. The next battle starts afresh (orders_frame). */
+ *   the shooters (Skirmisher, Archer) open fire by themselves (idle_shooters), each at a foe of its own
+ *   (shot_target), take a new mark when theirs falls (retarget_shooters), step aside for a clear line
+ *   (mods/battlerules.c), fight hand to hand a foe that reaches them (the volley at the end of melee_hook)
+ *   and take up the missile weapon again after it (back_to_bow; a Skirmisher fights hand to hand to the
+ *   end once the enemies are close);
+ *   the fighters (Man-at-arms, Charger, and the shooters with nothing left to loose) go at a foe as their
+ *   way has it (idle_fighters, melee_pick) and turn on a foe beside them when theirs falls (stale_melee);
+ *   an order of the player's is the member's way for the rest of that fight (leave_hook): sent somewhere or
+ *   halted, a member holds there (ST_HELD: it shoots what it sees from there, fights what reaches it, never
+ *   walks on its own); Manual (ST_OFF) is the original's way for that member. The next battle starts afresh
+ *   (orders_frame). */
 #include "gamemodel.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,9 +32,9 @@
 #define NEAR_PX 56                      /* (ways_near_foe) */
 
 /* Each member fights in a way of their own until the player gives them an order (style_of: Skirmisher,
- * Archer, Holdfast, Man-at-arms (ST_FOOTMAN), Charger, Berserker, Bodyguard, Off). An order of the player's is theirs for
+ * Archer, Man-at-arms (ST_FOOTMAN), Charger, Manual (ST_OFF)). An order of the player's is theirs for
  * the rest of the fight in its manner (ov[]): sent hand to hand they go on hand to hand, sent to shoot
- * they go on shooting, sent somewhere or halted they hold there; Off is the original's way for that
+ * they go on shooting, sent somewhere or halted they hold there; Manual is the original's way for that
  * member (nothing of ours). A Skirmisher shoots until the enemies are close, then fights hand to hand
  * for the rest of the fight (committed[]). The next battle starts afresh. */
 enum { OV_NONE, OV_MELEE, OV_SHOOT, OV_HOLD };
@@ -45,15 +46,15 @@ static int st(int i)                            /* the way member i fights now *
     if (s0 == ST_OFF) return ST_OFF;
     if (ov[i] == OV_MELEE) return ST_FOOTMAN;
     if (ov[i] == OV_SHOOT) return ST_ARCHER;
-    if (ov[i] == OV_HOLD) return ST_HOLDFAST;
+    if (ov[i] == OV_HOLD) return ST_HELD;
     if (s0 == ST_SKIRMISHER && committed[i]) return ST_FOOTMAN;
     return s0;
 }
 static int automated(int i) { return combat_improved() && st(i) != ST_OFF; }
-/* a member who shoots while it can: an Archer, a Holdfast, a Skirmisher before the enemies are close */
-static int shooter(int i) { int s0 = st(i); return s0 == ST_ARCHER || s0 == ST_HOLDFAST || s0 == ST_SKIRMISHER; }
+/* a member who shoots while it can: an Archer, one holding where sent, a Skirmisher before the enemies are close */
+static int shooter(int i) { int s0 = st(i); return s0 == ST_ARCHER || s0 == ST_HELD || s0 == ST_SKIRMISHER; }
 /* 1 shoot, 0 melee, -1 no missile weapon in hand: what a click on an enemy makes member m do
-   (battle.click_attack), as the member's way has it (Off: as the game's improved click, a shot) */
+   (battle.click_attack), as the member's way has it (Manual: as the game's improved click, a shot) */
 int orders_member_mode(int m)
 {
     if (m < 0 || m > 4) return -1;
@@ -69,13 +70,13 @@ int orders_member_style(int m, int *by_order)
     if (by_order) *by_order = m >= 0 && m < 5 && ov[m] != OV_NONE && style_of(m) != ST_OFF;
     return st(m);
 }
-/* a member may walk on its own (step aside for a line, go to help): not a Holdfast; one whose way is Off
+/* a member may walk on its own (step aside for a line, go to help): not one holding where sent; one whose way is Manual
    only to carry out the player's order to shoot (a spot with a line to the foe it was told to shoot) */
 int orders_may_move(int i)
 {
     int s0 = st(i);
     if (s0 == ST_OFF) return i >= 0 && i < 5 && ov[i] == OV_SHOOT;
-    return s0 != ST_HOLDFAST;
+    return s0 != ST_HELD;
 }
 
 /* the melee attack member i opens with against foe t: Vulnerable (0x0a: 1d4 more penetration, fewer
@@ -92,7 +93,7 @@ int ways_melee_kind(int i, int t)
 }
 /* a foe within about five paces (a fighter is some 8 pixels wide; the field's y is foreshortened by
    half): the lines have met (note_lines), a friend set upon close by (rescue_target), a foe coming at a
-   shooter (back_to_bow waits), one the guarded member must be kept from (melee_pick) */
+   shooter (back_to_bow waits) */
 int ways_near_foe(int i, int m)
 {
     int dx = (s16)g_rw(CBF(m, CB_X)) - (s16)g_rw(CBF(i, CB_X));
@@ -135,10 +136,6 @@ static void to_melee(int i, int t, int beside)
     ns_call(GF_weapon_ready, 3, i, (s8)g_rb((u16)(c + CB_MELEE)), 0);
     g_wb((u16)(c + CB_TARGET), (u8)t);
     int kind = ways_melee_kind(i, t);
-    if (st(i) == ST_BERSERKER && kind != 0x0a) {     /* (Berserk blows while it can take a few - not against armor only Vulnerable gets through - Standard once badly hurt) */
-        int e = (s8)g_rb((u16)(c + CB_END)), em = (s8)g_rb((u16)(c + CB_END_MAX));
-        if (em > 0 && e * 3 > em) kind = 6;
-    }
     if (beside) { g_ww((u16)(c + CB_ORDER), (u16)kind); g_wb((u16)(GV_cbt_action + i), 7); }
     else {
         g_ww((u16)(c + CB_TO_X), g_rw(CBF(t, CB_X))); g_ww((u16)(c + CB_TO_Y), g_rw(CBF(t, CB_Y)));
@@ -190,7 +187,7 @@ static void retarget_shooters(void)
                 shot_at[i] = -1;
                 g_ww((u16)(c + CB_ORDER), 0); g_wb((u16)(GV_cbt_action + i), 7);   /* (the melee weapon as its way has it: idle_fighters) */
                 if (st(i) == ST_SKIRMISHER) committed[i] = 1;
-                fprintf(stderr, "orders: member %d has nothing left to shoot: %s\n", i, st(i) == ST_HOLDFAST ? "holds where it stands" : "the melee weapon");
+                fprintf(stderr, "orders: member %d has nothing left to shoot: %s\n", i, st(i) == ST_HELD ? "holds where it stands" : "the melee weapon");
                 continue;
             }
         }
@@ -205,9 +202,9 @@ static void retarget_shooters(void)
         int best_clear = 0, best = shot_target(i, &best_clear);
         if (ns_unwinding) return;
         shot_at[i] = -1;
-        if (best >= 0 && !best_clear && st(i) == ST_HOLDFAST) best = -1;   /* (a Holdfast does not step aside: none it can see, it waits for one) */
+        if (best >= 0 && !best_clear && st(i) == ST_HELD) best = -1;   /* (one holding where sent does not step aside: none it can see, it waits for one) */
         if (best < 0) {
-            if (st(i) == ST_HOLDFAST) { g_ww((u16)(c + CB_ORDER), 0); g_wb((u16)(GV_cbt_moving + i), 0); g_wb((u16)(GV_cbt_action + i), 7); }   /* (not the game's walk at someone) */
+            if (st(i) == ST_HELD) { g_ww((u16)(c + CB_ORDER), 0); g_wb((u16)(GV_cbt_moving + i), 0); g_wb((u16)(GV_cbt_action + i), 7); }   /* (not the game's walk at someone) */
             continue;
         }
         g_ww((u16)(c + CB_ORDER), MISSILE); g_wb((u16)(c + CB_TARGET), (u8)best); g_wb((u16)(GV_cbt_state + i), 0);
@@ -357,38 +354,18 @@ static int party_on(int j, int skip)
     }
     return n;
 }
-/* the one a Bodyguard keeps beside: the most exposed of the others on its floor - a shooter first (it
-   stands back and cannot fend off a foe while loosing), then the lightest body armor (far 20a5:781e, its
-   hardness), then the nearest. -1 none */
-static int protege_of(int i)
-{
-    int fl = g_rb((u16)(GV_cbt_floor + i)), best = -1; float bs = 0;
-    for (int p = 0; p < 5; p++) {
-        if (p == i || g_rb(CBF(p, CB_STATUS)) != 1 || g_rb((u16)(GV_cbt_floor + p)) != fl) continue;
-        int wm = (s8)g_rb(CBF(p, CB_MISSILE)), at = g_rb(CBF(p, CB_BODY_ARMOR));
-        int shoots = g_rw(CBF(p, CB_ORDER)) == MISSILE || (wm >= 0 && wm <= 62 && (st(p) == ST_OFF || shooter(p)));
-        int h = at == 0xff ? 0 : rb(G_FAR20A5, (u16)(0x781e + at));
-        float s = (shoots ? 0.0f : 10000.0f) + (st(p) == ST_BODYGUARD ? 5000.0f : 0.0f) + h * 100.0f + dist(i, p) / 100.0f;
-        if (best < 0 || s < bs) { best = p; bs = s; }
-    }
-    return best;
-}
 /* the foe member i goes at hand to hand, as its way has it; -1 none. A foe beside it always first (its
    own target first of those). Then:
-     PICK_BESIDE (Archer, Holdfast, a shooter with something to loose): none.
+     PICK_BESIDE (Archer, one holding where sent, a shooter with something to loose): none.
      PICK_FOOT (Man-at-arms): once the lines have met (or no one of the party shoots), a foe fighting a
        friend that fewer than two of the party fight (two on one), else a foe no one fights, the nearest;
        else the nearest of the rest, the least crowded.
-     PICK_CHARGE (Charger, Berserker): from the start, the enemy's shooters no one goes at yet, then the
-       nearest foe no one fights, then the least crowded.
-     PICK_GUARD (Bodyguard): a foe beside the one it guards, or within a few paces of them; no one to
-       guard: as a Man-at-arms. */
-enum { PICK_BESIDE, PICK_FOOT, PICK_CHARGE, PICK_GUARD };
+     PICK_CHARGE (Charger): from the start, the enemy's shooters no one goes at yet, then the nearest
+       foe no one fights, then the least crowded. */
+enum { PICK_BESIDE, PICK_FOOT, PICK_CHARGE };
 static int melee_pick(int i, int how, int *beside_out)
 {
     int fl = g_rb((u16)(GV_cbt_floor + i)), cur = (s8)g_rb(CBF(i, CB_TARGET)), best = -1, best_beside = 0;
-    int g = how == PICK_GUARD ? protege_of(i) : -1;
-    if (how == PICK_GUARD && g < 0) how = PICK_FOOT;
     int open = how != PICK_FOOT || lines_met || !party_shoots();
     float bs = 0;
     for (int j = 5; j < 13; j++) {
@@ -397,11 +374,7 @@ static int melee_pick(int i, int how, int *beside_out)
         float d = dist(i, j), s;
         if (beside) s = 100000.0f + (j == cur ? 50.0f : 0.0f) - d;
         else if (how == PICK_BESIDE || no_way_to(i, j)) continue;
-        else if (how == PICK_GUARD) {
-            if (adj(g, j)) s = 50000.0f - d;
-            else if (ways_near_foe(g, j)) s = 40000.0f - d;
-            else continue;
-        } else {
+        else {
             if (!open) continue;
             int n = party_on(j, i), on_friend = 0;
             for (int p = 0; p < 5; p++) if (p != i && g_rb(CBF(p, CB_STATUS)) == 1 && adj(p, j)) on_friend = 1;
@@ -415,63 +388,11 @@ static int melee_pick(int i, int how, int *beside_out)
     if (beside_out) *beside_out = best_beside;
     return best;
 }
-/* a Bodyguard with no foe to fight: it walks to a spot beside the one it guards, on the side of the
-   nearest foe (between them), when more than a few paces off; not more often than every few seconds
-   (the one it guards may be walking) */
-static u16 guard_at[5];
-static void guard_walk(int i)
-{
-    int g = protege_of(i);
-    if (g < 0) return;
-    u16 now = g_rw(GV_combat_clock);
-    if (guard_at[i] && (u16)(now - guard_at[i]) < 60) return;
-    if (dist(i, g) <= 48.0f) return;                 /* (a cell off, or a diagonal one: beside them) */
-    guard_at[i] = now ? now : 1;
-    u16 c = (u16)(D_CBT + i * 0x80);
-    int gx = (s16)g_rw(CBF(g, CB_X)), gy = (s16)g_rw(CBF(g, CB_Y)), nf = -1; float nd = 0;
-    for (int j = 5; j < 13; j++)
-        if (g_rb(CBF(j, CB_STATUS)) == 1 && g_rb((u16)(GV_cbt_floor + j)) == g_rb((u16)(GV_cbt_floor + g)) && (nf < 0 || dist(g, j) < nd)) { nf = j; nd = dist(g, j); }
-    float ux = 1.0f, uy = 0.0f;                     /* (towards the foe, on the field's scale: rows half as tall) */
-    if (nf >= 0 && nd > 1.0f) { ux = ((s16)g_rw(CBF(nf, CB_X)) - gx) / nd; uy = 2.0f * ((s16)g_rw(CBF(nf, CB_Y)) - gy) / nd; }
-    /* the spots a cell or two from the one it guards (32 by 16 pixels, as levelwalk.c tries them: a spot
-       closer is within their own footprint, never free), the nearest to the side of the foe first */
-    float ix = gx + 32.0f * ux, iy = gy + 16.0f * uy;
-    int sx[24], sy[24], n = 0; float sd[24];
-    for (int r = 1; r <= 2; r++)
-        for (int dy = -r; dy <= r; dy++)
-            for (int dx = -r; dx <= r; dx++) {
-                if (dx > -r && dx < r && dy > -r && dy < r) continue;
-                int x = gx + dx * 32, y = gy + dy * 16;
-                if (x < 0 || y < 0 || x >= 40 * 32 || y >= 40 * 16 || n >= 24) continue;
-                sx[n] = x; sy[n] = y; sd[n] = (x - ix) * (x - ix) + 4.0f * (y - iy) * (y - iy); n++;
-            }
-    u16 tx = g_rw((u16)(c + CB_TO_X)), ty = g_rw((u16)(c + CB_TO_Y)); u8 tg = g_rb((u16)(c + CB_TARGET));
-    g_wb((u16)(c + CB_TARGET), 0xff);
-    for (int tries = 0; tries < 6 && n > 0; tries++) {
-        int k = 0;
-        for (int m = 1; m < n; m++) if (sd[m] < sd[k]) k = m;
-        int x = sx[k], y = sy[k];
-        sx[k] = sx[n - 1]; sy[k] = sy[n - 1]; sd[k] = sd[n - 1]; n--;
-        g_ww((u16)(c + CB_TO_X), (u16)x); g_ww((u16)(c + CB_TO_Y), (u16)y);
-        int found = ns_call(GF_path_find, 1, i) == 1;
-        if (ns_unwinding) return;
-        if (!found) continue;
-        ns_call(GF_path_give, 1, i);
-        if (ns_unwinding) return;
-        g_wb((u16)(GV_cbt_moving + i), 1); g_wb((u16)(GV_cbt_path_step + i), 0);
-        g_ww((u16)(c + CB_ORDER), 1); g_wb((u16)(GV_cbt_state + i), 0);
-        fprintf(stderr, "orders: member %d (Bodyguard) keeps beside %d: walks to %d,%d\n", i, g, x, y);
-        return;
-    }
-    g_ww((u16)(c + CB_TO_X), tx); g_ww((u16)(c + CB_TO_Y), ty); g_wb((u16)(c + CB_TARGET), tg);
-    if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d (Bodyguard) finds no way to %d\n", i, g);
-}
-
 /* a member with a missile weapon left without orders (the battle let run before the player gave any,
-   or an order carried out), whose way is to shoot (Archer, Holdfast, Skirmisher): it opens fire at a foe
+   or an order carried out), whose way is to shoot (Archer, Skirmisher, one holding where sent): it opens fire at a foe
    it can see (shot_target) rather than stand with the bow until a foe reaches it - the volley before the
    lines meet. A Skirmisher with a friend set upon a few paces off goes to help instead (and fights hand
-   to hand from then on); a Holdfast shoots only what it sees from where it stands. Not one told to hold
+   to hand from then on); one holding where sent shoots only what it sees from there. Not one told to hold
    (the game's Hold), walking, with a foe beside it (idle_fighters), or with nothing to loose */
 static u16 hold_try[5];
 static void idle_shooters(void)
@@ -490,21 +411,20 @@ static void idle_shooters(void)
             if (ns_unwinding) return;
             if (r >= 0) { to_melee(i, r, 0); if (ns_unwinding) return; fprintf(stderr, "orders: member %d had no orders: goes to help: %d fights one of the party a few paces off\n", i, r); continue; }
         }
-        if (s0 == ST_HOLDFAST && hold_try[i] && (u16)(now - hold_try[i]) < 20) continue;
+        if (s0 == ST_HELD && hold_try[i] && (u16)(now - hold_try[i]) < 20) continue;
         if (!ns_call(GF_can_fire, 1, i)) { if (ns_unwinding) return; continue; }
         int clear = 0, t = shot_target(i, &clear);
         if (ns_unwinding) return;
         if (t < 0) continue;
-        if (s0 == ST_HOLDFAST && !clear) { hold_try[i] = now ? now : 1; continue; }   /* (no line from where it stands: it waits for one) */
+        if (s0 == ST_HELD && !clear) { hold_try[i] = now ? now : 1; continue; }   /* (no line from where it stands: it waits for one) */
         ready_shot(i, t);
         fprintf(stderr, "orders: member %d had no orders: opens fire at %d (%s)\n", i, t, clear ? "a clear line" : "no clear line: steps aside for one");
     }
 }
 /* a member left without orders who does not shoot now: it fights as its way has it (melee_pick) - a foe
    beside it; a friend's fight or a free foe once the lines meet (Man-at-arms); the enemy's shooters and
-   free foes from the start (Charger, Berserker); whoever comes at the one it guards (Bodyguard, who
-   otherwise keeps beside them). Not one told to hold (the game's Hold); Halt keeps its own order (0x400)
-   and is let be */
+   free foes from the start (Charger); only a foe beside it (Archer, one holding where sent). Not one told
+   to hold (the game's Hold); Halt keeps its own order (0x400) and is let be */
 static void idle_fighters(void)
 {
     if (!combat_improved()) return;
@@ -517,14 +437,13 @@ static void idle_fighters(void)
         int armed = wm >= 0 && wm <= 62 && has_ammo(i, wm);
         int how = PICK_FOOT;
         switch (s0) {
-        case ST_HOLDFAST: how = PICK_BESIDE; break;
+        case ST_HELD: how = PICK_BESIDE; break;
         case ST_ARCHER: case ST_SKIRMISHER: how = armed ? PICK_BESIDE : PICK_FOOT; break;
-        case ST_CHARGER: case ST_BERSERKER: how = PICK_CHARGE; break;
-        case ST_BODYGUARD: how = PICK_GUARD; break;
+        case ST_CHARGER: how = PICK_CHARGE; break;
         }
         int beside = 0, t = melee_pick(i, how, &beside);
         if (ns_unwinding) return;
-        if (t < 0) { if (s0 == ST_BODYGUARD) { guard_walk(i); if (ns_unwinding) return; } continue; }
+        if (t < 0) continue;
         to_melee(i, t, beside);
         if (ns_unwinding) return;
         fprintf(stderr, "orders: member %d had no orders: joins the fight against %d (%s, as %s)\n", i, t, beside ? "beside it" : "walking to it", style_name(s0));
@@ -544,13 +463,13 @@ static void stale_melee(void)
         if (g_rb((u16)(c + CB_STATUS)) != 1 || !automated(i)) continue;
         int t = (s8)g_rb((u16)(c + CB_TARGET));
         int alive = t >= 5 && t < 13 && g_rb(CBF(t, CB_STATUS)) == 1;
-        if (st(i) == ST_HOLDFAST && (!alive || !adj(i, t))) {             /* (a Holdfast does not go after a foe that stepped back: the game would walk it there) */
+        if (st(i) == ST_HELD && (!alive || !adj(i, t))) {             /* (one holding where sent does not go after a foe that stepped back: the game would walk it there) */
             int b = -1;
             for (int j = 5; j < 13; j++) if (g_rb(CBF(j, CB_STATUS)) == 1 && adj(i, j)) { b = j; break; }
             g_wb((u16)(GV_cbt_moving + i), 0);
             if (b >= 0) { to_melee(i, b, 1); if (ns_unwinding) return; continue; }
             g_ww((u16)(c + CB_ORDER), 0); g_wb((u16)(GV_cbt_action + i), 7);
-            fprintf(stderr, "orders: member %d (Holdfast) has no foe beside it: stands\n", i);
+            fprintf(stderr, "orders: member %d (held where sent) has no foe beside it: stands\n", i);
             continue;
         }
         if (g_rb((u16)(GV_cbt_moving + i))) continue;
@@ -569,8 +488,8 @@ static void stale_melee(void)
     }
 }
 /* hand to hand with the missile weapon in hand to go back to (by our doing, or the game's: its AI turns
-   a shooter set upon to Parry or a Std Attack): an Archer or a Holdfast (and one the player sent to
-   shoot) with no foe beside it now takes up the missile weapon again, at the next foe; a Skirmisher fights
+   a shooter set upon to Parry or a Std Attack): an Archer (and one the player sent to shoot) or one
+   holding where sent, with no foe beside it now, takes up the missile weapon again, at the next foe; a Skirmisher fights
    hand to hand from then on (the foes are close) */
 static void back_to_bow(void)
 {
@@ -581,7 +500,7 @@ static void back_to_bow(void)
         if (!melee || !automated(i) || g_rb((u16)(c + CB_STATUS)) != 1 || wm < 0 || wm > 62 || g_rb((u16)(GV_cbt_moving + i))) continue;
         int s0 = st(i);
         if (s0 == ST_SKIRMISHER) { committed[i] = 1; fprintf(stderr, "orders: member %d (Skirmisher) fights hand to hand from now on\n", i); continue; }
-        if (s0 != ST_ARCHER && s0 != ST_HOLDFAST) continue;
+        if (s0 != ST_ARCHER && s0 != ST_HELD) continue;
         if (!has_ammo(i, wm) || foes_beside(i)) continue;
         /* a foe within a few paces coming at it: the fight is about to reach it, the bow would only be
            put away again (each change of weapon starts the reloading over: a shooter switched back and
@@ -597,34 +516,13 @@ static void back_to_bow(void)
           bow_hold[i] = 0; }
         int clear = 0, t = shot_target(i, &clear);
         if (ns_unwinding) return;
-        if (t < 0 || (s0 == ST_HOLDFAST && !clear)) {                    /* (nothing it can shoot: the order ends; it shoots when it can, idle_shooters) */
+        if (t < 0 || (s0 == ST_HELD && !clear)) {                    /* (nothing it can shoot: the order ends; it shoots when it can, idle_shooters) */
             g_ww((u16)(c + CB_ORDER), 0); g_wb((u16)(GV_cbt_action + i), 7);
             continue;
         }
         ready_shot(i, t);
         bow_given[i] = g_rw(GV_combat_clock); if (!bow_given[i]) bow_given[i] = 1;
         fprintf(stderr, "orders: member %d has no foe beside it now: the missile weapon again, at %d (%s)\n", i, t, clear ? "a clear line" : "no clear line: steps aside for one");
-    }
-}
-/* a Holdfast or a Bodyguard fighting hand to hand parries (0x22) while two foes or more are beside it,
-   and goes back to its attack (Std Attack, or Vulnerable as the armor asks) once only one is */
-static signed char parried[5];
-static void stances(void)
-{
-    for (int i = 0; i < 5; i++) {
-        u16 c = (u16)(D_CBT + i * 0x80);
-        int f = (s16)g_rw((u16)(c + CB_ORDER)), s0 = st(i);
-        if (!automated(i) || g_rb((u16)(c + CB_STATUS)) != 1 || g_rb((u16)(GV_cbt_moving + i)) || (s0 != ST_HOLDFAST && s0 != ST_BODYGUARD)
-            || !(f == STD_ATTACK || f == 0x0a || f == 0x22)) { parried[i] = 0; continue; }
-        int n = foes_beside(i);
-        if (n >= 2 && f != 0x22) {
-            g_ww((u16)(c + CB_ORDER), 0x22); parried[i] = 1;
-            fprintf(stderr, "orders: member %d (%s) parries: %d foes beside it\n", i, style_name(s0), n);
-        } else if (n <= 1 && f == 0x22 && parried[i]) {
-            int t = (s8)g_rb((u16)(c + CB_TARGET)), k = ways_melee_kind(i, t);
-            g_ww((u16)(c + CB_ORDER), (u16)k); parried[i] = 0;
-            fprintf(stderr, "orders: member %d (%s) attacks again: %d foe beside it\n", i, style_name(s0), n);
-        }
     }
 }
 /* test (uattack:i,t): member i told to fight t hand to hand, as the player's order gives it (Std Attack;
@@ -653,12 +551,20 @@ void orders_test_shoot(int i, int t)
     ov[i] = OV_SHOOT; pt[i] = -1;
     fprintf(stderr, "orders: test: %d shoots at %d\n", i, t);
 }
+/* test (uheld:i): member i holds where it stands for the rest of the fight, as after the player's walk or
+   Halt order (leave_hook) */
+void orders_test_held(int i)
+{
+    if (i < 0 || i > 4) return;
+    ov[i] = OV_HOLD; pt[i] = -1;
+    fprintf(stderr, "orders: test: %d holds where it was sent\n", i);
+}
 /* member m's way chosen anew (the party panel): what the player's orders made of it in this fight is
    forgotten, the new way from now on */
 void orders_style_changed(int m)
 {
     if (m < 0 || m > 4) return;
-    ov[m] = OV_NONE; committed[m] = 0; pt[m] = -1; parried[m] = 0; guard_at[m] = 0;
+    ov[m] = OV_NONE; committed[m] = 0; pt[m] = -1;
 }
 /* a Parry, Berserk or Vulnerable order kept: the game turns a member who is set upon on the way
    to its foe (or whose foe falls) to a Std Attack on whoever it fights; the kind the player chose
@@ -677,7 +583,7 @@ void orders_frame(void)
         for (int i = 0; i < 5; i++) {
             bow_given[i] = bow_hold[i] = 0; bow_flips[i] = 0;
             idle_since[i] = 0; shot_at[i] = -1; kept_kind[i] = -1; told[i] = 0;
-            ov[i] = OV_NONE; committed[i] = 0; pt[i] = -1; parried[i] = 0; guard_at[i] = 0; hold_try[i] = 0; noway[i] = -1;
+            ov[i] = OV_NONE; committed[i] = 0; pt[i] = -1; hold_try[i] = 0; noway[i] = -1;
         }
         lines_met = 0;
         battlerules_battle_begins(); pathfix_battle_begins();   /* (every file's memory of a battle: forgotten at the next) */
@@ -742,7 +648,6 @@ static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchange
     if (ns_unwinding) return;
     idle_fighters();
     if (ns_unwinding) return;
-    stances();
     if (!volley_on()) return;
     u16 now = g_rw(GV_combat_clock);
     for (int i = 0; i < 5; i++) {                   /* the shooters: a foe beside, a friend set upon, nothing left */
@@ -765,11 +670,11 @@ static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchange
             int wm = (s8)g_rb((u16)(c + CB_MISSILE));
             if (s0 == ST_SKIRMISHER) { to_melee(i, t, 0); if (ns_unwinding) return; }
             else if (wm < 0 || wm > 62 || !has_ammo(i, wm)) { g_ww((u16)(c + CB_ORDER), 0); g_wb((u16)(GV_cbt_action + i), 7); }   /* (its way's melee: idle_fighters) */
-        } else if (stt == 1 && s0 == ST_HOLDFAST && (!hold_try[i] || (u16)(now - hold_try[i]) >= 30)) {   /* (a line blocked: a Holdfast does not step aside, it takes a foe it can see) */
+        } else if (stt == 1 && s0 == ST_HELD && (!hold_try[i] || (u16)(now - hold_try[i]) >= 30)) {   /* (a line blocked: one holding where sent does not step aside, it takes a foe it can see) */
             hold_try[i] = now ? now : 1;
             int clear = 0, b = shot_target(i, &clear);
             if (ns_unwinding) return;
-            if (b >= 0 && clear && b != t) { g_wb((u16)(c + CB_TARGET), (u8)b); g_wb((u16)(GV_cbt_state + i), 0); fprintf(stderr, "orders: member %d (Holdfast) has no line to %d: shoots at %d\n", i, t, b); }
+            if (b >= 0 && clear && b != t) { g_wb((u16)(c + CB_TARGET), (u8)b); g_wb((u16)(GV_cbt_state + i), 0); fprintf(stderr, "orders: member %d (held where sent) has no line to %d: shoots at %d\n", i, t, b); }
         }
     }
 }

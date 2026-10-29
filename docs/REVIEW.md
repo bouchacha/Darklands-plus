@@ -246,3 +246,6 @@ covered and found, and what it could not check.
   stances) asking only the way. It moved out of orders.c (the clicks) into ways.c. docs/MERGING.md's switch
   table, written by hand at 1.2, had 17 switches since retired and lacked 125: it is now made from the switches
   and the sources (switch_map.py, by check_docs --fix), and its classes and presets are those of options.h.
+  The same day the ways went from eight to four and Manual (the maintainer's call: anything else is an
+  order); Holdfast lives on only as what a walk or Halt order of the player's leaves (ST_HELD), and the
+  Bodyguard's walking and the parrying stances went with their ways.

@@ -121,7 +121,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:158` | Pause when enemies come out |
 | `mods/options.c:158` | the battle pauses when enemies waiting in a castle, dungeon or mine come out to fight. |
 | `mods/options.c:159` | Improved combat |
-| `mods/options.c:159` | the party fights on sensibly between orders, each member in their way of fighting, chosen on their box in the party panel: Skirmisher (shoots while the enemies come, then fights hand to hand to the end; the usual way for one holding a bow, crossbow, gun or thrown weapon), Archer, Holdfast, Man-at-arms (the usual way for the others), Charger, Berserker, Bodyguard, or Off. An order of yours is the member's way for the rest of that fight: sent hand to hand they stay hand to hand, sent to shoot they keep shooting, sent somewhere they hold there. A shooter whose target falls takes the nearest enemy in sight; with no clear line (a wall, a tree or someone standing between, as the aiming line shows), they move to the nearest spot a few paces off that has one (a Holdfast takes another enemy instead). Parry, Berserk and Vulnerable stay as ordered, and a click on an enemy opens with a Vulnerable attack (aimed at the gaps in its armor) when only that would get through its armor. When off: the original's ways. |
+| `mods/options.c:159` | the party fights on sensibly between orders, each member in their way of fighting, chosen on their box in the party panel: Skirmisher (shoots while the enemies come, then fights hand to hand to the end; the usual way for one holding a bow, crossbow, gun or thrown weapon), Archer, Man-at-arms (the usual way for the others), Charger, or Manual (the original's way: every order yours). An order of yours is the member's way for the rest of that fight: sent hand to hand they stay hand to hand, sent to shoot they keep shooting, sent somewhere they hold there. A shooter whose target falls takes the nearest enemy in sight; with no clear line (a wall, a tree or someone standing between, as the aiming line shows), they move to the nearest spot a few paces off that has one (one you sent somewhere takes another enemy instead). Parry, Berserk and Vulnerable stay as ordered, and a click on an enemy opens with a Vulnerable attack (aimed at the gaps in its armor) when only that would get through its armor. When off: the original's ways. |
 | `mods/options.c:160` | Click an enemy to attack it |
 | `mods/options.c:160` | a click on an enemy sends the selected member to attack it, even before an attack is chosen: a standard attack, or with Improved combat a Vulnerable one where only that gets through the enemy's armor. |
 | `mods/options.c:161` | Way of fighting on each member's box |
@@ -649,24 +649,24 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/battleoverlay.cpp:239` | Click: attack |
 | `ui/battleoverlay.cpp:239` | No clear shot |
 | `ui/battleoverlay.cpp:270` | Each member's way of fighting |
-| `ui/battleoverlay.cpp:271` | The picture at the lower left of each member's box is their way of fighting: what they do until you give them an order. Click it to choose another:  Skirmisher: shoots while the enemies come, then fights hand to hand to the end (the usual way for one holding a missile weapon). Archer: shoots all fight long; fights hand to hand only an enemy that reaches them, then shoots again. Holdfast: never moves on their own; shoots what they can see, fights what reaches them. Man-at-arms: waits while the others shoot, then joins a friend's fight or takes a free enemy (the usual way for the others). Charger: at the enemy from the start, their shooters first. Berserker: the same, with Berserk blows. Bodyguard: keeps beside the most exposed of the party and fights whoever comes at them. Off: the original's ways; you give every order.  An order you give is that member's way for the rest of the fight. Each character keeps their way from battle to battle. |
-| `ui/battleoverlay.cpp:281` | Darklands+; F12 > Settings > Battles > Improved combat. |
-| `ui/battleoverlay.cpp:290` | Battles need fewer clicks |
-| `ui/battleoverlay.cpp:291` | Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.  Each member fights in their own way until you give them an order: the picture at the lower left of their box. Click it to choose another (Skirmisher, Archer, Holdfast, Man-at-arms, Charger, Berserker, Bodyguard, or Off). An order you give is their way for the rest of that fight.  Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.  While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does. |
-| `ui/battleoverlay.cpp:297` | All this is Darklands+; each part can be switched off, for the game's own ways, in F12 > Settings > Battles. F11 lists the battle's keys and clicks. |
-| `ui/battleoverlay.cpp:360` | The nearest enemy is this way: click to look |
-| `ui/battleoverlay.cpp:403` | a little hurt |
-| `ui/battleoverlay.cpp:404` | gravely wounded |
-| `ui/battleoverlay.cpp:413` | Melee rating %d, aim %d |
-| `ui/battleoverlay.cpp:414` | Melee rating %d |
-| `ui/battleoverlay.cpp:416` | The master of this place: once this enemy has fallen and the fight is over, the place is won. |
-| `ui/battleoverlay.cpp:426` | Natural weapons |
-| `ui/battleoverlay.cpp:434` | %s (hardness %d) |
-| `ui/battleoverlay.cpp:435` | Natural armor, hardness %d (as %s) |
-| `ui/battleoverlay.cpp:436` | No armor (hardness 0) |
-| `ui/battleoverlay.cpp:450` | mostly deflected |
-| `ui/battleoverlay.cpp:479` | \xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z) |
-| `ui/battleoverlay.cpp:482` | >> fast forward  (Z) |
+| `ui/battleoverlay.cpp:271` | The picture at the lower left of each member's box is their way of fighting: what they do until you give them an order. Click it to choose another:  Skirmisher: shoots while the enemies come, then fights hand to hand to the end (the usual way for one holding a missile weapon). Archer: shoots all fight long; fights hand to hand only an enemy that reaches them, then shoots again. Man-at-arms: waits while the others shoot, then joins a friend's fight or takes a free enemy (the usual way for the others). Charger: at the enemy from the start, their shooters first. Manual: the original's way; you give every order.  An order you give is that member's way for the rest of the fight. Each character keeps their way from battle to battle. |
+| `ui/battleoverlay.cpp:279` | Darklands+; F12 > Settings > Battles > Improved combat. |
+| `ui/battleoverlay.cpp:288` | Battles need fewer clicks |
+| `ui/battleoverlay.cpp:289` | Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.  Each member fights in their own way until you give them an order: the picture at the lower left of their box. Click it to choose another (Skirmisher, Archer, Man-at-arms, Charger, or Manual). An order you give is their way for the rest of that fight.  Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.  While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does. |
+| `ui/battleoverlay.cpp:295` | All this is Darklands+; each part can be switched off, for the game's own ways, in F12 > Settings > Battles. F11 lists the battle's keys and clicks. |
+| `ui/battleoverlay.cpp:358` | The nearest enemy is this way: click to look |
+| `ui/battleoverlay.cpp:401` | a little hurt |
+| `ui/battleoverlay.cpp:402` | gravely wounded |
+| `ui/battleoverlay.cpp:411` | Melee rating %d, aim %d |
+| `ui/battleoverlay.cpp:412` | Melee rating %d |
+| `ui/battleoverlay.cpp:414` | The master of this place: once this enemy has fallen and the fight is over, the place is won. |
+| `ui/battleoverlay.cpp:424` | Natural weapons |
+| `ui/battleoverlay.cpp:432` | %s (hardness %d) |
+| `ui/battleoverlay.cpp:433` | Natural armor, hardness %d (as %s) |
+| `ui/battleoverlay.cpp:434` | No armor (hardness 0) |
+| `ui/battleoverlay.cpp:448` | mostly deflected |
+| `ui/battleoverlay.cpp:477` | \xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z) |
+| `ui/battleoverlay.cpp:480` | >> fast forward  (Z) |
 | `ui/bestiary.cpp:38` | Could not read DARKLAND.ENM. |
 | `ui/bestiary.cpp:42` | DARKLAND.ENM has an unexpected size. |
 | `ui/bestiary.cpp:90` | natural weapons |
@@ -1719,9 +1719,11 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/partypanel.cpp:467` | far too much |
 | `ui/partypanel.cpp:467` | a heavy load |
 | `ui/partypanel.cpp:489` | In effect on %s:%s |
-| `ui/partypanel.cpp:504` | %s fights as %s for the rest of this fight: your order. Their way: %s. Click to choose a way of fighting (it applies at once). |
-| `ui/partypanel.cpp:505` | %s fights as %s until you give them an order: %s Click to choose another way. |
-| `ui/partypanel.cpp:572` |  The usual way for one with what they hold, until you choose another. |
+| `ui/partypanel.cpp:504` | %s holds where you sent them for the rest of this fight: %s Their way: %s. Click to choose a way of fighting (it applies at once). |
+| `ui/partypanel.cpp:505` | %s fights as %s for the rest of this fight: your order. Their way: %s. Click to choose a way of fighting (it applies at once). |
+| `ui/partypanel.cpp:506` | %s is on Manual: %s Click to choose a way of fighting. |
+| `ui/partypanel.cpp:507` | %s fights as %s until you give them an order: %s Click to choose another way. |
+| `ui/partypanel.cpp:574` |  The usual way for one with what they hold, until you choose another. |
 | `ui/prayview.cpp:38` |  calls on the saint for the whole party: |
 | `ui/prayview.cpp:38` |  calls on the saint: |
 | `ui/prayview.cpp:52` | This saint asks a {Virtue} of %d of the one who prays. %s%s |
@@ -3265,14 +3267,13 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/sheetview.c:374` | Left behind: the %s (%d). Undo takes them back. |
 | `mods/sheetview.c:374` | Left behind: a %s. Undo takes it back. |
 | `mods/sheetview.c:381` | %s drinks the %s. |
-| `mods/styles.c:20` | No orders of its own: the original game's ways. You give every order. |
-| `mods/styles.c:21` | Shoots from the start and all fight long, each archer at a foe of its own, the enemy's shooters first; fights only a foe that reaches it, then takes up the bow again. |
-| `mods/styles.c:22` | Shoots while the enemies come; once one is close, draws the melee weapon for the rest of the fight and fights as a Man-at-arms. |
-| `mods/styles.c:23` | Stays with the party while the others shoot; when the enemies are close, joins a friend's fight (two on one) or takes a foe no one fights yet, until the end. |
-| `mods/styles.c:24` | Goes at the enemies from the start: their shooters first, then the nearest one no one of the party fights yet. |
-| `mods/styles.c:25` | As the Charger, with Berserk blows (quick, furious, unguarded); Vulnerable where only that gets through the armor; Standard once badly hurt. |
-| `mods/styles.c:26` | Keeps beside the most exposed of the party (a shooter, or the one in the lightest armor) and fights whoever comes at them; parries when outnumbered. |
-| `mods/styles.c:27` | Never moves on its own: shoots what it can see from where it stands, fights only a foe that reaches it, and parries when set upon by several. |
+| `mods/styles.c:19` | Holding where sent |
+| `mods/styles.c:21` | The original game's way: no orders of its own, every order yours. |
+| `mods/styles.c:22` | Shoots from the start and all fight long, each archer at a foe of its own, the enemy's shooters first; fights only a foe that reaches it, then takes up the bow again. |
+| `mods/styles.c:23` | Shoots while the enemies come; once one is close, draws the melee weapon for the rest of the fight and fights as a Man-at-arms. |
+| `mods/styles.c:24` | Stays with the party while the others shoot; when the enemies are close, joins a friend's fight (two on one) or takes a foe no one fights yet, until the end. |
+| `mods/styles.c:25` | Goes at the enemies from the start: their shooters first, then the nearest one no one of the party fights yet. |
+| `mods/styles.c:27` | Holds where you sent them: shoots what they can see from there, fights only a foe that reaches them. |
 | `mods/teachers.c:25` | Blacksmiths' guild |
 | `mods/teachers.c:25` | In the daytime, go to the blacksmiths' guild and choose "request a meeting with the guild's masters". |
 | `mods/teachers.c:26` | Swordsmiths' guild |

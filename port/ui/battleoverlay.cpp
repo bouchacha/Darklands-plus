@@ -272,11 +272,9 @@ static void ways_intro(void)
              "Click it to choose another:\n\n"
              "Skirmisher: shoots while the enemies come, then fights hand to hand to the end (the usual way for one holding a missile weapon).\n"
              "Archer: shoots all fight long; fights hand to hand only an enemy that reaches them, then shoots again.\n"
-             "Holdfast: never moves on their own; shoots what they can see, fights what reaches them.\n"
              "Man-at-arms: waits while the others shoot, then joins a friend's fight or takes a free enemy (the usual way for the others).\n"
-             "Charger: at the enemy from the start, their shooters first. Berserker: the same, with Berserk blows.\n"
-             "Bodyguard: keeps beside the most exposed of the party and fights whoever comes at them.\n"
-             "Off: the original's ways; you give every order.\n\n"
+             "Charger: at the enemy from the start, their shooters first.\n"
+             "Manual: the original's way; you give every order.\n\n"
              "An order you give is that member's way for the rest of the fight. Each character keeps their way from battle to battle.",
              "Darklands+; F12 > Settings > Battles > Improved combat.");
 }
@@ -291,7 +289,7 @@ static void battle_intro(void)
              "Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. "
              "Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.\n\n"
              "Each member fights in their own way until you give them an order: the picture at the lower left of their box. Click it to choose another "
-             "(Skirmisher, Archer, Holdfast, Man-at-arms, Charger, Berserker, Bodyguard, or Off). An order you give is their way for the rest of that fight.\n\n"
+             "(Skirmisher, Archer, Man-at-arms, Charger, or Manual). An order you give is their way for the rest of that fight.\n\n"
              "Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.\n\n"
              "While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does.",
              "All this is Darklands+; each part can be switched off, for the game's own ways, in F12 > Settings > Battles. F11 lists the battle's keys and clicks.");

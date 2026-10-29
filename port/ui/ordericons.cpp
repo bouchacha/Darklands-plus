@@ -259,15 +259,15 @@ int ui_order_icon_for(const char *name)
 
 /* the pictures of the members' ways of fighting (mods/styles.h: on their box in the party panel, and in
    its chooser), unlike any order's: a target struck (Archer), a bow and a sword (Skirmisher), a kettle hat
-   (Man-at-arms), a spear thrust forward (Charger), an axe and blood (Berserker), a shield before a friend
-   (Bodyguard), a tower (Holdfast), and a ring struck through (Off) */
+   (Man-at-arms), a spear thrust forward (Charger), a ring struck through (Manual), and a tower for one an
+   order of the player's holds where it was sent (ST_HELD) */
 void ui_draw_style_icon(ImDrawList *dl, ImVec2 c, float s, int style)
 {
     Pen p{ dl, c, s / 32.0f };
     p.mw = 1.0f;
     const float o = fmaxf(0.9f, 1.1f / p.u);
     switch (style) {
-    case 0:                                                                 /* Off: a ring struck through */
+    case 0:                                                                 /* Manual: a ring struck through */
         p.ring(0, 0, 10.5f, INK, 4.2f + 2 * o); p.ring(0, 0, 10.5f, STONE, 4.2f);
         inked(p, -7.4f, 7.4f, 7.4f, -7.4f, STONE, 4.2f, o);
         break;
@@ -296,21 +296,7 @@ void ui_draw_style_icon(ImDrawList *dl, ImVec2 c, float s, int style)
         p.tri(14.6f - o * 0.2f, -10.0f - o, 6.4f - o, -7.8f, 10.0f, -2.6f + o, INK); p.tri(14.0f, -9.6f, 7.4f, -7.4f, 10.2f, -3.4f, STEEL);   // the head
         for (int k = 0; k < 3; k++) inked(p, -14.0f + k * 1.8f, -8.0f + k * 4.6f, -6.0f + k * 1.8f, -12.4f + k * 4.6f, GOLD, 1.3f, o * 0.6f);   // the rush
         break;
-    case 5:                                                                 /* Berserker: an axe, and blood */
-        inked(p, -10.0f, 12.0f, 6.0f, -10.0f, WOOD, 2.4f, o);                               // the haft
-        p.poly({ 1.0f - o, -15.0f - o, 13.6f + o, -11.0f, 15.0f + o, 1.0f + o, 5.0f, -3.4f + o, 2.6f - o, -9.0f }, INK);
-        p.poly({ 1.6f, -14.0f, 12.8f, -10.6f, 14.0f, -0.2f, 5.4f, -4.4f, 3.4f, -9.0f }, STEEL);   // the blade
-        for (int k = 0; k < 2; k++) {
-            float x = -8.0f + k * 6.0f, y = 2.0f + k * 5.0f, r = 1.9f - k * 0.3f;
-            p.disc(x, y, r, RED); p.tri(x - r, y, x + r, y, x, y - r * 2.4f, RED);
-        }
-        break;
-    case 6:                                                                 /* Bodyguard: a shield before a friend */
-        figure(p, 6.0f, -1.6f, PARCH, o);
-        shield(p, -4.0f, 1.0f, 8.4f, C(0.30f, 0.40f, 0.66f), o);
-        p.rect(-5.1f, -6.6f, -2.9f, 9.6f, GOLD);
-        break;
-    case 7: {                                                               /* Holdfast: a tower */
+    case 7: {                                                               /* holding where sent (by an order): a tower */
         auto tower = [&](float e, ImU32 k) {
             p.rect(-8.0f - e, -6.0f - e, 8.0f + e, 13.0f + e, k);
             for (int b = 0; b < 3; b++) p.rect(-8.0f + b * 6.0f - e, -12.0f - e, -4.0f + b * 6.0f + e, -5.0f, k);   // the battlements

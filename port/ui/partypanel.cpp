@@ -289,7 +289,7 @@ extern "C" int orders_member_style(int m, int *by_order);
 extern "C" void orders_style_changed(int m);
 static struct { float x0, y0, x1, y1; int m; } mode_btn[5]; static int mode_btns, mode_btns_frame = -100;
 static int chooser_m = -1;                                      /* the member whose way is being chosen; -1 none */
-static struct { float x0, y0, x1, y1; int st; } choice[ST_N]; static int choices, choices_frame = -100;
+static struct { float x0, y0, x1, y1; int st; } choice[STYLE_CHOICES]; static int choices, choices_frame = -100;
 /* in a battle (battle.panel_select): a click on a member's box chooses them to be given orders, as
    1 to 5 do (s016 1ef8:0a2c; twice in a moment, the view also goes to them: mods/battlescroll.c),
    and a right-click opens their sheet, as F1 to F5 or the game's click on the box do (s022
@@ -501,7 +501,9 @@ extern "C" void partypanel_draw(void)
             if (mode_btns < 5) mode_btn[mode_btns++] = { bx - r, by - r, bx + r, by + r, m };
             if (hov && !open) {
                 char t[640];
-                if (by_order) snprintf(t, sizeof t, "%s fights as %s for the rest of this fight: your order. Their way: %s.\nClick to choose a way of fighting (it applies at once).", name.c_str(), style_name(now), style_name(own));
+                if (by_order && now == ST_HELD) snprintf(t, sizeof t, "%s holds where you sent them for the rest of this fight: %s Their way: %s.\nClick to choose a way of fighting (it applies at once).", name.c_str(), style_brief(ST_HELD), style_name(own));
+                else if (by_order) snprintf(t, sizeof t, "%s fights as %s for the rest of this fight: your order. Their way: %s.\nClick to choose a way of fighting (it applies at once).", name.c_str(), style_name(now), style_name(own));
+                else if (now == ST_OFF) snprintf(t, sizeof t, "%s is on Manual: %s\nClick to choose a way of fighting.", name.c_str(), style_brief(now));
                 else snprintf(t, sizeof t, "%s fights as %s until you give them an order:\n%s\nClick to choose another way.", name.c_str(), style_name(now), style_brief(now));
                 ns_tip(t, 26);
             }
@@ -543,7 +545,7 @@ extern "C" void partypanel_draw(void)
         char nm[32]; gm_member_name(m, nm, sizeof nm);
         std::string name = ns_gtext(nm), head = name + " fights:";
         const float rh = 10.6f, w = 86.0f, hh = 9.0f;
-        float x0 = 61.0f, y0 = 40.0f * m + 1.2f, h = hh + rh * ST_N + 2.0f;
+        float x0 = 61.0f, y0 = 40.0f * m + 1.2f, h = hh + rh * STYLE_CHOICES + 2.0f;
         if (y0 + h > 198.0f) y0 = 198.0f - h;
         /* (in a window of its own, without inputs: over the field and its marks, under the tooltips) */
         ImVec2 wa = NsDraw::w(x0 - 1.0f, y0 - 1.0f), wb = NsDraw::w(x0 + w + 1.0f, y0 + h + 1.0f);
@@ -556,7 +558,7 @@ extern "C" void partypanel_draw(void)
         P.frame(x0, y0, x0 + w, y0 + h, IM_COL32(170, 132, 70, 255), 2);
         P.text(P.fo, NsDraw::FS_SMALL, x0 + 3.0f, y0 + 2.2f, DIM, head, -1, x0 + w - 2.0f);
         if (choices_frame != ImGui::GetFrameCount()) { choices = 0; choices_frame = ImGui::GetFrameCount(); }
-        for (int k = 0; k < ST_N; k++) {
+        for (int k = 0; k < STYLE_CHOICES; k++) {
             int stl = STYLE_ORDER[k];
             float ry = y0 + hh + rh * k, ry1 = ry + rh - 0.6f;
             bool hov = P.over(x0 + 1.0f, ry, x0 + w - 1.0f, ry1), cur = stl == own;
@@ -565,7 +567,7 @@ extern "C" void partypanel_draw(void)
             ui_draw_style_icon(P.dl, NsDraw::w(x0 + 6.6f, ry + rh * 0.5f - 0.3f), 8.6f * P.k, stl);
             P.text(P.f, NsDraw::FS_NAME, x0 + 12.6f, ry + 1.6f, cur ? GOLD : CREAM, style_name(stl));
             if (stl == sug) P.text(P.fo, NsDraw::FS_SMALL, 0, ry + 2.6f, GREY, "usual", x0 + w - 2.6f);
-            if (choices < ST_N) choice[choices++] = { x0 + 1.0f, ry, x0 + w - 1.0f, ry1, stl };
+            if (choices < STYLE_CHOICES) choice[choices++] = { x0 + 1.0f, ry, x0 + w - 1.0f, ry1, stl };
             if (hov) {
                 char t[600];
                 snprintf(t, sizeof t, "%s: %s%s", style_name(stl), style_brief(stl),
