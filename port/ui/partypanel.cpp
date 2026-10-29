@@ -285,15 +285,18 @@ static const char *order_word(char c, int place, bool shortw)
    carried out by mods/ways.c); a click on it opens the chooser beside the box. The clicks come through
    partypanel_click (ui_event), not the game */
 extern "C" void plat_mouse_game(int *x, int *y);
-extern "C" int orders_member_style(int m, int *by_order);
+extern "C" int orders_member_style(int m);
 extern "C" void orders_style_changed(int m);
+void ui_cover(ImVec2 a, ImVec2 b);                      /* (ui/margins.cpp: one of our panels over the field) */
 static struct { float x0, y0, x1, y1; int m; } mode_btn[5]; static int mode_btns, mode_btns_frame = -100;
 static int chooser_m = -1;                                      /* the member whose way is being chosen; -1 none */
 static struct { float x0, y0, x1, y1; int st; } choice[STYLE_CHOICES]; static int choices, choices_frame = -100;
-/* in a battle (battle.panel_select): a click on a member's box chooses them to be given orders, as
+/* in a fight (battle.panel_select): a click on a member's box chooses them to be given orders, as
    1 to 5 do (s016 1ef8:0a2c; twice in a moment, the view also goes to them: mods/battlescroll.c),
    and a right-click opens their sheet, as F1 to F5 or the game's click on the box do (s022
-   1ef8:0000 with the box's row, then s019 1ef8:0b9e for each member able to fight, as combat_input) */
+   1ef8:0000 with the box's row, then s019 1ef8:0b9e for each member able to fight, as combat_input).
+   Walking a castle, mine or dungeon with no enemy engaged (real_combat 0) the orders are the party's
+   (walk, halt, as a group, single file), and a click opens the sheet, as in a town */
 static void choose_member(int m, int, int, int) { ns_call(16, 0x1ef8, 0x0a2c, 1, m); }
 static void open_sheet(int m, int, int, int)
 {
@@ -327,7 +330,7 @@ extern "C" int partypanel_click(int wx, int wy)
             if (gx >= mode_btn[k].x0 && gx <= mode_btn[k].x1 && gy >= mode_btn[k].y0 && gy <= mode_btn[k].y1) { chooser_m = mode_btn[k].m; return 1; }
     int m = box_at();
     if (m < 0) return 0;
-    ns_defer(choose_member, m, 0, 0, 0);
+    ns_defer(g_rb(GV_real_combat) == 1 ? choose_member : open_sheet, m, 0, 0, 0);
     return 1;
 }
 extern "C" int partypanel_rclick(int wx, int wy)
@@ -489,21 +492,25 @@ extern "C" void partypanel_draw(void)
                     ImGui::SetTooltip("In effect on %s:%s", name.c_str(), tip.c_str());
             }
         }
+        if (battle && !out && P.over(px0, py0, px1, py1) && !config_get_int("original", 0) && config_get_int("battle.panel_select", 1)) {   /* (what a click on the box does here) */
+            char t[200];
+            if (g_rb(GV_real_combat) == 1) snprintf(t, sizeof t, "Click: give %s orders.\nRight-click: %s's character sheet (F%d).", name.c_str(), name.c_str(), m + 1);
+            else snprintf(t, sizeof t, "Click: %s's character sheet (F%d).", name.c_str(), m + 1);
+            ns_tip(t, 26);
+        }
         /* the way of fighting (battle.volley_toggle): its picture on the picture's lower left; a click: the chooser */
         if (battle && !out && st == 1 && config_get_int("battle.volley_toggle", 1) && combat_improved()) {
-            int by_order = 0, now = orders_member_style(m, &by_order), own = style_of(m);
+            int now = orders_member_style(m);
             float bx = px0 + 3.6f, by = py1 - 3.8f, r = 3.3f;
             bool hov = P.over(bx - r, by - r, bx + r, by + r), open = chooser_m == m;
             P.dl->AddCircleFilled(NsDraw::w(bx, by), (r + 0.5f) * P.k, hov || open ? IM_COL32(150, 112, 56, 245) : IM_COL32(18, 13, 9, 230));
-            P.dl->AddCircle(NsDraw::w(bx, by), (r + 0.5f) * P.k, by_order ? IM_COL32(240, 198, 92, 255) : IM_COL32(170, 132, 70, 255), 0, fmaxf(1.0f, (by_order ? 0.6f : 0.35f) * P.k));
+            P.dl->AddCircle(NsDraw::w(bx, by), (r + 0.5f) * P.k, IM_COL32(170, 132, 70, 255), 0, fmaxf(1.0f, 0.35f * P.k));
             ui_draw_style_icon(P.dl, NsDraw::w(bx, by), r * 1.9f * P.k, now);
             if (mode_btns_frame != ImGui::GetFrameCount()) { mode_btns = 0; mode_btns_frame = ImGui::GetFrameCount(); }
             if (mode_btns < 5) mode_btn[mode_btns++] = { bx - r, by - r, bx + r, by + r, m };
             if (hov && !open) {
                 char t[640];
-                if (by_order && now == ST_HELD) snprintf(t, sizeof t, "%s holds where you sent them for the rest of this fight: %s Their way: %s.\nClick to choose a way of fighting (it applies at once).", name.c_str(), style_brief(ST_HELD), style_name(own));
-                else if (by_order) snprintf(t, sizeof t, "%s fights as %s for the rest of this fight: your order. Their way: %s.\nClick to choose a way of fighting (it applies at once).", name.c_str(), style_name(now), style_name(own));
-                else if (now == ST_OFF) snprintf(t, sizeof t, "%s is on Manual: %s\nClick to choose a way of fighting.", name.c_str(), style_brief(now));
+                if (now == ST_OFF) snprintf(t, sizeof t, "%s is on Manual: %s\nClick to choose a way of fighting.", name.c_str(), style_brief(now));
                 else snprintf(t, sizeof t, "%s fights as %s until you give them an order:\n%s\nClick to choose another way.", name.c_str(), style_name(now), style_brief(now));
                 ns_tip(t, 26);
             }
@@ -565,6 +572,7 @@ extern "C" void partypanel_draw(void)
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0)); ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
         ImGui::Begin("##waychooser", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings
                      | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoNav);
+        ui_cover(wa, wb);                                         /* (the pointer on it: not on the field) */
         ImDrawList *bg = P.dl; P.dl = ImGui::GetWindowDrawList();
         P.rect(x0, y0, x0 + w, y0 + h, IM_COL32(26, 19, 13, 248), 2);
         P.frame(x0, y0, x0 + w, y0 + h, IM_COL32(170, 132, 70, 255), 2);
@@ -581,7 +589,7 @@ extern "C" void partypanel_draw(void)
             else if (hov) P.rect(x0 + 1.2f, ry, x0 + w - 1.2f, ry1, IM_COL32(60, 44, 26, 255), 1.2f);
             ui_draw_style_icon(P.dl, NsDraw::w(x0 + 7.0f, ry + 5.0f), 9.0f * P.k, stl);
             P.text(P.f, NsDraw::FS_NAME, x0 + tx, ry + 1.4f, cur ? GOLD : CREAM, style_name(stl));
-            if (stl == sug) P.text(P.fo, NsDraw::FS_SMALL, 0, ry + 2.2f, GREY, "usual", x0 + w - 2.6f);
+            if (stl == sug) P.text(P.fo, NsDraw::FS_SMALL, 0, ry + 2.2f, GREY, "default", x0 + w - 2.6f);
             P.para(P.fo, NsDraw::FS_SMALL, x0 + tx, ry + 8.0f, tw, cur ? CREAM : DIM, style_brief(stl));
             if (choices < STYLE_CHOICES) choice[choices++] = { x0 + 1.0f, ry, x0 + w - 1.0f, ry1, stl };
             y += rh[k];

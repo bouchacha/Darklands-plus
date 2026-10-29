@@ -5,7 +5,7 @@
 #define STD_ATTACK 0x12                         /* a combatant's order (CB_ORDER): Std Attack */
 #define MISSILE    0x80                         /* Use Missile */
 int orders_member_mode(int m);                  /* 1 a click on an enemy shoots, 0 fights hand to hand, -1 no missile weapon */
-int orders_member_style(int m, int *by_order);  /* the way member m fights now (styles.h ST_*) */
+int orders_member_style(int m);  /* the way member m fights (styles.h ST_*) */
 int orders_may_move(int i);                     /* member i may walk on its own (step aside for a line) */
 int ways_melee_kind(int i, int t);              /* Std Attack, or Vulnerable where only that gets through t's armor */
 int ways_near_foe(int i, int m);                /* foe m within a few paces of member i */

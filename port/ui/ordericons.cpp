@@ -258,9 +258,8 @@ int ui_order_icon_for(const char *name)
 }
 
 /* the pictures of the members' ways of fighting (mods/styles.h: on their box in the party panel, and in
-   its chooser), unlike any order's: a target struck (Archer), a bow and a sword (Skirmisher), a kettle hat
-   (Man-at-arms), a spear thrust forward (Charger), a ring struck through (Manual), and a tower for one an
-   order of the player's holds where it was sent (ST_HELD) */
+   its chooser), unlike any order's: a target struck (Archer), a bow and a sword (Skirmisher), a spear
+   thrust forward (Charger), a ring struck through (Manual) */
 void ui_draw_style_icon(ImDrawList *dl, ImVec2 c, float s, int style)
 {
     Pen p{ dl, c, s / 32.0f };
@@ -282,29 +281,10 @@ void ui_draw_style_icon(ImDrawList *dl, ImVec2 c, float s, int style)
         { float ty = 12.0f * sinf(2.15f), tx = -2.0f + 12.0f * cosf(2.15f); p.line(tx, ty, tx, -ty, PARCH, 0.7f); }
         sword(p, 1.0f, 12.0f, 0.55f, -1, 24.0f, o);
         break;
-    case 3: {                                                               /* Man-at-arms: a kettle hat */
-        auto hat = [&](float e, ImU32 k, ImU32 brim) {
-            p.dl->PathArcTo(p.P(0, 3.0f), (9.0f + e) * p.u, 3.1416f, 6.2832f, 18); p.dl->PathFillConvex(k);   // the crown
-            p.ellipse(0, 3.6f, 15.0f + e, 3.4f + e, brim);                                                   // the brim
-        };
-        hat(o, INK, INK); hat(0, STEEL, IRON);
-        p.line(0, -5.6f, 0, 3.0f, IRON, 1.4f);                                              // its ridge
-        p.rect(-6.0f, 7.0f, 6.0f, 9.0f, C(0.32f, 0.19f, 0.10f));                           // the strap
-        break; }
     case 4:                                                                 /* Charger: a spear thrust forward, at speed */
         inked(p, -13.0f, 9.0f, 9.0f, -6.0f, WOOD, 2.2f, o);
         p.tri(14.6f - o * 0.2f, -10.0f - o, 6.4f - o, -7.8f, 10.0f, -2.6f + o, INK); p.tri(14.0f, -9.6f, 7.4f, -7.4f, 10.2f, -3.4f, STEEL);   // the head
         for (int k = 0; k < 3; k++) inked(p, -14.0f + k * 1.8f, -8.0f + k * 4.6f, -6.0f + k * 1.8f, -12.4f + k * 4.6f, GOLD, 1.3f, o * 0.6f);   // the rush
         break;
-    case 7: {                                                               /* holding where sent (by an order): a tower */
-        auto tower = [&](float e, ImU32 k) {
-            p.rect(-8.0f - e, -6.0f - e, 8.0f + e, 13.0f + e, k);
-            for (int b = 0; b < 3; b++) p.rect(-8.0f + b * 6.0f - e, -12.0f - e, -4.0f + b * 6.0f + e, -5.0f, k);   // the battlements
-        };
-        tower(o, INK); tower(0, STONE);
-        p.rect(-3.0f, 6.0f, 3.0f, 13.0f, C(0.12f, 0.09f, 0.07f));                          // the door
-        p.dl->PathArcTo(p.P(0, 6.0f), 3.0f * p.u, 3.1416f, 6.2832f, 10); p.dl->PathFillConvex(C(0.12f, 0.09f, 0.07f));
-        p.line(-8.0f, 1.0f, 8.0f, 1.0f, C(0.55f, 0.51f, 0.46f), 0.8f);                     // a course of its stones
-        break; }
     }
 }

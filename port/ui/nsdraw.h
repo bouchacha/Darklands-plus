@@ -224,15 +224,17 @@ static inline void ns_tip(const char *text, float width_em) { ui_rich_tip_taken(
 
 static inline std::string ns_item_name(int id) { const ItemDef *d = ns_itemdef(id); return d ? game_text(d->name.c_str(), d->name.size()) : "?"; }
 /* a quality worth showing: equipment and tools; not for the things a shop always sells at 25
- * (throwing axes, javelins, darts, arrows, quarrels, balls, ingredients) unless one differs, nor
- * for a potion (its grade is the dots on its flask), nor for an instrument (the one thing that
- * asks for one, St. Cecilia, asks only whether one is carried: count_items_flags 0x20000000,
- * s039 165c:1024) */
+ * (throwing axes, javelins, darts, arrows, quarrels, balls) unless one differs, nor for a potion
+ * (its grade is the dots on its flask), an ingredient (alchemy takes them by kind and number alone,
+ * s033 1462:1630: their quality is only in their price; found ones at 35 looked the better for a
+ * brew, 1.4-RC7), or an instrument (the one
+ * thing that asks for one, St. Cecilia, asks only whether one is carried: count_items_flags
+ * 0x20000000, s039 165c:1024) */
 static inline bool ns_shows_quality(int id, int q)
 {
     const ItemDef *d = ns_itemdef(id);
-    if (!d || d->kind == K_POTION || d->kind == K_INSTRUMENT) return false;
-    bool fixed = (d->type >= 0x17 && d->type <= 0x19) || (d->type >= 0x40 && d->type <= 0x42) || d->kind == K_INGREDIENT;
+    if (!d || d->kind == K_POTION || d->kind == K_INSTRUMENT || d->kind == K_INGREDIENT) return false;
+    bool fixed = (d->type >= 0x17 && d->type <= 0x19) || (d->type >= 0x40 && d->type <= 0x42);
     if (fixed) return q != 25;
     return d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_ARMOR || d->kind == K_SHIELD || d->kind == K_POTION ||
            d->kind == K_TOOL;

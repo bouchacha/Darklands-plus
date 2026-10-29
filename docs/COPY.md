@@ -121,11 +121,11 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:158` | Pause when enemies come out |
 | `mods/options.c:158` | the battle pauses when enemies waiting in a castle, dungeon or mine come out to fight. |
 | `mods/options.c:159` | Improved combat |
-| `mods/options.c:159` | the party fights on sensibly between orders, each member in their way of fighting, chosen on their box in the party panel: Skirmisher (shoots while the enemies come, then fights hand to hand to the end; the usual way for one holding a bow, crossbow, gun or thrown weapon), Archer, Man-at-arms (the usual way for the others), Charger, or Manual (the original's way: every order yours). An order of yours is the member's way for the rest of that fight: sent hand to hand they stay hand to hand, sent to shoot they keep shooting, sent somewhere they hold there. A shooter whose target falls takes the nearest enemy in sight; with no clear line (a wall, a tree or someone standing between, as the aiming line shows), they move to the nearest spot a few paces off that has one (one you sent somewhere takes another enemy instead). Parry, Berserk and Vulnerable stay as ordered, and a click on an enemy opens with a Vulnerable attack (aimed at the gaps in its armor) when only that would get through its armor. When off: the original's ways. |
+| `mods/options.c:159` | the party fights on sensibly between orders, each member in their way of fighting, chosen on their box in the party panel: Skirmisher (everyone's way until you choose another: shoots while the enemies come, if they have a missile weapon, then fights hand to hand to the end), Archer, Charger, or Manual (the original's way: every order yours). An order of yours is carried out, then the member goes back to their way; an enemy you sent them at hand to hand stays their foe until it falls. A shooter whose target falls takes the nearest enemy in sight; with no clear line (a wall, a tree or someone standing between, as the aiming line shows), they move to the nearest spot a few paces off that has one. Parry, Berserk and Vulnerable stay as ordered, and a click on an enemy opens with a Vulnerable attack (aimed at the gaps in its armor) when only that would get through its armor. When off: the original's ways. |
 | `mods/options.c:160` | Click an enemy to attack it |
 | `mods/options.c:160` | a click on an enemy sends the selected member to attack it, even before an attack is chosen: a standard attack, or with Improved combat a Vulnerable one where only that gets through the enemy's armor. |
 | `mods/options.c:161` | Way of fighting on each member's box |
-| `mods/options.c:161` | in a battle, each member's box in the party panel shows their way of fighting, what they do until you give them an order. Click it to choose another; each character keeps their way from battle to battle. It only sets what they do while you give them no order: no bonus, no penalty, and any order you give takes over (a gold ring round the picture: for the rest of this fight). |
+| `mods/options.c:161` | in a battle, each member's box in the party panel shows their way of fighting, what they do until you give them an order. Click it to choose another; each character keeps their way from battle to battle. It only sets what they do while you give them no order: no bonus, no penalty; an order you give is carried out, then they go back to their way. |
 | `mods/options.c:162` | Click a member's box to give them orders |
 | `mods/options.c:162` | in a battle, a click on a member's box in the party panel selects them for orders, as 1 to 5 do (a double-click also moves the view to them); a right-click on the box opens their character sheet. When off: a click on the box opens the sheet, as in the original. |
 | `mods/options.c:163` | One click gives an order |
@@ -598,11 +598,10 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/alchemyview.cpp:381` | Start mixing |
 | `ui/alchemyview.cpp:382` | Start mixing |
 | `ui/alchemyview.cpp:390` | The mystic number: the higher, the harder the formula is to brew. The risk is what a failed batch can cause. At an inn, in a village or a hideout, one failure in two ends in a mishap: %s in %s it is an explosion (the party hurt, damages to pay, no room at the inn for four months), otherwise a stink (no room for a month). In a camp in the wild a failure only costs the ingredients. |
-| `ui/alerts.cpp:71` | %s: %d, was %d |
-| `ui/alerts.cpp:101` |   Next (%d more)   |
-| `ui/alerts.cpp:101` |   Continue   |
-| `ui/alerts.cpp:150` | Y: yes     N: no |
-| `ui/alerts.cpp:150` | Any key or click: go on |
+| `ui/alerts.cpp:73` | %s: %d, was %d |
+| `ui/alerts.cpp:105` |   OK (%d more)   |
+| `ui/alerts.cpp:154` | Y: yes     N: no |
+| `ui/alerts.cpp:154` | Any key or click: go on |
 | `ui/barterview.cpp:137` | Click to have %s pay from now on |
 | `ui/barterview.cpp:193` | Nothing to sell. |
 | `ui/barterview.cpp:193` | Nothing for sale today. |
@@ -648,28 +647,29 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/battlelog.cpp:342` | The battle before |
 | `ui/battleoverlay.cpp:240` | Click: attack |
 | `ui/battleoverlay.cpp:240` | No clear shot |
-| `ui/battleoverlay.cpp:271` | The picture at the lower left of each member's box is their way of fighting: what they do until you give them an order.  |
-| `ui/battleoverlay.cpp:271` | Click it to choose another.  |
-| `ui/battleoverlay.cpp:276` |  Skirmisher is the usual way for someone holding a bow, crossbow, gun or thrown weapon, Man-at-arms for the others.  |
-| `ui/battleoverlay.cpp:276` | Each character keeps the way you choose, battle to battle. |
-| `ui/battleoverlay.cpp:278` | Each member's way of fighting |
-| `ui/battleoverlay.cpp:278` | Darklands+; F12 > Settings > Battles > Improved combat. |
-| `ui/battleoverlay.cpp:287` | Battles need fewer clicks |
-| `ui/battleoverlay.cpp:288` | Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.  Each member fights in their own way until you give them an order: the picture at the lower left of their box. Click it to choose another (Skirmisher, Archer, Man-at-arms, Charger, or Manual). An order you give is their way for the rest of that fight.  Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.  While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does. |
-| `ui/battleoverlay.cpp:294` | All this is Darklands+; each part can be switched off, for the game's own ways, in F12 > Settings > Battles. F11 lists the battle's keys and clicks. |
-| `ui/battleoverlay.cpp:357` | The nearest enemy is this way: click to look |
-| `ui/battleoverlay.cpp:400` | a little hurt |
-| `ui/battleoverlay.cpp:401` | gravely wounded |
-| `ui/battleoverlay.cpp:410` | Melee rating %d, aim %d |
-| `ui/battleoverlay.cpp:411` | Melee rating %d |
-| `ui/battleoverlay.cpp:413` | The master of this place: once this enemy has fallen and the fight is over, the place is won. |
-| `ui/battleoverlay.cpp:423` | Natural weapons |
-| `ui/battleoverlay.cpp:431` | %s (hardness %d) |
-| `ui/battleoverlay.cpp:432` | Natural armor, hardness %d (as %s) |
-| `ui/battleoverlay.cpp:433` | No armor (hardness 0) |
-| `ui/battleoverlay.cpp:447` | mostly deflected |
-| `ui/battleoverlay.cpp:476` | \xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z) |
-| `ui/battleoverlay.cpp:479` | >> fast forward  (Z) |
+| `ui/battleoverlay.cpp:273` | The picture at the lower left of each member's box is their way of fighting: what they do until you give them an order.  |
+| `ui/battleoverlay.cpp:273` | Click it to choose another.  |
+| `ui/battleoverlay.cpp:278` |  Everyone starts as a Skirmisher. Each character keeps the way you choose, battle to battle. |
+| `ui/battleoverlay.cpp:279` | Each member's way of fighting |
+| `ui/battleoverlay.cpp:279` | Darklands+; F12 > Settings > Battles > Improved combat. |
+| `ui/battleoverlay.cpp:288` | Battles need fewer clicks |
+| `ui/battleoverlay.cpp:289` | Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.  Each member fights in their own way until you give them an order: the picture at the lower left of their box. Click it to choose another (Skirmisher, Archer, Charger, or Manual). An order you give is carried out, then they go back to their way.  Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.  While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does. |
+| `ui/battleoverlay.cpp:295` | All this is Darklands+; each part can be switched off, for the game's own ways, in F12 > Settings > Battles. F11 lists the battle's keys and clicks. |
+| `ui/battleoverlay.cpp:358` | The nearest enemy is this way: click to look |
+| `ui/battleoverlay.cpp:374` | Door: click to walk there and close it |
+| `ui/battleoverlay.cpp:374` | Door: click to walk there and open it |
+| `ui/battleoverlay.cpp:406` | a little hurt |
+| `ui/battleoverlay.cpp:407` | gravely wounded |
+| `ui/battleoverlay.cpp:416` | Melee rating %d, aim %d |
+| `ui/battleoverlay.cpp:417` | Melee rating %d |
+| `ui/battleoverlay.cpp:419` | The master of this place: once this enemy has fallen and the fight is over, the place is won. |
+| `ui/battleoverlay.cpp:429` | Natural weapons |
+| `ui/battleoverlay.cpp:437` | %s (hardness %d) |
+| `ui/battleoverlay.cpp:438` | Natural armor, hardness %d (as %s) |
+| `ui/battleoverlay.cpp:439` | No armor (hardness 0) |
+| `ui/battleoverlay.cpp:453` | mostly deflected |
+| `ui/battleoverlay.cpp:482` | \xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z) |
+| `ui/battleoverlay.cpp:485` | >> fast forward  (Z) |
 | `ui/bestiary.cpp:38` | Could not read DARKLAND.ENM. |
 | `ui/bestiary.cpp:42` | DARKLAND.ENM has an unexpected size. |
 | `ui/bestiary.cpp:90` | natural weapons |
@@ -959,98 +959,98 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/gamedata.cpp:107` | Alchemical ingredients |
 | `ui/gamedata.cpp:112` | Missile weapon |
 | `ui/gamedata.cpp:113` | Alchemical ingredient |
-| `ui/gamedata.cpp:188` | Rufinus of G |
-| `ui/gamedata.cpp:189` | Leonard of M |
-| `ui/gamedata.cpp:189` | Nicolaus of A |
-| `ui/gamedata.cpp:191` | Studded Lthr |
-| `ui/gamedata.cpp:191` | Studded Leather |
-| `ui/gamedata.cpp:192` | East. Black Bean |
-| `ui/gamedata.cpp:192` | Eastern Black Bean |
-| `ui/gamedata.cpp:192` | Phleqmatic Base |
-| `ui/gamedata.cpp:192` | Phlegmatic Base |
-| `ui/gamedata.cpp:192` | Melanc. Base |
-| `ui/gamedata.cpp:192` | Melancholic Base |
-| `ui/gamedata.cpp:193` | Essence o'Grace |
-| `ui/gamedata.cpp:193` | Essence of Grace |
-| `ui/gamedata.cpp:193` | Birth Confess. |
-| `ui/gamedata.cpp:193` | Birth Confession |
-| `ui/gamedata.cpp:193` | Illum. Gospel |
-| `ui/gamedata.cpp:193` | Illuminated Gospel |
-| `ui/gamedata.cpp:194` | S.Mary's Tears |
-| `ui/gamedata.cpp:194` | St. Mary's Tears |
-| `ui/gamedata.cpp:194` | S.Arnulf GreatSwrd |
-| `ui/gamedata.cpp:194` | St. Arnulf's Greatsword |
-| `ui/gamedata.cpp:194` | S.Catherine Pain |
-| `ui/gamedata.cpp:194` | St. Catherine's Pain |
-| `ui/gamedata.cpp:195` | S.Olaf Battleaxe |
-| `ui/gamedata.cpp:195` | St. Olaf's Battleaxe |
-| `ui/gamedata.cpp:195` | S.George GreatSwrd |
-| `ui/gamedata.cpp:195` | St. George's Greatsword |
-| `ui/gamedata.cpp:195` | S.Dunstan Hammer |
-| `ui/gamedata.cpp:195` | St. Dunstan's Hammer |
-| `ui/gamedata.cpp:196` | Spar of S.Erasmus |
-| `ui/gamedata.cpp:196` | Spar of St. Erasmus |
-| `ui/gamedata.cpp:196` | Staff of S.Patrick |
-| `ui/gamedata.cpp:196` | Staff of St. Patrick |
-| `ui/gamedata.cpp:196` | S.Hubert's Bow |
-| `ui/gamedata.cpp:196` | St. Hubert's Bow |
-| `ui/gamedata.cpp:197` | S.Edward's Ring |
-| `ui/gamedata.cpp:197` | St. Edward's Ring |
-| `ui/gamedata.cpp:197` | S.Emygdius Finger |
-| `ui/gamedata.cpp:197` | St. Emygdius' Finger |
-| `ui/gamedata.cpp:197` | S.Gabriel's Horn |
-| `ui/gamedata.cpp:197` | St. Gabriel's Horn |
-| `ui/gamedata.cpp:198` | S.Ita's Needle |
-| `ui/gamedata.cpp:198` | St. Ita's Needle |
-| `ui/gamedata.cpp:198` | S.Kessog Medallion |
-| `ui/gamedata.cpp:198` | St. Kessog's Medallion |
-| `ui/gamedata.cpp:198` | S.Odo's Testament |
-| `ui/gamedata.cpp:198` | St. Odo's Testament |
-| `ui/gamedata.cpp:199` | S.Odilia's Oil |
-| `ui/gamedata.cpp:199` | St. Odilia's Oil |
-| `ui/gamedata.cpp:199` | S.Raphael's Water |
-| `ui/gamedata.cpp:199` | St. Raphael's Water |
-| `ui/gamedata.cpp:199` | S.Swithbert's Foot |
-| `ui/gamedata.cpp:199` | St. Swithbert's Foot |
-| `ui/gamedata.cpp:200` | S.Willehad's Shoe |
-| `ui/gamedata.cpp:200` | St. Willehad's Shoe |
-| `ui/gamedata.cpp:200` | S.Thealeaus' Spoon |
-| `ui/gamedata.cpp:200` | St. Thealeaus' Spoon |
-| `ui/gamedata.cpp:203` | St.Christina, Astonish. |
-| `ui/gamedata.cpp:203` | St. Christina the Astonishing |
-| `ui/gamedata.cpp:203` | St.Gertrude o'Nivelles |
-| `ui/gamedata.cpp:203` | St. Gertrude of Nivelles |
-| `ui/gamedata.cpp:204` | St.Gregory Thaumaturg. |
-| `ui/gamedata.cpp:204` | St. Gregory Thaumaturgus |
-| `ui/gamedata.cpp:204` | St. Thalelaeus the Merciful |
-| `ui/gamedata.cpp:205` | St.Victor o'Marseilles |
-| `ui/gamedata.cpp:205` | St. Victor of Marseilles |
-| `ui/gamedata.cpp:205` | St.Edward, Confessor |
-| `ui/gamedata.cpp:205` | St. Edward the Confessor |
-| `ui/gamedata.cpp:206` | St.Julian, Hospitaler |
-| `ui/gamedata.cpp:206` | St. Julian the Hospitaller |
-| `ui/gamedata.cpp:209` | Gerard of Cremona's |
-| `ui/gamedata.cpp:209` | Gerard of C's |
-| `ui/gamedata.cpp:209` | Gerard of Cremona's |
-| `ui/gamedata.cpp:209` | Petrus Bonus' |
-| `ui/gamedata.cpp:210` | Nicolas Flammel's |
-| `ui/gamedata.cpp:210` | Raimundus Ls' |
-| `ui/gamedata.cpp:210` | Raimundus Lullus' |
-| `ui/gamedata.cpp:211` | Raimundus L's |
-| `ui/gamedata.cpp:211` | Raimundus Lullus' |
-| `ui/gamedata.cpp:211` | Arnald of V's |
-| `ui/gamedata.cpp:211` | Arnald of Villanova's |
-| `ui/gamedata.cpp:211` | Albertus Ms' |
-| `ui/gamedata.cpp:211` | Albertus Magnus' |
-| `ui/gamedata.cpp:212` | Albertus M's |
-| `ui/gamedata.cpp:212` | Albertus Magnus' |
-| `ui/gamedata.cpp:212` | Rob de Ketene's |
-| `ui/gamedata.cpp:212` | John of Rupescissa's |
-| `ui/gamedata.cpp:213` | John Rupesc.'s |
-| `ui/gamedata.cpp:213` | John of Rupescissa's |
-| `ui/gamedata.cpp:213` | Michael Scot's |
-| `ui/gamedata.cpp:214` | Essence o'Grace |
-| `ui/gamedata.cpp:214` | Essence of Grace |
+| `ui/gamedata.cpp:200` | Rufinus of G |
+| `ui/gamedata.cpp:201` | Leonard of M |
+| `ui/gamedata.cpp:201` | Nicolaus of A |
+| `ui/gamedata.cpp:203` | Studded Lthr |
+| `ui/gamedata.cpp:203` | Studded Leather |
+| `ui/gamedata.cpp:204` | East. Black Bean |
+| `ui/gamedata.cpp:204` | Eastern Black Bean |
+| `ui/gamedata.cpp:204` | Phleqmatic Base |
+| `ui/gamedata.cpp:204` | Phlegmatic Base |
+| `ui/gamedata.cpp:204` | Melanc. Base |
+| `ui/gamedata.cpp:204` | Melancholic Base |
+| `ui/gamedata.cpp:205` | Essence o'Grace |
+| `ui/gamedata.cpp:205` | Essence of Grace |
+| `ui/gamedata.cpp:205` | Birth Confess. |
+| `ui/gamedata.cpp:205` | Birth Confession |
+| `ui/gamedata.cpp:205` | Illum. Gospel |
+| `ui/gamedata.cpp:205` | Illuminated Gospel |
+| `ui/gamedata.cpp:206` | S.Mary's Tears |
+| `ui/gamedata.cpp:206` | St. Mary's Tears |
+| `ui/gamedata.cpp:206` | S.Arnulf GreatSwrd |
+| `ui/gamedata.cpp:206` | St. Arnulf's Greatsword |
+| `ui/gamedata.cpp:206` | S.Catherine Pain |
+| `ui/gamedata.cpp:206` | St. Catherine's Pain |
+| `ui/gamedata.cpp:207` | S.Olaf Battleaxe |
+| `ui/gamedata.cpp:207` | St. Olaf's Battleaxe |
+| `ui/gamedata.cpp:207` | S.George GreatSwrd |
+| `ui/gamedata.cpp:207` | St. George's Greatsword |
+| `ui/gamedata.cpp:207` | S.Dunstan Hammer |
+| `ui/gamedata.cpp:207` | St. Dunstan's Hammer |
+| `ui/gamedata.cpp:208` | Spar of S.Erasmus |
+| `ui/gamedata.cpp:208` | Spar of St. Erasmus |
+| `ui/gamedata.cpp:208` | Staff of S.Patrick |
+| `ui/gamedata.cpp:208` | Staff of St. Patrick |
+| `ui/gamedata.cpp:208` | S.Hubert's Bow |
+| `ui/gamedata.cpp:208` | St. Hubert's Bow |
+| `ui/gamedata.cpp:209` | S.Edward's Ring |
+| `ui/gamedata.cpp:209` | St. Edward's Ring |
+| `ui/gamedata.cpp:209` | S.Emygdius Finger |
+| `ui/gamedata.cpp:209` | St. Emygdius' Finger |
+| `ui/gamedata.cpp:209` | S.Gabriel's Horn |
+| `ui/gamedata.cpp:209` | St. Gabriel's Horn |
+| `ui/gamedata.cpp:210` | S.Ita's Needle |
+| `ui/gamedata.cpp:210` | St. Ita's Needle |
+| `ui/gamedata.cpp:210` | S.Kessog Medallion |
+| `ui/gamedata.cpp:210` | St. Kessog's Medallion |
+| `ui/gamedata.cpp:210` | S.Odo's Testament |
+| `ui/gamedata.cpp:210` | St. Odo's Testament |
+| `ui/gamedata.cpp:211` | S.Odilia's Oil |
+| `ui/gamedata.cpp:211` | St. Odilia's Oil |
+| `ui/gamedata.cpp:211` | S.Raphael's Water |
+| `ui/gamedata.cpp:211` | St. Raphael's Water |
+| `ui/gamedata.cpp:211` | S.Swithbert's Foot |
+| `ui/gamedata.cpp:211` | St. Swithbert's Foot |
+| `ui/gamedata.cpp:212` | S.Willehad's Shoe |
+| `ui/gamedata.cpp:212` | St. Willehad's Shoe |
+| `ui/gamedata.cpp:212` | S.Thealeaus' Spoon |
+| `ui/gamedata.cpp:212` | St. Thealeaus' Spoon |
+| `ui/gamedata.cpp:215` | St.Christina, Astonish. |
+| `ui/gamedata.cpp:215` | St. Christina the Astonishing |
+| `ui/gamedata.cpp:215` | St.Gertrude o'Nivelles |
+| `ui/gamedata.cpp:215` | St. Gertrude of Nivelles |
+| `ui/gamedata.cpp:216` | St.Gregory Thaumaturg. |
+| `ui/gamedata.cpp:216` | St. Gregory Thaumaturgus |
+| `ui/gamedata.cpp:216` | St. Thalelaeus the Merciful |
+| `ui/gamedata.cpp:217` | St.Victor o'Marseilles |
+| `ui/gamedata.cpp:217` | St. Victor of Marseilles |
+| `ui/gamedata.cpp:217` | St.Edward, Confessor |
+| `ui/gamedata.cpp:217` | St. Edward the Confessor |
+| `ui/gamedata.cpp:218` | St.Julian, Hospitaler |
+| `ui/gamedata.cpp:218` | St. Julian the Hospitaller |
+| `ui/gamedata.cpp:221` | Gerard of Cremona's |
+| `ui/gamedata.cpp:221` | Gerard of C's |
+| `ui/gamedata.cpp:221` | Gerard of Cremona's |
+| `ui/gamedata.cpp:221` | Petrus Bonus' |
+| `ui/gamedata.cpp:222` | Nicolas Flammel's |
+| `ui/gamedata.cpp:222` | Raimundus Ls' |
+| `ui/gamedata.cpp:222` | Raimundus Lullus' |
+| `ui/gamedata.cpp:223` | Raimundus L's |
+| `ui/gamedata.cpp:223` | Raimundus Lullus' |
+| `ui/gamedata.cpp:223` | Arnald of V's |
+| `ui/gamedata.cpp:223` | Arnald of Villanova's |
+| `ui/gamedata.cpp:223` | Albertus Ms' |
+| `ui/gamedata.cpp:223` | Albertus Magnus' |
+| `ui/gamedata.cpp:224` | Albertus M's |
+| `ui/gamedata.cpp:224` | Albertus Magnus' |
+| `ui/gamedata.cpp:224` | Rob de Ketene's |
+| `ui/gamedata.cpp:224` | John of Rupescissa's |
+| `ui/gamedata.cpp:225` | John Rupesc.'s |
+| `ui/gamedata.cpp:225` | John of Rupescissa's |
+| `ui/gamedata.cpp:225` | Michael Scot's |
+| `ui/gamedata.cpp:226` | Essence o'Grace |
+| `ui/gamedata.cpp:226` | Essence of Grace |
 | `ui/guide.cpp:31` | The party: Endurance, ... |
 | `ui/guide.cpp:39` | Darklands has no tutorial: this page sums up how it works, with the advice players have long given one another. F11 (a Darklands+ addition) lists the keys and clicks of the current screen at any time; a right-click opens the game's menus. |
 | `ui/guide.cpp:42` | Lines in this color depend on something Darklands+ adds (most can be switched off in F12 > Settings). |
@@ -1266,22 +1266,22 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/journal.cpp:1155` | No shop's wares noted yet. |
 | `ui/journal.cpp:1155` | Not seen in any shop yet. |
 | `ui/journal.cpp:1160` | Town (nearest first) |
-| `ui/levelmap.cpp:160` |  Stairs seen to floor  |
-| `ui/levelmap.cpp:160` |  Stairs seen to floors  |
-| `ui/levelmap.cpp:161` | Floor %d: the party has been here.%s%s%s |
-| `ui/levelmap.cpp:161` |  Stairs seen to floor  |
-| `ui/levelmap.cpp:161` |  Stairs seen to floors  |
-| `ui/levelmap.cpp:162` | A floor nobody has been on yet: stairs from floor %s lead there. |
-| `ui/levelmap.cpp:163` |  Click: the party walks to those stairs. |
-| `ui/levelmap.cpp:163` |  Click: the party walks to those stairs and takes them. |
-| `ui/levelmap.cpp:411` | The whole level  (floor %d) |
-| `ui/levelmap.cpp:411` | The level, as far as the party has seen it  (floor %d) |
-| `ui/levelmap.cpp:420` | enemies seen |
-| `ui/levelmap.cpp:422` | arrows: who targets whom |
-| `ui/levelmap.cpp:425` | stairs, ways out |
-| `ui/levelmap.cpp:426` | not yet revealed |
-| `ui/levelmap.cpp:427` | Click the floor to walk the party there. Tab or Esc closes the level map; the game is paused until then. |
-| `ui/levelmap.cpp:427` | Tab or Esc closes the level map; the game is paused until then. |
+| `ui/levelmap.cpp:248` |  Stairs seen to floor  |
+| `ui/levelmap.cpp:248` |  Stairs seen to floors  |
+| `ui/levelmap.cpp:249` | Floor %d: the party has been here.%s%s%s |
+| `ui/levelmap.cpp:249` |  Stairs seen to floor  |
+| `ui/levelmap.cpp:249` |  Stairs seen to floors  |
+| `ui/levelmap.cpp:250` | A floor nobody has been on yet: stairs from floor %s lead there. |
+| `ui/levelmap.cpp:251` |  Click: the party walks to those stairs. |
+| `ui/levelmap.cpp:251` |  Click: the party walks to those stairs and takes them. |
+| `ui/levelmap.cpp:508` | The whole level  (floor %d) |
+| `ui/levelmap.cpp:508` | The level, as far as the party has seen it  (floor %d) |
+| `ui/levelmap.cpp:519` | enemies seen |
+| `ui/levelmap.cpp:521` | arrows: who targets whom |
+| `ui/levelmap.cpp:524` | stairs, ways out |
+| `ui/levelmap.cpp:525` | not yet revealed |
+| `ui/levelmap.cpp:527` | Click the floor to walk the party there (the map closes, and they go). Tab or Esc closes the level map; the game is paused until then. |
+| `ui/levelmap.cpp:527` | Tab or Esc closes the level map; the game is paused until then. |
 | `ui/lodgeview.cpp:168` | Camping in the wild |
 | `ui/lodgeview.cpp:168` | Staying here |
 | `ui/lodgeview.cpp:190` | The room: %s a day.%s |
@@ -1388,87 +1388,92 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/margins.cpp:467` | %s: %s, up to %d |
 | `ui/margins.cpp:467` | %s: %s (their skill %d) |
 | `ui/margins.cpp:469` | A lesson a day at the inn, for a fee. Who would learn, and their skill now: |
-| `ui/margins.cpp:589` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
-| `ui/margins.cpp:598` | Reputation %d |
-| `ui/margins.cpp:616` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
-| `ui/margins.cpp:616` | Below 0 its shops ask more and pay less (up to 9% from about -20 down). |
-| `ui/margins.cpp:620` |   Changes seen since this game was loaded: |
-| `ui/margins.cpp:623` | the overland view |
-| `ui/margins.cpp:623` | , after choosing " |
-| `ui/margins.cpp:641` | The town counts as hostile: its gates and people turn the party away. |
-| `ui/margins.cpp:643` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
-| `ui/margins.cpp:654` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
-| `ui/margins.cpp:666` | Preparing for war |
-| `ui/margins.cpp:667` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
-| `ui/margins.cpp:669` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
-| `ui/margins.cpp:693` | The party has goods stored here (F12 > Journal > Stored). |
-| `ui/margins.cpp:700` | Blessings and potions |
-| `ui/margins.cpp:742` | No blessings or potions at work. |
-| `ui/margins.cpp:751` | C: camp here |
-| `ui/margins.cpp:752` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
-| `ui/margins.cpp:756` | Go to a place here |
-| `ui/margins.cpp:756` | G: go to a place here |
-| `ui/margins.cpp:762` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
-| `ui/margins.cpp:811` | None taken on. |
-| `ui/margins.cpp:843` | Travel there |
-| `ui/margins.cpp:860` | ... %d more on the world map (M) |
-| `ui/margins.cpp:877` | Night in the streets |
-| `ui/margins.cpp:881` | almost always |
-| `ui/margins.cpp:882` | about %d time%s in 10 |
-| `ui/margins.cpp:883` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's {Stealth} and {Streetwise})%s. An inn is the safe place to wait for morning. |
-| `ui/margins.cpp:886` | , as set in F12 > Mods (Night encounters in the streets) |
-| `ui/margins.cpp:925` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
-| `ui/margins.cpp:925` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
-| `ui/margins.cpp:927` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
-| `ui/margins.cpp:927` | It is day (from 5:00 to 19:00). |
-| `ui/margins.cpp:954` | %s in bank notes |
-| `ui/margins.cpp:968` | F11: the keys and clicks of this screen. |
-| `ui/margins_battle.cpp:82` | The battle runs again (the key: Space). Any order being given is given first. |
-| `ui/margins_battle.cpp:83` | This member's order is given; the battle stays paused, to give others theirs (the key: Enter). |
-| `ui/margins_battle.cpp:84` | Every kind of enemy on the field: attributes, weapons, armor (the key: E). |
-| `ui/margins_battle.cpp:85` | Then click a spot: the member walks there. |
-| `ui/margins_battle.cpp:86` | Then click a spot: the member runs there without stopping to fight or striking back (to get out of a melee). |
-| `ui/margins_battle.cpp:87` | The member stops where they are and waits. |
-| `ui/margins_battle.cpp:88` | The party moves together as a group. |
-| `ui/margins_battle.cpp:89` | The party moves in single file, the leader first. |
-| `ui/margins_battle.cpp:90` | Open or shut the door beside the member. |
-| `ui/margins_battle.cpp:91` | Take the stairs beside the member to another floor. |
-| `ui/margins_battle.cpp:92` | Open the chest beside the member. |
-| `ui/margins_battle.cpp:93` | Pick the lock beside the member. |
-| `ui/margins_battle.cpp:94` | Dissolve the lock beside the member with an Eater-Water potion. |
-| `ui/margins_battle.cpp:95` | Disarm the trap on the chest beside the member. |
-| `ui/margins_battle.cpp:96` | The whole party gives up the fight. |
-| `ui/margins_battle.cpp:97` | Search the fallen for their belongings. |
-| `ui/margins_battle.cpp:98` | Leave the battlefield by the way out beside the member. |
-| `ui/margins_battle.cpp:99` | Stop giving this member an order (the key: Esc); the battle stays paused. |
-| `ui/margins_battle.cpp:100` | Then click an enemy: a standard attack, balanced between blows and guard. |
-| `ui/margins_battle.cpp:101` | Then click an enemy: blows aimed at the gaps in the armor (1 to 4 more penetration), but slower and a little less likely to land. |
-| `ui/margins_battle.cpp:102` | Then click an enemy: quick, furious blows without thought of defense. |
-| `ui/margins_battle.cpp:103` | Then click an enemy: the member mostly defends, hard to hit, striking back only now and then. |
-| `ui/margins_battle.cpp:104` | Then click an enemy: shoot or throw at it with the missile weapon (a clear line needed). |
-| `ui/margins_battle.cpp:223` | <name> finished |
-| `ui/margins_battle.cpp:228` | Potions and items |
-| `ui/margins_battle.cpp:279` | Back to the chosen speed |
-| `ui/margins_battle.cpp:279` | Back to the chosen speed (Z) |
-| `ui/margins_battle.cpp:279` | Fast forward |
-| `ui/margins_battle.cpp:279` | Fast forward (Z) |
-| `ui/margins_battle.cpp:294` | Resume (Space) |
-| `ui/margins_battle.cpp:301` | The battle is running: Space pauses it, or click one of the party. |
-| `ui/margins_battle.cpp:309` | does not end |
-| `ui/margins_battle.cpp:318` | Enemies not yet met |
-| `ui/margins_battle.cpp:320` | No one else waits in this place. |
-| `ui/margins_battle.cpp:324` | No one on this floor (%d). |
-| `ui/margins_battle.cpp:328` | %sfloor %d: %d |
-| `ui/margins_battle.cpp:331` | Elsewhere: %s. |
-| `ui/margins_battle.cpp:334` | The master of this place waits on this floor. |
-| `ui/margins_battle.cpp:335` | The master of this place waits on floor %d. |
-| `ui/margins_battle.cpp:382` | a little hurt |
-| `ui/margins_battle.cpp:383` | gravely wounded |
-| `ui/margins_battle.cpp:388` | The master of this place: once this one has fallen and the fight is over, the place is won. |
-| `ui/margins_battle.cpp:393` | None in sight yet. |
-| `ui/margins_battle.cpp:395` | To explore: in Single File (Q) or as a Group (G), click a door, a passage or stairs and the party walks there%s. |
-| `ui/margins_battle.cpp:396` | ; Tab shows the level map (as far as the party has seen it), and a click on it walks the party there |
-| `ui/margins_battle.cpp:405` | The fight is won. To go on, walk the party out of this place: click a way out (the edge of the street, a door, stairs). |
+| `ui/margins.cpp:508` | Can't walk there |
+| `ui/margins.cpp:583` | Blessings and potions |
+| `ui/margins.cpp:657` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
+| `ui/margins.cpp:666` | Reputation %d |
+| `ui/margins.cpp:684` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
+| `ui/margins.cpp:684` | Below 0 its shops ask more and pay less (up to 9% from about -20 down). |
+| `ui/margins.cpp:688` |   Changes seen since this game was loaded: |
+| `ui/margins.cpp:691` | the overland view |
+| `ui/margins.cpp:691` | , after choosing " |
+| `ui/margins.cpp:709` | The town counts as hostile: its gates and people turn the party away. |
+| `ui/margins.cpp:711` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
+| `ui/margins.cpp:722` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
+| `ui/margins.cpp:734` | Preparing for war |
+| `ui/margins.cpp:735` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
+| `ui/margins.cpp:737` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
+| `ui/margins.cpp:761` | The party has goods stored here (F12 > Journal > Stored). |
+| `ui/margins.cpp:766` | No blessings or potions at work. |
+| `ui/margins.cpp:775` | C: camp here |
+| `ui/margins.cpp:776` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
+| `ui/margins.cpp:780` | Go to a place here |
+| `ui/margins.cpp:780` | G: go to a place here |
+| `ui/margins.cpp:786` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
+| `ui/margins.cpp:835` | None taken on. |
+| `ui/margins.cpp:867` | Travel there |
+| `ui/margins.cpp:884` | ... %d more on the world map (M) |
+| `ui/margins.cpp:901` | Night in the streets |
+| `ui/margins.cpp:905` | almost always |
+| `ui/margins.cpp:906` | about %d time%s in 10 |
+| `ui/margins.cpp:907` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's {Stealth} and {Streetwise})%s. An inn is the safe place to wait for morning. |
+| `ui/margins.cpp:910` | , as set in F12 > Mods (Night encounters in the streets) |
+| `ui/margins.cpp:949` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
+| `ui/margins.cpp:949` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
+| `ui/margins.cpp:951` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
+| `ui/margins.cpp:951` | It is day (from 5:00 to 19:00). |
+| `ui/margins.cpp:978` | %s in bank notes |
+| `ui/margins.cpp:992` | F11: the keys and clicks of this screen. |
+| `ui/margins_battle.cpp:83` | The battle runs again (the key: Space). Any order being given is given first. |
+| `ui/margins_battle.cpp:84` | This member's order is given; the battle stays paused, to give others theirs (the key: Enter). |
+| `ui/margins_battle.cpp:85` | Every kind of enemy on the field: attributes, weapons, armor (the key: E). |
+| `ui/margins_battle.cpp:86` | Then click a spot: the member walks there. |
+| `ui/margins_battle.cpp:87` | Then click a spot: the member runs there without stopping to fight or striking back (to get out of a melee). |
+| `ui/margins_battle.cpp:88` | The member stops where they are and waits. |
+| `ui/margins_battle.cpp:89` | The party moves together as a group. |
+| `ui/margins_battle.cpp:90` | The party moves in single file, the leader first. |
+| `ui/margins_battle.cpp:91` | Open or shut the door beside the member. |
+| `ui/margins_battle.cpp:92` | Take the stairs beside the member to another floor. |
+| `ui/margins_battle.cpp:93` | Open the chest beside the member. |
+| `ui/margins_battle.cpp:94` | Pick the lock beside the member. |
+| `ui/margins_battle.cpp:95` | Dissolve the lock beside the member with an Eater-Water potion. |
+| `ui/margins_battle.cpp:96` | Disarm the trap on the chest beside the member. |
+| `ui/margins_battle.cpp:97` | The whole party gives up the fight. |
+| `ui/margins_battle.cpp:98` | Search the fallen for their belongings. |
+| `ui/margins_battle.cpp:99` | Leave the battlefield by the way out beside the member. |
+| `ui/margins_battle.cpp:100` | Stop giving this member an order (the key: Esc); the battle stays paused. |
+| `ui/margins_battle.cpp:101` | Then click an enemy: a standard attack, balanced between blows and guard. |
+| `ui/margins_battle.cpp:102` | Then click an enemy: blows aimed at the gaps in the armor (1 to 4 more penetration), but slower and a little less likely to land. |
+| `ui/margins_battle.cpp:103` | Then click an enemy: quick, furious blows without thought of defense. |
+| `ui/margins_battle.cpp:104` | Then click an enemy: the member mostly defends, hard to hit, striking back only now and then. |
+| `ui/margins_battle.cpp:105` | Then click an enemy: shoot or throw at it with the missile weapon (a clear line needed). |
+| `ui/margins_battle.cpp:199` |  Not open to this member now. |
+| `ui/margins_battle.cpp:221` | Walk Towards |
+| `ui/margins_battle.cpp:222` | Flee Towards |
+| `ui/margins_battle.cpp:222` | Travel As Group |
+| `ui/margins_battle.cpp:223` | Travel Single File |
+| `ui/margins_battle.cpp:223` | Cancel Giving Order |
+| `ui/margins_battle.cpp:343` | Back to the chosen speed |
+| `ui/margins_battle.cpp:343` | Back to the chosen speed (Z) |
+| `ui/margins_battle.cpp:343` | Fast forward |
+| `ui/margins_battle.cpp:343` | Fast forward (Z) |
+| `ui/margins_battle.cpp:358` | Resume (Space) |
+| `ui/margins_battle.cpp:365` | The battle is running: Space pauses it, or click one of the party. |
+| `ui/margins_battle.cpp:373` | does not end |
+| `ui/margins_battle.cpp:382` | Enemies not yet met |
+| `ui/margins_battle.cpp:384` | No one else waits in this place. |
+| `ui/margins_battle.cpp:388` | No one on this floor (%d). |
+| `ui/margins_battle.cpp:392` | %sfloor %d: %d |
+| `ui/margins_battle.cpp:395` | Elsewhere: %s. |
+| `ui/margins_battle.cpp:398` | The master of this place waits on this floor. |
+| `ui/margins_battle.cpp:399` | The master of this place waits on floor %d. |
+| `ui/margins_battle.cpp:446` | a little hurt |
+| `ui/margins_battle.cpp:447` | gravely wounded |
+| `ui/margins_battle.cpp:452` | The master of this place: once this one has fallen and the fight is over, the place is won. |
+| `ui/margins_battle.cpp:457` | None in sight yet. |
+| `ui/margins_battle.cpp:459` | To explore: in Single File (Q) or as a Group (G), click a passage or stairs and the party walks there; click a door and they walk to it and open it%s. |
+| `ui/margins_battle.cpp:460` | ; Tab shows the level map (as far as the party has seen it), and a click on it walks the party there |
+| `ui/margins_battle.cpp:469` | The fight is won. To go on, walk the party out of this place: click a way out (the edge of the street, a door, stairs). |
 | `ui/menuview.cpp:106` | Arrows, Enter; Esc closes |
 | `ui/menuview.cpp:106` | Click to choose; Esc or a click elsewhere closes |
 | `ui/money.cpp:49` |  florin = 20 |
@@ -1699,16 +1704,16 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/partypanel.cpp:276` | has no clear line of fire to the target and waits for one (or give another order) |
 | `ui/partypanel.cpp:277` | has nothing left to shoot or throw: give another order |
 | `ui/partypanel.cpp:278` | waits for an order: click them here or on the battlefield, then an enemy, a spot or a choice from the Orders menu |
-| `ui/partypanel.cpp:466` | %s carries %s: %d against %d ({Endurance} + {Strength}; only equipped items count). %s %s. |
-| `ui/partypanel.cpp:467` | far too much |
-| `ui/partypanel.cpp:467` | a heavy load |
-| `ui/partypanel.cpp:489` | In effect on %s:%s |
-| `ui/partypanel.cpp:504` | %s holds where you sent them for the rest of this fight: %s Their way: %s. Click to choose a way of fighting (it applies at once). |
-| `ui/partypanel.cpp:505` | %s fights as %s for the rest of this fight: your order. Their way: %s. Click to choose a way of fighting (it applies at once). |
-| `ui/partypanel.cpp:506` | %s is on Manual: %s Click to choose a way of fighting. |
-| `ui/partypanel.cpp:507` | %s fights as %s until you give them an order: %s Click to choose another way. |
-| `ui/partypanel.cpp:517` | Divine Favor |
-| `ui/partypanel.cpp:554` | 's way of fighting |
+| `ui/partypanel.cpp:469` | %s carries %s: %d against %d ({Endurance} + {Strength}; only equipped items count). %s %s. |
+| `ui/partypanel.cpp:470` | far too much |
+| `ui/partypanel.cpp:470` | a heavy load |
+| `ui/partypanel.cpp:492` | In effect on %s:%s |
+| `ui/partypanel.cpp:497` | Click: give %s orders. Right-click: %s's character sheet (F%d). |
+| `ui/partypanel.cpp:498` | Click: %s's character sheet (F%d). |
+| `ui/partypanel.cpp:513` | %s is on Manual: %s Click to choose a way of fighting. |
+| `ui/partypanel.cpp:514` | %s fights as %s until you give them an order: %s Click to choose another way. |
+| `ui/partypanel.cpp:524` | Divine Favor |
+| `ui/partypanel.cpp:561` | 's way of fighting |
 | `ui/prayview.cpp:38` |  calls on the saint for the whole party: |
 | `ui/prayview.cpp:38` |  calls on the saint: |
 | `ui/prayview.cpp:52` | This saint asks a {Virtue} of %d of the one who prays. %s%s |
@@ -1886,38 +1891,38 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/rules.cpp:257` | Could not make the mod folder. |
 | `ui/rules.cpp:258` | . Edit it, then tick the mod in F12 > Mods. |
 | `ui/rules.cpp:259` | Could not write  |
-| `ui/saints.cpp:49` | stays with the party |
-| `ui/saints.cpp:72` | %+d armor (from a saint) |
-| `ui/saints.cpp:72` | worn armor %+d quality (from a saint) |
-| `ui/saints.cpp:73` | metal armor %+d quality (from a saint) |
-| `ui/saints.cpp:73` | leather and cloth armor %+d quality (from a saint) |
-| `ui/saints.cpp:74` | weapon %+d quality (from a saint) |
-| `ui/saints.cpp:74` | edged weapon %+d quality (from a saint) |
-| `ui/saints.cpp:75` | blades, maces, polearms, crossbows and guns %+d quality (from a saint) |
-| `ui/saints.cpp:76` | fire protection %d (from a saint) |
-| `ui/saints.cpp:76` | %+d armor against missiles (from a saint) |
-| `ui/saints.cpp:77` | the party travels %d%% faster (from a saint) |
-| `ui/saints.cpp:77` | the party travels %d%% faster in woods (from a saint) |
-| `ui/saints.cpp:78` | no death from wounds (from a saint) |
-| `ui/saints.cpp:81` | the party travels %s%s (from a saint) |
-| `ui/saints.cpp:81` | twice as fast |
-| `ui/saints.cpp:81` | half again as fast |
-| `ui/saints.cpp:88` | %s: %+d damage |
-| `ui/saints.cpp:89` | %s: %+d penetration |
-| `ui/saints.cpp:91` | %s: armor %+d thickness, %+d quality |
-| `ui/saints.cpp:92` | %s: fire protection %d |
-| `ui/saints.cpp:93` | %s: weapon quality %+d |
-| `ui/saints.cpp:94` | %s: %+d penetration |
-| `ui/saints.cpp:95` | %s: %+d damage, %+d penetration |
-| `ui/saints.cpp:169` | Provides ... |
-| `ui/saints.cpp:169` | Also heals ... |
-| `ui/saints.cpp:185` | ..., Agnes grants |
-| `ui/saints.cpp:223` | What it does:  |
-| `ui/saints.cpp:229` | Differs from the description:  |
-| `ui/saints.cpp:239` | Many encounters offer this saint as a choice, and there it can do more than the help above. |
-| `ui/saints.cpp:240` | Some encounters offer this saint as a choice, and there it can do more than the help above. |
-| `ui/saints.cpp:241` | A few encounters offer this saint as a choice, and there it can do more than the help above. |
-| `ui/saints.cpp:242` | No encounter calls for this saint: its help above is all it does. |
+| `ui/saints.cpp:78` | stays with the party |
+| `ui/saints.cpp:101` | %+d armor (from a saint) |
+| `ui/saints.cpp:101` | worn armor %+d quality (from a saint) |
+| `ui/saints.cpp:102` | metal armor %+d quality (from a saint) |
+| `ui/saints.cpp:102` | leather and cloth armor %+d quality (from a saint) |
+| `ui/saints.cpp:103` | weapon %+d quality (from a saint) |
+| `ui/saints.cpp:103` | edged weapon %+d quality (from a saint) |
+| `ui/saints.cpp:104` | blades, maces, polearms, crossbows and guns %+d quality (from a saint) |
+| `ui/saints.cpp:105` | fire protection %d (from a saint) |
+| `ui/saints.cpp:105` | %+d armor against missiles (from a saint) |
+| `ui/saints.cpp:106` | the party travels %d%% faster (from a saint) |
+| `ui/saints.cpp:106` | the party travels %d%% faster in woods (from a saint) |
+| `ui/saints.cpp:107` | no death from wounds (from a saint) |
+| `ui/saints.cpp:110` | the party travels %s%s (from a saint) |
+| `ui/saints.cpp:110` | twice as fast |
+| `ui/saints.cpp:110` | half again as fast |
+| `ui/saints.cpp:117` | %s: %+d damage |
+| `ui/saints.cpp:118` | %s: %+d penetration |
+| `ui/saints.cpp:120` | %s: armor %+d thickness, %+d quality |
+| `ui/saints.cpp:121` | %s: fire protection %d |
+| `ui/saints.cpp:122` | %s: weapon quality %+d |
+| `ui/saints.cpp:123` | %s: %+d penetration |
+| `ui/saints.cpp:124` | %s: %+d damage, %+d penetration |
+| `ui/saints.cpp:209` | Provides ... |
+| `ui/saints.cpp:209` | Also heals ... |
+| `ui/saints.cpp:225` | ..., Agnes grants |
+| `ui/saints.cpp:263` | What it does:  |
+| `ui/saints.cpp:269` | Differs from the description:  |
+| `ui/saints.cpp:279` | Many encounters offer this saint as a choice, and there it can do more than the help above. |
+| `ui/saints.cpp:280` | Some encounters offer this saint as a choice, and there it can do more than the help above. |
+| `ui/saints.cpp:281` | A few encounters offer this saint as a choice, and there it can do more than the help above. |
+| `ui/saints.cpp:282` | No encounter calls for this saint: its help above is all it does. |
 | `ui/saves.cpp:41` | yesterday %H:%M |
 | `ui/saves.cpp:53` | Quick save, quick load and autosaves |
 | `ui/saves.cpp:57` | Ctrl+S saves at once (no comment to type); F9 or Ctrl+L loads the last quick save. |
@@ -2161,7 +2166,9 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/sheetview.cpp:655` | Kept from selling and dropping (Sell spare gear skips it). Click to mark it to sell instead. |
 | `ui/sheetview.cpp:656` | Marked to sell: Sell spare gear in a shop sells it with the spare weapons and armor. Click to clear the mark. |
 | `ui/sheetview.cpp:657` | Keep it: Darklands+ will not sell it (one by one or with Sell spare gear) or drop it until you click again. |
+| `ui/sheetview.cpp:690` | ; hold Shift for one) |
 | `ui/sheetview.cpp:691` | : the party's pack is everyone's already |
+| `ui/sheetview.cpp:692` | : drop it on a member at the left (hold Shift: just one) |
 | `ui/sheetview.cpp:692` | : drop it on a member at the left |
 | `ui/sheetview.cpp:760` | : Virtue too low for this saint |
 | `ui/sheetview.cpp:783` | half its maximum |
@@ -2326,20 +2333,20 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui.cpp:306` | The world map can only be opened from the overland view or a card, not in a battle. |
 | `ui/ui.cpp:307` | The world map can only be opened from the overland view or a card: close this screen first. |
 | `ui/ui.cpp:308` | The world map can only be opened from the overland view or a card, once a game is under way. |
-| `ui/ui.cpp:407` | How Darklands works |
-| `ui/ui.cpp:419` | A deep editor, for fixing and modding: |
-| `ui/ui.cpp:421` | it changes the saved game's own data directly, as the community's save editors do (to repair a character hit by an old bug, to cheat, or to make a mod). Nothing here is needed to play. |
-| `ui/ui.cpp:425` | Items (for a mod) |
-| `ui/ui.cpp:476` | Darklands+: the potions and the alchemical ingredients |
-| `ui/ui.cpp:478` | Potions, grades 1, 2 and 3 (the gold dots on the neck) |
-| `ui/ui.cpp:590` | Reconstructed Content |
-| `ui/ui.cpp:594` | Reconstructed Content |
-| `ui/ui.cpp:616` |              |
-| `ui/ui.cpp:722` | an index past the vertices |
-| `ui/ui.cpp:722` | not a number |
-| `ui/ui.cpp:722` | far past the window |
-| `ui/ui.cpp:754` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
-| `ui/ui.cpp:760` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
+| `ui/ui.cpp:408` | How Darklands works |
+| `ui/ui.cpp:420` | A deep editor, for fixing and modding: |
+| `ui/ui.cpp:422` | it changes the saved game's own data directly, as the community's save editors do (to repair a character hit by an old bug, to cheat, or to make a mod). Nothing here is needed to play. |
+| `ui/ui.cpp:426` | Items (for a mod) |
+| `ui/ui.cpp:477` | Darklands+: the potions and the alchemical ingredients |
+| `ui/ui.cpp:479` | Potions, grades 1, 2 and 3 (the gold dots on the neck) |
+| `ui/ui.cpp:591` | Reconstructed Content |
+| `ui/ui.cpp:595` | Reconstructed Content |
+| `ui/ui.cpp:617` |              |
+| `ui/ui.cpp:723` | an index past the vertices |
+| `ui/ui.cpp:723` | not a number |
+| `ui/ui.cpp:723` | far past the window |
+| `ui/ui.cpp:755` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
+| `ui/ui.cpp:761` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
 | `ui/ui_windows.cpp:74` | Darklands+ is made by Yassine Meskhout. |
 | `ui/ui_windows.cpp:75` | Darklands (c) 1992 MicroProse. This is the original game, rebuilt to run directly on today's computers, with the game files of your own copy. F12 > Settings has the Full Original preset, the game as it played, and switches for most of what Darklands+ adds. |
 | `ui/ui_windows.cpp:78` | F11: the keys for the current screen.  F12: this window (the game waits while it is open).  Alt+Enter: full screen.  Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities). |
@@ -2440,99 +2447,101 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui_windows.cpp:344` | then click an enemy (attack) or a spot (walk there): that click gives the order |
 | `ui/ui_windows.cpp:345` | select a member; Esc: cancel the order being given |
 | `ui/ui_windows.cpp:348` | The buttons at the foot of the field |
-| `ui/ui_windows.cpp:348` | the selected member's orders, grouped (Attack, Move, Here, Potions and items, Battle); for a member already fighting, an attack is given against that enemy at once. Fast forward and Resume stand at the top of the right margin |
+| `ui/ui_windows.cpp:348` | the selected member's orders, each in the same place for everyone, its key on it (an order not open to them dimmed); their potions and things to use just above. For a member already fighting, an attack is given against that enemy at once. Fast forward and Resume stand at the top of the right margin |
 | `ui/ui_windows.cpp:350` | Click a member |
 | `ui/ui_windows.cpp:350` | then click an enemy, a spot or a menu choice; Enter gives the order |
 | `ui/ui_windows.cpp:351` | Ctrl+click a member |
 | `ui/ui_windows.cpp:351` | make that member the active one: the view follows them (scrolling at an edge stops it) |
 | `ui/ui_windows.cpp:352` | Point at anyone |
 | `ui/ui_windows.cpp:352` | who it is and how badly hurt |
-| `ui/ui_windows.cpp:353` | a map of the level as far as the party has seen it (Darklands+) |
-| `ui/ui_windows.cpp:355` | The battle log |
-| `ui/ui_windows.cpp:355` | every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal > Battle log keeps it all |
-| `ui/ui_windows.cpp:357` | Now: the loot |
-| `ui/ui_windows.cpp:358` | Take / Put back |
-| `ui/ui_windows.cpp:358` | on the row under the pointer: the whole stack (1: just one) |
-| `ui/ui_windows.cpp:359` | everything into the party's pack |
-| `ui/ui_windows.cpp:359` | go to the member shown above the right list (each member's own); the rest into the party's pack |
-| `ui/ui_windows.cpp:360` | Take all / Share out |
-| `ui/ui_windows.cpp:360` | everything to the member shown / to whoever has some already, else whoever has the most room (A / S) |
-| `ui/ui_windows.cpp:361` | Names above the right list, D |
-| `ui/ui_windows.cpp:361` | switch to another member |
-| `ui/ui_windows.cpp:362` | L, Esc or Leave |
-| `ui/ui_windows.cpp:362` | leave (what is left stays behind) |
-| `ui/ui_windows.cpp:364` | Now: the loot |
-| `ui/ui_windows.cpp:365` | get the chosen item from the pile / put one back (the cursor's list) |
-| `ui/ui_windows.cpp:366` | switch to the next member (the one who gets what you take) |
-| `ui/ui_windows.cpp:367` | take the whole pile for the member shown |
-| `ui/ui_windows.cpp:367` | share the pile out: each item to whoever has some already, else whoever has the most room |
-| `ui/ui_windows.cpp:368` | leave (what is left stays behind) |
-| `ui/ui_windows.cpp:371` | on the row under the pointer; with Shift: ten / the whole stack |
-| `ui/ui_windows.cpp:372` | Names above your list |
-| `ui/ui_windows.cpp:372` | whose items are listed (B: the next member); right-click a name: that member holds the purse |
-| `ui/ui_windows.cpp:373` | Wheel, Up, Down |
-| `ui/ui_windows.cpp:373` | scroll the list under the pointer |
-| `ui/ui_windows.cpp:374` | L, Esc or Leave |
-| `ui/ui_windows.cpp:377` | buy the merchant's chosen item / sell your chosen item (one at a time) |
-| `ui/ui_windows.cpp:378` | buy ten of the merchant's chosen item (while the money lasts) |
-| `ui/ui_windows.cpp:378` | sell the whole stack of your chosen item |
-| `ui/ui_windows.cpp:379` | barter for the next member |
-| `ui/ui_windows.cpp:382` | Now: the store room |
-| `ui/ui_windows.cpp:383` | on the row under the pointer: the whole stack (1: just one) |
-| `ui/ui_windows.cpp:384` | every item not equipped (with the party's pack, Darklands+: except kept items and potions) |
-| `ui/ui_windows.cpp:385` | a potion taken goes to the member shown above the right list; the rest into the party's pack |
-| `ui/ui_windows.cpp:386` | The store room |
-| `ui/ui_windows.cpp:386` | the same at every inn (Darklands+; F12 > Settings > New screens) |
-| `ui/ui_windows.cpp:387` | L, Esc or Leave |
-| `ui/ui_windows.cpp:389` | Now: a character sheet |
-| `ui/ui_windows.cpp:390` | Equip / Unequip / Drink / Keep / Drop |
-| `ui/ui_windows.cpp:390` | on the row under the pointer on the Items page: with the shared pack (Darklands+) the spare items are in the party's pack, and Equip moves the item from the pack to this member and equips it (Drop with Shift: all of them) |
-| `ui/ui_windows.cpp:391` | each member's own: drag one onto someone at the left to give it |
-| `ui/ui_windows.cpp:392` | marks an item never to be sold or dropped (a small seal on its row) |
-| `ui/ui_windows.cpp:393` | only equipped items count toward the load, as in the original |
-| `ui/ui_windows.cpp:394` | Equip / Unequip / Drink / Give / Drop |
-| `ui/ui_windows.cpp:394` | on the row under the pointer on the Items page (Give and Drop with Shift: the whole stack) |
-| `ui/ui_windows.cpp:395` | Items, Skills, Saints, Formulae |
-| `ui/ui_windows.cpp:395` | the pages at the top (Tab or Right: next page; Shift+Tab or Left: previous page) |
-| `ui/ui_windows.cpp:396` | Portraits, F1 ... F5 |
-| `ui/ui_windows.cpp:396` | another member's sheet; this member's own portrait, Esc or Close: back |
-| `ui/ui_windows.cpp:397` | Ctrl+F1 ... Ctrl+F5 |
-| `ui/ui_windows.cpp:397` | make member 1 ... 5 the leader (or Make leader) |
-| `ui/ui_windows.cpp:398` | Wheel, Up, Down |
-| `ui/ui_windows.cpp:398` | scroll the list |
-| `ui/ui_windows.cpp:400` | Now: a character sheet |
-| `ui/ui_windows.cpp:401` | Ctrl+F1 ... Ctrl+F5 |
-| `ui/ui_windows.cpp:401` | make member 1 ... 5 the leader (or Make leader at the top) |
-| `ui/ui_windows.cpp:402` | Up, Down, PgUp, PgDn |
-| `ui/ui_windows.cpp:402` | move in a list (the mouse wheel too) |
-| `ui/ui_windows.cpp:403` | in the equipment list: give the chosen item to member 1 ... 5 (with Shift: all of them) |
-| `ui/ui_windows.cpp:404` | in the equipment list: ready or wear the chosen item |
-| `ui/ui_windows.cpp:405` | in the equipment list: drop the chosen item (with Shift: all of them) |
-| `ui/ui_windows.cpp:407` | Keys of the original game |
-| `ui/ui_windows.cpp:408` | the menu bar: click an entry (or hold the button and let go on it); a click elsewhere or any key closes it; F10 with the keyboard |
-| `ui/ui_windows.cpp:409` | Right mouse button |
-| `ui/ui_windows.cpp:409` | the menu bar, while it is held: let go on an entry (F10 with the keyboard) |
-| `ui/ui_windows.cpp:410` | Alt+S / Alt+L |
-| `ui/ui_windows.cpp:410` | save / load, with a comment (the original's screens list nine saves) |
-| `ui/ui_windows.cpp:411` | the marching order |
-| `ui/ui_windows.cpp:412` | difficulty    Alt+M music    Alt+F sound effects |
-| `ui/ui_windows.cpp:413` | messages about saints' changes on / off |
-| `ui/ui_windows.cpp:415` | quit to the desktop |
-| `ui/ui_windows.cpp:417` | the Darklands+ window (pauses the game) |
-| `ui/ui_windows.cpp:418` | Ctrl+S / F9 or Ctrl+L |
-| `ui/ui_windows.cpp:418` | quick save / quick load |
-| `ui/ui_windows.cpp:419` | full screen    Ctrl+F12 screenshot |
-| `ui/ui_windows.cpp:422` | The controller |
-| `ui/ui_windows.cpp:428` | moves the pointer (slowly while the left trigger is held) |
-| `ui/ui_windows.cpp:429` | the mouse wheel; pressed: Z (fast forward in a battle) |
-| `ui/ui_windows.cpp:430` | click / right-click (the menu bar) |
-| `ui/ui_windows.cpp:432` | the arrow keys |
-| `ui/ui_windows.cpp:433` | Tab (the level map) / Space (pause) |
-| `ui/ui_windows.cpp:434` | {START} {BACK} |
-| `ui/ui_windows.cpp:434` | F12 (the Darklands+ window) / M (the world map) |
-| `ui/ui_windows.cpp:435` | held: Ctrl (in the overland view: Ctrl+click travels there) |
-| `ui/ui_windows.cpp:436` | pressed: F11 (this list) |
-| `ui/ui_windows.cpp:438` | F11, Esc or a click closes this. |
+| `ui/ui_windows.cpp:353` | a map of the level as far as the party has seen it; a click on its floor walks the party there (Darklands+) |
+| `ui/ui_windows.cpp:354` | Click a door |
+| `ui/ui_windows.cpp:354` | out of a fight: the party walks to it and opens it, or closes it (Darklands+) |
+| `ui/ui_windows.cpp:356` | The battle log |
+| `ui/ui_windows.cpp:356` | every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal > Battle log keeps it all |
+| `ui/ui_windows.cpp:358` | Now: the loot |
+| `ui/ui_windows.cpp:359` | Take / Put back |
+| `ui/ui_windows.cpp:359` | on the row under the pointer: the whole stack (1: just one) |
+| `ui/ui_windows.cpp:360` | everything into the party's pack |
+| `ui/ui_windows.cpp:360` | go to the member shown above the right list (each member's own); the rest into the party's pack |
+| `ui/ui_windows.cpp:361` | Take all / Share out |
+| `ui/ui_windows.cpp:361` | everything to the member shown / to whoever has some already, else whoever has the most room (A / S) |
+| `ui/ui_windows.cpp:362` | Names above the right list, D |
+| `ui/ui_windows.cpp:362` | switch to another member |
+| `ui/ui_windows.cpp:363` | L, Esc or Leave |
+| `ui/ui_windows.cpp:363` | leave (what is left stays behind) |
+| `ui/ui_windows.cpp:365` | Now: the loot |
+| `ui/ui_windows.cpp:366` | get the chosen item from the pile / put one back (the cursor's list) |
+| `ui/ui_windows.cpp:367` | switch to the next member (the one who gets what you take) |
+| `ui/ui_windows.cpp:368` | take the whole pile for the member shown |
+| `ui/ui_windows.cpp:368` | share the pile out: each item to whoever has some already, else whoever has the most room |
+| `ui/ui_windows.cpp:369` | leave (what is left stays behind) |
+| `ui/ui_windows.cpp:372` | on the row under the pointer; with Shift: ten / the whole stack |
+| `ui/ui_windows.cpp:373` | Names above your list |
+| `ui/ui_windows.cpp:373` | whose items are listed (B: the next member); right-click a name: that member holds the purse |
+| `ui/ui_windows.cpp:374` | Wheel, Up, Down |
+| `ui/ui_windows.cpp:374` | scroll the list under the pointer |
+| `ui/ui_windows.cpp:375` | L, Esc or Leave |
+| `ui/ui_windows.cpp:378` | buy the merchant's chosen item / sell your chosen item (one at a time) |
+| `ui/ui_windows.cpp:379` | buy ten of the merchant's chosen item (while the money lasts) |
+| `ui/ui_windows.cpp:379` | sell the whole stack of your chosen item |
+| `ui/ui_windows.cpp:380` | barter for the next member |
+| `ui/ui_windows.cpp:383` | Now: the store room |
+| `ui/ui_windows.cpp:384` | on the row under the pointer: the whole stack (1: just one) |
+| `ui/ui_windows.cpp:385` | every item not equipped (with the party's pack, Darklands+: except kept items and potions) |
+| `ui/ui_windows.cpp:386` | a potion taken goes to the member shown above the right list; the rest into the party's pack |
+| `ui/ui_windows.cpp:387` | The store room |
+| `ui/ui_windows.cpp:387` | the same at every inn (Darklands+; F12 > Settings > New screens) |
+| `ui/ui_windows.cpp:388` | L, Esc or Leave |
+| `ui/ui_windows.cpp:390` | Now: a character sheet |
+| `ui/ui_windows.cpp:391` | Equip / Unequip / Drink / Keep / Drop |
+| `ui/ui_windows.cpp:391` | on the row under the pointer on the Items page: with the shared pack (Darklands+) the spare items are in the party's pack, and Equip moves the item from the pack to this member and equips it (Drop with Shift: all of them) |
+| `ui/ui_windows.cpp:392` | each member's own: drag one onto someone at the left to give it |
+| `ui/ui_windows.cpp:393` | marks an item never to be sold or dropped (a small seal on its row) |
+| `ui/ui_windows.cpp:394` | only equipped items count toward the load, as in the original |
+| `ui/ui_windows.cpp:395` | Equip / Unequip / Drink / Give / Drop |
+| `ui/ui_windows.cpp:395` | on the row under the pointer on the Items page (Give and Drop with Shift: the whole stack) |
+| `ui/ui_windows.cpp:396` | Items, Skills, Saints, Formulae |
+| `ui/ui_windows.cpp:396` | the pages at the top (Tab or Right: next page; Shift+Tab or Left: previous page) |
+| `ui/ui_windows.cpp:397` | Portraits, F1 ... F5 |
+| `ui/ui_windows.cpp:397` | another member's sheet; this member's own portrait, Esc or Close: back |
+| `ui/ui_windows.cpp:398` | Ctrl+F1 ... Ctrl+F5 |
+| `ui/ui_windows.cpp:398` | make member 1 ... 5 the leader (or Make leader) |
+| `ui/ui_windows.cpp:399` | Wheel, Up, Down |
+| `ui/ui_windows.cpp:399` | scroll the list |
+| `ui/ui_windows.cpp:401` | Now: a character sheet |
+| `ui/ui_windows.cpp:402` | Ctrl+F1 ... Ctrl+F5 |
+| `ui/ui_windows.cpp:402` | make member 1 ... 5 the leader (or Make leader at the top) |
+| `ui/ui_windows.cpp:403` | Up, Down, PgUp, PgDn |
+| `ui/ui_windows.cpp:403` | move in a list (the mouse wheel too) |
+| `ui/ui_windows.cpp:404` | in the equipment list: give the chosen item to member 1 ... 5 (with Shift: all of them) |
+| `ui/ui_windows.cpp:405` | in the equipment list: ready or wear the chosen item |
+| `ui/ui_windows.cpp:406` | in the equipment list: drop the chosen item (with Shift: all of them) |
+| `ui/ui_windows.cpp:408` | Keys of the original game |
+| `ui/ui_windows.cpp:409` | the menu bar: click an entry (or hold the button and let go on it); a click elsewhere or any key closes it; F10 with the keyboard |
+| `ui/ui_windows.cpp:410` | Right mouse button |
+| `ui/ui_windows.cpp:410` | the menu bar, while it is held: let go on an entry (F10 with the keyboard) |
+| `ui/ui_windows.cpp:411` | Alt+S / Alt+L |
+| `ui/ui_windows.cpp:411` | save / load, with a comment (the original's screens list nine saves) |
+| `ui/ui_windows.cpp:412` | the marching order |
+| `ui/ui_windows.cpp:413` | difficulty    Alt+M music    Alt+F sound effects |
+| `ui/ui_windows.cpp:414` | messages about saints' changes on / off |
+| `ui/ui_windows.cpp:416` | quit to the desktop |
+| `ui/ui_windows.cpp:418` | the Darklands+ window (pauses the game) |
+| `ui/ui_windows.cpp:419` | Ctrl+S / F9 or Ctrl+L |
+| `ui/ui_windows.cpp:419` | quick save / quick load |
+| `ui/ui_windows.cpp:420` | full screen    Ctrl+F12 screenshot |
+| `ui/ui_windows.cpp:423` | The controller |
+| `ui/ui_windows.cpp:429` | moves the pointer (slowly while the left trigger is held) |
+| `ui/ui_windows.cpp:430` | the mouse wheel; pressed: Z (fast forward in a battle) |
+| `ui/ui_windows.cpp:431` | click / right-click (the menu bar) |
+| `ui/ui_windows.cpp:433` | the arrow keys |
+| `ui/ui_windows.cpp:434` | Tab (the level map) / Space (pause) |
+| `ui/ui_windows.cpp:435` | {START} {BACK} |
+| `ui/ui_windows.cpp:435` | F12 (the Darklands+ window) / M (the world map) |
+| `ui/ui_windows.cpp:436` | held: Ctrl (in the overland view: Ctrl+click travels there) |
+| `ui/ui_windows.cpp:437` | pressed: F11 (this list) |
+| `ui/ui_windows.cpp:439` | F11, Esc or a click closes this. |
 | `ui/worldmap.cpp:74` | Unwelcome here |
 | `ui/worldmap.cpp:74` | The watch on alert here |
 | `ui/worldmap.cpp:74` | Wanted by the watch here |
@@ -2786,13 +2795,17 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/hdart.c:992` |  (some could not be written) |
 | `mods/hdtext.c:457` | cursor: shown %d page %d save %d,%d %dx%d at %d,%d |
 | `mods/keep.c:46` | # formulae first or last in the alchemy screen's list (formula f first\|last)  |
-| `mods/levelwalk.c:70` | The party cannot get there from where it stands. |
-| `mods/levelwalk.c:80` | The party will walk there in single file (press G to move as a group again); Space resumes the battle. |
-| `mods/levelwalk.c:81` | The party will walk there: Space resumes the battle. |
-| `mods/levelwalk.c:82` | The party walks there in single file (press G to move as a group again). |
-| `mods/levelwalk.c:142` | There are no stairs on this floor that the party has found. |
-| `mods/levelwalk.c:155` | The party walks to the stairs and takes them. |
-| `mods/levelwalk.c:155` | The party walks to the stairs. |
+| `mods/levelwalk.c:99` | The party could get no nearer to the place chosen on the level map. |
+| `mods/levelwalk.c:123` | The party cannot get there from where it stands. |
+| `mods/levelwalk.c:131` |  in single file (press G to move as a group again) |
+| `mods/levelwalk.c:134` | The party walks there%s. |
+| `mods/levelwalk.c:135` | The party will walk there%s: Space resumes the battle. |
+| `mods/levelwalk.c:136` | The party walks there%s. |
+| `mods/levelwalk.c:197` | There are no stairs on this floor that the party has found. |
+| `mods/levelwalk.c:210` | The party walks to the stairs and takes them. |
+| `mods/levelwalk.c:210` | The party walks to the stairs. |
+| `mods/levelwalk.c:303` | The party walks to the door to close it. |
+| `mods/levelwalk.c:303` | The party walks to the door to open it. |
 | `mods/lodgeview.c:140` | Castle Guard |
 | `mods/lodgeview.c:143` | Castle Servant |
 | `mods/lodgeview.c:144` | Castle Steward |
@@ -2901,26 +2914,26 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/offices.c:92` | Each request for an audience with the lord has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's {Charisma} and {Speak Common}). An audience brings a robber knight to hunt. After a request the chance is 1%% for a week. |
 | `mods/offices.c:95` | No quests for three days: at your last visit none came, one was turned down, or a reward was paid. |
 | `mods/offices.c:97` | The offer comes after shopping: as the party leaves the stalls, about one time in seven a trader takes it aside with a purse and a job (mostly an item to fetch, sometimes a robber knight to hunt). If none comes, there is no other offer for three days. |
-| `mods/orders.c:199` | Click: throw here |
-| `mods/orders.c:199` | Click: flee here |
-| `mods/orders.c:200` | No clear throw |
-| `mods/orders.c:200` | Can't walk there |
-| `mods/orders.c:201` | No clear shot |
-| `mods/orders.c:201` | No clear throw |
-| `mods/orders.c:201` | No way there |
-| `mods/orders.c:208` | Click: shoot (moves for a clear line) |
-| `mods/orders.c:209` | Click: shoot |
-| `mods/orders.c:211` | Click: throw |
-| `mods/orders.c:212` | Click: attack (Vulnerable) |
-| `mods/orders.c:213` | Click: attack (Berserk) |
-| `mods/orders.c:214` | Click: parry its blows |
-| `mods/orders.c:218` | No clear shot: walks up to fight |
-| `mods/pathfix.c:409` | can't walk there |
-| `mods/pathfix.c:462` |  (stuck: around everyone) |
-| `mods/pathfix.c:642` | cells unreachable |
-| `mods/pathfix.c:642` | search gave up |
-| `mods/pathfix.c:647` | over 20 cells |
-| `mods/pathfix.c:651` | time native %u us, original %u us; where both: %ld vs %ld steps  |
+| `mods/orders.c:202` | Click: throw here |
+| `mods/orders.c:202` | Click: flee here |
+| `mods/orders.c:203` | No clear throw |
+| `mods/orders.c:203` | Can't walk there |
+| `mods/orders.c:204` | No clear shot |
+| `mods/orders.c:204` | No clear throw |
+| `mods/orders.c:204` | No way there |
+| `mods/orders.c:211` | Click: shoot (moves for a clear line) |
+| `mods/orders.c:212` | Click: shoot |
+| `mods/orders.c:214` | Click: throw |
+| `mods/orders.c:215` | Click: attack (Vulnerable) |
+| `mods/orders.c:216` | Click: attack (Berserk) |
+| `mods/orders.c:217` | Click: parry its blows |
+| `mods/orders.c:221` | No clear shot: walks up to fight |
+| `mods/pathfix.c:432` | can't walk there |
+| `mods/pathfix.c:485` |  (stuck: around everyone) |
+| `mods/pathfix.c:683` | cells unreachable |
+| `mods/pathfix.c:683` | search gave up |
+| `mods/pathfix.c:688` | over 20 cells |
+| `mods/pathfix.c:692` | time native %u us, original %u us; where both: %ld vs %ld steps  |
 | `mods/politics.c:205` | While you were away, the rebels marched on the %s: the city has a new government. |
 | `mods/politics.c:206` | While you were away, the rebels marched on the %s and were scattered: the old government holds. |
 | `mods/politics.c:207` | While you were away, the city guard arrested the rebel leaders: the old government holds. |
@@ -3183,20 +3196,20 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/saves.c:279` | Loading is irreversable. Proceed? |
 | `mods/saves.c:322` | That save could not be read. |
 | `mods/saves.c:337` | Loaded %s: a battle, paused (Space resumes it) |
-| `mods/saves.c:358` | Saved (an Ironman game keeps one save, saved over as you go) |
-| `mods/saves.c:374` | Saved: %s (%s), in place of the old save |
-| `mods/saves.c:375` | Saved: %s (%s) |
-| `mods/saves.c:398` | use your horses |
-| `mods/saves.c:415` | Autosave: battle |
-| `mods/saves.c:447` | Ironman %04x |
-| `mods/saves.c:449` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
-| `mods/saves.c:481` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:482` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:503` | Start or load a game first. |
-| `mods/saves.c:510` | Loading from here works once a game is running; until then, load from the start screen. |
-| `mods/saves.c:512` | Buffer dealloc error |
-| `mods/saves.c:514` | That save could not be read. |
-| `mods/saves.c:534` | No quicksave yet (Ctrl+S makes one). |
+| `mods/saves.c:362` | Saved (an Ironman game keeps one save, saved over as you go) |
+| `mods/saves.c:378` | Saved: %s (%s), in place of the old save |
+| `mods/saves.c:379` | Saved: %s (%s) |
+| `mods/saves.c:402` | use your horses |
+| `mods/saves.c:419` | Autosave: battle |
+| `mods/saves.c:451` | Ironman %04x |
+| `mods/saves.c:453` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
+| `mods/saves.c:485` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:486` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:507` | Start or load a game first. |
+| `mods/saves.c:514` | Loading from here works once a game is running; until then, load from the start screen. |
+| `mods/saves.c:516` | Buffer dealloc error |
+| `mods/saves.c:518` | That save could not be read. |
+| `mods/saves.c:538` | No quicksave yet (Ctrl+S makes one). |
 | `mods/savesview.c:51` | %.14s %d %.3s |
 | `mods/sfx.c:51` | an attack that misses |
 | `mods/sfx.c:51` | a parried or blocked blow |
@@ -3238,14 +3251,13 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/sheetview.c:374` | Left behind: the %s (%d). Undo takes them back. |
 | `mods/sheetview.c:374` | Left behind: a %s. Undo takes it back. |
 | `mods/sheetview.c:381` | %s drinks the %s. |
-| `mods/styles.c:19` | Holding where sent |
-| `mods/styles.c:21` | As in the original game: they wait for your orders. |
-| `mods/styles.c:22` | Shoots all fight, each archer at a different enemy; fights hand to hand only when reached, then shoots again. |
-| `mods/styles.c:23` | Shoots while the enemy approaches, then fights hand to hand to the end of the fight. |
-| `mods/styles.c:24` | Waits while the others shoot; when the enemy is close, joins a friend's fight or takes on a free enemy. |
-| `mods/styles.c:25` | Goes straight for the enemy, their archers first. |
-| `mods/styles.c:27` | Holds where you sent them: shoots what they can see, fights only an enemy that reaches them. |
-| `mods/styles.c:29` | This only sets what they do when you haven't given an order. No bonus, no penalty, and any order you give takes over. |
+| `mods/styles.c:18` | Skirmisher, hand to hand |
+| `mods/styles.c:20` | As in the original game: they wait for your orders. |
+| `mods/styles.c:21` | Shoots all fight, each archer at a different enemy; fights hand to hand only when reached, then shoots again. |
+| `mods/styles.c:22` | Shoots while the enemy approaches (if they have a missile weapon); once the enemy is close, fights hand to hand to the end of the fight. |
+| `mods/styles.c:23` | Fights hand to hand to the end of the fight. |
+| `mods/styles.c:24` | Goes straight for the enemy, their archers first. |
+| `mods/styles.c:26` | This only sets what they do when you haven't given an order. No bonus, no penalty: an order you give is carried out, then they go back to this. |
 | `mods/teachers.c:25` | Blacksmiths' guild |
 | `mods/teachers.c:25` | In the daytime, go to the blacksmiths' guild and choose "request a meeting with the guild's masters". |
 | `mods/teachers.c:26` | Swordsmiths' guild |

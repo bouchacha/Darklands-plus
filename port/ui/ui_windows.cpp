@@ -343,14 +343,15 @@ void help_window(void)
             if (!ui_original_mode() && config_get_int("battle.quick_orders", 1)) {
                 row("Click a member", "then click an enemy (attack) or a spot (walk there): that click gives the order");
                 row("1 to 5", "select a member; Esc: cancel the order being given");
-                if (config_get_int("battle.panel_select", 1)) row("A member's box at the left", "click: select them (double-click: and move the view to them); right-click: their sheet");
+                if (config_get_int("battle.panel_select", 1)) row("A member's box at the left", "in a fight, click: select them (double-click: and move the view to them); right-click: their sheet. Walking a castle, mine or dungeon with no enemy engaged, click: their sheet");
                 if (config_get_int("battle.volley_toggle", 1) && config_get_int("battle.improved", 1)) row("The picture at a box's lower left", "that member's way of fighting, what they do until you give them an order: click it to choose another");
-                row("The buttons at the foot of the field", "the selected member's orders, grouped (Attack, Move, Here, Potions and items, Battle); for a member already fighting, an attack is given against that enemy at once. Fast forward and Resume stand at the top of the right margin");
+                row("The buttons at the foot of the field", "the selected member's orders, each in the same place for everyone, its key on it (an order not open to them dimmed); their potions and things to use just above. For a member already fighting, an attack is given against that enemy at once. Fast forward and Resume stand at the top of the right margin");
             } else
                 row("Click a member", "then click an enemy, a spot or a menu choice; Enter gives the order");
             row("Ctrl+click a member", "make that member the active one: the view follows them (scrolling at an edge stops it)");
             row("Point at anyone", "who it is and how badly hurt");
-            if (levelmap_available()) row("Tab", "a map of the level as far as the party has seen it (Darklands+)");
+            if (levelmap_available()) row("Tab", "a map of the level as far as the party has seen it; a click on its floor walks the party there (Darklands+)");
+            if (!ui_original_mode()) row("Click a door", "out of a fight: the party walks to it and opens it, or closes it (Darklands+)");
             if (!ui_original_mode() && config_get_int("battle.fast_key", 1)) row("Z", "fast forward (six times the pace) / back to the chosen speed (Darklands+)");
             { extern int ui_battle_log; if (ui_battle_log && !ui_original_mode()) row("The battle log", "every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal > Battle log keeps it all"); }
         } else if (loot_active && lootview_showing()) {

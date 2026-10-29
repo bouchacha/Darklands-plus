@@ -336,6 +336,10 @@ static void loaded_hook(void)              /* the save is read (s037 1c7d:0d24) 
     if (load_name[0] && load_stage) {
         char m[80]; snprintf(m, sizeof m, g_rb(D_IN_BATTLE) == 1 ? "Loaded %s: a battle, paused (Space resumes it)" : "Loaded %s", load_name);
         ui_notice(m);
+        if (g_rb(D_IN_BATTLE) == 1) {             /* (the field drawn at once, round the leader: it stayed black until someone moved) */
+            void battlescroll_look(int i); int lead = (s8)g_rb(GV_marching_order);
+            battlescroll_look(lead >= 0 && lead < 5 ? lead : 0);
+        }
     }
     load_stage = 0;
     loaded_t = plat_ticks_ms();

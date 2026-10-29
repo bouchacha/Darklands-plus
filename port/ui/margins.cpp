@@ -504,6 +504,23 @@ void mclick(ImVec2 a, ImVec2 b, std::function<void()> f)
     if (mclicks_frame != ImGui::GetFrameCount()) { mclicks.clear(); mclicks_frame = ImGui::GetFrameCount(); }
     mclicks.push_back({ a, b, f });
 }
+/* the interface's own panels over the battlefield this frame (the order strip, a member's way chooser): the
+   pointer on one is on the interface, not on the field - no "Can't walk there", no foe's info, no crossed
+   blades on the pointer (mods/orders.c, ui/battleoverlay.cpp) */
+static std::vector<std::pair<ImVec2, ImVec2>> covers; static int covers_frame = -100, covers_prev_frame = -100;
+static std::vector<std::pair<ImVec2, ImVec2>> covers_prev;
+void ui_cover(ImVec2 a, ImVec2 b)
+{
+    if (covers_frame != ImGui::GetFrameCount()) { covers_prev.swap(covers); covers_prev_frame = covers_frame; covers.clear(); covers_frame = ImGui::GetFrameCount(); }
+    covers.push_back({ a, b });
+}
+extern "C" int ui_pointer_on_cover(void)
+{
+    ImVec2 m = ImGui::GetIO().MousePos;
+    int f = ImGui::GetFrameCount();
+    auto in = [&](const std::vector<std::pair<ImVec2, ImVec2>> &v) { for (const auto &c : v) if (m.x >= c.first.x && m.x < c.second.x && m.y >= c.first.y && m.y < c.second.y) return true; return false; };
+    return (f - covers_frame <= 1 && in(covers)) || (f - covers_prev_frame <= 2 && in(covers_prev));
+}
 extern "C" int margins_click(int x, int y)
 {
     if (ImGui::GetFrameCount() - mclicks_frame <= 2)
@@ -554,6 +571,57 @@ static void campfire_icon(ImDrawList *dl, ImVec2 c, float s)
     dl->AddTriangleFilled(f1[0], f1[1], f1[2], IM_COL32(200, 70, 20, 255));
     dl->AddTriangleFilled(f2[0], f2[1], f2[2], IM_COL32(240, 150, 40, 255));
     dl->AddTriangleFilled(f3[0], f3[1], f3[2], IM_COL32(255, 230, 140, 255));
+}
+/* the blessings and potions at work (ui/saints.cpp effects_now), a row a member; false when none (the town's
+   margin, and the battle's under its enemies: what is at work goes on in a fight) */
+bool margin_effects(int size, bool separator)
+{
+    std::vector<Eff> e = effects_now(size);
+    if (e.empty()) return false;
+    {
+        if (separator) ImGui::Separator();
+        heading("Blessings and potions");
+        /* one row a member: what is at work - an attribute or a skill raised (or lowered) as its shield and
+           how much, the rest in words - then how long it lasts (from the soonest to the last) */
+        auto span = [](long h) { char b[24]; if (h < 48) snprintf(b, sizeof b, "%ld h", h); else snprintf(b, sizeof b, "%ld d", (h + 12) / 24); return std::string(b); };
+        float lh = ImGui::GetTextLineHeight(), is = lh * 1.15f, gap = lh * 0.35f, right = ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
+        ImDrawList *dl = ImGui::GetWindowDrawList();
+        for (int m = 0; m < 5; m++) {
+            long lo = -1, hi = -1; bool any_m = false;
+            for (const Eff &x : e) if (x.m == m) { any_m = true; if (lo < 0 || x.left < lo) lo = x.left; if (x.left > hi) hi = x.left; }
+            if (!any_m) continue;
+            std::string when = span(lo); if (span(hi) != when) when += " to " + span(hi);
+            {   /* who: the member's head (the name under the pointer) */
+                ImVec2 a = ImGui::GetCursorScreenPos();
+                ImGui::Dummy(ImVec2(is / 1.2f, lh));
+                ui_member_head(dl, m, ImVec2(a.x, a.y + (lh - is) * 0.5f), is);
+                if (item_hovered()) margin_tip(member_name(m).c_str());
+            }
+            bool first = false;
+            auto place = [&](float w) { if (!first) { ImGui::SameLine(0, gap); if (ImGui::GetCursorScreenPos().x + w > right) ImGui::NewLine(); } first = false; };
+            for (const Eff &x : e) {
+                if (x.m != m) continue;
+                if ((x.kind == 0x48 || x.kind == 0x49) && x.k >= 0 && x.amount) {
+                    char v[16]; snprintf(v, sizeof v, "%+d", x.amount);
+                    float w = is + lh * 0.15f + ImGui::CalcTextSize(v).x;
+                    place(w);
+                    ImVec2 a = ImGui::GetCursorScreenPos();
+                    ImGui::Dummy(ImVec2(w, lh));
+                    ImVec2 c(a.x + is * 0.5f, a.y + lh * 0.5f);
+                    if (x.kind == 0x48) ui_attr_icon(dl, c, is * 0.9f, x.k); else ui_skill_icon(dl, c, is * 0.9f, x.k);
+                    dl->AddText(ImVec2(a.x + is + lh * 0.15f, a.y), x.amount < 0 ? IM_COL32(170, 50, 30, 255) : ImGui::GetColorU32(ImGuiCol_Text), v);
+                    if (item_hovered()) margin_tip((std::string(x.kind == 0x48 ? gm_attr_name(x.k) : gm_skill_name(x.k)) + " " + v + ": " + span(x.left) + " left.").c_str());
+                } else {
+                    float w = ImGui::CalcTextSize(x.what.c_str()).x;
+                    place(w);
+                    ImGui::TextUnformatted(x.what.c_str());
+                }
+            }
+            place(ImGui::CalcTextSize(when.c_str()).x + lh);
+            ImGui::TextDisabled("(%s)", when.c_str());
+        }
+    }
+    return true;
 }
 static void right_panel(int size)
 {
@@ -694,51 +762,7 @@ static void right_panel(int size)
             any = true;
         }
     }
-    std::vector<Eff> e = effects_now(size);
-    if (!e.empty()) {
-        if (any) ImGui::Separator();
-        heading("Blessings and potions");
-        /* one row a member: what is at work - an attribute or a skill raised (or lowered) as its shield and
-           how much, the rest in words - then how long it lasts (from the soonest to the last) */
-        auto span = [](long h) { char b[24]; if (h < 48) snprintf(b, sizeof b, "%ld h", h); else snprintf(b, sizeof b, "%ld d", (h + 12) / 24); return std::string(b); };
-        float lh = ImGui::GetTextLineHeight(), is = lh * 1.15f, gap = lh * 0.35f, right = ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
-        ImDrawList *dl = ImGui::GetWindowDrawList();
-        for (int m = 0; m < 5; m++) {
-            long lo = -1, hi = -1; bool any_m = false;
-            for (const Eff &x : e) if (x.m == m) { any_m = true; if (lo < 0 || x.left < lo) lo = x.left; if (x.left > hi) hi = x.left; }
-            if (!any_m) continue;
-            std::string when = span(lo); if (span(hi) != when) when += " to " + span(hi);
-            {   /* who: the member's head (the name under the pointer) */
-                ImVec2 a = ImGui::GetCursorScreenPos();
-                ImGui::Dummy(ImVec2(is / 1.2f, lh));
-                ui_member_head(dl, m, ImVec2(a.x, a.y + (lh - is) * 0.5f), is);
-                if (item_hovered()) margin_tip(member_name(m).c_str());
-            }
-            bool first = false;
-            auto place = [&](float w) { if (!first) { ImGui::SameLine(0, gap); if (ImGui::GetCursorScreenPos().x + w > right) ImGui::NewLine(); } first = false; };
-            for (const Eff &x : e) {
-                if (x.m != m) continue;
-                if ((x.kind == 0x48 || x.kind == 0x49) && x.k >= 0 && x.amount) {
-                    char v[16]; snprintf(v, sizeof v, "%+d", x.amount);
-                    float w = is + lh * 0.15f + ImGui::CalcTextSize(v).x;
-                    place(w);
-                    ImVec2 a = ImGui::GetCursorScreenPos();
-                    ImGui::Dummy(ImVec2(w, lh));
-                    ImVec2 c(a.x + is * 0.5f, a.y + lh * 0.5f);
-                    if (x.kind == 0x48) ui_attr_icon(dl, c, is * 0.9f, x.k); else ui_skill_icon(dl, c, is * 0.9f, x.k);
-                    dl->AddText(ImVec2(a.x + is + lh * 0.15f, a.y), x.amount < 0 ? IM_COL32(170, 50, 30, 255) : ImGui::GetColorU32(ImGuiCol_Text), v);
-                    if (item_hovered()) margin_tip((std::string(x.kind == 0x48 ? gm_attr_name(x.k) : gm_skill_name(x.k)) + " " + v + ": " + span(x.left) + " left.").c_str());
-                } else {
-                    float w = ImGui::CalcTextSize(x.what.c_str()).x;
-                    place(w);
-                    ImGui::TextUnformatted(x.what.c_str());
-                }
-            }
-            place(ImGui::CalcTextSize(when.c_str()).x + lh);
-            ImGui::TextDisabled("(%s)", when.c_str());
-        }
-        any = true;
-    }
+    if (margin_effects(size, any)) any = true;
     if (!any) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); ImGui::TextWrapped("No blessings or potions at work."); ImGui::PopStyleColor(); }
     if (camp_hint) {                                                /* on the map: the original's C, to camp in the wild */
         float sp = ImGui::GetStyle().ItemSpacing.y, lh = ImGui::GetTextLineHeight(), hh = lh * 1.4f + sp * 2;

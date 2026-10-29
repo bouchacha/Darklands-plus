@@ -82,6 +82,11 @@ static HeapE hpop(void)
 
 static int self_i, target_i, bounded, search_cut;
 static unsigned search_budget = 40000;   /* us */
+static int search_maxexp = MAXEXP;
+/* a walk across a whole floor asked from the level map (mods/levelwalk.c): one search, given longer (a
+   route of several hundred steps through a mine took more than the 60000 positions and 40 ms a move in a
+   fight may take, and then the game's planner, which finds no such route, said there was no way) */
+void pathfix_long_search(int on) { search_budget = on ? 300000 : 40000; search_maxexp = on ? 600000 : MAXEXP; }
 #define D_REPLAN 0xd97c                  /* int[13]: re-plan time */
 #define D_BLOCKER 0xd5f6                 /* int[13]: who blocked the last step */
 #define D_NEXTSTEP 0xca30                /* char[13]: the step lined up, -1 none */
@@ -119,14 +124,32 @@ static u32 scells[1600]; static u8 *scur;
 static int ob_n; static struct { int x, y, w, h, bit; } ob[13];
 static int self_k, self_w, self_h, pcheck = -1, pcheck_bad;
 static u16 also_block;                   /* those who blocked the walker's last step: in the way though on the move */
+/* ---- friends in the way
+ * Out of a fight (exploring a castle, mine or dungeon: real_combat 0) the party walks through itself. In
+ * single file those behind stop touching the one they follow; by a corner they boxed it in (a wall on one
+ * side, two friends on the others): it found no way, they waited for it, and the line stood until the
+ * next fight (1.4-RC7, in a mine). In a fight a friend still blocks, but for one the walker already
+ * overlaps (walked through out of the fight): any step would overlap it still, and neither could move.
+ * The one a member follows or goes for (its target) is always in the way: the walk ends touching it.
+ * (w, j: combatants; wx, wy: where w stands now, its box half w_w by w_h) */
+static int friend_passes(int w, int j, int wx, int wy, int w_w, int w_h)
+{
+    if (w < 0 || w > 4 || j < 0 || j > 4 || j == w || !pathfix_party) return 0;
+    if (j == (s8)g_rb((u16)(CBT(w) + CB_TARGET))) return 0;
+    if (g_rb(GV_real_combat) != 1) return 1;
+    int jx = (s16)g_rw((u16)(CBT(j) + CB_X)), jy = (s16)g_rw((u16)(CBT(j) + CB_Y));
+    return abs(jx - wx) < (s8)g_rb((u16)(GV_cbt_half_w + j)) + w_w && abs(jy - wy) < (s8)g_rb((u16)(GV_cbt_half_h + j)) + w_h;
+}
 static void others_setup(void)           /* who blocks, by the current D_d697 / D_d6cd */
 {
     int d697 = g_rb(GV_path_target_only), d6cd = (s8)g_rb(0xd6cd), fl = g_rb((u16)(GV_cbt_floor + self_k));
+    int sx = (s16)g_rw((u16)(CBT(self_i) + CB_X)), sy = (s16)g_rw((u16)(CBT(self_i) + CB_Y));
     ob_n = 0;
     for (int i = 0; i < 13; i++) {
         u16 c = CBT(i);
         if (i == self_k || g_rb((u16)(c + CB_STATUS)) != 1 || g_rb((u16)(GV_cbt_floor + i)) != fl) continue;
         if (d697 && d6cd != i && g_rb((u16)(GV_cbt_moving + i)) && !(also_block >> i & 1)) continue;
+        if (friend_passes(self_i, i, sx, sy, self_w, self_h)) continue;
         ob[ob_n].x = (s16)g_rw((u16)(c + CB_X)); ob[ob_n].y = (s16)g_rw((u16)(c + CB_Y));
         ob[ob_n].w = (s8)g_rb((u16)(GV_cbt_half_w + i)); ob[ob_n].h = (s8)g_rb((u16)(GV_cbt_half_h + i));
         ob[ob_n].bit = (s16)g_rw((u16)(0x01e4 + 2 * i));                   /* D_01e4[i]: 1 << i */
@@ -321,7 +344,7 @@ static int search(int x0, int y0, int tx, int ty, int *expanded)
     uint64_t t_end = plat_ticks_us() + search_budget;    /* at most 40 ms (a route) or 5 (a cost), then the game's own planner */
     search_cut = 0;
     while (hn) {
-        if (exp >= MAXEXP || (!(exp & 511) && plat_ticks_us() > t_end)) { search_cut = 1; break; }
+        if (exp >= search_maxexp || (!(exp & 511) && plat_ticks_us() > t_end)) { search_cut = 1; break; }
         HeapE e = hpop();
         Node *n = &nodes[e.idx];
         int x = (int)(e.idx / MAPH), y = (int)(e.idx % MAPH);
@@ -508,6 +531,7 @@ static void path_find_hook(void)
  * And a walker going for a foe re-plans when the foe has moved on from where the route ends
  * (it walked to the old spot first, stopped, and only then turned), at most every 30 ticks. */
 static int crowd_on(int i) { return i >= 0 && i < 13 && (i < 5 ? pathfix_party : pathfix_enemies); }
+static int step_w = -1; static s16 step_x, step_y;   /* the one taking a step, and where it stood (others_hook) */
 static void crowd_step_hook(void)        /* cbt_step (i, set), s014 0e76:1624 (a near call) */
 {
     int i = (s16)rw(SS, (u16)(SP + 2));
@@ -515,11 +539,28 @@ static void crowd_step_hook(void)        /* cbt_step (i, set), s014 0e76:1624 (a
     u16 c = CBT(i);
     u8 next = g_rb((u16)(D_NEXTSTEP + i));
     u16 x = g_rw((u16)(c + CB_X)), y = g_rw((u16)(c + CB_Y));
+    int was_w = step_w; s16 was_x = step_x, was_y = step_y;
+    step_w = i; step_x = (s16)x; step_y = (s16)y;
     hook_call_original();
+    step_w = was_w; step_x = was_x; step_y = was_y;
     if (ns_unwinding || next == 0xff || g_rb((u16)(D_NEXTSTEP + i)) != 0xff || !g_rb((u16)(GV_cbt_moving + i))) return;
     if (g_rw((u16)(c + CB_X)) != x || g_rw((u16)(c + CB_Y)) != y || !g_rw((u16)(D_BLOCKER + 2 * i))) return;
     u16 due = (u16)(g_rw(GV_combat_clock) + 12 + rand() % 13);   /* blocked by somebody: ask again soon */
     if (g_rw((u16)(D_REPLAN + 2 * i)) > due) g_ww((u16)(D_REPLAN + 2 * i), due);
+}
+/* the game's test of the others in the way of combatant w (s014 1462:0740, a near call from the collision
+   test 1462:000a; D_e11c[j] set for each one in the way): the friends who let a member of the party pass
+   (friend_passes) are not. Where w stands: as it was before the step it is taking, else (a plan of the
+   game's) only the rule out of a fight holds */
+static void others_hook(void)
+{
+    int w = (s16)rw(SS, (u16)(SP + 2));
+    hook_call_original();
+    if (ns_unwinding || w < 0 || w > 4) return;
+    int wx = step_w == w ? step_x : -30000, wy = step_w == w ? step_y : -30000;
+    for (int j = 0; j < 5; j++)
+        if (g_rw((u16)(0xe11c + 2 * j)) && friend_passes(w, j, wx, wy, (s8)g_rb((u16)(GV_cbt_half_w + w)), (s8)g_rb((u16)(GV_cbt_half_h + w))))
+            g_ww((u16)(0xe11c + 2 * j), 0);
 }
 static void crowd_approach_hook(void)    /* the approach (i), s014 0e76:2cca: every tick while walking */
 {
@@ -662,12 +703,14 @@ void pathfix_set(int party, int enemies)
         hook_install(14, 0x0e76, 0x2cca, crowd_approach_hook);
         hook_install(GF_ai_costs, costs_hook);
         hook_install(GF_path_trackers, trackers_hook);
+        hook_install(14, 0x1462, 0x0740, others_hook);
     } else {
         hook_remove(GF_path_find, path_find_hook);
         hook_remove(GF_cbt_step, crowd_step_hook);
         hook_remove(14, 0x0e76, 0x2cca, crowd_approach_hook);
         hook_remove(GF_ai_costs, costs_hook);
         hook_remove(GF_path_trackers, trackers_hook);
+        hook_remove(14, 0x1462, 0x0740, others_hook);
     }
 }
 

@@ -687,9 +687,9 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         if (ok) P.dl->AddRect(NsDraw::w(1.2f, 40.0f * to + 1.2f), NsDraw::w(58.8f, 40.0f * to + 38.8f), IM_COL32(120, 220, 110, 255), 2 * P.k, 0, fmaxf(2.0f, 0.9f * P.k));
         float gx = ns_in.x + 5, gy = ns_in.y + 9;                  /* (below the pointer, not under it) */
         std::string l = ok ? (packrow ? "For " + ns_gtext(s.names[to]) + " to ride"
-                                      : "Give to " + ns_gtext(s.names[to]) + (P.shift || it.count == 1 ? "" : " (all " + std::to_string(it.count) + ")"))
+                                      : "Give to " + ns_gtext(s.names[to]) + (it.count == 1 ? "" : P.shift ? " (one of " + std::to_string(it.count) + ")" : " (all " + std::to_string(it.count) + "; hold Shift for one)"))
                            : packrow && !mount ? ns_item_name(it.id) + ": the party's pack is everyone's already"
-                           : ns_item_name(it.id) + (to == s.who ? "" : ": drop it on a member at the left");
+                           : ns_item_name(it.id) + (to == s.who ? "" : it.count > 1 ? ": drop it on a member at the left (hold Shift: just one)" : ": drop it on a member at the left");
         float lw = P.width(P.fo, NsDraw::FS_SMALL, l);
         if (gx + 12 + lw > 318) gx = 318 - 12 - lw;
         P.rect(gx, gy - 4, gx + 12 + lw + 2, gy + 4.5f, ok ? IM_COL32(222, 244, 214, 240) : IM_COL32(250, 242, 222, 235), 1.5f);

@@ -177,6 +177,18 @@ void gamedata_load(const char *dir)
             gamedata.cities.push_back(c);
         }
     }
+    /* every place's name from the file (DARKLAND.LOC: a count, then 0x3a-byte records, the name at +0x26):
+       the copy in the game's memory is not there in every screen (a battle in a mine or castle: the
+       names read from it were rubbish, and a save made there was called so) */
+    std::vector<unsigned char> loc = read_all(open_ci(dir, "DARKLAND.LOC"));
+    if (loc.size() > 2) {
+        int n = loc[0] | loc[1] << 8;
+        for (int i = 0; i < n && 2 + (i + 1) * 0x3a <= (int)loc.size(); i++) {
+            const unsigned char *r = &loc[2 + i * 0x3a];
+            char b[21]; memcpy(b, r + 0x26, 20); b[20] = 0;
+            gamedata.loc_names.push_back(b);
+        }
+    }
     gamedata.loaded = !gamedata.items.empty();
     gamedata_names();
 }
@@ -265,12 +277,30 @@ std::string gamedata_spell_text(const std::string &t)
 std::string loc_display_name(int loc)
 {
     if (loc >= 0 && loc < (int)gamedata.cities.size() && !gamedata.cities[loc].name.empty()) return gamedata.cities[loc].name;
-    u32 r = loc >= 0 ? g_location(loc) : 0;
-    if (!r) return "";
-    char b[24]; g_str((u16)(r >> 16), (u16)((u16)r + 0x26), b, sizeof b);
+    char b[24] = "";
+    if (loc >= 0 && loc < (int)gamedata.loc_names.size()) snprintf(b, sizeof b, "%s", gamedata.loc_names[loc].c_str());
+    else { u32 r = loc >= 0 ? g_location(loc) : 0; if (!r) return ""; g_str((u16)(r >> 16), (u16)((u16)r + 0x26), b, sizeof b); }
+    if (!b[0]) return "";
     static const struct { const char *cut, *full; } CUT[] = { { "Recklinghsn", "Recklinghausen" }, { "Marienwerd", "Marienwerder" } };
     for (const auto &c : CUT) if (!strcmp(b, c.cut)) return c.full;
     return game_text(b, sizeof b);
+}
+
+/* (for C: a place's name as shown, in the game's letters turned to plain ones: "Gorlitz"; "" for none) */
+extern "C" void gamedata_loc_name(int loc, char *out, int n)
+{
+    std::string t = loc_display_name(loc);
+    int k = 0;
+    for (size_t i = 0; i < t.size() && k < n - 1; i++) {
+        unsigned char c = (unsigned char)t[i];
+        if (c < 0x80) out[k++] = (char)c;
+        else if (c == 0xc3 && i + 1 < t.size()) {          /* (a letter with an umlaut or accent, as UTF-8: its plain letter) */
+            static const char *PL = "AAAAAAACEEEEIIIIDNOOOOOxOUUUUYTsaaaaaaaceeeeiiiidnooooo/ouuuuyty";
+            unsigned char d = (unsigned char)t[++i];
+            if (d >= 0x80 && d < 0xc0) out[k++] = PL[d - 0x80];
+        }
+    }
+    out[k] = 0;
 }
 
 /* a town's number for its cards: loc_query 0x21, the city's +0x56 + party_seed (16-bit, as the game) */

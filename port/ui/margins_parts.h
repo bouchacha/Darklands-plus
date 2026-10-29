@@ -17,4 +17,5 @@ void mclick(ImVec2 a, ImVec2 b, std::function<void()> f);   /* a place in a marg
 extern "C" float ui_orderbar_top;                  /* the order strip's top while shown, else 0 */
 extern "C" int partypanel_shown(void);
 std::string battlelog_name(int i);
+bool margin_effects(int size, bool separator);   /* the blessings and potions at work, a row a member (false: none) */
 bool battlelog_met(int i);

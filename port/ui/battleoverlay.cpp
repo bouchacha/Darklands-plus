@@ -239,6 +239,8 @@ void ui_draw_battle_bars(void)
 /* what a click there would do, while a member is given orders (battle.click_hint, mods/orders.c):
    "Click: attack", or why not ("No clear shot"), the first line of the info, or alone by the pointer */
 extern "C" const char *orders_hint(void);
+extern "C" int ui_pointer_on_cover(void);
+extern "C" int levelwalk_door_at(int gx, int gy), levelwalk_door_open(int n);   /* (mods/levelwalk.c) */          /* (ui/margins.cpp) */
 extern "C" int plat_pointer_outside(void);
 static void hint_line(const char *h)
 {
@@ -273,8 +275,7 @@ static void ways_intro(void)
     t += STYLE_NOTE;
     t += "\n\n";
     for (int k = 0; k < STYLE_CHOICES; k++) { t += style_name(STYLE_ORDER[k]); t += ": "; t += style_brief(STYLE_ORDER[k]); t += "\n"; }
-    t += "\nSkirmisher is the usual way for someone holding a bow, crossbow, gun or thrown weapon, Man-at-arms for the others. "
-         "Each character keeps the way you choose, battle to battle.";
+    t += "\nEveryone starts as a Skirmisher. Each character keeps the way you choose, battle to battle.";
     ui_alert("Each member's way of fighting", t.c_str(), "Darklands+; F12 > Settings > Battles > Improved combat.");
 }
 /* the first battle with the easier controls: what changed, once (battle.intro_seen) */
@@ -288,7 +289,7 @@ static void battle_intro(void)
              "Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. "
              "Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.\n\n"
              "Each member fights in their own way until you give them an order: the picture at the lower left of their box. Click it to choose another "
-             "(Skirmisher, Archer, Man-at-arms, Charger, or Manual). An order you give is their way for the rest of that fight.\n\n"
+             "(Skirmisher, Archer, Charger, or Manual). An order you give is carried out, then they go back to their way.\n\n"
              "Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.\n\n"
              "While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does.",
              "All this is Darklands+; each part can be switched off, for the game's own ways, in F12 > Settings > Battles. F11 lists the battle's keys and clicks.");
@@ -363,10 +364,15 @@ void ui_draw_battle_info(void)
     if (game_mode() != GM_BATTLE || config_get_int("original", 0) || ns_showing()) return;
     battle_intro();
     foe_arrow();
+    if (ui_pointer_on_cover()) return;                  /* (on the order strip or a chooser: not the field's) */
     int gx, gy; plat_mouse_game(&gx, &gy);
     { int cx, cy, cw, ch; if (hdtext_game_cursor(&cx, &cy, &cw, &ch)) { gx = cx; gy = cy; } }
     int mx = gx - 60, my = gy, n = (s8)g_rb(GV_hotspot_count), best = -1, by = -32768;
     const char *hint = mx >= 0 && mx < 0x104 && !plat_pointer_outside() ? orders_hint() : nullptr;
+    {   /* a door under the pointer, out of a fight: that it can be used, and how (mods/levelwalk.c) */
+        int d = mx >= 0 && mx < 0x104 && !plat_pointer_outside() ? levelwalk_door_at(gx, gy) : -1;
+        if (d >= 0) hint = levelwalk_door_open(d) ? "Door: click to walk there and close it" : "Door: click to walk there and open it";
+    }
     if (hint && (!ui_battle_info || n <= 0 || n > 40)) n = 0;          /* (the hint alone) */
     else if (!ui_battle_info || mx < 0 || n <= 0 || n > 40) return;
     for (int k = n - 1; k >= 0; k--) {

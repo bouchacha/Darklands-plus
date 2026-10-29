@@ -43,7 +43,7 @@ Each file's header says what the original does, with the function's address
 | Battle AI: choosing the next foe; line of fire; shooters | `port/mods/battlerules.c` |
 | Pathfinding: the original's wall-following trackers and their limits | `port/mods/pathfix.c` |
 | The order a click gives in battle; weapon types and the skills they use | `port/mods/orders.c` |
-| The members' ways of fighting (Skirmisher, Archer, Man-at-arms ...): their names, what each does, how they are kept | `port/mods/styles.c`; carried out in `port/mods/ways.c` |
+| The members' ways of fighting (Skirmisher, Archer, Charger, Manual): their names, what each does, how they are kept | `port/mods/styles.c`; carried out in `port/mods/ways.c` |
 | The end of a battle (how long the field is held) | `port/mods/battleend.c` |
 | Saints taught by each library, formulae sold by each alchemist (fixed per game: the seed formulas) | `port/mods/gamemodel.h`, `port/ui/libraries.cpp` |
 | The game's state by meaning (party, items, what is in use, what is known, events) | `port/mods/gamemodel.h`, `port/runtime/game.h` (`g_event`, the `G_EV_` fields) |

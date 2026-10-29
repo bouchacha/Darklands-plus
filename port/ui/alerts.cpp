@@ -1,7 +1,9 @@
 // alerts.cpp - news the player must read: a window to click through, the game waiting meanwhile
 // (ui_is_open). For what cannot be undone: the years' toll (mods/aging.c), an attribute or a skill
 // lost for good, armour worn down or ruined (mods/losses.c). Several at once are read one after the
-// other. In the test sessions (DL_CTL) they are logged and pass by themselves, unless DL_ALERT_KEEP.
+// other. Only its OK button closes one, and not in its first half second: a key (Space in a battle,
+// Enter on a card) or a click meant for what was under it closed it before it could be read (1.4-RC7).
+// In the test sessions (DL_CTL) they are logged and pass by themselves, unless DL_ALERT_KEEP.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,7 +19,7 @@
 #include "../mods/gamemodel.h"
 
 namespace {
-struct Alert { std::string title, body, foot; std::vector<UiAlertRow> rows; };
+struct Alert { std::string title, body, foot; std::vector<UiAlertRow> rows; double shown = -1; };
 std::deque<Alert> queue;
 bool auto_pass(void) { return getenv("DL_CTL") && !getenv("DL_ALERT_KEEP"); }
 }
@@ -78,7 +80,9 @@ extern "C" void ui_alert_dismiss(void) { if (!queue.empty()) queue.pop_front(); 
 void ui_alert_draw(void)
 {
     if (queue.empty()) return;
-    const Alert &a = queue.front();
+    Alert &a = queue.front();
+    if (a.shown < 0) a.shown = ImGui::GetTime();
+    const bool ready = ImGui::GetTime() - a.shown >= 0.5;
     ImGuiIO &io = ImGui::GetIO();
     ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 120));
     float w = fminf(io.DisplaySize.x * 0.9f, UIS(640));
@@ -89,7 +93,7 @@ void ui_alert_draw(void)
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, UIS(3));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(UIS(22), UIS(18)));
     if (ImGui::Begin("##alert", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse
-                     | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
+                     | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav)) {   /* (no keys: the OK button alone) */
         ImGui::PushFont(ui_font_head);
         ImGui::TextColored(ImVec4(0.55f, 0.16f, 0.10f, 1), "%s", a.title.c_str());
         ImGui::PopFont();
@@ -98,10 +102,10 @@ void ui_alert_draw(void)
         else alert_rows(a.rows);
         if (!a.foot.empty()) { ImGui::Spacing(); ui_hint("%s", a.foot.c_str()); }
         ImGui::Spacing(); ImGui::Spacing();
-        char lab[48]; snprintf(lab, sizeof lab, queue.size() > 1 ? "  Next (%d more)  " : "  Continue  ", (int)queue.size() - 1);
-        bool done = ImGui::Button(lab);
-        if (ImGui::IsWindowAppearing()) ImGui::SetKeyboardFocusHere(-1);
-        if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter) || ImGui::IsKeyPressed(ImGuiKey_Escape) || ImGui::IsKeyPressed(ImGuiKey_Space)) done = true;
+        char lab[48]; snprintf(lab, sizeof lab, queue.size() > 1 ? "  OK (%d more)  " : "  OK  ", (int)queue.size() - 1);
+        ImGui::BeginDisabled(!ready);
+        bool done = ImGui::Button(lab) && ready;
+        ImGui::EndDisabled();
         if (done) queue.pop_front();
     }
     ImGui::End();

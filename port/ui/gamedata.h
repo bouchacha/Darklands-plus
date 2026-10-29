@@ -47,6 +47,7 @@ struct GameData {
     std::vector<std::string> formula_game_names;   // as the game writes them (match the game's text with these)
     std::vector<Formula> formulas;   // 3 per potion (potion item 95 + f/3)
     std::vector<City> cities;
+    std::vector<std::string> loc_names;   // every place's own name (DARKLAND.LOC +0x26), as the game writes it
     bool loaded = false;
 };
 

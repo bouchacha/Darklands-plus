@@ -124,7 +124,7 @@ sc('wolf_pack', 'eight wolves on four swords in the open: fast foes swarming, no
    groups=(WOLF, 2, 8, 0, 1, 0, -1, 0, 0), secs=90)
 sc('big_brawl', 'eight mercenaries and a captain against the party in the trees, two of ours shooting: a long crowded melee, routes round trunks and bodies',
    arms=[(1, XBOW, 30), (2, BOW, 30)], groups=(MERC, 3, 8, CAPTAIN, 3, 1, -1, 0, 0), bf=WILDS, secs=120)
-# the members' ways of fighting (mods/styles.h: 0 Manual, 1 Archer, 2 Skirmisher, 3 Man-at-arms, 4 Charger), each pushed
+# the members' ways of fighting (mods/styles.h: 0 Manual, 1 Archer, 2 Skirmisher, 4 Charger), each pushed
 sc('way_archer', 'an Archer: shoots all fight long, the sword only for a foe that reaches it, then the bow again; never walks off to help',
    arms=[(2, BOW, 30)], pre=['ustyle:2,1'], expect=[r'orders: member 2 had no orders: opens fire'],
    forbid=[r'orders: member 2 \(Skirmisher\)', r'orders: member 2 (had no orders: )?goes to help'])
@@ -135,11 +135,7 @@ sc('way_charger', 'two Chargers against archers and swords in the trees: at the 
 sc('way_manual', 'every member Manual: nothing of the ways (the original\'s, the party given no order: they stand, and fight back as the game has them)',
    arms=[(2, BOW, 30)], pre=['ustyle:%d,0' % i for i in range(4)], end=False, secs=40,
    forbid=[r'orders: member \d (had no orders|.s mark fell|has no foe|fights \d+ hand to hand|goes to help|.s foe|\()', r'battlerules: \d (steps aside|walks)'])
-sc('way_held', 'an archer sent to a spot by the player, its line from there blocked by a friend: it holds there (no stepping aside, no walking), shoots a foe it can see or waits for one',
-   arms=[(2, BOW, 30)], groups=(BANDIT, 2, 3, 0, 1, 0, -1, 0, 0),
-   place=[(2, 0, 0), (0, 16, 0), (5, 200, 0), (6, 210, 40), (7, 200, -40)], orders=['uheld:2'], end=False,
-   forbid=[r'battlerules: 2 (steps aside|walks)', r'orders: member 2 .*\(walking to it', r'orders: member 2 (had no orders: )?goes to help'])
-sc('way_order_given', 'a Skirmisher sent hand to hand by the player before the foes come: it fights to the end, never the bow (the player\'s order is its way for the rest of the fight)',
+sc('way_order_given', 'a Skirmisher sent hand to hand by the player before the foes come: it fights to the end, never the bow (a Skirmisher in a hand-to-hand fight stays in it)',
    arms=[(2, BOW, 30)], groups=(BANDIT, 2, 3, 0, 1, 0, -1, 0, 0), orders=['uattack:2,5'],
    forbid=[r'orders: member 2 (had no orders: opens fire|has no foe beside it now|.s mark fell|stood idle with its bow)'])
 sc('original', 'Improved combat off: the game\'s own way, as a check that nothing of ours runs (no crash, no orders of ours)',
@@ -262,8 +258,7 @@ def check(s, log):
             last = c
         held_i = any(o == 'uhold:%d,1' % i for o in s['orders'])   # (told to hold with its line blocked: standing is right, it may not step aside)
         way = next((int(p.split(',')[1]) for p in s.get('pre', []) if p.startswith('ustyle:%d,' % i)), -1)
-        held_i = held_i or any(o == 'uheld:%d' % i for o in s['orders'])   # (held where the player sent it: waits for a line there)
-        no_bow = way in (0, 3, 4) or any(o.startswith('uattack:%d,' % i) for o in s['orders'])   # (a way that does not shoot, or sent hand to hand: its missile weapon stays put)
+        no_bow = way in (0, 4) or any(o.startswith('uattack:%d,' % i) for o in s['orders'])   # (a way that does not shoot, or sent hand to hand: its missile weapon stays put)
         if worst_idle >= 150 and not held_i:                         # (held, its line blocked: ready to loose and never loosing is right)
             probs.append('member %d idle with a shooting order for %d ticks' % (i, worst_idle))
         if worst_noline >= 600 and not held_i:                       # (a line blocked for long, the shooter neither stepping aside nor picking another mark)

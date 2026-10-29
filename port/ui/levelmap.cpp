@@ -16,9 +16,11 @@
 #include <math.h>
 #include <float.h>
 #include <string>
+#include <vector>
 #include "imgui.h"
 #include "ui.h"
 #include "gamedata.h"
+#include "richtext.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -28,6 +30,8 @@ extern "C" {
 }
 extern ImFont *ui_font_small;
 extern "C" int levelwalk_x, levelwalk_y, levelwalk_floor;   /* mods/levelwalk.c */
+extern "C" int levelwalk_goal_x, levelwalk_goal_y, levelwalk_goal_floor;   /* (the place a walk from the map is going to) */
+extern "C" char dlp_data_dir[];
 extern "C" void levelwalk_stairs(int s);
 
 #define NFLOORS 16
@@ -38,10 +42,88 @@ static bool open_lm;
 struct Exit { s16 x, y; u8 w, h; s8 to; };
 static Exit exits[NFLOORS][6]; static int nexits[NFLOORS];
 #define GV_NFLOORS 0xd661               /* the battle's number of floors (s002 tac start, D_d661) */
-/* what the party saw is forgotten when a battle's floors are made (a new battle, castle, mine or dungeon:
+/* What the party saw of a castle, mine or dungeon is kept for the game (party seed) in darklands_levels_<seed>.bin
+   beside the journal (dlp_data_dir): loading a save made in it, or coming back to it, forgot it all (1.4-RC7).
+   One record a floor: the place (G_CUR_LOC), its number of floors, the floor, a fingerprint of the floor's
+   layout (its cells' art, 20a5:1900, which no door or reveal changes), the cells seen (a bit each) and its
+   ways to the other floors. A floor whose fingerprint does not match its record (a street fight in a town:
+   another map each time) starts afresh, and its record is made anew. Out of a town, castle, mine or
+   dungeon (a fight in the wilds) nothing is kept. */
+#pragma pack(push, 1)
+struct LvRec { s16 loc; u8 nf, fl; u32 hash; u8 bits[200]; u8 ne; Exit ex[6]; };
+#pragma pack(pop)
+static std::vector<LvRec> recs;
+static int recs_seed = -99999, lv_loc = -2, lv_nf = -1;
+static bool recs_dirty, fl_checked[NFLOORS];
+static double recs_saved;
+static void lv_path(char *b, size_t n, int seed) { snprintf(b, n, "%s/darklands_levels_%u.bin", dlp_data_dir, (unsigned)(u16)seed); }
+static void lv_load(int seed)
+{
+    recs.clear(); recs_seed = seed; recs_dirty = false;
+    char p[1200]; lv_path(p, sizeof p, seed);
+    FILE *f = fopen(p, "rb");
+    if (!f) return;
+    char magic[6] = ""; u32 n = 0;
+    if (fread(magic, 1, 6, f) == 6 && !memcmp(magic, "DLLV1", 6) && fread(&n, 4, 1, f) == 1 && n < 4096)
+        for (u32 k = 0; k < n; k++) { LvRec r; if (fread(&r, sizeof r, 1, f) != 1) break; if (r.fl < NFLOORS && r.ne <= 6) recs.push_back(r); }
+    fclose(f);
+}
+static void lv_save(void)
+{
+    if (!recs_dirty || recs_seed == -99999) return;
+    recs_dirty = false; recs_saved = ImGui::GetTime();
+    char p[1200]; lv_path(p, sizeof p, recs_seed);
+    FILE *f = fopen(p, "wb");
+    if (!f) return;
+    u32 n = (u32)recs.size();
+    fwrite("DLLV1", 1, 6, f); fwrite(&n, 4, 1, f);
+    if (n) fwrite(recs.data(), sizeof(LvRec), n, f);
+    fclose(f);
+}
+static u32 floor_hash(void)                      /* (FNV-1a of the floor's cell art) */
+{
+    u32 h = 2166136261u;
+    for (int k = 0; k < 1600; k++) { h ^= rb(G_FAR20A5, (u16)(0x1900 + k)); h *= 16777619u; }
+    return h;
+}
+static LvRec *lv_find(int loc, int nf, int fl) { for (LvRec &r : recs) if (r.loc == loc && r.nf == nf && r.fl == fl) return &r; return nullptr; }
+/* every frame in a battle: the records of this place taken up once (seen and ways OR'd in), the floor shown
+   checked against its record, and what is seen now written back (the file at most every few seconds) */
+static void lv_keep(int fl)
+{
+    int seed = (s16)g_rw(G_PARTY_SEED), loc = (s16)g_rw(G_CUR_LOC), nf = g_rb(GV_NFLOORS);
+    if (seed != recs_seed) { lv_save(); lv_load(seed); lv_loc = -2; }
+    if (loc < 0 || nf < 1 || nf > NFLOORS) return;
+    if (loc != lv_loc || nf != lv_nf) {
+        lv_loc = loc; lv_nf = nf;
+        for (int f = 0; f < NFLOORS; f++) fl_checked[f] = false;
+        for (const LvRec &r : recs) {
+            if (r.loc != loc || r.nf != nf) continue;
+            for (int c = 0; c < 1600; c++) if (r.bits[c >> 3] >> (c & 7) & 1) seen[r.fl][c / 40][c % 40] = 1;
+            if (!nexits[r.fl]) { for (int k = 0; k < r.ne; k++) exits[r.fl][k] = r.ex[k]; nexits[r.fl] = r.ne; }
+        }
+    }
+    LvRec *r = lv_find(loc, nf, fl);
+    if (!fl_checked[fl]) {
+        fl_checked[fl] = true;
+        u32 h = floor_hash();
+        if (r && r->hash != h) {                   /* (another map under the same name: what was taken up is not this one's) */
+            memset(seen[fl], 0, sizeof seen[fl]);
+            r->hash = h; memset(r->bits, 0, sizeof r->bits); r->ne = 0; recs_dirty = true;
+        }
+        if (!r) { LvRec n{}; n.loc = (s16)loc; n.nf = (u8)nf; n.fl = (u8)fl; n.hash = h; recs.push_back(n); r = &recs.back(); recs_dirty = true; }
+    }
+    if (!r) return;
+    for (int c = 0; c < 1600; c++)
+        if (seen[fl][c / 40][c % 40] && !(r->bits[c >> 3] >> (c & 7) & 1)) { r->bits[c >> 3] |= (u8)(1 << (c & 7)); recs_dirty = true; }
+    if (r->ne != nexits[fl] || memcmp(r->ex, exits[fl], sizeof(Exit) * (size_t)nexits[fl])) { r->ne = (u8)nexits[fl]; memcpy(r->ex, exits[fl], sizeof(Exit) * (size_t)nexits[fl]); recs_dirty = true; }
+    if (recs_dirty && ImGui::GetTime() - recs_saved > 4.0) lv_save();
+}
+/* what the party saw is put away when a battle's floors are made (a new battle, castle, mine or dungeon:
    s004 0e76:0000, from s002's tac start) or come out of a save (EXPLODE, s003 1016:0d07, the battle save's
-   blocks); the same dungeon taken up again after a card (a riddle, a talk) keeps it */
-static void forget(void) { memset(seen, 0, sizeof seen); memset(nexits, 0, sizeof nexits); }
+   blocks), and the kept records of the place taken up again (lv_keep); the same dungeon taken up again
+   after a card (a riddle, a talk) keeps it as it is */
+static void forget(void) { lv_save(); memset(seen, 0, sizeof seen); memset(nexits, 0, sizeof nexits); lv_loc = -2; }
 static void floors_made_hook(void) { forget(); hook_call_original(); }
 static void save_read_hook(void) { forget(); hook_call_original(); }
 
@@ -62,7 +144,7 @@ extern "C" void levelmap_frame(void)
     static bool hooked;
     if (!hooked) { hooked = true; hook_install(4, 0x0e76, 0x0000, floors_made_hook); hook_install(3, 0x1016, 0x0d07, save_read_hook); }
     int gm = game_mode();
-    if (gm != GM_BATTLE) { open_lm = false; return; }
+    if (gm != GM_BATTLE) { open_lm = false; lv_save(); return; }
     int fl = floor_now();
     if (fl < 0 || fl >= NFLOORS) return;
     int ne = (s8)rb(G_FAR20A5, 0x2fb6);
@@ -77,6 +159,7 @@ extern "C" void levelmap_frame(void)
         int x = cx + (s8)g_rb((u16)(0x1fc6 + k)), y = cy + (s8)g_rb((u16)(0x2052 + k));
         if (x >= 0 && x < 40 && y >= 0 && y < 40) seen[fl][x][y] = 1;
     }
+    if (!config_get_int("original", 0)) lv_keep(fl);
 }
 
 /* the floors of a castle, mine or dungeon in short, at the level map's top right: a square a floor, the
@@ -123,14 +206,15 @@ static ImVec2 floors_draw(ImDrawList *dl, ImVec2 o, ImVec2 sz, int fl, Known kno
     for (int f = 0; f < nf; f++) if (shown[f]) { col[f] = rowlen[depth[f]]++; if (depth[f] + 1 > rows) rows = depth[f] + 1; }
     int maxw = 1; for (int r = 0; r < rows; r++) if (rowlen[r] > maxw) maxw = rowlen[r];
     ImFont *f = ui_font_small ? ui_font_small : ImGui::GetFont();
-    float qs = UIS(30), gx = UIS(20), gy = UIS(24), pad = UIS(12), th = UIS(22);
+    const float LS = fmaxf(UIS(22), ui_text_px());           /* (the text: as large as the margins', at the least) */
+    float qs = fmaxf(UIS(34), LS * 1.6f), gx = UIS(20), gy = UIS(24), pad = UIS(12), th = LS * 1.25f;
     float pw = maxw * qs + (maxw - 1) * gx + 2 * pad, ph = th + rows * qs + (rows - 1) * gy + 2 * pad;
     if (pw < UIS(120)) pw = UIS(120);
     if (measure) return ImVec2(pw, ph);
     ImVec2 p0(o.x + sz.x - pw - UIS(16), o.y + UIS(14)), p1(p0.x + pw, p0.y + ph);
     dl->AddRectFilled(p0, p1, IM_COL32(26, 22, 18, 235), UIS(6));
     dl->AddRect(p0, p1, IM_COL32(120, 100, 70, 255), UIS(6), 0, 1.5f);
-    dl->AddText(f, UIS(18), ImVec2(p0.x + pad, p0.y + pad * 0.6f), IM_COL32(230, 214, 180, 255), "Floors");
+    dl->AddText(f, LS, ImVec2(p0.x + pad, p0.y + pad * 0.6f), IM_COL32(230, 214, 180, 255), "Floors");
     auto centre = [&](int fi) {
         float rw = rowlen[depth[fi]] * qs + (rowlen[depth[fi]] - 1) * gx;
         return ImVec2(p0.x + (pw - rw) * 0.5f + col[fi] * (qs + gx) + qs * 0.5f, p0.y + pad + th + depth[fi] * (qs + gy) + qs * 0.5f);
@@ -148,9 +232,13 @@ static ImVec2 floors_draw(ImDrawList *dl, ImVec2 o, ImVec2 sz, int fl, Known kno
         dl->AddRectFilled(a, b, here ? IM_COL32(150, 140, 120, 255) : visited[fi] ? IM_COL32(110, 102, 88, 255) : IM_COL32(44, 38, 32, 255), UIS(3));
         dl->AddRect(a, b, here ? IM_COL32(250, 220, 120, 255) : visited[fi] ? IM_COL32(30, 26, 22, 255) : IM_COL32(120, 104, 80, 255), UIS(3), 0, here ? 2.5f : 1.2f);
         char num[8]; snprintf(num, sizeof num, visited[fi] ? "%d" : "?", fi + 1);
-        ImVec2 ts = f->CalcTextSizeA(UIS(18), FLT_MAX, 0, num);
-        dl->AddText(f, UIS(18), ImVec2(c.x - ts.x * 0.5f, c.y - ts.y * 0.5f), visited[fi] ? IM_COL32(20, 16, 12, 255) : IM_COL32(200, 180, 140, 255), num);
-        if (party_on[fi]) dl->AddCircleFilled(ImVec2(b.x - UIS(5), a.y + UIS(5)), UIS(4.5f), IM_COL32(70, 150, 230, 255));
+        ImVec2 ts = f->CalcTextSizeA(LS, FLT_MAX, 0, num);
+        dl->AddText(f, LS, ImVec2(c.x - ts.x * 0.5f, c.y - ts.y * 0.5f), visited[fi] ? IM_COL32(20, 16, 12, 255) : IM_COL32(200, 180, 140, 255), num);
+        if (party_on[fi]) {                                        /* (the party there: the leader's head at the corner) */
+            int lead = (s8)g_rb(GV_marching_order); if (lead < 0 || lead > 4) lead = 0;
+            float hs = qs * 0.55f;
+            ui_member_head(dl, lead, ImVec2(b.x - hs / 1.2f * 0.6f, a.y - hs * 0.4f), hs);
+        }
         if (io.MousePos.x >= a.x && io.MousePos.x < b.x && io.MousePos.y >= a.y && io.MousePos.y < b.y) { hover = fi; ha = a; hb = b; }
     }
     if (hover >= 0) {
@@ -225,7 +313,8 @@ extern "C" void levelmap_draw(void)
             if (px < minx) minx = px; if (px > maxx) maxx = px; if (py < miny) miny = py; if (py > maxy) maxy = py;
         }
     }
-    float top = UIS(54), bottom = UIS(40);
+    const float TS = fmaxf(UIS(28), ui_text_px() * 1.3f), LS = fmaxf(UIS(22), ui_text_px());   /* (the title and the rest: as large as the margins' text, at the least) */
+    float top = TS * 2.2f, bottom = LS * 3.6f;
     if (!any) { minx = 0; maxx = 40; miny = 0; maxy = 20; }
     ImVec2 fp = floors_draw(dl, o, sz, fl, known, true);     /* (the floors' panel at the top right: the map beside it) */
     float right = fp.x > 0 ? fp.x + UIS(24) : 0;
@@ -302,7 +391,7 @@ extern "C" void levelmap_draw(void)
             char lab[24];
             if (to >= 0 && to < NFLOORS && to != fl) snprintf(lab, sizeof lab, "to floor %d", to + 1); else snprintf(lab, sizeof lab, "way out");
             ImVec2 m = P((X0 + X1) * 0.5f, (Y0 + Y1) * 0.5f);
-            ImVec2 ts = (ui_font_small ? ui_font_small : ImGui::GetFont())->CalcTextSizeA(UIS(17), FLT_MAX, 0, lab);
+            ImVec2 ts = (ui_font_small ? ui_font_small : ImGui::GetFont())->CalcTextSizeA(LS, FLT_MAX, 0, lab);
             ImVec2 l0(m.x - ts.x * 0.5f - 3, m.y - s * 0.5f - ts.y - 2), l1(m.x + ts.x * 0.5f + 3, m.y - s * 0.5f);
             for (int tries = 0; tries < 6; tries++) {          /* up and down stairs share a spot: labels above each other */
                 bool clash = false;
@@ -313,7 +402,7 @@ extern "C" void levelmap_draw(void)
             }
             if (nlabels < 8) { labels[nlabels][0] = l0.x; labels[nlabels][1] = l0.y; labels[nlabels][2] = l1.x; labels[nlabels][3] = l1.y; nlabels++; }
             dl->AddRectFilled(l0, l1, IM_COL32(20, 16, 12, 200), 3);
-            dl->AddText(ui_font_small ? ui_font_small : ImGui::GetFont(), UIS(17), ImVec2(l0.x + 3, l0.y + 1), IM_COL32(250, 236, 190, 255), lab);
+            dl->AddText(ui_font_small ? ui_font_small : ImGui::GetFont(), LS, ImVec2(l0.x + 3, l0.y + 1), IM_COL32(250, 236, 190, 255), lab);
         }
     }
     /* the party, and the enemies the party can see now */
@@ -352,15 +441,16 @@ extern "C" void levelmap_draw(void)
         float X = (s16)g_rw((u16)(b + CB_X)) / 32.0f, Y = (s16)g_rw((u16)(b + CB_Y)) / 16.0f;
         if (i >= 5 && !in_view_now((int)X, (int)Y)) continue;
         ImVec2 m = P(X, Y);
-        ImU32 col = i < 5 ? (st == 1 ? IM_COL32(70, 150, 230, 255) : IM_COL32(60, 90, 120, 255)) : (st == 1 ? IM_COL32(210, 60, 50, 255) : IM_COL32(110, 50, 45, 255));
+        if (i < 5) {                                           /* a member: their head, as on their box, in a blue ring (dimmed when down) */
+            float rh = fmaxf(r * 1.35f, LS * 0.8f), hs = rh * 1.7f;
+            dl->AddCircleFilled(m, rh, IM_COL32(18, 14, 10, 235));
+            dl->AddCircle(m, rh, st == 1 ? IM_COL32(70, 150, 230, 255) : IM_COL32(60, 90, 120, 255), 0, fmaxf(2.0f, rh * 0.14f));
+            ui_member_head(dl, i, ImVec2(m.x - hs / 1.2f * 0.5f, m.y - hs * 0.5f), hs, st == 1 ? IM_COL32_WHITE : IM_COL32(120, 120, 120, 255));
+            continue;
+        }
+        ImU32 col = st == 1 ? IM_COL32(210, 60, 50, 255) : IM_COL32(110, 50, 45, 255);
         dl->AddCircleFilled(m, r, col);
         dl->AddCircle(m, r, IM_COL32(10, 8, 6, 255), 0, 1.5f);
-        if (i < 5) {
-            char nm[16]; g_str(G_DGROUP, (u16)(G_MEMBER(i) + G_M_SHORTNAME), nm, sizeof nm);
-            char ini[3] = { nm[0] ? nm[0] : '?', (char)(nm[0] ? nm[1] : 0), 0 };     /* two letters: Gretch and Gunther */
-            float fs = r * 1.1f; ImVec2 ts = f->CalcTextSizeA(fs, FLT_MAX, 0, ini);
-            dl->AddText(f, fs, ImVec2(m.x - ts.x * 0.5f, m.y - ts.y * 0.5f), IM_COL32(255, 255, 255, 255), ini);
-        }
     }
     /* a click on a floor cell, a door or stairs the party has seen: the party walks there
        (mods/levelwalk.c) */
@@ -405,18 +495,27 @@ extern "C" void levelmap_draw(void)
             }
         }
     }
+    if (levelwalk_goal_floor == fl && levelwalk_goal_x >= 0) {   /* where a walk from the map is going: a gold ring */
+        ImVec2 g = P(levelwalk_goal_x / 32.0f, levelwalk_goal_y / 16.0f);
+        float rg = fmaxf(6.0f, s * 0.36f);
+        dl->AddCircle(g, rg, IM_COL32(20, 14, 6, 255), 0, fmaxf(3.0f, s * 0.12f));
+        dl->AddCircle(g, rg, IM_COL32(250, 210, 90, 255), 0, fmaxf(2.0f, s * 0.07f));
+        dl->AddCircleFilled(g, rg * 0.25f, IM_COL32(250, 210, 90, 255));
+    }
     floors_draw(dl, o, sz, fl, known, false);
     /* title and legend */
     char t[160];
     snprintf(t, sizeof t, all ? "The whole level  (floor %d)" : "The level, as far as the party has seen it  (floor %d)", fl + 1);
-    dl->AddText(f, UIS(22), ImVec2(o.x + 16, o.y + 14), IM_COL32(230, 214, 180, 255), t);
-    float lx = o.x + 16, ly = o.y + sz.y - UIS(30);
-    auto legend = [&](ImU32 c, const char *txt, bool circle) {
-        if (circle) dl->AddCircleFilled(ImVec2(lx + UIS(7), ly + UIS(9)), UIS(7), c); else dl->AddRectFilled(ImVec2(lx, ly + UIS(3)), ImVec2(lx + UIS(16), ly + UIS(15)), c);
-        dl->AddText(f, UIS(18), ImVec2(lx + UIS(22), ly), IM_COL32(220, 205, 170, 255), txt);
-        lx += UIS(30) + f->CalcTextSizeA(UIS(18), FLT_MAX, 0, txt).x;
+    dl->AddText(f, TS, ImVec2(o.x + 16, o.y + 14), IM_COL32(230, 214, 180, 255), t);
+    float lx = o.x + 16, ly = o.y + sz.y - LS * 1.5f;
+    auto legend = [&](ImU32 c, const char *txt, int circle) {
+        float u = LS / 18.0f;
+        if (circle == 2) { dl->AddCircleFilled(ImVec2(lx + 7 * u, ly + 9 * u), 7 * u, IM_COL32(18, 14, 10, 255)); dl->AddCircle(ImVec2(lx + 7 * u, ly + 9 * u), 7 * u, c, 0, 2.0f); }
+        else if (circle) dl->AddCircleFilled(ImVec2(lx + 7 * u, ly + 9 * u), 7 * u, c); else dl->AddRectFilled(ImVec2(lx, ly + 3 * u), ImVec2(lx + 16 * u, ly + 15 * u), c);
+        dl->AddText(f, LS, ImVec2(lx + 22 * u, ly), IM_COL32(220, 205, 170, 255), txt);
+        lx += 30 * u + f->CalcTextSizeA(LS, FLT_MAX, 0, txt).x;
     };
-    legend(IM_COL32(70, 150, 230, 255), "party", true);
+    legend(IM_COL32(70, 150, 230, 255), "party", 2);
     legend(IM_COL32(210, 60, 50, 255), "enemies seen", true);
     legend(FLOOR_NOW, "in view now", false);
     legend(IM_COL32(90, 170, 250, 220), "arrows: who targets whom", false);
@@ -424,7 +523,12 @@ extern "C" void levelmap_draw(void)
     legend(FURN, "furniture", false);
     legend(STAIRS, "stairs, ways out", false);
     if (all) legend(HIDDEN, "not yet revealed", false);
-    dl->AddText(f, UIS(18), ImVec2(lx + 10, ly), IM_COL32(170, 155, 125, 255), walk ? "Click the floor to walk the party there. Tab or Esc closes the level map; the game is paused until then." : "Tab or Esc closes the level map; the game is paused until then.");
+    {   /* (what a click does, on a line of its own above the legend when the legend leaves no room) */
+        const char *how = walk ? "Click the floor to walk the party there (the map closes, and they go). Tab or Esc closes the level map; the game is paused until then." : "Tab or Esc closes the level map; the game is paused until then.";
+        float hw = f->CalcTextSizeA(LS, FLT_MAX, 0, how).x;
+        if (lx + 10 + hw > o.x + sz.x - 16) { lx = o.x + 16 - 10; ly -= LS * 1.4f; }
+        dl->AddText(f, LS, ImVec2(lx + 10, ly), IM_COL32(170, 155, 125, 255), how);
+    }
     ImGui::End();
 }
 
