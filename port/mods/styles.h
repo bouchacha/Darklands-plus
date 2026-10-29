@@ -18,6 +18,7 @@ int style_suggested(int m);             /* a missile weapon in hand: Skirmisher;
 void style_set(int m, int st);          /* -1: back to the suggested one */
 const char *style_name(int st);
 const char *style_brief(int st);        /* one line: what the member does */
+extern const char *STYLE_NOTE;          /* what a way is not: no bonus or penalty, an order takes over */
 void style_test_set(int m, int st);     /* (tests: member m's way for this session only; -1 none) */
 #ifdef __cplusplus
 }

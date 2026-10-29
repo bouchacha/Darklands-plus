@@ -537,16 +537,20 @@ extern "C" void partypanel_draw(void)
         draw_notes(P, m, 1.6f, y0 + 9.0f, 58.4f, y0 + 38.4f);              /* (a skill grown ... over the box's lower part) */
     }
     draw_notes(P, 5, 1.6f, 60.0f, 58.4f, 140.0f);
-    /* the chooser of a member's way of fighting, beside their box: each way's picture and name, what it does
-       under the pointer; the way they have now marked, and the one their weapons suggest */
+    /* the chooser of a member's way of fighting, beside their box: what a way is (and is not), then each way's
+       picture, name and what it does; the way they have now marked, and the one their weapons suggest */
     if (chooser_m >= 0 && (!battle || chooser_m >= size || gm_member_status(chooser_m) != 1 || !combat_improved())) chooser_m = -1;
     if (chooser_m >= 0) {
         int m = chooser_m, own = style_of(m), sug = style_suggested(m);
         char nm[32]; gm_member_name(m, nm, sizeof nm);
-        std::string name = ns_gtext(nm), head = name + " fights:";
-        const float rh = 10.6f, w = 86.0f, hh = 9.0f;
-        float x0 = 61.0f, y0 = 40.0f * m + 1.2f, h = hh + rh * STYLE_CHOICES + 2.0f;
+        std::string name = ns_gtext(nm), head = name + "'s way of fighting";
+        const float w = 150.0f, tx = 14.0f, tw = w - tx - 3.0f;
+        float rh[STYLE_CHOICES], h = 2.0f + 7.0f + P.para_height(P.fo, NsDraw::FS_SMALL, w - 6.0f, STYLE_NOTE) + 2.5f;
+        for (int k = 0; k < STYLE_CHOICES; k++) { rh[k] = 1.4f + 6.6f + P.para_height(P.fo, NsDraw::FS_SMALL, tw, style_brief(STYLE_ORDER[k])) + 1.6f; h += rh[k]; }
+        h += 1.5f;
+        float x0 = 61.0f, y0 = 40.0f * m + 1.2f;
         if (y0 + h > 198.0f) y0 = 198.0f - h;
+        if (y0 < 1.0f) y0 = 1.0f;
         /* (in a window of its own, without inputs: over the field and its marks, under the tooltips) */
         ImVec2 wa = NsDraw::w(x0 - 1.0f, y0 - 1.0f), wb = NsDraw::w(x0 + w + 1.0f, y0 + h + 1.0f);
         ImGui::SetNextWindowPos(wa); ImGui::SetNextWindowSize(ImVec2(wb.x - wa.x, wb.y - wa.y));
@@ -556,24 +560,23 @@ extern "C" void partypanel_draw(void)
         ImDrawList *bg = P.dl; P.dl = ImGui::GetWindowDrawList();
         P.rect(x0, y0, x0 + w, y0 + h, IM_COL32(26, 19, 13, 248), 2);
         P.frame(x0, y0, x0 + w, y0 + h, IM_COL32(170, 132, 70, 255), 2);
-        P.text(P.fo, NsDraw::FS_SMALL, x0 + 3.0f, y0 + 2.2f, DIM, head, -1, x0 + w - 2.0f);
+        float y = y0 + 2.0f;
+        P.text(P.f, NsDraw::FS_NAME, x0 + 3.0f, y, CREAM, head, -1, x0 + w - 2.0f);
+        y += 7.0f;
+        y += P.para(P.fo, NsDraw::FS_SMALL, x0 + 3.0f, y, w - 6.0f, DIM, STYLE_NOTE) + 2.5f;
         if (choices_frame != ImGui::GetFrameCount()) { choices = 0; choices_frame = ImGui::GetFrameCount(); }
         for (int k = 0; k < STYLE_CHOICES; k++) {
             int stl = STYLE_ORDER[k];
-            float ry = y0 + hh + rh * k, ry1 = ry + rh - 0.6f;
+            float ry = y, ry1 = y + rh[k] - 0.6f;
             bool hov = P.over(x0 + 1.0f, ry, x0 + w - 1.0f, ry1), cur = stl == own;
             if (cur) P.rect(x0 + 1.2f, ry, x0 + w - 1.2f, ry1, IM_COL32(92, 66, 30, 255), 1.2f);
             else if (hov) P.rect(x0 + 1.2f, ry, x0 + w - 1.2f, ry1, IM_COL32(60, 44, 26, 255), 1.2f);
-            ui_draw_style_icon(P.dl, NsDraw::w(x0 + 6.6f, ry + rh * 0.5f - 0.3f), 8.6f * P.k, stl);
-            P.text(P.f, NsDraw::FS_NAME, x0 + 12.6f, ry + 1.6f, cur ? GOLD : CREAM, style_name(stl));
-            if (stl == sug) P.text(P.fo, NsDraw::FS_SMALL, 0, ry + 2.6f, GREY, "usual", x0 + w - 2.6f);
+            ui_draw_style_icon(P.dl, NsDraw::w(x0 + 7.0f, ry + 5.0f), 9.0f * P.k, stl);
+            P.text(P.f, NsDraw::FS_NAME, x0 + tx, ry + 1.4f, cur ? GOLD : CREAM, style_name(stl));
+            if (stl == sug) P.text(P.fo, NsDraw::FS_SMALL, 0, ry + 2.2f, GREY, "usual", x0 + w - 2.6f);
+            P.para(P.fo, NsDraw::FS_SMALL, x0 + tx, ry + 8.0f, tw, cur ? CREAM : DIM, style_brief(stl));
             if (choices < STYLE_CHOICES) choice[choices++] = { x0 + 1.0f, ry, x0 + w - 1.0f, ry1, stl };
-            if (hov) {
-                char t[600];
-                snprintf(t, sizeof t, "%s: %s%s", style_name(stl), style_brief(stl),
-                         stl == sug ? "\nThe usual way for one with what they hold, until you choose another." : "");
-                ns_tip(t, 26);
-            }
+            y += rh[k];
         }
         P.dl = bg;
         ImGui::End(); ImGui::PopStyleVar(2);

@@ -18,14 +18,15 @@ const int STYLE_ORDER[STYLE_CHOICES] = { ST_SKIRMISHER, ST_ARCHER, ST_FOOTMAN, S
 
 static const char *NAMES[ST_N] = { "Manual", "Archer", "Skirmisher", "Man-at-arms", "Charger", "", "", "Holding where sent" };
 static const char *BRIEF[ST_N] = {
-    "The original game's way: no orders of its own, every order yours.",
-    "Shoots from the start and all fight long, each archer at a foe of its own, the enemy's shooters first; fights only a foe that reaches it, then takes up the bow again.",
-    "Shoots while the enemies come; once one is close, draws the melee weapon for the rest of the fight and fights as a Man-at-arms.",
-    "Stays with the party while the others shoot; when the enemies are close, joins a friend's fight (two on one) or takes a foe no one fights yet, until the end.",
-    "Goes at the enemies from the start: their shooters first, then the nearest one no one of the party fights yet.",
+    "As in the original game: they wait for your orders.",
+    "Shoots all fight, each archer at a different enemy; fights hand to hand only when reached, then shoots again.",
+    "Shoots while the enemy approaches, then fights hand to hand to the end of the fight.",
+    "Waits while the others shoot; when the enemy is close, joins a friend's fight or takes on a free enemy.",
+    "Goes straight for the enemy, their archers first.",
     "", "",
-    "Holds where you sent them: shoots what they can see from there, fights only a foe that reaches them.",
+    "Holds where you sent them: shoots what they can see, fights only an enemy that reaches them.",
 };
+const char *STYLE_NOTE = "This only sets what they do when you haven't given an order. No bonus, no penalty, and any order you give takes over.";
 const char *style_name(int st) { return st >= 0 && st < ST_N ? NAMES[st] : ""; }
 const char *style_brief(int st) { return st >= 0 && st < ST_N ? BRIEF[st] : ""; }
 

@@ -125,7 +125,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:160` | Click an enemy to attack it |
 | `mods/options.c:160` | a click on an enemy sends the selected member to attack it, even before an attack is chosen: a standard attack, or with Improved combat a Vulnerable one where only that gets through the enemy's armor. |
 | `mods/options.c:161` | Way of fighting on each member's box |
-| `mods/options.c:161` | in a battle, each member's box in the party panel shows their way of fighting, what they do until you give them an order. Click it to choose another; each character keeps their way from battle to battle. A gold ring round it: an order of yours is their way for the rest of this fight. |
+| `mods/options.c:161` | in a battle, each member's box in the party panel shows their way of fighting, what they do until you give them an order. Click it to choose another; each character keeps their way from battle to battle. It only sets what they do while you give them no order: no bonus, no penalty, and any order you give takes over (a gold ring round the picture: for the rest of this fight). |
 | `mods/options.c:162` | Click a member's box to give them orders |
 | `mods/options.c:162` | in a battle, a click on a member's box in the party panel selects them for orders, as 1 to 5 do (a double-click also moves the view to them); a right-click on the box opens their character sheet. When off: a click on the box opens the sheet, as in the original. |
 | `mods/options.c:163` | One click gives an order |
@@ -646,27 +646,30 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/battlelog.cpp:338` | No battle yet: the battle log shows here, blow by blow, during each battle and after it. |
 | `ui/battlelog.cpp:341` | The last battle |
 | `ui/battlelog.cpp:342` | The battle before |
-| `ui/battleoverlay.cpp:239` | Click: attack |
-| `ui/battleoverlay.cpp:239` | No clear shot |
-| `ui/battleoverlay.cpp:270` | Each member's way of fighting |
-| `ui/battleoverlay.cpp:271` | The picture at the lower left of each member's box is their way of fighting: what they do until you give them an order. Click it to choose another:  Skirmisher: shoots while the enemies come, then fights hand to hand to the end (the usual way for one holding a missile weapon). Archer: shoots all fight long; fights hand to hand only an enemy that reaches them, then shoots again. Man-at-arms: waits while the others shoot, then joins a friend's fight or takes a free enemy (the usual way for the others). Charger: at the enemy from the start, their shooters first. Manual: the original's way; you give every order.  An order you give is that member's way for the rest of the fight. Each character keeps their way from battle to battle. |
-| `ui/battleoverlay.cpp:279` | Darklands+; F12 > Settings > Battles > Improved combat. |
-| `ui/battleoverlay.cpp:288` | Battles need fewer clicks |
-| `ui/battleoverlay.cpp:289` | Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.  Each member fights in their own way until you give them an order: the picture at the lower left of their box. Click it to choose another (Skirmisher, Archer, Man-at-arms, Charger, or Manual). An order you give is their way for the rest of that fight.  Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.  While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does. |
-| `ui/battleoverlay.cpp:295` | All this is Darklands+; each part can be switched off, for the game's own ways, in F12 > Settings > Battles. F11 lists the battle's keys and clicks. |
-| `ui/battleoverlay.cpp:358` | The nearest enemy is this way: click to look |
-| `ui/battleoverlay.cpp:401` | a little hurt |
-| `ui/battleoverlay.cpp:402` | gravely wounded |
-| `ui/battleoverlay.cpp:411` | Melee rating %d, aim %d |
-| `ui/battleoverlay.cpp:412` | Melee rating %d |
-| `ui/battleoverlay.cpp:414` | The master of this place: once this enemy has fallen and the fight is over, the place is won. |
-| `ui/battleoverlay.cpp:424` | Natural weapons |
-| `ui/battleoverlay.cpp:432` | %s (hardness %d) |
-| `ui/battleoverlay.cpp:433` | Natural armor, hardness %d (as %s) |
-| `ui/battleoverlay.cpp:434` | No armor (hardness 0) |
-| `ui/battleoverlay.cpp:448` | mostly deflected |
-| `ui/battleoverlay.cpp:477` | \xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z) |
-| `ui/battleoverlay.cpp:480` | >> fast forward  (Z) |
+| `ui/battleoverlay.cpp:240` | Click: attack |
+| `ui/battleoverlay.cpp:240` | No clear shot |
+| `ui/battleoverlay.cpp:271` | The picture at the lower left of each member's box is their way of fighting: what they do until you give them an order.  |
+| `ui/battleoverlay.cpp:271` | Click it to choose another.  |
+| `ui/battleoverlay.cpp:276` |  Skirmisher is the usual way for someone holding a bow, crossbow, gun or thrown weapon, Man-at-arms for the others.  |
+| `ui/battleoverlay.cpp:276` | Each character keeps the way you choose, battle to battle. |
+| `ui/battleoverlay.cpp:278` | Each member's way of fighting |
+| `ui/battleoverlay.cpp:278` | Darklands+; F12 > Settings > Battles > Improved combat. |
+| `ui/battleoverlay.cpp:287` | Battles need fewer clicks |
+| `ui/battleoverlay.cpp:288` | Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.  Each member fights in their own way until you give them an order: the picture at the lower left of their box. Click it to choose another (Skirmisher, Archer, Man-at-arms, Charger, or Manual). An order you give is their way for the rest of that fight.  Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.  While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does. |
+| `ui/battleoverlay.cpp:294` | All this is Darklands+; each part can be switched off, for the game's own ways, in F12 > Settings > Battles. F11 lists the battle's keys and clicks. |
+| `ui/battleoverlay.cpp:357` | The nearest enemy is this way: click to look |
+| `ui/battleoverlay.cpp:400` | a little hurt |
+| `ui/battleoverlay.cpp:401` | gravely wounded |
+| `ui/battleoverlay.cpp:410` | Melee rating %d, aim %d |
+| `ui/battleoverlay.cpp:411` | Melee rating %d |
+| `ui/battleoverlay.cpp:413` | The master of this place: once this enemy has fallen and the fight is over, the place is won. |
+| `ui/battleoverlay.cpp:423` | Natural weapons |
+| `ui/battleoverlay.cpp:431` | %s (hardness %d) |
+| `ui/battleoverlay.cpp:432` | Natural armor, hardness %d (as %s) |
+| `ui/battleoverlay.cpp:433` | No armor (hardness 0) |
+| `ui/battleoverlay.cpp:447` | mostly deflected |
+| `ui/battleoverlay.cpp:476` | \xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z) |
+| `ui/battleoverlay.cpp:479` | >> fast forward  (Z) |
 | `ui/bestiary.cpp:38` | Could not read DARKLAND.ENM. |
 | `ui/bestiary.cpp:42` | DARKLAND.ENM has an unexpected size. |
 | `ui/bestiary.cpp:90` | natural weapons |
@@ -1723,7 +1726,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/partypanel.cpp:505` | %s fights as %s for the rest of this fight: your order. Their way: %s. Click to choose a way of fighting (it applies at once). |
 | `ui/partypanel.cpp:506` | %s is on Manual: %s Click to choose a way of fighting. |
 | `ui/partypanel.cpp:507` | %s fights as %s until you give them an order: %s Click to choose another way. |
-| `ui/partypanel.cpp:574` |  The usual way for one with what they hold, until you choose another. |
+| `ui/partypanel.cpp:546` | 's way of fighting |
 | `ui/prayview.cpp:38` |  calls on the saint for the whole party: |
 | `ui/prayview.cpp:38` |  calls on the saint: |
 | `ui/prayview.cpp:52` | This saint asks a {Virtue} of %d of the one who prays. %s%s |
@@ -3268,12 +3271,13 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/sheetview.c:374` | Left behind: a %s. Undo takes it back. |
 | `mods/sheetview.c:381` | %s drinks the %s. |
 | `mods/styles.c:19` | Holding where sent |
-| `mods/styles.c:21` | The original game's way: no orders of its own, every order yours. |
-| `mods/styles.c:22` | Shoots from the start and all fight long, each archer at a foe of its own, the enemy's shooters first; fights only a foe that reaches it, then takes up the bow again. |
-| `mods/styles.c:23` | Shoots while the enemies come; once one is close, draws the melee weapon for the rest of the fight and fights as a Man-at-arms. |
-| `mods/styles.c:24` | Stays with the party while the others shoot; when the enemies are close, joins a friend's fight (two on one) or takes a foe no one fights yet, until the end. |
-| `mods/styles.c:25` | Goes at the enemies from the start: their shooters first, then the nearest one no one of the party fights yet. |
-| `mods/styles.c:27` | Holds where you sent them: shoots what they can see from there, fights only a foe that reaches them. |
+| `mods/styles.c:21` | As in the original game: they wait for your orders. |
+| `mods/styles.c:22` | Shoots all fight, each archer at a different enemy; fights hand to hand only when reached, then shoots again. |
+| `mods/styles.c:23` | Shoots while the enemy approaches, then fights hand to hand to the end of the fight. |
+| `mods/styles.c:24` | Waits while the others shoot; when the enemy is close, joins a friend's fight or takes on a free enemy. |
+| `mods/styles.c:25` | Goes straight for the enemy, their archers first. |
+| `mods/styles.c:27` | Holds where you sent them: shoots what they can see, fights only an enemy that reaches them. |
+| `mods/styles.c:29` | This only sets what they do when you haven't given an order. No bonus, no penalty, and any order you give takes over. |
 | `mods/teachers.c:25` | Blacksmiths' guild |
 | `mods/teachers.c:25` | In the daytime, go to the blacksmiths' guild and choose "request a meeting with the guild's masters". |
 | `mods/teachers.c:26` | Swordsmiths' guild |

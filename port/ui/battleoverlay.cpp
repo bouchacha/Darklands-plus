@@ -10,6 +10,7 @@
 #include <string>
 #include "alerts.h"
 #include "../mods/losaim.h"
+#include "../mods/styles.h"
 #include <vector>
 #include "imgui.h"
 #include "richtext.h"
@@ -267,16 +268,14 @@ static void ways_intro(void)
 {
     if (config_get_int("battle.ways_seen", 0) || !config_get_int("battle.intro_seen", 0) || !combat_improved() || !config_get_int("battle.volley_toggle", 1)) return;
     config_set_int("battle.ways_seen", 1); config_save();
-    ui_alert("Each member's way of fighting",
-             "The picture at the lower left of each member's box is their way of fighting: what they do until you give them an order. "
-             "Click it to choose another:\n\n"
-             "Skirmisher: shoots while the enemies come, then fights hand to hand to the end (the usual way for one holding a missile weapon).\n"
-             "Archer: shoots all fight long; fights hand to hand only an enemy that reaches them, then shoots again.\n"
-             "Man-at-arms: waits while the others shoot, then joins a friend's fight or takes a free enemy (the usual way for the others).\n"
-             "Charger: at the enemy from the start, their shooters first.\n"
-             "Manual: the original's way; you give every order.\n\n"
-             "An order you give is that member's way for the rest of the fight. Each character keeps their way from battle to battle.",
-             "Darklands+; F12 > Settings > Battles > Improved combat.");
+    std::string t = "The picture at the lower left of each member's box is their way of fighting: what they do until you give them an order. "
+                    "Click it to choose another. ";
+    t += STYLE_NOTE;
+    t += "\n\n";
+    for (int k = 0; k < STYLE_CHOICES; k++) { t += style_name(STYLE_ORDER[k]); t += ": "; t += style_brief(STYLE_ORDER[k]); t += "\n"; }
+    t += "\nSkirmisher is the usual way for someone holding a bow, crossbow, gun or thrown weapon, Man-at-arms for the others. "
+         "Each character keeps the way you choose, battle to battle.";
+    ui_alert("Each member's way of fighting", t.c_str(), "Darklands+; F12 > Settings > Battles > Improved combat.");
 }
 /* the first battle with the easier controls: what changed, once (battle.intro_seen) */
 static void battle_intro(void)
