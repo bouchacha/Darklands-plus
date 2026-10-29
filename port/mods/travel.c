@@ -36,6 +36,7 @@ static int mw, mh;
 TravelState travel;
 int travel_enabled = 1, travel_fast = 1;          /* fast: 0 normal, 1 4x, 2 instant */
 int travel_step_result = -1;                      /* what the last step on the map led to (1000: a random encounter) */
+static int travel_min_left = -1, travel_stall;    /* the journey's progress: the least time left yet, the steps since it last fell */
 
 /* minutes per one-pixel step by terrain (s030 1462:2ac8; with a saint's speed, mods/sainttexts.h) */
 static int minutes_base(int t);
@@ -88,6 +89,7 @@ int travel_terrain(int x, int y) { return terr && x >= 0 && y >= 0 && x < mw && 
 static int *dist, *prev;
 static unsigned char *site;           /* tiles of locations (stepping on one enters it) */
 static int field_x = -1, field_y = -1, field_seq;
+void travel_test_terrain(int x, int y, int t) { if (load_map() && x >= 0 && y >= 0 && x < mw && y < mh) { terr[y * mw + x] = (unsigned char)t; field_x = -1; } }   /* (test uterrain: our copy only, the game's map unchanged) */
 
 static short *enter;                  /* the location stepping on a tile enters, -1 none */
 
@@ -228,7 +230,7 @@ int travel_to_tile(int x, int y, int loc, const char *name)
     if (!plan(x, y)) return 0;
     travel.active = 1; travel.loc = loc; travel.tx = x; travel.ty = y;
     snprintf(travel.name, sizeof travel.name, "%s", name ? name : "");
-    travel.replan = 0;
+    travel.replan = 0; travel_min_left = -1; travel_stall = 0;
     fprintf(stderr, "travel: to %s (%d,%d) from (%d,%d): %d tiles, %d minutes\n", travel.name, x, y, px, py, travel.n, travel.minutes);
     { void plat_swallow_click(void); plat_swallow_click(); }   /* (the click that set it off: not for the game) */
     return 1;
@@ -375,26 +377,10 @@ static void step_hook(void)                 /* s030 1462:0c44 (key): one step of
             /* where on the route are we? (after an encounter the party may stand elsewhere) */
             int found = -1;
             for (int k = travel.i - 1; k < travel.n && k < travel.i + 3; k++) if (k >= 0 && travel.rx[k] == px && travel.ry[k] == py) found = k;
-            if (found < 0) { field(px, py); if (!plan(travel.tx, travel.ty)) travel.active = 0; found = 0; }
+            if (found < 0) { field(px, py); if (!plan(travel.tx, travel.ty)) travel.active = 0; found = 0; travel_min_left = -1; }   /* (elsewhere: its progress counted from here) */
             if (travel.active) {
                 travel.i = found + 1;
                 if (travel.i >= travel.n) { travel.active = 0; if (getenv("DL_TRAVEL_LOG")) fprintf(stderr, "travel: arrived at (%d,%d)\n", px, py); }   /* arrived (a location is entered by the game) */
-            }
-            if (travel.active) {
-                int mx, my; marker_target(travel.rx[travel.i], travel.ry[travel.i], &mx, &my);
-                int x = (s16)g_rw(GV_map_marker_x), y = (s16)g_rw(GV_map_marker_y);
-                /* a safety: the party has not moved for many steps (each costs time): stop rather
-                   than let the days pass where it stands */
-                static int last_x = -1, last_y = -1, still;      /* (the tile: a tile takes at most some 16 steps to cross) */
-                (void)x; (void)y; (void)mx; (void)my;
-                if (px == last_x && py == last_y) still++; else still = 0;
-                last_x = px; last_y = py;
-                if (still > 150) {
-                    void ui_notice(const char *);
-                    still = 0; travel.active = 0;
-                    fprintf(stderr, "travel: stopped, the party did not move for 150 steps at (%d,%d)\n", px, py);
-                    ui_notice("Travel stopped: the party could not get any further this way.");
-                }
             }
             if (travel.active) {
                 int mx, my; marker_target(travel.rx[travel.i], travel.ry[travel.i], &mx, &my);
@@ -426,10 +412,25 @@ static void step_hook(void)                 /* s030 1462:0c44 (key): one step of
                     else if (y > my) k = 0x4800; else if (y < my) k = 0x5000;
                 }
                 ww(SS, (u16)(SP + 4), k);
+                { static int lg = -1; if (lg < 0) lg = getenv("DL_TRAVEL_STEPS") != 0;
+                  if (lg) fprintf(stderr, "travel step: tile (%d,%d) next (%d,%d) marker %d,%d target %d,%d view %d+%d col %d key %04x\n", px, py, nx, ny, x, y, mx, my,
+                                  (s16)g_rw(GV_map_buf_row), (s16)g_rw(GV_map_view_row), (s16)g_rw(GV_map_view_col), k); }
                 int left = 0, from = py * mw + px;
                 (void)from;
                 if (field_x >= 0) { int d = dist[travel.ty * mw + travel.tx], here = dist[py * mw + px]; left = d - (here == 0x7fffffff ? 0 : here); }
                 travel.left = left;
+                /* a safety: the journey has got no nearer its end for many steps (each costs time): stop rather than let
+                   the days pass where the party stands, or walks to and fro (water the game found in the way, again and
+                   again, where the map has none: after RC8 a party walked in place by the bridge north of Nymwegen, cause not found) */
+                if (travel_min_left < 0 || left < travel_min_left) { travel_min_left = left; travel_stall = 0; }
+                else if (++travel_stall > 150) {
+                    void ui_notice(const char *);
+                    travel.active = 0; travel_stall = 0;
+                    fprintf(stderr, "travel: stopped, no nearer in 150 steps: tile (%d,%d) terrain %d, next (%d,%d) terrain %d, marker %d,%d, view %d+%d col %d, last step %d\n",
+                            px, py, travel_terrain(px, py), nx, ny, travel_terrain(nx, ny), x, y, (s16)g_rw(GV_map_buf_row), (s16)g_rw(GV_map_view_row),
+                            (s16)g_rw(GV_map_view_col), travel_step_result);
+                    ui_notice("Travel stopped: the party could not get any further this way.");
+                }
             }
         }
     }

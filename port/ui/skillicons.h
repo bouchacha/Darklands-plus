@@ -22,6 +22,11 @@ int ui_key_of(const char *name, int len);                         /* the key of 
    shield's size, the value in font f at size fs; returns the width (pixels) */
 float ui_shield_value(ImDrawList *dl, ImVec2 left_mid, float s, int key, const char *value, ImFont *f, float fs, ImU32 col);
 void ui_dim_since(ImDrawList *dl, int v0, float k);               /* what was drawn into dl since vertex v0, faded to alpha k */
+void ui_darken_since(ImDrawList *dl, int v0, float k);            /* the same darkened to k, kept opaque: on a dark ground, a shield's layers (its shadow, the parts
+                                                                      of its charge) do not show through each other as a fade lets them */
+/* what is at work that is not an attribute or a skill (ui/effects.h EI_*), on a roundel; src 1 a potion's, 2 a saint's (a mark
+   at its foot), 0 not shown */
+void ui_effect_icon(ImDrawList *dl, ImVec2 c, float s, int what, int src);
 extern int ui_icon_rank;                                          /* for the next shield: 1..3 chevronels on its field (how much), -1..-3 reversed in red (what it costs); 0 none */
 void ui_tab_icon(ImDrawList *dl, ImVec2 c, float s, int tab);     /* the F12 window's tab */
 void ui_equip_icon(ImDrawList *dl, ImVec2 c, float s, int type);  /* an equipment type (LST type), inventory.cpp */

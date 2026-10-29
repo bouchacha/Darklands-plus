@@ -3,7 +3,6 @@
 // abbreviations spelled out and the skills' pictures), the chances beside the original cards'
 // options, and the pointer drawn live. Split from ui/overlay.cpp (overlay_parts.h).
 #include "money.h"
-#include "pointer.h"
 #include <stdio.h>
 #include <sys/stat.h>
 #ifdef _WIN32
@@ -459,30 +458,6 @@ extern "C" void hdtext_draw(void)
     }
 }
 
-/* the drawn pointer's hand and badge (ui/pointer.h) for the game's sprite, PTR_GAME for one it has no
-   drawing of: the gauntlet (cursor_default; a battle's, unpaused or paused: the pause on its cuff), a
-   fist while the button is held and the pointer has moved (a drag); crossed blades over a foe in a
-   battle, an hourglass while Go to walks */
-extern "C" int citynav_walking(void);
-extern "C" int orders_pointer_target(void);                  /* mods/orders.c */
-static int pointer_look(int *badge)
-{
-    *badge = PTR_PLAIN;
-    if (!config_get_int("display.pointer_drawn", 1)) return PTR_GAME;
-    unsigned seg = hdtext_cursor_seg();
-    bool battle = seg && seg == g_rw(GV_cursor_battle), paused = seg && seg == g_rw(GV_cursor_battle_paused);
-    if (!battle && !paused && !(seg && seg == g_rw(GV_cursor_default))) return PTR_GAME;
-    int ct = (battle || paused) ? orders_pointer_target() : -1;   /* (the game tests the pointer only while its button is held: mods/orders.c tests it as it moves) */
-    if (paused) *badge = PTR_PAUSED;
-    if (ct >= 5 && ct < 13) *badge = PTR_ATTACK;
-    if (citynav_walking()) *badge = PTR_BUSY;
-    static ImVec2 down_at; static bool held;
-    ImGuiIO &io = ImGui::GetIO();
-    if (io.MouseDown[0] && !held) { held = true; down_at = io.MousePos; }
-    if (!io.MouseDown[0]) held = false;
-    return held && fabsf(io.MousePos.x - down_at.x) + fabsf(io.MousePos.y - down_at.y) > 6 ? PTR_GRAB : PTR_POINT;
-}
-
 /* the game's pointer again, over the crisp text and the helpers' marks (as over the picture),
  * where the mouse is now (hdtext.c: the game's own sprite is taken out of the picture) */
 static int pointer_drawn;                                    /* this frame (hdtext_live_pointer for the next) */
@@ -508,13 +483,6 @@ extern "C" void hdtext_draw_cursor(void)
     }
     ptr_lo = g2w(fx, fy); ptr_hi = g2w(fx + w, fy + h); ptr_frame = ImGui::GetFrameCount();
     ImDrawList *dl = ImGui::GetForegroundDrawList();
-    int badge = PTR_PLAIN, look = pointer_drawn ? pointer_look(&badge) : PTR_GAME;   /* (drawn anew only where the game's own sprite is taken out of the picture) */
-    if (look != PTR_GAME) {                                   /* the gauntlet drawn anew (ui/pointer.cpp), over the sprite's box */
-        int hx, hy; hdtext_pointer_hotspot(&hx, &hy);
-        float kx = g2w(fx + 1, fy).x - g2w(fx, fy).x, s = w / 26.0f;
-        ui_pointer_draw(dl, g2w(fx - hx, fy - hy), kx * 1.1f * s, look, badge);
-        return;
-    }
     for (int r = 0; r < h; r++) {
         if (fy + r < 0 || fy + r >= 200) continue;
         for (int c = 0; c < w; c++) {

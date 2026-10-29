@@ -28,6 +28,8 @@ static void tr_auto(int v) { travel_set(v, travel_fast); }
 static void tr_fast(int v) { travel_set(travel_enabled, v); }
 static void click_attack(int v) { orders_click_attack = v; }
 static void return_thrown(int v) { loot_return_thrown = v; }
+void loot_ingredients_set(int on);
+static void ingredients_one(int v) { loot_ingredients_set(v); }
 static void fast_key(int v) { if (!v) battle_fast_set(0); }
 static void auto_arrive(int v) { saves_auto_arrive = v; }
 static void auto_battle(int v) { saves_auto_battle = v; }
@@ -142,6 +144,7 @@ static Option OPTIONS[] = {
     { "journal.enabled", S_CARDS, 0, "Note each town's shops and wares", "each town's shops, their wares, qualities and prices, noted on arrival (shown on the world map, M). Switched in F12 > Journal.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
     { "journal.chronicle", S_CARDS, "journal.enabled", "Chronicle", "every text the cards show, word for word, with the date, the place and the choice made, so a clue read weeks ago can be found again (F12 > Journal > Chronicle, where it is switched).", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
 
+    { "rules.ingredients_one_quality", S_PARTY, 0, "Ingredients of one quality", "every ingredient is of quality 25, whoever finds, buys or carries it: its quality only ever changed its price (alchemy takes ingredients by kind and number, and a potion's quality is the formula's), and two of one kind at two qualities were two entries everywhere. Those carried already join as a game is loaded.", OC_PLUS, 0, 1, 1, 0, 0, ingredients_one },
     { "assist.return_thrown", S_PARTY, 0, "Thrown weapons picked up after a battle", "when the loot screen opens after a battle, the javelins, throwing axes, throwing knives and darts each member threw are taken from the pile and given back to them.", OC_EASE, 0, 1, 1, 0, 0, return_thrown },
     { "assist.endless", S_PARTY, 0, "Endless ammunition and thrown weapons", "arrows, quarrels and balls, and javelins, throwing axes, throwing knives and darts, never run out (one is enough to shoot or throw); enemies still use up theirs. When off: each shot uses one, and about 7 in 10 arrows and quarrels can be picked up in the loot afterwards; with the shared pack they are then each member's own, listed with them like potions (picked-up ones go to whoever shoots them; drag them onto another member to hand them over).", OC_PLUS, 0, 1, 1, 0, 0, 0, 0, 0, 6, bundle_set },
     { "assist.infinite_ammo", S_PARTY, 0, "Endless ammunition", "arrows, quarrels and balls never run out (one is enough to shoot); enemies still use up theirs. When off: each shot uses one, and about 7 in 10 arrows and quarrels can be picked up in the loot afterwards; with the shared pack they are then each member's own, listed with them like potions.", OC_PLUS, 0, 1, 1, 0, 0, ammo_set },
@@ -219,7 +222,6 @@ static Option OPTIONS[] = {
     { "display.scaler", S_OTHER, 0, "Rounded edges", "the stair-steps of diagonal edges rounded off (Rounded edges in F12 > Settings > Screen): 0 as drawn, 1 and 2 rounded.", OC_LOOK, 0, 0, 0, 0, 0, 0, 0, OF_ELSEWHERE },
     { "display.system_cursor", S_OTHER, 0, "System pointer", "the system's mouse pointer over the game too.", OC_LOOK, 0, 0, 0, 0, 0, 0, 0, OF_ELSEWHERE },
     { "display.live_pointer", S_OTHER, 0, "Smooth pointer", "the game's mouse pointer moves as smoothly as the system's.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
-    { "display.pointer_drawn", S_OTHER, 0, "Drawn pointer", "the game's armored gauntlet drawn anew, crisp at any size: a fist while something is dragged; on its cuff the pause in a paused battle, crossed blades over a foe, an hourglass while Go to walks (else the game's little picture).", OC_LOOK, 0, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
     { "display.ui_scale", S_OTHER, 0, "Size of the menus", "the size of Darklands+'s menus in percent (0: the system's scale), after a restart.", OC_LOOK, 0, 0, 0, 0, 0, 0, 0, OF_ELSEWHERE },
     { "display.pause_unfocused", S_OTHER, 0, "Pause in the background", "the game pauses while its window is in the background.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
     { "display.opening", S_OTHER, 0, "Intro at start-up", "the intro: 0 nothing, 1 the last scene, 2 the whole (-1: the whole the first time).", OC_LOOK, -1, -1, -1, 0, 0, 0, 0, OF_ELSEWHERE },

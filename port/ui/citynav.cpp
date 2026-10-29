@@ -486,7 +486,6 @@ static void click_line(int i)
    card at the gate ($Selec00 ...) answered with the plain way out ("simply walk out", "leave"),
    never a sneak or a bribe: when there is none, the player chooses */
 static int leaving; static u32 leaving_t;
-extern "C" int citynav_walking(void) { return goal >= 0 || leaving; }   /* (the pointer's hourglass: ui/overlay_text.cpp) */
 extern "C" void citynav_go(int dest);
 static bool walk_out_option(const std::string &t)
 {

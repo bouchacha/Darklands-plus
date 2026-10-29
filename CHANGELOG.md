@@ -4,13 +4,12 @@
 
 What changed since 1.3.1.
 
-**Shields and the pointer**
+**Shields and heads**
 
 - **Shields for attributes and skills, in place of their names:** the years' toll and "Lost for good" show each member's age (an hourglass) and each attribute or skill lowered as its shield with what it was and is; the town's teachers show who would learn which skill, by its shield, and from what; the margin's blessings and potions show each raised attribute or skill as its shield and how much; a card's chance names what it rests on beside each shield. In texts too, wherever an attribute or skill is named, changed or asked for: the inn's and camp's days, a weapon's skill and the Strength it needs, the load, the prayer screen, a profession's needs at character creation, the teachers' and audiences' conditions, the potions, the battle log and the skill raised in a battle; the pointer on a shield names it.
 - **Strength's shield** is an arm embowed (a flexed arm): the weight it was is the sign of a heavy load.
-- **The party panel's bars** show the shields of Endurance, Strength and Divine Favor, a little faded, and their names in full.
+- **The party panel's bars** show the shields of Endurance, Strength and Divine Favor, a little darker, and their names in full.
 - **The party's members by their heads:** wherever a list gives the members with a value or a part (the party line under an attribute or skill on the character sheet, each member's Virtue against a saint's, who knows a saint or a formula, the chances of brewing, who carries an ingredient, the cards' saints and items and the lists under an option, a weapon or armor against the party, who would learn from a teacher, the margin's blessings and potions), each is the head of their figure; the name under the pointer. On the prayer screen too (who prays, and the buttons that pick whom to pray for), in a foe's tooltip and Enemy Info (whose weapons), and as the tag of whose potion it is in the loot and the store room.
-- **The pointer:** the game's armored gauntlet drawn anew in proportion, crisp at any size, a clenched fist pointing its forefinger: a fist while something is dragged; on its cuff the pause while a battle is paused, crossed blades over a foe a click would attack (a member chosen), an hourglass while Go to walks (F12 > Settings: the game's own little picture if preferred).
 - **Battle, a foe's tooltip and Enemy Info:** each of your weapons shown as its picture, then whether it pierces the foe's armor, does half damage or is mostly deflected.
 
 **Saints**
@@ -38,7 +37,7 @@ What changed since 1.3.1.
 - **Aging:** pointing at a member's age on the character sheet tells what the years have taken so far and what they will take within a year.
 - **The character sheet's header:** the sex as a plain sign, the age as its hourglass, and the leader as a pennant, lit for the one who leads (a click on another member's makes them leader; what the leader does under the pointer).
 - **The character sheet's things:** the kinds of things in the pack fold away (a click on the heading; the ingredients folded at first), and the sheet's lists open at their top.
-- **Giving one of a stack:** dragging a stack onto a member says that holding Shift gives just one (it gave one before, but said so only in the sheet's help). Ingredients show no quality in any list, the loot's among them: alchemy takes them by kind and number alone, so their quality is only in their price.
+- **Giving one of a stack:** dragging a stack onto a member says that holding Shift gives just one (it gave one before, but said so only in the sheet's help).
 - **Money as coins** (F12 > Settings) gives amounts in words their coins too: a card's "3 groschen", the game's own "12pfs", a hint's "2 florins".
 
 **Battles**
@@ -47,7 +46,9 @@ What changed since 1.3.1.
 - **The order buttons at the foot of the field are their pictures alone,** larger, each with its key, the member's head at the strip's start; the order's name and what it does under the pointer. Every member's strip has the same buttons in the same places (an order not open to that member dimmed in its place); the potions and things to use are in a grid of their own just above it, always in sight, in the same order for everyone (by kind, then quality), however many there are. F12 > Settings > Battles: "Order buttons as pictures" off gives the names beside them again, "Order buttons over the field" off gives no strip at all.
 - **"Can't walk there" and the other click hints** show only over the field, not over the order buttons or another panel.
 - **A member's box:** walking a castle, mine or dungeon with no enemy engaged, a click on it opens their character sheet, as in a town; in a fight a click still chooses them for orders and a right-click opens the sheet (the box says so under the pointer). Over a sheet opened in a battle the order strip no longer stands empty at its foot.
-- **Blessings and potions at work** are listed in a battle's margin too, under the enemies; after loading a save made in a battle, what was at work when it began is shown as well.
+- **Ingredients of one quality:** every ingredient is of quality 25, whoever finds, buys or carries it; those already carried (and in the loot and the store room) join their kind as a game is loaded or the screen opens. Their quality only ever changed their price (alchemy takes them by kind and number alone), yet one kind at two qualities was two entries everywhere. No list shows an ingredient's quality. F12 > Settings > The party and its items: "Ingredients of one quality" off keeps the original's.
+- **Blessings and potions at work, shorter:** in the margin each member's head and then, on the same line, a picture and a short value for each thing at work: an attribute or skill raised as its shield, the rest as a gold sign on a round badge (fire protection a flame, armor a breastplate, a weapon's quality and damage a sword, penetration a spearhead, faster travel a winged boot, no death from wounds a skull struck through) with a saint's halo or a potion's flask at its foot; two boosts of one attribute (two essences drunk) as one, their sum; what every member has alike on one line, "All", at the foot. The details and the hours left under the pointer. They are listed in a battle's margin too, under the enemies; after loading a save made in a battle, what was at work when it began is shown as well.
+- **Messages name things as the lists do:** "St. Dunstan's Hammer", not the game's shortened "S.Dunstan Hammer" (the sheet's, the shops', the loot's and the store room's notes, and armor worn away).
 
 **Encounters**
 
@@ -67,6 +68,7 @@ What changed since 1.3.1.
 
 **Fixed in Darklands+ itself**
 
+- **A journey that gets no nearer stops:** fast travel that has come no nearer its goal in 150 steps stops with "Travel stopped: the party could not get any further this way" (it stopped only when the party had not moved at all), and the log says where. A party walked in place by the bridge north of Nymwegen, the game finding water in the way again and again.
 - **Stuck behind a friend:** walking a castle, mine or dungeon, the members behind could box in the one ahead at a corner (a wall on one side, two friends on the others); everyone but the leader then stood, and every click as a group said "can't walk there". Outside a fight the party now walks through itself; in a fight a member can walk out of a friend it stands in.
 - **A battle loaded from a save** shows its field at once; it stayed black until someone moved.
 - **Saves made in a battle in a mine, castle or dungeon** are named after the place (Schneeberg 5 May), not after rubbish read where the game had put other things in a battle.

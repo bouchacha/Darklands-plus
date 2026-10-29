@@ -286,6 +286,13 @@ std::string loc_display_name(int loc)
     return game_text(b, sizeof b);
 }
 
+/* (for C: a thing's name as shown, "St. Dunstan's Hammer" for the game's "S.Dunstan Hammer"; 0 if unknown) */
+extern "C" int gamedata_item_name(int id, char *out, int n)
+{
+    if (id < 0 || id >= (int)gamedata.items.size() || gamedata.items[id].name.empty() || n < 1) return 0;
+    snprintf(out, (size_t)n, "%s", gamedata.items[id].name.c_str());
+    return 1;
+}
 /* (for C: a place's name as shown, in the game's letters turned to plain ones: "Gorlitz"; "" for none) */
 extern "C" void gamedata_loc_name(int loc, char *out, int n)
 {

@@ -13,7 +13,6 @@
 #include "townicons.h"
 #include "quests.h"
 #include "marks.h"
-#include "pointer.h"
 
 extern int ui_icon_disc;
 void ui_icon_style_preview(int st);
@@ -58,10 +57,8 @@ extern "C" void ui_icon_styles_draw(void)
           ui_mark_stink(dl, at(n++), r, th);
           ui_mark_blast(dl, at(n++), r);
           ui_age_icon(dl, at(n++), sz * 0.8f); }
-        n = (n + 13) / 14 * 14;                                                          /* the pointer drawn anew (ui/pointer.h): its hands and badges */
-        { float pk = cell / 30.0f;
-          for (int b = 0; b < 4; b++) { ImVec2 c = at(n++); ui_pointer_draw(dl, ImVec2(c.x - 12.5f * pk, c.y - 3.5f * pk), pk, PTR_POINT, b); }
-          ImVec2 c = at(n++); ui_pointer_draw(dl, ImVec2(c.x - 12.5f * pk, c.y - 3.5f * pk), pk, PTR_GRAB, PTR_PLAIN); }
+        n = (n + 13) / 14 * 14;                                                          /* what is at work (ui/effects.h EI_*): a saint's, then a potion's */
+        for (int i = 0; i < 11; i++) ui_effect_icon(dl, at(n++), sz * 0.8f, i, i < 5 ? 2 : i < 7 ? 1 : 0);
         return;
     }
     if (sheet_on >= 1000) {   /* one ingredient's sign as large as the window allows (uiconstyles:1000+id) */

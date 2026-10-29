@@ -529,10 +529,11 @@ extern "C" void partypanel_draw(void)
             int cur, mx; gm_member_attr(m, ATT[r], &cur, &mx);
             char v[24];
             if (r == 2) snprintf(v, sizeof v, "%d", cur); else snprintf(v, sizeof v, "%d/%d", cur, mx);
-            {   /* the shield, faded to two thirds: a sign, not a value */
+            {   /* the shield, a little darker than elsewhere: a sign, not a value (darkened, not faded: faded, its
+                   shadow and the parts of its charge showed through each other, a heart as two scoops on a cone) */
                 int v0 = P.dl->VtxBuffer.Size;
                 ui_key_icon(P.dl, NsDraw::w(bx0 + 1.9f, ry + 1.8f), 3.1f * P.k, ATT[r]);
-                ui_dim_since(P.dl, v0, out ? 0.4f : 0.65f);
+                ui_darken_since(P.dl, v0, out ? 0.45f : 0.7f);
             }
             float lx = bx0 + 5.0f, room = bx1 - lx - P.width(P.fo, NsDraw::FS_SMALL, v) - 1.2f, gs = NsDraw::FS_SMALL;
             float lw = P.width(P.fo, gs, LBL[r]);

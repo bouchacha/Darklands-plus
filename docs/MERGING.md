@@ -152,6 +152,7 @@ the files where each switch's key is read.
 | `journal.enabled` | Note each town's shops and wares | look | journal.cpp, ui.cpp |
 | `journal.chronicle` | Chronicle | look | journal.cpp |
 | **The party and its items** | | | |
+| `rules.ingredients_one_quality` | Ingredients of one quality | plus | loot.c |
 | `assist.return_thrown` | Thrown weapons picked up after a battle | ease | loot.c |
 | `assist.endless` | Endless ammunition and thrown weapons | plus | a group of switches: options.c (BUNDLES) |
 | `assist.infinite_ammo` | Endless ammunition | plus | ammo.c |
@@ -233,7 +234,6 @@ the files where each switch's key is read.
 | `display.scaler` | Rounded edges | look | settings_setup.cpp, ui.cpp |
 | `display.system_cursor` | System pointer | look | settings_setup.cpp, ui.cpp |
 | `display.live_pointer` | Smooth pointer | look | overlay_text.cpp |
-| `display.pointer_drawn` | Drawn pointer | look | overlay_text.cpp, settings_setup.cpp |
 | `display.ui_scale` | Size of the menus | look | settings_setup.cpp, ui.cpp |
 | `display.pause_unfocused` | Pause in the background | look | settings_setup.cpp, platform_sdl.c |
 | `display.opening` | Intro at start-up | look | opening.c |

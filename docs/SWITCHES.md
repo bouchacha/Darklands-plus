@@ -62,6 +62,7 @@ fails if a key disappears without being listed as retired.
 
 | Key | Title | What | Why | Group | Class | Orig / D+ / Easy |
 |---|---|---|---|---|---|---|
+| `rules.ingredients_one_quality` | Ingredients of one quality | every ingredient is of quality 25, whoever finds, buys or carries it: its quality only ever changed its price (alchemy takes ingredients by kind and number, and a potion's quality is the formula's), and two of one kind at two qualities were two entries everywhere. Those carried already join as a game is loaded. | Ingredients of one kind at two qualities were listed twice, and the quality changed nothing but the price. |  | plus | 0 / 1 / 1 |
 | `assist.return_thrown` | Thrown weapons picked up after a battle | when the loot screen opens after a battle, the javelins, throwing axes, throwing knives and darts each member threw are taken from the pile and given back to them. | Gathering thrown weapons after each battle is busywork. |  | ease | 0 / 1 / 1 |
 | `assist.endless` | Endless ammunition and thrown weapons | arrows, quarrels and balls, and javelins, throwing axes, throwing knives and darts, never run out (one is enough to shoot or throw); enemies still use up theirs. When off: each shot uses one, and about 7 in 10 arrows and quarrels can be picked up in the loot afterwards; with the shared pack they are then each member's own, listed with them like potions (picked-up ones go to whoever shoots them; drag them onto another member to hand them over). | Counting arrows and gathering javelins is bookkeeping, not play; enemies still run out. |  | plus | 0 / 1 / 1 |
 | `assist.infinite_ammo` | Endless ammunition | arrows, quarrels and balls never run out (one is enough to shoot); enemies still use up theirs. When off: each shot uses one, and about 7 in 10 arrows and quarrels can be picked up in the loot afterwards; with the shared pack they are then each member's own, listed with them like potions. | Counting arrows is bookkeeping, not play; enemies still run out. | `assist.endless` | plus | 0 / 1 / 1 |
@@ -159,7 +160,6 @@ fails if a key disappears without being listed as retired.
 | `display.scaler` | Rounded edges | the stair-steps of diagonal edges rounded off (Rounded edges in F12 > Settings > Screen): 0 as drawn, 1 and 2 rounded. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 0 / 0 / 0 |
 | `display.system_cursor` | System pointer | the system's mouse pointer over the game too. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 0 / 0 / 0 |
 | `display.live_pointer` | Smooth pointer | the game's mouse pointer moves as smoothly as the system's. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 1 / 1 / 1 |
-| `display.pointer_drawn` | Drawn pointer | the game's armored gauntlet drawn anew, crisp at any size: a fist while something is dragged; on its cuff the pause in a paused battle, crossed blades over a foe, an hourglass while Go to walks (else the game's little picture). | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 0 / 1 / 1 |
 | `display.ui_scale` | Size of the menus | the size of Darklands+'s menus in percent (0: the system's scale), after a restart. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 0 / 0 / 0 |
 | `display.pause_unfocused` | Pause in the background | the game pauses while its window is in the background. | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | 1 / 1 / 1 |
 | `display.opening` | Intro at start-up | the intro: 0 nothing, 1 the last scene, 2 the whole (-1: the whole the first time). | A matter of taste, or of the computer it runs on; no preset touches it. |  | look | -1 / -1 / -1 |
@@ -288,6 +288,7 @@ No longer offered; not to be used for anything else.
 - `input.gamepad`
 - `editor.show`
 - `assist.loot_all`
+- `display.pointer_drawn`
 - `display.integer_scale`
 - `display.idle_rest`
 - `sound.hit_sounds`

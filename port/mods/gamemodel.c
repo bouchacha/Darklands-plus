@@ -189,7 +189,8 @@ int gm_room_for(int m, int id, int qual)
 }
 
 static u32 itemdef(int id) { return g_itemdef(id & 0xfff); }
-void gm_itemdef_name(int id, char *out, int n) { u32 d = itemdef(id); if (!d) { out[0] = 0; return; } g_str((u16)(d >> 16), (u16)d, out, n); }
+int gamedata_item_name(int id, char *out, int n);   /* (ui/gamedata.cpp: the name as the lists show it) */
+void gm_itemdef_name(int id, char *out, int n) { u32 d = itemdef(id); if (d && gamedata_item_name(id & 0xfff, out, n)) return; if (!d) { out[0] = 0; return; } g_str((u16)(d >> 16), (u16)d, out, n); }
 int gm_itemdef_type(int id) { u32 d = itemdef(id); return d ? rb((u16)(d >> 16), (u16)((u16)d + 0x1e)) : -1; }
 /* member m's missile weapon looses thing id: the arrows of its bow, the quarrels of its crossbow, the
    balls of its gun (far 20a5:7822[weapon]), or the thrown weapon itself */

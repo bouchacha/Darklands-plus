@@ -573,53 +573,115 @@ static void campfire_icon(ImDrawList *dl, ImVec2 c, float s)
     dl->AddTriangleFilled(f3[0], f3[1], f3[2], IM_COL32(255, 230, 140, 255));
 }
 /* the blessings and potions at work (ui/saints.cpp effects_now), a row a member; false when none (the town's
-   margin, and the battle's under its enemies: what is at work goes on in a fight) */
+   margin, and the battle's under its enemies: what is at work goes on in a fight). Each thing at work is a
+   picture and a short value: an attribute or a skill raised (or lowered) its shield, the rest a roundel
+   (ui_effect_icon) with a saint's halo or a potion's flask at its foot; one attribute's or skill's boosts
+   (two essences drunk) as one, their sum; what every member has alike on one line at the foot; how long
+   it lasts at the row's end, the rest under the pointer */
 bool margin_effects(int size, bool separator)
 {
     std::vector<Eff> e = effects_now(size);
     if (e.empty()) return false;
-    {
-        if (separator) ImGui::Separator();
-        heading("Blessings and potions");
-        /* one row a member: what is at work - an attribute or a skill raised (or lowered) as its shield and
-           how much, the rest in words - then how long it lasts (from the soonest to the last) */
-        auto span = [](long h) { char b[24]; if (h < 48) snprintf(b, sizeof b, "%ld h", h); else snprintf(b, sizeof b, "%ld d", (h + 12) / 24); return std::string(b); };
-        float lh = ImGui::GetTextLineHeight(), is = lh * 1.15f, gap = lh * 0.35f, right = ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
-        ImDrawList *dl = ImGui::GetWindowDrawList();
-        for (int m = 0; m < 5; m++) {
-            long lo = -1, hi = -1; bool any_m = false;
-            for (const Eff &x : e) if (x.m == m) { any_m = true; if (lo < 0 || x.left < lo) lo = x.left; if (x.left > hi) hi = x.left; }
-            if (!any_m) continue;
-            std::string when = span(lo); if (span(hi) != when) when += " to " + span(hi);
-            {   /* who: the member's head (the name under the pointer) */
-                ImVec2 a = ImGui::GetCursorScreenPos();
-                ImGui::Dummy(ImVec2(is / 1.2f, lh));
-                ui_member_head(dl, m, ImVec2(a.x, a.y + (lh - is) * 0.5f), is);
-                if (item_hovered()) margin_tip(member_name(m).c_str());
+    if (separator) ImGui::Separator();
+    heading("Blessings and potions");
+    auto span = [](long h) { char b[24]; if (h < 48) snprintf(b, sizeof b, "%ld h", h); else snprintf(b, sizeof b, "%ld d", (h + 12) / 24); return std::string(b); };
+    auto hours = [](long h) { char b[32]; if (h < 48) snprintf(b, sizeof b, "%ld hour%s", h, h == 1 ? "" : "s"); else snprintf(b, sizeof b, "%ld days", (h + 12) / 24); return std::string(b); };
+    struct Chip { int kind, k, icon, src, amount; std::string val, tip; long lo, hi; };
+    auto same = [](const Chip &c, const Eff &x) {
+        if (c.kind != x.kind) return false;
+        if (x.kind == 0x48 || x.kind == 0x49) return c.k == x.k && (c.amount < 0) == (x.amount < 0);   /* (a boost and a saint's lowering apart) */
+        return c.k == x.k && c.icon == x.icon && c.val == x.val && c.src == x.src;
+    };
+    std::vector<Chip> per[5];
+    for (const Eff &x : e) {
+        if (x.m < 0 || x.m >= 5) continue;
+        Chip *c = 0;
+        for (Chip &o : per[x.m]) if (same(o, x)) { c = &o; break; }
+        if (!c) { per[x.m].push_back({ x.kind, x.k, x.icon, x.src, 0, x.val, "", x.left, x.left }); c = &per[x.m].back(); }
+        bool stat = (x.kind == 0x48 || x.kind == 0x49) && x.k >= 0;
+        if (stat) c->amount += x.amount;
+        c->lo = std::min(c->lo, x.left); c->hi = std::max(c->hi, x.left);
+        if (!c->tip.empty()) c->tip += "\n";
+        c->tip += (stat ? std::string(x.amount > 0 ? "+" : "") + std::to_string(x.amount) : x.what) + ": " + hours(x.left) + " left";
+    }
+    for (int m = 0; m < 5; m++) for (Chip &c : per[m]) if ((c.kind == 0x48 || c.kind == 0x49) && c.k >= 0) {   /* (the sum, and its parts under the pointer when more than one) */
+        char v[16]; snprintf(v, sizeof v, "%+d", c.amount); c.val = v;
+        std::string nm = c.kind == 0x48 ? gm_attr_name(c.k) : gm_skill_name(c.k);
+        c.tip = c.tip.find('\n') == std::string::npos ? nm + " " + c.tip : nm + " " + v + ", of which\n" + c.tip;
+    }
+    /* what every member has alike (a saint's help for all, the same potion for each): the party's line */
+    int nm_present = 0; bool pres[5] = {};
+    for (int m = 0; m < size && m < 5; m++) if (g_rb(G_MEMBER(m))) { pres[m] = true; nm_present++; }
+    std::vector<Chip> all;
+    if (nm_present > 1) {
+        int first = -1; for (int m = 0; m < 5 && first < 0; m++) if (pres[m]) first = m;
+        for (size_t i = 0; i < per[first].size(); i++) {
+            Chip c = per[first][i]; bool everyone = true;
+            for (int m = 0; m < 5 && everyone; m++) {
+                if (!pres[m] || m == first) continue;
+                bool has = false;
+                for (const Chip &o : per[m]) if (o.kind == c.kind && o.k == c.k && o.icon == c.icon && o.val == c.val && o.src == c.src) has = true;
+                everyone = has;
             }
-            bool first = false;
-            auto place = [&](float w) { if (!first) { ImGui::SameLine(0, gap); if (ImGui::GetCursorScreenPos().x + w > right) ImGui::NewLine(); } first = false; };
-            for (const Eff &x : e) {
-                if (x.m != m) continue;
-                if ((x.kind == 0x48 || x.kind == 0x49) && x.k >= 0 && x.amount) {
-                    char v[16]; snprintf(v, sizeof v, "%+d", x.amount);
-                    float w = is + lh * 0.15f + ImGui::CalcTextSize(v).x;
-                    place(w);
-                    ImVec2 a = ImGui::GetCursorScreenPos();
-                    ImGui::Dummy(ImVec2(w, lh));
-                    ImVec2 c(a.x + is * 0.5f, a.y + lh * 0.5f);
-                    if (x.kind == 0x48) ui_attr_icon(dl, c, is * 0.9f, x.k); else ui_skill_icon(dl, c, is * 0.9f, x.k);
-                    dl->AddText(ImVec2(a.x + is + lh * 0.15f, a.y), x.amount < 0 ? IM_COL32(170, 50, 30, 255) : ImGui::GetColorU32(ImGuiCol_Text), v);
-                    if (item_hovered()) margin_tip((std::string(x.kind == 0x48 ? gm_attr_name(x.k) : gm_skill_name(x.k)) + " " + v + ": " + span(x.left) + " left.").c_str());
-                } else {
-                    float w = ImGui::CalcTextSize(x.what.c_str()).x;
-                    place(w);
-                    ImGui::TextUnformatted(x.what.c_str());
+            if (!everyone) continue;
+            for (int m = 0; m < 5; m++) {
+                if (!pres[m]) continue;
+                for (size_t j = 0; j < per[m].size(); j++) {
+                    const Chip &o = per[m][j];
+                    if (o.kind == c.kind && o.k == c.k && o.icon == c.icon && o.val == c.val && o.src == c.src) {
+                        c.lo = std::min(c.lo, o.lo); c.hi = std::max(c.hi, o.hi);
+                        per[m].erase(per[m].begin() + (long)j); break;
+                    }
                 }
             }
-            place(ImGui::CalcTextSize(when.c_str()).x + lh);
-            ImGui::TextDisabled("(%s)", when.c_str());
+            all.push_back(c); i--;                      /* (taken out of the first member's too) */
         }
+    }
+    float lh = ImGui::GetTextLineHeight(), is = lh * 1.15f, gap = lh * 0.35f, right = ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
+    ImDrawList *dl = ImGui::GetWindowDrawList();
+    bool first = false;
+    auto place = [&](float w) { if (!first) { ImGui::SameLine(0, gap); if (ImGui::GetCursorScreenPos().x + w > right) ImGui::NewLine(); } first = false; };
+    auto chip = [&](const Chip &c, const char *who) {
+        bool stat = (c.kind == 0x48 || c.kind == 0x49) && c.k >= 0;
+        float iw = is * (c.src ? 1.25f : 1.1f);          /* (room for the halo or flask at the roundel's foot) */
+        float tw = c.val.empty() ? 0 : ImGui::CalcTextSize(c.val.c_str()).x, w = iw + (tw > 0 ? lh * 0.12f + tw : 0);
+        place(w);
+        ImVec2 a = ImGui::GetCursorScreenPos();
+        ImGui::Dummy(ImVec2(w, lh));
+        ImVec2 ctr(a.x + is * 0.55f, a.y + lh * 0.5f);
+        if (stat) { if (c.kind == 0x48) ui_attr_icon(dl, ctr, is * 0.9f, c.k); else ui_skill_icon(dl, ctr, is * 0.9f, c.k); }
+        else ui_effect_icon(dl, ctr, is * 0.9f, c.icon, c.src);
+        if (tw > 0) dl->AddText(ImVec2(a.x + iw + lh * 0.12f, a.y), stat && c.amount < 0 ? IM_COL32(170, 50, 30, 255) : ImGui::GetColorU32(ImGuiCol_Text), c.val.c_str());
+        if (item_hovered()) margin_tip(((who ? std::string(who) : std::string()) + c.tip).c_str());
+    };
+    auto when = [&](long lo, long hi) {
+        std::string t = span(lo); if (span(hi) != t) t += " to " + span(hi);
+        place(ImGui::CalcTextSize(t.c_str()).x + lh);
+        ImGui::TextDisabled("(%s)", t.c_str());
+        if (item_hovered()) margin_tip(lo == hi ? ("Ends in " + hours(lo) + ".").c_str() : ("The first of these ends in " + hours(lo) + ", the last in " + hours(hi) + ".").c_str());
+    };
+    for (int m = 0; m < 5; m++) {
+        if (per[m].empty()) continue;
+        long lo = -1, hi = -1;
+        for (const Chip &c : per[m]) { if (lo < 0 || c.lo < lo) lo = c.lo; if (c.hi > hi) hi = c.hi; }
+        {   /* who: the member's head (the name under the pointer) */
+            ImVec2 a = ImGui::GetCursorScreenPos();
+            ImGui::Dummy(ImVec2(is / 1.2f, lh));
+            ui_member_head(dl, m, ImVec2(a.x, a.y + (lh - is) * 0.5f), is);
+            if (item_hovered()) margin_tip(member_name(m).c_str());
+        }
+        first = false;
+        for (const Chip &c : per[m]) chip(c, 0);
+        when(lo, hi);
+    }
+    if (!all.empty()) {
+        long lo = -1, hi = -1;
+        for (const Chip &c : all) { if (lo < 0 || c.lo < lo) lo = c.lo; if (c.hi > hi) hi = c.hi; }
+        ImGui::TextDisabled("All");
+        if (item_hovered()) margin_tip("Every member alike.");
+        first = false;
+        for (const Chip &c : all) chip(c, "Every member: ");
+        when(lo, hi);
     }
     return true;
 }

@@ -56,6 +56,7 @@ static const struct { const char *key, *why; } WHY[] = {
     { "assist.docks_map", "Boat destinations are names without a map." },
     { "journal.enabled", "The player otherwise keeps notes on paper." },
     { "journal.chronicle", "A record of the journey the original does not keep." },
+    { "rules.ingredients_one_quality", "Ingredients of one kind at two qualities were listed twice, and the quality changed nothing but the price." },
     { "assist.return_thrown", "Gathering thrown weapons after each battle is busywork." },
     { "assist.endless", "Counting arrows and gathering javelins is bookkeeping, not play; enemies still run out." },
     { "map.overland_marks", "The original overland view names nothing and shows no quest." },
@@ -141,6 +142,7 @@ const char *const OPTIONS_RETIRED[] = {
     "assist.wheel_lists", "assist.menu_click", "input.gamepad",   /* controls: always, but in the original game (the controller always) */
     "editor.show",                   /* the Editor tab: always, but in the original game */
     "assist.loot_all",               /* the loot's and shops' keys: always, as the other keys */
+    "display.pointer_drawn",         /* the gauntlet pointer drawn anew (1.4's test builds): the game's own pointer only */
     "display.integer_scale",         /* whole-number scaling: three ways to scale instead (Sharp pixels, Rounded edges, Soft) */
     "display.idle_rest",             /* the game waits without spinning: always */
     "sound.hit_sounds",              /* hits make a sound: the fix "hitsound" */

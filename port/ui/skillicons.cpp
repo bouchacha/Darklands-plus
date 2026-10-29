@@ -334,6 +334,104 @@ void ui_skill_icon(ImDrawList *dl, ImVec2 c, float s, int k) { styled(dl, c, s, 
 void ui_attr_icon(ImDrawList *dl, ImVec2 c, float s, int k) { if (k >= 0 && k < 7) styled(dl, c, s, 0, attr_body, k); }
 void ui_age_icon(ImDrawList *dl, ImVec2 c, float s) { styled(dl, c, s, 0, attr_body, 7); }   /* (sable, as the attributes: the member's own) */
 
+/* what is at work that is not an attribute or a skill (the margin's blessings and potions, ui/effects.h EI_*): on a
+   roundel, not a shield (the shields are the attributes' and skills' alone), its charge in gold the same way;
+   at its foot where it came from, when the game records it: a saint's halo or a potion's flask */
+static void effect_body(ImDrawList *dl, ImVec2 c, float s, int k)
+{
+    float u = s / 16.0f;
+    auto P = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
+    auto C = [](int r, int g, int b) { return IM_COL32(r, g, b, 255); };
+    ImU32 ink = C(40, 26, 14), gold = C(226, 182, 64), hole = C(250, 248, 240);   /* (hole: near white, the field's colour in the end) */
+    auto cuirass = [&](void) {                       /* a breastplate, its shoulders and waist */
+        IconPath b;
+        b.to(P(-7.5f, -8.5f)).to(P(-3.2f, -9.6f)).quad(P(0, -6.2f), P(3.2f, -9.6f)).to(P(7.5f, -8.5f)).quad(P(8.4f, -2.0f), P(6.0f, 3.0f))
+         .quad(P(6.4f, 7.0f), P(4.6f, 9.6f)).to(P(-4.6f, 9.6f)).quad(P(-6.4f, 7.0f), P(-6.0f, 3.0f)).quad(P(-8.4f, -2.0f), P(-7.5f, -8.5f));
+        b.fill(dl, gold, ink, 0.8f * u);
+        dl->AddLine(P(0, -5.6f), P(0, 8.6f), ink, 0.7f * u);                                   /* the ridge */
+        dl->AddBezierQuadratic(P(-5.6f, 4.0f), P(0, 6.0f), P(5.6f, 4.0f), ink, 0.7f * u);      /* the waist's plate */
+    };
+    auto sword = [&](void) {                          /* a sword in bend, the point to the upper right, a broad cross guard (small, upright, it read as "!") */
+        auto R = [&](float x, float y) { return P((x - y) * 0.7071f, (x + y) * 0.7071f); };   /* (drawn upright, turned 45 degrees) */
+        ImVec2 bl[5] = { R(-1.9f, 3.0f), R(-1.9f, -9.0f), R(0, -12.0f), R(1.9f, -9.0f), R(1.9f, 3.0f) };
+        dl->AddConvexPolyFilled(bl, 5, gold); dl->AddPolyline(bl, 5, ink, ImDrawFlags_Closed, 0.7f * u);
+        ImVec2 gd[4] = { R(-7.0f, 3.0f), R(7.0f, 3.0f), R(7.0f, 6.0f), R(-7.0f, 6.0f) };
+        dl->AddConvexPolyFilled(gd, 4, gold); dl->AddPolyline(gd, 4, ink, ImDrawFlags_Closed, 0.7f * u);
+        ImVec2 gr[4] = { R(-1.4f, 6.0f), R(1.4f, 6.0f), R(1.4f, 9.6f), R(-1.4f, 9.6f) };
+        dl->AddConvexPolyFilled(gr, 4, gold);
+        dl->AddCircleFilled(R(0, 11.0f), 2.3f * u, gold); dl->AddCircle(R(0, 11.0f), 2.3f * u, ink, 0, 0.7f * u);
+    };
+    auto boot = [&](float dx) {                       /* a boot with a wing at its heel (swift going) */
+        IconPath b;
+        b.to(P(dx - 3.0f, -7.0f)).to(P(dx + 3.0f, -7.0f)).to(P(dx + 3.0f, 3.0f)).quad(P(dx + 9.0f, 3.6f), P(dx + 9.0f, 8.0f)).to(P(dx - 3.4f, 8.0f)).to(P(dx - 3.0f, -7.0f));
+        b.fill(dl, gold, ink, 0.8f * u);
+        for (int i = 0; i < 3; i++) dl->AddLine(P(dx - 3.0f, -4.6f + i * 2.6f), P(dx - 9.0f + i * 0.8f, -8.0f + i * 2.2f), gold, 1.8f * u);   /* the wing's feathers */
+        dl->AddLine(P(dx - 3.0f, 5.4f), P(dx + 5.0f, 5.4f), ink, 0.6f * u);
+    };
+    switch (k) {
+    case 0: {  /* fire protection: a flame */
+        dl->AddCircleFilled(P(0, 3.6f), 6.2f * u, gold);
+        dl->AddTriangleFilled(P(-6.0f, 2.2f), P(6.0f, 2.2f), P(1.0f, -11.0f), gold);
+        dl->AddTriangleFilled(P(-6.0f, 3.0f), P(-2.0f, 0), P(-6.6f, -5.0f), gold);
+        dl->AddCircleFilled(P(0, 5.4f), 3.0f * u, hole); dl->AddTriangleFilled(P(-2.9f, 4.8f), P(2.9f, 4.8f), P(0.4f, -2.6f), hole);   /* its heart */
+        break; }
+    case 1: case 2: cuirass(); break;                   /* armor; armor's quality */
+    case 3: {  /* armor against missiles: the breastplate, an arrow turned from it */
+        cuirass();
+        dl->AddLine(P(-10.0f, 9.0f), P(-1.0f, 0.0f), ink, 2.2f * u); dl->AddLine(P(-10.0f, 9.0f), P(-1.0f, 0.0f), gold, 1.2f * u);
+        dl->AddTriangleFilled(P(0.6f, -1.6f), P(-3.4f, -0.6f), P(-0.4f, 2.6f), ink);
+        break; }
+    case 4: case 5: sword(); break;                     /* a weapon's quality; its damage */
+    case 6: {  /* penetration: a spear's head and shaft */
+        ImVec2 h[4] = { P(0, -11.0f), P(3.2f, -4.0f), P(0, 0), P(-3.2f, -4.0f) };
+        dl->AddConvexPolyFilled(h, 4, gold); dl->AddPolyline(h, 4, ink, ImDrawFlags_Closed, 0.7f * u);
+        dl->AddLine(P(0, -9.0f), P(0, -1.0f), ink, 0.5f * u);
+        dl->AddRectFilled(P(-1.0f, 0), P(1.0f, 11.0f), gold); dl->AddRect(P(-1.0f, 0), P(1.0f, 11.0f), ink, 0, 0, 0.6f * u);
+        break; }
+    case 7: boot(0.6f); break;                          /* the party travels faster */
+    case 8: {  /* ... in woods: the boot, a fir behind it */
+        dl->AddTriangleFilled(P(5.4f, -11.0f), P(1.4f, -2.6f), P(9.4f, -2.6f), gold); dl->AddTriangle(P(5.4f, -11.0f), P(1.4f, -2.6f), P(9.4f, -2.6f), ink, 0.6f * u);
+        boot(-1.4f); break; }
+    case 9: {  /* no death from wounds: a skull struck through */
+        dl->AddCircleFilled(P(0, -2.4f), 6.6f * u, gold); dl->AddRectFilled(P(-3.6f, 2.0f), P(3.6f, 7.4f), gold, 1.2f * u);
+        dl->AddCircleFilled(P(-2.6f, -2.0f), 1.9f * u, hole); dl->AddCircleFilled(P(2.6f, -2.0f), 1.9f * u, hole);
+        dl->AddTriangleFilled(P(0, 0.6f), P(-1.0f, 2.6f), P(1.0f, 2.6f), hole);
+        for (int i = -1; i <= 1; i++) dl->AddLine(P(i * 1.6f, 4.8f), P(i * 1.6f, 7.4f), ink, 0.6f * u);
+        dl->AddLine(P(-9.0f, 9.0f), P(9.0f, -9.0f), ink, 2.6f * u);
+        break; }
+    case 10: {  /* a companion's stay: a figure, head and shoulders */
+        dl->AddCircleFilled(P(0, -5.0f), 4.0f * u, gold); dl->AddCircle(P(0, -5.0f), 4.0f * u, ink, 0, 0.7f * u);
+        IconPath b; b.to(P(-8.0f, 10.0f)).quad(P(-8.0f, 0.6f), P(0, 0.6f)).quad(P(8.0f, 0.6f), P(8.0f, 10.0f));
+        b.fill(dl, gold, ink, 0.7f * u);
+        break; }
+    }
+}
+void ui_effect_icon(ImDrawList *dl, ImVec2 c, float s, int what, int src)
+{
+    float r = s * 0.66f, u = s / 16.0f;
+    const ImU32 field = IM_COL32(52, 40, 34, 255), rim = IM_COL32(210, 170, 70, 255);
+    dl->AddCircleFilled(c, r, field, 24);
+    dl->AddCircle(c, r, rim, 24, 1.1f * u);
+    float cs = s * 0.7f, sh = fmaxf(1.0f, s * 0.045f);
+    int v0 = dl->VtxBuffer.Size;
+    effect_body(dl, ImVec2(c.x + sh, c.y + sh), cs, what);
+    recolor_since(dl, v0, IM_COL32(20, 10, 4, 230), IM_COL32(20, 10, 4, 230), 256);
+    v0 = dl->VtxBuffer.Size;
+    effect_body(dl, c, cs, what);
+    recolor_since(dl, v0, IM_COL32(240, 202, 86, 255), field, 236, IM_COL32(60, 34, 10, 255), 45);
+    if (src == 1) {                                    /* a potion: a flask at its foot */
+        ImVec2 b(c.x + r * 0.72f, c.y + r * 0.62f); float k = s * 0.2f;
+        dl->AddRectFilled(ImVec2(b.x - k * 0.32f, b.y - k * 1.5f), ImVec2(b.x + k * 0.32f, b.y - k * 0.4f), IM_COL32(40, 26, 14, 255));
+        dl->AddCircleFilled(b, k * 0.95f, IM_COL32(40, 26, 14, 255), 16);
+        dl->AddCircleFilled(b, k * 0.68f, IM_COL32(90, 150, 220, 255), 16);
+        dl->AddRectFilled(ImVec2(b.x - k * 0.18f, b.y - k * 1.35f), ImVec2(b.x + k * 0.18f, b.y - k * 0.6f), IM_COL32(220, 226, 236, 255));
+    } else if (src == 2) {                             /* a saint: a halo */
+        ImVec2 b(c.x + r * 0.72f, c.y + r * 0.62f); float k = s * 0.2f;
+        dl->AddCircle(b, k * 0.8f, IM_COL32(40, 26, 14, 255), 16, k * 0.75f);
+        dl->AddCircle(b, k * 0.8f, IM_COL32(255, 222, 110, 255), 16, k * 0.4f);
+    }
+}
+
 extern "C" const char *gm_attr_name(int a); extern "C" const char *gm_skill_name(int k); extern "C" const char *gm_skill_short(int k);
 void ui_key_icon(ImDrawList *dl, ImVec2 c, float s, int key)
 {
@@ -375,6 +473,15 @@ void ui_dim_since(ImDrawList *dl, int v0, float k)
         ImU32 &c = dl->VtxBuffer[i].col;
         unsigned al = (c >> IM_COL32_A_SHIFT) & 255;
         c = (c & ~IM_COL32_A_MASK) | ((ImU32)(al * k) << IM_COL32_A_SHIFT);
+    }
+}
+
+void ui_darken_since(ImDrawList *dl, int v0, float k)
+{
+    for (int i = v0; i < dl->VtxBuffer.Size; i++) {
+        ImU32 &c = dl->VtxBuffer[i].col;
+        unsigned r = (unsigned)((c & 255) * k), g = (unsigned)(((c >> 8) & 255) * k), b = (unsigned)(((c >> 16) & 255) * k);
+        c = (c & IM_COL32_A_MASK) | r | g << 8 | b << 16;
     }
 }
 

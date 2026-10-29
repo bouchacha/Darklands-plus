@@ -16,285 +16,285 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 
 | Where | Text |
 |---|---|
-| `mods/options.c:102` | these screens drawn anew by Darklands+, in the original's style: the party panel, the menus, the start screen, the cards, shops, the character sheet, loot, alchemy, the store room, the inn and camp, prayer, character creation, party selection, Party Info, the marching order, Enemy Info, the overland view's messages, and Save and Load. They show more (chances, what an item is worth, where an ingredient is sold); the rules are unchanged. When off: the original screens. |
-| `mods/options.c:103` | Wares compared with what is equipped |
-| `mods/options.c:103` | in a shop, a green arrow by a weapon, armor or shield that is better than what the member has equipped there now, a red one by a worse one (an empty arrow: nothing equipped there); pointing at a ware highlights the equipped item it would replace. |
-| `mods/options.c:104` | New party panel |
-| `mods/options.c:104` | each member's Endurance, Strength and Divine Favor as labeled bars with numbers. Clicks work as in the original (open a character sheet; give orders in a battle). For a portrait of your own, put NAME.png (or .jpg) in a folder named portraits in the Darklands+ folder, NAME being the member's name. |
-| `mods/options.c:105` | Picture in the party panel |
-| `mods/options.c:105` | beside each member |
-| `mods/options.c:105` | your portrait, else the battle sprite, else the crest\|the battle sprite, else the crest\|the crest\|no picture |
-| `mods/options.c:106` | Tooltip delay |
-| `mods/options.c:106` | the notes that appear by the pointer: how long the pointer rests on something before its note shows (once one has shown, the next appears at once). |
-| `mods/options.c:106` | at once\|after a moment\|after a second |
-| `mods/options.c:107` | the game's menus (Game, Orders, Attack, Party ...) open with a right-click or F10 and stay open until you choose or click elsewhere; the entries and what they do are unchanged. When off: the original menu bar, open only while the right button is held. |
-| `mods/options.c:108` | New start screen |
-| `mods/options.c:108` | Continue (loads the newest save), Load, New party and Quickstart, over the original game's art. |
-| `mods/options.c:109` | New card screens |
-| `mods/options.c:109` | card text in the typeface you choose, the options as rows to click with their chances beside them; an option that uses an item or a saint lists who can. The game still decides every outcome. When off: the original cards (with crisp text drawn over them). |
-| `mods/options.c:110` | New shop screen |
-| `mods/options.c:110` | all the wares and all your items in two lists, with Buy and Sell on each row and the equipped items marked; the bottom of the screen describes whatever is under the pointer. Stock and prices are unchanged. |
-| `mods/options.c:111` | New character sheet |
-| `mods/options.c:111` | the paper doll and the items with Equip, Unequip, Drink and Drop, all the skills on one page, the party's saints and formulae. Drag an item onto a member in the party panel to give it (hold Shift to give one from a stack). Equipping, giving and drinking work as in the original. |
-| `mods/options.c:112` | One shared pack for the party |
-| `mods/options.c:112` | in the original, each member carries their own items; with this (Darklands+ only), the party shares one pack. Each member keeps only their equipped items and their own potions; everything else goes into the party's pack. Equip and Drink take from the pack, and a shop buys from it. As in the original, only equipped items count toward the load. When the game needs a particular member to have an item (lock picks at a lock, a mount, arrows before a battle), Darklands+ first moves it from the pack to that member. Keep marks an item so it is never sold or dropped. |
-| `mods/options.c:113` | New loot screen |
-| `mods/options.c:113` | the whole pile and each member's items in two lists; a whole stack moves in one click. The original keys G and P still move every item. |
-| `mods/options.c:114` | Shop value in the loot screen |
-| `mods/options.c:114` | under the lists, about what a shop would pay for the item under the pointer. |
-| `mods/options.c:115` | New alchemy screen |
-| `mods/options.c:115` | every known formula in one list, with its ingredients at hand, batches set with - and +, and the chance of success. The chance and the brewing are unchanged. |
-| `mods/options.c:116` | Where to buy missing ingredients |
-| `mods/options.c:116` | beside an ingredient that runs short, the nearest town seen selling it. |
-| `mods/options.c:117` | New store room screen |
-| `mods/options.c:117` | everything stored and everything the member carries in two lists, with Take and Put on each row (one or the whole stack), and Put away to store everything not equipped. When off: the original screen, four items at a time. |
-| `mods/options.c:118` | One store room shared by every inn |
-| `mods/options.c:118` | what you leave with one innkeeper is waiting at every other inn, as with the item boxes of a certain mansion; best not to ask how (100 kinds of items at most). Items already stored in several towns are put together the first time a store room is opened. |
-| `mods/options.c:119` | At the inn, rested members earn money |
-| `mods/options.c:119` | a member at full Endurance starts the day set to Earn a little money instead of Just Relax (which only refills Endurance). Change it as you like on the inn's screen. |
-| `mods/options.c:120` | New inn and camp screen |
-| `mods/options.c:120` | each member's activity for the day, its cost, the teachers and their fees, and "Until rested". |
-| `mods/options.c:121` | New prayer screen |
-| `mods/options.c:121` | the saint's statue, what the saint does, the Divine Favor to spend and the chance (by the original game's rules). |
-| `mods/options.c:122` | New character creation |
-| `mods/options.c:122` | each step on one page, with what a childhood or profession would give: the attributes afterwards (and the aging past thirty), each skill's gain and how far it can still rise, the Virtue and the saints gained. The rules are unchanged. |
-| `mods/options.c:123` | Step-by-step guide |
-| `mods/options.c:123` | a short explanation of each step, in the empty column on the left. |
-| `mods/options.c:124` | New party selection screen |
-| `mods/options.c:124` | the four party slots with their sprites, the saved characters and the selected character's attributes and skills; click to select, double-click to add or remove. |
-| `mods/options.c:125` | New Party Info screen |
-| `mods/options.c:125` | fame and its title, the date, the place, the wealth, and the party's reputation in every town at once (the original shows one town at a time, under the pointer). |
-| `mods/options.c:126` | New marching order screen |
-| `mods/options.c:126` | a list to move members up and down, then Done, instead of clicking each member in turn. |
-| `mods/options.c:127` | New Enemy Info screen |
-| `mods/options.c:127` | E in a battle: every kind of enemy on the field, its armor and weapons, and how well your weapons work against it. |
-| `mods/options.c:128` | New overland view messages |
-| `mods/options.c:128` | the overland view's messages (a robber knight's land and the like) drawn in the style of the cards. |
-| `mods/options.c:129` | New Save and Load screens |
-| `mods/options.c:129` | each save listed with its place, date and party; Save asks for its comment beside the list, and Load lists every save (the original lists only nine). |
-| `mods/options.c:131` | Chances and hints on the cards |
-| `mods/options.c:131` | on a card, the chance of each option that can fail and who would try it; which saints and items it accepts and who has them; a lectern by an option that brings a teacher (skill, level, fee); the options at once without the fade-in, and 1 to 9 to choose them; at the docks, a small map of where each boat goes. Tooltips say what an item, saint or formula is good for. |
-| `mods/options.c:132` | Chances of success |
-| `mods/options.c:132` | beside each card option that can fail, with the member who would try it (the original shows one at a time while Shift is held). |
-| `mods/options.c:132` | Always, as numbers\|As the difficulty level allows\|Off |
-| `mods/options.c:133` | The best member speaks for the party |
-| `mods/options.c:133` | when a card tests the leader, the member best at it takes the test instead, and the one with the best Charisma haggles in shops; the chance shown is theirs, with their head. The arrow at the end of the chance shows every member's: a click on one has that member speak instead. After the card, your chosen leader is leader again. (When off, the leader speaks, and the arrow still lets you pick another.) |
-| `mods/options.c:134` | Saints and items on cards |
-| `mods/options.c:134` | which saints and items a card accepts, and who knows or carries them (as the Darklands Companion, a players' reference, did: saints are listed even when nobody knows them yet). |
-| `mods/options.c:135` | what the item, saint or formula under the pointer is good for (in shops, the loot screen, character sheets, and the prayer and alchemy screens). |
-| `mods/options.c:136` | Cards without the fade-in |
-| `mods/options.c:136` | a card shows its options at once, without the slow fade-in. |
-| `mods/options.c:137` | Number keys for card options |
-| `mods/options.c:137` | 1 to 9 choose a card's options. |
-| `mods/options.c:138` | Who has work |
-| `mods/options.c:138` | in the Go to list, beside the Fugger, the Medici, the Hanse, the cathedral, the council, the lord and the market stalls: the chance that asking brings a quest, the date they will have one again, or a note that their quest is under way or its reward is waiting. |
-| `mods/options.c:139` | a lectern beside each card option that brings a teacher to the inn, with the skill, the teacher's level and the fee; the margin and the world map (M) show which teachers each town can offer. |
-| `mods/options.c:140` | G on a town's card lists its places; pick one and the party goes there, clicking through the menus for you. |
-| `mods/options.c:141` | Map at the docks |
-| `mods/options.c:141` | beside the docks' list of boats, a small map of the towns they go to and the way each takes along the rivers and coasts; a click on a town takes that boat. |
-| `mods/options.c:142` | Note each town's shops and wares |
-| `mods/options.c:142` | each town's shops, their wares, qualities and prices, noted on arrival (shown on the world map, M). Switched in F12 > Journal. |
-| `mods/options.c:143` | every text the cards show, word for word, with the date, the place and the choice made, so a clue read weeks ago can be found again (F12 > Journal > Chronicle, where it is switched). |
-| `mods/options.c:145` | Thrown weapons picked up after a battle |
-| `mods/options.c:145` | when the loot screen opens after a battle, the javelins, throwing axes, throwing knives and darts each member threw are taken from the pile and given back to them. |
-| `mods/options.c:146` | Endless ammunition and thrown weapons |
-| `mods/options.c:146` | arrows, quarrels and balls, and javelins, throwing axes, throwing knives and darts, never run out (one is enough to shoot or throw); enemies still use up theirs. When off: each shot uses one, and about 7 in 10 arrows and quarrels can be picked up in the loot afterwards; with the shared pack they are then each member's own, listed with them like potions (picked-up ones go to whoever shoots them; drag them onto another member to hand them over). |
-| `mods/options.c:147` | Endless ammunition |
-| `mods/options.c:147` | arrows, quarrels and balls never run out (one is enough to shoot); enemies still use up theirs. When off: each shot uses one, and about 7 in 10 arrows and quarrels can be picked up in the loot afterwards; with the shared pack they are then each member's own, listed with them like potions. |
-| `mods/options.c:148` | Endless thrown weapons |
-| `mods/options.c:148` | javelins, throwing axes, throwing knives and darts never run out either (one is enough to throw). When off, with the shared pack they are each member's own, listed with them like potions. |
-| `mods/options.c:149` | Aging during play |
-| `mods/options.c:149` | characters go on aging during play (Darklands+ only; the original ages them only during character creation): from thirty on, a little each month, more with age (by seventy, a total loss of 25 Endurance, 21 Strength and Agility each, 10 Perception and Charisma each, and 5 Intelligence). |
-| `mods/options.c:150` | Warn about permanent losses |
-| `mods/options.c:150` | anything lost for good (an attribute's maximum, a skill, armor eaten by acid or fire, the toll of the years) pauses the game with a window saying exactly what was lost, and by whom. |
-| `mods/options.c:152` | Easier battle controls |
-| `mods/options.c:152` | click a member (or their box in the party panel), then an enemy to attack it or the ground to walk there: one click gives the order, and while paused the next member without orders is chosen. Order buttons with icons, right-drag to move the view, selecting a member doesn't move the view, a shorter wait at the end of a battle, and Z to fast-forward (Z again: back to the chosen speed). |
-| `mods/options.c:153` | Battle info on screen |
-| `mods/options.c:153` | a bar over each wounded enemy, and pointing at someone shows who it is, how badly hurt, their melee rating, aim and weapons; the line of a shot with what is in the way; what a click will do; an arrow to enemies off screen; skill gains rising over the fighter; a reload bar under a shooter; and the battle log (every blow, parry and fall). |
-| `mods/options.c:154` | Pauses in battle |
-| `mods/options.c:154` | the battle pauses when a member falls and when enemies waiting in a castle, dungeon or mine come out to fight. |
-| `mods/options.c:155` | Smooth, steady scrolling |
-| `mods/options.c:155` | the battle view slides instead of jumping, scrolls at a steady pace, and resting the pointer on the edge scrolls it without Shift. |
-| `mods/options.c:156` | Pause when a member falls |
-| `mods/options.c:157` | Pause when badly hurt |
-| `mods/options.c:157` | the battle pauses when a party member's Endurance drops below a quarter. |
-| `mods/options.c:158` | Pause when enemies come out |
-| `mods/options.c:158` | the battle pauses when enemies waiting in a castle, dungeon or mine come out to fight. |
-| `mods/options.c:159` | Improved combat |
-| `mods/options.c:159` | the party fights on sensibly between orders, each member in their way of fighting, chosen on their box in the party panel: Skirmisher (everyone's way until you choose another: shoots while the enemies come, if they have a missile weapon, then fights hand to hand to the end), Archer, Charger, or Manual (the original's way: every order yours). An order of yours is carried out, then the member goes back to their way; an enemy you sent them at hand to hand stays their foe until it falls. A shooter whose target falls takes the nearest enemy in sight; with no clear line (a wall, a tree or someone standing between, as the aiming line shows), they move to the nearest spot a few paces off that has one. Parry, Berserk and Vulnerable stay as ordered, and a click on an enemy opens with a Vulnerable attack (aimed at the gaps in its armor) when only that would get through its armor. When off: the original's ways. |
-| `mods/options.c:160` | Click an enemy to attack it |
-| `mods/options.c:160` | a click on an enemy sends the selected member to attack it, even before an attack is chosen: a standard attack, or with Improved combat a Vulnerable one where only that gets through the enemy's armor. |
-| `mods/options.c:161` | Way of fighting on each member's box |
-| `mods/options.c:161` | in a battle, each member's box in the party panel shows their way of fighting, what they do until you give them an order. Click it to choose another; each character keeps their way from battle to battle. It only sets what they do while you give them no order: no bonus, no penalty; an order you give is carried out, then they go back to their way. |
-| `mods/options.c:162` | Click a member's box to give them orders |
-| `mods/options.c:162` | in a battle, a click on a member's box in the party panel selects them for orders, as 1 to 5 do (a double-click also moves the view to them); a right-click on the box opens their character sheet. When off: a click on the box opens the sheet, as in the original. |
-| `mods/options.c:163` | One click gives an order |
-| `mods/options.c:163` | with a member selected, a click on an enemy or the ground gives the order at once, as do orders that need no target (Halt, a door, the stairs). An attack picked from the Orders menu or the buttons (Standard, Vulnerable, Berserk, Parry) goes against the enemy the member is already fighting. If selecting the member paused the battle, it resumes with the order. When off: a click only marks the target, and Enter, Space or selecting another member gives the order, as in the original. |
-| `mods/options.c:164` | Then select the next member without orders |
-| `mods/options.c:164` | while the battle is paused, giving an order selects the next member on screen who has no order, so at the start of a battle each order is a single click on an enemy. Space resumes the battle. |
-| `mods/options.c:165` | Order buttons over the field |
-| `mods/options.c:165` | while a member is selected, their orders appear as buttons in a strip at the foot of the battlefield, grouped by what they do (attacks, moving, the things at hand, potions and items, the battle), so no right-click menu is needed. Fast forward and Resume stand at the top of the right margin (in the strip when the window has no right margin). |
-| `mods/options.c:166` | Order buttons as pictures |
-| `mods/options.c:166` | each order button is its picture alone (a sword for a standard attack, a shield for Parry, footprints for Walk towards, a potion as its flask with how many), the member's head at the strip's start; the order's name and what it does under the pointer. When off: each button with its name beside the picture. |
-| `mods/options.c:167` | Show the line of a shot |
-| `mods/options.c:167` | when a member is about to shoot or throw at the enemy under the pointer, a line runs from them to it. Anything in the way (a wall, a tree, someone standing between) is outlined in red, and the line turns red past it: the shot can't be taken from there. |
-| `mods/options.c:168` | Say what a click will do |
-| `mods/options.c:168` | with a member selected, a short label by the pointer says what a click there does when it isn't a plain attack or walk (shoot, throw, flee, a Vulnerable or Berserk attack) or why it can't (no way there, no clear shot). |
-| `mods/options.c:169` | Drag to move the view |
-| `mods/options.c:169` | hold the right (or middle) button and move the mouse to drag the battle view; a right-click without moving still opens the menus. |
-| `mods/options.c:170` | Selecting a member doesn't move the view |
-| `mods/options.c:170` | 1 to 5 (or a click on a member's box) select a member without moving the view; press twice to move the view to the member and follow them. Selecting a member on another floor still moves the view to them. |
-| `mods/options.c:171` | Smooth scrolling |
-| `mods/options.c:171` | the battle view slides to each new place instead of jumping. |
-| `mods/options.c:172` | Steady scrolling |
-| `mods/options.c:172` | the battlefield scrolls at a steady pace (holding Shift at the edge no longer scrolls all the way to the end of the field at speed). |
-| `mods/options.c:173` | Edge scrolling without Shift |
-| `mods/options.c:173` | resting the pointer on the edge of the screen scrolls the battlefield; no Shift needed. |
-| `mods/options.c:174` | Info under the pointer |
-| `mods/options.c:174` | a bar over each wounded enemy with the Endurance it has left (Alt: over all); pointing at someone shows who it is, how badly hurt they are, their melee rating (attack and defense hand to hand), their aim with a missile weapon, and their weapons. |
-| `mods/options.c:175` | Enemy Endurance as numbers |
-| `mods/options.c:176` | Arrow to enemies off screen |
-| `mods/options.c:176` | when no enemy is on screen, an arrow at the edge points to the nearest one; click it to move the view there. |
-| `mods/options.c:177` | Show skill gains |
-| `mods/options.c:177` | a skill raised in a fight rises in gold over the fighter's head (+2 Edged), and a note of it shows in the member's box in the party panel. |
-| `mods/options.c:178` | a thin amber line under a member readying a shot (bow, crossbow, gun or thrown weapon), filling up until they shoot. |
-| `mods/options.c:179` | every blow, parry, wound and fall, in the left margin on a wide window, otherwise over the field (F12 > Journal > Battle log keeps it). |
-| `mods/options.c:180` | Level map (Tab) |
-| `mods/options.c:180` | Tab in battles, castles, mines and dungeons: a map of the level as far as the party has seen it, with the floors and the stairs seen between them; a click on it walks the party there. |
-| `mods/options.c:181` | The whole level on the level map |
-| `mods/options.c:181` | Tab shows the whole level, not only what the party has seen. |
-| `mods/options.c:182` | More day jobs |
-| `mods/options.c:182` | nine jobs the original never offers (mercenary, guard sergeant, bodyguard, courtier, scribe, clerk, troubadour, entertainer, preaching friar) turn up in towns with the right places: soldiers' jobs by an arsenal or fortress, a lord's household at a fortress, clerks at a town hall, the great houses in a big city, friars by a monastery. Each member still takes the best-paid job they qualify for. |
-| `mods/options.c:183` | Enemies still waiting |
-| `mods/options.c:183` | under the enemy list, how many enemies the party has yet to meet in a castle, dungeon or mine, floor by floor, and which floor its master is on (knowledge the party could not have). |
-| `mods/options.c:184` | Shorter wait at the end of a battle |
-| `mods/options.c:184` | when the last enemy falls, the field stands still for one second instead of three and a half before the loot, and "Victory! The battle is won." (or the like) stays for three seconds instead of eight. The original's long waits looked like a freeze. |
-| `mods/options.c:185` | Fighters find their way around obstacles |
-| `mods/options.c:185` | fighters plan their way around walls, furniture and each other; in the original they often give up on long or winding routes (members get stuck in mines). Enemies get it too, so battles are harder. In a crowd, a blocked fighter finds another way at once instead of standing still for seconds, and enemies at the back wait or pick another target rather than take a long detour. |
-| `mods/options.c:186` | Battle speed |
-| `mods/options.c:186` | walking (in dungeons, castles and mines too), attacks, drinking potions and calling on saints all go faster; pausing (Space) works as before. |
-| `mods/options.c:186` | as the original\|1.5x\|2x\|3x |
-| `mods/options.c:187` | Fast forward (Z) |
-| `mods/options.c:187` | Z in a battle runs it six times faster; Z again goes back to the chosen speed. |
-| `mods/options.c:189` | World map (M) |
-| `mods/options.c:189` | M opens a map of the whole land (the towns, the quests, where saints and formulae are found). |
-| `mods/options.c:190` | the party follows the roads to a place you pick: double-click it (or Travel there) on the world map (M), or Ctrl+click it in the overland view. Any key or click stops it. |
-| `mods/options.c:191` | Auto-travel speed |
-| `mods/options.c:191` | walking pace\|4x\|instant |
-| `mods/options.c:192` | Names and quest markers in the overland view |
-| `mods/options.c:192` | the towns and places named in the overland view, each quest's icon above its place, and a sign beside a town that bars the party or where the watch is after it. |
-| `mods/options.c:193` | Place names in the overland view |
-| `mods/options.c:193` | the towns and places named in the overland view. |
-| `mods/options.c:194` | Quest markers in the overland view |
-| `mods/options.c:194` | each quest's icon above its place in the overland view, and a sign beside a town that bars the party or where the watch is after it. |
-| `mods/options.c:195` | What unvisited places offer |
-| `mods/options.c:195` | the saints a library teaches, the formulae an alchemist sells and a shop's goods, also in towns and monasteries the party has not visited: on the world map, on the character sheet and beside an ingredient that runs short. When off: only what the party has seen. (How good each town's smiths and shops are is shown either way.) |
-| `mods/options.c:196` | Encounters on the road |
-| `mods/options.c:196` | how often travel brings an encounter. |
-| `mods/options.c:196` | a quarter\|half\|as the original\|double |
-| `mods/options.c:197` | Night encounters in the streets |
-| `mods/options.c:197` | how often thieves and the watch turn up in town at night (in the original, cutthroats about 8 times in 10 in the side streets for a party with little Stealth and Streetwise, and the watch now and then on the main street). |
-| `mods/options.c:197` | a quarter\|half\|as the original\|double |
-| `mods/options.c:202` | the typeface of the cards and the new screens (the game's own lettering drawn crisp, or one of several period hands). |
-| `mods/options.c:203` | The same typeface for the margins |
-| `mods/options.c:203` | the side panels, tooltips and the place names on the world map and in the overland view in the chosen typeface too. |
-| `mods/options.c:204` | Spell out abbreviations |
-| `mods/options.c:204` | the character sheet's abbreviations written out (wPol: Polearm Wpns). |
-| `mods/options.c:205` | Money as coins |
-| `mods/options.c:205` | florins, groschen and pfennigs as small coins (1 12 4) instead of 1fl 12gr 4pf. |
-| `mods/options.c:206` | Letter edges |
-| `mods/options.c:206` | plain, a shadow or an outline around the letters drawn over pictures (0 plain, 1 shadow, 2 outline). |
-| `mods/options.c:207` | Darken faint text |
-| `mods/options.c:207` | faint text darkened (or lightened) against its background so it stays readable. |
-| `mods/options.c:208` | the size of the text in the margins, the tooltips and the place names (world map and overland view), in percent. |
-| `mods/options.c:209` | Icons beside the skills |
-| `mods/options.c:209` | small icons beside the skills and attributes. |
-| `mods/options.c:210` | Skill icons' look |
-| `mods/options.c:210` | heraldic charges on shields (2) or in color (0), wherever a skill or attribute is shown. |
-| `mods/options.c:211` | A potion's grade |
-| `mods/options.c:211` | how a potion's grade shows on its flask (4 chevrons on a badge, 3 chevrons, 1 dots on a strip, 0 small dots). |
-| `mods/options.c:212` | The Philosopher's Stone |
-| `mods/options.c:212` | how the stone is pictured (2 the squared circle, 1 a rough stone, 0 an egg). |
-| `mods/options.c:213` | the clock shown while hours pass (styles by number). |
-| `mods/options.c:214` | the plaited band and the gilt corners around the windows. |
-| `mods/options.c:215` | the band around the windows (styles by number). |
-| `mods/options.c:216` | Button style |
-| `mods/options.c:216` | the look of the buttons (styles by number). |
-| `mods/options.c:217` | Replacement art: show file names |
-| `mods/options.c:217` | the file each picture would be replaced from, for those making replacement art. |
-| `mods/options.c:218` | Soft scaling |
-| `mods/options.c:218` | the game's picture blurred a little, as an old monitor would, rather than in sharp pixels (Soft in F12 > Settings > Screen). |
-| `mods/options.c:219` | Rounded edges |
-| `mods/options.c:219` | the stair-steps of diagonal edges rounded off (Rounded edges in F12 > Settings > Screen): 0 as drawn, 1 and 2 rounded. |
-| `mods/options.c:220` | System pointer |
-| `mods/options.c:220` | the system's mouse pointer over the game too. |
-| `mods/options.c:221` | Smooth pointer |
-| `mods/options.c:221` | the game's mouse pointer moves as smoothly as the system's. |
-| `mods/options.c:222` | Drawn pointer |
-| `mods/options.c:222` | the game's armored gauntlet drawn anew, crisp at any size: a fist while something is dragged; on its cuff the pause in a paused battle, crossed blades over a foe, an hourglass while Go to walks (else the game's little picture). |
-| `mods/options.c:223` | Size of the menus |
-| `mods/options.c:223` | the size of Darklands+'s menus in percent (0: the system's scale), after a restart. |
-| `mods/options.c:224` | Pause in the background |
-| `mods/options.c:224` | the game pauses while its window is in the background. |
-| `mods/options.c:225` | Intro at start-up |
-| `mods/options.c:225` | the intro: 0 nothing, 1 the last scene, 2 the whole (-1: the whole the first time). |
-| `mods/options.c:226` | Drawing cache |
-| `mods/options.c:226` | the ornate frames drawn once and kept, not drawn again each time: 1 (the default: the plaited bands made into pictures by the processor, the rest kept as triangles), 0 off, 3 everything kept as triangles, 2 kept as pictures drawn by the graphics card. |
-| `mods/options.c:227` | Encounters from mods |
-| `mods/options.c:227` | the new encounters that mods add (F12 > Mods) come up on the road. |
-| `mods/options.c:228` | A seal on encounters from mods |
-| `mods/options.c:228` | a small red seal in the corner of a card that comes from a mod, not the original game. |
-| `mods/options.c:229` | How often encounters from mods come up |
-| `mods/options.c:229` | in percent: at 100, each is as likely as any one of the original encounters for that terrain. |
-| `mods/options.c:230` | Button prompts |
-| `mods/options.c:230` | the controller's buttons on screen: 0 the device in use, 1 keys and mouse, 2 Xbox, 3 PlayStation, 4 Nintendo. |
-| `mods/options.c:231` | the next new game keeps one save, saved over by the game itself as it goes (every card, each arrival, before each battle, on quitting); no loading back while it runs; when the party's journey ends, its save is deleted. |
-| `mods/options.c:232` | Back up saves |
-| `mods/options.c:232` | a copy of each save before it is overwritten. |
-| `mods/options.c:233` | Autosaves kept |
-| `mods/options.c:233` | how many autosaves are kept. |
-| `mods/options.c:234` | Quick saves kept |
-| `mods/options.c:234` | how many quick saves are kept. |
-| `mods/options.c:235` | Music volume |
-| `mods/options.c:236` | Effects volume |
-| `mods/options.c:237` | Music in the menus |
-| `mods/options.c:237` | the music goes on while Darklands+'s menus are open. |
-| `mods/options.c:238` | MT-32 display |
-| `mods/options.c:238` | the MT-32's little display shown at the top right when the game puts a message on it. |
-| `mods/options.c:239` | Quests sorted by |
-| `mods/options.c:239` | the margin's quests: 0 by deadline, 1 nearest first, 2 as taken. |
-| `mods/options.c:241` | Replacement art |
-| `mods/options.c:242` | Battle sounds from a sound pack |
-| `mods/options.c:243` | Side margins |
-| `mods/options.c:244` | Names in full |
-| `mods/options.c:245` | Where armor is worn |
-| `mods/options.c:246` | Quick saves and autosaves |
-| `mods/options.c:247` | Autosave on arriving |
-| `mods/options.c:248` | Autosave before a battle |
-| `mods/options.c:249` | Back to the start screen when the journey ends |
-| `mods/options.c:251` | "Fehde!" ambush |
-| `mods/options.c:251` | a road ambush by soldiers of a private feud, written as a variant of the mercenaries' ambush and never used: half the time that ambush comes up, the Fehde comes instead, with its own texts but the same odds and battle (Soldiers led by a Knight). |
-| `mods/options.c:252` | Town hospice |
-| `mods/options.c:252` | a town's hospice by day, written but never made playable: give alms, work a day beside the nuns (Healing), have the party's wounds tended for a fee, or beg to be tended for nothing. The church district leads there, and Go to (G) lists it. |
-| `mods/options.c:253` | Cities at war |
-| `mods/options.c:253` | coded and never switched on. Now and then a city prepares for war for a few weeks, and some then stand a siege: prices rise, the news tells of it, Soldiers' Road and its market open, the docks are guarded or barricaded, and the gate turns travelers away (talk, bluff, sneak, a farmer's hay cart, or the walls, where patrols take you for spies). A save made during a war carries the war on if loaded in the original game. |
-| `mods/options.c:254` | City politics |
-| `mods/options.c:254` | the campaign written and never switched on. Now and then a city has a season of unrest: rumors in the news and the guild quarters lead to the rebels' leader or the government's man, the party takes a side, posts handbills, sways the guilds, and a war council sets the day of a march on the town hall or of the arrests. |
-| `mods/options.c:255` | Black Cloud in battle |
-| `mods/options.c:255` | the party can throw Black Cloud in a battle too. The manual left it out ("the screen takes too long" on the machines of 1992), but the battle rules handle its smoke: shots through it hit a fifth as often, and fighting from inside it gives -15 to hit. Enemies and cards already use it. |
-| `mods/options.c:256` | Honor Roll of Glory (hall of fame) |
-| `mods/options.c:256` | the hall of fame left unfinished in the game (its picture and table were in the files, never used): a party enters it when its journey ends, and F12 > Journal > Honor Roll shows it. |
-| `mods/options.c:277` | Takes effect when the next new game starts. |
-| `mods/options.c:282` | Fixes for bugs of the original |
-| `mods/options.c:329` | Full Original |
-| `mods/options.c:329` | Darklands as it played in 1993 (version 483.07), bugs and all: everything Darklands+ adds to the play is off, and the original game's sound setup is used. How it looks (the text, the frames, the screen) stays as set in those sections. |
-| `mods/options.c:330` | Saves load in the original game and back. |
-| `mods/options.c:331` | The original game with its bugs fixed: its own screens, rules and graphics. |
+| `mods/options.c:104` | these screens drawn anew by Darklands+, in the original's style: the party panel, the menus, the start screen, the cards, shops, the character sheet, loot, alchemy, the store room, the inn and camp, prayer, character creation, party selection, Party Info, the marching order, Enemy Info, the overland view's messages, and Save and Load. They show more (chances, what an item is worth, where an ingredient is sold); the rules are unchanged. When off: the original screens. |
+| `mods/options.c:105` | Wares compared with what is equipped |
+| `mods/options.c:105` | in a shop, a green arrow by a weapon, armor or shield that is better than what the member has equipped there now, a red one by a worse one (an empty arrow: nothing equipped there); pointing at a ware highlights the equipped item it would replace. |
+| `mods/options.c:106` | New party panel |
+| `mods/options.c:106` | each member's Endurance, Strength and Divine Favor as labeled bars with numbers. Clicks work as in the original (open a character sheet; give orders in a battle). For a portrait of your own, put NAME.png (or .jpg) in a folder named portraits in the Darklands+ folder, NAME being the member's name. |
+| `mods/options.c:107` | Picture in the party panel |
+| `mods/options.c:107` | beside each member |
+| `mods/options.c:107` | your portrait, else the battle sprite, else the crest\|the battle sprite, else the crest\|the crest\|no picture |
+| `mods/options.c:108` | Tooltip delay |
+| `mods/options.c:108` | the notes that appear by the pointer: how long the pointer rests on something before its note shows (once one has shown, the next appears at once). |
+| `mods/options.c:108` | at once\|after a moment\|after a second |
+| `mods/options.c:109` | the game's menus (Game, Orders, Attack, Party ...) open with a right-click or F10 and stay open until you choose or click elsewhere; the entries and what they do are unchanged. When off: the original menu bar, open only while the right button is held. |
+| `mods/options.c:110` | New start screen |
+| `mods/options.c:110` | Continue (loads the newest save), Load, New party and Quickstart, over the original game's art. |
+| `mods/options.c:111` | New card screens |
+| `mods/options.c:111` | card text in the typeface you choose, the options as rows to click with their chances beside them; an option that uses an item or a saint lists who can. The game still decides every outcome. When off: the original cards (with crisp text drawn over them). |
+| `mods/options.c:112` | New shop screen |
+| `mods/options.c:112` | all the wares and all your items in two lists, with Buy and Sell on each row and the equipped items marked; the bottom of the screen describes whatever is under the pointer. Stock and prices are unchanged. |
+| `mods/options.c:113` | New character sheet |
+| `mods/options.c:113` | the paper doll and the items with Equip, Unequip, Drink and Drop, all the skills on one page, the party's saints and formulae. Drag an item onto a member in the party panel to give it (hold Shift to give one from a stack). Equipping, giving and drinking work as in the original. |
+| `mods/options.c:114` | One shared pack for the party |
+| `mods/options.c:114` | in the original, each member carries their own items; with this (Darklands+ only), the party shares one pack. Each member keeps only their equipped items and their own potions; everything else goes into the party's pack. Equip and Drink take from the pack, and a shop buys from it. As in the original, only equipped items count toward the load. When the game needs a particular member to have an item (lock picks at a lock, a mount, arrows before a battle), Darklands+ first moves it from the pack to that member. Keep marks an item so it is never sold or dropped. |
+| `mods/options.c:115` | New loot screen |
+| `mods/options.c:115` | the whole pile and each member's items in two lists; a whole stack moves in one click. The original keys G and P still move every item. |
+| `mods/options.c:116` | Shop value in the loot screen |
+| `mods/options.c:116` | under the lists, about what a shop would pay for the item under the pointer. |
+| `mods/options.c:117` | New alchemy screen |
+| `mods/options.c:117` | every known formula in one list, with its ingredients at hand, batches set with - and +, and the chance of success. The chance and the brewing are unchanged. |
+| `mods/options.c:118` | Where to buy missing ingredients |
+| `mods/options.c:118` | beside an ingredient that runs short, the nearest town seen selling it. |
+| `mods/options.c:119` | New store room screen |
+| `mods/options.c:119` | everything stored and everything the member carries in two lists, with Take and Put on each row (one or the whole stack), and Put away to store everything not equipped. When off: the original screen, four items at a time. |
+| `mods/options.c:120` | One store room shared by every inn |
+| `mods/options.c:120` | what you leave with one innkeeper is waiting at every other inn, as with the item boxes of a certain mansion; best not to ask how (100 kinds of items at most). Items already stored in several towns are put together the first time a store room is opened. |
+| `mods/options.c:121` | At the inn, rested members earn money |
+| `mods/options.c:121` | a member at full Endurance starts the day set to Earn a little money instead of Just Relax (which only refills Endurance). Change it as you like on the inn's screen. |
+| `mods/options.c:122` | New inn and camp screen |
+| `mods/options.c:122` | each member's activity for the day, its cost, the teachers and their fees, and "Until rested". |
+| `mods/options.c:123` | New prayer screen |
+| `mods/options.c:123` | the saint's statue, what the saint does, the Divine Favor to spend and the chance (by the original game's rules). |
+| `mods/options.c:124` | New character creation |
+| `mods/options.c:124` | each step on one page, with what a childhood or profession would give: the attributes afterwards (and the aging past thirty), each skill's gain and how far it can still rise, the Virtue and the saints gained. The rules are unchanged. |
+| `mods/options.c:125` | Step-by-step guide |
+| `mods/options.c:125` | a short explanation of each step, in the empty column on the left. |
+| `mods/options.c:126` | New party selection screen |
+| `mods/options.c:126` | the four party slots with their sprites, the saved characters and the selected character's attributes and skills; click to select, double-click to add or remove. |
+| `mods/options.c:127` | New Party Info screen |
+| `mods/options.c:127` | fame and its title, the date, the place, the wealth, and the party's reputation in every town at once (the original shows one town at a time, under the pointer). |
+| `mods/options.c:128` | New marching order screen |
+| `mods/options.c:128` | a list to move members up and down, then Done, instead of clicking each member in turn. |
+| `mods/options.c:129` | New Enemy Info screen |
+| `mods/options.c:129` | E in a battle: every kind of enemy on the field, its armor and weapons, and how well your weapons work against it. |
+| `mods/options.c:130` | New overland view messages |
+| `mods/options.c:130` | the overland view's messages (a robber knight's land and the like) drawn in the style of the cards. |
+| `mods/options.c:131` | New Save and Load screens |
+| `mods/options.c:131` | each save listed with its place, date and party; Save asks for its comment beside the list, and Load lists every save (the original lists only nine). |
+| `mods/options.c:133` | Chances and hints on the cards |
+| `mods/options.c:133` | on a card, the chance of each option that can fail and who would try it; which saints and items it accepts and who has them; a lectern by an option that brings a teacher (skill, level, fee); the options at once without the fade-in, and 1 to 9 to choose them; at the docks, a small map of where each boat goes. Tooltips say what an item, saint or formula is good for. |
+| `mods/options.c:134` | Chances of success |
+| `mods/options.c:134` | beside each card option that can fail, with the member who would try it (the original shows one at a time while Shift is held). |
+| `mods/options.c:134` | Always, as numbers\|As the difficulty level allows\|Off |
+| `mods/options.c:135` | The best member speaks for the party |
+| `mods/options.c:135` | when a card tests the leader, the member best at it takes the test instead, and the one with the best Charisma haggles in shops; the chance shown is theirs, with their head. The arrow at the end of the chance shows every member's: a click on one has that member speak instead. After the card, your chosen leader is leader again. (When off, the leader speaks, and the arrow still lets you pick another.) |
+| `mods/options.c:136` | Saints and items on cards |
+| `mods/options.c:136` | which saints and items a card accepts, and who knows or carries them (as the Darklands Companion, a players' reference, did: saints are listed even when nobody knows them yet). |
+| `mods/options.c:137` | what the item, saint or formula under the pointer is good for (in shops, the loot screen, character sheets, and the prayer and alchemy screens). |
+| `mods/options.c:138` | Cards without the fade-in |
+| `mods/options.c:138` | a card shows its options at once, without the slow fade-in. |
+| `mods/options.c:139` | Number keys for card options |
+| `mods/options.c:139` | 1 to 9 choose a card's options. |
+| `mods/options.c:140` | Who has work |
+| `mods/options.c:140` | in the Go to list, beside the Fugger, the Medici, the Hanse, the cathedral, the council, the lord and the market stalls: the chance that asking brings a quest, the date they will have one again, or a note that their quest is under way or its reward is waiting. |
+| `mods/options.c:141` | a lectern beside each card option that brings a teacher to the inn, with the skill, the teacher's level and the fee; the margin and the world map (M) show which teachers each town can offer. |
+| `mods/options.c:142` | G on a town's card lists its places; pick one and the party goes there, clicking through the menus for you. |
+| `mods/options.c:143` | Map at the docks |
+| `mods/options.c:143` | beside the docks' list of boats, a small map of the towns they go to and the way each takes along the rivers and coasts; a click on a town takes that boat. |
+| `mods/options.c:144` | Note each town's shops and wares |
+| `mods/options.c:144` | each town's shops, their wares, qualities and prices, noted on arrival (shown on the world map, M). Switched in F12 > Journal. |
+| `mods/options.c:145` | every text the cards show, word for word, with the date, the place and the choice made, so a clue read weeks ago can be found again (F12 > Journal > Chronicle, where it is switched). |
+| `mods/options.c:147` | Ingredients of one quality |
+| `mods/options.c:147` | every ingredient is of quality 25, whoever finds, buys or carries it: its quality only ever changed its price (alchemy takes ingredients by kind and number, and a potion's quality is the formula's), and two of one kind at two qualities were two entries everywhere. Those carried already join as a game is loaded. |
+| `mods/options.c:148` | Thrown weapons picked up after a battle |
+| `mods/options.c:148` | when the loot screen opens after a battle, the javelins, throwing axes, throwing knives and darts each member threw are taken from the pile and given back to them. |
+| `mods/options.c:149` | Endless ammunition and thrown weapons |
+| `mods/options.c:149` | arrows, quarrels and balls, and javelins, throwing axes, throwing knives and darts, never run out (one is enough to shoot or throw); enemies still use up theirs. When off: each shot uses one, and about 7 in 10 arrows and quarrels can be picked up in the loot afterwards; with the shared pack they are then each member's own, listed with them like potions (picked-up ones go to whoever shoots them; drag them onto another member to hand them over). |
+| `mods/options.c:150` | Endless ammunition |
+| `mods/options.c:150` | arrows, quarrels and balls never run out (one is enough to shoot); enemies still use up theirs. When off: each shot uses one, and about 7 in 10 arrows and quarrels can be picked up in the loot afterwards; with the shared pack they are then each member's own, listed with them like potions. |
+| `mods/options.c:151` | Endless thrown weapons |
+| `mods/options.c:151` | javelins, throwing axes, throwing knives and darts never run out either (one is enough to throw). When off, with the shared pack they are each member's own, listed with them like potions. |
+| `mods/options.c:152` | Aging during play |
+| `mods/options.c:152` | characters go on aging during play (Darklands+ only; the original ages them only during character creation): from thirty on, a little each month, more with age (by seventy, a total loss of 25 Endurance, 21 Strength and Agility each, 10 Perception and Charisma each, and 5 Intelligence). |
+| `mods/options.c:153` | Warn about permanent losses |
+| `mods/options.c:153` | anything lost for good (an attribute's maximum, a skill, armor eaten by acid or fire, the toll of the years) pauses the game with a window saying exactly what was lost, and by whom. |
+| `mods/options.c:155` | Easier battle controls |
+| `mods/options.c:155` | click a member (or their box in the party panel), then an enemy to attack it or the ground to walk there: one click gives the order, and while paused the next member without orders is chosen. Order buttons with icons, right-drag to move the view, selecting a member doesn't move the view, a shorter wait at the end of a battle, and Z to fast-forward (Z again: back to the chosen speed). |
+| `mods/options.c:156` | Battle info on screen |
+| `mods/options.c:156` | a bar over each wounded enemy, and pointing at someone shows who it is, how badly hurt, their melee rating, aim and weapons; the line of a shot with what is in the way; what a click will do; an arrow to enemies off screen; skill gains rising over the fighter; a reload bar under a shooter; and the battle log (every blow, parry and fall). |
+| `mods/options.c:157` | Pauses in battle |
+| `mods/options.c:157` | the battle pauses when a member falls and when enemies waiting in a castle, dungeon or mine come out to fight. |
+| `mods/options.c:158` | Smooth, steady scrolling |
+| `mods/options.c:158` | the battle view slides instead of jumping, scrolls at a steady pace, and resting the pointer on the edge scrolls it without Shift. |
+| `mods/options.c:159` | Pause when a member falls |
+| `mods/options.c:160` | Pause when badly hurt |
+| `mods/options.c:160` | the battle pauses when a party member's Endurance drops below a quarter. |
+| `mods/options.c:161` | Pause when enemies come out |
+| `mods/options.c:161` | the battle pauses when enemies waiting in a castle, dungeon or mine come out to fight. |
+| `mods/options.c:162` | Improved combat |
+| `mods/options.c:162` | the party fights on sensibly between orders, each member in their way of fighting, chosen on their box in the party panel: Skirmisher (everyone's way until you choose another: shoots while the enemies come, if they have a missile weapon, then fights hand to hand to the end), Archer, Charger, or Manual (the original's way: every order yours). An order of yours is carried out, then the member goes back to their way; an enemy you sent them at hand to hand stays their foe until it falls. A shooter whose target falls takes the nearest enemy in sight; with no clear line (a wall, a tree or someone standing between, as the aiming line shows), they move to the nearest spot a few paces off that has one. Parry, Berserk and Vulnerable stay as ordered, and a click on an enemy opens with a Vulnerable attack (aimed at the gaps in its armor) when only that would get through its armor. When off: the original's ways. |
+| `mods/options.c:163` | Click an enemy to attack it |
+| `mods/options.c:163` | a click on an enemy sends the selected member to attack it, even before an attack is chosen: a standard attack, or with Improved combat a Vulnerable one where only that gets through the enemy's armor. |
+| `mods/options.c:164` | Way of fighting on each member's box |
+| `mods/options.c:164` | in a battle, each member's box in the party panel shows their way of fighting, what they do until you give them an order. Click it to choose another; each character keeps their way from battle to battle. It only sets what they do while you give them no order: no bonus, no penalty; an order you give is carried out, then they go back to their way. |
+| `mods/options.c:165` | Click a member's box to give them orders |
+| `mods/options.c:165` | in a battle, a click on a member's box in the party panel selects them for orders, as 1 to 5 do (a double-click also moves the view to them); a right-click on the box opens their character sheet. When off: a click on the box opens the sheet, as in the original. |
+| `mods/options.c:166` | One click gives an order |
+| `mods/options.c:166` | with a member selected, a click on an enemy or the ground gives the order at once, as do orders that need no target (Halt, a door, the stairs). An attack picked from the Orders menu or the buttons (Standard, Vulnerable, Berserk, Parry) goes against the enemy the member is already fighting. If selecting the member paused the battle, it resumes with the order. When off: a click only marks the target, and Enter, Space or selecting another member gives the order, as in the original. |
+| `mods/options.c:167` | Then select the next member without orders |
+| `mods/options.c:167` | while the battle is paused, giving an order selects the next member on screen who has no order, so at the start of a battle each order is a single click on an enemy. Space resumes the battle. |
+| `mods/options.c:168` | Order buttons over the field |
+| `mods/options.c:168` | while a member is selected, their orders appear as buttons in a strip at the foot of the battlefield, grouped by what they do (attacks, moving, the things at hand, potions and items, the battle), so no right-click menu is needed. Fast forward and Resume stand at the top of the right margin (in the strip when the window has no right margin). |
+| `mods/options.c:169` | Order buttons as pictures |
+| `mods/options.c:169` | each order button is its picture alone (a sword for a standard attack, a shield for Parry, footprints for Walk towards, a potion as its flask with how many), the member's head at the strip's start; the order's name and what it does under the pointer. When off: each button with its name beside the picture. |
+| `mods/options.c:170` | Show the line of a shot |
+| `mods/options.c:170` | when a member is about to shoot or throw at the enemy under the pointer, a line runs from them to it. Anything in the way (a wall, a tree, someone standing between) is outlined in red, and the line turns red past it: the shot can't be taken from there. |
+| `mods/options.c:171` | Say what a click will do |
+| `mods/options.c:171` | with a member selected, a short label by the pointer says what a click there does when it isn't a plain attack or walk (shoot, throw, flee, a Vulnerable or Berserk attack) or why it can't (no way there, no clear shot). |
+| `mods/options.c:172` | Drag to move the view |
+| `mods/options.c:172` | hold the right (or middle) button and move the mouse to drag the battle view; a right-click without moving still opens the menus. |
+| `mods/options.c:173` | Selecting a member doesn't move the view |
+| `mods/options.c:173` | 1 to 5 (or a click on a member's box) select a member without moving the view; press twice to move the view to the member and follow them. Selecting a member on another floor still moves the view to them. |
+| `mods/options.c:174` | Smooth scrolling |
+| `mods/options.c:174` | the battle view slides to each new place instead of jumping. |
+| `mods/options.c:175` | Steady scrolling |
+| `mods/options.c:175` | the battlefield scrolls at a steady pace (holding Shift at the edge no longer scrolls all the way to the end of the field at speed). |
+| `mods/options.c:176` | Edge scrolling without Shift |
+| `mods/options.c:176` | resting the pointer on the edge of the screen scrolls the battlefield; no Shift needed. |
+| `mods/options.c:177` | Info under the pointer |
+| `mods/options.c:177` | a bar over each wounded enemy with the Endurance it has left (Alt: over all); pointing at someone shows who it is, how badly hurt they are, their melee rating (attack and defense hand to hand), their aim with a missile weapon, and their weapons. |
+| `mods/options.c:178` | Enemy Endurance as numbers |
+| `mods/options.c:179` | Arrow to enemies off screen |
+| `mods/options.c:179` | when no enemy is on screen, an arrow at the edge points to the nearest one; click it to move the view there. |
+| `mods/options.c:180` | Show skill gains |
+| `mods/options.c:180` | a skill raised in a fight rises in gold over the fighter's head (+2 Edged), and a note of it shows in the member's box in the party panel. |
+| `mods/options.c:181` | a thin amber line under a member readying a shot (bow, crossbow, gun or thrown weapon), filling up until they shoot. |
+| `mods/options.c:182` | every blow, parry, wound and fall, in the left margin on a wide window, otherwise over the field (F12 > Journal > Battle log keeps it). |
+| `mods/options.c:183` | Level map (Tab) |
+| `mods/options.c:183` | Tab in battles, castles, mines and dungeons: a map of the level as far as the party has seen it, with the floors and the stairs seen between them; a click on it walks the party there. |
+| `mods/options.c:184` | The whole level on the level map |
+| `mods/options.c:184` | Tab shows the whole level, not only what the party has seen. |
+| `mods/options.c:185` | More day jobs |
+| `mods/options.c:185` | nine jobs the original never offers (mercenary, guard sergeant, bodyguard, courtier, scribe, clerk, troubadour, entertainer, preaching friar) turn up in towns with the right places: soldiers' jobs by an arsenal or fortress, a lord's household at a fortress, clerks at a town hall, the great houses in a big city, friars by a monastery. Each member still takes the best-paid job they qualify for. |
+| `mods/options.c:186` | Enemies still waiting |
+| `mods/options.c:186` | under the enemy list, how many enemies the party has yet to meet in a castle, dungeon or mine, floor by floor, and which floor its master is on (knowledge the party could not have). |
+| `mods/options.c:187` | Shorter wait at the end of a battle |
+| `mods/options.c:187` | when the last enemy falls, the field stands still for one second instead of three and a half before the loot, and "Victory! The battle is won." (or the like) stays for three seconds instead of eight. The original's long waits looked like a freeze. |
+| `mods/options.c:188` | Fighters find their way around obstacles |
+| `mods/options.c:188` | fighters plan their way around walls, furniture and each other; in the original they often give up on long or winding routes (members get stuck in mines). Enemies get it too, so battles are harder. In a crowd, a blocked fighter finds another way at once instead of standing still for seconds, and enemies at the back wait or pick another target rather than take a long detour. |
+| `mods/options.c:189` | Battle speed |
+| `mods/options.c:189` | walking (in dungeons, castles and mines too), attacks, drinking potions and calling on saints all go faster; pausing (Space) works as before. |
+| `mods/options.c:189` | as the original\|1.5x\|2x\|3x |
+| `mods/options.c:190` | Fast forward (Z) |
+| `mods/options.c:190` | Z in a battle runs it six times faster; Z again goes back to the chosen speed. |
+| `mods/options.c:192` | World map (M) |
+| `mods/options.c:192` | M opens a map of the whole land (the towns, the quests, where saints and formulae are found). |
+| `mods/options.c:193` | the party follows the roads to a place you pick: double-click it (or Travel there) on the world map (M), or Ctrl+click it in the overland view. Any key or click stops it. |
+| `mods/options.c:194` | Auto-travel speed |
+| `mods/options.c:194` | walking pace\|4x\|instant |
+| `mods/options.c:195` | Names and quest markers in the overland view |
+| `mods/options.c:195` | the towns and places named in the overland view, each quest's icon above its place, and a sign beside a town that bars the party or where the watch is after it. |
+| `mods/options.c:196` | Place names in the overland view |
+| `mods/options.c:196` | the towns and places named in the overland view. |
+| `mods/options.c:197` | Quest markers in the overland view |
+| `mods/options.c:197` | each quest's icon above its place in the overland view, and a sign beside a town that bars the party or where the watch is after it. |
+| `mods/options.c:198` | What unvisited places offer |
+| `mods/options.c:198` | the saints a library teaches, the formulae an alchemist sells and a shop's goods, also in towns and monasteries the party has not visited: on the world map, on the character sheet and beside an ingredient that runs short. When off: only what the party has seen. (How good each town's smiths and shops are is shown either way.) |
+| `mods/options.c:199` | Encounters on the road |
+| `mods/options.c:199` | how often travel brings an encounter. |
+| `mods/options.c:199` | a quarter\|half\|as the original\|double |
+| `mods/options.c:200` | Night encounters in the streets |
+| `mods/options.c:200` | how often thieves and the watch turn up in town at night (in the original, cutthroats about 8 times in 10 in the side streets for a party with little Stealth and Streetwise, and the watch now and then on the main street). |
+| `mods/options.c:200` | a quarter\|half\|as the original\|double |
+| `mods/options.c:205` | the typeface of the cards and the new screens (the game's own lettering drawn crisp, or one of several period hands). |
+| `mods/options.c:206` | The same typeface for the margins |
+| `mods/options.c:206` | the side panels, tooltips and the place names on the world map and in the overland view in the chosen typeface too. |
+| `mods/options.c:207` | Spell out abbreviations |
+| `mods/options.c:207` | the character sheet's abbreviations written out (wPol: Polearm Wpns). |
+| `mods/options.c:208` | Money as coins |
+| `mods/options.c:208` | florins, groschen and pfennigs as small coins (1 12 4) instead of 1fl 12gr 4pf. |
+| `mods/options.c:209` | Letter edges |
+| `mods/options.c:209` | plain, a shadow or an outline around the letters drawn over pictures (0 plain, 1 shadow, 2 outline). |
+| `mods/options.c:210` | Darken faint text |
+| `mods/options.c:210` | faint text darkened (or lightened) against its background so it stays readable. |
+| `mods/options.c:211` | the size of the text in the margins, the tooltips and the place names (world map and overland view), in percent. |
+| `mods/options.c:212` | Icons beside the skills |
+| `mods/options.c:212` | small icons beside the skills and attributes. |
+| `mods/options.c:213` | Skill icons' look |
+| `mods/options.c:213` | heraldic charges on shields (2) or in color (0), wherever a skill or attribute is shown. |
+| `mods/options.c:214` | A potion's grade |
+| `mods/options.c:214` | how a potion's grade shows on its flask (4 chevrons on a badge, 3 chevrons, 1 dots on a strip, 0 small dots). |
+| `mods/options.c:215` | The Philosopher's Stone |
+| `mods/options.c:215` | how the stone is pictured (2 the squared circle, 1 a rough stone, 0 an egg). |
+| `mods/options.c:216` | the clock shown while hours pass (styles by number). |
+| `mods/options.c:217` | the plaited band and the gilt corners around the windows. |
+| `mods/options.c:218` | the band around the windows (styles by number). |
+| `mods/options.c:219` | Button style |
+| `mods/options.c:219` | the look of the buttons (styles by number). |
+| `mods/options.c:220` | Replacement art: show file names |
+| `mods/options.c:220` | the file each picture would be replaced from, for those making replacement art. |
+| `mods/options.c:221` | Soft scaling |
+| `mods/options.c:221` | the game's picture blurred a little, as an old monitor would, rather than in sharp pixels (Soft in F12 > Settings > Screen). |
+| `mods/options.c:222` | Rounded edges |
+| `mods/options.c:222` | the stair-steps of diagonal edges rounded off (Rounded edges in F12 > Settings > Screen): 0 as drawn, 1 and 2 rounded. |
+| `mods/options.c:223` | System pointer |
+| `mods/options.c:223` | the system's mouse pointer over the game too. |
+| `mods/options.c:224` | Smooth pointer |
+| `mods/options.c:224` | the game's mouse pointer moves as smoothly as the system's. |
+| `mods/options.c:225` | Size of the menus |
+| `mods/options.c:225` | the size of Darklands+'s menus in percent (0: the system's scale), after a restart. |
+| `mods/options.c:226` | Pause in the background |
+| `mods/options.c:226` | the game pauses while its window is in the background. |
+| `mods/options.c:227` | Intro at start-up |
+| `mods/options.c:227` | the intro: 0 nothing, 1 the last scene, 2 the whole (-1: the whole the first time). |
+| `mods/options.c:228` | Drawing cache |
+| `mods/options.c:228` | the ornate frames drawn once and kept, not drawn again each time: 1 (the default: the plaited bands made into pictures by the processor, the rest kept as triangles), 0 off, 3 everything kept as triangles, 2 kept as pictures drawn by the graphics card. |
+| `mods/options.c:229` | Encounters from mods |
+| `mods/options.c:229` | the new encounters that mods add (F12 > Mods) come up on the road. |
+| `mods/options.c:230` | A seal on encounters from mods |
+| `mods/options.c:230` | a small red seal in the corner of a card that comes from a mod, not the original game. |
+| `mods/options.c:231` | How often encounters from mods come up |
+| `mods/options.c:231` | in percent: at 100, each is as likely as any one of the original encounters for that terrain. |
+| `mods/options.c:232` | Button prompts |
+| `mods/options.c:232` | the controller's buttons on screen: 0 the device in use, 1 keys and mouse, 2 Xbox, 3 PlayStation, 4 Nintendo. |
+| `mods/options.c:233` | the next new game keeps one save, saved over by the game itself as it goes (every card, each arrival, before each battle, on quitting); no loading back while it runs; when the party's journey ends, its save is deleted. |
+| `mods/options.c:234` | Back up saves |
+| `mods/options.c:234` | a copy of each save before it is overwritten. |
+| `mods/options.c:235` | Autosaves kept |
+| `mods/options.c:235` | how many autosaves are kept. |
+| `mods/options.c:236` | Quick saves kept |
+| `mods/options.c:236` | how many quick saves are kept. |
+| `mods/options.c:237` | Music volume |
+| `mods/options.c:238` | Effects volume |
+| `mods/options.c:239` | Music in the menus |
+| `mods/options.c:239` | the music goes on while Darklands+'s menus are open. |
+| `mods/options.c:240` | MT-32 display |
+| `mods/options.c:240` | the MT-32's little display shown at the top right when the game puts a message on it. |
+| `mods/options.c:241` | Quests sorted by |
+| `mods/options.c:241` | the margin's quests: 0 by deadline, 1 nearest first, 2 as taken. |
+| `mods/options.c:243` | Replacement art |
+| `mods/options.c:244` | Battle sounds from a sound pack |
+| `mods/options.c:245` | Side margins |
+| `mods/options.c:246` | Names in full |
+| `mods/options.c:247` | Where armor is worn |
+| `mods/options.c:248` | Quick saves and autosaves |
+| `mods/options.c:249` | Autosave on arriving |
+| `mods/options.c:250` | Autosave before a battle |
+| `mods/options.c:251` | Back to the start screen when the journey ends |
+| `mods/options.c:253` | "Fehde!" ambush |
+| `mods/options.c:253` | a road ambush by soldiers of a private feud, written as a variant of the mercenaries' ambush and never used: half the time that ambush comes up, the Fehde comes instead, with its own texts but the same odds and battle (Soldiers led by a Knight). |
+| `mods/options.c:254` | Town hospice |
+| `mods/options.c:254` | a town's hospice by day, written but never made playable: give alms, work a day beside the nuns (Healing), have the party's wounds tended for a fee, or beg to be tended for nothing. The church district leads there, and Go to (G) lists it. |
+| `mods/options.c:255` | Cities at war |
+| `mods/options.c:255` | coded and never switched on. Now and then a city prepares for war for a few weeks, and some then stand a siege: prices rise, the news tells of it, Soldiers' Road and its market open, the docks are guarded or barricaded, and the gate turns travelers away (talk, bluff, sneak, a farmer's hay cart, or the walls, where patrols take you for spies). A save made during a war carries the war on if loaded in the original game. |
+| `mods/options.c:256` | City politics |
+| `mods/options.c:256` | the campaign written and never switched on. Now and then a city has a season of unrest: rumors in the news and the guild quarters lead to the rebels' leader or the government's man, the party takes a side, posts handbills, sways the guilds, and a war council sets the day of a march on the town hall or of the arrests. |
+| `mods/options.c:257` | Black Cloud in battle |
+| `mods/options.c:257` | the party can throw Black Cloud in a battle too. The manual left it out ("the screen takes too long" on the machines of 1992), but the battle rules handle its smoke: shots through it hit a fifth as often, and fighting from inside it gives -15 to hit. Enemies and cards already use it. |
+| `mods/options.c:258` | Honor Roll of Glory (hall of fame) |
+| `mods/options.c:258` | the hall of fame left unfinished in the game (its picture and table were in the files, never used): a party enters it when its journey ends, and F12 > Journal > Honor Roll shows it. |
+| `mods/options.c:279` | Takes effect when the next new game starts. |
+| `mods/options.c:284` | Fixes for bugs of the original |
+| `mods/options.c:331` | Full Original |
+| `mods/options.c:331` | Darklands as it played in 1993 (version 483.07), bugs and all: everything Darklands+ adds to the play is off, and the original game's sound setup is used. How it looks (the text, the frames, the screen) stays as set in those sections. |
 | `mods/options.c:332` | Saves load in the original game and back. |
-| `mods/options.c:333` | The original rules with the original's bugs fixed, the new screens, on screen what the original keeps behind keys or only in its manual, and less busywork: auto-travel, Go to, easier battle controls, one shared pack, one store room for every inn, endless ammunition. Easier play is offered separately, as built-in mods (F12 > Mods). |
-| `mods/options.c:334` | Saves load in the original game and back, unless a member uses an enemy sprite. |
-| `mods/options.c:456` | # Darklands+ switches  Every switch: its key (its name for good: never renamed, never reused), what it does, why it exists, the group switch that sets it (if any), its class (what kind of change: fix, show, ease, plus, easy, experiment, taste, tool) and its value in the original game / Darklands+ / for easy play (the column of the former Easy preset). Made by the game itself (`DL_DUMP_SWITCHES=docs/SWITCHES.md`, from `port/mods/options.c` and `port/mods/optwhy.c`); `tools/check_switches.py` fails if a key disappears without being listed as retired.   |
-| `mods/options.c:481` |  ## Retired keys  No longer offered; not to be used for anything else.   |
+| `mods/options.c:333` | The original game with its bugs fixed: its own screens, rules and graphics. |
+| `mods/options.c:334` | Saves load in the original game and back. |
+| `mods/options.c:335` | The original rules with the original's bugs fixed, the new screens, on screen what the original keeps behind keys or only in its manual, and less busywork: auto-travel, Go to, easier battle controls, one shared pack, one store room for every inn, endless ammunition. Easier play is offered separately, as built-in mods (F12 > Mods). |
+| `mods/options.c:336` | Saves load in the original game and back, unless a member uses an enemy sprite. |
+| `mods/options.c:458` | # Darklands+ switches  Every switch: its key (its name for good: never renamed, never reused), what it does, why it exists, the group switch that sets it (if any), its class (what kind of change: fix, show, ease, plus, easy, experiment, taste, tool) and its value in the original game / Darklands+ / for easy play (the column of the former Easy preset). Made by the game itself (`DL_DUMP_SWITCHES=docs/SWITCHES.md`, from `port/mods/options.c` and `port/mods/optwhy.c`); `tools/check_switches.py` fails if a key disappears without being listed as retired.   |
+| `mods/options.c:483` |  ## Retired keys  No longer offered; not to be used for anything else.   |
 
 ## Settings: why each switch (mods/optwhy.c)
 
@@ -345,72 +345,73 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/optwhy.c:56` | Boat destinations are names without a map. |
 | `mods/optwhy.c:57` | The player otherwise keeps notes on paper. |
 | `mods/optwhy.c:58` | A record of the journey the original does not keep. |
-| `mods/optwhy.c:59` | Gathering thrown weapons after each battle is busywork. |
-| `mods/optwhy.c:60` | Counting arrows and gathering javelins is bookkeeping, not play; enemies still run out. |
-| `mods/optwhy.c:61` | The original overland view names nothing and shows no quest. |
-| `mods/optwhy.c:62` | Counting arrows is bookkeeping, not play; enemies still run out. |
-| `mods/optwhy.c:63` | The same for thrown weapons. |
-| `mods/optwhy.c:64` | Creation ages characters but play does not, so starting with older characters cost nothing later; this keeps age a cost. |
-| `mods/optwhy.c:65` | Permanent losses happen silently in the original. |
-| `mods/optwhy.c:66` | Jobs written into the game's tables and never offered. |
-| `mods/optwhy.c:68` | (part of Pauses in battle) |
+| `mods/optwhy.c:59` | Ingredients of one kind at two qualities were listed twice, and the quality changed nothing but the price. |
+| `mods/optwhy.c:60` | Gathering thrown weapons after each battle is busywork. |
+| `mods/optwhy.c:61` | Counting arrows and gathering javelins is bookkeeping, not play; enemies still run out. |
+| `mods/optwhy.c:62` | The original overland view names nothing and shows no quest. |
+| `mods/optwhy.c:63` | Counting arrows is bookkeeping, not play; enemies still run out. |
+| `mods/optwhy.c:64` | The same for thrown weapons. |
+| `mods/optwhy.c:65` | Creation ages characters but play does not, so starting with older characters cost nothing later; this keeps age a cost. |
+| `mods/optwhy.c:66` | Permanent losses happen silently in the original. |
+| `mods/optwhy.c:67` | Jobs written into the game's tables and never offered. |
 | `mods/optwhy.c:69` | (part of Pauses in battle) |
 | `mods/optwhy.c:70` | (part of Pauses in battle) |
-| `mods/optwhy.c:71` | Between orders the original's members stand idle or fight poorly (shooters walk into melee, freeze without a line of fire); this is what a player would order each time, in the way chosen for each member. |
-| `mods/optwhy.c:72` | (part of Easier battle controls) |
-| `mods/optwhy.c:73` | The ways run whether shown or not; the picture says what each member will do, and is where to change it. |
-| `mods/optwhy.c:74` | (part of Easier battle controls) |
+| `mods/optwhy.c:71` | (part of Pauses in battle) |
+| `mods/optwhy.c:72` | Between orders the original's members stand idle or fight poorly (shooters walk into melee, freeze without a line of fire); this is what a player would order each time, in the way chosen for each member. |
+| `mods/optwhy.c:73` | (part of Easier battle controls) |
+| `mods/optwhy.c:74` | The ways run whether shown or not; the picture says what each member will do, and is where to change it. |
 | `mods/optwhy.c:75` | (part of Easier battle controls) |
 | `mods/optwhy.c:76` | (part of Easier battle controls) |
 | `mods/optwhy.c:77` | (part of Easier battle controls) |
 | `mods/optwhy.c:78` | (part of Easier battle controls) |
 | `mods/optwhy.c:79` | (part of Easier battle controls) |
 | `mods/optwhy.c:80` | (part of Easier battle controls) |
-| `mods/optwhy.c:81` | (part of Easier battle controls) The original's long wait at the end looked like a freeze. |
-| `mods/optwhy.c:82` | (part of Smooth, steady scrolling) |
+| `mods/optwhy.c:81` | (part of Easier battle controls) |
+| `mods/optwhy.c:82` | (part of Easier battle controls) The original's long wait at the end looked like a freeze. |
 | `mods/optwhy.c:83` | (part of Smooth, steady scrolling) |
 | `mods/optwhy.c:84` | (part of Smooth, steady scrolling) |
-| `mods/optwhy.c:85` | (part of Battle info on screen) |
+| `mods/optwhy.c:85` | (part of Smooth, steady scrolling) |
 | `mods/optwhy.c:86` | (part of Battle info on screen) |
 | `mods/optwhy.c:87` | (part of Battle info on screen) |
 | `mods/optwhy.c:88` | (part of Battle info on screen) |
 | `mods/optwhy.c:89` | (part of Battle info on screen) |
 | `mods/optwhy.c:90` | (part of Battle info on screen) |
 | `mods/optwhy.c:91` | (part of Battle info on screen) |
-| `mods/optwhy.c:92` | Easier: exact numbers the party could not know. |
-| `mods/optwhy.c:93` | Easier: knowledge the party could not have. |
-| `mods/optwhy.c:94` | Dungeons and castles are hard to find one's way in without a map. |
-| `mods/optwhy.c:95` | Easier: the parts not yet seen. |
-| `mods/optwhy.c:96` | In the original, fighters get stuck in mines and long rooms. |
-| `mods/optwhy.c:97` | A matter of taste: some find the original's battles slow. |
-| `mods/optwhy.c:98` | (part of Easier battle controls) Battles already won take long to finish. |
-| `mods/optwhy.c:100` | Steering across the overland view step by step took many key presses, none of them a real choice. |
-| `mods/optwhy.c:101` | A matter of taste. |
-| `mods/optwhy.c:102` | The original overland view names nothing. |
-| `mods/optwhy.c:103` | Where a quest leads was in the player's notes only. |
-| `mods/optwhy.c:104` | Easier: knowledge the party could not have. |
-| `mods/optwhy.c:105` | The original has no map of the whole land. |
-| `mods/optwhy.c:106` | Easier: fewer interruptions. |
-| `mods/optwhy.c:107` | Easier: the original's night streets are near-certain ambushes. |
-| `mods/optwhy.c:109` | The original's small lettering is hard to read on a large screen. |
-| `mods/optwhy.c:110` | Replacement pictures, for those who make them. |
-| `mods/optwhy.c:111` | A matter of taste. |
-| `mods/optwhy.c:112` | Wide screens have room the original left black. |
-| `mods/optwhy.c:113` | The original cut names short to fit its screens. |
-| `mods/optwhy.c:114` | V:/L: prefixes are cryptic. |
-| `mods/optwhy.c:115` | Saving took several menus. |
-| `mods/optwhy.c:116` | Players asked for a game where every choice stands. |
-| `mods/optwhy.c:117` | A crash or a bad fight cost hours. |
-| `mods/optwhy.c:118` | A lost battle cost what came before it. |
-| `mods/optwhy.c:119` | The original quits to DOS at the end. |
-| `mods/optwhy.c:121` | Written by MicroProse and never used. |
-| `mods/optwhy.c:122` | Written by MicroProse and never made playable. |
-| `mods/optwhy.c:123` | Coded by MicroProse and never switched on. |
-| `mods/optwhy.c:124` | Written by MicroProse and never switched on. |
-| `mods/optwhy.c:125` | Left out in 1992 for the machines' speed; the rules handle it. |
-| `mods/optwhy.c:126` | Left unfinished in the game's files. |
-| `mods/optwhy.c:151` | Puts right a bug of the original (the description says which). |
-| `mods/optwhy.c:152` | A matter of taste, or of the computer it runs on; no preset touches it. |
+| `mods/optwhy.c:92` | (part of Battle info on screen) |
+| `mods/optwhy.c:93` | Easier: exact numbers the party could not know. |
+| `mods/optwhy.c:94` | Easier: knowledge the party could not have. |
+| `mods/optwhy.c:95` | Dungeons and castles are hard to find one's way in without a map. |
+| `mods/optwhy.c:96` | Easier: the parts not yet seen. |
+| `mods/optwhy.c:97` | In the original, fighters get stuck in mines and long rooms. |
+| `mods/optwhy.c:98` | A matter of taste: some find the original's battles slow. |
+| `mods/optwhy.c:99` | (part of Easier battle controls) Battles already won take long to finish. |
+| `mods/optwhy.c:101` | Steering across the overland view step by step took many key presses, none of them a real choice. |
+| `mods/optwhy.c:102` | A matter of taste. |
+| `mods/optwhy.c:103` | The original overland view names nothing. |
+| `mods/optwhy.c:104` | Where a quest leads was in the player's notes only. |
+| `mods/optwhy.c:105` | Easier: knowledge the party could not have. |
+| `mods/optwhy.c:106` | The original has no map of the whole land. |
+| `mods/optwhy.c:107` | Easier: fewer interruptions. |
+| `mods/optwhy.c:108` | Easier: the original's night streets are near-certain ambushes. |
+| `mods/optwhy.c:110` | The original's small lettering is hard to read on a large screen. |
+| `mods/optwhy.c:111` | Replacement pictures, for those who make them. |
+| `mods/optwhy.c:112` | A matter of taste. |
+| `mods/optwhy.c:113` | Wide screens have room the original left black. |
+| `mods/optwhy.c:114` | The original cut names short to fit its screens. |
+| `mods/optwhy.c:115` | V:/L: prefixes are cryptic. |
+| `mods/optwhy.c:116` | Saving took several menus. |
+| `mods/optwhy.c:117` | Players asked for a game where every choice stands. |
+| `mods/optwhy.c:118` | A crash or a bad fight cost hours. |
+| `mods/optwhy.c:119` | A lost battle cost what came before it. |
+| `mods/optwhy.c:120` | The original quits to DOS at the end. |
+| `mods/optwhy.c:122` | Written by MicroProse and never used. |
+| `mods/optwhy.c:123` | Written by MicroProse and never made playable. |
+| `mods/optwhy.c:124` | Coded by MicroProse and never switched on. |
+| `mods/optwhy.c:125` | Written by MicroProse and never switched on. |
+| `mods/optwhy.c:126` | Left out in 1992 for the machines' speed; the rules handle it. |
+| `mods/optwhy.c:127` | Left unfinished in the game's files. |
+| `mods/optwhy.c:153` | Puts right a bug of the original (the description says which). |
+| `mods/optwhy.c:154` | A matter of taste, or of the computer it runs on; no preset touches it. |
 
 ## Fixes (mods/fixes.c)
 
@@ -832,62 +833,62 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/citynav.cpp:467` | not to get involved |
 | `ui/citynav.cpp:467` | come back in the morning |
 | `ui/citynav.cpp:486` | simply walk out |
-| `ui/citynav.cpp:495` | leave the city |
-| `ui/citynav.cpp:496` | out of the city |
-| `ui/citynav.cpp:518` | The gate: choose how to get out, and the journey begins in the overland view. |
-| `ui/citynav.cpp:536` | left the city. |
-| `ui/citynav.cpp:537` | too many steps; stopped. |
-| `ui/citynav.cpp:546` | something happened on the way. |
-| `ui/citynav.cpp:546` | leave this place first. |
-| `ui/citynav.cpp:554` | the way is blocked. |
-| `ui/citynav.cpp:560` | cannot find the way from this card. |
-| `ui/citynav.cpp:570` | leading merchant |
-| `ui/citynav.cpp:575` | something happened on the way. |
-| `ui/citynav.cpp:577` | something happened on the way. |
-| `ui/citynav.cpp:577` | leave this place first. |
-| `ui/citynav.cpp:587` | the marketplace by night: choose how to get past the guards to the offices upstairs (press G again there for the office). |
-| `ui/citynav.cpp:588` | the marketplace by night: its stalls are shut until 5:00. |
-| `ui/citynav.cpp:609` | not found in this city. |
-| `ui/citynav.cpp:619` | Going to: %s. Press any key or click to stop. |
-| `ui/citynav.cpp:649` | Walking to the city gate |
-| `ui/citynav.cpp:649` | Walking to: %s |
-| `ui/citynav.cpp:662` | Any key or click stops the walk. |
-| `ui/citynav.cpp:804` | leading merchant |
-| `ui/citynav.cpp:815` | avoiding them |
-| `ui/citynav.cpp:819` | request an audience |
-| `ui/citynav.cpp:863` | Point at a place to read about it here: what it offers, its quests, its teachers. |
-| `ui/citynav.cpp:874` | Click the tile and the party walks there. |
-| `ui/citynav.cpp:913` | Pick a place and the party walks there through the streets. Press any key or click to stop them. |
-| `ui/citynav.cpp:915` | Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out. |
-| `ui/citynav.cpp:943` | Closed until 5:00 |
-| `ui/citynav.cpp:943` | Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same. |
-| `ui/citynav.cpp:947` | Turned away until %d %s |
-| `ui/citynav.cpp:947` | The alchemists turned the party away; they will see you again from %d %s, %d:00. |
-| `ui/citynav.cpp:948` | Library shut until %d %s |
-| `ui/citynav.cpp:948` | The monks' library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:949` | Prayers again from %d %s |
-| `ui/citynav.cpp:949` | The party prayed with the monks; they may again from %d %s, %d:00. |
-| `ui/citynav.cpp:950` | Library shut until %d %s |
-| `ui/citynav.cpp:950` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:968` | Quest chance %d%% |
-| `ui/citynav.cpp:969` | A merchant may offer a quest after you have bought or sold something. |
-| `ui/citynav.cpp:970` | No quests until %d %s |
-| `ui/citynav.cpp:971` | On a quest for them |
-| `ui/citynav.cpp:972` | Your reward is waiting |
-| `ui/citynav.cpp:973` | No quests: reputation too low |
-| `ui/citynav.cpp:978` |  Until %d %s, %d:00. |
-| `ui/citynav.cpp:986` | Your quest:  |
-| `ui/citynav.cpp:986` | see the world map (M) |
-| `ui/citynav.cpp:1008` | Wares %dq, better than most |
-| `ui/citynav.cpp:1010` | Wares of %dq (most shops sell about 25q). |
-| `ui/citynav.cpp:1022` | What you learned |
-| `ui/citynav.cpp:1022` | The physician:  |
-| `ui/citynav.cpp:1028` | Philosopher's Stone %dq |
-| `ui/citynav.cpp:1028` | Stone %dq, no better |
-| `ui/citynav.cpp:1030` | A Philosopher's Stone of quality %d; the party's is %d. |
-| `ui/citynav.cpp:1030` | A Philosopher's Stone of quality %d; the party has none. |
-| `ui/citynav.cpp:1106` | A teacher to hire (faint: not available now) |
-| `ui/citynav.cpp:1107` | A quest of yours leads here |
+| `ui/citynav.cpp:494` | leave the city |
+| `ui/citynav.cpp:495` | out of the city |
+| `ui/citynav.cpp:517` | The gate: choose how to get out, and the journey begins in the overland view. |
+| `ui/citynav.cpp:535` | left the city. |
+| `ui/citynav.cpp:536` | too many steps; stopped. |
+| `ui/citynav.cpp:545` | something happened on the way. |
+| `ui/citynav.cpp:545` | leave this place first. |
+| `ui/citynav.cpp:553` | the way is blocked. |
+| `ui/citynav.cpp:559` | cannot find the way from this card. |
+| `ui/citynav.cpp:569` | leading merchant |
+| `ui/citynav.cpp:574` | something happened on the way. |
+| `ui/citynav.cpp:576` | something happened on the way. |
+| `ui/citynav.cpp:576` | leave this place first. |
+| `ui/citynav.cpp:586` | the marketplace by night: choose how to get past the guards to the offices upstairs (press G again there for the office). |
+| `ui/citynav.cpp:587` | the marketplace by night: its stalls are shut until 5:00. |
+| `ui/citynav.cpp:608` | not found in this city. |
+| `ui/citynav.cpp:618` | Going to: %s. Press any key or click to stop. |
+| `ui/citynav.cpp:648` | Walking to the city gate |
+| `ui/citynav.cpp:648` | Walking to: %s |
+| `ui/citynav.cpp:661` | Any key or click stops the walk. |
+| `ui/citynav.cpp:803` | leading merchant |
+| `ui/citynav.cpp:814` | avoiding them |
+| `ui/citynav.cpp:818` | request an audience |
+| `ui/citynav.cpp:862` | Point at a place to read about it here: what it offers, its quests, its teachers. |
+| `ui/citynav.cpp:873` | Click the tile and the party walks there. |
+| `ui/citynav.cpp:912` | Pick a place and the party walks there through the streets. Press any key or click to stop them. |
+| `ui/citynav.cpp:914` | Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out. |
+| `ui/citynav.cpp:942` | Closed until 5:00 |
+| `ui/citynav.cpp:942` | Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same. |
+| `ui/citynav.cpp:946` | Turned away until %d %s |
+| `ui/citynav.cpp:946` | The alchemists turned the party away; they will see you again from %d %s, %d:00. |
+| `ui/citynav.cpp:947` | Library shut until %d %s |
+| `ui/citynav.cpp:947` | The monks' library (where saints are learned) is shut to the party until %d %s, %d:00. |
+| `ui/citynav.cpp:948` | Prayers again from %d %s |
+| `ui/citynav.cpp:948` | The party prayed with the monks; they may again from %d %s, %d:00. |
+| `ui/citynav.cpp:949` | Library shut until %d %s |
+| `ui/citynav.cpp:949` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
+| `ui/citynav.cpp:967` | Quest chance %d%% |
+| `ui/citynav.cpp:968` | A merchant may offer a quest after you have bought or sold something. |
+| `ui/citynav.cpp:969` | No quests until %d %s |
+| `ui/citynav.cpp:970` | On a quest for them |
+| `ui/citynav.cpp:971` | Your reward is waiting |
+| `ui/citynav.cpp:972` | No quests: reputation too low |
+| `ui/citynav.cpp:977` |  Until %d %s, %d:00. |
+| `ui/citynav.cpp:985` | Your quest:  |
+| `ui/citynav.cpp:985` | see the world map (M) |
+| `ui/citynav.cpp:1007` | Wares %dq, better than most |
+| `ui/citynav.cpp:1009` | Wares of %dq (most shops sell about 25q). |
+| `ui/citynav.cpp:1021` | What you learned |
+| `ui/citynav.cpp:1021` | The physician:  |
+| `ui/citynav.cpp:1027` | Philosopher's Stone %dq |
+| `ui/citynav.cpp:1027` | Stone %dq, no better |
+| `ui/citynav.cpp:1029` | A Philosopher's Stone of quality %d; the party's is %d. |
+| `ui/citynav.cpp:1029` | A Philosopher's Stone of quality %d; the party has none. |
+| `ui/citynav.cpp:1105` | A teacher to hire (faint: not available now) |
+| `ui/citynav.cpp:1106` | A quest of yours leads here |
 | `ui/createview.cpp:109` | A new character |
 | `ui/createview.cpp:110` | %s, called %s, age %d |
 | `ui/createview.cpp:111` | %s, called %s |
@@ -1149,22 +1150,22 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/hourglass.cpp:290` | Copper astrolabe |
 | `ui/hourglass.cpp:290` | Town clock (Prague, 1410) |
 | `ui/hourglass.cpp:290` | The game's, drawn true |
-| `ui/iconsheets.cpp:35` | Frames and clock |
-| `ui/iconsheets.cpp:35` | Cards and towns |
-| `ui/iconsheets.cpp:35` | The party and its items |
-| `ui/iconsheets.cpp:36` | Fixes for bugs of the original |
-| `ui/iconsheets.cpp:99` | The four bases: the elements' triangles |
-| `ui/iconsheets.cpp:100` | Metals and their ores: the planets' signs, in pewter (gold in gold) |
-| `ui/iconsheets.cpp:101` | Sulphurs, salts and poisons |
-| `ui/iconsheets.cpp:102` | Waters, oils and vapours |
-| `ui/iconsheets.cpp:103` | Herbs: no sign in the tables, one made as theirs are |
-| `ui/iconsheets.cpp:104` | E. Black Bean |
-| `ui/iconsheets.cpp:104` | White Cinnabar |
-| `ui/iconsheets.cpp:106` | Choleric Base |
-| `ui/iconsheets.cpp:106` | Phlegmatic Base |
-| `ui/iconsheets.cpp:106` | Sanguine Base |
-| `ui/iconsheets.cpp:106` | Melancholic Base |
-| `ui/iconsheets.cpp:136` | Drawn in color (no disc) |
+| `ui/iconsheets.cpp:34` | Frames and clock |
+| `ui/iconsheets.cpp:34` | Cards and towns |
+| `ui/iconsheets.cpp:34` | The party and its items |
+| `ui/iconsheets.cpp:35` | Fixes for bugs of the original |
+| `ui/iconsheets.cpp:94` | The four bases: the elements' triangles |
+| `ui/iconsheets.cpp:95` | Metals and their ores: the planets' signs, in pewter (gold in gold) |
+| `ui/iconsheets.cpp:96` | Sulphurs, salts and poisons |
+| `ui/iconsheets.cpp:97` | Waters, oils and vapours |
+| `ui/iconsheets.cpp:98` | Herbs: no sign in the tables, one made as theirs are |
+| `ui/iconsheets.cpp:99` | E. Black Bean |
+| `ui/iconsheets.cpp:99` | White Cinnabar |
+| `ui/iconsheets.cpp:101` | Choleric Base |
+| `ui/iconsheets.cpp:101` | Phlegmatic Base |
+| `ui/iconsheets.cpp:101` | Sanguine Base |
+| `ui/iconsheets.cpp:101` | Melancholic Base |
+| `ui/iconsheets.cpp:131` | Drawn in color (no disc) |
 | `ui/infoview.cpp:70` | %d (the next title at %d) |
 | `ui/infoview.cpp:80` | Reputation here: %s (%d) |
 | `ui/infoview.cpp:89` | Bank notes: %s |
@@ -1389,41 +1390,45 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/margins.cpp:467` | %s: %s (their skill %d) |
 | `ui/margins.cpp:469` | A lesson a day at the inn, for a fee. Who would learn, and their skill now: |
 | `ui/margins.cpp:508` | Can't walk there |
-| `ui/margins.cpp:583` | Blessings and potions |
-| `ui/margins.cpp:657` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
-| `ui/margins.cpp:666` | Reputation %d |
-| `ui/margins.cpp:684` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
-| `ui/margins.cpp:684` | Below 0 its shops ask more and pay less (up to 9% from about -20 down). |
-| `ui/margins.cpp:688` |   Changes seen since this game was loaded: |
-| `ui/margins.cpp:691` | the overland view |
-| `ui/margins.cpp:691` | , after choosing " |
-| `ui/margins.cpp:709` | The town counts as hostile: its gates and people turn the party away. |
-| `ui/margins.cpp:711` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
-| `ui/margins.cpp:722` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
-| `ui/margins.cpp:734` | Preparing for war |
-| `ui/margins.cpp:735` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
-| `ui/margins.cpp:737` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
-| `ui/margins.cpp:761` | The party has goods stored here (F12 > Journal > Stored). |
-| `ui/margins.cpp:766` | No blessings or potions at work. |
-| `ui/margins.cpp:775` | C: camp here |
-| `ui/margins.cpp:776` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
-| `ui/margins.cpp:780` | Go to a place here |
-| `ui/margins.cpp:780` | G: go to a place here |
-| `ui/margins.cpp:786` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
-| `ui/margins.cpp:835` | None taken on. |
-| `ui/margins.cpp:867` | Travel there |
-| `ui/margins.cpp:884` | ... %d more on the world map (M) |
-| `ui/margins.cpp:901` | Night in the streets |
-| `ui/margins.cpp:905` | almost always |
-| `ui/margins.cpp:906` | about %d time%s in 10 |
-| `ui/margins.cpp:907` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's {Stealth} and {Streetwise})%s. An inn is the safe place to wait for morning. |
-| `ui/margins.cpp:910` | , as set in F12 > Mods (Night encounters in the streets) |
-| `ui/margins.cpp:949` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
-| `ui/margins.cpp:949` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
-| `ui/margins.cpp:951` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
-| `ui/margins.cpp:951` | It is day (from 5:00 to 19:00). |
-| `ui/margins.cpp:978` | %s in bank notes |
-| `ui/margins.cpp:992` | F11: the keys and clicks of this screen. |
+| `ui/margins.cpp:586` | Blessings and potions |
+| `ui/margins.cpp:661` | The first of these ends in  |
+| `ui/margins.cpp:661` | , the last in  |
+| `ui/margins.cpp:681` | Every member alike. |
+| `ui/margins.cpp:683` | Every member:  |
+| `ui/margins.cpp:719` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
+| `ui/margins.cpp:728` | Reputation %d |
+| `ui/margins.cpp:746` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
+| `ui/margins.cpp:746` | Below 0 its shops ask more and pay less (up to 9% from about -20 down). |
+| `ui/margins.cpp:750` |   Changes seen since this game was loaded: |
+| `ui/margins.cpp:753` | the overland view |
+| `ui/margins.cpp:753` | , after choosing " |
+| `ui/margins.cpp:771` | The town counts as hostile: its gates and people turn the party away. |
+| `ui/margins.cpp:773` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
+| `ui/margins.cpp:784` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
+| `ui/margins.cpp:796` | Preparing for war |
+| `ui/margins.cpp:797` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
+| `ui/margins.cpp:799` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
+| `ui/margins.cpp:823` | The party has goods stored here (F12 > Journal > Stored). |
+| `ui/margins.cpp:828` | No blessings or potions at work. |
+| `ui/margins.cpp:837` | C: camp here |
+| `ui/margins.cpp:838` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
+| `ui/margins.cpp:842` | Go to a place here |
+| `ui/margins.cpp:842` | G: go to a place here |
+| `ui/margins.cpp:848` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
+| `ui/margins.cpp:897` | None taken on. |
+| `ui/margins.cpp:929` | Travel there |
+| `ui/margins.cpp:946` | ... %d more on the world map (M) |
+| `ui/margins.cpp:963` | Night in the streets |
+| `ui/margins.cpp:967` | almost always |
+| `ui/margins.cpp:968` | about %d time%s in 10 |
+| `ui/margins.cpp:969` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's {Stealth} and {Streetwise})%s. An inn is the safe place to wait for morning. |
+| `ui/margins.cpp:972` | , as set in F12 > Mods (Night encounters in the streets) |
+| `ui/margins.cpp:1011` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
+| `ui/margins.cpp:1011` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
+| `ui/margins.cpp:1013` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
+| `ui/margins.cpp:1013` | It is day (from 5:00 to 19:00). |
+| `ui/margins.cpp:1040` | %s in bank notes |
+| `ui/margins.cpp:1054` | F11: the keys and clicks of this screen. |
 | `ui/margins_battle.cpp:83` | The battle runs again (the key: Space). Any order being given is given first. |
 | `ui/margins_battle.cpp:84` | This member's order is given; the battle stays paused, to give others theirs (the key: Enter). |
 | `ui/margins_battle.cpp:85` | Every kind of enemy on the field: attributes, weapons, armor (the key: E). |
@@ -1646,24 +1651,24 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/overlay.cpp:743` | Spend the EP on attributes: pick one, then + or -. Endurance and Strength are the hit points (and together set how much a character can carry); Agility counts in battle; Perception, Intelligence and Charisma serve many skills. |
 | `ui/overlay.cpp:744` | Choose the profession for the next five years. The right side shows the one under the pointer: the EP it gives (top), the attributes after it, and for each skill gain:room, that is, what it adds at once and how many EP that skill can still take. Some professions open only after others, or need certain attributes. |
 | `ui/overlay.cpp:745` | Spend the EP on skills: pick one, then + or -. A skill takes at most the room shown after the colon. Then choose the next profession, or begin adventuring. |
-| `ui/overlay_text.cpp:178` | This option tests %s: %s %d%% chance of success. The original game shows this number while you hold Shift over an option; it rises with the skills and attributes tested. |
-| `ui/overlay_text.cpp:179` | This option tests the whole party: %s %d%% chance of success. The original game shows this number while you hold Shift over an option; it rises with the skills and attributes tested. |
-| `ui/overlay_text.cpp:213` | Edged Weapons |
-| `ui/overlay_text.cpp:213` | Impact Weapons |
-| `ui/overlay_text.cpp:213` | Flail Weapons |
-| `ui/overlay_text.cpp:214` | Polearm Weapons |
-| `ui/overlay_text.cpp:214` | Polearm Wpns |
-| `ui/overlay_text.cpp:214` | Thrown Weapons |
-| `ui/overlay_text.cpp:215` | Missile Devices |
-| `ui/overlay_text.cpp:215` | Missile Dev. |
-| `ui/overlay_text.cpp:216` | Speak Common |
-| `ui/overlay_text.cpp:216` | Read & Write |
-| `ui/overlay_text.cpp:218` | No Missile Weapon |
-| `ui/overlay_text.cpp:218` | No Missile Wpn |
-| `ui/overlay_text.cpp:219` | No Vitals Armor |
-| `ui/overlay_text.cpp:219` | No Limb Armor |
-| `ui/overlay_text.cpp:221` | Divine Favor |
-| `ui/overlay_text.cpp:221` | Divine Favor |
+| `ui/overlay_text.cpp:177` | This option tests %s: %s %d%% chance of success. The original game shows this number while you hold Shift over an option; it rises with the skills and attributes tested. |
+| `ui/overlay_text.cpp:178` | This option tests the whole party: %s %d%% chance of success. The original game shows this number while you hold Shift over an option; it rises with the skills and attributes tested. |
+| `ui/overlay_text.cpp:212` | Edged Weapons |
+| `ui/overlay_text.cpp:212` | Impact Weapons |
+| `ui/overlay_text.cpp:212` | Flail Weapons |
+| `ui/overlay_text.cpp:213` | Polearm Weapons |
+| `ui/overlay_text.cpp:213` | Polearm Wpns |
+| `ui/overlay_text.cpp:213` | Thrown Weapons |
+| `ui/overlay_text.cpp:214` | Missile Devices |
+| `ui/overlay_text.cpp:214` | Missile Dev. |
+| `ui/overlay_text.cpp:215` | Speak Common |
+| `ui/overlay_text.cpp:215` | Read & Write |
+| `ui/overlay_text.cpp:217` | No Missile Weapon |
+| `ui/overlay_text.cpp:217` | No Missile Wpn |
+| `ui/overlay_text.cpp:218` | No Vitals Armor |
+| `ui/overlay_text.cpp:218` | No Limb Armor |
+| `ui/overlay_text.cpp:220` | Divine Favor |
+| `ui/overlay_text.cpp:220` | Divine Favor |
 | `ui/panelcheck.cpp:59` | the game's hand over a window: NAME |
 | `ui/party.cpp:4` | Health and stamina. Wounds take it away; at 0 the character falls unconscious. Rest brings it back. |
 | `ui/party.cpp:5` | Bodily strength. Weapons and armor need a minimum {Strength} (shown in the shops' tooltips), and {Endurance} and {Strength} together set how much a character can carry. Bad wounds take Strength too; at 0 the character dies. |
@@ -1713,7 +1718,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/partypanel.cpp:513` | %s is on Manual: %s Click to choose a way of fighting. |
 | `ui/partypanel.cpp:514` | %s fights as %s until you give them an order: %s Click to choose another way. |
 | `ui/partypanel.cpp:524` | Divine Favor |
-| `ui/partypanel.cpp:561` | 's way of fighting |
+| `ui/partypanel.cpp:562` | 's way of fighting |
 | `ui/prayview.cpp:38` |  calls on the saint for the whole party: |
 | `ui/prayview.cpp:38` |  calls on the saint: |
 | `ui/prayview.cpp:52` | This saint asks a {Virtue} of %d of the one who prays. %s%s |
@@ -1904,25 +1909,25 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/saints.cpp:106` | the party travels %d%% faster (from a saint) |
 | `ui/saints.cpp:106` | the party travels %d%% faster in woods (from a saint) |
 | `ui/saints.cpp:107` | no death from wounds (from a saint) |
-| `ui/saints.cpp:110` | the party travels %s%s (from a saint) |
-| `ui/saints.cpp:110` | twice as fast |
-| `ui/saints.cpp:110` | half again as fast |
-| `ui/saints.cpp:117` | %s: %+d damage |
-| `ui/saints.cpp:118` | %s: %+d penetration |
-| `ui/saints.cpp:120` | %s: armor %+d thickness, %+d quality |
-| `ui/saints.cpp:121` | %s: fire protection %d |
-| `ui/saints.cpp:122` | %s: weapon quality %+d |
-| `ui/saints.cpp:123` | %s: %+d penetration |
-| `ui/saints.cpp:124` | %s: %+d damage, %+d penetration |
-| `ui/saints.cpp:209` | Provides ... |
-| `ui/saints.cpp:209` | Also heals ... |
-| `ui/saints.cpp:225` | ..., Agnes grants |
-| `ui/saints.cpp:263` | What it does:  |
-| `ui/saints.cpp:269` | Differs from the description:  |
-| `ui/saints.cpp:279` | Many encounters offer this saint as a choice, and there it can do more than the help above. |
-| `ui/saints.cpp:280` | Some encounters offer this saint as a choice, and there it can do more than the help above. |
-| `ui/saints.cpp:281` | A few encounters offer this saint as a choice, and there it can do more than the help above. |
-| `ui/saints.cpp:282` | No encounter calls for this saint: its help above is all it does. |
+| `ui/saints.cpp:112` | the party travels %s%s (from a saint) |
+| `ui/saints.cpp:112` | twice as fast |
+| `ui/saints.cpp:112` | half again as fast |
+| `ui/saints.cpp:120` | %s: %+d damage |
+| `ui/saints.cpp:121` | %s: %+d penetration |
+| `ui/saints.cpp:123` | %s: armor %+d thickness, %+d quality |
+| `ui/saints.cpp:124` | %s: fire protection %d |
+| `ui/saints.cpp:125` | %s: weapon quality %+d |
+| `ui/saints.cpp:126` | %s: %+d penetration |
+| `ui/saints.cpp:127` | %s: %+d damage, %+d penetration |
+| `ui/saints.cpp:214` | Provides ... |
+| `ui/saints.cpp:214` | Also heals ... |
+| `ui/saints.cpp:230` | ..., Agnes grants |
+| `ui/saints.cpp:268` | What it does:  |
+| `ui/saints.cpp:274` | Differs from the description:  |
+| `ui/saints.cpp:284` | Many encounters offer this saint as a choice, and there it can do more than the help above. |
+| `ui/saints.cpp:285` | Some encounters offer this saint as a choice, and there it can do more than the help above. |
+| `ui/saints.cpp:286` | A few encounters offer this saint as a choice, and there it can do more than the help above. |
+| `ui/saints.cpp:287` | No encounter calls for this saint: its help above is all it does. |
 | `ui/saves.cpp:41` | yesterday %H:%M |
 | `ui/saves.cpp:53` | Quick save, quick load and autosaves |
 | `ui/saves.cpp:57` | Ctrl+S saves at once (no comment to type); F9 or Ctrl+L loads the last quick save. |
@@ -2057,64 +2062,63 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/settings_setup.cpp:148` | Side margins |
 | `ui/settings_setup.cpp:148` | on wide screens, the date, place, purse, quests, town and effects at the sides (in battles: the log and everyone's condition). |
 | `ui/settings_setup.cpp:157` | text size in the margins, tooltips and place names |
-| `ui/settings_setup.cpp:164` | A fist while something is dragged; on its cuff the pause in a paused battle, crossed blades over a foe, an hourglass while Go to walks. Off: the game's little picture. |
-| `ui/settings_setup.cpp:169` | automatic (the system's scale) |
-| `ui/settings_setup.cpp:178` | Full screen (Alt+Enter) |
-| `ui/settings_setup.cpp:183` | None: straight to the start screen |
-| `ui/settings_setup.cpp:183` | Only the last scene: the lady of the Darklands and her welcome |
-| `ui/settings_setup.cpp:183` | The whole intro |
-| `ui/settings_setup.cpp:186` | Shown each time the game starts (the very first start plays it whole). A key or a click skips ahead. |
-| `ui/settings_setup.cpp:206` | Preview: Battle Sounds |
-| `ui/settings_setup.cpp:207` | Preview: Music |
-| `ui/settings_setup.cpp:213` | Preview: Music |
-| `ui/settings_setup.cpp:219` | The game plays no music on the PC speaker, only the battle sounds. |
-| `ui/settings_setup.cpp:223` | Preview: Battle Sounds |
-| `ui/settings_setup.cpp:229` | A preview needs a game under way, outside a battle. |
-| `ui/settings_setup.cpp:241` | Roland MT-32 |
-| `ui/settings_setup.cpp:241` | Roland's synthesizer of 1987, the one Darklands was written for. Music and battle sounds alike are notes played on it: the music as composed, the blows as near to steel as a synthesizer gets. |
-| `ui/settings_setup.cpp:249` | MT-32 ROMs not found (click to close) |
-| `ui/settings_setup.cpp:249` | MT-32 ROMs not found (click for how to get it working) |
-| `ui/settings_setup.cpp:249` | MT-32 ROMs not found (click for how to get it working) |
-| `ui/settings_setup.cpp:252` | MT-32 details |
-| `ui/settings_setup.cpp:256` | The MT-32 was a Roland synthesizer of 1987; Darklands' music and battle sounds were written for it (both are notes played on it), and every other choice here is a lesser version. Darklands+ has it built in (Munt's imitation of it) and only needs two files copied from a real one's memory (its ROM files), which belong to Roland and can't be included. If you have used Munt or DOSBox with an MT-32 you already have them. Until they are found, the Sound Blaster plays. |
-| `ui/settings_setup.cpp:259` | Where to find them... |
-| `ui/settings_setup.cpp:266` | Look again##mt32 |
-| `ui/settings_setup.cpp:267` | Darklands+ finds them by their contents, whatever their names: in that folder, in the game's folder and its "roms" folder, and where Munt and DOSBox keep them. |
-| `ui/settings_setup.cpp:272` | The MT-32's display |
-| `ui/settings_setup.cpp:272` | its little screen at the top right, when the game puts a message on it. |
-| `ui/settings_setup.cpp:281` | midiMIDIThe music and battle sounds sent out of Darklands+ as MIDI: for a real MT-32 or CM-32L connected to the computer, or Munt (an MT-32 imitation) installed on its own. An ordinary synthesizer, such as the one built into Windows, plays the wrong instruments.midi |
-| `ui/settings_setup.cpp:286` | No MIDI outputs (connections to a synthesizer) on this computer. |
-| `ui/settings_setup.cpp:289` | the system's default |
-| `ui/settings_setup.cpp:296` | For history's sake |
-| `ui/settings_setup.cpp:301` | A change is heard from the next battle, or the next start. |
-| `ui/settings_setup.cpp:314` | Every piece of the game's music, played through the device chosen above. Click a piece to hear it. |
-| `ui/settings_setup.cpp:315` | Every piece of the game's music, played through the device chosen above: it needs a game under way, outside a battle. |
-| `ui/settings_setup.cpp:340` | finding its length (silent, a few seconds) |
-| `ui/settings_setup.cpp:341` | , then again |
-| `ui/settings_setup.cpp:342` | no piece playing |
-| `ui/settings_setup.cpp:351` | (a piece without a known place) |
-| `ui/settings_setup.cpp:368` | Custom sound packs |
-| `ui/settings_setup.cpp:369` | Recordings that replace the synthesizer's music or battle sounds. A battle sounds pack comes with Darklands+ as a mod (F12 > Mods); no music pack does. The previews above play them when ticked. |
-| `ui/settings_setup.cpp:372` | Music from a music pack (recordings in a "music" folder) |
-| `ui/settings_setup.cpp:378` | No music pack found: a mod's music folder, or %s%smusic, with a recording for each piece named by its number (10.ogg, "11 market.ogg"). |
-| `ui/settings_setup.cpp:380` | The game's music now: piece %d%s%s%s, %s (silent while Settings is open). |
-| `ui/settings_setup.cpp:380` | from the pack |
-| `ui/settings_setup.cpp:380` | by the synthesizer |
-| `ui/settings_setup.cpp:382` | A recording replaces a piece when its file name starts with the number (up to four for one number, played in turn: "27 a.ogg", "27 b.ogg" ...). Pieces that loop in the game loop in the pack; while a piece of the pack is on, the synthesizer is silent. |
-| `ui/settings_setup.cpp:388` |   %s and %d more, in turn |
-| `ui/settings_setup.cpp:390` | Look again##music |
-| `ui/settings_setup.cpp:396` | Ordinary hits make a sound |
-| `ui/settings_setup.cpp:398` | Battle sounds from a sound pack (the "sounds" folder) |
-| `ui/settings_setup.cpp:399` | A mod enabled in F12 > Mods gives %d battle sound%s: they play in place of the synthesizer's (switch the mod off there for the game's own). |
-| `ui/settings_setup.cpp:400` | %d sound%s in %s%ssounds%s; the game's own sounds for the rest. |
-| `ui/settings_setup.cpp:400` |  (played once this is ticked) |
-| `ui/settings_setup.cpp:401` | Recorded blows, parries and cries in place of the synthesizer's: a pack in %s%ssounds, or the "Battle sounds" mod (F12 > Mods). |
-| `ui/settings_setup.cpp:406` | Volume of the pack |
-| `ui/settings_setup.cpp:408` | Look again##sfx |
-| `ui/settings_setup.cpp:408` | %d sound%s found. |
-| `ui/settings_setup.cpp:412` | File names for a sound pack |
-| `ui/settings_setup.cpp:413` | %s.wav or .ogg: %s |
-| `ui/settings_setup.cpp:414` | Several versions of one sound (parry1.wav, parry2.wav ...) are played in turn at random. |
+| `ui/settings_setup.cpp:166` | automatic (the system's scale) |
+| `ui/settings_setup.cpp:175` | Full screen (Alt+Enter) |
+| `ui/settings_setup.cpp:180` | None: straight to the start screen |
+| `ui/settings_setup.cpp:180` | Only the last scene: the lady of the Darklands and her welcome |
+| `ui/settings_setup.cpp:180` | The whole intro |
+| `ui/settings_setup.cpp:183` | Shown each time the game starts (the very first start plays it whole). A key or a click skips ahead. |
+| `ui/settings_setup.cpp:203` | Preview: Battle Sounds |
+| `ui/settings_setup.cpp:204` | Preview: Music |
+| `ui/settings_setup.cpp:210` | Preview: Music |
+| `ui/settings_setup.cpp:216` | The game plays no music on the PC speaker, only the battle sounds. |
+| `ui/settings_setup.cpp:220` | Preview: Battle Sounds |
+| `ui/settings_setup.cpp:226` | A preview needs a game under way, outside a battle. |
+| `ui/settings_setup.cpp:238` | Roland MT-32 |
+| `ui/settings_setup.cpp:238` | Roland's synthesizer of 1987, the one Darklands was written for. Music and battle sounds alike are notes played on it: the music as composed, the blows as near to steel as a synthesizer gets. |
+| `ui/settings_setup.cpp:246` | MT-32 ROMs not found (click to close) |
+| `ui/settings_setup.cpp:246` | MT-32 ROMs not found (click for how to get it working) |
+| `ui/settings_setup.cpp:246` | MT-32 ROMs not found (click for how to get it working) |
+| `ui/settings_setup.cpp:249` | MT-32 details |
+| `ui/settings_setup.cpp:253` | The MT-32 was a Roland synthesizer of 1987; Darklands' music and battle sounds were written for it (both are notes played on it), and every other choice here is a lesser version. Darklands+ has it built in (Munt's imitation of it) and only needs two files copied from a real one's memory (its ROM files), which belong to Roland and can't be included. If you have used Munt or DOSBox with an MT-32 you already have them. Until they are found, the Sound Blaster plays. |
+| `ui/settings_setup.cpp:256` | Where to find them... |
+| `ui/settings_setup.cpp:263` | Look again##mt32 |
+| `ui/settings_setup.cpp:264` | Darklands+ finds them by their contents, whatever their names: in that folder, in the game's folder and its "roms" folder, and where Munt and DOSBox keep them. |
+| `ui/settings_setup.cpp:269` | The MT-32's display |
+| `ui/settings_setup.cpp:269` | its little screen at the top right, when the game puts a message on it. |
+| `ui/settings_setup.cpp:278` | midiMIDIThe music and battle sounds sent out of Darklands+ as MIDI: for a real MT-32 or CM-32L connected to the computer, or Munt (an MT-32 imitation) installed on its own. An ordinary synthesizer, such as the one built into Windows, plays the wrong instruments.midi |
+| `ui/settings_setup.cpp:283` | No MIDI outputs (connections to a synthesizer) on this computer. |
+| `ui/settings_setup.cpp:286` | the system's default |
+| `ui/settings_setup.cpp:293` | For history's sake |
+| `ui/settings_setup.cpp:298` | A change is heard from the next battle, or the next start. |
+| `ui/settings_setup.cpp:311` | Every piece of the game's music, played through the device chosen above. Click a piece to hear it. |
+| `ui/settings_setup.cpp:312` | Every piece of the game's music, played through the device chosen above: it needs a game under way, outside a battle. |
+| `ui/settings_setup.cpp:337` | finding its length (silent, a few seconds) |
+| `ui/settings_setup.cpp:338` | , then again |
+| `ui/settings_setup.cpp:339` | no piece playing |
+| `ui/settings_setup.cpp:348` | (a piece without a known place) |
+| `ui/settings_setup.cpp:365` | Custom sound packs |
+| `ui/settings_setup.cpp:366` | Recordings that replace the synthesizer's music or battle sounds. A battle sounds pack comes with Darklands+ as a mod (F12 > Mods); no music pack does. The previews above play them when ticked. |
+| `ui/settings_setup.cpp:369` | Music from a music pack (recordings in a "music" folder) |
+| `ui/settings_setup.cpp:375` | No music pack found: a mod's music folder, or %s%smusic, with a recording for each piece named by its number (10.ogg, "11 market.ogg"). |
+| `ui/settings_setup.cpp:377` | The game's music now: piece %d%s%s%s, %s (silent while Settings is open). |
+| `ui/settings_setup.cpp:377` | from the pack |
+| `ui/settings_setup.cpp:377` | by the synthesizer |
+| `ui/settings_setup.cpp:379` | A recording replaces a piece when its file name starts with the number (up to four for one number, played in turn: "27 a.ogg", "27 b.ogg" ...). Pieces that loop in the game loop in the pack; while a piece of the pack is on, the synthesizer is silent. |
+| `ui/settings_setup.cpp:385` |   %s and %d more, in turn |
+| `ui/settings_setup.cpp:387` | Look again##music |
+| `ui/settings_setup.cpp:393` | Ordinary hits make a sound |
+| `ui/settings_setup.cpp:395` | Battle sounds from a sound pack (the "sounds" folder) |
+| `ui/settings_setup.cpp:396` | A mod enabled in F12 > Mods gives %d battle sound%s: they play in place of the synthesizer's (switch the mod off there for the game's own). |
+| `ui/settings_setup.cpp:397` | %d sound%s in %s%ssounds%s; the game's own sounds for the rest. |
+| `ui/settings_setup.cpp:397` |  (played once this is ticked) |
+| `ui/settings_setup.cpp:398` | Recorded blows, parries and cries in place of the synthesizer's: a pack in %s%ssounds, or the "Battle sounds" mod (F12 > Mods). |
+| `ui/settings_setup.cpp:403` | Volume of the pack |
+| `ui/settings_setup.cpp:405` | Look again##sfx |
+| `ui/settings_setup.cpp:405` | %d sound%s found. |
+| `ui/settings_setup.cpp:409` | File names for a sound pack |
+| `ui/settings_setup.cpp:410` | %s.wav or .ogg: %s |
+| `ui/settings_setup.cpp:411` | Several versions of one sound (parry1.wav, parry2.wav ...) are played in turn at random. |
 | `ui/sheetview.cpp:164` | Light load (up to half of {Endurance} + {Strength}): no hindrance at all. Only what is equipped counts (weapons, armor, shield); items merely carried weigh nothing. |
 | `ui/sheetview.cpp:165` | Normal load (up to {Endurance} + {Strength}): blows hand to hand come about a fifth slower, and past 5/8 of it the {Agility} used to dodge falls to two thirds. |
 | `ui/sheetview.cpp:166` | Heavy load (up to half as much again): the {Agility} used to dodge falls to two thirds, and to a third past 1 1/4 times {Endurance} + {Strength}. Blows are no slower than with a normal load (an oversight in the original game). |
@@ -2255,15 +2259,15 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/sheetview.cpp:1492` | No alchemist sells it: it is traded for or found. |
 | `ui/sheetview.cpp:1493` | No alchemist the party has been to sells it. |
 | `ui/sheetview.cpp:1498` | Sold by the alchemist of  |
-| `ui/skillicons.cpp:355` | Missile Device |
-| `ui/skillicons.cpp:355` | Missile Weapons |
-| `ui/skillicons.cpp:356` | Edged Weapon |
-| `ui/skillicons.cpp:356` | Impact Weapon |
-| `ui/skillicons.cpp:356` | Thrown Weapon |
-| `ui/skillicons.cpp:481` | Frames and clock |
-| `ui/skillicons.cpp:485` | Cards and towns |
-| `ui/skillicons.cpp:490` | The party and its items |
-| `ui/skillicons.cpp:506` | Fixes for bugs of the original |
+| `ui/skillicons.cpp:450` | Missile Device |
+| `ui/skillicons.cpp:450` | Missile Weapons |
+| `ui/skillicons.cpp:451` | Edged Weapon |
+| `ui/skillicons.cpp:451` | Impact Weapon |
+| `ui/skillicons.cpp:451` | Thrown Weapon |
+| `ui/skillicons.cpp:585` | Frames and clock |
+| `ui/skillicons.cpp:589` | Cards and towns |
+| `ui/skillicons.cpp:594` | The party and its items |
+| `ui/skillicons.cpp:610` | Fixes for bugs of the original |
 | `ui/teachersui.cpp:47` | Missile Devices |
 | `ui/teachersui.cpp:48` | Speak Common |
 | `ui/teachersui.cpp:48` | Read & Write |
@@ -2781,14 +2785,14 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixgroups.c:13` | Bugs players have long used to their advantage (invulnerability from fire protection, confession's clock turned back, the same bounty again and again). Leave these off to keep the old tricks. |
 | `mods/fixgroups.c:14` | Left over from 1992 |
 | `mods/fixgroups.c:14` | Not bugs, but nobody misses them: the question from the printed manual before the party first sets out. |
-| `mods/gamemodel.c:340` | Divine Favor |
-| `mods/gamemodel.c:345` | Edged Weapons |
-| `mods/gamemodel.c:345` | Impact Weapons |
-| `mods/gamemodel.c:345` | Thrown Weapons |
-| `mods/gamemodel.c:345` | Missile Devices |
-| `mods/gamemodel.c:346` | Speak Common |
-| `mods/gamemodel.c:346` | Read & Write |
-| `mods/gamemodel.c:365` | Missile Devices |
+| `mods/gamemodel.c:341` | Divine Favor |
+| `mods/gamemodel.c:346` | Edged Weapons |
+| `mods/gamemodel.c:346` | Impact Weapons |
+| `mods/gamemodel.c:346` | Thrown Weapons |
+| `mods/gamemodel.c:346` | Missile Devices |
+| `mods/gamemodel.c:347` | Speak Common |
+| `mods/gamemodel.c:347` | Read & Write |
+| `mods/gamemodel.c:366` | Missile Devices |
 | `mods/hdart.c:779` | Create a New World |
 | `mods/hdart.c:780` | The Story Continues |
 | `mods/hdart.c:992` | %d pictures written to %s%s |
@@ -2838,16 +2842,16 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/looks.c:842` | This sprite has no more colors that can be changed. |
 | `mods/looks.c:842` | This sprite's colors are fixed: they cannot be changed. |
 | `mods/looks.c:868` | PT BW CB HG TA TK DT |
-| `mods/loot.c:85` | Nobody has room: every member already carries 64 kinds of items. |
-| `mods/loot.c:86` | No room: this member already carries 64 kinds of items (S shares the pile out among the party). |
-| `mods/loot.c:87` | %s %d; %d left in the pile (no room for more kinds of items). |
-| `mods/loot.c:88` | Shared out all %d. |
-| `mods/loot.c:88` | Took all %d. |
-| `mods/loot.c:197` | Thrown weapons picked up after the battle (Darklands+):  |
-| `mods/loot.c:260` | Point at one of the merchant's goods first (the upper list). |
-| `mods/loot.c:268` | Bought none: not enough money, or no room. |
-| `mods/loot.c:270` | Point at one of your own items first (the lower list). |
-| `mods/loot.c:286` | This merchant does not buy that. |
+| `mods/loot.c:87` | Nobody has room: every member already carries 64 kinds of items. |
+| `mods/loot.c:88` | No room: this member already carries 64 kinds of items (S shares the pile out among the party). |
+| `mods/loot.c:89` | %s %d; %d left in the pile (no room for more kinds of items). |
+| `mods/loot.c:90` | Shared out all %d. |
+| `mods/loot.c:90` | Took all %d. |
+| `mods/loot.c:201` | Thrown weapons picked up after the battle (Darklands+):  |
+| `mods/loot.c:370` | Point at one of the merchant's goods first (the upper list). |
+| `mods/loot.c:378` | Bought none: not enough money, or no room. |
+| `mods/loot.c:380` | Point at one of your own items first (the lower list). |
+| `mods/loot.c:396` | This merchant does not buy that. |
 | `mods/lootview.c:120` | %d %s to %s (to give it to another member, drag it from the character sheet onto them in the party panel). |
 | `mods/lootview.c:121` | %d %s into the party's pack. |
 | `mods/lootview.c:122` | No room: every member already carries 64 kinds of items. |
@@ -2915,20 +2919,20 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/offices.c:92` | Each request for an audience with the lord has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's {Charisma} and {Speak Common}). An audience brings a robber knight to hunt. After a request the chance is 1%% for a week. |
 | `mods/offices.c:95` | No quests for three days: at your last visit none came, one was turned down, or a reward was paid. |
 | `mods/offices.c:97` | The offer comes after shopping: as the party leaves the stalls, about one time in seven a trader takes it aside with a purse and a job (mostly an item to fetch, sometimes a robber knight to hunt). If none comes, there is no other offer for three days. |
-| `mods/orders.c:202` | Click: throw here |
-| `mods/orders.c:202` | Click: flee here |
-| `mods/orders.c:203` | No clear throw |
-| `mods/orders.c:203` | Can't walk there |
-| `mods/orders.c:204` | No clear shot |
-| `mods/orders.c:204` | No clear throw |
-| `mods/orders.c:204` | No way there |
-| `mods/orders.c:211` | Click: shoot (moves for a clear line) |
-| `mods/orders.c:212` | Click: shoot |
-| `mods/orders.c:214` | Click: throw |
-| `mods/orders.c:215` | Click: attack (Vulnerable) |
-| `mods/orders.c:216` | Click: attack (Berserk) |
-| `mods/orders.c:217` | Click: parry its blows |
-| `mods/orders.c:221` | No clear shot: walks up to fight |
+| `mods/orders.c:194` | Click: throw here |
+| `mods/orders.c:194` | Click: flee here |
+| `mods/orders.c:195` | No clear throw |
+| `mods/orders.c:195` | Can't walk there |
+| `mods/orders.c:196` | No clear shot |
+| `mods/orders.c:196` | No clear throw |
+| `mods/orders.c:196` | No way there |
+| `mods/orders.c:203` | Click: shoot (moves for a clear line) |
+| `mods/orders.c:204` | Click: shoot |
+| `mods/orders.c:206` | Click: throw |
+| `mods/orders.c:207` | Click: attack (Vulnerable) |
+| `mods/orders.c:208` | Click: attack (Berserk) |
+| `mods/orders.c:209` | Click: parry its blows |
+| `mods/orders.c:213` | No clear shot: walks up to fight |
 | `mods/pathfix.c:432` | can't walk there |
 | `mods/pathfix.c:485` |  (stuck: around everyone) |
 | `mods/pathfix.c:683` | cells unreachable |
@@ -3297,10 +3301,10 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/teachers.c:225` | Here: choose "inquire about special training". |
 | `mods/teachers.c:226` | They may say no (it depends on {Charisma}, reputation here and fame); they always agree if the guild owes the party a favor. |
 | `mods/teachers.c:229` | A bug in the original game: this guild's teacher teaches no skill at all. |
-| `mods/travel.c:250` | No way there from here. |
-| `mods/travel.c:276` | how far is it |
-| `mods/travel.c:396` | Travel stopped: the party could not get any further this way. |
-| `mods/travel.c:550` | the marked place |
+| `mods/travel.c:252` | No way there from here. |
+| `mods/travel.c:278` | how far is it |
+| `mods/travel.c:432` | Travel stopped: the party could not get any further this way. |
+| `mods/travel.c:551` | the marked place |
 | `mods/war.c:98` | pics\gate4.pic: No such file |
 | `mods/war.c:147` | ...hidden option |
 

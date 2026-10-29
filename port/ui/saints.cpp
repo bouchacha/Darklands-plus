@@ -75,7 +75,7 @@ static std::vector<Eff> effects_table(int size, const std::vector<EvRec> &recs)
         if (kind == 0x43) {                                 /* a companion's stay (add_member: type0 the slot; its end, the day they leave) */
             int m = W(0);
             long left = abs_hours(W(0x18), W(0x16), W(0x14), W(0x12)) - now;
-            if (m >= 0 && m < size && left > 0 && left < 24L * 365 * 50) v.push_back({ m, "stays with the party", left, kind });
+            if (m >= 0 && m < size && left > 0 && left < 24L * 365 * 50) { Eff e = { m, "stays with the party", left, kind }; e.icon = EI_STAYS; v.push_back(e); }
             continue;
         }
         if (kind < 0x48 || kind > 0x4a) continue;
@@ -97,33 +97,38 @@ static std::vector<Eff> effects_table(int size, const std::vector<EvRec> &recs)
                Strongedge (3..5) or Greatpower (14/22/30) */
             /* (a saint's, mods/sainttexts.c: 0x16f-0x173 armour and weapon quality, 0x175 armour against
                missiles, 0x177 / 0x178 the party's travel faster) */
-            static const struct { int k; const char *f; } SAINTLY[] = {
-                { 0x16d, "%+d armor (from a saint)" }, { 0x16e, "worn armor %+d quality (from a saint)" },
-                { 0x16f, "metal armor %+d quality (from a saint)" }, { 0x170, "leather and cloth armor %+d quality (from a saint)" },
-                { 0x171, "weapon %+d quality (from a saint)" }, { 0x172, "edged weapon %+d quality (from a saint)" },
-                { 0x173, "blades, maces, polearms, crossbows and guns %+d quality (from a saint)" },
-                { 0x174, "fire protection %d (from a saint)" }, { 0x175, "%+d armor against missiles (from a saint)" },
-                { 0x177, "the party travels %d%% faster (from a saint)" }, { 0x178, "the party travels %d%% faster in woods (from a saint)" },
-                { 0x179, "no death from wounds (from a saint)" } };
+            static const struct { int k; const char *f; int icon; const char *v; } SAINTLY[] = {
+                { 0x16d, "%+d armor (from a saint)", EI_ARMOR, "%+d" }, { 0x16e, "worn armor %+d quality (from a saint)", EI_ARMOR_Q, "%+dq" },
+                { 0x16f, "metal armor %+d quality (from a saint)", EI_ARMOR_Q, "%+dq" }, { 0x170, "leather and cloth armor %+d quality (from a saint)", EI_ARMOR_Q, "%+dq" },
+                { 0x171, "weapon %+d quality (from a saint)", EI_WEAPON_Q, "%+dq" }, { 0x172, "edged weapon %+d quality (from a saint)", EI_WEAPON_Q, "%+dq" },
+                { 0x173, "blades, maces, polearms, crossbows and guns %+d quality (from a saint)", EI_WEAPON_Q, "%+dq" },
+                { 0x174, "fire protection %d (from a saint)", EI_FIRE, "%d" }, { 0x175, "%+d armor against missiles (from a saint)", EI_MISSILE_ARMOR, "%+d" },
+                { 0x177, "the party travels %d%% faster (from a saint)", EI_TRAVEL, "+%d%%" }, { 0x178, "the party travels %d%% faster in woods (from a saint)", EI_TRAVEL_WOODS, "+%d%%" },
+                { 0x179, "no death from wounds (from a saint)", EI_NO_DEATH, "" } };
             bool done = false;
-            if ((k == 0x177 || k == 0x178) && (t == 50 || t == 100)) {   /* (the speed in words) */
-                snprintf(b, sizeof b, "the party travels %s%s (from a saint)", t == 100 ? "twice as fast" : "half again as fast", k == 0x178 ? " in woods" : "");
-                Eff e = { m, b, left, kind }; e.k = k; e.amount = t; v.push_back(e); continue;
-            }
-            for (const auto &x : SAINTLY) if (k == x.k) { snprintf(b, sizeof b, x.f, t); Eff e = { m, b, left, kind }; e.k = k; e.amount = t; v.push_back(e); done = true; break; }
+            for (const auto &x : SAINTLY) if (k == x.k) {
+                char vb[16]; snprintf(vb, sizeof vb, x.v, t);
+                if ((k == 0x177 || k == 0x178) && (t == 50 || t == 100)) {   /* (the speed in words) */
+                    snprintf(b, sizeof b, "the party travels %s%s (from a saint)", t == 100 ? "twice as fast" : "half again as fast", k == 0x178 ? " in woods" : "");
+                    snprintf(vb, sizeof vb, "%s", t == 100 ? "x2" : "x1.5");
+                } else snprintf(b, sizeof b, x.f, t);
+                Eff e = { m, b, left, kind }; e.k = k; e.amount = t; e.icon = x.icon; e.src = 2; e.val = vb; v.push_back(e); done = true; break; }
             if (done) continue;
             int item = k == 0x69 || k == 0x6b || k == 0x6d || k == 0x74 ? k : t <= 5 ? 0x6a : 0x6b;
             std::string n = item < (int)gamedata.items.size() ? game_text(gamedata.items[item].name.c_str(), 64) : "Potion";
-            if (item == 0x69) snprintf(b, sizeof b, "%s: %+d damage", n.c_str(), t);
-            else if (item == 0x6a) snprintf(b, sizeof b, "%s: %+d penetration", n.c_str(), t);
+            char vb[24] = ""; int icon = EI_DAMAGE;
+            if (item == 0x69) { snprintf(b, sizeof b, "%s: %+d damage", n.c_str(), t); snprintf(vb, sizeof vb, "%+d", t); }
+            else if (item == 0x6a) { snprintf(b, sizeof b, "%s: %+d penetration", n.c_str(), t); snprintf(vb, sizeof vb, "%+d", t); icon = EI_PENETRATION; }
             else if (item == 0x6d) { static const int T[4] = { 0, 1, 2, 2 }, Q[4] = { 0, 20, 25, 30 }; int g = t < 1 ? 1 : t > 3 ? 3 : t;
-                snprintf(b, sizeof b, "%s: armor %+d thickness, %+d quality", n.c_str(), T[g], Q[g]); }
-            else if (item == 0x74) snprintf(b, sizeof b, "%s: fire protection %d", n.c_str(), t);
-            else if (fix_is_on("greatpower")) snprintf(b, sizeof b, "%s: weapon quality %+d", n.c_str(), t);
-            else if (!(t >> 4)) snprintf(b, sizeof b, "%s: %+d penetration", n.c_str(), t & 15);
-            else snprintf(b, sizeof b, "%s: %+d damage, %+d penetration", n.c_str(), t >> 4, t & 15);
+                snprintf(b, sizeof b, "%s: armor %+d thickness, %+d quality", n.c_str(), T[g], Q[g]); snprintf(vb, sizeof vb, "%+d, %+dq", T[g], Q[g]); icon = EI_ARMOR; }
+            else if (item == 0x74) { snprintf(b, sizeof b, "%s: fire protection %d", n.c_str(), t); snprintf(vb, sizeof vb, "%d", t); icon = EI_FIRE; }
+            else if (fix_is_on("greatpower")) { snprintf(b, sizeof b, "%s: weapon quality %+d", n.c_str(), t); snprintf(vb, sizeof vb, "%+dq", t); icon = EI_WEAPON_Q; }
+            else if (!(t >> 4)) { snprintf(b, sizeof b, "%s: %+d penetration", n.c_str(), t & 15); snprintf(vb, sizeof vb, "%+d", t & 15); icon = EI_PENETRATION; }
+            else { snprintf(b, sizeof b, "%s: %+d damage, %+d penetration", n.c_str(), t >> 4, t & 15); snprintf(vb, sizeof vb, "%+d, %+d", t >> 4, t & 15); }
+            Eff e = { m, b, left, kind }; e.k = k; e.amount = t; e.icon = icon; e.src = 1; e.val = vb;
+            v.push_back(e);
+            continue;
         } else continue;
-        v.push_back({ m, b, left, kind });
     }
     /* of the protections that do not add up (fire, the party's speed), only the strongest of each member's */
     std::vector<Eff> out;
