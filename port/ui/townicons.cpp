@@ -36,19 +36,25 @@ void ui_draw_town_icon(ImDrawList *dl, ImVec2 c, float s, int icon)
     const float u0 = p.u;
     if (icon > TI_TOOLS) p.u *= 0.86f;                                       /* (the places' pictures fill their square: kept inside the roundel) */
     switch (icon) {
-    case TI_UNIVERSITY: {                                                   /* an open book, its ribbon */
-        ImU32 cover = C(0.45f, 0.18f, 0.12f), page = C(0.99f, 0.97f, 0.90f), rule = C(0.55f, 0.45f, 0.30f);
-        p.poly({ -12.6f, -6.6f, 0.0f, -4.2f, 12.6f, -6.6f, 12.6f, 8.4f, 0.0f, 10.6f, -12.6f, 8.4f }, INK);
-        p.poly({ -12.0f, -5.8f, 0.0f, -3.4f, 12.0f, -5.8f, 12.0f, 7.8f, 0.0f, 10.0f, -12.0f, 7.8f }, cover);
-        p.poly({ -11.0f, -7.4f, -0.6f, -5.0f, -0.6f, 8.6f, -11.0f, 6.4f }, page);
-        p.poly({ 0.6f, -5.0f, 11.0f, -7.4f, 11.0f, 6.4f, 0.6f, 8.6f }, page);
-        p.line(0, -5.0f, 0, 8.8f, INK, 0.7f);
-        for (int k = 0; k < 4; k++) {
-            float y = -3.6f + k * 2.8f;
-            p.line(-9.4f, y - 1.6f + k * 0.0f, -2.2f, y, rule, 0.55f);
-            p.line(2.2f, y, 9.4f, y - 1.6f, rule, 0.55f);
+    case TI_UNIVERSITY: {   /* a pile of three closed books, their spines out, each with its bands and label (an open book was
+                               too like the teachers' lectern, an open book on its stand: ui_draw_teach_mark) */
+        struct B { float x0, x1, y0, y1; ImU32 k; } bk[3] = {
+            { -11.5f, 10.0f, 4.0f, 9.8f, C(0.62f, 0.16f, 0.12f) },          // the bottom one, red
+            { -9.0f, 11.5f, -1.6f, 4.0f, C(0.20f, 0.33f, 0.60f) },          // blue
+            { -10.5f, 8.0f, -7.4f, -1.6f, C(0.24f, 0.46f, 0.26f) } };       // the top one, green
+        for (const B &b : bk) {
+            p.rect(b.x0 - o, b.y0 - o, b.x1 + o, b.y1 + o, INK, 1.6f);
+            p.rect(b.x0, b.y0, b.x1, b.y1, b.k, 1.2f);
+            float h = b.y1 - b.y0;
+            p.rect(b.x0, b.y0 + h * 0.12f, b.x1, b.y0 + h * 0.28f, C(1, 1, 1, 0.16f));            // the light on the spine's round
+            for (int e = 0; e < 2; e++) {                                                        // the gilt bands at each end
+                float x = e ? b.x1 - 2.6f : b.x0 + 2.6f;
+                p.line(x - 0.8f, b.y0 + 0.4f, x - 0.8f, b.y1 - 0.4f, GOLD, 0.8f);
+                p.line(x + 0.8f, b.y0 + 0.4f, x + 0.8f, b.y1 - 0.4f, GOLD, 0.8f);
+            }
+            float mx = (b.x0 + b.x1) * 0.5f;                                                     // the label
+            p.rect(mx - 2.6f, b.y0 + h * 0.3f, mx + 2.6f, b.y1 - h * 0.3f, PARCH, 0.4f);
         }
-        p.poly({ 4.0f, -6.0f, 6.0f, -6.4f, 6.0f, 12.4f, 5.0f, 10.8f, 4.0f, 12.6f }, RED);   // the ribbon
         break; }
     case TI_CATHEDRAL: {                                                    /* a cathedral's front: the spire and its cross */
         ImU32 dark = C(0.20f, 0.14f, 0.10f), roof = C(0.42f, 0.30f, 0.24f);

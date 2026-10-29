@@ -103,11 +103,11 @@ static void key_hook(void)                 /* s040 1462:0c22 loot_key(key) */
     hook_call_original();
 }
 
-static void ingr_pile(void), ingr_members(void);
+static void ingr_pile(void), ingr_members(int join);
 static void screen_hook(void)              /* s040 1462:01c8 the loot screen's loop */
 {
     loot_active++;
-    ingr_pile(); ingr_members();
+    ingr_pile(); ingr_members(g_rb(GV_in_battle) != 1);
     hook_call_original();
     loot_active--;
 }
@@ -244,8 +244,9 @@ static void first_draw_hook(void)          /* s040 1462:06e2: the loot screen dr
  * entries everywhere (on the sheet, in the loot, the store room). With rules.ingredients_one_quality
  * every ingredient is of quality 25: as one is added to a member (add_item_rec_impl), in the loot
  * pile as the loot screen opens, in the store room as it is read, and those already carried when a
- * game is loaded (out of a battle), the loot screen opens or the switch is turned on, a kind's
- * stacks made one through the game's own item_remove_stack (it puts right what is in hand). */
+ * game is loaded, the loot screen opens or the switch is turned on; a member's stacks of a kind are
+ * then made one through the game's own item_remove_stack (it puts right what is in hand), but not in
+ * a battle or a dungeon (GV_in_battle: the field's records keep the members' item numbers). */
 #define ING_Q 25
 int loot_ingredients_one = 1;
 static int is_ingredient(u16 code)
@@ -262,7 +263,7 @@ static void ingr_keep(int id, int q)       /* (a mark on the old quality kept on
 {
     if (q != ING_Q && keep_is(id, q) && !keep_is(id, ING_Q)) keep_mark(id, ING_Q, 1);
 }
-static void ingr_members(void)
+static void ingr_members(int join)          /* join: the stacks of a kind made one (not in a battle or a dungeon: the field's records point at the members' items) */
 {
     if (!loot_ingredients_one) return;
     int size = (s16)g_rw(G_PARTY_SIZE), merged = 0;
@@ -275,7 +276,7 @@ static void ingr_members(void)
                 int q = rb(G_FAR2E38, (u16)(o + 3)), c = rb(G_FAR2E38, (u16)(o + 4));
                 ingr_keep(code, q);
                 wb(G_FAR2E38, (u16)(o + 3), ING_Q);
-                for (int k = 0; k < i; k++) {                       /* an earlier stack of the kind: this one joins it */
+                for (int k = 0; join && k < i; k++) {               /* an earlier stack of the kind: this one joins it */
                     u16 ok = G_ITEM(m, k);
                     if ((rw(G_FAR2E38, ok) & 0xfff) != code || rb(G_FAR2E38, (u16)(ok + 2)) != rb(G_FAR2E38, (u16)(o + 2))) continue;
                     int ck = rb(G_FAR2E38, (u16)(ok + 4));
@@ -332,16 +333,19 @@ static void ingr_store_hook(void)          /* cache_first_draw (who, arg): the s
         }
     }
 }
+static void ingr_now(int a, int b, int c, int d) { (void)a; (void)b; (void)c; (void)d; ingr_members(g_rb(GV_in_battle) != 1); }
 static void ingr_loaded_hook(void)         /* the save is read (s037 1c7d:0d24) */
 {
-    hook_call_original();
-    if (!unw_active && g_rb(GV_in_battle) != 1) ingr_members();   /* (in a battle its records stay as they are: the loot screen after it) */
+    hook_call_original();                   /* (the load then unwinds the game: the stacks joined at the next round of a game screen,
+                                               ns_defer, out of a battle or a dungeon; in one, at the next load or loot screen out of it) */
+    ingr_members(0);                        /* (the qualities at once: memory only) */
+    if (loot_ingredients_one) ns_defer(ingr_now, 0, 0, 0, 0);
+    if (getenv("DL_LOOT_LOG")) fprintf(stderr, "loot: a save read, ingredients to join (%d)\n", loot_ingredients_one);
 }
-static void ingr_now(int a, int b, int c, int d) { (void)a; (void)b; (void)c; (void)d; ingr_members(); }
 void loot_ingredients_set(int on)
 {
     loot_ingredients_one = on;
-    if (on && g_rb(GV_in_battle) != 1) ns_defer(ingr_now, 0, 0, 0, 0);
+    if (on) ns_defer(ingr_now, 0, 0, 0, 0);
 }
 
 /* ---------------------------------------------------------------- shops

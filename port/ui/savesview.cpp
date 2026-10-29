@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
+#include <ctype.h>
 #include <time.h>
 #include <math.h>
 #include <string>
@@ -134,7 +135,13 @@ extern "C" void savesview_draw(void)
         std::string title = ns_gtext(v.comment);
         if (title.empty()) title = ns_gtext(v.place);
         float tx = X0 + 3;
-        P.text(f, NsDraw::FS_NAME, tx, y + 1.0f, ink, title, -1, X1 - 72);
+        std::string fn = v.file;                                  /* the save's file, to tell one from another ("(dksave3)") */
+        if (fn.size() > 4 && !strcasecmp(fn.c_str() + fn.size() - 4, ".sav")) fn.resize(fn.size() - 4);
+        for (char &ch : fn) ch = (char)tolower((unsigned char)ch);
+        fn = "(" + fn + ")";
+        float fw = P.width(fo, NsDraw::FS_SMALL, fn), tmax = X1 - 72 - fw - 2;
+        P.text(f, NsDraw::FS_NAME, tx, y + 1.0f, ink, title, -1, tmax);
+        P.text(fo, NsDraw::FS_SMALL, fminf(tx + P.width(f, NsDraw::FS_NAME, title), tmax) + 2, y + 1.8f, dim, fn);
         char when[64]; snprintf(when, sizeof when, "%d %s %d, %d:00", v.day, gm_month_name((unsigned)v.month % 12), v.year, v.hour);
         P.text(fo, NsDraw::FS_SMALL, 0, y + 1.8f, soft, when, X1 - 3);
         bool armed = S.loading && S.armed == i && plat_ticks_ms() - S.armed_t <= 4000, del_hit = false;

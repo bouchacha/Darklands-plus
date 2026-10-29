@@ -96,7 +96,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:144` | each town's shops, their wares, qualities and prices, noted on arrival (shown on the world map, M). Switched in F12 > Journal. |
 | `mods/options.c:145` | every text the cards show, word for word, with the date, the place and the choice made, so a clue read weeks ago can be found again (F12 > Journal > Chronicle, where it is switched). |
 | `mods/options.c:147` | Ingredients of one quality |
-| `mods/options.c:147` | every ingredient is of quality 25, whoever finds, buys or carries it: its quality only ever changed its price (alchemy takes ingredients by kind and number, and a potion's quality is the formula's), and two of one kind at two qualities were two entries everywhere. Those carried already join as a game is loaded. |
+| `mods/options.c:147` | every ingredient is of quality 25, whoever finds, buys or carries it: its quality only ever changed its price (alchemy takes ingredients by kind and number, and a potion's quality is the formula's), and two of one kind at two qualities were two entries everywhere. Those already carried take quality 25 as a game is loaded, and one member's stacks of a kind become one outside castles, mines and dungeons. |
 | `mods/options.c:148` | Thrown weapons picked up after a battle |
 | `mods/options.c:148` | when the loot screen opens after a battle, the javelins, throwing axes, throwing knives and darts each member threw are taken from the pile and given back to them. |
 | `mods/options.c:149` | Endless ammunition and thrown weapons |
@@ -1154,18 +1154,18 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/iconsheets.cpp:34` | Cards and towns |
 | `ui/iconsheets.cpp:34` | The party and its items |
 | `ui/iconsheets.cpp:35` | Fixes for bugs of the original |
-| `ui/iconsheets.cpp:94` | The four bases: the elements' triangles |
-| `ui/iconsheets.cpp:95` | Metals and their ores: the planets' signs, in pewter (gold in gold) |
-| `ui/iconsheets.cpp:96` | Sulphurs, salts and poisons |
-| `ui/iconsheets.cpp:97` | Waters, oils and vapours |
-| `ui/iconsheets.cpp:98` | Herbs: no sign in the tables, one made as theirs are |
-| `ui/iconsheets.cpp:99` | E. Black Bean |
-| `ui/iconsheets.cpp:99` | White Cinnabar |
-| `ui/iconsheets.cpp:101` | Choleric Base |
-| `ui/iconsheets.cpp:101` | Phlegmatic Base |
-| `ui/iconsheets.cpp:101` | Sanguine Base |
-| `ui/iconsheets.cpp:101` | Melancholic Base |
-| `ui/iconsheets.cpp:131` | Drawn in color (no disc) |
+| `ui/iconsheets.cpp:96` | The four bases: the elements' triangles |
+| `ui/iconsheets.cpp:97` | Metals and their ores: the planets' signs, in pewter (gold in gold) |
+| `ui/iconsheets.cpp:98` | Sulphurs, salts and poisons |
+| `ui/iconsheets.cpp:99` | Waters, oils and vapours |
+| `ui/iconsheets.cpp:100` | Herbs: no sign in the tables, one made as theirs are |
+| `ui/iconsheets.cpp:101` | E. Black Bean |
+| `ui/iconsheets.cpp:101` | White Cinnabar |
+| `ui/iconsheets.cpp:103` | Choleric Base |
+| `ui/iconsheets.cpp:103` | Phlegmatic Base |
+| `ui/iconsheets.cpp:103` | Sanguine Base |
+| `ui/iconsheets.cpp:103` | Melancholic Base |
+| `ui/iconsheets.cpp:133` | Drawn in color (no disc) |
 | `ui/infoview.cpp:70` | %d (the next title at %d) |
 | `ui/infoview.cpp:80` | Reputation here: %s (%d) |
 | `ui/infoview.cpp:89` | Bank notes: %s |
@@ -1938,24 +1938,24 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/saves.cpp:84` | Loading from here works once a game is running; before that, use Load on the title screen. |
 | `ui/saves.cpp:88` | Where and when |
 | `ui/saves.cpp:100` |   (in battle) |
-| `ui/savesview.cpp:30` | %lld min ago |
-| `ui/savesview.cpp:33` | %lld days ago |
-| `ui/savesview.cpp:69` | Load a saved game |
-| `ui/savesview.cpp:69` | Save the game |
-| `ui/savesview.cpp:75` | Close options |
-| `ui/savesview.cpp:75` | Saving options |
-| `ui/savesview.cpp:80` | Saving options |
-| `ui/savesview.cpp:86` | Save name (up to 22 characters): |
-| `ui/savesview.cpp:97` | Existing saves |
-| `ui/savesview.cpp:98` | click it again not to replace it |
-| `ui/savesview.cpp:98` | click one to replace it with this save |
-| `ui/savesview.cpp:101` | Double-click a save to load it. |
-| `ui/savesview.cpp:122` | No saved games yet. |
-| `ui/savesview.cpp:153` | in a battle,  |
-| `ui/savesview.cpp:154` | the last loaded or saved,  |
-| `ui/savesview.cpp:154` | the last used,  |
-| `ui/savesview.cpp:156` | will be replaced by this save |
-| `ui/savesview.cpp:157` | click again to delete it for good |
+| `ui/savesview.cpp:31` | %lld min ago |
+| `ui/savesview.cpp:34` | %lld days ago |
+| `ui/savesview.cpp:70` | Load a saved game |
+| `ui/savesview.cpp:70` | Save the game |
+| `ui/savesview.cpp:76` | Close options |
+| `ui/savesview.cpp:76` | Saving options |
+| `ui/savesview.cpp:81` | Saving options |
+| `ui/savesview.cpp:87` | Save name (up to 22 characters): |
+| `ui/savesview.cpp:98` | Existing saves |
+| `ui/savesview.cpp:99` | click it again not to replace it |
+| `ui/savesview.cpp:99` | click one to replace it with this save |
+| `ui/savesview.cpp:102` | Double-click a save to load it. |
+| `ui/savesview.cpp:123` | No saved games yet. |
+| `ui/savesview.cpp:160` | in a battle,  |
+| `ui/savesview.cpp:161` | the last loaded or saved,  |
+| `ui/savesview.cpp:161` | the last used,  |
+| `ui/savesview.cpp:163` | will be replaced by this save |
+| `ui/savesview.cpp:164` | click again to delete it for good |
 | `ui/screenpics.cpp:24` | The character sheet |
 | `ui/screenpics.cpp:131` | The world map (M) |
 | `ui/screenpics.cpp:173` | The overland view |
@@ -2259,15 +2259,15 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/sheetview.cpp:1492` | No alchemist sells it: it is traded for or found. |
 | `ui/sheetview.cpp:1493` | No alchemist the party has been to sells it. |
 | `ui/sheetview.cpp:1498` | Sold by the alchemist of  |
-| `ui/skillicons.cpp:450` | Missile Device |
-| `ui/skillicons.cpp:450` | Missile Weapons |
-| `ui/skillicons.cpp:451` | Edged Weapon |
-| `ui/skillicons.cpp:451` | Impact Weapon |
-| `ui/skillicons.cpp:451` | Thrown Weapon |
-| `ui/skillicons.cpp:585` | Frames and clock |
-| `ui/skillicons.cpp:589` | Cards and towns |
-| `ui/skillicons.cpp:594` | The party and its items |
-| `ui/skillicons.cpp:610` | Fixes for bugs of the original |
+| `ui/skillicons.cpp:455` | Missile Device |
+| `ui/skillicons.cpp:455` | Missile Weapons |
+| `ui/skillicons.cpp:456` | Edged Weapon |
+| `ui/skillicons.cpp:456` | Impact Weapon |
+| `ui/skillicons.cpp:456` | Thrown Weapon |
+| `ui/skillicons.cpp:590` | Frames and clock |
+| `ui/skillicons.cpp:594` | Cards and towns |
+| `ui/skillicons.cpp:599` | The party and its items |
+| `ui/skillicons.cpp:615` | Fixes for bugs of the original |
 | `ui/teachersui.cpp:47` | Missile Devices |
 | `ui/teachersui.cpp:48` | Speak Common |
 | `ui/teachersui.cpp:48` | Read & Write |
@@ -2320,7 +2320,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/titleview.cpp:104` | Enter or N: a new party;  Q Quickstart |
 | `ui/titleview.cpp:107` | Darklands+ %s (build %s) |
 | `ui/titleview.cpp:107` | Darklands+ build %s%s |
-| `ui/townicons.cpp:223` | von der Lilie |
+| `ui/townicons.cpp:229` | von der Lilie |
 | `ui/ui.cpp:85` |              |
 | `ui/ui.cpp:98` | EB Garamond (book face) |
 | `ui/ui.cpp:98` | Alegreya (calligraphic) |
@@ -2848,10 +2848,10 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/loot.c:90` | Shared out all %d. |
 | `mods/loot.c:90` | Took all %d. |
 | `mods/loot.c:201` | Thrown weapons picked up after the battle (Darklands+):  |
-| `mods/loot.c:370` | Point at one of the merchant's goods first (the upper list). |
-| `mods/loot.c:378` | Bought none: not enough money, or no room. |
-| `mods/loot.c:380` | Point at one of your own items first (the lower list). |
-| `mods/loot.c:396` | This merchant does not buy that. |
+| `mods/loot.c:374` | Point at one of the merchant's goods first (the upper list). |
+| `mods/loot.c:382` | Bought none: not enough money, or no room. |
+| `mods/loot.c:384` | Point at one of your own items first (the lower list). |
+| `mods/loot.c:400` | This merchant does not buy that. |
 | `mods/lootview.c:120` | %d %s to %s (to give it to another member, drag it from the character sheet onto them in the party panel). |
 | `mods/lootview.c:121` | %d %s into the party's pack. |
 | `mods/lootview.c:122` | No room: every member already carries 64 kinds of items. |

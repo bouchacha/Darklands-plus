@@ -215,21 +215,21 @@ static void header(NsDraw &P, const SheetModel &s)
     P.text(f, NsDraw::FS_HEAD, 63.5f, 2.2f, NsDraw::INK, ns_gtext(s.fullname), -1, 290);
     if (P.button(296, 2.5f, 318, 10.2f, "Close", IM_COL32(112, 40, 22, 235), NsDraw::FS_SMALL, PB_Y)) ns_push(SV_CLOSE, 0, 0, 0);
     float x = 63.5f;
-    {   /* the sex: a plain sign (its word under the pointer) */
-        ImU32 c = NsDraw::INK_SOFT; float t = fmaxf(1.2f, 0.5f * P.k), r = 1.75f * P.k;
-        ImVec2 o = NsDraw::w(x + 2.0f, s.female ? 13.9f : 15.6f);
+    {   /* the sex: a plain sign (its word under the pointer), a little smaller than the age's shield beside it */
+        ImU32 c = NsDraw::INK_SOFT; float t = fmaxf(1.1f, 0.45f * P.k), r = 1.4f * P.k;
+        ImVec2 o = NsDraw::w(x + 1.8f, s.female ? 14.4f : 15.9f);
         P.dl->AddCircle(o, r, c, 24, t);
         if (s.female) {                                          /* a cross under the circle */
-            P.dl->AddLine(ImVec2(o.x, o.y + r), ImVec2(o.x, o.y + r + 2.8f * P.k), c, t);
-            P.dl->AddLine(ImVec2(o.x - 1.2f * P.k, o.y + r + 1.4f * P.k), ImVec2(o.x + 1.2f * P.k, o.y + r + 1.4f * P.k), c, t);
+            P.dl->AddLine(ImVec2(o.x, o.y + r), ImVec2(o.x, o.y + r + 2.3f * P.k), c, t);
+            P.dl->AddLine(ImVec2(o.x - 1.0f * P.k, o.y + r + 1.15f * P.k), ImVec2(o.x + 1.0f * P.k, o.y + r + 1.15f * P.k), c, t);
         } else {                                                 /* an arrow out of it, up and right */
-            ImVec2 a(o.x + r * 0.707f, o.y - r * 0.707f), b(a.x + 2.1f * P.k, a.y - 2.1f * P.k);
+            ImVec2 a(o.x + r * 0.707f, o.y - r * 0.707f), b(a.x + 1.7f * P.k, a.y - 1.7f * P.k);
             P.dl->AddLine(a, b, c, t);
-            P.dl->AddLine(b, ImVec2(b.x - 1.4f * P.k, b.y), c, t);
-            P.dl->AddLine(b, ImVec2(b.x, b.y + 1.4f * P.k), c, t);
+            P.dl->AddLine(b, ImVec2(b.x - 1.15f * P.k, b.y), c, t);
+            P.dl->AddLine(b, ImVec2(b.x, b.y + 1.15f * P.k), c, t);
         }
         if (P.over(x, 11.6f, x + 5, 18.8f)) ns_tip(s.female ? "Woman" : "Man");
-        x += 6;
+        x += 5.5f;
     }
     char sub[96]; snprintf(sub, sizeof sub, "{Age:%d}", s.age);   /* (the age as its hourglass: ui/richtext.h) */
     float aw = P.width(fo, NsDraw::FS_SMALL, sub);
