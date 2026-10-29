@@ -2798,14 +2798,15 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/levelwalk.c:99` | The party could get no nearer to the place chosen on the level map. |
 | `mods/levelwalk.c:123` | The party cannot get there from where it stands. |
 | `mods/levelwalk.c:131` |  in single file (press G to move as a group again) |
-| `mods/levelwalk.c:134` | The party walks there%s. |
-| `mods/levelwalk.c:135` | The party will walk there%s: Space resumes the battle. |
-| `mods/levelwalk.c:136` | The party walks there%s. |
-| `mods/levelwalk.c:197` | There are no stairs on this floor that the party has found. |
-| `mods/levelwalk.c:210` | The party walks to the stairs and takes them. |
-| `mods/levelwalk.c:210` | The party walks to the stairs. |
-| `mods/levelwalk.c:303` | The party walks to the door to close it. |
-| `mods/levelwalk.c:303` | The party walks to the door to open it. |
+| `mods/levelwalk.c:134` | The party goes in single file (press G to move as a group again). |
+| `mods/levelwalk.c:137` | The party walks there%s. |
+| `mods/levelwalk.c:138` | The party will walk there%s: Space resumes the battle. |
+| `mods/levelwalk.c:139` | The party walks there%s. |
+| `mods/levelwalk.c:210` | There are no stairs on this floor that the party has found. |
+| `mods/levelwalk.c:223` | The party walks to the stairs and takes them. |
+| `mods/levelwalk.c:223` | The party walks to the stairs. |
+| `mods/levelwalk.c:316` | The party walks to the door to close it. |
+| `mods/levelwalk.c:316` | The party walks to the door to open it. |
 | `mods/lodgeview.c:140` | Castle Guard |
 | `mods/lodgeview.c:143` | Castle Servant |
 | `mods/lodgeview.c:144` | Castle Steward |
