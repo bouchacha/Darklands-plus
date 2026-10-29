@@ -1,6 +1,6 @@
 # Darklands+ changelog
 
-## 1.4 (not yet released)
+## 1.4
 
 What changed since 1.3.1.
 
@@ -40,6 +40,9 @@ What changed since 1.3.1.
 - **The character sheet's things:** the kinds of things in the pack fold away (a click on the heading; the ingredients folded at first), and the sheet's lists open at their top.
 - **Giving one of a stack:** dragging a stack onto a member says that holding Shift gives just one (it gave one before, but said so only in the sheet's help).
 - **Money as coins** (F12 > Settings) gives amounts in words their coins too: a card's "3 groschen", the game's own "12pfs", a hint's "2 florins".
+- **Ingredients of one quality:** every ingredient is of quality 25, whoever finds, buys or carries it: those already carried as soon as a game is loaded, those in the loot and the store room as the screen opens, and one member's stacks of a kind become one stack once the party is out of a castle, mine or dungeon. Their quality only ever changed their price (alchemy takes them by kind and number alone), yet one kind at two qualities was two entries everywhere. No list shows an ingredient's quality. F12 > Settings > The party and its items: "Ingredients of one quality" off keeps the original's.
+- **Blessings and potions at work, shorter:** in the margin each member's head and then, on the same line, a picture and a short value for each thing at work: an attribute or skill raised as its shield, the rest as a gold sign on a round badge (fire protection a flame, armor a breastplate, a weapon's quality and damage a sword, penetration a spearhead, faster travel a winged boot, no death from wounds a skull struck through) with a saint's halo or a potion's flask at its foot; two boosts of one attribute (two essences drunk) as one, their sum; what every member has alike on one line, "All", at the foot. The details and the hours left under the pointer. They are listed in a battle's margin too, under the enemies; after loading a save made in a battle, what was at work when it began is shown as well.
+- **Messages name things as the lists do:** "St. Dunstan's Hammer", not the game's shortened "S.Dunstan Hammer" (the sheet's, the shops', the loot's and the store room's notes, and armor worn away).
 
 **Battles**
 
@@ -47,9 +50,6 @@ What changed since 1.3.1.
 - **The order buttons at the foot of the field are their pictures alone,** larger, each with its key, the member's head at the strip's start; the order's name and what it does under the pointer. Every member's strip has the same buttons in the same places (an order not open to that member dimmed in its place); the potions and things to use are in a grid of their own just above it, always in sight, in the same order for everyone (by kind, then quality), however many there are. F12 > Settings > Battles: "Order buttons as pictures" off gives the names beside them again, "Order buttons over the field" off gives no strip at all.
 - **"Can't walk there" and the other click hints** show only over the field, not over the order buttons or another panel.
 - **A member's box:** walking a castle, mine or dungeon with no enemy engaged, a click on it opens their character sheet, as in a town; in a fight a click still chooses them for orders and a right-click opens the sheet (the box says so under the pointer). Over a sheet opened in a battle the order strip no longer stands empty at its foot.
-- **Ingredients of one quality:** every ingredient is of quality 25, whoever finds, buys or carries it: those already carried as soon as a game is loaded, those in the loot and the store room as the screen opens, and one member's stacks of a kind become one stack once the party is out of a castle, mine or dungeon. Their quality only ever changed their price (alchemy takes them by kind and number alone), yet one kind at two qualities was two entries everywhere. No list shows an ingredient's quality. F12 > Settings > The party and its items: "Ingredients of one quality" off keeps the original's.
-- **Blessings and potions at work, shorter:** in the margin each member's head and then, on the same line, a picture and a short value for each thing at work: an attribute or skill raised as its shield, the rest as a gold sign on a round badge (fire protection a flame, armor a breastplate, a weapon's quality and damage a sword, penetration a spearhead, faster travel a winged boot, no death from wounds a skull struck through) with a saint's halo or a potion's flask at its foot; two boosts of one attribute (two essences drunk) as one, their sum; what every member has alike on one line, "All", at the foot. The details and the hours left under the pointer. They are listed in a battle's margin too, under the enemies; after loading a save made in a battle, what was at work when it began is shown as well.
-- **Messages name things as the lists do:** "St. Dunstan's Hammer", not the game's shortened "S.Dunstan Hammer" (the sheet's, the shops', the loot's and the store room's notes, and armor worn away).
 
 **Encounters**
 
