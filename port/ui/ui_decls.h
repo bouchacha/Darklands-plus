@@ -22,7 +22,6 @@ extern "C" int citynav_available(void);
 extern "C" void citynav_draw_cover(void);
 extern "C" void ui_icon_styles_draw(void);   /* ui/skillicons.cpp (test) */   /* ui/citynav.cpp: Go to under way, the streets passed not shown */
 extern "C" void citynav_tick(void);
-extern "C" void boattrip_tick(void);
 extern "C" void citynav_go(int dest);
 extern "C" int worldmap_open(void);
 extern "C" void worldmap_draw(void);

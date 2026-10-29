@@ -27,7 +27,6 @@ extern "C" int ns_showing(void);
 #include "ui.h"
 #include "ornament.h"
 #include "skillicons.h"
-#include "boattrip.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -625,48 +624,6 @@ extern "C" void worldmap_draw(void)
             ImGui::EndPopup();
         }
         ImGui::SameLine(); ImGui::Dummy(ImVec2(0, 0));
-        /* in a town with docks: the way by boat to a town with docks, against the way by land, and the
-           journey when the boat is the quicker by a day (ui/boattrip.cpp) */
-        if (in_town && p.loc >= 0 && p.loc < (int)gamedata.cities.size()) {
-            static BoatPlan bp; static int bkey[4] = { -9, -9, -9, -9 };
-            int cur = (s16)g_rw(G_CUR_LOC), key[4] = { cur, p.loc, (s16)g_rw(G_CUR_DAY), (s16)g_rw(G_CUR_HOUR) };
-            if (memcmp(key, bkey, sizeof key)) { memcpy(bkey, key, sizeof key); bp = boattrip_plan(cur, p.loc); }
-            if (bp.ok) {
-                auto days = [](float d) { return hhmm((int)(d * 1440 + 0.5f)); };
-                std::string t = "By boat about " + days(bp.days);
-                if (bp.hi - bp.lo >= 1.0f) { char r[64]; snprintf(r, sizeof r, " (%d to %d days)", (int)(bp.lo + 0.5f), (int)(bp.hi + 0.5f)); t += r; }
-                t += bp.land_days >= 0 ? ", by land about " + days(bp.land_days) : std::string(", no way by land");
-                bool worth = boattrip_worth(bp);
-                const char *lb = "Go by boat";
-                float bw = ImGui::CalcTextSize(lb).x + ImGui::GetStyle().FramePadding.x * 2;
-                ImGui::AlignTextToFramePadding();
-                if (worth) ImGui::TextUnformatted(t.c_str()); else ImGui::TextDisabled("%s", t.c_str());
-                if (ImGui::IsItemHovered()) {
-                    std::string way = gamedata.cities[cur].name;
-                    for (int i = 0; i < bp.nlegs; i++) way += " - " + gamedata.cities[bp.legs[i]].name;
-                    ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 24);
-                    ImGui::Text("The way: %s (%d boat%s).", way.c_str(), bp.nlegs, bp.nlegs == 1 ? "" : "s");
-                    if (bp.wait_days > 0) ImGui::Text("The first boat sails in %d day%s: a stay at the inn until then.", bp.wait_days, bp.wait_days == 1 ? "" : "s");
-                    else ImGui::TextUnformatted("The first boat sails today.");
-                    ImGui::TextUnformatted("Each voyage from the docks takes two to four days; staying aboard on to the next town, hours. Boats sail on their own days (the docks say which today).");
-                    if (bp.nlegs > 1) ImGui::Text("In %d journeys of 10 the boats on sail on the day the boat arrives; else a stay ashore until they do.", (int)(bp.aboard * 10 + 0.5f));
-                    ImGui::TextDisabled("The fares are paid at the docks. Pirates may meet the boat on the river.");
-                    if (!worth) ImGui::TextDisabled("No quicker than the way by land.");
-                    ImGui::PopTextWrapPos(); ImGui::EndTooltip();
-                }
-                if (worth) {
-                    ImGui::SameLine(bx - bw);
-                    if (ImGui::Button(lb)) { boattrip_start(bp); ImGui::End(); ui_toggle_map(); ImGui::End(); return; }
-                    if (ImGui::IsItemHovered()) {
-                        ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
-                        ImGui::TextUnformatted(bp.wait_days > 0 ? "The party walks to the inn and stays until the boat's day, then to the docks and aboard; at each stop it stays aboard while the boat on sails that day."
-                                                                : "The party walks to the docks and boards; at each stop it stays aboard while the boat on sails that day.");
-                        ImGui::TextDisabled("It stops where you must choose: going ashore, pirates, an encounter. Any key or click stops the walk.");
-                        ImGui::PopTextWrapPos(); ImGui::EndTooltip();
-                    }
-                }
-            }
-        }
         ImGui::Separator();
         /* the rest */
         float colw = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) * 0.5f;
