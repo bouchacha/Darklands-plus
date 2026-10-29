@@ -513,16 +513,24 @@ extern "C" void partypanel_draw(void)
             P.dl->AddLine(NsDraw::w(px0 + 2, py0 + 2), NsDraw::w(px1 - 2, py1 - 2), IM_COL32(170, 40, 30, 230), fmaxf(1.5f, 0.6f * P.k));
             P.dl->AddLine(NsDraw::w(px1 - 2, py0 + 2), NsDraw::w(px0 + 2, py1 - 2), IM_COL32(170, 40, 30, 230), fmaxf(1.5f, 0.6f * P.k));
         }
-        /* Endurance, Strength, Divine Favor */
-        static const char *LBL[3] = { "End", "Str", "DF" };
-        static const int ATT[3] = { 0, 1, 6 };
+        /* Endurance, Strength, Divine Favor: each its shield, a little faded, and its name in full */
+        static const char *LBL[3] = { "Endurance", "Strength", "Divine Favor" };
+        static const int ATT[3] = { ATTR_END, ATTR_STR, ATTR_DF };
         static const ImU32 COL[3] = { IM_COL32(104, 132, 244, 255), IM_COL32(96, 184, 76, 255), IM_COL32(230, 200, 76, 255) };
         for (int r = 0; r < 3; r++) {
             float ry = y0 + 10.0f + r * 9.3f, bx0 = 19.5f, bx1 = 56.6f;
             int cur, mx; gm_member_attr(m, ATT[r], &cur, &mx);
             char v[24];
             if (r == 2) snprintf(v, sizeof v, "%d", cur); else snprintf(v, sizeof v, "%d/%d", cur, mx);
-            P.text(P.fo, NsDraw::FS_SMALL, bx0, ry - 0.6f, DIM, LBL[r]);
+            {   /* the shield, faded to two thirds: a sign, not a value */
+                int v0 = P.dl->VtxBuffer.Size;
+                ui_key_icon(P.dl, NsDraw::w(bx0 + 1.9f, ry + 1.8f), 3.1f * P.k, ATT[r]);
+                ui_dim_since(P.dl, v0, out ? 0.4f : 0.65f);
+            }
+            float lx = bx0 + 5.0f, room = bx1 - lx - P.width(P.fo, NsDraw::FS_SMALL, v) - 1.2f, gs = NsDraw::FS_SMALL;
+            float lw = P.width(P.fo, gs, LBL[r]);
+            if (lw > room && lw > 0) gs *= fmaxf(0.75f, room / lw);          /* (a long name in a narrow box: a size smaller) */
+            P.text(P.fo, gs, lx, ry - 0.6f + (NsDraw::FS_SMALL - gs) * 0.6f, DIM, LBL[r]);
             P.text(P.fo, NsDraw::FS_SMALL, 0, ry - 0.6f, out ? GREY : CREAM, v, bx1);
             float f = mx > 0 ? fminf(1.0f, fmaxf(0.0f, (float)cur / mx)) : 0;
             P.rect(bx0, ry + 5.0f, bx1, ry + 7.2f, IM_COL32(64, 52, 40, 255), 0.8f);
@@ -531,7 +539,7 @@ extern "C" void partypanel_draw(void)
             if (r < 2 && !out && cur < mx && mx > 0)
                 P.rect(bx0 + (bx1 - bx0) * f, ry + 5.0f, bx1, ry + 7.2f, IM_COL32(236, 230, 214, 255), 0.8f);
             if (f > 0) P.rect(bx0, ry + 5.0f, bx0 + (bx1 - bx0) * f, ry + 7.2f, out ? IM_COL32(120, 112, 104, 255) : COL[r], 0.8f);
-            if (cur > mx && mx > 0) P.text(P.fo, NsDraw::FS_SMALL, bx0 + P.width(P.fo, NsDraw::FS_SMALL, LBL[r]) + 0.8f, ry - 0.6f, GOLD, "+");
+            if (cur > mx && mx > 0) P.text(P.fo, NsDraw::FS_SMALL, 0, ry - 0.6f, GOLD, "+", bx1 - P.width(P.fo, NsDraw::FS_SMALL, v) - 0.6f);
         }
         if (st == 5 || gm_member_elsewhere(m)) P.text(P.fo, NsDraw::FS_SMALL, 3.2f, y0 + 31.5f, GREY, st == 5 ? "away" : "elsewhere");
         draw_notes(P, m, 1.6f, y0 + 9.0f, 58.4f, y0 + 38.4f);              /* (a skill grown ... over the box's lower part) */

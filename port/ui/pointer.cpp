@@ -9,7 +9,9 @@
  * hourglass (Go to walking the party through the streets).
  * ui/overlay_text.cpp draws it where the game's sprite would be (its box, its hot spot); a sprite
  * of the game's this does not know (the sheet's hands, the arrows at the battle's edges) is drawn
- * as the game's. Coordinates in the sprite's pixels (26 x 15, the tip at 0,0), k window pixels to one. */
+ * as the game's. Coordinates in the sprite's pixels (26 x 15, the tip at 0,0), k window pixels to one.
+ * (Redrawn for 1.4-RC6 in proportion: RC5's had a forefinger as thick as a thumb, a fist as tall as the hand
+ * was long and a cuff wider still - the maintainer: "like a child hastily drew it".) */
 #include "imgui.h"
 #include "imgui_internal.h"
 #include <math.h>
@@ -55,61 +57,65 @@ struct G {
 void ui_pointer_draw(ImDrawList *dl, ImVec2 tip, float k, int pose, int badge)
 {
     G g{ dl, tip, k, {} };
-    /* the cuff: flaring from the wrist, a rolled rim at its mouth, two flutes, its leather lining */
-    g.at(18.6f, 1.6f).curve(22.0f, 0.2f, 25.4f, -0.9f).curve(26.8f, 7.0f, 26.2f, 14.9f).curve(22.4f, 13.4f, 19.0f, 12.4f).curve(19.8f, 7.0f, 18.6f, 1.6f).plate(-0.9f, 14.9f);
-    g.at(24.9f, -0.4f).curve(26.1f, 7.0f, 25.6f, 14.4f).stroke(LEATHER, 0.7f);
-    g.at(25.5f, -0.7f).curve(26.6f, 7.0f, 26.1f, 14.7f).stroke(HI, 0.45f);
-    g.at(20.6f, 1.6f).curve(21.4f, 7.0f, 20.9f, 12.6f).stroke(LO, 0.4f);
-    g.at(22.6f, 0.9f).curve(23.5f, 7.0f, 23.0f, 13.1f).stroke(LO, 0.4f);
-    g.rivet(21.7f, 2.6f); g.rivet(22.0f, 11.3f);
-    /* the hand shows its thumb side: a clenched fist, the forefinger out on top, the thumb laid along under
-       it (a thumb at the bottom would make the finger out the little one) */
-    /* the back of the hand: a domed plate, two lames across it toward the knuckles */
-    g.at(11.4f, 0.6f).curve(15.0f, -0.6f, 18.8f, 0.6f).curve(20.2f, 6.0f, 19.2f, 11.6f).curve(16.0f, 13.2f, 12.6f, 12.2f).to(12.8f, 6.0f).curve(11.0f, 3.6f, 11.4f, 0.6f).plate(-0.4f, 12.8f);
-    g.at(14.6f, 0.3f).curve(15.6f, 6.0f, 15.2f, 12.3f).stroke(GAP, 0.45f);
-    g.at(17.0f, 0.4f).curve(18.0f, 6.0f, 17.6f, 12.2f).stroke(GAP, 0.45f);
-    g.at(17.4f, 0.8f).curve(18.1f, 0.6f, 18.6f, 1.0f).stroke(HI, 0.5f);
-    /* the middle, ring and little fingers curled under: their middle joints a rounded column, the little finger's
-       the smallest; drawn from the bottom up */
-    static const float CURL[3][3] = { { 9.5f, 12.0f, 10.0f }, { 7.0f, 9.8f, 9.2f }, { 4.2f, 7.3f, 8.6f } };   /* top, bottom, front */
+    /* in proportion (1.4-RC6 on): the hand some 17 long and 7.5 high, the forefinger a little over half of
+       that, the cuff a short flare behind the wrist. The thumb side toward us: the forefinger out on top, the
+       other three curled under it, their roots under the plate of the hand, the thumb laid along them.
+       Drawn back to front: the cuff, the curled fingers, the forefinger, the hand's plate, the thumb */
+    /* the cuff: from the wrist, flaring to a rolled rim, its leather lining, a flute, two rivets */
+    g.at(17.2f, 0.2f).curve(21.0f, -0.6f, 24.4f, -1.9f).curve(25.4f, 3.4f, 24.6f, 8.9f).curve(21.0f, 7.6f, 17.4f, 6.6f).curve(17.8f, 3.4f, 17.2f, 0.2f).plate(-1.9f, 8.9f);
+    g.at(23.6f, -1.4f).curve(24.5f, 3.4f, 23.7f, 8.3f).stroke(LEATHER, 0.55f);
+    g.at(24.3f, -1.7f).curve(25.1f, 3.4f, 24.3f, 8.6f).stroke(HI, 0.4f);
+    g.at(19.4f, -0.2f).curve(20.0f, 3.4f, 19.6f, 7.0f).stroke(LO, 0.35f);
+    g.rivet(18.6f, 0.9f); g.rivet(18.7f, 5.8f);
+    /* the middle, ring and little fingers curled, each a little behind the one above: from the bottom up */
+    static const float CURL[3][3] = { { 5.5f, 7.2f, 9.7f }, { 3.9f, 5.7f, 9.0f }, { 2.3f, 4.1f, 8.4f } };   /* top, bottom, front */
     for (const float *c : CURL) {
-        float y0 = c[0], y1 = c[1], x0 = c[2], x1 = 13.4f, r = (y1 - y0) * 0.5f, ym = (y0 + y1) * 0.5f;
-        g.at(x0 + r, y0).to(x1, y0).curve(x1 + 0.6f, ym, x1, y1).to(x0 + r, y1).curve(x0 - r * 0.9f, ym, x0 + r, y0).plate(y0, y1 + 0.3f);
-        g.at(x0 + r * 0.7f, y0 + 0.5f).curve(x0 + 0.2f, y0 + 0.9f, x0 + 0.25f, ym).stroke(HI, 0.4f);
+        float y0 = c[0], y1 = c[1], x0 = c[2], x1 = 13.6f, r = (y1 - y0) * 0.5f, ym = (y0 + y1) * 0.5f;
+        g.at(x0 + r, y0).to(x1, y0).to(x1, y1).to(x0 + r, y1).curve(x0 - r * 0.9f, ym, x0 + r, y0).plate(y0, y1 + 0.3f);
+        g.at(x0 + r * 0.8f, y0 + 0.35f).curve(x0 + 0.15f, y0 + 0.6f, x0 + 0.2f, ym).stroke(HI, 0.3f);
     }
     if (pose == PTR_GRAB) {                                  /* a fist: the forefinger curled with the rest */
-        g.at(9.4f, 1.0f).to(13.4f, 0.8f).curve(14.0f, 2.5f, 13.4f, 4.3f).to(9.4f, 4.4f).curve(7.6f, 2.7f, 9.4f, 1.0f).plate(0.8f, 4.4f);
-        g.at(8.9f, 2.4f).curve(9.2f, 1.4f, 10.0f, 1.4f).stroke(HI, 0.4f);
-    } else {                                                  /* the forefinger out: three broad lames, the tip blunt */
-        g.at(7.6f, 0.2f).to(12.6f, 0.0f).curve(13.3f, 2.2f, 12.6f, 4.4f).to(7.7f, 4.2f).curve(7.1f, 2.2f, 7.6f, 0.2f).plate(0.0f, 4.4f);
-        g.at(3.6f, 0.2f).to(8.0f, 0.2f).curve(8.6f, 2.1f, 8.1f, 4.0f).to(3.8f, 3.9f).curve(3.2f, 2.0f, 3.6f, 0.2f).plate(0.1f, 4.0f);
-        g.at(0.0f, 0.0f).to(4.0f, 0.2f).curve(4.6f, 2.0f, 4.1f, 3.8f).to(1.6f, 3.8f).curve(-0.6f, 3.6f, -0.2f, 1.4f).curve(-0.2f, 0.4f, 0.0f, 0.0f).plate(0.0f, 3.8f);
-        g.at(0.6f, 0.55f).to(3.5f, 0.65f).stroke(HI, 0.4f);
-        g.at(4.2f, 0.7f).to(7.5f, 0.7f).stroke(HI, 0.35f);
-        g.at(8.2f, 0.6f).to(12.2f, 0.5f).stroke(HI, 0.35f);
+        g.at(8.8f, 0.3f).to(12.6f, 0.1f).to(12.6f, 2.5f).to(8.8f, 2.6f).curve(7.4f, 1.5f, 8.8f, 0.3f).plate(0.1f, 2.6f);
+        g.at(8.4f, 1.3f).curve(8.6f, 0.7f, 9.4f, 0.6f).stroke(HI, 0.3f);
+    } else {                                                  /* the forefinger out: three lames, the tip a rounded cap */
+        g.at(6.0f, -0.15f).to(11.4f, -0.4f).to(11.4f, 2.7f).to(6.0f, 2.45f).curve(5.6f, 1.1f, 6.0f, -0.15f).plate(-0.4f, 2.7f);
+        g.at(2.8f, 0.0f).to(6.3f, -0.1f).curve(6.8f, 1.15f, 6.3f, 2.35f).to(2.8f, 2.2f).curve(2.4f, 1.1f, 2.8f, 0.0f).plate(-0.1f, 2.35f);
+        g.at(0.3f, 0.15f).to(3.1f, 0.05f).curve(3.6f, 1.1f, 3.1f, 2.1f).to(0.9f, 2.0f).curve(-0.5f, 1.9f, -0.4f, 1.0f).curve(-0.3f, 0.3f, 0.3f, 0.15f).plate(0.05f, 2.1f);
+        g.at(0.4f, 0.5f).to(2.7f, 0.42f).stroke(HI, 0.3f);
+        g.at(3.2f, 0.35f).to(5.9f, 0.28f).stroke(HI, 0.3f);
+        g.at(6.4f, 0.2f).to(9.8f, 0.08f).stroke(HI, 0.3f);
     }
-    /* the thumb, over the middle finger: two lames to a rounded tip */
-    g.at(13.0f, 4.2f).curve(15.6f, 3.8f, 17.2f, 4.8f).curve(17.4f, 6.6f, 16.2f, 7.6f).curve(14.4f, 7.6f, 12.8f, 7.2f).curve(12.4f, 5.6f, 13.0f, 4.2f).plate(3.9f, 7.6f);
-    g.at(10.2f, 4.6f).to(13.6f, 4.3f).curve(14.2f, 5.8f, 13.6f, 7.1f).to(10.6f, 6.9f).curve(9.0f, 6.6f, 9.2f, 5.6f).curve(9.3f, 4.8f, 10.2f, 4.6f).plate(4.3f, 7.1f);
-    g.at(10.0f, 5.1f).to(13.0f, 4.9f).stroke(HI, 0.35f);
-    g.at(13.6f, 4.7f).curve(15.4f, 4.4f, 16.6f, 5.2f).stroke(HI, 0.35f);
-    /* the cuff's badge: on a little dark plate */
+    /* the back of the hand: a domed plate from the knuckles to the wrist, over the fingers' roots; a ridge at
+       the knuckles, two narrow lames at the wrist */
+    g.at(10.0f, -0.7f).curve(13.6f, -1.3f, 17.6f, -0.1f).curve(18.4f, 3.4f, 17.8f, 6.8f).curve(15.8f, 7.7f, 13.6f, 7.5f).curve(12.2f, 4.4f, 11.3f, 2.6f).curve(9.5f, 1.2f, 10.0f, -0.7f).plate(-1.1f, 7.6f);
+    g.at(11.0f, -0.85f).curve(11.9f, 0.8f, 11.9f, 2.7f).stroke(LO, 0.32f);
+    g.at(15.4f, -0.6f).curve(16.1f, 3.2f, 15.7f, 7.3f).stroke(GAP, 0.35f);
+    g.at(16.6f, -0.4f).curve(17.3f, 3.2f, 16.9f, 7.1f).stroke(GAP, 0.35f);
+    g.at(11.6f, -0.65f).curve(13.4f, -0.95f, 15.0f, -0.7f).stroke(HI, 0.4f);
+    /* the thumb, laid forward along the curled middle finger: two lames, the tip rounded */
+    g.at(12.8f, 2.9f).curve(15.0f, 2.5f, 16.6f, 3.1f).curve(17.0f, 4.3f, 16.4f, 5.3f).curve(14.6f, 5.5f, 12.6f, 5.0f).curve(12.2f, 3.9f, 12.8f, 2.9f).plate(2.6f, 5.4f);
+    g.at(10.0f, 3.2f).to(13.2f, 3.0f).curve(13.7f, 4.0f, 13.2f, 4.9f).to(10.4f, 4.9f).curve(8.8f, 4.7f, 9.0f, 4.0f).curve(9.1f, 3.3f, 10.0f, 3.2f).plate(3.0f, 4.9f);
+    g.at(9.8f, 3.55f).to(12.8f, 3.4f).stroke(HI, 0.3f);
+    g.at(13.2f, 3.2f).curve(14.9f, 2.9f, 16.2f, 3.4f).stroke(HI, 0.3f);
+    /* the cuff's badge: on a little dark plate (sizes in the badge's own units, f of the sprite's each) */
     if (badge != PTR_PLAIN) {
-        ImVec2 c = g.P(23.2f, 7.0f); float r = 2.9f * k;
+        const float bx = 21.4f, by = 3.4f, f = 0.86f;
+        ImVec2 c = g.P(bx, by); float r = 2.5f * k;
+        auto B = [&](float dx, float dy) { return g.P(bx + dx * f, by + dy * f); };
         dl->AddCircleFilled(ImVec2(c.x + 0.3f * k, c.y + 0.4f * k), r, IM_COL32(0, 0, 0, 90), 18);
         dl->AddCircleFilled(c, r, IM_COL32(44, 30, 22, 240), 18);
         dl->AddCircle(c, r, GOLD, 18, g.W(0.35f));
         if (badge == PTR_PAUSED)                              /* two gold bars */
-            for (int b = 0; b < 2; b++) { float x = 22.2f + b * 1.8f; dl->AddRectFilled(g.P(x, 5.5f), g.P(x + 1.0f, 8.5f), GOLD, 0.2f * k); }
+            for (int b = 0; b < 2; b++) { float x = -1.0f + b * 1.8f; dl->AddRectFilled(B(x, -1.5f), B(x + 1.0f, 1.5f), GOLD, 0.2f * k); }
         else if (badge == PTR_ATTACK) {                       /* two blades crossed */
             for (int s = -1; s <= 1; s += 2) {
-                dl->AddLine(g.P(23.2f - 1.8f * s, 5.2f), g.P(23.2f + 1.4f * s, 8.4f), HI, g.W(0.55f));
-                dl->AddLine(g.P(23.2f + 0.9f * s, 7.6f), g.P(23.2f + 1.9f * s, 8.8f), GOLD, g.W(0.7f));
+                dl->AddLine(B(-1.8f * s, -1.8f), B(1.4f * s, 1.4f), HI, g.W(0.5f));
+                dl->AddLine(B(0.9f * s, 0.6f), B(1.9f * s, 1.8f), GOLD, g.W(0.6f));
             }
         } else if (badge == PTR_BUSY) {                       /* an hourglass */
-            dl->AddTriangleFilled(g.P(21.8f, 5.1f), g.P(24.6f, 5.1f), g.P(23.2f, 7.0f), GOLD);
-            dl->AddTriangleFilled(g.P(23.2f, 7.0f), g.P(24.6f, 8.9f), g.P(21.8f, 8.9f), GOLD);
-            dl->AddLine(g.P(21.6f, 5.0f), g.P(24.8f, 5.0f), HI, g.W(0.4f)); dl->AddLine(g.P(21.6f, 9.0f), g.P(24.8f, 9.0f), HI, g.W(0.4f));
+            dl->AddTriangleFilled(B(-1.4f, -1.9f), B(1.4f, -1.9f), B(0, 0), GOLD);
+            dl->AddTriangleFilled(B(0, 0), B(1.4f, 1.9f), B(-1.4f, 1.9f), GOLD);
+            dl->AddLine(B(-1.6f, -2.0f), B(1.6f, -2.0f), HI, g.W(0.35f)); dl->AddLine(B(-1.6f, 2.0f), B(1.6f, 2.0f), HI, g.W(0.35f));
         }
     }
 }

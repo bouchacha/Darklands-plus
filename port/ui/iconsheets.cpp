@@ -60,8 +60,8 @@ extern "C" void ui_icon_styles_draw(void)
           ui_age_icon(dl, at(n++), sz * 0.8f); }
         n = (n + 13) / 14 * 14;                                                          /* the pointer drawn anew (ui/pointer.h): its hands and badges */
         { float pk = cell / 30.0f;
-          for (int b = 0; b < 4; b++) { ImVec2 c = at(n++); ui_pointer_draw(dl, ImVec2(c.x - 13 * pk, c.y - 7 * pk), pk, PTR_POINT, b); }
-          ImVec2 c = at(n++); ui_pointer_draw(dl, ImVec2(c.x - 13 * pk, c.y - 7 * pk), pk, PTR_GRAB, PTR_PLAIN); }
+          for (int b = 0; b < 4; b++) { ImVec2 c = at(n++); ui_pointer_draw(dl, ImVec2(c.x - 12.5f * pk, c.y - 3.5f * pk), pk, PTR_POINT, b); }
+          ImVec2 c = at(n++); ui_pointer_draw(dl, ImVec2(c.x - 12.5f * pk, c.y - 3.5f * pk), pk, PTR_GRAB, PTR_PLAIN); }
         return;
     }
     if (sheet_on >= 1000) {   /* one ingredient's sign as large as the window allows (uiconstyles:1000+id) */

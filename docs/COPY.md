@@ -693,25 +693,6 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/bestiary.cpp:234` | Could not write  |
 | `ui/bestiary.cpp:235` | . Tick the mod (F12 > Mods) and start the game again. |
 | `ui/bestiary.cpp:238` | Undo all changes##enm |
-| `ui/boattrip.cpp:170` | By boat to %s: %s |
-| `ui/boattrip.cpp:189` | By boat to %s (%s): the boat sails in %d day%s - a stay at the inn first. Press any key or click to stop. |
-| `ui/boattrip.cpp:191` | By boat to %s (%s): to the docks. Press any key or click to stop. |
-| `ui/boattrip.cpp:214` | take up residence |
-| `ui/boattrip.cpp:214` | spend some time |
-| `ui/boattrip.cpp:217` | the inn could not be reached. |
-| `ui/boattrip.cpp:220` | the stay at the inn did not end. |
-| `ui/boattrip.cpp:226` | the stay at the inn ended before the boat's day (the purse, or something that happened). Stay on, then try again. |
-| `ui/boattrip.cpp:234` | the docks could not be reached. |
-| `ui/boattrip.cpp:237` | no boat from these docks. |
-| `ui/boattrip.cpp:241` | the boat cannot be boarded here today: choose at the docks. |
-| `ui/boattrip.cpp:245` | You go aboard ... |
-| `ui/boattrip.cpp:247` | the voyage ended on the road. |
-| `ui/boattrip.cpp:250` | Arrived by boat: choose how to go ashore. |
-| `ui/boattrip.cpp:252` | the boat came to a town off the way. |
-| `ui/boattrip.cpp:273` | no boat on to %s today (in %d day%s): choose how to go ashore; then the world map's "Go by boat" takes it on. |
-| `ui/boattrip.cpp:274` | no boat on to %s from here now: choose how to go ashore. |
-| `ui/boattrip.cpp:279` | going ashore did not end in the streets. |
-| `ui/boattrip.cpp:282` | ashore in %s: from here the way by land is as quick (the world map's "Leave town and travel there"). |
 | `ui/cacheview.cpp:42` | The store room |
 | `ui/cacheview.cpp:43` | The party's items: one store room shared by every inn (Darklands+). |
 | `ui/cacheview.cpp:44` | The party's items kept in  |
@@ -846,67 +827,67 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/citynav.cpp:277` | connecting to important districts |
 | `ui/citynav.cpp:277` | to be determined |
 | `ui/citynav.cpp:419` | Go to %s: %s |
-| `ui/citynav.cpp:468` | think better of it |
-| `ui/citynav.cpp:468` | apologizes for disturbing |
-| `ui/citynav.cpp:468` | not to get involved |
-| `ui/citynav.cpp:468` | come back in the morning |
-| `ui/citynav.cpp:487` | simply walk out |
-| `ui/citynav.cpp:496` | leave the city |
-| `ui/citynav.cpp:497` | out of the city |
-| `ui/citynav.cpp:519` | The gate: choose how to get out, and the journey begins in the overland view. |
-| `ui/citynav.cpp:537` | left the city. |
-| `ui/citynav.cpp:538` | too many steps; stopped. |
-| `ui/citynav.cpp:547` | something happened on the way. |
-| `ui/citynav.cpp:547` | leave this place first. |
-| `ui/citynav.cpp:555` | the way is blocked. |
-| `ui/citynav.cpp:561` | cannot find the way from this card. |
-| `ui/citynav.cpp:571` | leading merchant |
-| `ui/citynav.cpp:576` | something happened on the way. |
-| `ui/citynav.cpp:578` | something happened on the way. |
-| `ui/citynav.cpp:578` | leave this place first. |
-| `ui/citynav.cpp:588` | the marketplace by night: choose how to get past the guards to the offices upstairs (press G again there for the office). |
-| `ui/citynav.cpp:589` | the marketplace by night: its stalls are shut until 5:00. |
-| `ui/citynav.cpp:610` | not found in this city. |
-| `ui/citynav.cpp:645` | Going to: %s. Press any key or click to stop. |
-| `ui/citynav.cpp:675` | Walking to the city gate |
-| `ui/citynav.cpp:675` | Walking to: %s |
-| `ui/citynav.cpp:688` | Any key or click stops the walk. |
-| `ui/citynav.cpp:830` | leading merchant |
-| `ui/citynav.cpp:841` | avoiding them |
-| `ui/citynav.cpp:845` | request an audience |
-| `ui/citynav.cpp:889` | Point at a place to read about it here: what it offers, its quests, its teachers. |
-| `ui/citynav.cpp:900` | Click the tile and the party walks there. |
-| `ui/citynav.cpp:939` | Pick a place and the party walks there through the streets. Press any key or click to stop them. |
-| `ui/citynav.cpp:941` | Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out. |
-| `ui/citynav.cpp:969` | Closed until 5:00 |
-| `ui/citynav.cpp:969` | Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same. |
-| `ui/citynav.cpp:973` | Turned away until %d %s |
-| `ui/citynav.cpp:973` | The alchemists turned the party away; they will see you again from %d %s, %d:00. |
-| `ui/citynav.cpp:974` | Library shut until %d %s |
-| `ui/citynav.cpp:974` | The monks' library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:975` | Prayers again from %d %s |
-| `ui/citynav.cpp:975` | The party prayed with the monks; they may again from %d %s, %d:00. |
-| `ui/citynav.cpp:976` | Library shut until %d %s |
-| `ui/citynav.cpp:976` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:994` | Quest chance %d%% |
-| `ui/citynav.cpp:995` | A merchant may offer a quest after you have bought or sold something. |
-| `ui/citynav.cpp:996` | No quests until %d %s |
-| `ui/citynav.cpp:997` | On a quest for them |
-| `ui/citynav.cpp:998` | Your reward is waiting |
-| `ui/citynav.cpp:999` | No quests: reputation too low |
-| `ui/citynav.cpp:1004` |  Until %d %s, %d:00. |
-| `ui/citynav.cpp:1012` | Your quest:  |
-| `ui/citynav.cpp:1012` | see the world map (M) |
-| `ui/citynav.cpp:1034` | Wares %dq, better than most |
-| `ui/citynav.cpp:1036` | Wares of %dq (most shops sell about 25q). |
-| `ui/citynav.cpp:1048` | What you learned |
-| `ui/citynav.cpp:1048` | The physician:  |
-| `ui/citynav.cpp:1054` | Philosopher's Stone %dq |
-| `ui/citynav.cpp:1054` | Stone %dq, no better |
-| `ui/citynav.cpp:1056` | A Philosopher's Stone of quality %d; the party's is %d. |
-| `ui/citynav.cpp:1056` | A Philosopher's Stone of quality %d; the party has none. |
-| `ui/citynav.cpp:1132` | A teacher to hire (faint: not available now) |
-| `ui/citynav.cpp:1133` | A quest of yours leads here |
+| `ui/citynav.cpp:467` | think better of it |
+| `ui/citynav.cpp:467` | apologizes for disturbing |
+| `ui/citynav.cpp:467` | not to get involved |
+| `ui/citynav.cpp:467` | come back in the morning |
+| `ui/citynav.cpp:486` | simply walk out |
+| `ui/citynav.cpp:495` | leave the city |
+| `ui/citynav.cpp:496` | out of the city |
+| `ui/citynav.cpp:518` | The gate: choose how to get out, and the journey begins in the overland view. |
+| `ui/citynav.cpp:536` | left the city. |
+| `ui/citynav.cpp:537` | too many steps; stopped. |
+| `ui/citynav.cpp:546` | something happened on the way. |
+| `ui/citynav.cpp:546` | leave this place first. |
+| `ui/citynav.cpp:554` | the way is blocked. |
+| `ui/citynav.cpp:560` | cannot find the way from this card. |
+| `ui/citynav.cpp:570` | leading merchant |
+| `ui/citynav.cpp:575` | something happened on the way. |
+| `ui/citynav.cpp:577` | something happened on the way. |
+| `ui/citynav.cpp:577` | leave this place first. |
+| `ui/citynav.cpp:587` | the marketplace by night: choose how to get past the guards to the offices upstairs (press G again there for the office). |
+| `ui/citynav.cpp:588` | the marketplace by night: its stalls are shut until 5:00. |
+| `ui/citynav.cpp:609` | not found in this city. |
+| `ui/citynav.cpp:619` | Going to: %s. Press any key or click to stop. |
+| `ui/citynav.cpp:649` | Walking to the city gate |
+| `ui/citynav.cpp:649` | Walking to: %s |
+| `ui/citynav.cpp:662` | Any key or click stops the walk. |
+| `ui/citynav.cpp:804` | leading merchant |
+| `ui/citynav.cpp:815` | avoiding them |
+| `ui/citynav.cpp:819` | request an audience |
+| `ui/citynav.cpp:863` | Point at a place to read about it here: what it offers, its quests, its teachers. |
+| `ui/citynav.cpp:874` | Click the tile and the party walks there. |
+| `ui/citynav.cpp:913` | Pick a place and the party walks there through the streets. Press any key or click to stop them. |
+| `ui/citynav.cpp:915` | Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out. |
+| `ui/citynav.cpp:943` | Closed until 5:00 |
+| `ui/citynav.cpp:943` | Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same. |
+| `ui/citynav.cpp:947` | Turned away until %d %s |
+| `ui/citynav.cpp:947` | The alchemists turned the party away; they will see you again from %d %s, %d:00. |
+| `ui/citynav.cpp:948` | Library shut until %d %s |
+| `ui/citynav.cpp:948` | The monks' library (where saints are learned) is shut to the party until %d %s, %d:00. |
+| `ui/citynav.cpp:949` | Prayers again from %d %s |
+| `ui/citynav.cpp:949` | The party prayed with the monks; they may again from %d %s, %d:00. |
+| `ui/citynav.cpp:950` | Library shut until %d %s |
+| `ui/citynav.cpp:950` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
+| `ui/citynav.cpp:968` | Quest chance %d%% |
+| `ui/citynav.cpp:969` | A merchant may offer a quest after you have bought or sold something. |
+| `ui/citynav.cpp:970` | No quests until %d %s |
+| `ui/citynav.cpp:971` | On a quest for them |
+| `ui/citynav.cpp:972` | Your reward is waiting |
+| `ui/citynav.cpp:973` | No quests: reputation too low |
+| `ui/citynav.cpp:978` |  Until %d %s, %d:00. |
+| `ui/citynav.cpp:986` | Your quest:  |
+| `ui/citynav.cpp:986` | see the world map (M) |
+| `ui/citynav.cpp:1008` | Wares %dq, better than most |
+| `ui/citynav.cpp:1010` | Wares of %dq (most shops sell about 25q). |
+| `ui/citynav.cpp:1022` | What you learned |
+| `ui/citynav.cpp:1022` | The physician:  |
+| `ui/citynav.cpp:1028` | Philosopher's Stone %dq |
+| `ui/citynav.cpp:1028` | Stone %dq, no better |
+| `ui/citynav.cpp:1030` | A Philosopher's Stone of quality %d; the party's is %d. |
+| `ui/citynav.cpp:1030` | A Philosopher's Stone of quality %d; the party has none. |
+| `ui/citynav.cpp:1106` | A teacher to hire (faint: not available now) |
+| `ui/citynav.cpp:1107` | A quest of yours leads here |
 | `ui/createview.cpp:109` | A new character |
 | `ui/createview.cpp:110` | %s, called %s, age %d |
 | `ui/createview.cpp:111` | %s, called %s |
@@ -1726,7 +1707,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/partypanel.cpp:505` | %s fights as %s for the rest of this fight: your order. Their way: %s. Click to choose a way of fighting (it applies at once). |
 | `ui/partypanel.cpp:506` | %s is on Manual: %s Click to choose a way of fighting. |
 | `ui/partypanel.cpp:507` | %s fights as %s until you give them an order: %s Click to choose another way. |
-| `ui/partypanel.cpp:546` | 's way of fighting |
+| `ui/partypanel.cpp:517` | Divine Favor |
+| `ui/partypanel.cpp:554` | 's way of fighting |
 | `ui/prayview.cpp:38` |  calls on the saint for the whole party: |
 | `ui/prayview.cpp:38` |  calls on the saint: |
 | `ui/prayview.cpp:52` | This saint asks a {Virtue} of %d of the one who prays. %s%s |
@@ -2551,88 +2533,74 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui_windows.cpp:435` | held: Ctrl (in the overland view: Ctrl+click travels there) |
 | `ui/ui_windows.cpp:436` | pressed: F11 (this list) |
 | `ui/ui_windows.cpp:438` | F11, Esc or a click closes this. |
-| `ui/worldmap.cpp:75` | Unwelcome here |
-| `ui/worldmap.cpp:75` | The watch on alert here |
-| `ui/worldmap.cpp:75` | Wanted by the watch here |
-| `ui/worldmap.cpp:90` | a university |
-| `ui/worldmap.cpp:90` | an alchemist |
-| `ui/worldmap.cpp:91` | docks (boats) |
-| `ui/worldmap.cpp:92` | a swordsmith of 30q+ |
-| `ui/worldmap.cpp:92` | an armorer of 30q+ |
-| `ui/worldmap.cpp:92` | a bowyer of 30q+ |
-| `ui/worldmap.cpp:93` | an artificer of 30q+ |
-| `ui/worldmap.cpp:93` | Artificer 30q+ |
-| `ui/worldmap.cpp:111` | everyone knows the swordsmiths of Nuremberg |
-| `ui/worldmap.cpp:147` | Route planned: the party sets off once it is in the overland view. |
-| `ui/worldmap.cpp:212` | Its saints, formulae and teachers: known once the party has been there. |
-| `ui/worldmap.cpp:214` | The saints its library teaches: known once the party has been there. |
-| `ui/worldmap.cpp:222` | Not visited yet |
-| `ui/worldmap.cpp:234` | Quest markers |
-| `ui/worldmap.cpp:234` | Boat routes between the towns' docks |
-| `ui/worldmap.cpp:234` | Each place as an icon of its kind (else a dot) |
-| `ui/worldmap.cpp:235` | The days of travel from the party to every town, under its name (off at first: it crowds the map) |
-| `ui/worldmap.cpp:447` | Towns with ... |
-| `ui/worldmap.cpp:536` | the marked spot |
-| `ui/worldmap.cpp:553` | Click for what it offers, and to travel there |
-| `ui/worldmap.cpp:589` | No way there from here |
-| `ui/worldmap.cpp:590` | Travel there |
-| `ui/worldmap.cpp:595` | Travel there |
-| `ui/worldmap.cpp:598` | Leave town and travel there |
-| `ui/worldmap.cpp:607` | No way there by land from here. |
-| `ui/worldmap.cpp:609` | To travel, be in the overland view or in a town's streets |
-| `ui/worldmap.cpp:615` | Walk out of %s's gate and travel to %s? |
-| `ui/worldmap.cpp:616` | The party walks through the streets to a gate and out; in the overland view the journey begins. |
-| `ui/worldmap.cpp:617` | Leave and travel |
-| `ui/worldmap.cpp:636` | By boat about  |
-| `ui/worldmap.cpp:637` |  (%d to %d days) |
-| `ui/worldmap.cpp:638` | , by land about  |
-| `ui/worldmap.cpp:638` | , no way by land |
-| `ui/worldmap.cpp:648` | The way: %s (%d boat%s). |
-| `ui/worldmap.cpp:649` | The first boat sails in %d day%s: a stay at the inn until then. |
-| `ui/worldmap.cpp:650` | The first boat sails today. |
-| `ui/worldmap.cpp:651` | Each voyage from the docks takes two to four days; staying aboard on to the next town, hours. Boats sail on their own days (the docks say which today). |
-| `ui/worldmap.cpp:652` | In %d journeys of 10 the boats on sail on the day the boat arrives; else a stay ashore until they do. |
-| `ui/worldmap.cpp:653` | The fares are paid at the docks. Pirates may meet the boat on the river. |
-| `ui/worldmap.cpp:654` | No quicker than the way by land. |
-| `ui/worldmap.cpp:662` | The party walks to the inn and stays until the boat's day, then to the docks and aboard; at each stop it stays aboard while the boat on sails that day. |
-| `ui/worldmap.cpp:663` | The party walks to the docks and boards; at each stop it stays aboard while the boat on sails that day. |
-| `ui/worldmap.cpp:664` | It stops where you must choose: going ashore, pirates, an encounter. Any key or click stops the walk. |
-| `ui/worldmap.cpp:678` | The wares noted here (%d shop%s) |
-| `ui/worldmap.cpp:695` | Boats leave here for these towns (not every day: the docks say which leave today). |
-| `ui/worldmap.cpp:696` | Boats from these towns call here; none sail back to them from here. |
-| `ui/worldmap.cpp:697` | Boats sail both ways between here and these towns (not every day: the docks say which leave today). |
-| `ui/worldmap.cpp:719` | Its docks have no boats leaving (the original game has none either). |
-| `ui/worldmap.cpp:761` | Collect your reward |
-| `ui/worldmap.cpp:761` | Robber knights |
-| `ui/worldmap.cpp:761` | Treasures to fetch |
-| `ui/worldmap.cpp:761` | Papers to get in a town |
-| `ui/worldmap.cpp:761` | City politics |
-| `ui/worldmap.cpp:761` | Cities at war |
-| `ui/worldmap.cpp:761` | The Wild Hunt |
-| `ui/worldmap.cpp:761` | Other quests |
-| `ui/worldmap.cpp:779` | %s (%d)###qg |
-| `ui/worldmap.cpp:785` | Sorted %s first: click for %s first. |
-| `ui/worldmap.cpp:785` | the soonest due |
-| `ui/worldmap.cpp:794` | No quests or rumors yet. |
-| `ui/worldmap.cpp:888` | cave near Köln |
-| `ui/worldmap.cpp:894` | and %d more: type more of the name to narrow the list |
-| `ui/worldmap.cpp:895` | No place of that name. |
-| `ui/worldmap.cpp:899` | Alchemical ingredients |
-| `ui/worldmap.cpp:915` | Click one to circle those towns on the map. |
-| `ui/worldmap.cpp:927` |  the party has been to: |
-| `ui/worldmap.cpp:931` | ... and %d more (circled on the map) |
-| `ui/worldmap.cpp:932` | %s %dq##tl%d |
-| `ui/worldmap.cpp:942` | Show on the map |
-| `ui/worldmap.cpp:959` | shown (click to hide) |
-| `ui/worldmap.cpp:959` | hidden (click to show) |
-| `ui/worldmap.cpp:974` | Places: click a kind to show or hide it. |
-| `ui/worldmap.cpp:1003` | The party: a click shows it on the map. |
-| `ui/worldmap.cpp:1007` | Map of Greater Germany |
-| `ui/worldmap.cpp:1013` | {LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes. |
-| `ui/worldmap.cpp:1014` | Drag to move, wheel to zoom. M or Esc closes. |
-| `ui/worldmap.cpp:1016` | Traveling to %s |
-| `ui/worldmap.cpp:1079` | faded: leaves later this week |
-| `ui/worldmap.cpp:1144` | Click to take the boat. |
+| `ui/worldmap.cpp:74` | Unwelcome here |
+| `ui/worldmap.cpp:74` | The watch on alert here |
+| `ui/worldmap.cpp:74` | Wanted by the watch here |
+| `ui/worldmap.cpp:89` | a university |
+| `ui/worldmap.cpp:89` | an alchemist |
+| `ui/worldmap.cpp:90` | docks (boats) |
+| `ui/worldmap.cpp:91` | a swordsmith of 30q+ |
+| `ui/worldmap.cpp:91` | an armorer of 30q+ |
+| `ui/worldmap.cpp:91` | a bowyer of 30q+ |
+| `ui/worldmap.cpp:92` | an artificer of 30q+ |
+| `ui/worldmap.cpp:92` | Artificer 30q+ |
+| `ui/worldmap.cpp:110` | everyone knows the swordsmiths of Nuremberg |
+| `ui/worldmap.cpp:146` | Route planned: the party sets off once it is in the overland view. |
+| `ui/worldmap.cpp:211` | Its saints, formulae and teachers: known once the party has been there. |
+| `ui/worldmap.cpp:213` | The saints its library teaches: known once the party has been there. |
+| `ui/worldmap.cpp:221` | Not visited yet |
+| `ui/worldmap.cpp:233` | Quest markers |
+| `ui/worldmap.cpp:233` | Boat routes between the towns' docks |
+| `ui/worldmap.cpp:233` | Each place as an icon of its kind (else a dot) |
+| `ui/worldmap.cpp:234` | The days of travel from the party to every town, under its name (off at first: it crowds the map) |
+| `ui/worldmap.cpp:446` | Towns with ... |
+| `ui/worldmap.cpp:535` | the marked spot |
+| `ui/worldmap.cpp:552` | Click for what it offers, and to travel there |
+| `ui/worldmap.cpp:588` | No way there from here |
+| `ui/worldmap.cpp:589` | Travel there |
+| `ui/worldmap.cpp:594` | Travel there |
+| `ui/worldmap.cpp:597` | Leave town and travel there |
+| `ui/worldmap.cpp:606` | No way there by land from here. |
+| `ui/worldmap.cpp:608` | To travel, be in the overland view or in a town's streets |
+| `ui/worldmap.cpp:614` | Walk out of %s's gate and travel to %s? |
+| `ui/worldmap.cpp:615` | The party walks through the streets to a gate and out; in the overland view the journey begins. |
+| `ui/worldmap.cpp:616` | Leave and travel |
+| `ui/worldmap.cpp:635` | The wares noted here (%d shop%s) |
+| `ui/worldmap.cpp:652` | Boats leave here for these towns (not every day: the docks say which leave today). |
+| `ui/worldmap.cpp:653` | Boats from these towns call here; none sail back to them from here. |
+| `ui/worldmap.cpp:654` | Boats sail both ways between here and these towns (not every day: the docks say which leave today). |
+| `ui/worldmap.cpp:676` | Its docks have no boats leaving (the original game has none either). |
+| `ui/worldmap.cpp:718` | Collect your reward |
+| `ui/worldmap.cpp:718` | Robber knights |
+| `ui/worldmap.cpp:718` | Treasures to fetch |
+| `ui/worldmap.cpp:718` | Papers to get in a town |
+| `ui/worldmap.cpp:718` | City politics |
+| `ui/worldmap.cpp:718` | Cities at war |
+| `ui/worldmap.cpp:718` | The Wild Hunt |
+| `ui/worldmap.cpp:718` | Other quests |
+| `ui/worldmap.cpp:736` | %s (%d)###qg |
+| `ui/worldmap.cpp:742` | Sorted %s first: click for %s first. |
+| `ui/worldmap.cpp:742` | the soonest due |
+| `ui/worldmap.cpp:751` | No quests or rumors yet. |
+| `ui/worldmap.cpp:845` | cave near Köln |
+| `ui/worldmap.cpp:851` | and %d more: type more of the name to narrow the list |
+| `ui/worldmap.cpp:852` | No place of that name. |
+| `ui/worldmap.cpp:856` | Alchemical ingredients |
+| `ui/worldmap.cpp:872` | Click one to circle those towns on the map. |
+| `ui/worldmap.cpp:884` |  the party has been to: |
+| `ui/worldmap.cpp:888` | ... and %d more (circled on the map) |
+| `ui/worldmap.cpp:889` | %s %dq##tl%d |
+| `ui/worldmap.cpp:899` | Show on the map |
+| `ui/worldmap.cpp:916` | shown (click to hide) |
+| `ui/worldmap.cpp:916` | hidden (click to show) |
+| `ui/worldmap.cpp:931` | Places: click a kind to show or hide it. |
+| `ui/worldmap.cpp:960` | The party: a click shows it on the map. |
+| `ui/worldmap.cpp:964` | Map of Greater Germany |
+| `ui/worldmap.cpp:970` | {LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes. |
+| `ui/worldmap.cpp:971` | Drag to move, wheel to zoom. M or Esc closes. |
+| `ui/worldmap.cpp:973` | Traveling to %s |
+| `ui/worldmap.cpp:1036` | faded: leaves later this week |
+| `ui/worldmap.cpp:1101` | Click to take the boat. |
 | `ui/worldmap_draw.cpp:105` | ruined castle |
 | `ui/worldmap_draw.cpp:107` | ruined village |
 | `ui/worldmap_draw.cpp:108` | standing stone |
