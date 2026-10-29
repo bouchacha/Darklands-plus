@@ -130,7 +130,10 @@ static void input_hook(void)                 /* s014 0e76:3166 combat_input () *
        battle paused goes on at once, as for the stairs; in a fight it waits for Space) */
     const char *file = was_mode != 2 ? " in single file (press G to move as a group again)" : "";
     char m[200];
-    if (door_pending >= 0) { hook_call_original(); return; }       /* (a door clicked: told so at the click) */
+    if (door_pending >= 0) {                                       /* (a door clicked: told so at the click) */
+        if (was_mode != 2) ui_notice("The party goes in single file (press G to move as a group again).");
+        hook_call_original(); return;
+    }
     if (g_rb(GV_ai_paused) == 1 && !g_rb(GV_real_combat)) { extern void bios_kbd_inject(u16); bios_kbd_inject(0x3920); snprintf(m, sizeof m, "The party walks there%s.", file); }
     else if (g_rb(GV_ai_paused) == 1) snprintf(m, sizeof m, "The party will walk there%s: Space resumes the battle.", file);
     else snprintf(m, sizeof m, "The party walks there%s.", file);
@@ -175,6 +178,16 @@ static int stairs_under(int i)
     return -1;
 }
 static int on_stairs(int i) { return stairs_under(i) >= 0; }
+static int by_door(int i)                  /* member i within a few paces of a door (U is then Use Door) */
+{
+    int n = (s8)rb(G_FAR20A5, 0x1f52), x = (s16)g_rw(CBF(i, CB_X)), y = (s16)g_rw(CBF(i, CB_Y));
+    for (int k = 0; k < n && k < 40; k++) {
+        u16 o = (u16)(0x1f54 + 14 * k);
+        int rx = (s16)rw(G_FAR20A5, o), ry = (s16)rw(G_FAR20A5, (u16)(o + 2)), w = rb(G_FAR20A5, (u16)(o + 4)), h = rb(G_FAR20A5, (u16)(o + 5));
+        if (x >= rx - 24 && x < rx + w + 24 && y >= ry - 12 && y < ry + h + 12) return 1;
+    }
+    return 0;
+}
 static void keys_hook(void)                /* combat_keys (): U with nobody on the stairs */
 {
     extern int bios_kbd_avail(void); extern u16 bios_kbd_get(int);
@@ -183,7 +196,7 @@ static void keys_hook(void)                /* combat_keys (): U with nobody on t
     if (k != 0x1655 && k != 0x1675) { hook_call_original(); return; }
     int fl = (s8)g_rb(GV_floor_shown), lead = (s8)g_rb(GV_marching_order);
     for (int i = 0; i < 5; i++)
-        if (g_rb(CBF(i, CB_STATUS)) == 1 && (s8)g_rb((u16)(GV_cbt_floor + i)) == fl && on_stairs(i)) { hook_call_original(); return; }
+        if (g_rb(CBF(i, CB_STATUS)) == 1 && (s8)g_rb((u16)(GV_cbt_floor + i)) == fl && (on_stairs(i) || by_door(i))) { hook_call_original(); return; }   /* (U there is the game's: the stairs, or Use Door) */
     if (lead < 0 || lead > 4 || g_rb(CBF(lead, CB_STATUS)) != 1 || (s8)g_rb((u16)(GV_cbt_floor + lead)) != fl) { hook_call_original(); return; }
     int ns = (s8)rb(G_FAR20A5, FLR_NSTAIRS), best = -1, bd = 0x7fffffff;
     int x = (s16)g_rw(CBF(lead, CB_X)), y = (s16)g_rw(CBF(lead, CB_Y));
