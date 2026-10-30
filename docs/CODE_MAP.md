@@ -59,9 +59,9 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/createview.c` | 199 | making a character as a native screen (display.native_create; the view is ui/createview.cpp). |
 | `mods/cutcards.c` | 185 | encounters MicroProse wrote and never used, put back (rules.fehde, rules.hospice: F12 > Reconstructed Content, experimental, off by default; the catalogue of what the game holds unused is docs/cut_content.md). |
 | `mods/datamods.c` | 409 | mod folders: game files replaced without touching the game's own. |
-| `mods/encounters.c` | 1751 | new encounters written as data. |
+| `mods/encounters.c` | 1761 | new encounters written as data. |
 | `mods/enemyview.c` | 129 | the battle's Enemy Info as a native page (display.native_enemyinfo; the view is ui/enemyview.cpp). |
-| `mods/fixes.c` | 2621 | fixes for bugs that are still in the last official version (483.07). |
+| `mods/fixes.c` | 2656 | fixes for bugs that are still in the last official version (483.07). |
 | `mods/fixgroups.c` | 35 | the fixes (fixes.c) sorted by kind, for the settings' list: from what the game plainly gets wrong to what is open to argument, as players have talked of them over the years (the GOG and Steam forums, the old Usenet posts and the patch notes MicroProse left). |
 | `mods/foesleft.c` | 131 | the foes a place still holds that the party has not met yet (battle.foes_left, on by default): shown under the battle margin's enemies, so a castle, dungeon or mine whose fight "does not end" says where the rest still wait (the game ends it only when they are all beaten, or the party walks out and counts as fled). |
 | `mods/gamemodel.c` | 368 | the game's state by name (gamemodel.h says what each function reads): where the party, the members, their things and their equipment are kept, and the shared pack's listing and "whom it goes to" (gm_pack_rows, gm_pack_target) for the sheet, the shop, the loot and the store room. |

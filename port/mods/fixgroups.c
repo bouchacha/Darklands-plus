@@ -18,7 +18,7 @@ static const struct { const char *id; int g; } G[] = {
     /* game-breaking */
     { "nullitem", 0 }, { "itemcount", 0 }, { "testcard", 0 }, { "fullpack", 0 }, { "castlefreeze", 0 }, { "lootcount", 0 },
     { "innsave", 0 }, { "offmap", 0 }, { "altar", 0 }, { "castle", 0 }, { "armorwear", 0 }, { "potions", 0 }, { "standings", 0 },
-    { "battledead", 0 }, { "blessing", 0 }, { "colors", 0 },
+    { "battledead", 0 }, { "blessing", 0 }, { "colors", 0 }, { "ownplace", 0 },
     /* as the manual and the texts say */
     { "greatpower", 2 }, { "oilweapons", 2 }, { "armorday", 2 }, { "pauls", 2 }, { "sainttexts", 2 }, { "teachcap", 2 }, { "alchrisk", 2 },
     /* exploits */

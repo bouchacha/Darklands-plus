@@ -331,6 +331,7 @@ the files where each switch's key is read.
 | `fix.rkonce` | A giver asks for a robber knight once | fix | fixes.c |
 | `fix.bestteacher` | Of two teachers of one skill, the better one teaches | fix | fixes.c, teachers.c, lodgeview.cpp |
 | `fix.minerelic` | A relic found in a mine is as good as the relic itself | fix | fixes.c |
+| `fix.ownplace` | A village beside another place can be entered | fix | fixes.c |
 | `fix.hitsound` | Ordinary hits make a sound | fix | fixes.c, sfx.c |
 
 The fixes (`fix.<id>`) are listed with their explanations in `port/mods/fixes.c`; the built-in

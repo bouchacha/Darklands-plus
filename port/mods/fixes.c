@@ -190,6 +190,8 @@
  *            Found by Arkana Mechanika (Darklands Restoration).
  *  minerelic The relic deep in a mine of dwarfs, kobolds or vulcans gets its own quality and kind
  *            (the item list's), not quality 35 and item type 0x9f for any relic (below, minerelic).
+ *  ownplace  A place stepped on is the place whose own tile it is, when the game took another one
+ *            near it (below, ownplace).
  *  cityalert, dayjobs, cloudline, attrsum, lootcount, corridors, battledead, createback: below, each
  *            at its hook (Arkana Mechanika's B-55afd6, B-074e99, B-3cc78a and B-bfb04e, B-82a302,
  *            B-e080d4, B-c90740, B-f7799c, B-126118).
@@ -356,6 +358,8 @@ Fix FIXES[] = {
       "When the party hired two teachers of the same skill in a town (the university's and the alchemist's, say), the inn always used whichever was hired first, its fee and its chance of a lesson taking, even when the other was far better. Now a member training in that skill learns from the best of them (the highest ability; the cheaper of two equals).", 1 },
     { "minerelic", "A relic found in a mine is as good as the relic itself",
       "In the mines of dwarfs, kobolds and vulcans, the relic the party can find deep inside was always of quality 35, whatever relic it was (the relics' own qualities run from 50 to 99), and it was not even of its own kind of thing: Saint Arnulf's Greatsword or Saint Olaf's Battleaxe could not be wielded as the weapons they are. Now the relic is as the list of items has it.", 1 },
+    { "ownplace", "A village beside another place can be entered",
+      "Stepping onto a village, the game looks for a place up to four tiles around and takes the first in its list, not the nearest: where a mine, castle or other place earlier in the list lies that close, the village could never be entered. Walking onto Lauf, west of Speyer, led into the Rammelsburg mine four tiles east. Now the party enters the place on the very tile it steps onto.", 1 },
     { "hitsound", "Ordinary hits make a sound",
       "In the original, a blow that hits without knocking the target back makes no sound at all: only misses, parries, knock-backs, shots and deaths are heard, so many blows that land pass in silence. Now an ordinary hit sounds like a blow (the game's own knock-back sound, or the hit sound of a custom sound pack).", 1 },
 };
@@ -2531,6 +2535,37 @@ static void minerelic_hook(void)            /* s009 182c:1146 (struct grp far *g
     hook_call_original();
 }
 
+/* ---------------------------------------------------------------- ownplace
+ * The place a step on the overland map enters (s030 1462:1300 (mx, my), the marker's place on the
+ * screen): the terrain under it from the view buffer (an icon, 50 and up, counts as 28; the
+ * terrain kept in D_d843), then the first location by index within rr tiles of it, rr 4 on terrain
+ * 29 (a town's or village's) and 1 elsewhere: in the game's columns x' (the view's column + the
+ * marker's) the window is x'-rr-1 .. x'+rr, and so on for the rows; a location's own tile is
+ * x'-1, y'-1. Four tiles took in places beside a village that come earlier in the list: Lauf
+ * (197, 48,693), west of Speyer, led into the Rammelsburg mine (178, 52,695). Here, on terrain 29,
+ * a location whose own tile the step is on is entered rather than another one near it. */
+static void ownplace_hook(void)             /* s030 1462:1300 (mx, my): the place entered, or none */
+{
+    int mx = (s16)rw(SS, (u16)(SP + 4)), my = (s16)rw(SS, (u16)(SP + 6));
+    hook_call_original();
+    if (unw_active) return;
+    int r = (s16)AX;
+    if (r < 0 || r >= G_NLOC || (s16)g_rw(0xd843) != 29) return;
+    int row = (my + 11) / 4, y1 = row + (s16)g_rw(GV_map_buf_row) + (s16)g_rw(GV_map_view_row);
+    int col = (((y1 - 1) % 2) ? mx + 16 : mx + 24) / 16, x1 = (s16)g_rw(GV_map_view_col) + col;
+    int tx = x1 - 1, ty = y1 - 1;
+    u32 p = g_location(r);
+    if (!p || ((s16)rw((u16)(p >> 16), (u16)(p + 4)) == tx && (s16)rw((u16)(p >> 16), (u16)(p + 6)) == ty)) return;   /* (the game's is on this tile) */
+    for (int i = 0; i < G_NLOC; i++) {
+        u32 q = g_location(i);
+        if (!q || rw((u16)(q >> 16), (u16)(q + 0x0c)) == 0x62) continue;
+        if ((s16)rw((u16)(q >> 16), (u16)(q + 4)) != tx || (s16)rw((u16)(q >> 16), (u16)(q + 6)) != ty) continue;
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix ownplace: tile %d,%d is location %d's own, not %d's\n", tx, ty, i, r);
+        g_ww(GV_cur_loc, (u16)i); AX = (u16)i;
+        return;
+    }
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -2549,7 +2584,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 36, 0x1462, 0x1b80, campguard_hook }, { GF_groups_fixup, enemygroups_hook }, { GF_loc_hostile_impl, cityalert_hook },
     { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook },
     { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
-    { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { -2, 0, 0, 0 } };   /* (hitsound: mods/sfx.c) */
+    { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 } };   /* (hitsound: mods/sfx.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
