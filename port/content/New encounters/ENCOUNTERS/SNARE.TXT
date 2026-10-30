@@ -6,6 +6,7 @@ where    wild
 terrain  woods forest pinewood
 when     day
 weight   1
+only     size >= 2                           # one is snared, another frees him
 
 [start]
 block    0

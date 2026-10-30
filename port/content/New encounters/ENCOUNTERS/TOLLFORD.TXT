@@ -28,6 +28,9 @@ option 2                                   # swim the horses across upstream
 option 3                                   # force a way across (the lord's lawful men)
   chance combat
   ok     goto fight
+option 4                                   # turn back (a way out for a party that cannot pay)
+  chance none
+  ok     text 10; hours 4 + random(4); exit
 
 [fight]
 do       battle Clearing, Guard, lore / 4 + 1, random(3) + 3, Sergeant, lore % 3 + 1, 1

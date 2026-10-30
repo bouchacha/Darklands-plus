@@ -14,7 +14,7 @@ $ChosenOneName climbs onto the cart and, between the juggler and the fool, tells
 === card 3: 10 10 0 240 0 ===
 $ChosenOneName climbs onto the cart and begins a tale. Somewhere in the middle $he forgets how it ends. The peasants begin to jeer, then to throw turnips, and one of them has a very good arm.
 === card 4: 10 10 0 240 0 ===
-The master's knives thud into the board around a painted heart. Then $ChosenOneName throws, and $his knife splits the heart down the middle. The crowd roars. The master stares, then laughs and pays: $Money1. "Come with us! We'll tour the Empire!"
+The master's knives thud into the board around a painted heart. Then $ChosenOneName throws, and $his knife splits the heart down the middle. The crowd roars. The master stares, then laughs and pays: $Money1. "Come with us! We'll play every fair in the Empire!"
 === card 5: 10 10 0 240 0 ===
 $ChosenOneName's knife strikes the board a hand's breadth from the heart. The master's goes into the heart itself. He bows to the cheering crowd, then holds out his hand to you for $Money1.
 === card 6: 10 10 0 240 0 ===

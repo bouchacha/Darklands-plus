@@ -7,6 +7,7 @@ The road runs down to a broad ford, and on the near bank stands a toll-house wit
 \15...\1ddemand to see the charter.
 \15...\1dride upstream and swim the horses across.
 \06...\1dforce your way across.
+\15...\1dturn back and look for another crossing.
 === card 1: 10 10 0 240 0 ===
 The sergeant counts your coins twice and waves you into the water. It is cold, it comes up to your knees, and it is the dearest water you have ever waded.
 === card 2: 10 10 0 240 0 ===
@@ -26,3 +27,5 @@ You fall back from the ford and scatter. It is hours before you find each other 
 You throw down your weapons. The sergeant takes his toll three times over, $Money1, and adds a few kicks of his own.
 === card 9: 10 10 0 240 0 ===
 You wake in the stocks outside the toll-house. A day later the lord's steward lets you out, after taking $Money1 for breaking his master's peace.
+=== card 10: 10 10 0 240 0 ===
+You leave the toll-men to wait for richer fools and follow the river downstream for half a day, until you find a place to wade where nobody has yet thought of building a toll-house.

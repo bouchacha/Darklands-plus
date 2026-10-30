@@ -38,3 +38,5 @@ The boatmen and the merchant's servants lie groaning on the bank. The captain ta
 You break away along the towpath and walk the rest of the way to the landing. The merchant has told his tale there long before you arrive.
 === card 13: 10 10 0 240 0 ===
 The boatmen hold you down while the merchant takes his forty florins out of your purses, or as much of them as he can find: $Money1.
+=== card 14: 10 10 0 240 0 ===
+The boatmen hold you down while the merchant takes what he asked for out of your purses: $Money1. "And count yourselves lucky," he says, "that I call no bailiff."

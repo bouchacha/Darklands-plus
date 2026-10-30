@@ -24,7 +24,7 @@ option 2                                   # pay for mending, and learn from wat
   need   money >= mend
   who    bestskill(Artifice)
   chance assured
-  ok     chosen who; text 4; pay mend; hours 2; skill who, Artifice, 1; exit
+  ok     chosen who; text 4; pay money2; hours 2; skill who, Artifice, 1; exit
 option 3                                   # watch his hands
   who    bestskill(Streetwise)
   chance clamp(5, 90, skill(who, Streetwise) + attr(who, Per) / 3 - 5)

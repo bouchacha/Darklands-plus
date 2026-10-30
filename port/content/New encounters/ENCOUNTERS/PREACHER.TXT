@@ -45,6 +45,6 @@ option 2                                   # draw steel on them
 
 [fight]
 do       battle MainStreet, Villager, lore / 4 + 1, clamp(size, 8, random(4) + lore / 3 + 3)
-         if result == Won then { text 11; attr party, DF, -8; reputation -3, -6; hours 1; exit }
+         if result == Won then { text 11; attr party, DF, -4; reputation -2, -4; hours 1; exit }
          if result == Fled then { rejoin; text 12; reputation -2, -4; exit }
          money1 min(money, 240); text 13; pay money1; reputation -1, -3; until 8; exit

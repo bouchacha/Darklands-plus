@@ -16,7 +16,7 @@ The captain leans on the steering oar, you all take poles, and the boat shoots t
 === card 4: 10 10 0 240 0 ===
 The boat shoots for the gap, but the current throws her against the logs. She heels hard, water pours over the side, and $ChosenOneName's baggage slides overboard before anyone can grab it. The raftsmen laugh from their logs.
 === card 5: 10 10 0 240 0 ===
-You sit on the bales and watch the raftsmen work. It takes them the rest of the day, with much shouting and a great deal of brandy, to swing the raft free.
+You sit on the bales and watch the raftsmen work. It takes them the rest of the day, with much shouting and a great deal of beer, to swing the raft free.
 === card 6: 10 10 0 240 0 ===
 The captain runs the boat in to the bank and climbs out with his boathook, and you go with him. The raft master spits, calls for his men, and they come ashore with poles and axes.
 === card 7: 10 10 0 240 0 ===

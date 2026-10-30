@@ -11,7 +11,7 @@ As you leave, you cannot help glancing back at the dead guard. Robbing the dead 
 === card 2: 10 10 0 240 0 ===
 You study the trampled ground, but you can make nothing of the tracks.
 === card 3: 10 10 0 240 0 ===
-You say the prayers for the dead over the carter and go on your way, leaving the wagon untouched.
+You say the prayers for the dead over the fallen man-at-arms and go on your way, leaving the wagon untouched.
 === card 4: 10 10 0 240 0 ===
 You hurry past the wagon with your hands on your weapons. No one follows.
 === card 5: 10 10 0 240 0 ===
@@ -40,6 +40,6 @@ The surviving robbers flee into the woods. Now you can search the wagon in peace
 === card 15: 10 10 0 240 0 ===
 You flee in all directions. Only at dusk do you find one another again.
 === card 16: 10 10 0 240 0 ===
-You wake by the wagon, bruised and robbed of nearly everything. The robbers have taken their second harvest of the day.
+You wake by the wagon, bruised and robbed of nearly everything. Their bait has done its work twice today.
 === card 17: 10 10 0 240 0 ===
 You throw down your weapons. The robbers strip you of everything worth taking and leave you sitting in the road beside their bait. "Thank you kindly," their sergeant grins. "Do come again."
