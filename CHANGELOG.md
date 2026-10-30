@@ -168,7 +168,7 @@ Every change can be switched off. **F12 > Settings > Helpers** offers presets: *
 ## Per version
 
 - **1.4:** ways of fighting, 64 new encounters, a level map that remembers and walks the party anywhere seen, ingredients of one quality, Report a problem.
-- **1.3.1:** cards open the doors they open again, dungeon battle saves keep their traps, party members no longer stuck for good.
+- **1.3.1:** doors opened by a card open again, dungeon battle saves keep their traps, party members no longer stuck for good.
 - **1.3:** Improved combat and one-click orders, cards that show who tries an option and what it rests on, the restored city politics, cities at war, Ironman, the soundtrack and sound previews, the world map's finders, and more of the original's bugs fixed.
 - **1.2 (previews):** the rebuilt screens, the best member, the shared pack and store room, quests at a glance, endless ammunition, potion pictures, the Guide, the card fixes and hints.
 - **1.1.1:** fixed a crash on loading with the side margins on. Smoother battle-map scrolling, thrown weapons returned after battles, and missed shots in the battle log.
