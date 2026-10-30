@@ -317,7 +317,7 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "ulooks")) { int looks_count(void), looks_usable(int); int n = looks_count(), u = 0; for (int k = 0; k < n; k++) u += looks_usable(k); fprintf(stderr, "looks: %d of %d usable\n", u, n); }   /* test: analyse every figure (DL_LOOKS_DUMP) */
         else if (!strcmp(cmd, "uenc")) {                /* test: the next wilderness encounter is new encounter N (mods/encounters.c) */
             void encounters_force(int); int encounters_count(void); const char *encounters_title(int);
-            if (!arg[0]) { int n = encounters_count(); for (int k = 0; k < n + 8 && k < 128; k++) if (*encounters_title(k)) fprintf(stderr, "encounter %d: %s\n", k, encounters_title(k)); }
+            if (!arg[0]) { int n = encounters_count(); for (int k = 0; k < n + 8 && k < 256; k++) if (*encounters_title(k)) fprintf(stderr, "encounter %d: %s\n", k, encounters_title(k)); }
             else encounters_force(atoi(arg));
         }
         else if (!strcmp(cmd, "uwar")) { int l = -1, st = -1; sscanf(arg, "%d,%d", &l, &st); void war_test(int, int); war_test(l, st); }   /* test: the cities at war today; uwar:LOC,STATE forces one (mods/war.c) */
