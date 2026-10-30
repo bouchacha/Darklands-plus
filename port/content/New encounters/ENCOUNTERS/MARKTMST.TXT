@@ -1,0 +1,41 @@
+# The sworn measure: the market master drafts you as witnesses to a disputed sack of rye.
+name     The sworn measure
+card     $NdMkt00
+picture  XTHANKS
+where    street
+when     day
+weight   1
+
+[start]
+do       money1 6
+block    0
+chosen   bestattrsum(Agl, Per)
+option 0                                   # let the market master measure it
+  chance none
+  ok     goto short
+option 1                                   # pour and strike the measure yourselves
+  who    bestattrsum(Agl, Per)
+  chance clamp(5, 90, (attr(who, Agl) + attr(who, Per)) * 2 / 3 + skill(who, Artifice) / 4 - 10)
+  ok     chosen who; text 1; reputation 1, 2; attr party, DF, 1; exit
+  fail   chosen who; text 2; goto short
+option 2                                   # walk on before he can swear you in
+  chance none
+  ok     text 3; exit
+
+[short]
+block    4
+chosen   bestskill(Virtue)
+option 0                                   # swear the truth, and plead for her
+  who    bestskill(Virtue)
+  chance clamp(5, 90, skill(who, Virtue) + attr(who, Cha) / 3 - 5)
+  ok     chosen who; text 5; reputation 1, 2; attr party, DF, 1; practice who, Virtue, 1, 10, 0; exit
+  fail   chosen who; text 6; reputation 1, 1; practice who, Virtue, 0, 10, 0; exit
+option 1                                   # swear the sack was full
+  who    bestattr(Cha)
+  chance clamp(5, 85, attr(who, Cha) + skill(who, SpeakCommon) / 3 - 10)
+  ok     chosen who; text 7; attr party, DF, -3; exit
+  fail   chosen who; text 8; reputation -2, -4; attr party, DF, -3; exit
+option 2                                   # buy rye at the next stall and fill it up
+  need   money >= money1
+  chance none
+  ok     text 9; pay money1; reputation 1, 2; attr party, DF, 1; exit

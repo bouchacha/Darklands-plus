@@ -1,0 +1,41 @@
+# The dog fight: mastiffs fight for wagers behind the shambles, and a sore loser cries the evil eye.
+name     The dog fight
+card     $NdDog00
+picture  XMOBGLAD
+where    street
+when     day
+weight   1
+
+[start]
+do       money1 24
+block    0
+chosen   bestskill(Woodwise)
+option 0                                   # lay a wager on the better dog
+  need   money >= money1
+  who    bestskill(Woodwise)
+  chance clamp(5, 90, skill(who, Woodwise) + attr(who, Per) / 3 - 5)
+  ok     chosen who; text 1; gain money1; practice who, Woodwise, 1, 10, 0; goto eye
+  fail   chosen who; text 2; pay money1; practice who, Woodwise, 0, 10, 0; exit
+option 1                                   # call the fight off in God's name
+  who    bestattrskill(Cha, Religion)
+  chance clamp(5, 85, attr(who, Cha) + skill(who, Religion) / 2 - 15)
+  ok     chosen who; text 3; attr party, DF, 2; reputation -1, -1; exit
+  fail   chosen who; text 4; reputation -1, -2; exit
+option 2                                   # walk on
+  chance none
+  ok     text 5; exit
+
+[eye]
+block    6
+option 0                                   # say the Paternoster without a stumble
+  who    bestskill(Latin)
+  chance clamp(10, 95, skill(who, Latin) + attr(who, Int) / 3 + 15)
+  ok     chosen who; text 7; reputation 1, 2; practice who, Latin, 1, 10, 0; exit
+  fail   chosen who; text 8; reputation -2, -4; practice who, Latin, 0, 10, 0; exit
+option 1                                   # stand the crowd beer with the winnings
+  need   money >= money1
+  chance none
+  ok     text 9; pay money1; reputation 1, 2; exit
+option 2                                   # walk off with your winnings
+  chance none
+  ok     text 10; reputation -1, -3; exit

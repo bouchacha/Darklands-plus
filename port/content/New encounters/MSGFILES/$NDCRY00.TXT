@@ -1,0 +1,32 @@
+# $NDCRY00: the crier's proclamation (New encounters)
+=== card 0: 10 10 0 240 0 ===
+On a mounting-block by the town hall the crier rings his handbell and reads out the council's notice, nailed up on the door behind him: "...whereas on Sunday night a thief broke into the goldsmiths' hall and carried off the guild's great silver drinking-horn, the honourable council will pay a florin to whoever brings him in. He is a stranger, tall, armed, travelling with others..."
+\14Heads turn. One by one, the whole crowd is looking at $ChosenOneName. A butcher's boy slips away toward the watch-house. You...
+\14\15...\1dask the crier to read on.
+\15...\1dface the crowd down.
+\15...\1dleave the square quickly.
+=== card 1: 10 10 0 240 0 ===
+"Read on, crier," says $ChosenOneName. The crier squints at the notice. "...and he lacks his left ear, which was cropped at Ulm for theft." Every eye goes to $ChosenOneName's ears. There are two of them. The crowd laughs, a little sheepishly, and turns away.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName folds $his arms and stares back at the crowd until, one by one, they find something else to look at. "We came in by the gate this very morning," $he says, "as the gate-ward will tell you." The crowd mutters and turns away.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName blusters, and the more $he blusters the guiltier you look. The watch march you to the town hall, where it is three hours before a clerk reads the rest of the notice, which mentions a cropped ear. They let you go without a word of apology, and the town remembers only that you were taken.
+=== card 4: 10 10 0 240 0 ===
+You leave the square quickly, and the crowd watches you go. By evening half the town is sure the strangers had something to do with the drinking-horn.
+=== card 5: 10 10 0 240 0 ===
+In the stir $ChosenTwoName notices a tall man at the back of the crowd edging toward an alley, a bundle under his cloak and his hood pulled low over the left side of his head. You...
+\14\15...\1dcut him off at the end of the lane.
+\15...\1dfollow him quietly to his lair.
+\15...\1dpoint him out to the watch.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName knows how lanes run in a town like this, and is waiting where the alley comes out. The man runs straight into $him. Under the hood: one ear. Under the cloak: the drinking-horn, wrapped in a shirt. The council pays its florin, and the goldsmiths drink your health out of the horn.
+=== card 7: 10 10 0 240 0 ===
+$ChosenOneName runs round to the end of the lane, but it bends the wrong way, and by the time $he finds the right one the hooded man is gone. Nothing more comes of it.
+=== card 8: 10 10 0 240 0 ===
+$ChosenOneName trails him at a distance through three lanes to a cellar under a burnt-out bakehouse, then fetches the watch. Inside they find the thief asleep on the drinking-horn, with a sack of plunder from half the houses in town. The council pays its florin, and a dozen burghers come to the town hall to claim their spoons and thank you.
+=== card 9: 10 10 0 240 0 ===
+$ChosenOneName trails him through the lanes, but at the fourth corner he glances back, and when $ChosenOneName rounds it the lane is empty. Nothing more comes of it.
+=== card 10: 10 10 0 240 0 ===
+You point him out to a watchman, who strolls after him. To your surprise he is back within the hour, with the hooded man by the collar and the drinking-horn in his hand, and the council sends the strangers a share of the reward.
+=== card 11: 10 10 0 240 0 ===
+You point him out to a watchman, who strolls after him without hurry and comes back an hour later without him. Nothing more comes of it.

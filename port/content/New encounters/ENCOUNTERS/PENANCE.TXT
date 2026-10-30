@@ -1,0 +1,54 @@
+# The public penance: a killer walks to the church door with a candle; if it goes out, the peace is void.
+name     The public penance
+card     $NdPen00
+picture  XCHURCH
+where    street
+when     day
+weight   1
+
+[start]
+do       money1 60
+block    0
+chosen   bestattr(Agl)
+saints   0x23, 0x60, 0x5d                # Dismas, Michael, Martin of Tours
+option 0                                   # light it again from your own
+  need   has(party, 0x39) or has(party, 0x3a) or has(party, 0x3d)
+  who    bestattr(Agl)
+  chance clamp(10, 90, attr(who, Agl) + attr(who, Per) / 3 + 5)
+  ok     chosen who; text 1; attr party, DF, 1; reputation 1, 2; goto door
+  fail   chosen who; text 2; goto knives
+option 1                                   # answer the brothers from Scripture
+  who    bestskillsum(Religion, Latin)
+  chance clamp(5, 90, skill(who, Religion) + skill(who, Latin) / 2 + attr(who, Cha) / 4 - 10)
+  ok     chosen who; text 3; reputation 1, 3; practice who, Religion, 1, 10, 0; goto door
+  fail   chosen who; text 4; practice who, Religion, 0, 10, 0; goto knives
+option 2 saint
+  ok     text 5; fame 1; reputation 1, 3; goto door
+  fail   text 6
+option 3                                   # stay out of it
+  chance none
+  ok     text 7; exit
+
+[knives]
+block    8
+option 0                                   # step between them
+  who    bestattr(Str)
+  chance clamp(5, 90, attr(who, Str) + max(skill(who, Edged), skill(who, Impact)) / 3 + min(10, fame / 20) - 10)
+  ok     chosen who; text 9; reputation 1, 2; goto door
+  fail   chosen who; text 10; injure who, 1, 1, 10; goto door
+option 1                                   # promise a Mass for the dead man
+  need   money >= money1
+  chance none
+  ok     text 11; pay money1; attr party, DF, 2; goto door
+option 2                                   # stand back
+  chance none
+  ok     text 12; exit
+
+[door]
+block    13
+option 0                                   # go into the church with them
+  chance none
+  ok     text 14; card 0x13
+option 1                                   # go your own way
+  chance none
+  ok     text 15; exit

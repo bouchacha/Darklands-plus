@@ -1,0 +1,31 @@
+# $NDMKT00: the sworn measure (New encounters)
+=== card 0: 10 10 0 240 0 ===
+At the corner of the grain market a stout man with a staff of office and an iron-bound bushel steps into your path: the market master. "Strangers! By the law of this market a disputed measure must be witnessed by two who have no stake in it. You will do."
+\14Behind him a peasant widow and a grain dealer in a fur collar are glaring at each other over a sack of rye. The dealer swears it is short. The widow swears it was full by the measure of her village when she set out at dawn. You...
+\14\15...\1dlet the market master measure it while you watch.
+\15...\1dpour and strike the measure yourselves.
+\15...\1dwalk on before he can swear you in.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName pours the rye in gently from low down, so that it lies loose and light, and strikes it level with one clean stroke. Brim-full, if only just. The dealer opens his mouth; the market master shrugs. The law says nothing of how high a man must pour.
+\14The widow presses your hands, and the grain-sellers along the row nod to each other.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName pours too fast and the strickle catches on the rim. Rye sprays across the cobbles, and what is left in the bushel is plainly short.
+=== card 3: 10 10 0 240 0 ===
+You walk on before he can swear you in. "Strangers!" he calls after you, but the market is full of strangers, and he soon finds two more. Nothing comes of it.
+=== card 4: 10 10 0 240 0 ===
+The rye stands a hand's breadth below the iron rim. The widow goes grey. "It was my husband's measure," she whispers, "the one he always used." A village measure, then, and smaller than the town's. Short measure means a fine she cannot pay and the loss of her place in the market.
+\14The market master holds out a little reliquary for your oath. You...
+\14\15...\1dswear to the truth, and plead for mercy for her.
+\15...\1dswear that the sack was full.
+\15...\1dbuy $Money1 of rye at the next stall and fill it up.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName swears the sack was short, and then speaks for the widow: an honest woman with a dead man's measure, not a cheat. The market master hums and haws, then breaks the old measure over his knee and lets her off with a warning. The market thinks well of witnesses who are both honest and merciful.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName swears the sack was short and pleads for her, but the market master has his law. The widow is fined and led weeping from the market. The traders mutter that at least the strangers swore true.
+=== card 7: 10 10 0 240 0 ===
+$ChosenOneName lays a hand on the reliquary and swears the sack was full. The market master shrugs, the dealer pays with a face like vinegar, and the widow goes home with her money.
+\14A false oath on holy bones, however kindly meant, is a heavy thing to carry.
+=== card 8: 10 10 0 240 0 ===
+$ChosenOneName swears the sack was full. The dealer laughs, tips the rye out before the whole market and measures it again. Short. The market master looks at you as he would at a pair of false weights, and the tale of the lying strangers runs down the row faster than you can walk.
+=== card 9: 10 10 0 240 0 ===
+You buy a little rye at the next stall and pour it in until the bushel brims. The market master stares, then laughs until he has to lean on his staff. "Full," he declares. "Witnessed." The widow kisses your hands, and the market decides that these strangers have sense.

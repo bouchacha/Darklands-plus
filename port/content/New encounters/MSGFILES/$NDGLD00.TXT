@@ -1,0 +1,35 @@
+# $NDGLD00: the guild quarrel (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Where the street narrows under the overhanging houses, two processions have met head-on: the butchers behind their banner of the ox, the tanners behind their banner of the scraping-knife, each with a guild candle as thick as a man's thigh, each bound for the minster for the feast. Neither will give way. Custom says one guild walks before the other, but nobody can agree which, and the shouting is turning ugly.
+\14The beadle pushes through to you, mopping his brow. "Strangers favour no one. Judge for us, masters, for the love of God, before there is blood on the candles!" You...
+\14\15...\1dask the oldest folk in the street what the custom is.
+\15...\1dbid them cast lots, as the Apostles did for Matthias.
+\15...\1dgo the long way round.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName finds a toothless goodwife on a stool in a doorway, who has watched sixty years of processions go by. "Neither of them," she cackles. "In my mother's day the shoemakers walked first, ahead of the both of them."
+\14There is a silence. Then a roar of outrage, aimed for once at the same men: the shoemakers, who are not even here. Butchers and tanners march off together, arm in arm, to have it out with the cobblers, and the beadle shakes your hands until they ache.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName asks the old folk of the street, and two ancient goodwives remember the custom exactly, and differently. In a moment they are screeching at each other, their sons take sides, a candle goes over, and then the first fist.
+=== card 3: 10 10 0 240 0 ===
+"When the Apostles could not choose between two good men," says $ChosenOneName, "they cast lots and let God choose." The guild masters look at each other, then at the crowd, and cannot well refuse the Apostles. Two straws are drawn from the beadle's fist. The tanners go first; the butchers follow, grumbling, but they follow.
+=== card 4: 10 10 0 240 0 ===
+"Lots?" bellows a butcher. "Dice for the honour of the guild, like soldiers at the foot of the Cross?" The tanners take that as an insult too, a candle goes over, and then the first fist.
+=== card 5: 10 10 0 240 0 ===
+You leave them to it and go the long way round, through the tanners' lane, where the stink of the pits brings tears to your eyes. It costs you an hour. Nothing more comes of it.
+=== card 6: 10 10 0 240 0 ===
+In a moment the street is a heaving mass of leather aprons, fists and trampled wax. Somewhere under the banners the beadle is shouting for help. You...
+\14\15...\1ddrag the beadle out of the press.
+\15...\1dsnatch up a fallen banner pole and drive them apart.
+\15...\1dslip away while they are busy.
+=== card 7: 10 10 0 240 0 ===
+$ChosenOneName wades in, gets the beadle by the collar and hauls him out, bloody-nosed but whole. When the watch arrive and have knocked enough heads together, the beadle is telling everyone who will listen about the strangers who saved him.
+=== card 8: 10 10 0 240 0 ===
+$ChosenOneName wades in after the beadle and takes a butcher's fist, a tanner's knee and a guild candle across the head before the watch arrive and break it up. The beadle crawls out by himself.
+=== card 9: 10 10 0 240 0 ===
+$ChosenOneName seizes a banner pole and sweeps it low like a pike, butt and blade, driving butchers one way and tanners the other until there is clear cobble between them. When the watch come running they find the street parted and the strangers holding it. The council will hear of this.
+=== card 10: 10 10 0 240 0 ===
+$ChosenOneName lays about with a banner pole until it snaps, and then both guilds turn on $him together. The watch drag $him out at last, battered, and the guild masters agree on one thing: the strangers started it.
+=== card 11: 10 10 0 240 0 ===
+You back quietly out of the lane while every eye is on the fists, and walk on. Nobody sees you go. Nothing more comes of it.
+=== card 12: 10 10 0 240 0 ===
+You back out of the lane, but the beadle, crawling out from under a banner, sees you go. By evening the council will have heard of the strangers who left him to be trampled.

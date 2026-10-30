@@ -1,0 +1,44 @@
+# $NDDAN00: the dancers (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Round the fountain in the square a young woman is dancing, alone, to no music anyone can hear. She has danced since dawn, they say. Her shoes are worn through, her feet leave blood on the cobbles, and her eyes look at nothing. A cooper's boy and an old man have joined her, stamping and turning with the same blind faces.
+\14The crowd keeps its distance and whispers of Saint Vitus's dance, or of a curse. Her mother is on her knees. The physicians say only that a dance must be danced out. You...
+\14\15...\1dplay the dancers down slowly, on harp or flute.
+\15...\1dtake her hands and dance her down, as the physicians say.
+\15...\1dbind her and carry her to the church.
+\16...\1dcall on a saint.
+\15...\1dwalk on.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName takes up the tune the dancers seem to hear, then little by little slows it, and the dancers slow with it. Step by step $he leads them from the fountain to the church door, where they drop on the steps like puppets with cut strings, and sleep. The town will not soon forget the strangers' music.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName plays, but the tune runs away with $him, faster and wilder, and the dancers whirl after it until the old man falls senseless on the cobbles. The crowd mutters that the strangers have made it worse.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName takes the girl's bleeding hands and dances with her, round the fountain and round again, slower and slower, for two hours, until at last she sags asleep into $his arms. The others stop when she does. $ChosenOneName can hardly stand, but the square cheers.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName takes the girl's hands and dances with her, round the fountain and round again, and then finds that $he cannot stop. $His feet have the music now.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName and the mother catch the girl between them, bind her in a shawl as gently as they can and carry her, still twitching, to the church. Before the altar she falls asleep, and the other two, left without her, stumble to a halt.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName catches hold of the girl, and she fights like a cat, all nails, teeth and heels. In the end $he lets her go, scratched and bitten, and she dances on.
+=== card 7: 10 10 0 240 0 ===
+You pray, and the dancers stop as one, in mid-step, and stand swaying. Then they sit down on the cobbles and sleep like children. The crowd crosses itself, and the mother swears to burn a candle to your saint every year of her life.
+=== card 8: 10 10 0 240 0 ===
+You pray, but the dancers dance on.
+=== card 9: 10 10 0 240 0 ===
+You walk on. Behind you the stamping goes on, and the crowd whispers. Nothing comes of it.
+=== card 10: 10 10 0 240 0 ===
+$ChosenOneName dances beside the girl, white-faced, sweat running down $his cheeks. "Help me," $he gasps as $he goes by. You...
+\14\15...\1dseize $him and hold on.
+\15...\1dlet $him fight it with prayer and will.
+\16...\1dcall on a saint.
+=== card 11: 10 10 0 240 0 ===
+You seize $ChosenOneName and bear $him to the ground, and it takes all of you to hold $him there while $his legs kick to the tune no one hears. After an hour it goes out of $him like a fever breaking, and $he lies as weak as a kitten.
+=== card 12: 10 10 0 240 0 ===
+You seize $ChosenOneName, but $he throws you off with a madman's strength and dances on. It is sunset before $he drops, feet raw, and sleeps where $he falls.
+=== card 13: 10 10 0 240 0 ===
+$ChosenOneName shuts $his eyes, says the Credo through clenched teeth and wills $his feet to stop. Step by dragging step, they do, and $he stands trembling, $himself again.
+=== card 14: 10 10 0 240 0 ===
+$ChosenOneName prays and strains, but $his feet will not listen. It is sunset before $he drops, feet raw, and sleeps where $he falls.
+=== card 15: 10 10 0 240 0 ===
+You pray, and $ChosenOneName's feet stop as if nailed to the cobbles. The girl beside $him stops too, and falls asleep in her mother's arms. The square crosses itself.
+=== card 16: 10 10 0 240 0 ===
+You pray, but $ChosenOneName dances on.

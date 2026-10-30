@@ -1,0 +1,44 @@
+# $NDPEN00: the public penance (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A bell tolls slowly, and the street falls quiet. Down it comes a man barefoot in a white shift, a rope round his neck and a great candle in his hands, between two priests: a carter who killed a man in a tavern quarrel. By the peace the council made between the families, he must walk from the tavern to the church door, beg the widow's pardon on his knees, and set up a stone cross by the road.
+\14Behind him walk the dead man's three brothers, hands on their knives. If the candle goes out on the way, they say loudly, God has refused his penance and the peace is void.
+\14As he passes you, a gust snuffs the flame. The knives come half out. You...
+\14\15...\1dlight it again from your own torch, lantern or candle.
+\15...\1danswer the brothers from Scripture.
+\16...\1dcall on a saint.
+\15...\1dstay out of it.
+=== card 1: 10 10 0 240 0 ===
+Before the brothers can move, $ChosenOneName has the carter's wick against $his own flame, and it catches. "It only stumbled," says the elder priest firmly, "as we all do." The procession goes on, and the street lets out its breath.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName fumbles for a light, but the eldest brother is quicker. "God has spoken!" he shouts, and the knives come out.
+=== card 3: 10 10 0 240 0 ===
+"The wind bloweth where it listeth," says $ChosenOneName, in the priests' Latin and then in plain German, "and thou canst not tell whence it cometh." Weather, then, not God's verdict. The priests seize on it with relief, the crowd murmurs that the strangers are right, and the brothers, scowling, let their knives slide home.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName quotes Scripture at the brothers, who are carters, not clerks. "Latin!" spits the eldest. "Priests' talk for priests' friends." The knives come out.
+=== card 5: 10 10 0 240 0 ===
+You pray, and before the whole street the cold wick smoulders, glows and blooms into flame by itself. Women fall to their knees. The brothers stare at the candle, then at you, and let their knives slide home. The tale will be told in this town for a generation.
+=== card 6: 10 10 0 240 0 ===
+You pray, but the wick stays dark.
+=== card 7: 10 10 0 240 0 ===
+You keep out of it. The eldest brother's knife is out before the priests can move; the watch come running, and the carter is carried to the church door instead of walking. It is none of your affair, and nothing more comes of it for you.
+=== card 8: 10 10 0 240 0 ===
+The brothers come on with their knives out. The carter kneels in the muck of the street, still holding his dead candle, and the priests wring their hands. You...
+\14\15...\1dstep between them.
+\15...\1dpromise $Money1 for a Mass for the dead man's soul.
+\15...\1dstand back.
+=== card 9: 10 10 0 240 0 ===
+$ChosenOneName steps between them, hand on hilt, and looks the eldest in the eye. He hesitates, long enough for the watch to arrive, and the candle is lit again from the priests' censer. The procession goes on.
+=== card 10: 10 10 0 240 0 ===
+$ChosenOneName steps between them, and the eldest brother's knife opens $his arm before the watch drag the three of them off. The candle is lit again from the priests' censer, and the procession goes on, dripping blood as well as wax.
+=== card 11: 10 10 0 240 0 ===
+The brothers hesitate. A Mass for their brother's soul is no small thing, and from strangers. The eldest takes your coins, then the candle, and lights it himself from the priests' censer. The procession goes on.
+=== card 12: 10 10 0 240 0 ===
+You stand back. The knives flash, the watch come running too late, and the carter is carried to the church door instead of walking. It is none of your affair, and nothing more comes of it for you.
+=== card 13: 10 10 0 240 0 ===
+At the church door the carter kneels before the dead man's widow, the candle burning in his hands. She looks at him for a long while, then gives him her hand, and the bell begins to ring for the Mass of reconciliation. The priests beckon you to come in with them. You...
+\14\15...\1dgo into the church with them.
+\15...\1dgo your own way.
+=== card 14: 10 10 0 240 0 ===
+You follow the procession through the crowd into the church close, where the whole parish is pressing in to see the end of it.
+=== card 15: 10 10 0 240 0 ===
+You go your own way, and the bell follows you down the street. Nothing more comes of it.

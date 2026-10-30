@@ -1,0 +1,30 @@
+# $NDFAS00: the Fools' Court (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Drums, pipes and a braying of horns: the carnival is loose in the street, the last mad days before Lent. Devils with cow-tails, wild men in moss and a knight with a barrel for armour seize you by the arms and haul you to the steps of the market cross, where the Fools' Court sits: a fat butcher in a judge's robe of sacking, with a sausage for a sceptre.
+\14"Strangers!" he booms. "You stand accused of walking sober through our town at carnival, the gravest crime in our law. How do you plead?" You...
+\14\15...\1dplead guilty and pay the court's fine: $Money1 in beer.
+\15...\1dplead your case in the court's own manner.
+\15...\1dbreak away from the masks.
+=== card 1: 10 10 0 240 0 ===
+"Guilty!" you cry, and the court cheers. The fine is drunk on the spot, and you are made to drink your share of it, which is no punishment at all. By the time the masks let you go, you have a great many new friends.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName bows to the court and argues, with a perfectly straight face, that you are not sober at all, merely drunk on the beauty of the town's women, a far worse condition and wholly beyond the reach of the law. The court roars, acquits you by acclamation, and crowns $ChosenOneName Fool-King with a ring of sausages.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName argues the case at length and with great learning. The court finds you guilty of pedantry, a hanging matter at carnival, and the devils mercifully commute it to a ducking in the horse-trough, which is very cold.
+=== card 4: 10 10 0 240 0 ===
+You twist free of the devils and wild men and are away down a lane before the court has finished its sausage. Nothing more comes of it.
+=== card 5: 10 10 0 240 0 ===
+You try to break away, but a dozen devils pile on you, and the court sentences you to the horse-trough at once, for contempt. The water is very cold, and the street jeers at the sour-faced strangers.
+=== card 6: 10 10 0 240 0 ===
+The court demands a royal decree from its new king, and the whole street falls quiet to hear it. You...
+\14\15...\1dscatter $Money2 to your subjects in royal largesse.
+\15...\1ddecree that the judge be ducked in the horse-trough.
+\15...\1dabdicate in favour of the butcher's goat.
+=== card 7: 10 10 0 240 0 ===
+King $ChosenOneName flings a fistful of pfennigs over the crowd, and the scramble that follows is the best sport of the carnival. Your subjects will sing of the open-handed stranger king long after Easter.
+=== card 8: 10 10 0 240 0 ===
+At the king's word you seize the butcher-judge, robe, sausage and all, and between you heave him into the horse-trough. He comes up spluttering and laughing, and the street votes it the finest decree in living memory.
+=== card 9: 10 10 0 240 0 ===
+At the king's word you lay hands on the butcher-judge, but he is the size of a bullock, and it is you who go into the trough, one after another. The street votes it a fine decree all the same.
+=== card 10: 10 10 0 240 0 ===
+"I am unworthy," says $ChosenOneName, and crowns the butcher's goat with the sausages. The goat eats them. The court declares it the wisest king the town has ever had, and lets you go.

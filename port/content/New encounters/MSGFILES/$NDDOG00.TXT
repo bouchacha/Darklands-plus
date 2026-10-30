@@ -1,0 +1,31 @@
+# $NDDOG00: the dog fight (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Behind the shambles a ring of butchers' men, carters and idle apprentices is roaring at two mastiffs straining on their chains: a huge brindled dog in a spiked collar, and a lean white bitch with a torn ear. Coins go from hand to hand over the heads of the crowd.
+\14"A wager, strangers?" grins a butcher with a tally-stick. "The brindle's never lost. Or are you for the bitch?" You...
+\14\15...\1dlay $Money1 on the dog that looks the better.
+\15...\1dcall the fight off in God's name.
+\15...\1dwalk on.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName watches how the two dogs stand and breathe, which has fought too often and which is only angry, and lays the money on the bitch. The brindle charges like a bull and tires like one; the white bitch waits, and goes for his throat. The butcher pays out with a sour face.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName lays the money on the bitch, who looks quick and clever. The brindle simply rolls her over and stands on her. The butcher scoops up your coins with a grin.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName steps into the ring and asks, loud enough for the street, whether the butchers would care to explain this sport to their confessor. A passing priest stops to listen, and the butchers' master, shamed, has the dogs dragged apart. The priest blesses you; the crowd, robbed of its fun, does not.
+=== card 4: 10 10 0 240 0 ===
+"Go and preach to the pigs, friar!" The crowd hoots you out of the ring, and the fight goes on without you, with a great deal of jeering in your direction.
+=== card 5: 10 10 0 240 0 ===
+You walk on. Behind you the roaring rises to a howl, and somebody's dog stops barking. Nothing comes of it.
+=== card 6: 10 10 0 240 0 ===
+The brindle's owner, a butcher with a neck like a bullock's, does not take it well. He points his cleaver at $ChosenOneName. "That one looked at my dog! Stared him down before the fight! The evil eye, I tell you!"
+\14Some in the crowd make the horns with their fingers. Others edge away from you. Everyone knows a witch cannot say the Lord's Prayer without stumbling. You...
+\14\15...\1dsay the Paternoster aloud, every word of it.
+\15...\1dlaugh and stand the crowd $Money1 of beer.
+\15...\1dwalk off with your winnings.
+=== card 7: 10 10 0 240 0 ===
+$ChosenOneName crosses $himself and says the Paternoster from beginning to end in a ringing voice, and the Ave for good measure. Not a stumble. The crowd laughs at the butcher until he slinks off with his dog, and two goodwives ask $ChosenOneName to bless their hens.
+=== card 8: 10 10 0 240 0 ===
+$ChosenOneName begins the Paternoster and stumbles on "debitoribus". There is a gasp, and the crowd draws back as from a leper. You leave quickly, with the butcher bawling "Witch!" after you, and the word runs ahead of you down the street.
+=== card 9: 10 10 0 240 0 ===
+"An evil eye that buys the beer!" laughs $ChosenOneName, and sends a boy running to the nearest tavern. The accusation drowns in the first jug. By the third even the butcher is swearing that his dog was off its feed.
+=== card 10: 10 10 0 240 0 ===
+You pocket your winnings and walk off. Behind you the butcher is still shouting, and the words "evil eye" follow you down the street and into the town.

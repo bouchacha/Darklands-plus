@@ -1,0 +1,32 @@
+# $NDPOP00: the popinjay shoot (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A drummer in the colours of the crossbowmen's guild is beating his way down the street, and half the town is following him to the shooting ground under the walls. Today is the popinjay shoot. A painted wooden bird sits on a pole as tall as a church tower, and whoever brings it down is king of the shooters for a year.
+\14"Strangers are welcome!" calls the guild master, a broad man in a feathered hat. "It honours the town to have guests shoot. The guild will lend you a crossbow, or bring your own bow." You...
+\14\15...\1dshoot for the popinjay.
+\10...\1ddress your shot with a potion first.
+\15...\1dwatch the shooting from the beer-bench.
+\15...\1dwalk on.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName shoots when $his turn comes round, and the shot clips the pole and whines away over the town wall. "So close!" the guild agrees, generously, and in the end a lean young journeyman brings the bird down. It is two hours before you get away, and nothing more comes of it.
+=== card 2: 10 10 0 240 0 ===
+You sit on the guild's benches with a jug of their beer and watch bolt after bolt fly up at the bird, until a lean young journeyman brings it down to a roar from the crowd. Two pleasant hours, and you are the better for the rest.
+=== card 3: 10 10 0 240 0 ===
+You walk on against the stream of the crowd, and the drum dwindles away toward the walls. Nothing comes of it.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName waits for $his turn, sights and looses. The shot takes the popinjay clean off its perch in a shower of painted splinters, and the crowd roars. The guild master hangs the shooters' silver chain round $ChosenOneName's neck and announces the new king's first duty, by ancient custom: the king stands the whole guild its beer. There are sixty thirsty crossbowmen, and the beer will cost $Money1. You...
+\14\15...\1dstand the guild its beer like a king.
+\15...\1dplead an empty purse, royally.
+\15...\1dgive the chain to the town's own champion.
+\15...\1dmake off with the silver chain.
+=== card 5: 10 10 0 240 0 ===
+You pay, and the beer flows. By nightfall sixty crossbowmen have drunk the health of King $ChosenOneName a hundred times, and the tale of the stranger who outshot the town and stood its beer is going round every tavern.
+=== card 6: 10 10 0 240 0 ===
+"A king," says $ChosenOneName, turning out an empty purse with a flourish, "reigns by the love of his subjects, not by his purse." The guild roars with laughter, and the guild master, laughing loudest, pays for the beer from the guild's chest, this once. King $ChosenOneName is toasted all afternoon.
+=== card 7: 10 10 0 240 0 ===
+$ChosenOneName pleads an empty purse, and the laughter dies. "A king who won't stand his beer is no king," says the guild master, lifts the chain from $his neck and hangs it on the runner-up. The guild drinks without you.
+=== card 8: 10 10 0 240 0 ===
+$ChosenOneName lifts off the chain and hangs it round the neck of the lean young journeyman who came second, the town's own champion. "He shot well all day. I shot once." The crowd likes that very much, and the journeyman's friends stand you your beer instead.
+=== card 9: 10 10 0 240 0 ===
+In the crush around the beer barrels $ChosenOneName slips away, chain and all. A fence in a back lane gives $Money2 for it, a fraction of its worth, and asks no questions. Somewhere sixty crossbowmen are looking for their king.
+=== card 10: 10 10 0 240 0 ===
+$ChosenOneName slips away from the barrels with the chain and runs straight into three crossbowmen coming back from the privy. They take back the chain and give $him a beating to go with it, and by evening the whole town knows of the stranger king who tried to steal his own crown.

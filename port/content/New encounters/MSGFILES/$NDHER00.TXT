@@ -1,0 +1,27 @@
+# $NDHER00: the herring barrel (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Porters are lowering barrels from a dray into a merchant's cellar when a rope parts with a crack. A barrel bounds into the street and bursts against the kerb, and the lane is suddenly full of brine, herring and every cat in town.
+\14The merchant, a lean man with a pinched face, flies at $ChosenOneName and seizes $his sleeve. "You jostled my porter! I saw it! Best Scania herring, that was! $Money1 you owe me!" His porters, keen to save their own hides, nod hard. It seems a great deal of fuss over a barrel of herring. You...
+\14\15...\1dlook at the broken rope and the barrel.
+\15...\1dargue it out before the crowd.
+\15...\1dpay him $Money1.
+\15...\1dshake him off and walk on.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName turns over the rope's end and the staves, but sees nothing but rope and fish. The beadle arrives, hears a burgher and two porters against a stranger, and splits the difference: $Money2, paid on the spot.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName appeals to the street, and a goodwife leans out of her window: she saw the rope slip with nobody within a cart's length of it. The crowd hoots, the merchant goes white, and the porters find urgent work in the cellar.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName argues well, but it is a burgher's word against a stranger's, in the burgher's own town. The beadle splits the difference: $Money2, paid on the spot.
+=== card 4: 10 10 0 240 0 ===
+The merchant stares at the coins as if he had expected anything but money, and hurries his porters to sweep up the mess. The street decides you are either very honest or very rich, and either way worth knowing.
+=== card 5: 10 10 0 240 0 ===
+You shake him off and walk on, with the merchant shrieking after you about foreign rogues who ruin honest men. The porters will tell the tale in every tavern by dark.
+=== card 6: 10 10 0 240 0 ===
+The rope is frayed through: old rope, the merchant's own. And in the wreck of the barrel $ChosenOneName sees something else. Under a top layer of fat silver herring the barrel is packed with last year's catch, brown and stinking, and the herring-wardens' brand burnt into its staves is a clumsy forgery.
+\14The merchant has gone the colour of tallow. "Friends," he murmurs, "let us forget the barrel. Let us forget everything." You...
+\14\15...\1dcall the beadle over.
+\15...\1dtake his money and hold your tongue.
+=== card 7: 10 10 0 240 0 ===
+The beadle sees the rotten fish and the false brand, and his nose wrinkles. The merchant is marched off to the council, whose herring-wardens will burn every barrel in his cellar in the market place. The beadle shakes your hands: the town remembers strangers who keep its fish honest.
+=== card 8: 10 10 0 240 0 ===
+The merchant presses $Money1 into $ChosenOneName's palm, loudly forgives you the barrel for the crowd's benefit, and has his porters shovel the staves and the stinking fish into the cellar before anyone else looks too closely.

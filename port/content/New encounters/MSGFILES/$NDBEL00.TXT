@@ -1,0 +1,42 @@
+# $NDBEL00: the bell-founder's boy (New encounters)
+=== card 0: 10 10 0 240 0 ===
+In the churchyard a pit has been dug for the casting of a new bell, and beside it a clay furnace roars and smokes, tended by a sooty apprentice of sixteen or so. His master went to the tavern at noon to wet his throat and has not come back.
+\14"The bronze is ready, masters," says the boy, near tears. "I know the colour. Another hour and it burns, and the bell will crack. But no one taps his furnace but him. You've heard what the founder in Breslau did to the boy who poured his bell without him?" You...
+\14\15...\1dhelp him tap the furnace and pour.
+\15...\1drun and fetch his master from the tavern.
+\15...\1djudge the metal for yourselves.
+\16...\1dcall on a saint over the pour.
+\15...\1dwalk on.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName knocks out the clay plug with the boy, and the bronze runs down its channel into the mould in a white, hissing stream, smooth and whole, just as the boy said it would. Then the churchyard gate bangs open.
+=== card 2: 10 10 0 240 0 ===
+The clay plug comes out all at once, and a gout of bronze spits across $ChosenOneName's arm before the stream settles into the channel. The pour is ragged, and the boy has gone white. Then the churchyard gate bangs open.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName finds the master founder in the third alehouse and hauls him back by the collar, and he pours just in time, swearing all the while. The bell, they will say later, rings like an angel. The master growls his thanks, and the parish remembers the strangers who fetched him.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName tries five alehouses before finding the master, and when they get back the bronze has burned in the furnace and the boy is weeping. The master takes his belt to the boy all the same. It has cost you two hours, and nothing more comes of it.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName squints into the furnace mouth. "It has an hour in it yet. Bank it with wet charcoal." The boy does, and when the master comes rolling back from the tavern the bronze is perfect, and he pours it himself, none the wiser. The priest, who saw it all, tells the parish.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName squints into the furnace mouth and declares that it can wait. It cannot. Within the hour the bronze has a skin like scum on a pond, and the boy is sobbing. Then the churchyard gate bangs open.
+=== card 7: 10 10 0 240 0 ===
+You pray over the furnace, and the boy, emboldened, taps it. The bronze runs smooth and white into the mould. As it settles the master comes in at the gate, sees the pour, stops and crosses himself. "It is as I would have done it," he says hoarsely, and claps the boy on the shoulder. The parish will long tell of the bell the saints poured.
+=== card 8: 10 10 0 240 0 ===
+You pray, but nothing changes. The furnace roars, and the boy waits.
+=== card 9: 10 10 0 240 0 ===
+You walk on. Behind you the boy stands by the furnace, wringing his hands. Nothing comes of it.
+=== card 10: 10 10 0 240 0 ===
+In comes the master founder, red with beer and rage, a casting hammer in his fist. "Who tapped my furnace?" The boy cowers behind you, and the hammer comes up. You...
+\14\15...\1dtake the hammer from him.
+\15...\1dreason with him.
+\15...\1dleave them to it.
+=== card 11: 10 10 0 240 0 ===
+$ChosenOneName catches the haft as it comes down, twists, and the hammer is in $his hands instead. The master struggles, then sits down on the edge of the pit and weeps beer. By the time the priest arrives he has embraced the boy twice.
+=== card 12: 10 10 0 240 0 ===
+$ChosenOneName grabs for the hammer and takes it on the shoulder instead. Before the master can raise it again the priest and two gravediggers have him by the arms, and the boy runs for his life.
+=== card 13: 10 10 0 240 0 ===
+"Whose hand poured it, master, the boy's or God's? A bell is cast for God. Would you christen it in blood?" The master stares at $ChosenOneName, then at the mould, and lets the hammer fall. He embraces the boy, weeping beer, and swears the bell shall be named for Saint Agatha.
+=== card 14: 10 10 0 240 0 ===
+The master shoves past $ChosenOneName and lays into the boy with his fists until the priest comes running. You could not stop it, and nothing more comes of it.
+=== card 15: 10 10 0 240 0 ===
+You walk on. Behind you the hammer rises, and the boy cries out. It is none of yours, and nothing more comes of it.
