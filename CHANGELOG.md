@@ -4,85 +4,38 @@
 
 What changed since 1.3.1.
 
-**Shields and heads**
+**Added**
 
-- **Shields for attributes and skills, in place of their names:** the years' toll and "Lost for good" show each member's age (an hourglass) and each attribute or skill lowered as its shield with what it was and is; the town's teachers show who would learn which skill, by its shield, and from what; the margin's blessings and potions show each raised attribute or skill as its shield and how much; a card's chance names what it rests on beside each shield. In texts too, wherever an attribute or skill is named, changed or asked for: the inn's and camp's days, a weapon's skill and the Strength it needs, the load, the prayer screen, a profession's needs at character creation, the teachers' and audiences' conditions, the potions, the battle log and the skill raised in a battle; the pointer on a shield names it.
-- **Strength's shield** is an arm embowed (a flexed arm): the weight it was is the sign of a heavy load.
-- **The party panel's bars** show the shields of Endurance, Strength and Divine Favor, a little darker, and their names in full.
-- **The party's members by their heads:** wherever a list gives the members with a value or a part (the party line under an attribute or skill on the character sheet, each member's Virtue against a saint's, who knows a saint or a formula, the chances of brewing, who carries an ingredient, the cards' saints and items and the lists under an option, a weapon or armor against the party, who would learn from a teacher, the margin's blessings and potions), each is the head of their figure; the name under the pointer. On the prayer screen too (who prays, and the buttons that pick whom to pray for), in a foe's tooltip and Enemy Info (whose weapons), and as the tag of whose potion it is in the loot and the store room.
-- **Battle, a foe's tooltip and Enemy Info:** each of your weapons shown as its picture, then whether it pierces the foe's armor, does half damage or is mostly deflected.
+- **Ways of fighting:** each member has one (Skirmisher, Archer, Charger or Manual), set on their box in the party panel and kept between battles. It decides what they do between your orders, and replaces the bow-or-sword switch.
+- **64 new encounters**, 80 in all (F12 > Mods): more in the wild, and new ones on the river boats, in town streets and in camp, each showing what came of your choice.
+- **Level map (Tab)** remembers what the party has seen. Click anywhere seen to walk there, or a floor to walk to its stairs. In a castle, mine or dungeon, clicking a door walks to it and opens it.
+- **Ingredients of one quality:** all are quality 25, so each kind is one stack (quality only ever changed the price). F12 > Settings > The party and its items turns it off.
+- **Report a problem** (F12 > About) zips the logs, settings and newest saves, and opens a prefilled GitHub bug form.
+- **Alchemy:** a chart of the chance for each number of batches, the possible outcomes, starred formulae. Each town sells the Philosopher's Stone at one fixed quality.
+- **Saints** can be picked by what they raise; praying spends no more favor than the best chance needs.
+- **World map:** Find... looks up places, ingredients and wares; a town's panel shows its saints, formulae, teachers and boats.
+- **Battle order buttons** are larger pictures with their keys, in fixed places; potions have their own grid.
+- **Blessings and potions at work** are listed compactly in the margin, in battles too.
+- **Camp** shows the chance of the lord's men finding the party; Train or study, never possible in the wild, is gone.
+- **Aging forecast:** point at a member's age on the character sheet.
+- **Save and Load** show each save's file name.
+- **Beasts** have their own death sound in sound packs.
+- **Various UI legibility improvements.**
+- **For modders:** encounters can be placed on boats, in streets or in camp; `port/tools/enccheck.c` checks scripts.
 
-**Saints**
+**Fixed**
 
-- **Saints on the character sheet** can be picked by what they raise: a row of the attributes' and skills' shields and the town's opinion (all saints that raise Perception, say), the saint who gives the most of it first. Each saint's help shows under its name as shields, the most first, with one to three chevrons on each for how much it gives against what the other saints give (red, reversed, for what it costs); the Virtue it asks is a small, faded shield and number beside its name, fainter still when nobody in the party has as much (on the cards' list of saints and the prayer screen, a shield and number). The page shows the saints the party knows or every saint in the game, then a line to pick by what they help with, a line to pick by what they raise. The saint clicked shows each member's best chance of being heard with the least favor it takes, and Pray, and what its help does an effect a line: shields that share a value side by side, the value once.
-- **Praying:** the favor to spend stops where the chance reaches its best (99% at most); the rest of the bar is hatched, kept.
-
-**Alchemy**
-
-- **Alchemy:** a chart of the chance for every number of batches the ingredients allow (a click sets it), and under it what may come of the brew in pictures: the potions, the ingredients lost, a stink or an explosion at the inn. The chance's parts are shown as shields and signs. Formulae can be starred (first in the list) or put aside (last). The list says how many potions the ingredients make, and the Philosopher's Stone's plaque what its quality adds.
-- **A shop's Formulae tab:** each formula's ingredients as pictures, what the party carries against what a batch needs and the price here; a click on one finds it in For sale. The +1 and +5 buttons are gone.
-- **The Philosopher's Stone on sale:** each town's alchemist and university always sell the same quality; the town's row in the margin shows the best (dim when no better than the party's), and the card's option to buy one is dimmed where it would gain nothing (a failed attempt still costs time).
-
-**The world map**
-
-- **World map:** the quests alone at the left; at the top right, Find... (any place by its name, alchemical ingredients, any ware, a town with something) and what the map shows (the layers and the kinds of place); each panel folds away. A place a quest's picture stands on is always shown under it, at any zoom. The line at the top keeps only how to move the map. The party's pulsing mark centers the map on it. The ingredient and ware finders sort by a column's head (name, carried or quality, nearest), and the ware finder lists every ware seen until a name narrows it.
-- **World map, a town's panel:** its saints (those the party knows greyed), formulae as potions (known ones greyed) and teachers as the skills' shields, as in the margin; its boats as a dock, a boat and an arrow (leaving, arriving, both ways) before the towns.
-- **A university is a pile of books** on the world map and in the margins: its open book looked too much like the teachers' lectern.
-
-**Dungeons, camp and the party**
-
-- **Level map (Tab), floors:** in a castle, mine or dungeon with more than one floor, a small chart at the top right, a square a floor: the floors the party has been on, the stairs seen between them, the party's floor outlined, and "?" for a floor its stairs lead to that nobody has been on; a click on a floor these stairs lead to walks the party to them and, outside a fight, takes them. The map also keeps what the party saw through a card in the middle of the dungeon (a riddle, a talk).
-- **Level map (Tab):** larger text, and the party as their heads. What the party has seen of a castle, mine or dungeon is kept, through loading a save or coming back to the place. A click on the floor anywhere the party has seen walks it all the way (a route past the game's 250 steps went only part of the way and stopped there): the map closes and says the party goes, and outside a fight a paused battle goes on at once; the place it is going to is marked on the map with a gold ring.
-- **Doors:** the pointer over a door says it can be used. Outside a fight a click on it walks the party to the floor before it, on their side, and opens it (or closes it), as Use Door does; a lock still holds.
-- **Camp:** Guard the camp has a picture of its own (the watch's lantern), and under it the chance that the lord's men find the party, before the next day and the day after; Train or study, never possible in the wild, is gone.
-- **Aging:** pointing at a member's age on the character sheet tells what the years have taken so far and what they will take within a year.
-- **The character sheet's header:** the sex as a plain sign, the age as its hourglass, and the leader as a pennant, lit for the one who leads (a click on another member's makes them leader; what the leader does under the pointer).
-- **The character sheet's things:** the kinds of things in the pack fold away (a click on the heading; the ingredients folded at first), and the sheet's lists open at their top.
-- **Giving one of a stack:** dragging a stack onto a member says that holding Shift gives just one (it gave one before, but said so only in the sheet's help).
-- **Money as coins** (F12 > Settings) gives amounts in words their coins too: a card's "3 groschen", the game's own "12pfs", a hint's "2 florins".
-- **Ingredients of one quality:** every ingredient is of quality 25, whoever finds, buys or carries it: those already carried as soon as a game is loaded, those in the loot and the store room as the screen opens, and one member's stacks of a kind become one stack once the party is out of a castle, mine or dungeon. Their quality only ever changed their price (alchemy takes them by kind and number alone), yet one kind at two qualities was two entries everywhere. No list shows an ingredient's quality. F12 > Settings > The party and its items: "Ingredients of one quality" off keeps the original's.
-- **Blessings and potions at work, shorter:** in the margin each member's head and then, on the same line, a picture and a short value for each thing at work: an attribute or skill raised as its shield, the rest as a gold sign on a round badge (fire protection a flame, armor a breastplate, a weapon's quality and damage a sword, penetration a spearhead, faster travel a winged boot, no death from wounds a skull struck through) with a saint's halo or a potion's flask at its foot; two boosts of one attribute (two essences drunk) as one, their sum; what every member has alike on one line, "All", at the foot. The details and the hours left under the pointer. They are listed in a battle's margin too, under the enemies; after loading a save made in a battle, what was at work when it began is shown as well.
-- **Messages name things as the lists do:** "St. Dunstan's Hammer", not the game's shortened "S.Dunstan Hammer" (the sheet's, the shops', the loot's and the store room's notes, and armor worn away).
-
-**Battles**
-
-- **Each member's way of fighting:** what they do until you give them an order, chosen on their box in the party panel (its picture at the lower left; a click opens the choice, each way with what it does). It only sets what they do when you haven't given an order: no bonus, no penalty; an order you give is carried out, then they go back to their way. Skirmisher, everyone's way until you choose another: shoots while the enemies come (if they have a missile weapon), then fights hand to hand to the end. Archer: shoots all fight long, hand to hand only for an enemy that reaches them, then the bow again. Charger: at the enemy from the start, their shooters first. Manual: the original's ways, every order yours. Each character keeps their way from battle to battle. This takes the place of the bow-or-sword switch: a Skirmisher fighting hand to hand no longer takes up the bow again when the enemy falls.
-- **The order buttons at the foot of the field are their pictures alone,** larger, each with its key, the member's head at the strip's start; the order's name and what it does under the pointer. Every member's strip has the same buttons in the same places (an order not open to that member dimmed in its place); the potions and things to use are in a grid of their own just above it, always in sight, in the same order for everyone (by kind, then quality), however many there are. F12 > Settings > Battles: "Order buttons as pictures" off gives the names beside them again, "Order buttons over the field" off gives no strip at all.
-- **"Can't walk there" and the other click hints** show only over the field, not over the order buttons or another panel.
-- **A member's box:** walking a castle, mine or dungeon with no enemy engaged, a click on it opens their character sheet, as in a town; in a fight a click still chooses them for orders and a right-click opens the sheet (the box says so under the pointer). Over a sheet opened in a battle the order strip no longer stands empty at its foot.
-
-**Encounters**
-
-- **New encounters** (the mod that comes with Darklands+, F12 > Mods): eighty now, 64 of them new. 34 more in the wild, and three new places: the river boats (10: on three voyages in ten, instead of the river pirates), the towns' streets (12: as the party comes into a street, 3 times in 100 on the main street by day, 6 at night or in a side street, 10 in a side street at night) and camp (8: after a night camping in the wild, 12 nights in 100).
-- **What came of it:** under the text a new encounter's choice ends on, a band lists what changed: each member's attributes and skills (their heads and the shields with the amounts; "Each" when all changed alike), members lost, things gained or lost, money, fame, a town's opinion and the time that passed; "Nothing came of it." when the choice changed nothing. A battle's wounds and spoils are left to the battle's own screens.
-- **For modders:** an encounter's `where` (wild, boat, street, camp), the street fields `MainStreet` and `SideStreet`, the river's `Pirate`s; `port/tools/enccheck.c` checks scripts without the game again.
-
-**Travel and sound**
-
-- **Fast travel near the map's edges:** a journey keeps to the land the party can walk on. Zürich's road runs along the map's last row, out of the marker's reach, and a journey along it stopped with the party stuck at the edge.
-- **A beast's or a monster's death** (a wolf's, a spider's, a demon's) has a sound of its own in a sound pack: in the sample battle sounds made from 0 A.D.'s an animal's cry, where it was a man's scream. A pack without one plays the game's own sound there.
-
-**Saves and bug reports**
-
-- **Report a problem** (F12 > About): one click makes a zip of what a bug report needs (this session's log and the last one's, the settings, the two newest saves; your own name taken out of the folder paths in them), opens its folder and the GitHub bug form with the version, system and preset filled in; drag the zip into the form (posting takes a free GitHub account).
-- **Save and Load show each save's file** beside its title, in brackets (dksave12), to tell saves apart and to name the one to send with a bug report.
-- **More than 100 saves:** the game names a new save after the first free number, and from 100 on that was no longer a name the game could list: save 100 did not show on the Load page, and every later save was written over it. Saves 100 and on are now named dksavea0, dksavea1 and so on (up to 1035), and a save 100 already made is renamed so at the first start.
-
-**Fixed in Darklands+ itself**
-
-- **A journey that gets no nearer stops:** fast travel that has come no nearer its goal in 150 steps stops with "Travel stopped: the party could not get any further this way" (it stopped only when the party had not moved at all), and the log says where. A party walked in place by the bridge north of Nymwegen, the game finding water in the way again and again.
-- **Stuck behind a friend:** walking a castle, mine or dungeon, the members behind could box in the one ahead at a corner (a wall on one side, two friends on the others); everyone but the leader then stood, and every click as a group said "can't walk there". Outside a fight the party now walks through itself; in a fight a member can walk out of a friend it stands in.
-- **A battle loaded from a save** shows its field at once; it stayed black until someone moved.
-- **Saves made in a battle in a mine, castle or dungeon** are named after the place (Schneeberg 5 May), not after rubbish read where the game had put other things in a battle.
-- **Windows that tell of a loss for good** (the years' toll, a lost attribute or skill, worn armor) close only with their OK button, and not in their first half second: a key (Space in a battle, Enter on a card) or a click meant for what was under them closed them before they could be read.
-- **Loading a save stops a journey under way:** fast travel went on toward its goal on the loaded game's map.
-- **Loading a save during a new encounter** left the encounter "on the screen" for Darklands+: in town, Go to stopped at once ("interrupted") and the margin named the town "Near ...", until the next new encounter.
-- **City politics keep the game's calendar:** they counted February 29 in years divisible by four (1400 among them), which the game never has, so the days of a season that ran across February could be counted one too many.
-
-**Bugs of the original fixed**
-
-- **A relic found deep in a mine** (dwarfs, kobolds, vulcans) is as good as the relic itself: the original made every one quality 35 and not its own kind of thing, so the saints' weapons among them could not be wielded.
-- **No jump at the foot of the travel map:** where the view reaches the map's last rows (Basel, Zürich, Konstanz), the party's marker was moved a fifth too far as the view scrolled down, so the party jumped two to four rows north (and could walk into a village beside it), and the land under it was read from rows a little off until the view scrolled again (water that was not there could stop a journey). (62 fixes now.)
+- Save 100 did not appear on the Load page, and every later save overwrote it.
+- Party members could box each other in at a corner in a castle, mine or dungeon, leaving all but the leader stuck.
+- Relics found deep in mines were always quality 35 and not the real item (original bug).
+- Near Basel, Zürich and Konstanz the party jumped two to four rows north on the travel map (original bug); journeys along Zürich's road got stuck at the map's edge.
+- Fast travel could walk in place without end; it now stops when 150 steps bring it no nearer.
+- Loading a save did not stop a journey under way or end an open encounter.
+- A battle loaded from a save stayed black until someone moved.
+- Battle saves made in a castle, mine or dungeon got garbled names.
+- Windows reporting a permanent loss could be closed by a stray key or click before being read.
+- City politics counted February 29s the game never has.
+- "Can't walk there" hints showed over the order buttons and panels.
 
 ## 1.3.1
 
@@ -214,7 +167,9 @@ Every change can be switched off. **F12 > Settings > Helpers** offers presets: *
 
 ## Per version
 
-- **1.3 (to come):** Improved combat and one-click orders, cards that show who tries an option and what it rests on, the restored city politics, cities at war, Ironman, the soundtrack and sound previews, the world map's finders, and more of the original's bugs fixed.
+- **1.4:** ways of fighting, 64 new encounters, a level map that remembers and walks the party anywhere seen, ingredients of one quality, Report a problem.
+- **1.3.1:** cards open the doors they open again, dungeon battle saves keep their traps, party members no longer stuck for good.
+- **1.3:** Improved combat and one-click orders, cards that show who tries an option and what it rests on, the restored city politics, cities at war, Ironman, the soundtrack and sound previews, the world map's finders, and more of the original's bugs fixed.
 - **1.2 (previews):** the rebuilt screens, the best member, the shared pack and store room, quests at a glance, endless ammunition, potion pictures, the Guide, the card fixes and hints.
 - **1.1.1:** fixed a crash on loading with the side margins on. Smoother battle-map scrolling, thrown weapons returned after battles, and missed shots in the battle log.
 - **1.1:** cards drawn by Darklands+ with clickable options, chances and an illuminated initial.

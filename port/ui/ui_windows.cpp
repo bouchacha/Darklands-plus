@@ -198,19 +198,14 @@ void news_window(void)
     std::string title = "New in Darklands+ " + news_key();
     if (ImGui::Begin(title.c_str(), nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
         static const char *NEWS[] = {
-            "The Darklands+ window (F12) has fewer, clearer tabs: Journal, Settings, Reconstructed Content, Mods, Editor, Appendices, About. "
-            "Settings lists its sections on the left.",
-            "The quests are on the world map (M), grouped by kind and nearest first, with windows to find alchemical ingredients and any ware.",
-            "Saving and loading happen in the game's own Save and Load screens, drawn anew, with their options there.",
-            "Improved combat: between your orders, shooters keep shooting, step aside for a clear line, and fight hand to hand to help a friend set upon; "
-            "a member with no orders joins a fight beside it. Orders take one click (a member, then an enemy or a spot). The first battle explains it.",
-            "On a card, beside each chance: the head of who tries it, and what it rests on (skills, attributes, the town's opinion, fame).",
-            "Ironman: one save, kept by the game itself as you go, no loading back (F12 > Settings > Preset, for your next new game).",
-            "The whole soundtrack can be played in F12 > Settings > Sound, on the device you choose.",
-            "More screens drawn anew: the inn and the camp, the alchemist's desk, Party Info, the marching order (drag the members into place), enemy info.",
-            "City politics, cities at war and other things MicroProse wrote and never switched on, reconstructed by Darklands+ (experimental, all off "
-            "until you tick them): F12 > Reconstructed Content.",
-            "A controller's buttons are shown on screen and can be changed: F12 > Settings > Controller.",
+            "Ways of fighting: each member has one (Skirmisher, Archer, Charger or Manual), chosen on their box in the party panel. "
+            "It sets what they do between your orders.",
+            "64 new encounters, 80 in all: in the wild, on the river boats, in the towns' streets and in camp, each with what came of your choice (F12 > Mods).",
+            "The level map (Tab) keeps what the party has seen. A click anywhere seen walks the party there, a click on a floor walks to its stairs. "
+            "In a castle, mine or dungeon, a click on a door walks to it and opens it.",
+            "Ingredients are all of one quality, so one kind is one stack (F12 > Settings > The party and its items).",
+            "Report a problem (F12 > About) packs what a bug report needs and opens the GitHub form.",
+            "Alchemy charts the chance for each number of batches; saints can be picked by what they raise; the world map's Find... looks up places, ingredients and wares.",
             "Your saved games are copied into \"Darklands+ save backups\" the first time each new version starts." };
         for (const char *t : NEWS) { ImGui::Bullet(); ImGui::TextWrapped("%s", t); }
         ImGui::Spacing();

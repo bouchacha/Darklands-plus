@@ -2387,165 +2387,161 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui_windows.cpp:171` | Right-click: the game's menu bar (save, load, orders in battle) |
 | `ui/ui_windows.cpp:172` | Alt+Enter: full screen   Ctrl+S: quick save   F9: quick load |
 | `ui/ui_windows.cpp:198` | New in Darklands+  |
-| `ui/ui_windows.cpp:201` | The Darklands+ window (F12) has fewer, clearer tabs: Journal, Settings, Reconstructed Content, Mods, Editor, Appendices, About. Settings lists its sections on the left. |
-| `ui/ui_windows.cpp:203` | The quests are on the world map (M), grouped by kind and nearest first, with windows to find alchemical ingredients and any ware. |
-| `ui/ui_windows.cpp:204` | Saving and loading happen in the game's own Save and Load screens, drawn anew, with their options there. |
-| `ui/ui_windows.cpp:205` | Improved combat: between your orders, shooters keep shooting, step aside for a clear line, and fight hand to hand to help a friend set upon; a member with no orders joins a fight beside it. Orders take one click (a member, then an enemy or a spot). The first battle explains it. |
-| `ui/ui_windows.cpp:207` | On a card, beside each chance: the head of who tries it, and what it rests on (skills, attributes, the town's opinion, fame). |
-| `ui/ui_windows.cpp:208` | Ironman: one save, kept by the game itself as you go, no loading back (F12 > Settings > Preset, for your next new game). |
-| `ui/ui_windows.cpp:209` | The whole soundtrack can be played in F12 > Settings > Sound, on the device you choose. |
-| `ui/ui_windows.cpp:210` | More screens drawn anew: the inn and the camp, the alchemist's desk, Party Info, the marching order (drag the members into place), enemy info. |
-| `ui/ui_windows.cpp:211` | City politics, cities at war and other things MicroProse wrote and never switched on, reconstructed by Darklands+ (experimental, all off until you tick them): F12 > Reconstructed Content. |
-| `ui/ui_windows.cpp:213` | A controller's buttons are shown on screen and can be changed: F12 > Settings > Controller. |
-| `ui/ui_windows.cpp:214` | Your saved games are copied into "Darklands+ save backups" the first time each new version starts. |
-| `ui/ui_windows.cpp:218` | Most changes can be switched off in F12 > Settings (the Full Original preset turns off all that changes the play). F11 lists the keys for the current screen. |
-| `ui/ui_windows.cpp:221` |   Back to the game   |
-| `ui/ui_windows.cpp:238` | Darklands sounds best on a Roland MT-32 |
-| `ui/ui_windows.cpp:239` | Darklands was written for the Roland MT-32, a synthesizer of 1987 (or its sibling the LAPC-I, a card inside the computer). Everything the game plays goes through it as notes, the battle sounds too. The game first loads instruments of its own into it, so the music comes out as composed, with flutes, strings and horns, and the battles sound like swords and shields... sort of: each blow is still a synthesizer playing a note. |
-| `ui/ui_windows.cpp:243` | Every other sound setting is a stand-in. The Sound Blaster, the usual sound card of the time, plays simpler versions of the music and rougher imitations of the battle sounds; an ordinary synthesizer, such as the one built into Windows, plays the wrong instruments altogether. |
-| `ui/ui_windows.cpp:247` | Darklands+ has an MT-32 built in (Munt's imitation of it). It only needs two files copied from a real one's memory, its ROM files: control and PCM, of an MT-32 or of the later CM-32L (either works and they sound much the same; with both, Darklands+ plays the MT-32). They are usually named MT32_CONTROL.ROM and MT32_PCM.ROM (CM32L_CONTROL.ROM and CM32L_PCM.ROM for a CM-32L); any names do, Darklands+ knows them by what is in them. They belong to Roland, so they cannot come with this download. If you play other games with Munt or DOSBox and an MT-32, you have them already: show Darklands+ the folder. |
-| `ui/ui_windows.cpp:261` | Choose the folder with the ROM files... |
-| `ui/ui_windows.cpp:263` | The folder with the MT-32 or CM-32L ROM files (control and PCM): |
-| `ui/ui_windows.cpp:265` | No MT-32 or CM-32L ROM files in that folder. |
-| `ui/ui_windows.cpp:273` | No ROM files found there yet. |
-| `ui/ui_windows.cpp:275` | Darklands+ also looks in Munt's ROM folder, DOSBox Staging's mt32-roms folder, and a "roms" folder in the Darklands+ folder or the game folder. |
-| `ui/ui_windows.cpp:280` | Restart with the MT-32 |
-| `ui/ui_windows.cpp:286` | F12 > Settings > Sound has all of this too. |
-| `ui/ui_windows.cpp:302` | Keys and clicks (F11) |
-| `ui/ui_windows.cpp:315` | Now: loading a game |
-| `ui/ui_windows.cpp:315` | Now: saving the game |
-| `ui/ui_windows.cpp:316` | Double-click a save |
-| `ui/ui_windows.cpp:316` | load it (or click it, then Load) |
-| `ui/ui_windows.cpp:316` | Up, Down, Enter |
-| `ui/ui_windows.cpp:316` | choose a save, load it |
-| `ui/ui_windows.cpp:317` | a name for the save (22 characters at most; Backspace deletes one) |
-| `ui/ui_windows.cpp:317` | Enter or Save |
-| `ui/ui_windows.cpp:318` | Esc or Cancel |
-| `ui/ui_windows.cpp:318` | back to the game as it was |
-| `ui/ui_windows.cpp:320` | Now: a stay at the inn |
-| `ui/ui_windows.cpp:321` | A member, or 1 ... 5 |
-| `ui/ui_windows.cpp:321` | choose the member whose day you are planning |
-| `ui/ui_windows.cpp:322` | J R P A E G T |
-| `ui/ui_windows.cpp:322` | Regain Endurance (Just Relax), Regain Strength, Pray, Alchemy work, Earn a little money, Guard the camp, Train or study (the original's keys) |
-| `ui/ui_windows.cpp:323` | one day passes; A week: seven days; Until rested: members short of Strength who only relax switch to Regain Strength, then days pass until nobody is regaining Strength or praying |
-| `ui/ui_windows.cpp:324` | L, Esc or Leave |
-| `ui/ui_windows.cpp:327` | Click an option |
-| `ui/ui_windows.cpp:327` | or press its number, 1 to 9 |
-| `ui/ui_windows.cpp:328` | Hold Shift over an option |
-| `ui/ui_windows.cpp:328` | the chance of success as the original game shows it (Darklands+'s badges show every option's chance) |
-| `ui/ui_windows.cpp:329` | go to a place in this city (Darklands+) |
-| `ui/ui_windows.cpp:330` | the world map (Darklands+) |
-| `ui/ui_windows.cpp:331` | (in the right margin) what this town has that most towns lack, and its notable shops: point at one to see what it offers |
-| `ui/ui_windows.cpp:333` | Now: the overland view |
-| `ui/ui_windows.cpp:334` | walk towards that spot |
-| `ui/ui_windows.cpp:335` | travel there along the roads (Darklands+; any key or click stops) |
-| `ui/ui_windows.cpp:336` | the world map (Darklands+): find a place, double-click to travel there |
-| `ui/ui_windows.cpp:337` | Point at a quest's icon |
-| `ui/ui_windows.cpp:337` | the quest that leads there (a portcullis or a pillory beside a town: the town bars the party, or its watch wants the party) |
-| `ui/ui_windows.cpp:338` | A quest in the left margin |
-| `ui/ui_windows.cpp:338` | click to open it, then Travel there |
-| `ui/ui_windows.cpp:339` | (in the right margin, near a town) what that town has that most towns lack, and its notable shops (point at one to see what it offers) |
-| `ui/ui_windows.cpp:341` | Now: a battle |
-| `ui/ui_windows.cpp:342` | pause / resume; orders can be given while paused |
-| `ui/ui_windows.cpp:344` | Click a member |
-| `ui/ui_windows.cpp:344` | then click an enemy (attack) or a spot (walk there): that click gives the order |
-| `ui/ui_windows.cpp:345` | select a member; Esc: cancel the order being given |
-| `ui/ui_windows.cpp:348` | The buttons at the foot of the field |
-| `ui/ui_windows.cpp:348` | the selected member's orders, each in the same place for everyone, its key on it (an order not open to them dimmed); their potions and things to use just above. For a member already fighting, an attack is given against that enemy at once. Fast forward and Resume stand at the top of the right margin |
-| `ui/ui_windows.cpp:350` | Click a member |
-| `ui/ui_windows.cpp:350` | then click an enemy, a spot or a menu choice; Enter gives the order |
-| `ui/ui_windows.cpp:351` | Ctrl+click a member |
-| `ui/ui_windows.cpp:351` | make that member the active one: the view follows them (scrolling at an edge stops it) |
-| `ui/ui_windows.cpp:352` | Point at anyone |
-| `ui/ui_windows.cpp:352` | who it is and how badly hurt |
-| `ui/ui_windows.cpp:353` | a map of the level as far as the party has seen it; a click on its floor walks the party there (Darklands+) |
-| `ui/ui_windows.cpp:354` | Click a door |
-| `ui/ui_windows.cpp:354` | out of a fight: the party walks to it and opens it, or closes it (Darklands+) |
-| `ui/ui_windows.cpp:356` | The battle log |
-| `ui/ui_windows.cpp:356` | every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal > Battle log keeps it all |
-| `ui/ui_windows.cpp:358` | Now: the loot |
-| `ui/ui_windows.cpp:359` | Take / Put back |
-| `ui/ui_windows.cpp:359` | on the row under the pointer: the whole stack (1: just one) |
-| `ui/ui_windows.cpp:360` | everything into the party's pack |
-| `ui/ui_windows.cpp:360` | go to the member shown above the right list (each member's own); the rest into the party's pack |
-| `ui/ui_windows.cpp:361` | Take all / Share out |
-| `ui/ui_windows.cpp:361` | everything to the member shown / to whoever has some already, else whoever has the most room (A / S) |
-| `ui/ui_windows.cpp:362` | Names above the right list, D |
-| `ui/ui_windows.cpp:362` | switch to another member |
-| `ui/ui_windows.cpp:363` | L, Esc or Leave |
-| `ui/ui_windows.cpp:363` | leave (what is left stays behind) |
-| `ui/ui_windows.cpp:365` | Now: the loot |
-| `ui/ui_windows.cpp:366` | get the chosen item from the pile / put one back (the cursor's list) |
-| `ui/ui_windows.cpp:367` | switch to the next member (the one who gets what you take) |
-| `ui/ui_windows.cpp:368` | take the whole pile for the member shown |
-| `ui/ui_windows.cpp:368` | share the pile out: each item to whoever has some already, else whoever has the most room |
-| `ui/ui_windows.cpp:369` | leave (what is left stays behind) |
-| `ui/ui_windows.cpp:372` | on the row under the pointer; with Shift: ten / the whole stack |
-| `ui/ui_windows.cpp:373` | Names above your list |
-| `ui/ui_windows.cpp:373` | whose items are listed (B: the next member); right-click a name: that member holds the purse |
-| `ui/ui_windows.cpp:374` | Wheel, Up, Down |
-| `ui/ui_windows.cpp:374` | scroll the list under the pointer |
-| `ui/ui_windows.cpp:375` | L, Esc or Leave |
-| `ui/ui_windows.cpp:378` | buy the merchant's chosen item / sell your chosen item (one at a time) |
-| `ui/ui_windows.cpp:379` | buy ten of the merchant's chosen item (while the money lasts) |
-| `ui/ui_windows.cpp:379` | sell the whole stack of your chosen item |
-| `ui/ui_windows.cpp:380` | barter for the next member |
-| `ui/ui_windows.cpp:383` | Now: the store room |
-| `ui/ui_windows.cpp:384` | on the row under the pointer: the whole stack (1: just one) |
-| `ui/ui_windows.cpp:385` | every item not equipped (with the party's pack, Darklands+: except kept items and potions) |
-| `ui/ui_windows.cpp:386` | a potion taken goes to the member shown above the right list; the rest into the party's pack |
-| `ui/ui_windows.cpp:387` | The store room |
-| `ui/ui_windows.cpp:387` | the same at every inn (Darklands+; F12 > Settings > New screens) |
-| `ui/ui_windows.cpp:388` | L, Esc or Leave |
-| `ui/ui_windows.cpp:390` | Now: a character sheet |
-| `ui/ui_windows.cpp:391` | Equip / Unequip / Drink / Keep / Drop |
-| `ui/ui_windows.cpp:391` | on the row under the pointer on the Items page: with the shared pack (Darklands+) the spare items are in the party's pack, and Equip moves the item from the pack to this member and equips it (Drop with Shift: all of them) |
-| `ui/ui_windows.cpp:392` | each member's own: drag one onto someone at the left to give it |
-| `ui/ui_windows.cpp:393` | marks an item never to be sold or dropped (a small seal on its row) |
-| `ui/ui_windows.cpp:394` | only equipped items count toward the load, as in the original |
-| `ui/ui_windows.cpp:395` | Equip / Unequip / Drink / Give / Drop |
-| `ui/ui_windows.cpp:395` | on the row under the pointer on the Items page (Give and Drop with Shift: the whole stack) |
-| `ui/ui_windows.cpp:396` | Items, Skills, Saints, Formulae |
-| `ui/ui_windows.cpp:396` | the pages at the top (Tab or Right: next page; Shift+Tab or Left: previous page) |
-| `ui/ui_windows.cpp:397` | Portraits, F1 ... F5 |
-| `ui/ui_windows.cpp:397` | another member's sheet; this member's own portrait, Esc or Close: back |
-| `ui/ui_windows.cpp:398` | Ctrl+F1 ... Ctrl+F5 |
-| `ui/ui_windows.cpp:398` | make member 1 ... 5 the leader (or Make leader) |
-| `ui/ui_windows.cpp:399` | Wheel, Up, Down |
-| `ui/ui_windows.cpp:399` | scroll the list |
-| `ui/ui_windows.cpp:401` | Now: a character sheet |
-| `ui/ui_windows.cpp:402` | Ctrl+F1 ... Ctrl+F5 |
-| `ui/ui_windows.cpp:402` | make member 1 ... 5 the leader (or Make leader at the top) |
-| `ui/ui_windows.cpp:403` | Up, Down, PgUp, PgDn |
-| `ui/ui_windows.cpp:403` | move in a list (the mouse wheel too) |
-| `ui/ui_windows.cpp:404` | in the equipment list: give the chosen item to member 1 ... 5 (with Shift: all of them) |
-| `ui/ui_windows.cpp:405` | in the equipment list: ready or wear the chosen item |
-| `ui/ui_windows.cpp:406` | in the equipment list: drop the chosen item (with Shift: all of them) |
-| `ui/ui_windows.cpp:408` | Keys of the original game |
-| `ui/ui_windows.cpp:409` | the menu bar: click an entry (or hold the button and let go on it); a click elsewhere or any key closes it; F10 with the keyboard |
-| `ui/ui_windows.cpp:410` | Right mouse button |
-| `ui/ui_windows.cpp:410` | the menu bar, while it is held: let go on an entry (F10 with the keyboard) |
-| `ui/ui_windows.cpp:411` | Alt+S / Alt+L |
-| `ui/ui_windows.cpp:411` | save / load, with a comment (the original's screens list nine saves) |
-| `ui/ui_windows.cpp:412` | the marching order |
-| `ui/ui_windows.cpp:413` | difficulty    Alt+M music    Alt+F sound effects |
-| `ui/ui_windows.cpp:414` | messages about saints' changes on / off |
-| `ui/ui_windows.cpp:416` | quit to the desktop |
-| `ui/ui_windows.cpp:418` | the Darklands+ window (pauses the game) |
-| `ui/ui_windows.cpp:419` | Ctrl+S / F9 or Ctrl+L |
-| `ui/ui_windows.cpp:419` | quick save / quick load |
-| `ui/ui_windows.cpp:420` | full screen    Ctrl+F12 screenshot |
-| `ui/ui_windows.cpp:423` | The controller |
-| `ui/ui_windows.cpp:429` | moves the pointer (slowly while the left trigger is held) |
-| `ui/ui_windows.cpp:430` | the mouse wheel; pressed: Z (fast forward in a battle) |
-| `ui/ui_windows.cpp:431` | click / right-click (the menu bar) |
-| `ui/ui_windows.cpp:433` | the arrow keys |
-| `ui/ui_windows.cpp:434` | Tab (the level map) / Space (pause) |
-| `ui/ui_windows.cpp:435` | {START} {BACK} |
-| `ui/ui_windows.cpp:435` | F12 (the Darklands+ window) / M (the world map) |
-| `ui/ui_windows.cpp:436` | held: Ctrl (in the overland view: Ctrl+click travels there) |
-| `ui/ui_windows.cpp:437` | pressed: F11 (this list) |
-| `ui/ui_windows.cpp:439` | F11, Esc or a click closes this. |
+| `ui/ui_windows.cpp:201` | Ways of fighting: each member has one (Skirmisher, Archer, Charger or Manual), chosen on their box in the party panel. It sets what they do between your orders. |
+| `ui/ui_windows.cpp:203` | 64 new encounters, 80 in all: in the wild, on the river boats, in the towns' streets and in camp, each with what came of your choice (F12 > Mods). |
+| `ui/ui_windows.cpp:204` | The level map (Tab) keeps what the party has seen. A click anywhere seen walks the party there, a click on a floor walks to its stairs. In a castle, mine or dungeon, a click on a door walks to it and opens it. |
+| `ui/ui_windows.cpp:206` | Ingredients are all of one quality, so one kind is one stack (F12 > Settings > The party and its items). |
+| `ui/ui_windows.cpp:207` | Report a problem (F12 > About) packs what a bug report needs and opens the GitHub form. |
+| `ui/ui_windows.cpp:208` | Alchemy charts the chance for each number of batches; saints can be picked by what they raise; the world map's Find... looks up places, ingredients and wares. |
+| `ui/ui_windows.cpp:209` | Your saved games are copied into "Darklands+ save backups" the first time each new version starts. |
+| `ui/ui_windows.cpp:213` | Most changes can be switched off in F12 > Settings (the Full Original preset turns off all that changes the play). F11 lists the keys for the current screen. |
+| `ui/ui_windows.cpp:216` |   Back to the game   |
+| `ui/ui_windows.cpp:233` | Darklands sounds best on a Roland MT-32 |
+| `ui/ui_windows.cpp:234` | Darklands was written for the Roland MT-32, a synthesizer of 1987 (or its sibling the LAPC-I, a card inside the computer). Everything the game plays goes through it as notes, the battle sounds too. The game first loads instruments of its own into it, so the music comes out as composed, with flutes, strings and horns, and the battles sound like swords and shields... sort of: each blow is still a synthesizer playing a note. |
+| `ui/ui_windows.cpp:238` | Every other sound setting is a stand-in. The Sound Blaster, the usual sound card of the time, plays simpler versions of the music and rougher imitations of the battle sounds; an ordinary synthesizer, such as the one built into Windows, plays the wrong instruments altogether. |
+| `ui/ui_windows.cpp:242` | Darklands+ has an MT-32 built in (Munt's imitation of it). It only needs two files copied from a real one's memory, its ROM files: control and PCM, of an MT-32 or of the later CM-32L (either works and they sound much the same; with both, Darklands+ plays the MT-32). They are usually named MT32_CONTROL.ROM and MT32_PCM.ROM (CM32L_CONTROL.ROM and CM32L_PCM.ROM for a CM-32L); any names do, Darklands+ knows them by what is in them. They belong to Roland, so they cannot come with this download. If you play other games with Munt or DOSBox and an MT-32, you have them already: show Darklands+ the folder. |
+| `ui/ui_windows.cpp:256` | Choose the folder with the ROM files... |
+| `ui/ui_windows.cpp:258` | The folder with the MT-32 or CM-32L ROM files (control and PCM): |
+| `ui/ui_windows.cpp:260` | No MT-32 or CM-32L ROM files in that folder. |
+| `ui/ui_windows.cpp:268` | No ROM files found there yet. |
+| `ui/ui_windows.cpp:270` | Darklands+ also looks in Munt's ROM folder, DOSBox Staging's mt32-roms folder, and a "roms" folder in the Darklands+ folder or the game folder. |
+| `ui/ui_windows.cpp:275` | Restart with the MT-32 |
+| `ui/ui_windows.cpp:281` | F12 > Settings > Sound has all of this too. |
+| `ui/ui_windows.cpp:297` | Keys and clicks (F11) |
+| `ui/ui_windows.cpp:310` | Now: loading a game |
+| `ui/ui_windows.cpp:310` | Now: saving the game |
+| `ui/ui_windows.cpp:311` | Double-click a save |
+| `ui/ui_windows.cpp:311` | load it (or click it, then Load) |
+| `ui/ui_windows.cpp:311` | Up, Down, Enter |
+| `ui/ui_windows.cpp:311` | choose a save, load it |
+| `ui/ui_windows.cpp:312` | a name for the save (22 characters at most; Backspace deletes one) |
+| `ui/ui_windows.cpp:312` | Enter or Save |
+| `ui/ui_windows.cpp:313` | Esc or Cancel |
+| `ui/ui_windows.cpp:313` | back to the game as it was |
+| `ui/ui_windows.cpp:315` | Now: a stay at the inn |
+| `ui/ui_windows.cpp:316` | A member, or 1 ... 5 |
+| `ui/ui_windows.cpp:316` | choose the member whose day you are planning |
+| `ui/ui_windows.cpp:317` | J R P A E G T |
+| `ui/ui_windows.cpp:317` | Regain Endurance (Just Relax), Regain Strength, Pray, Alchemy work, Earn a little money, Guard the camp, Train or study (the original's keys) |
+| `ui/ui_windows.cpp:318` | one day passes; A week: seven days; Until rested: members short of Strength who only relax switch to Regain Strength, then days pass until nobody is regaining Strength or praying |
+| `ui/ui_windows.cpp:319` | L, Esc or Leave |
+| `ui/ui_windows.cpp:322` | Click an option |
+| `ui/ui_windows.cpp:322` | or press its number, 1 to 9 |
+| `ui/ui_windows.cpp:323` | Hold Shift over an option |
+| `ui/ui_windows.cpp:323` | the chance of success as the original game shows it (Darklands+'s badges show every option's chance) |
+| `ui/ui_windows.cpp:324` | go to a place in this city (Darklands+) |
+| `ui/ui_windows.cpp:325` | the world map (Darklands+) |
+| `ui/ui_windows.cpp:326` | (in the right margin) what this town has that most towns lack, and its notable shops: point at one to see what it offers |
+| `ui/ui_windows.cpp:328` | Now: the overland view |
+| `ui/ui_windows.cpp:329` | walk towards that spot |
+| `ui/ui_windows.cpp:330` | travel there along the roads (Darklands+; any key or click stops) |
+| `ui/ui_windows.cpp:331` | the world map (Darklands+): find a place, double-click to travel there |
+| `ui/ui_windows.cpp:332` | Point at a quest's icon |
+| `ui/ui_windows.cpp:332` | the quest that leads there (a portcullis or a pillory beside a town: the town bars the party, or its watch wants the party) |
+| `ui/ui_windows.cpp:333` | A quest in the left margin |
+| `ui/ui_windows.cpp:333` | click to open it, then Travel there |
+| `ui/ui_windows.cpp:334` | (in the right margin, near a town) what that town has that most towns lack, and its notable shops (point at one to see what it offers) |
+| `ui/ui_windows.cpp:336` | Now: a battle |
+| `ui/ui_windows.cpp:337` | pause / resume; orders can be given while paused |
+| `ui/ui_windows.cpp:339` | Click a member |
+| `ui/ui_windows.cpp:339` | then click an enemy (attack) or a spot (walk there): that click gives the order |
+| `ui/ui_windows.cpp:340` | select a member; Esc: cancel the order being given |
+| `ui/ui_windows.cpp:343` | The buttons at the foot of the field |
+| `ui/ui_windows.cpp:343` | the selected member's orders, each in the same place for everyone, its key on it (an order not open to them dimmed); their potions and things to use just above. For a member already fighting, an attack is given against that enemy at once. Fast forward and Resume stand at the top of the right margin |
+| `ui/ui_windows.cpp:345` | Click a member |
+| `ui/ui_windows.cpp:345` | then click an enemy, a spot or a menu choice; Enter gives the order |
+| `ui/ui_windows.cpp:346` | Ctrl+click a member |
+| `ui/ui_windows.cpp:346` | make that member the active one: the view follows them (scrolling at an edge stops it) |
+| `ui/ui_windows.cpp:347` | Point at anyone |
+| `ui/ui_windows.cpp:347` | who it is and how badly hurt |
+| `ui/ui_windows.cpp:348` | a map of the level as far as the party has seen it; a click on its floor walks the party there (Darklands+) |
+| `ui/ui_windows.cpp:349` | Click a door |
+| `ui/ui_windows.cpp:349` | out of a fight: the party walks to it and opens it, or closes it (Darklands+) |
+| `ui/ui_windows.cpp:351` | The battle log |
+| `ui/ui_windows.cpp:351` | every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal > Battle log keeps it all |
+| `ui/ui_windows.cpp:353` | Now: the loot |
+| `ui/ui_windows.cpp:354` | Take / Put back |
+| `ui/ui_windows.cpp:354` | on the row under the pointer: the whole stack (1: just one) |
+| `ui/ui_windows.cpp:355` | everything into the party's pack |
+| `ui/ui_windows.cpp:355` | go to the member shown above the right list (each member's own); the rest into the party's pack |
+| `ui/ui_windows.cpp:356` | Take all / Share out |
+| `ui/ui_windows.cpp:356` | everything to the member shown / to whoever has some already, else whoever has the most room (A / S) |
+| `ui/ui_windows.cpp:357` | Names above the right list, D |
+| `ui/ui_windows.cpp:357` | switch to another member |
+| `ui/ui_windows.cpp:358` | L, Esc or Leave |
+| `ui/ui_windows.cpp:358` | leave (what is left stays behind) |
+| `ui/ui_windows.cpp:360` | Now: the loot |
+| `ui/ui_windows.cpp:361` | get the chosen item from the pile / put one back (the cursor's list) |
+| `ui/ui_windows.cpp:362` | switch to the next member (the one who gets what you take) |
+| `ui/ui_windows.cpp:363` | take the whole pile for the member shown |
+| `ui/ui_windows.cpp:363` | share the pile out: each item to whoever has some already, else whoever has the most room |
+| `ui/ui_windows.cpp:364` | leave (what is left stays behind) |
+| `ui/ui_windows.cpp:367` | on the row under the pointer; with Shift: ten / the whole stack |
+| `ui/ui_windows.cpp:368` | Names above your list |
+| `ui/ui_windows.cpp:368` | whose items are listed (B: the next member); right-click a name: that member holds the purse |
+| `ui/ui_windows.cpp:369` | Wheel, Up, Down |
+| `ui/ui_windows.cpp:369` | scroll the list under the pointer |
+| `ui/ui_windows.cpp:370` | L, Esc or Leave |
+| `ui/ui_windows.cpp:373` | buy the merchant's chosen item / sell your chosen item (one at a time) |
+| `ui/ui_windows.cpp:374` | buy ten of the merchant's chosen item (while the money lasts) |
+| `ui/ui_windows.cpp:374` | sell the whole stack of your chosen item |
+| `ui/ui_windows.cpp:375` | barter for the next member |
+| `ui/ui_windows.cpp:378` | Now: the store room |
+| `ui/ui_windows.cpp:379` | on the row under the pointer: the whole stack (1: just one) |
+| `ui/ui_windows.cpp:380` | every item not equipped (with the party's pack, Darklands+: except kept items and potions) |
+| `ui/ui_windows.cpp:381` | a potion taken goes to the member shown above the right list; the rest into the party's pack |
+| `ui/ui_windows.cpp:382` | The store room |
+| `ui/ui_windows.cpp:382` | the same at every inn (Darklands+; F12 > Settings > New screens) |
+| `ui/ui_windows.cpp:383` | L, Esc or Leave |
+| `ui/ui_windows.cpp:385` | Now: a character sheet |
+| `ui/ui_windows.cpp:386` | Equip / Unequip / Drink / Keep / Drop |
+| `ui/ui_windows.cpp:386` | on the row under the pointer on the Items page: with the shared pack (Darklands+) the spare items are in the party's pack, and Equip moves the item from the pack to this member and equips it (Drop with Shift: all of them) |
+| `ui/ui_windows.cpp:387` | each member's own: drag one onto someone at the left to give it |
+| `ui/ui_windows.cpp:388` | marks an item never to be sold or dropped (a small seal on its row) |
+| `ui/ui_windows.cpp:389` | only equipped items count toward the load, as in the original |
+| `ui/ui_windows.cpp:390` | Equip / Unequip / Drink / Give / Drop |
+| `ui/ui_windows.cpp:390` | on the row under the pointer on the Items page (Give and Drop with Shift: the whole stack) |
+| `ui/ui_windows.cpp:391` | Items, Skills, Saints, Formulae |
+| `ui/ui_windows.cpp:391` | the pages at the top (Tab or Right: next page; Shift+Tab or Left: previous page) |
+| `ui/ui_windows.cpp:392` | Portraits, F1 ... F5 |
+| `ui/ui_windows.cpp:392` | another member's sheet; this member's own portrait, Esc or Close: back |
+| `ui/ui_windows.cpp:393` | Ctrl+F1 ... Ctrl+F5 |
+| `ui/ui_windows.cpp:393` | make member 1 ... 5 the leader (or Make leader) |
+| `ui/ui_windows.cpp:394` | Wheel, Up, Down |
+| `ui/ui_windows.cpp:394` | scroll the list |
+| `ui/ui_windows.cpp:396` | Now: a character sheet |
+| `ui/ui_windows.cpp:397` | Ctrl+F1 ... Ctrl+F5 |
+| `ui/ui_windows.cpp:397` | make member 1 ... 5 the leader (or Make leader at the top) |
+| `ui/ui_windows.cpp:398` | Up, Down, PgUp, PgDn |
+| `ui/ui_windows.cpp:398` | move in a list (the mouse wheel too) |
+| `ui/ui_windows.cpp:399` | in the equipment list: give the chosen item to member 1 ... 5 (with Shift: all of them) |
+| `ui/ui_windows.cpp:400` | in the equipment list: ready or wear the chosen item |
+| `ui/ui_windows.cpp:401` | in the equipment list: drop the chosen item (with Shift: all of them) |
+| `ui/ui_windows.cpp:403` | Keys of the original game |
+| `ui/ui_windows.cpp:404` | the menu bar: click an entry (or hold the button and let go on it); a click elsewhere or any key closes it; F10 with the keyboard |
+| `ui/ui_windows.cpp:405` | Right mouse button |
+| `ui/ui_windows.cpp:405` | the menu bar, while it is held: let go on an entry (F10 with the keyboard) |
+| `ui/ui_windows.cpp:406` | Alt+S / Alt+L |
+| `ui/ui_windows.cpp:406` | save / load, with a comment (the original's screens list nine saves) |
+| `ui/ui_windows.cpp:407` | the marching order |
+| `ui/ui_windows.cpp:408` | difficulty    Alt+M music    Alt+F sound effects |
+| `ui/ui_windows.cpp:409` | messages about saints' changes on / off |
+| `ui/ui_windows.cpp:411` | quit to the desktop |
+| `ui/ui_windows.cpp:413` | the Darklands+ window (pauses the game) |
+| `ui/ui_windows.cpp:414` | Ctrl+S / F9 or Ctrl+L |
+| `ui/ui_windows.cpp:414` | quick save / quick load |
+| `ui/ui_windows.cpp:415` | full screen    Ctrl+F12 screenshot |
+| `ui/ui_windows.cpp:418` | The controller |
+| `ui/ui_windows.cpp:424` | moves the pointer (slowly while the left trigger is held) |
+| `ui/ui_windows.cpp:425` | the mouse wheel; pressed: Z (fast forward in a battle) |
+| `ui/ui_windows.cpp:426` | click / right-click (the menu bar) |
+| `ui/ui_windows.cpp:428` | the arrow keys |
+| `ui/ui_windows.cpp:429` | Tab (the level map) / Space (pause) |
+| `ui/ui_windows.cpp:430` | {START} {BACK} |
+| `ui/ui_windows.cpp:430` | F12 (the Darklands+ window) / M (the world map) |
+| `ui/ui_windows.cpp:431` | held: Ctrl (in the overland view: Ctrl+click travels there) |
+| `ui/ui_windows.cpp:432` | pressed: F11 (this list) |
+| `ui/ui_windows.cpp:434` | F11, Esc or a click closes this. |
 | `ui/worldmap.cpp:74` | Unwelcome here |
 | `ui/worldmap.cpp:74` | The watch on alert here |
 | `ui/worldmap.cpp:74` | Wanted by the watch here |

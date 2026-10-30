@@ -152,7 +152,7 @@ def main():
     # the changelog's newest section and the release notes' "New in" section: the same text
     ch = texts[2][1]                     # (the newest released version: the release notes are the download's)
     rn = rd('docs/release_notes.md')
-    a = rn.find('**New in '); b = rn.find('**New in ', a + 1)
+    a = rn.find('**New in '); b = min((k for k in (rn.find('**New in ', a + 1), rn.find('\n### ', a)) if k > 0), default=-1)   # (to the next version's block or the next heading)
     def body(s):
         lines = [l.rstrip() for l in s.splitlines() if l.strip()]
         k = next((i for i, l in enumerate(lines) if l.startswith('**') and not l.startswith('**New in')), len(lines))
