@@ -240,7 +240,7 @@ menu comes back unless its actions went elsewhere.
 
 | | |
 |---|---|
-| members | `leader`, `party`, `who`, `chosen`, `bestskill(K)`, `worstskill(K)`, `bestattr(K)`, `worstattr(K)`, `bestskill2(K1, K2)`, `bestskillsum(K1, K2)`, `bestattrsum(A1, A2)`, `bestattrskill(A, K)`, `spotter` (best Perception + Woodwise), `slowest` (the slowest with their load) |
+| members | `leader`, `party`, `who`, `chosen`, `bestskill(K)`, `worstskill(K)`, `bestattr(K)`, `worstattr(K)` (with a member as a second value, `bestskill(Healing, chosen)`: the same among the others), `bestskill2(K1, K2)`, `bestskillsum(K1, K2)`, `bestattrsum(A1, A2)`, `bestattrskill(A, K)`, `spotter` (best Perception + Woodwise), `slowest` (the slowest with their load) |
 | one member | `skill(W, K)`, `attr(W, K)`, `attrmax(W, K)`, `able(W)`, `has(W, CODE)`, `count(W, CODE)`, `quality(W, CODE)` (`has(party, CODE)`: anyone) |
 | the party | `wounds(ATTR)` (what the members present have lost of it, together), `standing` (the reputation here, or in the nearest town), `maxskill(K)`, `minskill(K)`, `avgskill(K)`, `maxattr(K)`, `minattr(K)`, `avgattr(K)`, `maxskill2(K1, K2)`, `maxskillsum(K1, K2)`, `maxattrsum`, `maxattrskill`, `spotvalue`, `avgagility`, `minagility` (agility with the load), `slowspeed`, `lore` (1-10, the game's measure of the party's strength), `fame`, `money` (pfennigs), `size` (members present), `members`, `women`, `mounted` |
 | the world | `daylight`, `night`, `hour`, `day` (1-31), `month` (1-12), `year`, `terrain`, `difficulty`, `event(K)` |

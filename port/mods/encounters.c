@@ -600,6 +600,22 @@ static long party_query2(P *p, u16 fn, int a, int b, int member)
     return member ? m : v;
 }
 
+/* bestskill(K, W) and the like: the member present who has the most (least) of it but W, so that
+   the healer is not the one bitten (W itself when it is alone); a tie goes to the first */
+static long best_but(P *p, const char *f, int k, int but)
+{
+    if (p->dry) return 0;
+    int skill = strstr(f, "skill") != 0, best = f[0] == 'b', w = resolve_who(but), pick = -1;
+    if (k < 0 || k > (skill ? 18 : 6)) { perr(p, "%s: %s out of range", f, skill ? "a skill" : "an attribute"); return 0; }
+    long pv = 0;
+    for (int m = 0; m < 5; m++) {
+        if (m == w || member_status(m) != 1) continue;
+        long v = skill ? g_skill(m, k) : g_attr(m, k);
+        if (pick < 0 || (best ? v > pv : v < pv)) { pick = m; pv = v; }
+    }
+    return pick >= 0 ? pick : w >= 0 && w < 5 ? w : leader();
+}
+
 static int value_of(P *p, const char *n, long *v)
 {
     int i;
@@ -662,7 +678,11 @@ static long call_fn(P *p, const char *f, const long *a, int n)
         { "maxattr", 0x16fe, 0 }, { "minattr", 0x164a, 0 }, { "avgattr", 0x1800, 0 },
         { "bestskill", 0x14a4, 1 }, { "worstskill", 0x1396, 1 }, { "bestattr", 0x16fe, 1 }, { "worstattr", 0x164a, 1 } };
     for (int i = 0; i < (int)(sizeof PQ / sizeof PQ[0]); i++)
-        if (!strcasecmp(f, PQ[i].n)) { if (!nargs_ok(p, f, n, 1, 1)) return 0; return party_query(p, PQ[i].fn, (int)a[0], PQ[i].member); }
+        if (!strcasecmp(f, PQ[i].n)) {
+            if (!nargs_ok(p, f, n, 1, PQ[i].member ? 2 : 1)) return 0;
+            if (n == 2) return best_but(p, f, (int)a[0], (int)a[1]);
+            return party_query(p, PQ[i].fn, (int)a[0], PQ[i].member);
+        }
     static const struct { const char *n; u16 fn; int member; } PQ2[] = {
         { "maxskill2", 0x153a, 0 }, { "bestskill2", 0x153a, 1 }, { "maxskillsum", 0x15a2, 0 }, { "bestskillsum", 0x15a2, 1 },
         { "maxattrsum", 0x179c, 0 }, { "bestattrsum", 0x179c, 1 }, { "maxattrskill", 0x184a, 0 }, { "bestattrskill", 0x184a, 1 } };
