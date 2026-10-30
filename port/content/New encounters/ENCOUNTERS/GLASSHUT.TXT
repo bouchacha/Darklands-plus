@@ -1,0 +1,36 @@
+# The glass-makers' hut: forest glassblowers who make only green glass, and the secret of clear glass.
+name     The glass-makers' hut
+card     $NfGls00
+picture  XBSMOKE
+where    wild
+terrain  forest woods pinewood
+when     day
+weight   1
+vars     mh                                # who carries Manganes (-1: no one)
+
+[start]
+do       set mh = -1
+         if able(0) then { if has(0, 0x49) then set mh = 0 }
+         if mh < 0 and able(1) then { if has(1, 0x49) then set mh = 1 }
+         if mh < 0 and able(2) then { if has(2, 0x49) then set mh = 2 }
+         if mh < 0 and able(3) then { if has(3, 0x49) then set mh = 3 }
+         if mh < 0 and able(4) then { if has(4, 0x49) then set mh = 4 }
+block    0
+chosen   bestskill(Alchemy)
+option 0                                   # tell him the alchemists' secret (Alchemy, Intelligence)
+  who    bestskill(Alchemy)
+  chance clamp(5, 90, skill(who, Alchemy) + attr(who, Int) / 3 - 10)
+  ok     chosen who; money1 36 + random(36); text 1; gain money1; practice who, Alchemy, 1, 10, 0; hours 3; exit
+  fail   chosen who; text 2; practice who, Alchemy, 0, 10, 0; hours 2; exit
+option 1                                   # give him your Manganes
+  need   mh >= 0
+  chance none
+  ok     chosen mh; itemname 0x49; money1 72 + random(48); text 3; takeitem mh, 0x49; gain money1; hours 1; exit
+option 2                                   # try the glassblower's pipe (Artifice, Agility)
+  who    bestskill(Artifice)
+  chance clamp(5, 90, skill(who, Artifice) + attr(who, Agl) / 3 - 10)
+  ok     chosen who; itemname 0x3d; text 4; additem who, 0x3d; practice who, Artifice, 1, 10, 0; hours 2; exit
+  fail   chosen who; text 5; injure who, 1, 1, 5; practice who, Artifice, 0, 10, 0; hours 1; exit
+option 3                                   # go on
+  chance none
+  ok     text 6; exit

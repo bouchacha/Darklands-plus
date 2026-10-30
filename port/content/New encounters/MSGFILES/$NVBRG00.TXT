@@ -1,0 +1,36 @@
+# $NVBRG00: the low bridge (New encounters)
+=== card 0: 10 10 0 240 0 ===
+The spring rains in the hills have filled the river to the brim of its banks, and the current runs fast and brown. Ahead, a town's old stone bridge spans it on seven arches, with a little chapel of St. Nicholas perched in the middle. At this water the arches have shrunk to half their height, and the mast will never go under.
+\14"Down with the mast, or wait for the river to fall," says the captain. From the parapet the bridge-ward's men call down an offer to warp you through on ropes, for $Money1.
+\14You...
+\14\15...\1dhelp the boatmen unstep the mast.
+\15...\1dpay the bridge-ward's men.
+\15...\1dtie up at the bank and wait for the water to fall.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName knocks out the wedges, rigs a tackle from the bow and talks the boatmen through it, and the mast comes down into its crutch as sweetly as a drawbridge. You shoot the arch flat on your backs, the wet stones hissing past a hand's breadth from your noses, and the townsfolk on the bridge cheer you through.
+=== card 2: 10 10 0 240 0 ===
+The mast jams halfway out of its step, swings, and catches $ChosenOneName a blow across the shoulders. Before anyone can free it, the current has carried the boat into the arch.
+=== card 3: 10 10 0 240 0 ===
+The ward's men let down ropes and two of their own, who know the arch. Between them they lay the mast along the deck and, with much shouting and no haste at all, warp the boat through, scraping the stones. They take their money in a bucket let down on a cord.
+=== card 4: 10 10 0 240 0 ===
+You tie up under a willow and wait. The river takes its time: a day, then another, while you sleep, eat the captain's bacon and watch drowned sheep go by. At last the water falls, and you pass under the bridge with room to spare, well rested.
+=== card 5: 10 10 0 240 0 ===
+With a crack of timber the boat jams fast under the arch, and the river, piling up white against her stern, begins to pour over the gunwale. She will be pushed under in minutes. Faces crowd the parapet above you.
+\14"Down!" bellows the captain. "She must sit lower! One hand's breadth, and she goes through!"
+\14You...
+\14\15...\1dbrace your backs against the vault and push her down.
+\15...\1dcall the townsfolk down into the boat to weigh her down.
+\16...\1dpray to St. Nicholas in his chapel above you.
+=== card 6: 10 10 0 240 0 ===
+You brace your backs against the dripping stones and push, every one of you, until the veins stand out on your foreheads. With a groan the boat sinks a finger's breadth, then a hand's, and shoots out below the bridge in a burst of foam.
+=== card 7: 10 10 0 240 0 ===
+You push until your backs crack, but she will not go down. Water floods over the stern, and she is half sunk before the townsfolk get a rope to her and drag her back out of the arch. Some of $ChosenOneName's baggage goes downstream with the flood, and it takes hours to bail her out and try again with the mast down.
+=== card 8: 10 10 0 240 0 ===
+$ChosenTwoName shouts up to the parapet, and something in the voice makes them do it: a butcher, two apprentices, a fat friar and half a dozen goodwives climb down the piers and drop onto the deck. The boat sinks a hand's breadth, scrapes the keystone and shoots out below the bridge to a great cheer.
+\14They all want beer for it, of course: $Money1.
+=== card 9: 10 10 0 240 0 ===
+$ChosenTwoName shouts up to the parapet. The townsfolk laugh, and an apprentice throws a cabbage. Nobody comes down, and the water keeps rising.
+=== card 10: 10 10 0 240 0 ===
+You pray, and above you the chapel bell begins to ring of itself. The river sighs and falls back a hand's breadth, and the boat slides out below the bridge as smoothly as a sledge on snow. The townsfolk on the parapet fall to their knees, and the tale is told in every tavern on the river.
+=== card 11: 10 10 0 240 0 ===
+No help comes. The water piles higher against the stern.

@@ -1,0 +1,31 @@
+# Pigs to the mast: a swineherd boy's sow is dying under the oaks, and he blames a curse.
+name     Pigs to the mast
+card     $NfMst00
+picture  X2PIG
+where    wild
+terrain  woods forest
+when     day
+weight   1
+only     month >= 9 and month <= 11
+
+[start]
+do       money1 24 + size * 6
+block    0
+chosen   bestskill(Healing)
+saints   0x09, 0x5d, 0x47, 0x67              # Anthony (of the swine), Martin of Tours, Isidore, Pantaleon
+option 0                                   # tend the sow (Healing, Intelligence)
+  who    bestskill(Healing)
+  chance clamp(5, 90, skill(who, Healing) + attr(who, Int) / 3 - 5)
+  ok     chosen who; text 1; practice who, Healing, 1, 10, 0; attr party, End, 2 + random(2); reputation 1, 2; hours 3; exit
+  fail   chosen who; text 2; practice who, Healing, 0, 10, 0; hours 3; exit
+option 1 saint
+  ok     text 3; reputation 1, 2; hours 1; exit
+  fail   text 4
+option 2                                   # buy a ham before she dies
+  need   money >= money1
+  chance unknown
+  ok     pay money1; if roll(50) then { text 5; attr party, End, 3 + random(3) } else { text 6; attr party, End, -3 }
+         hours 2; exit
+option 3                                   # go on
+  chance none
+  ok     text 7; exit

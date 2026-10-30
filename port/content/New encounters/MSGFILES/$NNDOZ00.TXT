@@ -1,0 +1,41 @@
+# $NNDOZ00: the sleeping watchman (New encounters)
+=== card 0: 10 10 0 240 0 ===
+In a doorway on the corner a watchman sits fast asleep, chin on his chest, his lantern guttering at his feet and his halberd propped beside him. He snores like a saw.
+\14From the church tower the bell strikes midnight, the hour he should be calling. And at the far end of the street another lantern has appeared: the sergeant of the watch, walking his rounds. You...
+\14\15...\1dshake him awake.
+\15...\1dcall the hour for him.
+\15...\1dtake up his halberd and stand his post.
+\16...\1dcall on St. Vitus, who wakes the sleepers.
+\15...\1dleave him to his dreams.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName shakes him. He comes up roaring "Thieves!" and grabbing for the halberd, then sees the sergeant's lantern and goes white. He calls the hour, in a voice that cracks, just in time. Afterwards, grateful past words, he shares his flask with you and tells you which taverns keep their doors unbarred after the bell, and which lanes the watch never walks.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName stands in the middle of the street, takes a deep breath, and calls: "Hear, good people, the bell has struck twelve! Mind your fire and mind your light, and God keep you all this night!" Behind a shutter somebody mumbles "and you, watchman," and turns over.
+\14The sergeant passes with a nod. When the watchman wakes and hears what was done, he tells the whole town about the strangers who kept his watch.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName takes a deep breath and calls the hour, but $his voice cracks halfway through "twelve" and comes out as a bleat. Shutters bang open, someone laughs, and the sergeant comes at a run.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName takes up the halberd, plants $himself in the doorway before the sleeper, and stands like a statue of St. George. The sergeant's lantern comes up the street, pauses, and passes on with a grunt of approval.
+\14An hour later the watchman wakes, takes in the whole thing, and nearly weeps. By morning half the watch has heard the tale, and drinks to you.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName takes up the halberd, but holds it like a hay-fork. The sergeant stops dead. "That," he says, "is not how a watchman holds his halberd," and his lantern swings down to the snoring man in the doorway.
+=== card 6: 10 10 0 240 0 ===
+As the prayer rises, the watchman starts awake as if someone had pinched him, bolts to his feet, and bellows the hour across the rooftops before he quite knows what he is doing. The sergeant passes with a nod. The watchman never learns why he woke, but you know.
+=== card 7: 10 10 0 240 0 ===
+You pray. The watchman snores on.
+=== card 8: 10 10 0 240 0 ===
+You leave him to his dreams. Behind you, a little later, the sergeant's bellow wakes half the street. It is none of your business, and nothing comes of it.
+=== card 9: 10 10 0 240 0 ===
+"Asleep at his post!" roars the sergeant, hauling the watchman up by his collar. "That's the stocks for you, and your place gone, and your children can beg!" The poor man looks at you with the eyes of a drowning dog.
+\14"And who are you, then?" You...
+\14\15...\1dswear he was only showing you the way.
+\15...\1dtell the truth.
+\15...\1dsay nothing and go.
+=== card 10: 10 10 0 240 0 ===
+$ChosenOneName swears the watchman was wide awake and telling you the way to your inn, for strangers are always lost. The sergeant does not believe a word of it, but cannot prove otherwise, and grumbles off. The watchman presses your hands, and then his flask, on you. A lie, but a kind one.
+=== card 11: 10 10 0 240 0 ===
+"Showing you the way," says the sergeant. "With his eyes shut." He fines the watchman a week's pay, and you $Money1 for telling lies to the watch, and stamps off. The street, peeping through its shutters, enjoys every word.
+=== card 12: 10 10 0 240 0 ===
+"Asleep," says $ChosenOneName, "and snoring." The sergeant nods grimly, thanks you for your honesty, and marches the watchman off to the tower. The council will think well of strangers who do not lie to the watch. The watchman's wife and children will think otherwise.
+=== card 13: 10 10 0 240 0 ===
+You say nothing, and go on your way while the sergeant shouts. Nothing more comes of it.

@@ -1,0 +1,41 @@
+# The nightsoil cart: the night men find a stolen altar-cup in a privy pit.
+name     The nightsoil cart
+card     $NnSol00
+picture  XCHASE
+where    street
+when     night
+weight   1
+only     month >= 10 or month <= 3
+
+[start]
+block    0
+chosen   bestattr(Str)
+option 0                                   # put your shoulders to the wheel
+  who    party
+  chance clamp(10, 90, avgattr(Str) + avgattr(End) / 3 + 5)
+  ok     text 1; attr party, End, -2; goto find
+  fail   text 2; attr party, End, -2; reputation -1, -2; goto find
+option 1                                   # edge past along the wall
+  who    worstattr(Agl)
+  chance clamp(10, 90, attr(who, Agl) * 2 + 10)
+  ok     text 8; exit
+  fail   chosen who; text 9; reputation -1, -2; exit
+option 2                                   # go round by another lane
+  chance none
+  ok     text 10; hours 1; exit
+
+[find]
+do       money1 24
+block    3
+option 0                                   # take it to the priest and name the house
+  who    bestattrskill(Cha, Religion)
+  chance clamp(5, 90, attr(who, Cha) / 2 + skill(who, Religion) / 2 + standing / 5)
+  ok     chosen who; text 4; reputation 1, 3; fame 1; attr party, DF, 3; practice who, Religion, 1, 10, 0; until 7; exit
+  fail   chosen who; text 5; attr party, DF, 2; practice who, Religion, 0, 10, 0; until 7; exit
+option 1                                   # buy it and sell the silver
+  need   money >= money1
+  chance none
+  ok     pay money1; money1 96 + random(48); text 6; gain money1; attr party, DF, -4; exit
+option 2                                   # tell him to throw it back
+  chance none
+  ok     text 7; attr party, DF, -1; exit

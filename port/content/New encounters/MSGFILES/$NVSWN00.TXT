@@ -1,0 +1,40 @@
+# $NVSWN00: the lord's swan (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Passing a bed of reeds, the boat runs too close to a nest, and the cob comes at you: a great white swan, hissing, wings spread wide as a banner, beating at the boatmen. The steersman's boy lays about him with a pole. There is a crack, the swan flops in the water with a broken wing, and the boy, very proud, hauls it aboard by the neck.
+\14Then the steersman sees the copper ring on its leg, stamped with the arms of the lord of these banks, and goes white. "The Count's swan. For his swans they take a hand in these parts." The boy begins to cry.
+\14You...
+\14\15...\1dset the swan's wing.
+\15...\1dwring its neck and hide it under the bales for supper.
+\15...\1dtake it to the lord's swanherd and tell the truth.
+\15...\1dleave it to the boatmen to settle.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName pins the hissing bird under a cloak, splints the wing between two laths and binds it tight. Within the hour a punt slides out of the reeds: the lord's swanherd. He turns the bird over in his hands, grunts at the splint, and looks long at the weeping boy.
+\14"A wing breaks," he says at last. "Who's to say how?" He takes the swan home in his punt, and at the landing word goes round of the strangers who know their business.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName tries to splint the wing, but the bird fights like a demon, and something gives inside it. It shudders and lies still in $his hands. And out of the reeds, as if summoned, slides a punt.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName wrings the swan's neck and stuffs it under the bales. When the lord's swanherd comes poling out of the reeds an hour later, asking after a cob with a broken wing, $he is sitting on the bales mending a shoe, the very picture of innocence.
+\14That night, at the fire on the bank, you dine on roast swan like the Count himself. It is the finest meat you have eaten all year, and it was stolen from a lord.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName wrings the swan's neck and stuffs it under the bales, but a white wingtip pokes out between them, and the lord's swanherd, poling out of the reeds an hour later, sees it at once.
+=== card 5: 10 10 0 240 0 ===
+You put in at the swanherd's hut, and $ChosenOneName lays the bird at his feet and tells the whole tale, plainly and without excuses. The old man hears it out, then takes the swan on his knees and begins to splint the wing himself.
+\14"The boy's a fool," he says, "but an honest fool is rarer than a white swan. Go with God." You leave two hours later, the boy chastened and whole.
+=== card 6: 10 10 0 240 0 ===
+You put in at the swanherd's hut, and $ChosenOneName lays the bird at his feet and begins the tale. The swanherd does not wait for the end of it.
+=== card 7: 10 10 0 240 0 ===
+The boatmen wring its neck, weight it with a stone and drop it over the side, and the steersman beats the boy black and blue so that he will remember. The boy weeps all day, but nothing more comes of it.
+=== card 8: 10 10 0 240 0 ===
+The swanherd, a hard old man with two of the lord's foresters at his back, looks from the swan to the steersman's boy and takes the boy by the collar. "The Count's swan! The boy comes to the castle, and the castle has a block and an axe for a poacher's hand."
+\14The boy screams for his father, and his father stands at the steering oar and does not move. A swan, the swanherd allows, has its price: $Money1. Somebody must pay it.
+\14You...
+\14\15...\1dpay the swan's price.
+\15...\1dsay that it was your doing, not the boy's.
+\15...\1dlet them take the boy.
+=== card 9: 10 10 0 240 0 ===
+You count $Money1 into the swanherd's hand. He weighs it, lets go of the boy's collar and cuffs him once, for form's sake. "Mind your pole, brat." The steersman will not stop thanking you.
+=== card 10: 10 10 0 240 0 ===
+The swanherd looks at your weapons and your faces, and lets the boy go. "Strangers, then." He takes your names for the castle and promises you will hear of it. Perhaps you will not, but at the landing everyone has already heard of the swan-killers.
+\14The boy's father kisses your hands.
+=== card 11: 10 10 0 240 0 ===
+The foresters drag the boy into their punt, howling, and pole away into the reeds. His father stands at the oar like a stone. Nobody on the boat says a word to you for the rest of the voyage.

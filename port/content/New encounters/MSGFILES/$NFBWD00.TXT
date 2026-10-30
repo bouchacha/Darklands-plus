@@ -1,0 +1,24 @@
+# $NFBWD00: the bearward (New encounters)
+=== card 0: 10 10 0 240 0 ===
+On the forest track you meet a bearward leading a brown bear by a chain through a ring in its nose. The bear is grey about the muzzle, carries its head crooked and drools, and shuffles as if every step hurts.
+\14"Old Petz has danced at every fair from Basel to Breslau," says the bearward, scratching its ears. "But he won't dance now, nor eat, and I can't feed him through another winter. The castellan up the valley will pay $Money2 for him, to set his dogs on at the church-ale." He sighs. "One last show, masters? A groschen to wrestle him, and $Money1 to the one who throws him."
+\14You...
+\14\15...\1dwrestle the old bear.
+\15...\1dlook in his mouth for what ails him.
+\15...\1dbuy Old Petz for $Money2 and set him free in the forest.
+\15...\1dwish them both well and go on.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName and Old Petz circle, grapple and heave, and at last the bear topples over with a groan and lies on his back with his paws in the air, waiting for the honey the bearward always gives him. $ChosenOneName is fairly sure that Old Petz has lost many a bout on purpose.
+\14The bearward pays up with a grin: $Money1. "He likes you. He doesn't lose to everyone."
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName grapples with Old Petz and finds out, all at once, what a bear weighs. When $he can breathe again, the bear is sitting on $him, looking pleased with himself. The bearward keeps your groschen.
+=== card 3: 10 10 0 240 0 ===
+While the bearward holds the chain and you all hang on to the muzzle, $ChosenOneName reaches into the old bear's jaws with the bearward's tongs. One back tooth is black and loose, the gum around it swollen. A twist, a heave, a roar that shakes the leaves, and it is out.
+\14Within the hour Old Petz has eaten a loaf and a whole honeycomb, and rises on his hind legs to shuffle a slow, solemn dance. The bearward is weeping. "One more year, old friend. The castellan can whistle for you."
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName reaches into the old bear's jaws with the bearward's tongs and touches the bad tooth. Old Petz roars, tears free of the muzzle, and lays $ChosenOneName's arm open with one swipe before the bearward can drag him off.
+=== card 5: 10 10 0 240 0 ===
+The bearward counts your coins twice, then unlocks the ring from the old bear's nose with shaking hands. Old Petz stands a long while on the track, as if waiting for the drum. Then he ambles off among the trees, stops at an anthill, and does not look back.
+\14The bearward wipes his eyes on his sleeve. "Better than the dogs," he says. "God bless you for it."
+=== card 6: 10 10 0 240 0 ===
+You wish them well and go on. Behind you the chain clinks slowly away up the valley toward the castle. Nothing more comes of it.

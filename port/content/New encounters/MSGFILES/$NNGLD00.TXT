@@ -1,0 +1,39 @@
+# $NNGLD00: the guildhall (New encounters)
+=== card 0: 10 10 0 240 0 ===
+The weavers' guildhall stands dark on its square, its windows shuttered and its great door barred. But down the side, by the back shutter, a lantern hooded with a cloth throws a slit of light, and something grates on iron: a bar, working at a hinge. Three shapes crouch there, and a fourth keeps watch at the corner.
+\14They have not seen you. You...
+\14\15...\1draise the alarm.
+\15...\1dcreep up and see who they are.
+\15...\1dput a shot into the shutter beside them.
+\15...\1dkeep walking.
+=== card 1: 10 10 0 240 0 ===
+"Thieves! Thieves at the guildhall!" Shutters bang open round the square, the lookout whistles, and the shapes scatter into the alleys before the watch come puffing up. The masters of the guild, roused from their beds, find their hall unbroken and the strangers who saved it, and are suitably grateful.
+=== card 2: 10 10 0 240 0 ===
+A loose cobble turns under $ChosenOneName's boot. The lookout whistles, and the shapes are gone into the alleys like rats. When the watch come at last, they find only you beside the hall's wrenched hinge, and it takes an hour to explain.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName's shot thuds into the shutter a hand's breadth from the man with the bar. There is a yelp, a clatter of dropped tools, and the shapes are gone into the alleys. In the morning the masters of the guild find the tools, the shaft in their shutter and the strangers who put it there, and are suitably grateful.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName's shot goes wide, through a window across the square that proves to be the guild-master's bedchamber. The shapes vanish, and the guild-master, in his nightshirt, has a great deal to say about strangers who shoot into honest houses.
+=== card 5: 10 10 0 240 0 ===
+You keep walking. Whatever is taken from the weavers' hall tonight, it is not yours. Nothing comes of it.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName creeps close enough to hear them whisper. They are no thieves of the usual kind, but journeymen weavers, little older than boys. One of them sees $him and freezes.
+\14"It's our brotherhood's box," he hisses. "Our sick-money and burial-money, ten years of pennies. The masters locked it in the guild chest when we asked for a fair wage. We only take back what is ours. Call the watch and they'll hang us." You...
+\14\15...\1dhelp them with the lock.
+\15...\1dcall the watch on them.
+\06...\1dseize them yourselves.
+\15...\1dleave them to it.
+=== card 7: 10 10 0 240 0 ===
+$ChosenOneName coaxes the lock of the guild chest with a bent nail and patience, and it opens without a sound. The journeymen take their battered box, and nothing else, and vanish into the night, blessing you.
+=== card 8: 10 10 0 240 0 ===
+$ChosenOneName works at the lock, and it jams with a crack that echoes round the square. Shutters fly open, the journeymen run, and so do you, but not before half the square has seen strangers fleeing the weavers' hall by night.
+=== card 9: 10 10 0 240 0 ===
+You call the watch. The journeymen are taken at the chest with the box in their hands, and the masters of the guild thank you warmly. Later you hear the four were whipped at the pillory and driven out of town, and that the box stayed in the guild chest.
+=== card 10: 10 10 0 240 0 ===
+You leave them to it and walk on. What the masters find in the morning is their own affair. Nothing more comes of it.
+=== card 11: 10 10 0 240 0 ===
+The journeymen lie groaning on the cobbles when the watch arrive, and are dragged off to the tower. The masters of the guild thank you for saving their hall, warmly and at length. Nobody mentions the brotherhood's box.
+=== card 12: 10 10 0 240 0 ===
+You break away and run. By morning the square is telling of armed strangers brawling by the weavers' hall in the night.
+=== card 13: 10 10 0 240 0 ===
+The weavers' lads beat you down with their bars and leave you in the gutter. You come to at dawn by the open shutter of the hall, and the masters, finding you there, take a good deal of convincing that you were not one of them.

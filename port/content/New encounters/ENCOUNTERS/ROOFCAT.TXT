@@ -1,0 +1,42 @@
+# The cat on the roof: a widow's ring in a cat's mouth, and a whole street's treasure in its gutter.
+name     The cat on the roof
+card     $NnCat00
+picture  XSIDE
+where    street
+when     night
+weight   1
+
+[start]
+block    0
+chosen   bestattr(Agl)
+saints   0x39                            # Gertrude of Nivelles, friend of cats
+option 0                                   # climb up after it
+  who    bestattr(Agl)
+  chance clamp(5, 85, attr(who, Agl) + attr(who, Str) / 3 - 15)
+  ok     chosen who; text 1; goto hoard
+  fail   chosen who; text 2; injure who, 1, 1, 10; reputation -1, -2; exit
+option 1                                   # knock it loose with a clod (Thrown)
+  who    bestskill(Thrown)
+  chance clamp(5, 85, skill(who, Thrown) + attr(who, Per) / 3 - 10)
+  ok     chosen who; text 3; practice who, Thrown, 1, 10, 0; goto hoard
+  fail   chosen who; text 4; reputation -1, -2; practice who, Thrown, 0, 10, 0; exit
+option 2                                   # coax it down (Woodwise)
+  who    bestattrskill(Cha, Woodwise)
+  chance clamp(5, 85, skill(who, Woodwise) + attr(who, Cha) / 3)
+  ok     chosen who; text 5; practice who, Woodwise, 1, 10, 0; goto hoard
+  fail   chosen who; text 6; practice who, Woodwise, 0, 10, 0; disable 2
+option 3 saint
+  ok     text 7; reputation 1, 2; attr party, DF, 1; exit
+  fail   text 8
+option 4                                   # walk on
+  chance none
+  ok     text 9; exit
+
+[hoard]
+block    10
+option 0                                   # give everything back
+  chance none
+  ok     text 11; reputation 1, 3; attr party, DF, 1; hours 2; exit
+option 1                                   # give back the ring, keep the rest
+  chance none
+  ok     money1 30 + random(30); text 12; gain money1; attr party, DF, -2; exit

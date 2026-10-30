@@ -1,0 +1,34 @@
+# $NFMOS00: the moss-wife (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A thin voice calls from a fresh stump beside the path: "Good folk! Good folk!" On the stump sits a little old woman no bigger than a child of four, wrapped in moss and lichen, with a face like a winter apple and hair like grey beard-moss.
+\14$ChosenOneName has heard of such: the moss-wives, the little women of the forest. The Wild Huntsman hunts them, and they are safe only on a stump with three crosses cut into it, as woodcutters once knew to do.
+\14"They have forgotten the crosses," she says, "and I am so tired. Cut me three crosses, good folk, or give me a crust of bread. Only no caraway in it! None of that cursed caraway!"
+\14You...
+\14\15...\1dcut three crosses into the stump.
+\15...\1dgive her a crust of your bread.
+\15...\1dcross yourselves and hurry on.
+=== card 1: 10 10 0 240 0 ===
+She sniffs the crust all over, then gobbles it up like a squirrel. "Good bread, honest bread," she says, wiping her mouth with a tuft of moss. "You will not go hungry on this road."
+\14When you next sit down to eat, a single crust fills you like a feast, and your weariness goes with it.
+=== card 2: 10 10 0 240 0 ===
+She sniffs the crust and shrieks as if you had handed her a hot coal. "Caraway! Caraway!" She flings it in $ChosenOneName's face. "Bake what you will and eat what you will, it shall never fill you!" Then she is gone into the moss.
+\14For days after, no meal seems to fill you.
+=== card 3: 10 10 0 240 0 ===
+You cross yourselves and hurry on. The little voice calls after you for a while, then stops. That night, far off, you hear horns on the wind, and a thin, small scream. Nothing more comes of it.
+=== card 4: 10 10 0 240 0 ===
+With $ChosenOneName's knife you cut three crosses into the stump, deep and clean: one for the Father, one for the Son and one for the Holy Ghost. The moss-wife sighs and settles onto them like a hen onto her eggs.
+\14"Now let the Huntsman ride. For your kindness, a gift: a lapful of my leaves, or a word of my herb-lore, or a blessing on your road. Choose."
+\14You...
+\14\15...\1dtake the leaves.
+\15...\1dask for her herb-lore.
+\15...\1dask for her blessing on your road.
+=== card 5: 10 10 0 240 0 ===
+She pours a lapful of dry beech leaves into $ChosenOneName's hands, and you very nearly throw them away at the next bend. That night they clink in the pack. Most have crumbled to dust, but some have turned to silver: $Money1.
+\14Whoever throws away a moss-wife's leaves, the old folk say, is sorry for the rest of his life.
+=== card 6: 10 10 0 240 0 ===
+She beckons $ChosenOneName close and whispers, quick and dry as rustling leaves: which moss closes a wound, which root draws a fever, which leaf to lay on a burn. "And eat pimpernel and valerian," she ends, "and the plague will pass you by."
+\14$ChosenOneName remembers every word.
+=== card 7: 10 10 0 240 0 ===
+She whispers to $ChosenOneName, quick and dry as rustling leaves, in a German so old it is half another tongue. When she is done, $ChosenOneName remembers only "pimpernel," and has no idea what to do with it.
+=== card 8: 10 10 0 240 0 ===
+She lays a tiny dry hand on each of your heads in turn. It feels like a leaf falling. When you walk on, your packs seem lighter and your feet surer, and your aches have melted away.

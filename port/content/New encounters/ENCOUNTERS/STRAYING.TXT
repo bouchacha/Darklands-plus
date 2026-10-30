@@ -1,0 +1,32 @@
+# The straying-herb: deep in the old forest every path leads back to the same fallen fir.
+name     The straying-herb
+card     $NfStr00
+picture  XMS057
+where    wild
+terrain  forest pinewood woods
+when     day
+weight   1
+
+[start]
+block    0
+chosen   worstskill(Woodwise)
+saints   0x16, 0x3a, 0x6f, 0x45          # Christopher, Giles, Raphael, Hubert
+option 0                                   # find the way by sun and moss (Woodwise, Intelligence)
+  who    bestskill(Woodwise)
+  chance clamp(5, 90, skill(who, Woodwise) + attr(who, Int) / 3 - 15)
+  ok     chosen who; text 1; practice who, Woodwise, 1, 10, 0; hours 2; exit
+  fail   chosen who; text 2; practice who, Woodwise, 0, 10, 0; hours 6; attr party, End, -3; exit
+option 1                                   # hack a straight line through the thickets (Edged, Strength)
+  who    bestattrskill(Str, Edged)
+  chance clamp(5, 90, skill(who, Edged) / 2 + attr(who, Str) / 2 + attr(who, End) / 4 - 10)
+  ok     chosen who; text 3; practice who, Edged, 1, 10, 0; hours 4; attr party, End, -2; exit
+  fail   chosen who; text 4; injure who, 1, 1, 5; hours 5; attr party, End, -3; exit
+option 2                                   # turn your coats inside out
+  chance unknown
+  ok     if roll(60) then { text 5; hours 1; exit } else { text 6; hours 1; disable 2 }
+option 3 saint
+  ok     text 7; hours 1; exit
+  fail   text 8
+option 4                                   # follow the water downhill
+  chance assured
+  ok     text 9; hours 8; attr party, End, -2; exit

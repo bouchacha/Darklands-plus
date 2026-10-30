@@ -1,0 +1,31 @@
+# $NNLNK00: the lantern-bearer (New encounters)
+=== card 0: 10 10 0 240 0 ===
+"Light, masters? Light you home?" A boy of ten or so trots out of the dark with a horn lantern on a pole, its candle-end fluttering. "No one may walk after the bell without a light, by the law of this town, and the watch fines strangers double. $Money1 and I'll light you to any door you like. I know where every gutter is deep and every dog is loose." You...
+\14\15...\1dhire him to light your way.
+\15...\1dbuy his lantern outright for $Money2.
+\15...\1dfind your own way in the dark.
+\15...\1dsend him off.
+=== card 1: 10 10 0 240 0 ===
+The boy pockets the coins and trots ahead, chattering of whose roof leaks and whose wife throws pots. By the town wall he stops dead. A house stands apart from its neighbours there, its door painted red, and on the bench before it sits a big grey man with his hands between his knees.
+\14"Master Hans," the boy breathes. "The hangman. If he touches you, no honest man will drink with you again." The man looks up. "I set bones and dress wounds better than any barber in town," he says quietly. "If you're not too proud to be touched by me." You...
+\14\15...\1dlet him tend your hurts.
+\15...\1dsit a while and hear him out.
+\15...\1dfollow the boy the long way round.
+=== card 2: 10 10 0 240 0 ===
+The boy hesitates, then shrugs. "Father makes them. He'll beat me less for selling it dear than for coming home with nothing." He hands it over, candle and all, and runs off into the dark, whistling. It is a good lantern, with horn panes and a tin hood against the rain.
+=== card 3: 10 10 0 240 0 ===
+"We'll manage," says $ChosenOneName, and leads you by starlight and the smells of the town: past the tannery, round the well, along the wall to the church. The boy follows a while, calling out the gutters you nearly miss, then gives up in disgust. You reach the street you wanted within the hour, dry-shod.
+=== card 4: 10 10 0 240 0 ===
+"We'll manage," says $ChosenOneName, and three lanes later steps through an open cellar hatch into a cooper's cellar. By the time $he has been hauled out, bruised and swearing, and the cooper has finished shouting from his window, two hours are gone. Somewhere in the dark the boy is laughing.
+=== card 5: 10 10 0 240 0 ===
+You send him off. He shrugs and trots away to find wiser customers, and his little light bobs down the street and is gone. Nothing comes of it.
+=== card 6: 10 10 0 240 0 ===
+The boy flees at the first touch. You sit on the hangman's bench while he cleans and binds your hurts by a rushlight, with hands as gentle as a nun's and a good deal more skilled. "What I break by day, I mend by night," he says. "The town pays me for both, and greets me for neither."
+\14By morning half the town will know the strangers let the hangman lay hands on them, and some doors will open a little less readily.
+=== card 7: 10 10 0 240 0 ===
+$ChosenOneName sits down beside him, and after a while the hangman begins to talk. He knows every thief, cheat and wife-beater in town, and which councilmen belong in the stocks themselves; he has heard the last words of forty men. It is the first time in a month, he says, that anyone has sat by him of their own free will.
+\14When you rise to go, he blesses you, awkwardly, like a man out of practice.
+=== card 8: 10 10 0 240 0 ===
+$ChosenOneName sits down beside him, but the talk will not come. The hangman answers in grunts, stares at his big hands, and at last says it is late. You leave him to his thoughts, an hour older and none the wiser.
+=== card 9: 10 10 0 240 0 ===
+You follow the boy the long way round, and the hangman watches you go without a word. The boy brings you safe to the street you wanted an hour later, and nothing more comes of it.

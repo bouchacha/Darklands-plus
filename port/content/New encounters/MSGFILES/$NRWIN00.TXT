@@ -1,0 +1,39 @@
+# $NRWIN00: the landlord's wine (New encounters)
+=== card 0: 10 10 0 240 0 ===
+At nightfall you come to a lonely inn by the road, with a green bush hung over the door to show that wine is sold. The landlord is all smiles and pours you his best, "Rhine wine, masters, the very best," at a price so low it must be a sin. It is sweet as honey. Oddly sweet.
+\14At the next table a carter sits doubled over, grey-faced, groaning and clutching his belly. The potboy will not meet your eyes, and the cellar door behind the bar is locked.
+\14You...
+\14\15...\1ddrink up and call for more.
+\15...\1dtaste the wine with care.
+\15...\1dpick the cellar lock while the landlord is busy.
+\15...\1dsee to the groaning carter.
+\15...\1dleave the wine and go out into the night.
+=== card 1: 10 10 0 240 0 ===
+The wine goes down like honey, and the landlord keeps pouring. In the small hours you wake with your bellies knotted, and spend the rest of the night groaning in the yard, with the carter for company.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName rolls the wine over $his tongue: vinegar under the sweetness, and behind it the dull, sugary taste of lead. The landlord has sweetened sour wine with litharge, an old cheat of the trade. It poisons all who drink it, and honest councils punish it hard.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName rolls the wine over $his tongue and frowns. It is sweet, very sweet, and that is all $he can tell.
+=== card 4: 10 10 0 240 0 ===
+While the landlord fusses over the carter, $ChosenOneName works the cellar lock with a bent nail. Below, among casks of sour wine, stands a keg of grey powder: litharge, the lead-salt that turns vinegar sweet and poisons all who drink it. Honest councils punish its use hard.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName fiddles with the cellar lock until the potboy squeaks and the landlord looks round. You spend the next hour pretending to admire the carving on the door.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName feels the carter's hard, knotted belly, purges him with salt water and walks him up and down the yard. In an hour he can sit up. "Always the same," he groans. "Every time I drink here, the same gripes. It's the wine. Ask him what he puts in it."
+\14The landlord, under your eyes, turns the colour of whey.
+=== card 7: 10 10 0 240 0 ===
+$ChosenOneName does what $he can for the carter, but nothing eases the cramps, and an hour later he is still groaning. Whatever ails him is beyond you.
+=== card 8: 10 10 0 240 0 ===
+You leave the sweet wine untouched and go out into the night, and find a dry corner in a farmer's barn down the road. Nothing more comes of it.
+=== card 9: 10 10 0 240 0 ===
+Found out, the landlord goes pale and wrings his hands. "Everyone does it! Sour wine won't sell! Don't tell the Vogt, masters, he'll hang me from my own sign!"
+\14You...
+\14\15...\1dhaul him before the council of $NearestCity.
+\15...\1dmake him pour every cask into the road.
+\15...\1dtake his silver to keep quiet.
+=== card 10: 10 10 0 240 0 ===
+You march the landlord to $NearestCity with his keg of litharge on a barrow. The council's wine-tasters are delighted: he is fined half his inn, and his casks are staved in on the market square. A share of the fine comes to you, $Money1, along with the thanks of a town that likes its wine honest.
+=== card 11: 10 10 0 240 0 ===
+Under your eyes the landlord rolls out his casks one by one and staves them in. The ditch runs dark and sweet, and the whole yard smells like a bishop's feast. "Ruined," he weeps. "Better you than your guests," says $ChosenOneName.
+=== card 12: 10 10 0 240 0 ===
+The landlord counts out $Money1 with shaking hands. You drink no more of his wine, and you tell no one. Tomorrow he will pour it for the next travellers.

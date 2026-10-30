@@ -1,0 +1,38 @@
+# $NNLCK00: locked out (New encounters)
+=== card 0: 10 10 0 240 0 ===
+By the shut town gate a voice is calling from the far side of the wall, hoarse with shouting. "Gate! For the love of God, open! It's Konrad the wool-merchant, of the Golden Ram, as you very well know, Heinz!" In the gate-house a lantern shows, and the gate-ward answers: "Gate shuts at the bell, Master Konrad, for you as for anyone. Council's orders. Dawn, sir."
+\14"There are wolves out here, you bone-headed... Strangers? Masters, help an honest burgher home!" You...
+\14\15...\1dtalk the gate-ward round.
+\15...\1dslip the gate-ward $Money1.
+\15...\1dhaul him up over the wall.
+\15...\1dlet him wait for dawn like everyone else.
+=== card 1: 10 10 0 240 0 ===
+The gate-ward hears $ChosenOneName out, then spits over the parapet. "Council's orders. If I open for him I open for every robber who says his name is Konrad."
+=== card 2: 10 10 0 240 0 ===
+The gate-ward takes the coin, bites it, and pockets it. "Offering money to a sworn servant of the council, are we? The burgomaster will hear of it. Dawn, Master Konrad!"
+=== card 3: 10 10 0 240 0 ===
+You let down a line from the wall-walk, and Master Konrad, who is no lightweight, gets halfway up before it parts and drops him into the town ditch with a splash. The gate-ward comes running with his lantern, and the whole gate-house turns out to see who is climbing the town wall by night.
+\14You get away with a scolding, aching backs and your names written down. Master Konrad spends the night in the ditch.
+=== card 4: 10 10 0 240 0 ===
+You leave him to it. His opinion of the gate-ward, the council and strangers who let a burgher be eaten by wolves follows you a long way down the street. Nothing comes of it.
+=== card 5: 10 10 0 240 0 ===
+Master Konrad wrings your hands. He is fat, muddy, and smells, oddly, of lavender and bath-house steam. Then a lantern comes round the corner: a stout woman in a cloak, with a maid behind her.
+\14"Konrad! Where have you been till this hour?" He goes the colour of whey and hisses: "I was with you at vespers and supper, masters. For the love of God!" You...
+\14\15...\1dback his story.
+\15...\1dtell her the truth.
+\15...\1dbow and leave them to it.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName swears Master Konrad spent the evening at vespers with you, and then at a long, dull supper talking of wool. Mistress Adelheid sniffs, sniffs again, and takes him home by the arm.
+\14In the morning a servant brings $Money1 "for the honest witnesses". The lie sits a little uneasily on you.
+=== card 7: 10 10 0 240 0 ===
+$ChosenOneName begins about vespers, and Mistress Adelheid leans close and sniffs. "Vespers," she says, "at the bath-house by the mill?" She takes her husband home by the ear, and by noon every goodwife in the street knows what the strangers swore to.
+=== card 8: 10 10 0 240 0 ===
+"We found him outside the gate after the bell, mistress," says $ChosenOneName. "Where he came from, we cannot say, but he smells of the bath-house." Mistress Adelheid thanks you very civilly and takes her husband home by the ear. The street will hear that the strangers are honest folk; Master Konrad will never forgive you.
+=== card 9: 10 10 0 240 0 ===
+You bow and leave them to it. From the end of the street you can still hear Mistress Adelheid. Nothing more comes of it.
+=== card 10: 10 10 0 240 0 ===
+$ChosenOneName wonders aloud how warm the council will be toward the man who left Master Konrad to the wolves. After a long silence the postern creaks open, just wide enough for a fat man.
+=== card 11: 10 10 0 240 0 ===
+The coin vanishes into the gate-ward's glove. "Well. I suppose it might be Master Konrad," he says, and the postern creaks open, just wide enough for a fat man.
+=== card 12: 10 10 0 240 0 ===
+You let down a line from the wall-walk out of sight of the gate-house, and with much puffing and more cursing you haul Master Konrad up over the parapet like a sack of his own wool.

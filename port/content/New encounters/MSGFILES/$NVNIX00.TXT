@@ -1,0 +1,42 @@
+# $NVNIX00: the net in the rudder (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Late in the day, where the river runs narrow between willows, the steering oar drags as if a hand had seized it, and the boat swings across the current. A net is wrapped round the blade: a poacher's net, staked across the stream where no net should be, and something heavy thrashes in it.
+\14Below you the current is carrying the boat broadside toward the stakes of a fish-weir, sharp as spears.
+\14You...
+\14\15...\1dcut the oar free with a blade.
+\15...\1dhaul the net aboard, catch and all.
+\16...\1dpray to the saints of those who travel by water.
+\15...\1dlet the boatmen pole her clear.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName leans out over the stern with a knife and saws at the tarred cords. The net parts, the oar swings free, and the boat straightens a length short of the stakes.
+\14As the net sinks away, $ChosenOneName glimpses something in the mesh: a grey-green face with a beard like river weed, staring up. Then it is gone. When the steersman lifts his oar, a purse of rotten leather hangs from the blade, full of old coins green with the river: $Money1.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName leans out with a knife, the boat lurches, and over $he goes into the net among the thrashing eels. Something cold closes on $his ankle and pulls. By the time the boatmen hook $him out, half drowned, the boat has struck the stakes and sprung a plank, and it takes three hours of bailing and cursing to bring her to the bank and patch her.
+=== card 3: 10 10 0 240 0 ===
+Heaving together, you drag the net up over the stern: eels, a great pike, a drowned dog, and, tangled in the mesh, a little grey-green man no bigger than a child of ten. He has webbed hands, a beard like river weed and round eyes without lids, and the water runs off his coat without end though the sun is warm.
+\14The boatmen scramble away from him. "The Wassermann! Let him go, masters, or the river takes one of us before the year is out!"
+\14"Let me go," says the little man, in a voice like water over stones, "and I will pay."
+\14You...
+\14\15...\1dcut him loose and let him go.
+\15...\1dhold him fast and drive a harder bargain.
+\15...\1dbind him in God's name to spare the travellers on this river.
+=== card 4: 10 10 0 240 0 ===
+You heave on the net until your hands are raw. Something in it heaves back, hard, and the old cords part. The oar comes free with a jerk that throws you all in a heap on the deck, and whatever was in the net goes back into the river with a splash like a sack of meal.
+=== card 5: 10 10 0 240 0 ===
+As you pray, the river swirls under the stern, and the net slides off the oar of its own accord and sinks away. Somewhere in the reeds something laughs, high and wet. The boatmen cross themselves, and at the landing they tell everyone how your prayer saved the boat.
+=== card 6: 10 10 0 240 0 ===
+No help comes. The current pushes the boat on, broadside, toward the stakes.
+=== card 7: 10 10 0 240 0 ===
+The boatmen shove with their poles and curse, but the net holds the oar like a fist, and the boat swings broadside onto the stakes with a crash. A plank is sprung. It takes three hours of bailing, everyone with a bucket, to bring her to the bank and patch her. Of the net, and of what was in it, there is no sign.
+=== card 8: 10 10 0 240 0 ===
+You cut the cords, and the little man slips over the side without a ripple. A moment later the boat surges forward as though a hand had pushed her, and the stakes slide harmlessly by. At the landing there are coins lying in a puddle on the deck, old and green with the river: $Money1. The boatmen will not touch them.
+=== card 9: 10 10 0 240 0 ===
+$ChosenOneName keeps a grip on the net and haggles like a horse-coper. The little man hisses and haggles back, and at last he goes over the side and comes up with a purse in his teeth, its strings long rotted: some merchant's, drowned years ago. $Money1 in it.
+\14"Silver of the drowned," he gurgles, "and much good may it do you." He is gone before anyone can wish they had not taken it.
+=== card 10: 10 10 0 240 0 ===
+$ChosenOneName haggles too long. "Greedy," says the little man, and twists out of the net like an eel. As he goes over the side his webbed hand closes on $ChosenOneName's wrist and drags $him under. The boatmen haul $him out again, blue and choking, and the river is empty.
+=== card 11: 10 10 0 240 0 ===
+$ChosenOneName makes the sign of the cross over him, sprinkles him with river water blessed in the name of the Trinity, and commands him to swear. The little man writhes and spits, and then swears, by the river and the stones of its bed, to take no traveller on this stretch for a year and a day. Then he is over the side and gone.
+\14The boatmen kiss $ChosenOneName's hands. The tale goes ashore at the landing before you do.
+=== card 12: 10 10 0 240 0 ===
+"Your sprinkling," says the little man, "is only water, and water is mine." He spits a mouthful of the river into $ChosenOneName's face, slides through the mesh and is over the side. All day $ChosenOneName shivers with a cold that no fire will warm.

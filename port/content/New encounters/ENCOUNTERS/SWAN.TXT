@@ -1,0 +1,44 @@
+# The lord's swan: the steersman's boy breaks a swan's wing, and the swan is the Count's.
+name     The lord's swan
+card     $NvSwn00
+picture  XLANDHO
+where    boat
+when     day
+weight   1
+only     month >= 4 and month <= 6             # swans on the nest
+
+[start]
+block    0
+chosen   bestskill(Healing)
+option 0                                   # set the wing (Healing)
+  who    bestskill(Healing)
+  chance clamp(5, 90, skill(who, Healing) + attr(who, Int) / 3 - 5)
+  ok     chosen who; text 1; practice who, Healing, 1, 10, 0; reputation 1, 2; hours 1; exit
+  fail   chosen who; text 2; practice who, Healing, 0, 10, 0; goto herd
+option 1                                   # wring its neck and hide it for supper (Stealth)
+  who    bestskill(Stealth)
+  chance clamp(5, 90, skill(who, Stealth) + attr(who, Agl) / 3 - 5)
+  ok     chosen who; text 3; practice who, Stealth, 1, 10, 0; attr party, End, 3; attr party, DF, -2; exit
+  fail   chosen who; text 4; practice who, Stealth, 0, 10, 0; goto herd
+option 2                                   # take it to the swanherd and tell the truth (Charisma, Virtue)
+  who    bestattrskill(Cha, Virtue)
+  chance clamp(10, 90, (attr(who, Cha) + skill(who, Virtue)) / 2 + 15)
+  ok     chosen who; text 5; practice who, Virtue, 1, 10, 0; attr party, DF, 2; hours 2; exit
+  fail   chosen who; text 6; hours 1; goto herd
+option 3                                   # leave it to the boatmen
+  chance none
+  ok     text 7; exit
+
+[herd]
+do       money1 clamp(48, 240, money / 10)
+block    8
+option 0                                   # pay the swan's price
+  need   money >= money1
+  chance none
+  ok     text 9; pay money1; attr party, DF, 2; exit
+option 1                                   # say that it was your doing
+  chance none
+  ok     text 10; reputation -1, -3; attr party, DF, 3; practice party, Virtue, 1, 10, 0; exit
+option 2                                   # let them take the boy
+  chance none
+  ok     text 11; attr party, DF, -3; exit

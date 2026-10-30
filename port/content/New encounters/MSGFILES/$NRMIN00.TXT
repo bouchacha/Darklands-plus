@@ -1,0 +1,24 @@
+# $NRMIN00: the minstrel's song (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Under the linden in the middle of a village, a crowd of peasants is roaring with laughter. On a barrel stands a minstrel with a fiddle, singing a ballad of wandering adventurers, and it takes you a verse or two to know them. It is a song about you.
+\14In his song you ran from the robbers and robbed the pilgrims, drank a monastery dry, and $ChosenOneName eloped with an abbess, and then eloped from her. The peasants love it. Then the minstrel's eye falls on you; his voice wavers, but he sings bravely on.
+\14You...
+\14\15...\1dstand up and tell the true tale.
+\15...\1dtake out your instrument and play him down.
+\15...\1doffer him $Money1 to change the ending.
+\15...\1dpull him off his barrel.
+\15...\1dlaugh loudest of all, and go on.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName climbs onto a cart and tells it as it happened, with the robbers fiercer and the monastery wine a good deal less. The peasants listen open-mouthed and cheer at the end, and the minstrel, who knows which way the wind blows, makes a new song of it on the spot. It will be sung in every alehouse from here to $NearestCity.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName climbs onto a cart and tells the true tale. It is much less amusing than the minstrel's. The peasants begin to yawn, then to heckle; somebody asks after the abbess, and the laughter does not stop for a long while. A cabbage catches $ChosenOneName behind the ear.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName strikes up and answers the minstrel verse for verse, tune for tune, until he laughs, bows and begs to learn the true version. By evening the whole village is singing it, and the minstrel goes off to sing it in the next one.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName strikes up and answers the minstrel verse for verse. Unfortunately, the minstrel's verses rhyme. The peasants give him the prize, and give $ChosenOneName a turnip or two.
+=== card 5: 10 10 0 240 0 ===
+The minstrel bites the coins, tunes his fiddle and begins the ballad again. This time you put the robbers to flight, guard the pilgrims, refuse the monastery's wine and bring the abbess to repentance. Nobody believes a word of it, but they sing it all the same, and a song goes farther than the truth.
+=== card 6: 10 10 0 240 0 ===
+You haul the minstrel off his barrel and box his ears while the peasants jeer. He runs off down the road, fiddle and all. By next week he has a new verse, about the cowards who beat a poor singer for telling the truth. It goes down very well in $NearestCity.
+=== card 7: 10 10 0 240 0 ===
+You laugh loudest of all. "A good song," $ChosenOneName tells the minstrel. "Every word of it a lie." He grins. "That is what makes it a good song." You go on in high spirits; a little humility does the soul good.

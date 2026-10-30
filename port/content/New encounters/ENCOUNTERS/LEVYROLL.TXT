@@ -1,0 +1,33 @@
+# The lord's levy: a sergeant musters a village for his lord's feud, and a crippled soldier's only son is taken.
+name     The lord's levy
+card     $NrLev00
+picture  KNGT
+where    wild
+terrain  farmland plains road
+when     day
+weight   1
+only     month >= 3 and month <= 6         # the spring muster
+
+[start]
+do       money1 120
+block    0
+option 0                                   # buy the boy free
+  need   money >= money1
+  chance none
+  ok     text 1; pay money1; attr party, DF, 3; exit
+option 1                                   # look the line over (Per, Woodwise)
+  who    spotter
+  chance clamp(5, 90, attr(who, Per) + skill(who, Woodwise) / 2 - 5)
+  ok     chosen who; text 2; hours 1; attr party, DF, 2; practice who, Woodwise, 1, 10, 0; exit
+  fail   chosen who; text 3; practice who, Woodwise, 0, 10, 0; disable 1
+option 2                                   # drill the levy (Flails)
+  who    bestskill(Flails)
+  chance clamp(5, 90, skill(who, Flails) + attr(who, Str) / 4 + attr(who, Cha) / 4 - 15)
+  ok     chosen who; text 4; hours 3; attr party, DF, 2; practice who, Flails, 1, 10, 0; exit
+  fail   chosen who; text 5; hours 2; injure who, 1, 1, 5; practice who, Flails, 0, 10, 0; disable 2
+option 3                                   # march in his place
+  chance assured
+  ok     text 6; days 4; fame 1; attr party, DF, 2; practice party, Polearms, 1, 10, 0; exit
+option 4                                   # go on
+  chance none
+  ok     text 7; exit

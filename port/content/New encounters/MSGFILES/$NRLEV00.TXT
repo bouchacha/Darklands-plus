@@ -1,0 +1,25 @@
+# $NRLEV00: the lord's levy (New encounters)
+=== card 0: 10 10 0 240 0 ===
+In a village by the road, a sergeant in a lord's colours and four men-at-arms have the men of the place lined up beside the church. Their lord is at feud and calls his levy: every hearth owes one man for the summer.
+\14A woman clings to a boy of fifteen, all knees and elbows. "His father came home from the lord's last feud with one leg! The boy is all that keeps us fed!" The sergeant shrugs. "Every hearth, one man. Him, or someone else." His eye falls on you. "Or buy him free. $Money1 hires a man in his place."
+\14You...
+\14\15...\1dpay $Money1 for the boy.
+\15...\1dlook the line over for yourselves.
+\15...\1doffer to drill the levy for the sergeant.
+\15...\1dmarch with the levy in the boy's place.
+\15...\1dgo on your way.
+=== card 1: 10 10 0 240 0 ===
+The sergeant counts the coins and strikes the boy's name from his tally. The mother falls on her knees in the mud and blesses you, your mothers and your mothers' mothers.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName counts the men in the line, then the smoke from the chimneys, and comes up one short. The Schulz, who gave the sergeant his list of hearths, has a strapping son of eighteen. He is not in the line. But the hay in the Schulz's loft is trembling.
+\14The sergeant laughs till he chokes, drags the Schulz's son out by the ankle and lets the cripple's boy go home. "A big one for a small one. My lord gets the better bargain."
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName looks the line over, and the village over, and sees nothing amiss but a great many sullen faces. The sergeant watches $him with a grin.
+=== card 4: 10 10 0 240 0 ===
+The levy is armed with threshing flails, and swings them like men threshing. $ChosenOneName spends the afternoon showing them how to swing at a man instead of at the grain, and by vespers they look nearly like soldiers. The sergeant, pleased, strikes the boy off his tally. "One clod less to drill."
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName takes up a flail to show them how, and a burly ploughman, swinging with more zeal than sense, catches $him across the shoulder. The levy roars with laughter, and the sergeant strikes nobody off his tally.
+=== card 6: 10 10 0 240 0 ===
+You march with the levy for four days, eating its bread, wearing out its shoes and drilling with long spears in the lord's meadows, until the lord's enemy loses heart and a truce is sworn at a bridge. The levy goes home, the boy is safe with his mother, and the tale of the strangers who marched for a cripple's son goes round the countryside.
+=== card 7: 10 10 0 240 0 ===
+You go on. Behind you the woman's wailing rises over the sergeant's shouting. Nothing more comes of it.

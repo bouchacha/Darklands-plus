@@ -1,0 +1,37 @@
+# $NNGUT00: a body in the gutter (New encounters)
+=== card 0: 10 10 0 240 0 ===
+In a lane off the street your boots find something soft in the gutter: a man, face down in the muck, in a good brown coat. When you turn him over his eyes are open, and the back of his coat is black and wet. He is still warm.
+\14Somewhere a shutter creaks, and is quickly closed again. You...
+\14\15...\1dlook at the wound.
+\15...\1draise the hue and cry.
+\15...\1dgo through his purse.
+\15...\1dwalk on and leave him.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName kneels in the muck. He was struck from behind, not a quarter-hour since, by a blade that was short and hooked: not a dagger but a tool, like a cooper's shaving knife. His purse is still on him. Whoever did this wanted him dead, not poor.
+\14Then lanterns come round the corner.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName kneels in the muck to look, and learns nothing, except that $he now has the dead man's blood all over $his hands. Then lanterns come round the corner.
+=== card 3: 10 10 0 240 0 ===
+His purse holds $Money1, and he has no more use for it. You leave him lying where he fell and walk away quickly, before anyone looks out. It is not a thing to remember at prayers.
+=== card 4: 10 10 0 240 0 ===
+You walk on and leave him for someone else to find. Whatever happened to him is none of yours, and nothing comes of it.
+=== card 5: 10 10 0 240 0 ===
+His purse is still in your hand when the lanterns come round the corner. The watch take you for his killers, and it takes a night in the tower and most of a morning before the Vogt's clerk is satisfied that you only robbed the dead. He fines you $Money1 for it, and the town will remember.
+=== card 6: 10 10 0 240 0 ===
+The watch come at a run, and behind them half the lane in nightshirts. "It's Lienhart the wine-carter!" someone wails. A burly man in a leather apron pushes to the front and points at you. "Strangers, standing over him! Look at the blood on them!"
+\14"The dead will say who did it," growls the sergeant. "Bier-right, in the church, at first light." You...
+\14\15...\1dspeak for yourselves now.
+\15...\1dsubmit to the bier-right in the morning.
+\15...\1dslip away into the dark.
+=== card 7: 10 10 0 240 0 ===
+$ChosenOneName speaks up, calmly: you were passing, his purse is still on him, and your blades are clean; look. The sergeant looks, and then, slowly, his lantern swings round to the man in the leather apron, a cooper, and to the hooked knife at his belt, which has been wiped, but not well. The cooper runs, and the watch bring him down in ten strides.
+\14Lienhart, it comes out, was courting the cooper's wife. The lane will tell of the strangers who saw what its own people missed.
+=== card 8: 10 10 0 240 0 ===
+$ChosenOneName protests your innocence, but the sergeant has heard protests before. "Tell it to the dead man," he says, and the watch march you off to the tower.
+=== card 9: 10 10 0 240 0 ===
+You make for the dark mouth of an alley and are gone before the watch can sort out who is who. But the lane saw strangers bolt from a murdered man, and that tale will be all over town by morning.
+=== card 10: 10 10 0 240 0 ===
+You make for an alley, and run straight into two watchmen coming the other way. "Running, were they?" says the sergeant, well pleased, and marches you off to the tower.
+=== card 11: 10 10 0 240 0 ===
+You spend the rest of the night under the watch's eye. At first light the dead man lies on a bier before the altar, and one by one the men of the lane must lay a hand on his wound while the priest prays God to show the guilty. Your turn comes; the wound lies still.
+\14Then the cooper in the leather apron is pushed forward. He touches the dead man, and the wound wells up red and fresh before the whole church. The cooper falls to his knees, screaming that Lienhart was courting his wife. The watch take him away, and the town owes you an apology.

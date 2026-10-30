@@ -1,0 +1,35 @@
+# $NFPCH00: the pitch-burners (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Among the dark pines a red glow, and a smell of resin so thick you can taste it: pitch-burners. Pine resin bubbles in clay pots over a fire pit, and three men and a boy, sticky to the elbows, are ladling the black pitch into barrels for the boatmen and the coopers.
+\14Their headman looks at your weapons with something like hope. "Every new moon a pack of rogues comes down from the hills for a barrel and our coin. Tonight is the night. Stay with us, masters, for God's sake. Ladles are no match for spears."
+\14You...
+\14\15...\1dfill pots with boiling pitch to throw at them.
+\10...\1dwait for them with a potion of your own.
+\15...\1dtalk to the rogues when they come.
+\06...\1dmeet them with steel.
+\15...\1dwish the burners luck and go on before the rogues come.
+=== card 1: 10 10 0 240 0 ===
+You fill a row of little pots with bubbling pitch and wait in the dark beside the fire pit. When the rogues come swaggering down the slope, $ChosenOneName lets fly. The first pot bursts on a shield, the second on a man's chest, and the smoking pitch sticks wherever it lands. In a moment the rogues are running back into the night, howling and tearing at their clothes.
+\14The burners pay you what they can, $Money1, and the boy will tell the story for the rest of his life.
+=== card 2: 10 10 0 240 0 ===
+When the rogues come down the slope, $ChosenOneName lets fly. The first pot falls short and bursts among the pine needles, lighting up the slope, and the rogues, seeing how few you are, charge with a yell.
+=== card 3: 10 10 0 240 0 ===
+When the rogues come swaggering into the glow of the fire pit, $ChosenOneName throws. The potion bursts among them with a flash and a crack like the Last Trump, and the rogues flee wailing into the night, sure they have met the Devil himself.
+\14The burners are nearly as frightened, but they pay you what they can: $Money1.
+=== card 4: 10 10 0 240 0 ===
+The potion bursts among the rogues to little effect. Their leader shakes it off with a curse, and they charge.
+=== card 5: 10 10 0 240 0 ===
+As the rogues come down the slope, $ChosenOneName steps into the firelight and greets them like old friends. These burners, $he explains, now pay their dues to better men, who would hate to see them troubled and have buried rogues for less. The leader looks at your weapons, and at your faces, and spits. "Next moon, then."
+\14They go. The burners swear they will tell every boatman on the river who stood by them.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName steps into the firelight to talk. The rogues' leader listens for perhaps three words, then shouts, and the spears come down the slope.
+=== card 7: 10 10 0 240 0 ===
+You wait in the shadows beyond the fire pit. When the rogues come down the slope, you step out to meet them.
+=== card 8: 10 10 0 240 0 ===
+You wish the burners luck and go on through the pines. Whatever happens at the pitch pits tonight, you do not see it. Nothing more comes of it.
+=== card 9: 10 10 0 240 0 ===
+The rogues are dead or fled into the hills, and the burners come out from behind their barrels, cheering. They press on you what coin they have, $Money1, and a bed by the warm fire pit till morning.
+=== card 10: 10 10 0 240 0 ===
+You scatter into the pines. From the dark you hear barrels breaking and the burners shouting. At dawn you find one another again, sticky with resin and ashamed.
+=== card 11: 10 10 0 240 0 ===
+You come to by the cold fire pit at dawn. The rogues have taken a barrel of pitch, the burners' coin and $Money1 of yours. The headman binds your heads in silence.

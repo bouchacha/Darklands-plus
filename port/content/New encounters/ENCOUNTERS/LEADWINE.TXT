@@ -1,0 +1,44 @@
+# The landlord's wine: a lonely inn at nightfall, a wine too sweet for its price, and a carter doubled over at the next table.
+name     The landlord's wine
+card     $NrWin00
+picture  MS008
+where    wild
+terrain  road plains farmland
+when     night
+weight   1
+
+[start]
+block    0
+option 0                                   # drink up and call for more
+  chance none
+  ok     text 1; attr party, End, -3; until 7; exit
+option 1                                   # taste the wine with care (Alchemy)
+  who    bestskill(Alchemy)
+  chance clamp(5, 90, skill(who, Alchemy) + attr(who, Per) / 3 - 5)
+  ok     chosen who; text 2; practice who, Alchemy, 1, 10, 0; goto lead
+  fail   chosen who; text 3; practice who, Alchemy, 0, 10, 0; disable 1
+option 2                                   # pick the cellar lock (Artifice)
+  who    bestskill(Artifice)
+  chance clamp(5, 90, skill(who, Artifice) + attr(who, Agl) / 3 - 10)
+  ok     chosen who; text 4; practice who, Artifice, 1, 10, 0; goto lead
+  fail   chosen who; text 5; hours 1; practice who, Artifice, 0, 10, 0; disable 2
+option 3                                   # see to the carter (Healing)
+  who    bestskill(Healing)
+  chance clamp(10, 90, skill(who, Healing) + attr(who, Int) / 3 - 5)
+  ok     chosen who; text 6; attr party, DF, 1; practice who, Healing, 1, 10, 0; goto lead
+  fail   chosen who; text 7; hours 1; practice who, Healing, 0, 10, 0; disable 3
+option 4                                   # leave the wine and go out
+  chance none
+  ok     text 8; exit
+
+[lead]
+block    9
+option 0                                   # haul him before the council
+  chance assured
+  ok     money1 random(24) + 24; text 10; gain money1; reputation 1, 3; tocity
+option 1                                   # make him pour it into the road
+  chance assured
+  ok     text 11; hours 1; attr party, DF, 2; practice party, Virtue, 1, 10, 0; exit
+option 2                                   # take silver for your silence
+  chance none
+  ok     money1 random(48) + 36; text 12; gain money1; attr party, DF, -4; exit

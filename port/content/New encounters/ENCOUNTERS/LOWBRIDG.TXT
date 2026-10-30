@@ -1,0 +1,42 @@
+# The low bridge: a spring flood, a stone bridge, and a mast that will not go under it.
+name     The low bridge
+card     $NvBrg00
+picture  XARCH
+where    boat
+when     day
+weight   1
+only     month >= 3 and month <= 6             # the spring floods
+
+[start]
+do       money1 clamp(24, 120, size * 12 + 12)
+block    0
+chosen   bestskill(Artifice)
+option 0                                   # help unstep the mast (Artifice, Strength)
+  who    bestskill(Artifice)
+  chance clamp(5, 90, skill(who, Artifice) + attr(who, Str) / 3)
+  ok     chosen who; text 1; practice who, Artifice, 1, 10, 0; hours 1; exit
+  fail   chosen who; text 2; injure who, 1, 1, 5; practice who, Artifice, 0, 10, 0; goto jammed
+option 1                                   # pay the bridge-ward's men to warp her through
+  need   money >= money1
+  chance none
+  ok     text 3; pay money1; hours 2; exit
+option 2                                   # tie up and wait for the water to fall
+  chance assured
+  ok     text 4; days 1 + random(2); attr party, End, 2; exit
+
+[jammed]
+block    5
+saints   0x63, 0x16, 0x51                # Nicholas, Christopher, Julian the Hospitaller
+option 0                                   # brace against the vault and push her down (the party's Strength)
+  who    party
+  chance clamp(10, 85, avgattr(Str) + size * 4)
+  ok     text 6; attr party, End, -3; exit
+  fail   chosen slowest; text 7; attr party, End, -4; keepitems slowest, clamp(1, 95, attr(slowest, Agl) + 50); hours 3; exit
+option 1                                   # call the townsfolk down to weigh her (Charisma, Speak Common)
+  who    bestattr(Cha)
+  chance clamp(5, 90, (4 * attr(who, Cha) + skill(who, SpeakCommon)) / 5 + min(20, fame / 10))
+  ok     chosen2 who; money1 min(money, size * 6 + 24); text 8; pay money1; practice who, SpeakCommon, 1, 10, 0; exit
+  fail   chosen2 who; text 9; practice who, SpeakCommon, 0, 10, 0; disable 1
+option 2 saint
+  ok     text 10; reputation 1, 3; exit
+  fail   text 11

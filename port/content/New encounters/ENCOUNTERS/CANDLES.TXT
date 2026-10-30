@@ -1,0 +1,28 @@
+# The candles in the ruin: in a ruined forest chapel a dead hermit lies uncorrupted among candles that never burn down.
+name     The candles in the ruin
+card     $NfCnd00
+picture  XNCHRCH
+where    wild
+terrain  forest woods pinewood
+when     night
+weight   1
+
+[start]
+block    0
+chosen   bestskill(Religion)
+option 0                                   # keep vigil until dawn (Religion, Virtue)
+  who    party
+  chance clamp(10, 90, avgskill(Religion) + avgskill(Virtue) / 2 + 10)
+  ok     text 1; attr party, DF, 3; practice party, Religion, 1, 10, 0; until 6; exit
+  fail   text 2; practice party, Religion, 0, 10, 0; attr party, End, -2; until 6; exit
+option 1                                   # bear witness to the dean (Read & Write, Intelligence)
+  who    bestskill(ReadWrite)
+  chance clamp(5, 90, skill(who, ReadWrite) + attr(who, Int) / 3 - 5)
+  ok     chosen who; text 3; fame 1; reputation 1, 3; practice who, ReadWrite, 1, 10, 0; hours 12; exit
+  fail   chosen who; text 4; reputation -1, -2; practice who, ReadWrite, 0, 10, 0; hours 12; exit
+option 2                                   # cut a relic from him
+  chance none
+  ok     text 5; attr party, DF, -4; attr party, End, -2; until 6; exit
+option 3                                   # leave him be
+  chance none
+  ok     text 6; exit

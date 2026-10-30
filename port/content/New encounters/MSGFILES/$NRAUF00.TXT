@@ -1,0 +1,28 @@
+# $NRAUF00: the Aufhocker (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Long after dark the road runs past an old stone cross in the hedge, the kind set up where a man was murdered, so that those who pass will pray for his soul. No one has prayed here in a long time.
+\14Just beyond it $ChosenOneName, at the back, stumbles with a cry. Something has leapt onto $his back: bony knees clamp $his ribs, cold fingers lock under $his chin, and the weight grows with every step. None of you can see anything there at all.
+\14"An Aufhocker," someone whispers. The old folk say it lets go only at a churchyard wall or at cock-crow, and that whoever looks back at it dies. You...
+\14\15...\1dhurry on to the next village church, carrying it.
+\15...\1dstand still under it and wait for cock-crow.
+\16...\1dpray to a saint for help with the burden.
+\10...\1dgive $ChosenOneName a draught for strength.
+\15...\1dlet $ChosenOneName look back over $his shoulder at it.
+=== card 1: 10 10 0 240 0 ===
+Step by staggering step, $ChosenOneName carries the thing a mile down the road, bent double, while the rest of you light the way and pray aloud. At the churchyard wall the weight is suddenly gone, so suddenly that $he falls on $his face. Something like a sigh goes off into the dark.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName staggers on, but the weight grows faster than $his strength. Half a mile short of the village $he sinks to $his knees in the road and cannot rise. You keep watch over $him all night, helpless, until the first cock crows and the weight is gone.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName stands in the road, braced like an ox under the yoke, and the rest of you stand round $him with drawn steel and nothing to strike. The weight grows all night. At the first cock-crow it is gone, and $ChosenOneName folds up in the road like an empty sack.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName gasps out a prayer, and the rest of you join in. Little by little the weight eases, as if a broad, patient shoulder had come in under the burden beside $his own. By the next milestone there is nothing on $his back but $his pack.
+=== card 5: 10 10 0 240 0 ===
+You pray, and the weight grows heavier still. If the saint hears, he gives no sign.
+=== card 6: 10 10 0 240 0 ===
+The draught runs through $ChosenOneName like fire. $He straightens under the weight, settles it like a sack of grain and strides off for the village so fast that the rest of you must trot. At the churchyard wall it lets go, with a howl very like disappointment.
+=== card 7: 10 10 0 240 0 ===
+The draught goes down, but whatever rides $ChosenOneName is not to be shifted by any brew. The weight grows heavier still.
+=== card 8: 10 10 0 240 0 ===
+$ChosenOneName turns $his head. Over $his shoulder hangs a grey face with a cut throat, weeping. "Pray for me," it whispers. "They buried me unshriven by the cross, and no one prays." $ChosenOneName promises, and you all say the prayers for the dead there in the road. The weight is gone. Somewhere a cock crows, much too early.
+=== card 9: 10 10 0 240 0 ===
+$ChosenOneName turns $his head, and what $he sees over $his shoulder $he will never tell. $He drops in the road like a felled tree. You sit by $him until dawn while $he twitches and moans, and when $he wakes $he is grey to the lips and cannot stop shaking.

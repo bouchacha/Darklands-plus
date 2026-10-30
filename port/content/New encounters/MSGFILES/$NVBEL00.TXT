@@ -1,0 +1,27 @@
+# $NVBEL00: the drowned bell (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Near midnight the river widens into a still, black pool, and the boatmen stop their singing and bend to their oars. Here, the steersman mutters, a village once stood, until its folk turned a holy beggar from their doors on St. Nicholas' Eve, and the river rose in the night and swallowed church and all.
+\14Then you hear it: from under the water, slow and muffled, a bell tolling. After it comes a voice, thin and very far off, chanting in Latin. "Introibo ad altare Dei..."
+\14"Their priest," whispers the steersman, crossing himself. "He is still saying the Mass the river cut short. Nobody living has ever answered him."
+\14You...
+\14\15...\1danswer the drowned priest.
+\16...\1dpray for the souls under the water.
+\15...\1dlower a grappling hook for the bell.
+\15...\1dstop your ears and row on.
+=== card 1: 10 10 0 240 0 ===
+"Ad Deum qui laetificat juventutem meam," answers $ChosenOneName, leaning out over the black water. The voice below goes on, and $ChosenOneName answers it, response by response, through the whole Mass, while the boatmen kneel among the bales.
+\14At "Ite, missa est" the bell rings out once, clear as morning, and small lights rise from the water like candle flames and go up into the dark, one by one, until there are none left. Then the river is only a river.
+\14The boatmen will tell of this night as long as they live.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName begins the response, falters, and gets the words wrong. The voice below stops. It chants the line again, slowly, and waits. And waits. Then a long, low groan comes up out of the water, the bell falls silent, and a cold breath passes over the boat that settles into $ChosenOneName's bones and will not leave.
+=== card 3: 10 10 0 240 0 ===
+You pray for the drowned, for their sins and their long waiting. The tolling grows softer and softer, and when the last amen is said it stops, and a stillness settles on the pool that feels, for all the dark, like peace.
+=== card 4: 10 10 0 240 0 ===
+You pray, but the tolling goes on, slow and patient, as if it had not heard.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName lowers the hook into the pool and drags it slowly along the bottom until something catches. $He hauls it up hand over hand: not the bell, but a censer of tarnished silver on a broken chain, weed in its fretwork.
+\14The tolling stops at once. The boatmen will not look at the censer, or at you, but a silversmith at the landing gives you $Money1 for it and asks no questions.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName lowers the hook into the pool. Something below takes hold of it, and pulls. The rope tears through $his hands and drags $him against the gunwale, and only the boatmen's grip keeps $him in the boat. When they haul the hook up, its iron arms are twisted together like wet straw. The bell tolls on, louder.
+=== card 7: 10 10 0 240 0 ===
+You stop your ears with wool and the boatmen row as they have never rowed. Even through the wool the tolling follows you a long way down the river, fainter and fainter, and then it is gone. Nothing more comes of it.

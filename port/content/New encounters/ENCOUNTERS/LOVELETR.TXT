@@ -1,0 +1,39 @@
+# The love-letter: a baker's journeyman asks you to carry a letter he cannot read.
+name     The love-letter
+card     $NnLov00
+picture  XSID
+where    street
+when     night
+weight   1
+
+[start]
+do       money1 6
+block    0
+chosen   bestskillsum(Latin, ReadWrite)
+option 0                                   # carry it to her window as it is
+  who    bestattrskill(Agl, Stealth)
+  chance clamp(5, 90, skill(who, Stealth) + attr(who, Agl) / 2 - 5)
+  ok     chosen who; text 1; gain money1; practice who, Stealth, 1, 10, 0; exit
+  fail   chosen who; text 2; injure who, 1, 1, 5; reputation -1, -2; practice who, Stealth, 0, 10, 0; exit
+option 1                                   # read it first (Latin)
+  who    bestskillsum(Latin, ReadWrite)
+  chance clamp(5, 90, skill(who, Latin) + skill(who, ReadWrite) / 2 - 10)
+  ok     chosen who; practice who, Latin, 1, 10, 0; goto verse
+  fail   chosen who; text 3; practice who, Latin, 0, 10, 0; disable 1
+option 2                                   # send him back to his oven
+  chance none
+  ok     text 4; exit
+
+[verse]
+block    5
+option 0                                   # write him a true one in its place
+  who    bestattrskill(Int, ReadWrite)
+  chance clamp(5, 90, skill(who, ReadWrite) + attr(who, Int) / 2 - 10)
+  ok     chosen who; text 6; gain money1; attr party, DF, 1; practice who, ReadWrite, 1, 20, 0; hours 1; exit
+  fail   chosen who; text 7; practice who, ReadWrite, 0, 10, 0; hours 1; exit
+option 1                                   # tell him what it says
+  chance none
+  ok     money1 money1 * 2; text 8; gain money1; exit
+option 2                                   # deliver it anyway, for the joke
+  chance none
+  ok     text 9; gain money1; attr party, DF, -2; exit

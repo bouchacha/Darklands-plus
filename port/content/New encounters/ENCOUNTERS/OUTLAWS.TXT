@@ -1,0 +1,46 @@
+# The outlaws' supper: outlaws bid the party to supper, and guests must pay; the honest pay least.
+name     The outlaws' supper
+card     $NfOut00
+picture  XHIDDEN2
+where    wild
+terrain  forest woods pinewood
+when     night
+weight   1
+
+[start]
+block    0
+option 0                                   # accept the invitation
+  chance none
+  ok     goto supper
+option 1                                   # slip away into the dark (Stealth, Agility)
+  who    party
+  chance clamp(5, 90, avgskill(Stealth) + avgagility * 2 / 3 - 10)
+  ok     text 1; practice party, Stealth, 1, 10, 0; until 6; attr party, End, -2; exit
+  fail   chosen slowest; text 2; practice party, Stealth, 0, 10, 0; goto supper
+option 2                                   # fight
+  chance combat
+  ok     text 9; goto fight
+
+[supper]
+picture  XALTENT
+block    3
+option 0                                   # tell the truth
+  chance none
+  ok     text 4; until 6; attr party, End, 3; attr party, DF, 2; practice party, Virtue, 1, 10, 0; exit
+option 1                                   # swear you have nothing (Streetwise, Agility)
+  who    bestskill(Streetwise)
+  chance clamp(5, 90, skill(who, Streetwise) + attr(who, Agl) / 3 - 15)
+  ok     chosen who; text 5; attr party, DF, -2; practice who, Streetwise, 1, 10, 0; hours 1; exit
+  fail   chosen who; money1 min(money, clamp(24, 480, money / 3)); text 6; pay money1; attr party, End, -2; hours 1; exit
+option 2                                   # pay with a bout of cudgels (Impact, Strength)
+  who    bestattrskill(Str, Impact)
+  chance clamp(5, 90, skill(who, Impact) + attr(who, Str) / 3 - 10)
+  ok     chosen who; text 7; fame 1; practice who, Impact, 1, 10, 0; until 6; attr party, End, 2; exit
+  fail   chosen who; money1 min(money, clamp(12, 240, money / 6)); text 8; pay money1; injure who, 1, 1, 5
+         practice who, Impact, 0, 10, 0; until 6; exit
+
+[fight]
+do       battle Wilds, Bandit, lore / 4 + 1, random(5) + 3, RobberCaptain, lore % 3 + 1, 1
+         if result == Won then { money1 random(96) + 48; text 10; gain money1; fame 1; reputation 1, 3; until 6; exit }
+         if result == Fled then { rejoin; until 6; text 11; exit }
+         money1 min(money, money / 2); text 12; pay money1; until 6; exit

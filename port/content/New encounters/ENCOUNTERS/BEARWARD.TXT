@@ -1,0 +1,32 @@
+# The bearward: an old dancing bear on its way to be baited to death, unless someone thinks of something.
+name     The bearward
+card     $NfBwd00
+picture  XBEAR
+where    wild
+terrain  forest woods pinewood
+when     day
+weight   1
+only     month >= 4 and month <= 10
+
+[start]
+do       money1 36; money2 240
+block    0
+chosen   bestattrsum(Str, Agl)
+option 0                                   # wrestle the bear (Strength, Agility)
+  who    bestattrsum(Str, Agl)
+  need   money >= 12
+  chance clamp(5, 85, (attr(who, Str) + attr(who, Agl)) / 2 + attr(who, End) / 4 - 15)
+  ok     chosen who; text 1; pay 12; gain money1; fame 1; attr who, End, -3; hours 1; exit
+  fail   chosen who; text 2; pay 12; injure who, 1, 1, 5; attr who, End, -3; hours 1; exit
+option 1                                   # draw the bad tooth (Artifice, Strength)
+  who    bestattrskill(Str, Artifice)
+  chance clamp(5, 85, skill(who, Artifice) + attr(who, Str) / 3 - 10)
+  ok     chosen who; text 3; attr party, DF, 2; practice who, Artifice, 1, 10, 0; hours 2; exit
+  fail   chosen who; text 4; injure who, 1, 1, 10; practice who, Artifice, 0, 10, 0; hours 1; exit
+option 2                                   # buy the bear and set it free
+  need   money >= 240
+  chance none
+  ok     pay 240; text 5; attr party, DF, 3; practice party, Virtue, 1, 10, 0; hours 1; exit
+option 3                                   # go on
+  chance none
+  ok     text 6; exit

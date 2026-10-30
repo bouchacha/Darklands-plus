@@ -1,0 +1,47 @@
+# The midwife's errand: the town's sworn midwife turns her ankle on the way to a hard birth.
+name     The midwife's errand
+card     $NnMid00
+picture  XRUN
+where    street
+when     night
+weight   1
+vars     late
+
+[start]
+block    0
+chosen   bestattrsum(Str, End)
+option 0                                   # carry her there
+  who    bestattrsum(Str, End)
+  chance clamp(10, 90, attr(who, Str) + attr(who, End) / 2 - 5)
+  ok     chosen who; text 1; goto birth
+  fail   chosen who; set late = 1; text 2; attr who, End, -3; goto birth
+option 1                                   # put her on a horse (Riding)
+  need   mounted
+  who    bestskill(Riding)
+  chance clamp(10, 90, skill(who, Riding) + attr(who, Agl) / 3)
+  ok     chosen who; text 3; practice who, Riding, 1, 10, 0; goto birth
+  fail   chosen who; set late = 1; text 4; practice who, Riding, 0, 10, 0; goto birth
+option 2                                   # leave her for the watch
+  chance none
+  ok     text 5; exit
+
+[birth]
+block    6
+saints   0x5a, 0x1b, 0x1e, 0x67          # Margaret, Cosmas, Damian, Pantaleon
+items    0x73, 0x70                      # Essence o'Grace, New-wind
+option 0                                   # be her hands (Healing; harder if you came late)
+  who    bestskill(Healing)
+  chance clamp(5, 90, skill(who, Healing) + attr(who, Agl) / 3 + 10 - late * 20)
+  ok     chosen who; text 7; reputation 1, 3; attr party, DF, 2; practice who, Healing, 1, 20, 0; hours 3; exit
+  fail   chosen who; text 8; attr who, End, -3; practice who, Healing, 0, 10, 0; hours 3; exit
+option 1 saint
+  ok     text 9; reputation 1, 2; attr party, DF, 1; hours 3; exit
+  fail   text 10
+option 2 potion                            # a strengthening draught for the mother
+  potion 0x73, clamp(0, 99, 50 + q / 2 - late * 10)
+  potion 0x70, clamp(0, 99, 20 + q / 2 - late * 10)
+  ok     text 11; reputation 1, 3; hours 3; exit
+  fail   text 12
+option 3                                   # wait outside with the tanner
+  chance none
+  ok     text 13; until 5; exit

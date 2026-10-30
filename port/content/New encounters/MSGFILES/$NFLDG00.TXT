@@ -1,0 +1,38 @@
+# $NFLDG00: the hunting lodge (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A bell tinkles above you. On a low oak bough sits a goshawk, jesses trailing from her legs and a silver bell on one of them: someone's hunting hawk, flown off and lost. Far away through the trees a horn is blowing, again and again.
+\14The hawk turns her fierce yellow eye on you. A bird like that is worth more than a good horse, and every lord knows his own. You...
+\14\15...\1dcoax her down onto a gloved fist.
+\15...\1dthrow a cloak over her and sell her at the next market.
+\15...\1dleave her be.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName holds up a fist with a scrap of meat and calls softly. The goshawk watches, bates, and with a jingle of her bell flies off over the trees toward the horn. You have lost an hour, and the hawk.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName's cloak drops over the hawk, and you carry her off, hooded and furious, as far from the horn as you can get. At the next market a merchant buys her for $Money1 without asking where she came from.
+\14Somewhere a lord is cursing his falconer, and the falconer is weeping.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName swings the cloak, and the hawk is quicker. Her talons rake $his hand to the bone, and she is gone over the trees with a jingle of her bell.
+=== card 4: 10 10 0 240 0 ===
+You leave the hawk on her bough and go on. Long after, you still hear the horn calling. Nothing more comes of it.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName holds up a fist with a scrap of meat and calls softly, and the goshawk drops onto it with a jingle. You follow the horn to a timbered lodge in a clearing, with hounds in the yard and huntsmen in a lord's colours.
+\14The lord himself, a stout young knight, takes the hawk with a shout of joy. "My Bianca! I would sooner have lost my horse!" He will not hear of your going. "We ride after a hart this afternoon. Ride with us, or take a spear with my huntsmen, or sit at my table tonight and tell me the news of the world."
+\14You...
+\14\15...\1dride with his hunt.
+\15...\1dtake a boar-spear and go with his huntsmen on foot.
+\15...\1dsit at his table and tell him the news.
+\15...\1dthank him, take his reward and go on.
+=== card 6: 10 10 0 240 0 ===
+You ride hard behind the hounds, through brooks and thickets, and are in at the death when the hart stands at bay. The lord claps you on the back and sends you off with a haunch of venison and his praise, which he means to repeat at every table in the land.
+=== card 7: 10 10 0 240 0 ===
+At the first ditch $ChosenOneName's horse refuses and $ChosenOneName does not, and lands in a bog. The hunt thunders past. By the time you have fished $him out the hart is dead, and the huntsmen have a new story for the winter.
+=== card 8: 10 10 0 240 0 ===
+The hounds bring the hart to bay in a ravine, and the lord gives the honour of the spear to his guests. $ChosenOneName takes the hart's charge squarely on the boar-spear and holds it. The huntsmen cheer, and the lord swears he will tell the bishop of it.
+=== card 9: 10 10 0 240 0 ===
+The hounds bring the hart to bay, and the lord gives the honour of the spear to his guests. $ChosenOneName sets the spear a moment too late, and the hart's antlers toss $him into a thornbush before the huntsmen finish it.
+=== card 10: 10 10 0 240 0 ===
+The lord's table is heavy with venison and his cellar with Franconian wine. $ChosenOneName tells of the roads, the wars, the towns and their scandals, and the lord laughs and pounds the board. You sleep in feather beds, and in the morning he gives you leave to name him as your friend.
+=== card 11: 10 10 0 240 0 ===
+The lord's table is heavy with venison. $ChosenOneName tells the news of the world, at length, and long before the end of it the lord is snoring in his chair. Still, you eat well and sleep warm.
+=== card 12: 10 10 0 240 0 ===
+The lord presses $Money1 into your hands for his hawk and sends a huntsman to set you on your road.

@@ -1,0 +1,26 @@
+# $NFMST00: pigs to the mast (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Under the oaks the ground is thick with acorns, and a herd of lean, bristly pigs is working through them, grunting and crunching, while a swineherd boy beats the boughs with a long pole to bring more down. Every village drives its swine into the forest at mast-time, to fatten them for Martinmas.
+\14But one great sow lies on her side, trembling, with froth on her snout. The boy is near tears. "The Schulz's own sow! He'll flay me! The old woman by the brook cursed me on Sunday, I swear it, and now look!"
+\14You...
+\14\15...\1dtry to save the sow.
+\16...\1dpray to a saint for her.
+\15...\1dbuy a ham from the boy for $Money1 before she dies.
+\15...\1dleave him to his troubles.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName prises the sow's jaws open and finds dark needles between her teeth: yew. There is a yew thicket a stone's throw off, and the herd has been at it. "No witch did this, boy. Salt water, quick!"
+\14You pour brine down her throat until she heaves up a bellyful of green, then walk her up and down the hollow, all of you shoving, until her legs steady. By evening she is rooting for acorns again. The boy shares his bread and dripping with you, and swears he will tell the Schulz it was the yew and no curse.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName rubs the sow's flanks and forces water into her, but the trembling only worsens, and toward evening she gives a last kick and is still. The boy sits down beside her and weeps.
+\14"They'll say it was the old woman," he says. "They'll say it was her." Nothing you can say comforts him, and the afternoon is gone.
+=== card 3: 10 10 0 240 0 ===
+You kneel among the acorns and the grunting pigs and pray. After a while the sow sneezes, heaves herself up and sicks up a mouthful of dark yew needles. Then she trots off to the acorns as if nothing had happened.
+\14The boy stares at you as though you were saints yourselves. By Martinmas the whole village will have heard of the strangers who prayed the Schulz's sow back to life.
+=== card 4: 10 10 0 240 0 ===
+You pray, but the sow only trembles the harder. The boy watches you with dwindling hope.
+=== card 5: 10 10 0 240 0 ===
+The boy takes your coins, sticks the sow with his knife and hacks off a ham, sobbing. Better a sold ham than a wasted sow, and at least he will have silver to show the Schulz. You roast it that night, and it is the best pork you have eaten in months.
+=== card 6: 10 10 0 240 0 ===
+The boy takes your coins, sticks the sow and hacks off a ham. You roast it that night. Before midnight you are all doubled up with cramps, and $ChosenOneName remembers the froth on the sow's snout, and the dark yew thicket a stone's throw from the oaks. Whatever killed the sow had a word to say to you too.
+=== card 7: 10 10 0 240 0 ===
+You leave the boy kneeling by his sow among the grunting herd. Nothing more comes of it.

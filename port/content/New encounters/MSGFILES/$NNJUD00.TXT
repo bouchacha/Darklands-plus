@@ -1,0 +1,24 @@
+# $NNJUD00: the shut gate (New encounters)
+=== card 0: 10 10 0 240 0 ===
+At the end of the street the gate of the Jews' lane is shut and barred for the night, by order of the council, as it is every night. On the inside of the grille stands a grey-bearded man with a physician's bag; on the outside, a servant boy in tears, and the gatekeeper with his keys and his jug.
+\14"Master Salomon," the boy sobs, "my master's little son is choking with the croup. He can hardly breathe." The physician speaks calmly through the bars. "I know the child, and I can help him, if I can reach him. The council's order binds me; it need not bind God's mercy." The gatekeeper shrugs. "Dawn," he says. You...
+\14\15...\1dreason with the gatekeeper.
+\15...\1dpay him $Money1 to see sense.
+\15...\1dcarry the physician's remedy to the child yourselves.
+\15...\1dgo on your way.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName asks the gatekeeper, very civilly, how the council will thank the man who kept a burgher's son from his physician while the child choked. The gatekeeper chews on that, then on his moustache, and unbars the gate. You see Master Salomon safely through the dark streets to the burgher's house.
+\14By dawn the child is sleeping and breathing easily, and the burgher knows the names of the strangers who brought help.
+=== card 2: 10 10 0 240 0 ===
+"Council's order," says the gatekeeper, and takes a pull at his jug. "More than my place is worth." Master Salomon closes his eyes for a moment, and says nothing.
+=== card 3: 10 10 0 240 0 ===
+The coins disappear, and so does the gatekeeper's sense of duty. The gate creaks open, and you see Master Salomon safely to the burgher's house. By dawn the child is sleeping easily, and the burgher knows whom to thank.
+=== card 4: 10 10 0 240 0 ===
+The gatekeeper takes the coins, counts them, and pockets them. "Council's order," he says again, and turns his back.
+=== card 5: 10 10 0 240 0 ===
+Master Salomon passes a stoppered flask and a few lines in Latin through the grille, and tells $ChosenOneName exactly what to do: a kettle on the fire, a tent of blankets over the child and the steam, and the drops in warm wine, so many and no more. $ChosenOneName does it all to the letter. Toward dawn the dreadful barking cough eases, and the child sleeps.
+\14The burgher learns where the cure came from, and by whose hands. He will not forget either.
+=== card 6: 10 10 0 240 0 ===
+Master Salomon passes a flask and a few lines in Latin through the grille and explains what to do, but at the burgher's house $ChosenOneName muddles the measures and the steam, and the child gasps through the night. At dawn the gate opens, and Master Salomon comes running and does what you could not. Nothing else comes of it.
+=== card 7: 10 10 0 240 0 ===
+You go on your way. Behind you the boy is still pleading through the grille. Nothing comes of it.

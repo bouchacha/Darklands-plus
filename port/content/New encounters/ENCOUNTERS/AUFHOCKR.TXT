@@ -1,0 +1,39 @@
+# The Aufhocker: on a night road by a murder-cross, something leaps onto a traveller's back and grows heavier with every step.
+name     The Aufhocker
+card     $NrAuf00
+picture  XMS057
+where    wild
+terrain  road farmland plains
+when     night
+weight   1
+
+[start]
+block    0
+chosen   slowest                           # the straggler at the back
+saints   0x16, 0x60, 0x39, 0x6f          # Christopher, Michael, Gertrude of Nivelles, Raphael
+items    0x71, 0x70                      # Ironarm, New-wind
+option 0                                   # carry it on to the church (Str, End)
+  who    chosen
+  chance clamp(5, 90, attr(who, Str) + attr(who, End) - 15)
+  ok     text 1; hours 2; attr who, End, -3; attr party, DF, 1; exit
+  fail   text 2; until 5; attr who, End, -5; exit
+option 1                                   # stand still under it till cock-crow
+  chance assured
+  ok     text 3; until 5; attr chosen, End, -4; attr party, End, -1; exit
+option 2 saint                             # pray for help with the burden
+  ok     text 4; hours 1; attr party, DF, 2; exit
+  fail   text 5
+option 3 potion                            # a draught for strength
+  potion 0x71, clamp(0, 99, 50 + q / 2)
+  potion 0x70, clamp(0, 99, 30 + q / 2)
+  ok     text 6; hours 1; exit
+  fail   text 7
+option 4                                   # look back at it (Virtue)
+  who    chosen
+  chance clamp(5, 90, skill(who, Virtue) + attr(who, Per) / 4 - 10)
+  ok     text 8; hours 1; attr party, DF, 3; practice who, Virtue, 1, 10, 0; exit
+  fail   practice who, Virtue, 0, 10, 0; goto stare
+
+[stare]
+picture  XNYTMARE
+do       text 9; until 5; injure chosen, 1, 1, 10; attr chosen, DF, -3; exit

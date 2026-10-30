@@ -1,0 +1,34 @@
+# Under her window: students serenade the syndic's daughter, and want help with the song.
+name     Under her window
+card     $NnSer00
+picture  XTOWN
+where    street
+when     night
+weight   1
+only     month >= 4 and month <= 9
+
+[start]
+block    0
+chosen   bestattrskill(Cha, Latin)
+option 0                                   # lead them in a Latin song (a harp or flute helps)
+  who    bestattrskill(Cha, Latin)
+  chance clamp(5, 90, attr(who, Cha) / 2 + skill(who, Latin) / 2 + max(has(party, 0x41), has(party, 0x42)) * 15 - 5)
+  ok     chosen who; practice who, Latin, 1, 10, 0; goto rose
+  fail   chosen who; text 1; reputation -1, -2; practice who, Latin, 0, 10, 0; exit
+option 1                                   # talk them home before the watch comes
+  who    bestattr(Cha)
+  chance clamp(5, 90, (4 * attr(who, Cha) + skill(who, SpeakCommon)) / 5 - 5)
+  ok     chosen who; text 2; reputation 1, 2; practice who, SpeakCommon, 1, 10, 0; exit
+  fail   chosen who; text 3; practice who, SpeakCommon, 0, 10, 0; disable 1
+option 2                                   # walk on
+  chance none
+  ok     text 4; exit
+
+[rose]
+block    5
+option 0                                   # give the rose to the lovesick one
+  chance none
+  ok     text 6; attr party, DF, 1; attr party, End, -2; practice party, Virtue, 1, 10, 0; hours 2; exit
+option 1                                   # keep it, and bow to the window
+  chance none
+  ok     text 7; fame 1; reputation -1, -2; exit

@@ -1,0 +1,41 @@
+# The fox's share: boatmen broach a merchant's wine by night, and wake to a drifting boat.
+name     The fox's share
+card     $NvWin00
+picture  XDOCK
+where    boat
+when     night
+weight   1
+vars     drunk
+
+[start]
+block    0
+chosen   bestattr(Cha)
+option 0                                   # take your turn at the reed (the party's Endurance)
+  who    party
+  chance clamp(10, 90, avgattr(End) + 25)
+  ok     set drunk = 1; text 1; attr party, DF, -1; goto drift
+  fail   set drunk = 2; text 2; attr party, End, -3; goto drift
+option 1                                   # wake the merchant (Charisma, Speak Common)
+  who    bestattr(Cha)
+  chance clamp(5, 90, (4 * attr(who, Cha) + skill(who, SpeakCommon)) / 5 + 5)
+  ok     chosen who; money1 size * 12 + 12; text 3; gain money1; practice who, SpeakCommon, 1, 10, 0; exit
+  fail   chosen who; text 4; attr party, End, -2; practice who, SpeakCommon, 0, 10, 0; goto drift
+option 2                                   # roll yourselves in your cloaks
+  chance none
+  ok     text 5; goto drift
+
+[drift]
+block    6
+option 0                                   # seize the steering oar (Artifice)
+  who    bestskill(Artifice)
+  chance clamp(5, 90, skill(who, Artifice) + attr(who, Per) / 3 - drunk * 10)
+  ok     chosen who; money1 size * 12; text 7; gain money1; practice who, Artifice, 1, 10, 0; exit
+  fail   chosen who; money1 min(money, 48 + random(48)); text 8; pay money1; practice who, Artifice, 0, 10, 0; hours 3; exit
+option 1                                   # throw a line to the mill's moorings (Thrown)
+  who    bestskill(Thrown)
+  chance clamp(5, 90, skill(who, Thrown) + attr(who, Agl) / 3 - drunk * 10)
+  ok     chosen who; text 9; attr party, End, 3; practice who, Thrown, 1, 10, 0; hours 1; exit
+  fail   chosen who; text 10; practice who, Thrown, 0, 10, 0; disable 1
+option 2                                   # grab your baggage and jump for the bank
+  chance none
+  ok     text 11; hours 4 + random(3); exit

@@ -1,0 +1,30 @@
+# A hatchet's throw: the lord's forester seizes a widow's cow; her right runs as far as a hatchet can be thrown.
+name     A hatchet's throw
+card     $NfLaw00
+picture  XUGLYMAN
+where    wild
+terrain  woods forest pinewood
+when     day
+weight   1
+
+[start]
+do       money1 120
+block    0
+chosen   bestskill(Woodwise)
+option 0                                   # throw the hatchet by the old custom (Thrown, Strength)
+  who    bestattrskill(Str, Thrown)
+  chance clamp(5, 90, skill(who, Thrown) / 2 + attr(who, Str) / 2 - 5)
+  ok     chosen who; text 1; reputation 1, 2; practice who, Thrown, 1, 10, 0; hours 1; exit
+  fail   chosen who; text 2; practice who, Thrown, 0, 10, 0; disable 0
+option 1                                   # show that the wood is dead (Woodwise, Perception)
+  who    bestskill(Woodwise)
+  chance clamp(5, 90, skill(who, Woodwise) + attr(who, Per) / 3 - 10)
+  ok     chosen who; text 3; practice who, Woodwise, 1, 10, 0; reputation 1, 2; hours 1; exit
+  fail   chosen who; text 4; practice who, Woodwise, 0, 10, 0; disable 1
+option 2                                   # pay her forfeit
+  need   money >= money1
+  chance none
+  ok     pay money1; text 5; attr party, DF, 2; practice party, Virtue, 1, 5, -1; exit
+option 3                                   # leave them to it
+  chance none
+  ok     text 6; exit

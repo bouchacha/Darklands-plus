@@ -617,6 +617,7 @@ static int value_of(P *p, const char *n, long *v)
     if (!strcasecmp(n, "result")) { *v = rt.result; return 1; }
     if (!strcasecmp(n, "number1")) { *v = p->dry ? 0 : (s16)g_rw(V_NUMBER1); return 1; }
     if (!strcasecmp(n, "money1")) { *v = p->dry ? 0 : money_get(V_MONEY1); return 1; }
+    if (!strcasecmp(n, "money2")) { *v = p->dry ? 0 : money_get(GV_var_money2); return 1; }
     if (p->dry) {                        /* zero-argument functions: checked, not run */
         static const char *Z[] = { "lore", "standing", "fame", "mounted", "daylight", "night", "hour", "month", "day", "year", "money", "size",
             "women", "avgagility", "minagility", "slowest", "slowspeed", "spotter", "spotvalue", "terrain", "difficulty", "members", 0 };

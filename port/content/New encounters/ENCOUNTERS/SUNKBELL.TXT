@@ -1,0 +1,29 @@
+# The drowned bell: a sunken church tolls under the river, and its priest still says his Mass.
+name     The drowned bell
+card     $NvBel00
+picture  XNCHRCH
+where    boat
+when     night
+weight   1
+
+[start]
+block    0
+chosen   bestskill(Latin)
+saints   0x60, 0x63, 0x55                # Michael, Nicholas, Lazarus
+option 0                                   # answer the drowned priest (Latin)
+  who    bestskill(Latin)
+  chance clamp(5, 90, skill(who, Latin) + skill(who, Religion) / 3 - 10)
+  ok     chosen who; text 1; practice who, Latin, 1, 10, 0; attr party, DF, 4; fame 1; hours 1; exit
+  fail   chosen who; text 2; practice who, Latin, 0, 10, 0; attr who, End, -4; attr who, DF, -2; exit
+option 1 saint
+  ok     text 3; attr party, DF, 2; exit
+  fail   text 4
+option 2                                   # lower a grappling hook for the bell
+  who    bestattr(Str)
+  need   has(party, 0x3f)
+  chance clamp(5, 75, attr(who, Str) + 15)
+  ok     chosen who; money1 random(96) + 48; text 5; gain money1; attr party, DF, -3; exit
+  fail   chosen who; text 6; injure who, 1, 1, 10; attr party, DF, -2; exit
+option 3                                   # stop your ears and row on
+  chance none
+  ok     text 7; exit

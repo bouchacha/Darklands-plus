@@ -1,0 +1,41 @@
+# $NRRYE00: the harvest (New encounters)
+=== card 0: 10 10 0 240 0 ===
+The rye stands high and gold, and the whole village is out in it: men swinging scythes, women binding sheaves, children gleaning behind. Over the hills a storm is building, and the lord's steward rides up and down the rows, bawling at them to hurry.
+\14Then a scream. A reaper girl has fallen among the sheaves, writhing, her hands clawed, crying that her arms and legs are on fire. The reapers draw back from her. "The Rye-mother has touched her," an old man mutters, crossing himself. "She walks in the corn at harvest."
+\14You...
+\14\15...\1dlook closely at the grain where she fell.
+\15...\1dtend the girl.
+\16...\1dpray to a saint for her.
+\15...\1dtake up a scythe and help get the rye in before the storm.
+\15...\1dgo on your way.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName rubs ears of rye between $his fingers and finds nothing in them but grain and chaff. The steward bawls at $him to get out of the field, and an hour is gone.
+=== card 2: 10 10 0 240 0 ===
+Among the ears $ChosenOneName finds black, horn-shaped grains like little spurs, in ear after ear. Mother-corn, the old alchemists call it, and a few of them write that bread baked from it brings on St. Anthony's fire. It was not the Rye-mother that struck the girl. It was the rye.
+\14Bread from this field could set half the village burning by Martinmas. But it is their whole harvest. You...
+\14\15...\1dtell them plainly what you have found.
+\15...\1dmake a holy rite of it: every black grain picked out and burned.
+\15...\1dsay nothing and go on.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName holds the girl still, chafes her cold hands and feet and keeps her from biting her tongue until the fit passes. She sleeps at last, pale but breathing easy, and her mother kisses your hands.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName does what $he can, but the fits come again and again, and the girl's hands and feet stay cold and blue. At last her family carries her home. You never learn whether she lived.
+=== card 5: 10 10 0 240 0 ===
+As you pray, the girl's limbs loosen and her breathing slows. She opens her eyes and asks for water. The reapers who saw it say a prayer of their own, and will long remember the strangers who brought a saint into their field.
+=== card 6: 10 10 0 240 0 ===
+You pray, but the girl writhes on. The saint is silent.
+=== card 7: 10 10 0 240 0 ===
+You strip to your shirts and take up scythes. The swing is close kin to a polearm's, though the rye does not strike back. You reap until your backs crack and the first drops fall, and the last sheaf is in the barn as the storm breaks. The steward pays you a reaper's wage: $Money1.
+=== card 8: 10 10 0 240 0 ===
+You leave them to their harvest and their Rye-mother. Nothing more comes of it.
+=== card 9: 10 10 0 240 0 ===
+$ChosenOneName shows them the black spurs, ear after ear, and tells them of the fire that comes from bread. The old man scoffs, but the girl's mother listens, and then the other women. By evening they are sifting the grain and casting the black into the fire.
+\14Come Martinmas, this village will eat its bread in peace.
+=== card 10: 10 10 0 240 0 ===
+$ChosenOneName shows them the black spurs and tells them of the fire that comes from bread. The reapers laugh: rye is rye, and their grandfathers ate it. The steward tells you to keep your town learning to yourselves. You can do no more.
+=== card 11: 10 10 0 240 0 ===
+$ChosenOneName calls for holy water and a fire, and declares that the Rye-mother hides in the black grains, which must be picked out and burned, every one, with a paternoster for each. The village sets to it gladly. It is not quite theology, but it may keep them alive.
+=== card 12: 10 10 0 240 0 ===
+$ChosenOneName begins the rite, but halfway through the village priest arrives, red with anger at strangers working rites in his parish. Your rite ends in a scolding, the black grains stay in the rye, and the story reaches $NearestCity before you do.
+=== card 13: 10 10 0 240 0 ===
+You say nothing and walk on. Behind you the reapers bind the last sheaves, black grains and all. The thought of Martinmas follows you a long way.

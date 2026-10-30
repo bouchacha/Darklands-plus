@@ -1,0 +1,37 @@
+# The moss-wife: a little forest woman begs for three crosses on a stump, and cannot abide caraway.
+name     The moss-wife
+card     $NfMos00
+picture  XWITBRGN
+where    wild
+terrain  forest woods pinewood
+when     day
+weight   1
+only     month >= 4 and month <= 10
+
+[start]
+block    0
+chosen   bestskill(Woodwise)
+option 0                                   # cut three crosses into the stump
+  chance assured
+  ok     hours 1; goto gift
+option 1                                   # give her bread (is there caraway in it?)
+  chance unknown
+  ok     if roll(50) then { text 1; heal party, End, 50 } else { text 2; attr party, End, -2 }
+         hours 1; exit
+option 2                                   # walk on
+  chance none
+  ok     text 3; exit
+
+[gift]
+block    4
+option 0                                   # the leaves
+  chance none
+  ok     money1 random(36) + 24; text 5; gain money1; exit
+option 1                                   # her herb-lore (Healing, Intelligence)
+  who    bestskill(Healing)
+  chance clamp(5, 90, skill(who, Healing) + attr(who, Int) / 3 - 5)
+  ok     chosen who; text 6; skill who, Healing, 1; practice who, Healing, 1, 10, 0; hours 1; exit
+  fail   chosen who; text 7; practice who, Healing, 0, 10, 0; hours 1; exit
+option 2                                   # her blessing
+  chance none
+  ok     text 8; heal party, End, 50; exit

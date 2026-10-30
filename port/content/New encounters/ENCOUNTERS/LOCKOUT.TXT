@@ -1,0 +1,45 @@
+# Locked out: a burgher outside the shut gate, and a wife waiting inside it.
+name     Locked out
+card     $NnLck00
+picture  XTOWER
+where    street
+when     night
+weight   1
+
+[start]
+do       money1 12
+block    0
+chosen   bestattr(Cha)
+option 0                                   # talk the gate-ward round
+  who    bestattr(Cha)
+  chance clamp(5, 90, (4 * attr(who, Cha) + skill(who, SpeakCommon)) / 5 + standing / 5 - 10)
+  ok     chosen who; text 10; practice who, SpeakCommon, 1, 10, 0; goto wife
+  fail   chosen who; text 1; practice who, SpeakCommon, 0, 10, 0; disable 0
+option 1                                   # a coin for the gate-ward
+  need   money >= money1
+  who    bestskill(Streetwise)
+  chance clamp(10, 90, 40 + skill(who, Streetwise) / 2)
+  ok     chosen who; text 11; pay money1; practice who, Streetwise, 1, 10, 0; goto wife
+  fail   chosen who; text 2; pay money1; reputation -1, -2; practice who, Streetwise, 0, 10, 0; disable 1
+option 2                                   # haul him up over the wall (a rope helps)
+  who    bestattrskill(Str, Artifice)
+  chance clamp(5, 90, attr(who, Str) + skill(who, Artifice) / 2 + has(party, 0x3b) * 20 - 15)
+  ok     chosen who; text 12; attr party, End, -2; practice who, Artifice, 1, 10, 0; goto wife
+  fail   chosen who; text 3; attr party, End, -2; reputation -1, -2; practice who, Artifice, 0, 10, 0; hours 1; exit
+option 3                                   # let him wait for dawn
+  chance none
+  ok     text 4; exit
+
+[wife]
+block    5
+option 0                                   # back his story
+  who    bestattrskill(Cha, SpeakCommon)
+  chance clamp(5, 85, attr(who, Cha) + skill(who, SpeakCommon) / 2 - 10)
+  ok     chosen who; money1 24 + random(25); text 6; gain money1; attr party, DF, -1; practice who, SpeakCommon, 1, 10, 0; exit
+  fail   chosen who; text 7; reputation -1, -2; practice who, SpeakCommon, 0, 10, 0; exit
+option 1                                   # tell her the truth
+  chance none
+  ok     text 8; reputation 1, 2; practice party, Virtue, 1, 10, 0; exit
+option 2                                   # bow and leave them to it
+  chance none
+  ok     text 9; exit

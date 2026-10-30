@@ -1,0 +1,37 @@
+# $NRBAD00: the bath-house (New encounters)
+=== card 0: 10 10 0 240 0 ===
+In a village by the road, a horn is blowing outside a low timber house with steam puffing from its roof. At the door a bath-maid in a pink kirtle calls to all who pass. "The bath is hot! Sweat-bath and tub and a cup of wine, and the bather shaves you for the same money: $Money1 for the lot of you!"
+\14After so many days on the road, you can smell yourselves. You...
+\14\15...\1dpay and go in.
+\15...\1dgo on, unwashed.
+=== card 1: 10 10 0 240 0 ===
+You sweat on the benches among the village men until the dirt of a dozen roads runs off you, then soak in great tubs while the bather scrapes your chins and the maid fills your cups. For the first time in weeks your bones stop aching.
+=== card 2: 10 10 0 240 0 ===
+You go on, unwashed and itching, and the bath-maid calls something after you that makes the village men laugh. Nothing more comes of it.
+=== card 3: 10 10 0 240 0 ===
+You are drowsing in the tubs when a shriek comes from the changing room. The Schulz's wife has lost her silver paternoster, which she left on the bench with her shift, and every eye in the steam turns to the strangers.
+\14"Search them!" says someone. "Duck them in the pond!" says someone else. You...
+\14\15...\1dswear your innocence on the village relic.
+\15...\1dfind the real thief.
+\15...\1dlet them turn out your things.
+\15...\1dsnatch up your clothes and run for it.
+=== card 4: 10 10 0 240 0 ===
+They send for the priest, who brings the parish relic, a knucklebone of St. Leonard in a silver case. $ChosenOneName lays a hand on it and swears, clear and steady, with water still dripping off $his nose. Nobody doubts an oath sworn like that. The Schulz's wife mutters something like an apology, and you dress in peace. Nothing more comes of it.
+=== card 5: 10 10 0 240 0 ===
+They send for the priest and the parish relic, a knucklebone of St. Leonard in a silver case. $ChosenOneName lays a hand on it and swears, but $his voice shakes, and the villagers take it for guilt. The Schulz fines you $Money2 for the trouble, paternoster or no paternoster.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName looks from face to face in the steam, but every one of them looks guilty, and none more than another. $His questions only make the villagers angrier.
+=== card 7: 10 10 0 240 0 ===
+They turn out your packs on the bath-house floor, piece by piece, and find nothing but the dirt of the road. It takes the rest of the afternoon. At last the paternoster turns up in the Schulz's own boot, where his wife put it for safekeeping. Nobody apologises.
+=== card 8: 10 10 0 240 0 ===
+You snatch up your clothes and bolt, half dressed, out along the road, with the bath-maid's laughter and the village dogs behind you. You get clean away. But innocent folk do not run, as everyone in $NearestCity will soon be saying.
+=== card 9: 10 10 0 240 0 ===
+You snatch up your clothes and bolt, but $ChosenOneName trips over $his own hose in the doorway, and the village men sit on $him. The Schulz fines you $Money2, and what everyone saw will be told in $NearestCity for months.
+=== card 10: 10 10 0 240 0 ===
+$ChosenOneName watches the faces in the steam, and finds the one that will not look up: the bather's boy, a skinny lad who carries the hot stones, with one fist clenched tight. Caught, he goes white and shakes his head at $ChosenOneName, begging without a word. You...
+\14\15...\1dname him before them all.
+\15...\1dlet him slip it back where it can be found.
+=== card 11: 10 10 0 240 0 ===
+The Schulz's men drag the boy out from behind the stove, and the paternoster drops from his fist. The Schulz's wife has it back, the boy gets a thrashing in the village street, and you get the village's thanks, and a good name in $NearestCity.
+=== card 12: 10 10 0 240 0 ===
+$ChosenOneName gives the boy the smallest of nods. A moment later he cries out that he has found it under the changing bench, where it must have fallen. The Schulz's wife hugs him and gives him a pfennig. Nobody thanks you, which is as it should be.

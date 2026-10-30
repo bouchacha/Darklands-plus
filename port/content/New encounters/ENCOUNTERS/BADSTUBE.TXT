@@ -1,0 +1,54 @@
+# The bath-house: a village bath on the road; while you soak, a silver paternoster goes missing, and the strangers are blamed.
+name     The bath-house
+card     $NrBad00
+picture  XTIPSEY
+where    wild
+terrain  farmland plains road
+when     day
+weight   1
+only     money >= 12
+vars     fine
+
+[start]
+do       money1 size * 3
+block    0
+option 0                                   # pay and go in
+  need   money >= money1
+  chance none
+  ok     pay money1; text 1; heal party, End, 50; hours 2; goto accused
+option 1                                   # go on unwashed
+  chance none
+  ok     text 2; exit
+
+[accused]
+picture  XMOB
+do       set fine = min(money, size * 12); money2 fine
+block    3
+chosen   bestskill(Virtue)
+option 0                                   # swear on the relic (Virtue)
+  who    bestskill(Virtue)
+  chance clamp(5, 90, skill(who, Virtue) + attr(who, Cha) / 3 + standing / 5)
+  ok     chosen who; text 4; practice who, Virtue, 1, 10, 0; exit
+  fail   chosen who; text 5; pay fine; reputation -1, -2; practice who, Virtue, 0, 10, 0; exit
+option 1                                   # find the real thief (Streetwise)
+  who    bestattrskill(Per, Streetwise)
+  chance clamp(5, 90, skill(who, Streetwise) + attr(who, Per) / 2 - 5)
+  ok     chosen who; practice who, Streetwise, 1, 10, 0; goto thief
+  fail   chosen who; text 6; practice who, Streetwise, 0, 10, 0; disable 1
+option 2                                   # let them turn out your things
+  chance assured
+  ok     text 7; hours 3; exit
+option 3                                   # snatch up your clothes and run (Stealth)
+  who    party
+  chance clamp(5, 90, avgagility + avgskill(Stealth) / 2)
+  ok     text 8; reputation -1, -3; practice party, Stealth, 1, 10, 0; exit
+  fail   chosen slowest; text 9; pay fine; reputation -1, -3; practice party, Stealth, 0, 10, 0; exit
+
+[thief]
+block    10
+option 0                                   # name him before them all
+  chance none
+  ok     text 11; reputation 1, 3; exit
+option 1                                   # let him slip it back
+  chance none
+  ok     text 12; attr party, DF, 2; practice party, Virtue, 1, 10, 0; exit

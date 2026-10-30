@@ -1,0 +1,48 @@
+# The singing match: two barges, two crews, a song contest, and sore losers.
+name     The singing match
+card     $NvSng00
+picture  XRIVER
+where    boat
+when     day
+weight   1
+
+[start]
+block    0
+chosen   bestskill(Streetwise)
+option 0                                   # a song from the city taverns (Streetwise)
+  who    bestskill(Streetwise)
+  chance clamp(5, 90, skill(who, Streetwise) + attr(who, Cha) / 3 + min(10, fame / 20) - 5)
+  ok     chosen who; text 1; practice who, Streetwise, 1, 10, 0; goto won
+  fail   chosen who; text 2; practice who, Streetwise, 0, 10, 0; goto lost
+option 1                                   # play them a tune on harp or flute (Charisma, Agility)
+  who    bestattr(Cha)
+  need   has(party, 0x41) or has(party, 0x42)
+  chance clamp(10, 90, attr(who, Cha) + attr(who, Agl) / 2 + 10)
+  ok     chosen who; text 3; goto won
+  fail   chosen who; text 4; goto lost
+option 2                                   # raise a hymn (Religion)
+  who    bestskill(Religion)
+  chance clamp(5, 90, skill(who, Religion) + attr(who, Cha) / 3)
+  ok     chosen who; text 5; practice who, Religion, 1, 10, 0; attr party, DF, 2; exit
+  fail   chosen who; text 6; practice who, Religion, 0, 10, 0; goto lost
+option 3                                   # leave the singing to the boatmen
+  chance none
+  ok     text 7; exit
+
+[lost]
+do       money1 min(money, size * 6); text 8; pay money1; exit
+
+[won]
+block    9
+option 0                                   # laugh, and stand them the beer yourselves
+  chance none
+  ok     money1 min(money, size * 6 + 12); text 10; pay money1; attr party, End, 2; exit
+option 1                                   # fight them off
+  chance combat
+  ok     text 11; goto fight
+
+[fight]
+do       battle 0x55, Villager, lore / 4 + 1, random(3) + 3, Thug, lore % 3 + 1, 1
+         if result == Won then { money1 size * 18; text 12; gain money1; fame 1; hours 1; exit }
+         if result == Fled then { rejoin; text 13; hours 2; exit }
+         money1 min(money, 120); text 14; pay money1; hours 1; exit

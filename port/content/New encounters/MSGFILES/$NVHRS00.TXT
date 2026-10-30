@@ -1,0 +1,41 @@
+# $NVHRS00: the frightened horse (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A horse-dealer is taking three horses down the river, tethered amidships among the bales: two cobs and a tall grey stallion he boasts is worth forty florins. Toward noon a gadfly settles on the grey's neck. He screams, rears, snaps his halter like a thread and lashes out with both hind hooves. A boatman goes down. The boat heels until the water slops over the gunwale.
+\14The dealer has climbed onto the cabin roof and is shouting advice. "Hold him, somebody! Don't hurt him!"
+\14You...
+\14\15...\1dcatch his halter and gentle him.
+\15...\1dshoot him down before he stoves in the hull.
+\16...\1dcall on a saint to calm the beast.
+\15...\1dget behind the bales and let him kick himself out.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName ducks a flying hoof, catches the trailing halter and hangs on, talking low and steady as to a frightened child, until the grey stands trembling and lathered with his nose against $his chest.
+\14As $he strokes the sweating flank, black comes off on $his hand. The grey has been rubbed with soot, and under it is a brand: the crossed keys of an abbey.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName grabs for the halter, but the grey swings round and a hoof catches $him in the ribs and flings $him against the mast. The stallion is still loose, and still kicking.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName's shot takes the grey behind the ear, and he drops to the deck like a felled oak. The dealer wails over the carcass and wants forty florins for it, but when the captain speaks of the bailiff he goes very quiet. At the next bend he jumps ashore and runs off into the willows, leaving his two cobs behind.
+\14Under the soot on their flanks the captain finds an abbey's brand. "A horse thief, on my boat!" He is so glad to have his hull whole that he hands back part of your fares: $Money1.
+=== card 4: 10 10 0 240 0 ===
+The deck pitches as $ChosenOneName lets fly, and the shot skips away across the river. The grey screams and kicks on.
+=== card 5: 10 10 0 240 0 ===
+As you pray, the grey goes still all at once, as if a hand had taken his bridle. $ChosenOneName walks up and takes the halter, and he follows like a lamb.
+\14As $he strokes the sweating flank, black comes off on $his hand. The grey has been rubbed with soot, and under it is a brand: the crossed keys of an abbey.
+=== card 6: 10 10 0 240 0 ===
+No help comes. The grey screams and kicks on.
+=== card 7: 10 10 0 240 0 ===
+You crouch behind the bales while the grey kicks a cask of herring to staves and a boatman's arm to splinters. When at last he stands blowing and trembling, the captain puts in to the bank to mend the gunwale, and two hours are lost.
+=== card 8: 10 10 0 240 0 ===
+The dealer has seen the black on $ChosenOneName's fingers. He climbs down off the cabin roof, all smiles, and draws you aside. "Bought honestly at Nuremberg fair, masters, and I have the bill of sale to prove it." He pats his purse. "And half a florin for friends who don't trouble bailiffs with idle tales."
+\14You...
+\14\15...\1dtake his half florin and say nothing.
+\15...\1dask to read his bill of sale.
+\15...\1dshrug. Whose horse it is is none of your business.
+=== card 9: 10 10 0 240 0 ===
+The coins are warm from his purse. At the landing he leads his horses down the plank and away up the street with a cheerful wave, and you think of the monks at their prayers, wondering where their grey has gone.
+=== card 10: 10 10 0 240 0 ===
+$ChosenTwoName reads the bill twice, then holds the seal to the light. It is good wax and a good seal, but it was lifted from some other letter with a hot knife: a few words of that letter still show beneath it. The dealer sees $ChosenTwoName's face and makes for the gunwale, but the boatmen are quicker.
+\14At the landing he goes up to the bailiff with his hands bound, the abbey gets its horses back, and the tale goes round the town.
+=== card 11: 10 10 0 240 0 ===
+$ChosenTwoName reads the bill twice over and holds the seal to the light for an hour, and can find nothing wrong with it. The dealer smirks and rolls it up again. At the landing he leads his horses away up the street. Perhaps they were his after all.
+=== card 12: 10 10 0 240 0 ===
+You shrug. The dealer laughs, slaps $ChosenOneName on the back and spends the rest of the voyage rubbing fresh soot into the grey's flanks. At the landing he and his horses go their way, and nothing more comes of it.

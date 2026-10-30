@@ -1,0 +1,41 @@
+# $NRBAN00: the eaten letter (New encounters)
+=== card 0: 10 10 0 240 0 ===
+In the ditch beside the road sits a man in a bishop's livery, retching, red-eyed, with blood and red wax on his chin. He was carrying the bishop's letter of ban to Herr Ulrich of the castle on the hill, who has seized a convent's lands.
+\14Herr Ulrich's men did what such men do to such messengers: they made him eat it, parchment, cords, seal and all. "And the bishop will not hear that his ban was eaten," he croaks. "It must be nailed to the castle chapel door before Sunday."
+\14You...
+\14\15...\1dease his torn throat.
+\15...\1dwrite out a new letter while he says the words.
+\15...\1dsee him safely back to $NearestCity.
+\15...\1dleave him to his digestion.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName coaxes the last shards of wax out of his gullet and gives him honey and watered wine for the rawness. "God reward you," he whispers. "Herr Ulrich's men never thought to."
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName probes for the shards of wax, and the messenger gags, coughs blood and waves $him off. It is an hour before he can speak again, and then not kindly.
+=== card 3: 10 10 0 240 0 ===
+The messenger knows the ban by heart and recites it slowly. $ChosenOneName scratches away for two hours, but the Latin runs ahead of $his pen, and the result is so full of blots and blunders that the messenger, reading over $his shoulder, weeps. "The bishop would excommunicate us both."
+=== card 4: 10 10 0 240 0 ===
+You help the messenger up and walk him back to $NearestCity. At the gate he thanks you with tears in his eyes, and goes off to tell the bishop's officials what became of their ban, and who was kind to him on the road.
+=== card 5: 10 10 0 240 0 ===
+"The bishop should send tougher messengers," someone says, and you walk on. Nothing more comes of it.
+=== card 6: 10 10 0 240 0 ===
+The messenger recites and $ChosenOneName writes: the bishop's greeting, Herr Ulrich's crimes, the anathema, all of it in a fair hand, sealed with the messenger's own ring. It is not quite the bishop's letter, but the messenger swears it will serve.
+\14Now it must reach Herr Ulrich's chapel door. You...
+\14\15...\1dnail it to the chapel door yourselves, by night.
+\15...\1dtie it to an arrow and shoot it over the castle wall.
+\15...\1dgive it to the messenger and send him on.
+=== card 7: 10 10 0 240 0 ===
+At midnight you slip past the drowsing gate-ward and across the castle's lower court. Four nails, four soft taps with a stone, and the bishop's ban hangs on the chapel door. At Mass Herr Ulrich will read that he is cut off from the Church, and by the week's end every alehouse knows who brought the news.
+=== card 8: 10 10 0 240 0 ===
+A dog barks, then another. Torches flare in the lower court, and Herr Ulrich's men come running with drawn swords. "More of the bishop's errand-boys! This lot we won't bother feeding."
+=== card 9: 10 10 0 240 0 ===
+Herr Ulrich's men lie in the courtyard mud or have fled into the keep. In the sudden quiet you nail the ban to the chapel door and walk out by the open gate. By the week's end the whole countryside is talking of it.
+=== card 10: 10 10 0 240 0 ===
+You flee the castle with Herr Ulrich's men hard behind you, and find one another again only at dawn, far down the road. The ban lies trampled somewhere in the lower court.
+=== card 11: 10 10 0 240 0 ===
+Herr Ulrich's men beat you senseless and throw you out of the gate at dawn. The ban they keep. One of them is heard to say they should have made you eat it.
+=== card 12: 10 10 0 240 0 ===
+You give the messenger the new letter. He tucks it into his boot, squares his shoulders and limps off toward the castle on the hill. "If they make me eat this one," he says, "at least it is in a better hand."
+=== card 13: 10 10 0 240 0 ===
+$ChosenOneName ties the letter to an arrow, judges the wind and the height of the wall, and looses. It flies high over the battlements and drops at the feet of Herr Ulrich's own chaplain, who reads it, crosses himself and nails it to the chapel door with his own hands. Word of the shot is all over the countryside within the week.
+=== card 14: 10 10 0 240 0 ===
+$ChosenOneName ties the letter to an arrow and looses. It falls short into the moat, and it takes an hour with a long branch, under the jeers of the guards on the wall, to fish it out again, sodden but still legible.

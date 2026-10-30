@@ -1,0 +1,42 @@
+# The pitch-burners: pitch-burners in the pinewood await the rogues who rob them every new moon.
+name     The pitch-burners
+card     $NfPch00
+picture  XBSMOKE
+where    wild
+terrain  pinewood forest
+when     night
+weight   1
+only     month >= 4 and month <= 10
+
+[start]
+block    0
+chosen   bestskill(Thrown)
+items    0x65, 0x66                      # Sunburst, Thunderbolt
+option 0                                   # throw pots of boiling pitch (Thrown, Agility)
+  who    bestskill(Thrown)
+  chance clamp(5, 90, skill(who, Thrown) + attr(who, Agl) / 3)
+  ok     chosen who; money1 size * 12; text 1; gain money1; fame 1; practice who, Thrown, 1, 10, 0; until 5; exit
+  fail   chosen who; text 2; practice who, Thrown, 0, 10, 0; goto fight
+option 1 potion                            # a potion of your own
+  potion 0x65, clamp(0, 99, attr(who, Per) * 2 - 1)
+  potion 0x66, clamp(0, 99, attr(who, Per) * 2 + 7)
+  ok     chosen who; money1 size * 12; text 3; gain money1; fame 1; until 5; exit
+  fail   chosen who; text 4; goto fight
+option 2                                   # talk to the rogues (Charisma, Speak Common, fame)
+  who    bestattr(Cha)
+  chance clamp(5, 90, (4 * attr(who, Cha) + skill(who, SpeakCommon)) / 5 + min(15, fame / 10) - 10)
+  ok     chosen who; text 5; practice who, SpeakCommon, 1, 10, 0; reputation 1, 2; until 5; exit
+  fail   chosen who; text 6; practice who, SpeakCommon, 0, 10, 0; goto fight
+option 3                                   # meet them with steel
+  chance combat
+  ok     text 7; goto fight
+option 4                                   # leave before they come
+  chance none
+  ok     text 8; exit
+
+[fight]
+picture  XBANDITS
+do       battle Wilds, Bandit, lore / 4 + 1, random(5) + 3, BrigandSergeant, lore % 3 + 1, 1
+         if result == Won then { money1 size * 12; text 9; gain money1; fame 1; reputation 1, 2; until 5; exit }
+         if result == Fled then { rejoin; until 5; text 10; exit }
+         money1 min(money, money / 4); text 11; pay money1; until 5; exit

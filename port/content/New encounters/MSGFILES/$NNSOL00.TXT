@@ -1,0 +1,32 @@
+# $NNSOL00: the nightsoil cart (New encounters)
+=== card 0: 10 10 0 240 0 ===
+The lane is blocked by a cart of barrels, a lantern on a pole, and a smell that stops you like a wall. The night men are emptying a privy pit behind a house, as the town allows only by night and only in the cold months, and their cart's wheel has sunk to the hub in the gutter.
+\14"Mind your boots, masters!" calls their master, a cheerful, enormous man named Utz, whom nobody in town will shake by the hand. "Or lend a shoulder, if you can stand it." You...
+\14\15...\1dput your shoulders to the wheel.
+\15...\1dedge past along the wall.
+\15...\1dgo round by another lane.
+=== card 1: 10 10 0 240 0 ===
+You set your shoulders to the wheel, breathe through your mouths, and heave. The cart rolls free with a great slosh, and only your boots suffer.
+=== card 2: 10 10 0 240 0 ===
+You set your shoulders to the wheel and heave. The cart lurches, a barrel tips, and the night's harvest comes down over all of you. Utz laughs until he weeps. Nobody at your inn will sit near you for days.
+=== card 3: 10 10 0 240 0 ===
+"Honest hands," says Utz, "and I've something honest hands should see." From a bucket he fishes a cup, rinses it in the gutter, and holds it to the lantern: a silver chalice, dented and fouled, but whole.
+\14"Out of the pit of the house behind. That's the sexton's house. And that's St. Ulrich's altar-cup, stolen at Candlemas; they flogged a beggar for it. But who'll believe the night man didn't steal it himself? They'd hang me before the priest had done crossing himself." You...
+\14\15...\1dtake it to the priest and name the house.
+\15...\1dbuy it from him for $Money1, and sell the silver.
+\15...\1dtell him to throw it back where he found it.
+=== card 4: 10 10 0 240 0 ===
+At first light $ChosenOneName lays the chalice on the priest's table and tells him where it was found, and in whose pit. The priest goes pale, then grim, and sends for the beadle. The sexton confesses before noon, and the flogged beggar is fetched back with alms and apologies.
+\14The tale goes round the town, and it does not lose in the telling.
+=== card 5: 10 10 0 240 0 ===
+At first light $ChosenOneName lays the chalice on the priest's table. The priest gives thanks to God and St. Ulrich, but will not hear a word against his sexton, who has served the church for twenty years. "The Lord moves in strange ways," he says, "and so, it seems, do thieves." The cup is back on its altar, at least.
+=== card 6: 10 10 0 240 0 ===
+Utz takes your coins and shrugs. In a back lane a goldsmith who asks no questions hammers the chalice flat before your eyes and pays $Money1 for the silver. It is a sum to make a man forget where he found it, or nearly.
+=== card 7: 10 10 0 240 0 ===
+"Back it goes, then," says Utz, and drops the altar-cup back into the bucket. It seems a poor end for a vessel that held the Blood of Christ. Nothing else comes of it.
+=== card 8: 10 10 0 240 0 ===
+You edge along the wall, holding your breath, and are past without a splash. Nothing comes of it.
+=== card 9: 10 10 0 240 0 ===
+You edge along the wall, until $ChosenOneName's foot finds the overflow of the gutter and $he sits down in it. Utz laughs until he weeps. Nobody at your inn will sit near you for days.
+=== card 10: 10 10 0 240 0 ===
+You go round by another lane, the long way, and lose an hour of the night. Nothing else comes of it.

@@ -1,0 +1,44 @@
+# The ice-going: the thaw sends the river's ice down on the boat, and it jams at the bend.
+name     The ice-going
+card     $NvIce00
+picture  XMTLAKE
+where    boat
+when     day
+weight   1
+only     month <= 3                            # the thaw of late winter
+
+[start]
+block    0
+chosen   bestskill(Polearms)
+option 0                                   # fend off the floes with a pole (Polearms)
+  who    bestskill(Polearms)
+  chance clamp(5, 90, skill(who, Polearms) + attr(who, Str) / 3)
+  ok     chosen who; text 1; practice who, Polearms, 1, 10, 0; attr party, End, -2; exit
+  fail   chosen who; text 2; injure who, 1, 1, 5; practice who, Polearms, 0, 10, 0; goto jam
+option 1                                   # read the river for open water (Woodwise)
+  who    bestskill(Woodwise)
+  chance clamp(5, 90, skill(who, Woodwise) + attr(who, Per) / 3 - 5)
+  ok     chosen who; text 3; practice who, Woodwise, 1, 10, 0; hours 2; exit
+  fail   chosen who; text 4; practice who, Woodwise, 0, 10, 0; goto jam
+option 2                                   # run her into the bank and wait
+  chance assured
+  ok     text 5; days 2 + random(2); attr party, End, -3; exit
+
+[jam]
+block    6
+items    0x66, 0x65                      # Thunderbolt, Sunburst
+option 0                                   # hack a channel through (the party's Strength and Endurance)
+  who    party
+  chance clamp(10, 85, (avgattr(Str) + avgattr(End)) / 2 + size * 4)
+  ok     text 7; attr party, End, -4; hours 3; exit
+  fail   chosen slowest; text 8; attr party, End, -4; keepitems slowest, clamp(1, 95, attr(slowest, Agl) + 50); hours 6; exit
+option 1 potion                            # burst the jam with a potion
+  potion 0x66, clamp(0, 99, 50 + q / 2)
+  potion 0x65, clamp(0, 99, 15 + q / 3)
+  ok     text 9; fame 1; exit
+  fail   text 10
+option 2                                   # abandon her and cross the ice to the bank (Agility)
+  who    party
+  chance clamp(10, 90, avgagility + 25)
+  ok     text 11; attr party, End, -3; hours 6; exit
+  fail   chosen slowest; text 12; attr slowest, End, -5; keepitems slowest, clamp(1, 95, attr(slowest, Agl) + 40); hours 6; exit

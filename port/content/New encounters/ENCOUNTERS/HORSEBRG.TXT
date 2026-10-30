@@ -1,0 +1,47 @@
+# The frightened horse: a horse-dealer's stallion breaks loose on deck, and it is not his to sell.
+name     The frightened horse
+card     $NvHrs00
+picture  DOCKDAY
+where    boat
+when     day
+weight   1
+only     month >= 5 and month <= 9             # the gadflies of summer
+
+[start]
+block    0
+chosen   bestskill(Riding)
+saints   0x37, 0x5d, 0x16                # George, Martin of Tours, Christopher
+option 0                                   # catch the halter and gentle him (Riding)
+  who    bestskill(Riding)
+  chance clamp(5, 90, skill(who, Riding) + attr(who, Agl) / 3 - 5)
+  ok     chosen who; text 1; practice who, Riding, 1, 10, 0; goto brand
+  fail   chosen who; text 2; injure who, 1, 1, 10; practice who, Riding, 0, 10, 0; disable 0
+option 1                                   # shoot him down before he stoves in the hull (Bows, Missile)
+  who    bestskill2(Bows, Missile)
+  need   has(party, 0x1a) or has(party, 0x1b) or has(party, 0x1c) or has(party, 0x1d) or has(party, 0x1e)
+  chance clamp(5, 90, max(skill(who, Bows), skill(who, Missile)) + attr(who, Per) / 3 - 10)
+  ok     chosen who; money1 size * 12; text 3; gain money1
+         if skill(who, Bows) >= skill(who, Missile) then practice who, Bows, 1, 10, 0 else practice who, Missile, 1, 10, 0
+         exit
+  fail   chosen who; text 4; disable 1
+option 2 saint
+  ok     text 5; goto brand
+  fail   text 6
+option 3                                   # get behind the bales
+  chance none
+  ok     text 7; hours 2; exit
+
+[brand]
+do       money1 120
+block    8
+option 0                                   # take his half florin and say nothing
+  chance none
+  ok     text 9; gain money1; attr party, DF, -3; exit
+option 1                                   # read his bill of sale (Read & Write)
+  who    bestskill(ReadWrite)
+  chance clamp(5, 90, skill(who, ReadWrite) + attr(who, Int) / 3 - 5)
+  ok     chosen2 who; text 10; practice who, ReadWrite, 1, 10, 0; reputation 1, 3; fame 1; exit
+  fail   chosen2 who; text 11; practice who, ReadWrite, 0, 10, 0; hours 1; exit
+option 2                                   # none of your business
+  chance none
+  ok     text 12; exit

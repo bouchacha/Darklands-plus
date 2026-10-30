@@ -1,0 +1,27 @@
+# $NFCND00: the candles in the ruin (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A glimmer through the trees leads you to a ruined chapel: the roof fallen in, ivy on the walls, owls in the broken bell-cote. Inside, on the bare altar stone, a dozen candles burn around a man laid out in a hermit's rough habit, his hands folded on a wooden cross. There is no one else, and no tracks in the dust but your own.
+\14He has lain here a long while. The wax has dripped into drifts on the floor, yet the candles burn no shorter as you watch, and his face is waxen but whole. The chapel smells not of death but of roses.
+\14"The odour of sanctity," whispers $ChosenOneName. "A saint's body does not rot."
+\14You...
+\14\15...\1dkneel and keep vigil beside him until dawn.
+\15...\1dbear witness to the dean of the nearest town.
+\15...\1dcut a relic from his habit, or his hand.
+\15...\1dleave him to his candles and go on.
+=== card 1: 10 10 0 240 0 ===
+You kneel on the cold flags and pray through the night, the old hermit lying still among his candles. Nobody falls asleep. At the first grey light every candle goes out at once, without a breath of wind, and a sweetness passes through the ruin and is gone.
+\14You bury him beneath his altar with the prayers for the dead. Your knees ache, but your hearts are light.
+=== card 2: 10 10 0 240 0 ===
+You kneel to pray, but the night is long and the flags are cold, and one by one your heads nod. You wake at grey dawn stiff and shivering. The candles are out, the sweetness is gone, and there is only an old dead man on a cold stone.
+\14You bury him beneath his altar, and wonder what you slept through.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName sets down everything you have seen, in a fair hand: the chapel, the candles, the wax, the roses. The dean of the nearest town reads it twice, crosses himself, and rides out with his clerks to see for himself.
+\14The candles are still burning when he comes. Within the month there will be pilgrims on the forest path, and your names are in the dean's letter to the bishop.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName's account is muddled and blotted, and the dean reads it with raised eyebrows. Still, he rides out with his clerks. When you reach the chapel at last, the altar stone is bare: no hermit, no candles, no wax, only ivy and owls.
+\14The dean says nothing on the long ride back. He does not need to. The town hears of the strangers who tell tales of saints.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName draws a knife and reaches for the dead man's hand. As the blade touches him, every candle goes out at once. In the black dark the smell of roses is gone, and something cold breathes on the back of each of your necks.
+\14When the dawn comes, the altar stone is bare. No one slept.
+=== card 6: 10 10 0 240 0 ===
+You leave the hermit to his candles and his God, and go on into the dark. When you look back from the next rise, the light is still burning among the trees. Nothing more comes of it.

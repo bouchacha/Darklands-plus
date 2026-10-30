@@ -1,0 +1,39 @@
+# $NRGEL00: the safe-conduct (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A covered cart comes down the road, guarded by four riders in a count's colours. On the bench sits an elderly man in a dark gown, the pointed hat the law makes his people wear on his head, and his wife beside him: Meister Isaak, a moneylender of Regensburg, bound for the Frankfurt fair under the Count's safe-conduct, paid for in good florins.
+\14As the cart passes, the sergeant of the escort drops back beside you. "At the ford beyond the wood," he says softly, "robbers will fall on the Jew and his gold. Sad, but there it is. Lend us your swords and take a share. Or ride on and keep your mouths shut, or you'll be the robbers we found."
+\14You...
+\14\15...\1dget a quiet word of warning to Meister Isaak.
+\15...\1dride ahead and fetch the Count's Vogt.
+\06...\1dcall the sergeant a thief to his face.
+\15...\1dpretend to agree, and go with them to the ford.
+\15...\1dgo on your way and keep out of it.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName falls in beside the cart as if to ask the road, and speaks low. Meister Isaak listens without turning his head. "I paid the Count for this conduct, and the sergeant for his goodwill. It seems the price has gone up again."
+\14At the next village he halts before the church, in front of half the parish, and declares he will go no farther with such an escort. The sergeant can only curse and ride off. Isaak hires you to see him to $NearestCity instead, and pays you $Money1 at the gate. "Should you ever need a loan," he says, "come to me. My rates are honest."
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName falls in beside the cart and speaks low, but the sergeant has been watching. "So that's how it is," he says, and draws. "Robbers, lads! Here they are!"
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName rides as if the Devil were behind $him and finds the Count's Vogt at the next toll-house. The Count's revenues hang on his safe-conducts being kept, and the Vogt comes at the gallop. At the ford he finds the sergeant with his sword half drawn, and hangs him from the nearest willow before noon.
+\14Meister Isaak pays you $Money1, and the Vogt speaks well of you wherever he goes.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName rides hard, but by the time $he has found the Vogt and brought him back, the cart stands empty at the ford. Meister Isaak and his wife sit in the grass, alive and robbed of everything, and the escort is long gone. "You came," says Isaak quietly. "That is more than most would do."
+=== card 5: 10 10 0 240 0 ===
+"Thief," you say, loud enough for the cart to hear. The sergeant's face goes hard. "Robbers, lads!" he shouts, and his men wheel their horses.
+=== card 6: 10 10 0 240 0 ===
+The sergeant grins and claps you on the shoulder. Two hours on, the road dips into the ford, and the riders draw in around the cart. Meister Isaak looks from them to you, and understands. His wife begins to pray in Hebrew.
+\14You...
+\14\06...\1dturn your blades on the escort.
+\15...\1dtake your share.
+=== card 7: 10 10 0 240 0 ===
+It is quickly done. The escort strips the cart of its strongbox and pledges and leaves the old couple standing in the ford. Your share is $Money1. Meister Isaak says nothing at all, only looks at you, and you will remember that look longer than the silver.
+=== card 8: 10 10 0 240 0 ===
+"Now!" cries the sergeant, and finds your blades turned on his own men.
+=== card 9: 10 10 0 240 0 ===
+You go on. Days later, at an inn, you hear of a moneylender robbed at a ford, and of the Count's men who so bravely found him there. Nothing more comes of it but the memory.
+=== card 10: 10 10 0 240 0 ===
+The sergeant lies dead in the ford and his men have fled. Meister Isaak climbs down from his cart, very pale, and presses $Money1 on you. "The Count will hear of this," he says, "and so will every Jewish house on the Rhine. You will not lack friends."
+=== card 11: 10 10 0 240 0 ===
+You scatter before the escort's charge and find one another again only at dusk. What became of Meister Isaak, you never learn.
+=== card 12: 10 10 0 240 0 ===
+The escort beats you down and does its work on Meister Isaak's cart, and on your packs while it is about it. Somewhere in the Count's lands, a report will say that robbers struck at the ford.

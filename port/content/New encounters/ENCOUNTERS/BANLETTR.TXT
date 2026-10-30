@@ -1,0 +1,56 @@
+# The eaten letter: a bishop's messenger whom a knight's men made eat his letter of ban, seal and all.
+name     The eaten letter
+card     $NrBan00
+picture  MS017
+where    wild
+terrain  road farmland plains
+when     day
+weight   1
+
+[start]
+block    0
+chosen   bestskill(Healing)
+option 0                                   # ease his throat (Healing)
+  who    bestskill(Healing)
+  chance clamp(10, 90, skill(who, Healing) + attr(who, Int) / 3)
+  ok     chosen who; text 1; attr party, DF, 1; practice who, Healing, 1, 10, 0; disable 0
+  fail   chosen who; text 2; hours 1; practice who, Healing, 0, 10, 0; disable 0
+option 1                                   # write out a new letter as he recites it (ReadWrite, Latin)
+  who    bestskillsum(ReadWrite, Latin)
+  chance clamp(5, 90, skill(who, ReadWrite) + skill(who, Latin) / 2 + attr(who, Int) / 4 - 10)
+  ok     chosen who; hours 2; practice who, ReadWrite, 1, 10, 0; practice who, Latin, 1, 5, -1; goto copy
+  fail   chosen who; text 3; hours 2; practice who, ReadWrite, 0, 10, 0; disable 1
+option 2                                   # see him back to the city
+  chance none
+  ok     text 4; reputation 1, 2; tocity
+option 3                                   # leave him
+  chance none
+  ok     text 5; exit
+
+[copy]
+picture  XINKWELL
+block    6
+option 0                                   # nail it to the chapel door by night (Stealth)
+  who    party
+  chance clamp(5, 90, avgskill(Stealth) + avgagility / 2 - 5)
+  ok     text 7; until 5; attr party, DF, 3; fame 1; practice party, Stealth, 1, 10, 0; exit
+  fail   text 8; practice party, Stealth, 0, 10, 0; goto fight
+option 1                                   # shoot it over the wall on an arrow (Bows, Missile)
+  who    bestskill2(Bows, Missile)
+  need   has(party, 0x1a) or has(party, 0x1b) or has(party, 0x1c) or has(party, 0x1d) or has(party, 0x1e)
+  chance clamp(5, 90, max(skill(who, Bows), skill(who, Missile)) + attr(who, Per) / 3 - 15)
+  ok     chosen who; text 13; hours 3; fame 1; attr party, DF, 2
+         if skill(who, Bows) >= skill(who, Missile) then practice who, Bows, 1, 10, 0 else practice who, Missile, 1, 10, 0
+         exit
+  fail   chosen who; text 14; hours 1; disable 1
+         if skill(who, Bows) >= skill(who, Missile) then practice who, Bows, 0, 10, 0 else practice who, Missile, 0, 10, 0
+option 2                                   # give it to the messenger
+  chance none
+  ok     text 12; attr party, DF, 2; exit
+
+[fight]
+picture  ROBMEN2
+do       battle Surrounded, Soldier, lore / 4 + 1, random(4) + 2
+         if result == Won then { text 9; until 5; attr party, DF, 2; fame 1; exit }
+         if result == Fled then { rejoin; text 10; until 5; exit }
+         text 11; until 7; attr party, End, -2; exit

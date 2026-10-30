@@ -1,0 +1,39 @@
+# $NRGIB00: the hanged man lives (New encounters)
+=== card 0: 10 10 0 240 0 ===
+At a crossroads in the dark stands the gibbet of the high court, three posts and three beams. From one beam hangs a young man in a journeyman's jacket, and beneath him a woman kneels, praying aloud.
+\14Then you hear it: a thin, rattling breath. The hanged man's feet twitch. "They hanged him at noon," the woman sobs, "for a silver cup the innkeeper's daughter hid in his bundle, because he would not have her. I have prayed to St. James since noon, and the saint holds up his feet. He lives!"
+\14You...
+\14\15...\1dcut the rope with a thrown blade.
+\15...\1dclimb the gibbet and cut him down.
+\16...\1dkneel and pray with her.
+\15...\1dleave the court's business to the court.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName weighs a blade in $his hand, waits for the body to turn, and throws. The rope parts with a twang, and the young man drops into your arms like a sack of meal, croaking and alive.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName's blade thunks into the beam a hand's breadth from the rope and stays there, quivering. The woman wails.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName swarms up the post, straddles the beam and saws through the rope. The young man drops into your waiting arms, croaking and alive.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName swarms up the post, but the old wood is slick with dew. $He saws through the rope and falls with it, and the two of them land in a heap at the woman's feet, one hanged and one bruised, both alive.
+=== card 5: 10 10 0 240 0 ===
+You kneel beside her and pray until the sky greys. The young man's breathing steadies; once, you would all swear, you see his feet resting on nothing at all. At dawn the Vogt's men come to see why the crows are idle, and find him alive and singing psalms.
+\14Even a Vogt does not argue with a saint. He is cut down and pardoned, and the innkeeper's daughter has some explaining to do.
+=== card 6: 10 10 0 240 0 ===
+You pray, and the rope creaks on. If the saint hears, he gives no sign.
+=== card 7: 10 10 0 240 0 ===
+It is the court's business, not yours. You walk on into the dark, and behind you the woman's prayers go on. Nothing more comes of it.
+=== card 8: 10 10 0 240 0 ===
+The young man lies in the grass, rope-burned and croaking, his mother weeping over him. But the court hanged him, and if the Vogt's men find him cut down and breathing, they will hang him again, and perhaps you beside him. You...
+\14\15...\1dbring him before the Vogt at dawn and plead a miracle.
+\15...\1dlead them away by field paths before dawn.
+\15...\1dleave him with his mother and go on.
+=== card 9: 10 10 0 240 0 ===
+At dawn you bring him before the Vogt, the rope still round his neck. $ChosenTwoName speaks of St. James and the hanged pilgrim, of God's judgment above man's, and quotes the Fathers in Latin until the Vogt throws up his hands. The journeyman is pardoned, the innkeeper's daughter is sent for, and the tale of the strangers who argued a man off the gallows goes everywhere.
+=== card 10: 10 10 0 240 0 ===
+At dawn you bring him before the Vogt, and $ChosenTwoName speaks of miracles. The Vogt hears the plea out, then sends for the hangman. "God's judgment I leave to God. The court's, I keep." This time the hangman does his work properly, and the Vogt has your names written down as meddlers.
+=== card 11: 10 10 0 240 0 ===
+$ChosenTwoName leads them away by hedge and ditch, along field paths only a hare would know, and by first light the Vogt's land lies behind you. The young man and his mother kiss your hands and go on alone, toward a far town and a new name.
+=== card 12: 10 10 0 240 0 ===
+$ChosenTwoName loses the paths in the dark, and dawn finds you on the open road, where the Vogt's riders find you too. The young man bolts into the rye and is gone; whether he got away you never learn. The Vogt fines you $Money1 for cutting down a hanged man.
+=== card 13: 10 10 0 240 0 ===
+You leave the young man with his mother at the foot of the gibbet and go on. What becomes of them is in God's hands, and you have done your part.

@@ -1,0 +1,40 @@
+# $NFOUT00: the outlaws' supper (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A whistle in the dark, answered from three sides. Shapes rise out of the undergrowth all around you, bows bent, cudgels in hand: outlaws, men under the ban, whom any man may kill and none may shelter.
+\14Their spokesman sweeps off his hood with a courtly bow. "Good evening, travellers. Our master bids you to supper. He holds that no man should eat alone in the forest, nor pass through it without paying his host."
+\14You...
+\14\15...\1daccept the invitation.
+\15...\1dslip away into the dark.
+\06...\1dfight your way through.
+=== card 1: 10 10 0 240 0 ===
+You step back into the shadows as if to confer, and keep stepping. Under the trees the night is black as pitch, and by the time the whistles start up behind you, you are far away among the roots and brambles. You stumble on until dawn, footsore, but your purses are your own.
+=== card 2: 10 10 0 240 0 ===
+You have gone ten paces into the dark when a cudgel taps $ChosenOneName smartly on the shoulder. "This way, friends. The master hates to wait." They bring you to supper rather less politely than before.
+=== card 3: 10 10 0 240 0 ===
+In a hollow among the roots a great fire is burning, with a whole stag on the spit: the lord's venison, beyond a doubt. The outlaws' master is a lean man with a scar across his mouth and the manners of a knight, which perhaps he once was. He serves you himself: venison, white bread, an abbot's wine.
+\14When you have eaten he wipes his knife. "Now, by the custom of the greenwood, guests pay for their supper. What do you carry? My men will look, of course."
+\14You...
+\14\15...\1dtell him truly what is in your purses.
+\15...\1dswear that you have nothing, and hope they search poorly.
+\15...\1doffer to pay with a bout of cudgels instead.
+=== card 4: 10 10 0 240 0 ===
+You tell him, to the last pfennig. His men turn out your packs and purses, and their count matches yours. The master laughs and hands it all back.
+\14"An honest guest! Rarer in this forest than a white stag. Keep it, and sleep by my fire. My men will see you to the road at dawn." You sleep sounder among the outlaws than you have in many an inn.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName swears by every saint in the calendar that you are poor pilgrims without a pfennig among you. The outlaws search, and find nothing in the places they look, for $ChosenOneName has seen to that. "Church mice," says the master in disgust, and sends you off into the night.
+\14Your purses are full. Your consciences are less comfortable.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName swears you are as poor as church mice. The outlaws search, and one of them pulls your coins out of a boot, grinning. The master's smile thins. "A lie at my table costs double."
+\14They take $Money1 and see you out of the hollow with their boots.
+=== card 7: 10 10 0 240 0 ===
+The outlaws roar with delight and make a ring. Their champion is a red-bearded giant with a cudgel like a roof-beam, but $ChosenOneName is quicker, and at the third bout the giant sits down in the fire. The master laughs till he weeps. "Paid in full! Sleep here, and go with God."
+=== card 8: 10 10 0 240 0 ===
+The outlaws make a ring. Their champion, a red-bearded giant, lets $ChosenOneName batter away at him for a while, then knocks $him flat with one blow. "A poor coin," says the master, and takes $Money1 from your purses as well.
+=== card 9: 10 10 0 240 0 ===
+You draw your weapons. The outlaws melt back into the trees, and arrows begin to hiss out of the dark.
+=== card 10: 10 10 0 240 0 ===
+The outlaws lie dead or scattered. In their hollow you find what they took from other travellers: $Money1. The towns around will be glad to hear that this forest is safer.
+=== card 11: 10 10 0 240 0 ===
+You flee into the dark, each his own way, and spend the night alone among the roots, listening to whistles. At dawn you find one another again on the road.
+=== card 12: 10 10 0 240 0 ===
+You wake at dawn bound to a tree, your heads aching and your purses lighter by $Money1. The outlaws are gone, and a jay is laughing at you.

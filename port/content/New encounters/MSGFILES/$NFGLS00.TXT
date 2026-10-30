@@ -1,0 +1,24 @@
+# $NFGLS00: the glass-makers' hut (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A roar like a dragon's breath comes through the beeches, and then a clearing hacked out of the forest, all stumps, ash heaps and smoke. Under a bark roof a furnace glows white, and sweating men turn long iron pipes with gobbets of fire on their ends: glassblowers. When they have burned a hillside of beech for their ash, they move on and burn the next.
+\14Their master holds a beaker up to the light, green as pond water and full of bubbles. "Forest glass," he says sourly. "Nuremberg pays pennies for it. In Venice they make glass as clear as spring water, and drown any man who tells how."
+\14You...
+\14\15...\1dtell him the alchemists' secret of clear glass.
+\15...\1doffer him your Manganes.
+\15...\1dtry your hand at the glassblower's pipe.
+\15...\1dleave them to their furnace.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName draws the master aside. "There is a black stone the alchemists call the glassmakers' soap. A pinch of it in the melt eats the green." The master stares, then fetches a lump of black ore from the back of his hut: a peddler sold it to him years ago as a dye, and it gave him purple glass. "A pinch, you say? Not a fistful?"
+\14By evening a beaker comes off the pipe as pale as watered wine. Not Venice, but nearer than he has ever been. He pays you $Money1 and makes you swear never to tell another glasshouse.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName explains, with great confidence, what ought to go into the melt. The master does as $he says. The crucible foams, spits and cracks across, and a day's glass runs out into the ashes. You leave the clearing rather faster than you came, with the glassblowers' curses at your backs.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName tells the master what the alchemists use the $ItemName for. He turns the black stone over in his scorched fingers, crumbles a pinch into the melt and waits. The next beaker off the pipe is nearly as clear as water.
+\14He laughs aloud, pays you $Money1 for the stone, and swears he will be rich before the beeches run out.
+=== card 4: 10 10 0 240 0 ===
+The master hands $ChosenOneName a pipe with a glowing gobbet on its end. $He blows, turns, blows again, and between the master's barked orders a lopsided little bottle takes shape. The glassblowers roar with laughter, but the master nods. "You have hands for it."
+\14When you leave, he gives you a $ItemName glazed with his own green panes, for the road.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName takes the pipe, breathes in when $he should blow out, and gets a mouthful of scorching air. The pipe drops, and the gobbet of glass lands on $his boot. The glassblowers laugh until they weep.
+=== card 6: 10 10 0 240 0 ===
+You leave the glassblowers to their roaring furnace. Nothing more comes of it.

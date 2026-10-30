@@ -1,0 +1,50 @@
+# The harvest: a reaper girl falls burning in the rye, and the reapers blame the Rye-mother.
+name     The harvest
+card     $NrRye00
+picture  VILLAGE
+where    wild
+terrain  farmland plains
+when     day
+weight   1
+only     month >= 7 and month <= 8         # the rye harvest
+
+[start]
+do       money1 size * 4
+block    0
+chosen   bestskill(Alchemy)
+saints   0x09, 0x47, 0x3a, 0x73          # Anthony, Isidore, Giles, Roch
+option 0                                   # look closely at the grain (Alchemy)
+  who    bestskill(Alchemy)
+  chance clamp(5, 90, skill(who, Alchemy) + attr(who, Int) / 3 - 10)
+  ok     chosen who; practice who, Alchemy, 1, 10, 0; goto ergot
+  fail   chosen who; text 1; hours 1; practice who, Alchemy, 0, 10, 0; disable 0
+option 1                                   # tend the girl (Healing)
+  who    bestskill(Healing)
+  chance clamp(10, 90, skill(who, Healing) + attr(who, Int) / 3 - 5)
+  ok     chosen who; text 3; attr party, DF, 2; practice who, Healing, 1, 10, 0; hours 1; exit
+  fail   chosen who; text 4; practice who, Healing, 0, 10, 0; hours 1; exit
+option 2 saint
+  ok     text 5; attr party, DF, 2; reputation 1, 2; exit
+  fail   text 6
+option 3                                   # take up a scythe (Polearms)
+  chance assured
+  ok     text 7; gain money1; hours 5; attr party, End, -3; practice party, Polearms, 1, 10, 0; exit
+option 4                                   # go on
+  chance none
+  ok     text 8; exit
+
+[ergot]
+block    2
+option 0                                   # tell them plainly (SpeakCommon)
+  who    bestattr(Cha)
+  chance clamp(5, 90, (4 * attr(who, Cha) + skill(who, SpeakCommon)) / 5 - 15)
+  ok     chosen who; text 9; attr party, DF, 3; reputation 1, 3; practice who, SpeakCommon, 1, 10, 0; hours 2; exit
+  fail   chosen who; text 10; practice who, SpeakCommon, 0, 10, 0; hours 1; exit
+option 1                                   # make a holy rite of it (Religion)
+  who    bestskill(Religion)
+  chance clamp(5, 90, skill(who, Religion) + attr(who, Cha) / 3 - 5)
+  ok     chosen who; text 11; attr party, DF, 2; reputation 1, 2; practice who, Religion, 1, 10, 0; hours 2; exit
+  fail   chosen who; text 12; reputation -1, -2; practice who, Religion, 0, 10, 0; hours 1; exit
+option 2                                   # say nothing
+  chance none
+  ok     text 13; attr party, DF, -2; exit

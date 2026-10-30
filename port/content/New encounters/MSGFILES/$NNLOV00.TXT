@@ -1,0 +1,31 @@
+# $NNLOV00: the love-letter (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A young man in a floury apron catches at your sleeves in a dark lane: a baker's journeyman, out between batches while the oven heats. He holds out a folded letter, sealed with a blob of dough.
+\14"For Gretlin, the cooper's daughter, the window over the yard. I paid the notary's clerk to write it in Latin, so she knows I'm in earnest. I can't take it myself; her father has sworn to break my head. $Money1 for your trouble, masters. It's all I have." You...
+\14\15...\1dcarry it to her window as it is.
+\15...\1dread it first.
+\15...\1dsend him back to his oven.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName creeps through the cooper's yard past the snoring dog and taps at the shutter. A girl's face, a candle, a basket on a string: the letter goes up. Then a pause, a shriek of fury, and a bucket of slops comes down on $ChosenOneName's head.
+\14The baker's lad pays you anyway, glowing. He has not understood what the shriek meant. Nor, quite, have you.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName creeps into the cooper's yard and treads on the dog. In a moment the yard is all barking and lantern-light, and a cooper in his nightshirt lays a stave across $ChosenOneName's back twice before $he gets over the fence. By morning the street knows that strangers go creeping under its daughters' windows.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName squints at the letter by the light from a shutter. It is Latin, or something like it; $he makes out "anser" and "pater" and little else.
+=== card 4: 10 10 0 240 0 ===
+You send him back to his oven. He goes, crestfallen, the letter still in his fist. Nothing comes of it.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName reads it twice to be sure. It is no love-letter. In good Latin the notary's clerk has written that Gretlin is a fat goose, her father a miser who waters his beer, and the bearer of this letter an ass who cannot read it.
+\14The lad watches $ChosenOneName's face hopefully. You...
+\14\15...\1dwrite him a true love-letter in its place.
+\15...\1dtell him what it says.
+\15...\1ddeliver it anyway, for the joke.
+=== card 6: 10 10 0 240 0 ===
+On the back of a baker's tally, $ChosenOneName writes a letter, half in Latin and half in honest German, of eyes like the morning and bread baked for her alone. You carry it up; a long silence; then a red ribbon comes floating down from the window.
+\14The lad weeps into his flour and presses his coins on you. It is good, now and then, to have used one's letters for something.
+=== card 7: 10 10 0 240 0 ===
+$ChosenOneName writes a new letter, but it comes out as stiff as a notary's deed. Gretlin reads it by her candle, giggles, and closes the shutter, not unkindly. "Perhaps," says the lad, with more hope than you have. An hour has gone.
+=== card 8: 10 10 0 240 0 ===
+The lad goes white, then red, and tears the letter to flour-dust. "An ass, am I? We'll see who's the ass when I find that clerk." He presses $Money1 on you, double his promise, for saving him from ruin, and sets off up the street rolling up his sleeves.
+=== card 9: 10 10 0 240 0 ===
+You take the lad's coins and carry the letter up. Gretlin reads it by her candle; there is a shriek, and a bucket of slops narrowly misses you. The lad goes home glowing, none the wiser. You laugh about it later, though not as much as you expected to.

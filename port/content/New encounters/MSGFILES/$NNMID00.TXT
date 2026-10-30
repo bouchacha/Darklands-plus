@@ -1,0 +1,39 @@
+# $NNMID00: the midwife's errand (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Running feet and a bobbing lantern: a stout woman with a bag, and a girl with the light, come hurrying down the street. On the wet cobbles by the well the woman's foot turns under her, and she goes down with a cry.
+\14"My ankle, Holy Mother!" She clutches at you. "I'm Barbel, the sworn midwife. The tanner's wife at the end of the lane: the child is lying crosswise, and she has been at it since noon. I must be there!" You...
+\14\15...\1dcarry her there.
+\15...\1dput her up on a horse and lead it at a trot.
+\15...\1dleave her for the watch to help.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName swings the midwife up, bag and all, and runs, with the girl and her lantern skipping ahead to show the gutters. You are at the tanner's door before Barbel has finished her first prayer.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName swings the midwife up and staggers off, but she is no feather, and the lane is long. Twice $he must set her down to rest. By the time you reach the tanner's door, $ChosenOneName is grey with effort and Barbel is muttering that it may be too late.
+=== card 3: 10 10 0 240 0 ===
+You lift Barbel into the saddle, and $ChosenOneName leads the horse at a brisk trot down the dark lane, sure-footed over the cobbles, to the tanner's door.
+=== card 4: 10 10 0 240 0 ===
+You lift Barbel into the saddle, but the horse shies at the girl's lantern, slithers on the cobbles and will not be led. In the end you half carry the midwife the rest of the way, and lose precious time.
+=== card 5: 10 10 0 240 0 ===
+You leave her sitting by the well and go on. Behind you the girl runs for the watch, and the midwife hobbles after her, praying aloud. Nothing comes of it, that you ever hear.
+=== card 6: 10 10 0 240 0 ===
+In the tanner's back room the mother lies grey and spent, and the women of the lane are wailing. Barbel takes one look, sits on a stool with her swollen foot up, and turns to you. "I can't kneel. I need hands that will do exactly what I tell them, no more and no less." You...
+\14\15...\1dbe her hands.
+\16...\1dpray to a saint for mother and child.
+\10...\1dgive the mother a strengthening draught.
+\15...\1dwait outside with the tanner.
+=== card 7: 10 10 0 240 0 ===
+With Barbel's voice in $his ear, $ChosenOneName works slowly and gently, and toward the third hour the child turns. A boy comes into the world squalling and furious, and his mother laughs and weeps at once.
+\14The tanner presses beer and blessings on you all, and by noon the women of the lane have told the whole town about the strangers who brought his son into the world.
+=== card 8: 10 10 0 240 0 ===
+$ChosenOneName does what Barbel says, but the child comes slowly, too slowly. When at last it is born it is small and blue, and Barbel sprinkles it from the basin at once and baptizes it, as midwives may. It breathes. Whether it will live the week, nobody can say.
+\14$ChosenOneName walks out into the dawn, shaking.
+=== card 9: 10 10 0 240 0 ===
+You kneel by the bed and pray, and the women of the lane kneel with you. Within the hour the child turns of its own accord, as if a hand had moved it, and a girl is born, crying lustily. Barbel crosses herself and says she has seen it happen only twice before.
+=== card 10: 10 10 0 240 0 ===
+You pray, but the mother only moans, and the child does not move.
+=== card 11: 10 10 0 240 0 ===
+The $ItemName goes down between the mother's lips a little at a time. Colour comes back to her cheeks and strength to her body, and with Barbel's coaching she brings forth a son by the third hour. The tanner swears the whole lane will hear of the strangers' physic.
+=== card 12: 10 10 0 240 0 ===
+The mother is too spent to swallow, and the draught runs down her chin.
+=== card 13: 10 10 0 240 0 ===
+You wait on the bench outside with the tanner, who cannot sit still, until the sky greys. At last a thin cry comes from inside: a daughter, and the mother alive. The tanner embraces you all for keeping him company. Nothing else comes of it, but the night is gone.

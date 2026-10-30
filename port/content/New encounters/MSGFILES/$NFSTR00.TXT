@@ -1,0 +1,28 @@
+# $NFSTR00: the straying-herb (New encounters)
+=== card 0: 10 10 0 240 0 ===
+The path you have followed for hours ends at a fallen fir. You turn back, take the other fork, and an hour later come to the same fallen fir from the other side. Then the same blaze on the same beech, the same mossy stone. The trees here are older than the Empire, and they stand close and silent. No bird sings.
+\14"Someone has trodden on the straying-herb," says $ChosenOneName, very pale. "My grandmother told of it. Whoever steps on it walks in circles until the spell is broken, and some never break it. You turn your coats inside out, she said."
+\14You...
+\14\15...\1dfind your way by the sun and the moss on the trees.
+\15...\1dleave the paths and hack a straight line through the thickets.
+\15...\1dturn your coats inside out, as the old women say.
+\16...\1dpray to a saint to show you the way.
+\15...\1dfind a stream and follow the water downhill.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName ignores the paths, which are lying, and watches the sun through the treetops and the moss on the north side of the trunks. You follow $him through fern and over fallen trees, grumbling, until all at once the trees thin and there is the road, exactly where it ought to be.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName reads the sun and the moss and leads you confidently onward, for hours, until you come to the fallen fir again. By the time you blunder out onto the road, the shadows are long and you are footsore and short-tempered.
+=== card 3: 10 10 0 240 0 ===
+If the spell lies on the paths, then leave the paths. $ChosenOneName draws steel and hews straight through bramble and thicket, the rest of you trampling behind, until you break out, scratched and sweating, onto the road. Behind you, the hacked lane through the brambles runs as straight as a Roman street.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName hews a lane through the brambles, straight as a bowstring, for an hour, and comes out at the fallen fir. A thorn-branch whips back across $his face. You find the road at last, hours later, more by luck than by any skill.
+=== card 5: 10 10 0 240 0 ===
+Feeling foolish, you turn your coats inside out and pull them on again. At once the forest looks different, though you could not say how, and the path runs straight ahead to the road. From the bushes behind you comes a small, dry laugh.
+=== card 6: 10 10 0 240 0 ===
+You turn your coats inside out and pull them on again, and feel foolish, and nothing else happens. Whatever is leading you astray, it is not the straying-herb, or not only.
+=== card 7: 10 10 0 240 0 ===
+As you finish the prayer, a jay calls, and flies off low between the trees. Then another. You follow the jays, for want of any better guide, and within the hour they have led you out onto the road.
+=== card 8: 10 10 0 240 0 ===
+You pray. The trees stand close and silent, and the fallen fir lies where it lay.
+=== card 9: 10 10 0 240 0 ===
+Water always finds its way out of a forest. You find a brook and follow it downhill, through bogs and alder thickets, wading where you must, and at dusk it brings you out of the trees at last, footsore, soaked to the knees, and not far from the road you lost that morning.

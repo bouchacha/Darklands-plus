@@ -1,0 +1,46 @@
+# The hanged man lives: at a crossroads gibbet by night, a journeyman hanged at noon still breathes.
+name     The hanged man lives
+card     $NrGib00
+picture  XHUNT
+where    wild
+terrain  road farmland plains
+when     night
+weight   1
+
+[start]
+do       money1 min(money, size * 24)
+block    0
+chosen   bestskill(Thrown)
+saints   0x49, 0x23, 0x63, 0x60          # James, Dismas, Nicholas, Michael
+option 0                                   # cut the rope with a thrown blade (Thrown)
+  who    bestskill(Thrown)
+  chance clamp(5, 90, skill(who, Thrown) + attr(who, Per) / 3 - 15)
+  ok     chosen who; text 1; practice who, Thrown, 1, 10, 0; goto down
+  fail   chosen who; text 2; practice who, Thrown, 0, 10, 0; disable 0
+option 1                                   # climb the gibbet and cut him down
+  who    bestattr(Agl)
+  chance clamp(10, 90, attr(who, Agl) * 2 + attr(who, Str) / 2 - 15)
+  ok     chosen who; text 3; goto down
+  fail   chosen who; text 4; injure who, 1, 1, 10; goto down
+option 2 saint                             # kneel and pray with her
+  ok     text 5; until 7; attr party, DF, 3; fame 1; exit
+  fail   text 6
+option 3                                   # leave it to the court
+  chance none
+  ok     text 7; exit
+
+[down]
+block    8
+option 0                                   # plead a miracle before the Vogt (Religion, Latin)
+  who    bestskill(Religion)
+  chance clamp(5, 90, skill(who, Religion) + skill(who, Latin) / 2 + attr(who, Cha) / 4 - 15)
+  ok     chosen2 who; text 9; until 9; fame 1; reputation 1, 3; attr party, DF, 2; practice who, Religion, 1, 10, 0; practice who, Latin, 1, 5, -1; exit
+  fail   chosen2 who; text 10; until 9; reputation -1, -3; practice who, Religion, 0, 10, 0; exit
+option 1                                   # lead them away by field paths (Woodwise)
+  who    bestskill(Woodwise)
+  chance clamp(5, 90, skill(who, Woodwise) + attr(who, Per) / 3 - 5)
+  ok     chosen2 who; text 11; until 5; attr party, DF, 2; practice who, Woodwise, 1, 10, 0; exit
+  fail   chosen2 who; text 12; until 6; pay money1; reputation -1, -2; practice who, Woodwise, 0, 10, 0; exit
+option 2                                   # leave him with his mother
+  chance none
+  ok     text 13; attr party, DF, 1; exit

@@ -1,0 +1,35 @@
+# $NNCAT00: the cat on the roof (New encounters)
+=== card 0: 10 10 0 240 0 ===
+"My ring! Mohrle, you wicked beast, bring it back!" An old woman in a nightcap leans from a window, shaking her fist at the roof-ridge, where a black cat sits against the moon with something glinting in its mouth.
+\14"My late husband's ring, God rest him! I took it off to rub in the goose-fat, and that devil had it off the sill." The cat looks down at you and does not move. You...
+\14\15...\1dclimb up after it.
+\15...\1dknock it loose with a well-thrown clod.
+\15...\1dcoax it down with a scrap of sausage.
+\16...\1dcall on St. Gertrude, who loves cats.
+\15...\1dwalk on.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName goes up by a water-butt, a shed and a drainpipe, and creeps along the ridge on hands and knees. The cat retreats, unhurried, to the gutter at the end of the roof, and sits down on a heap of something that glitters.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName goes up by a water-butt and a shed, puts a foot on the roof, and comes down again with a dozen tiles, into a dung-heap. Shutters bang open all along the lane. By morning the street knows who broke the widow's roof.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName's clod takes the ridge-tile under the cat's paws. With a yowl the cat bolts along the roof to the far gutter, and a little stream of shiny things comes rattling down the tiles after it. You borrow a ladder and go up to see.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName's clod sails over the roof and through the shutter of the house beyond, where it seems to land on someone in bed. The cat watches the shouting with interest. By morning the street knows all about the strangers who throw dirt at honest folk's windows.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName makes the small noises cats like and holds up a scrap of sausage. After a long, considering stare the cat comes down by the shed, takes the sausage, and drops the shiny thing in exchange. It is not the ring but a silver spoon. Then it leads you, tail high, to a ladder and its treasury in the far gutter.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName makes the small noises cats like and holds up the sausage. The cat yawns, and begins to wash.
+=== card 7: 10 10 0 240 0 ===
+At your prayer the cat stops, as if someone had called its name. It comes down the roof, the shed and the water-butt as meek as a lamb, and lays the ring in the old woman's hand. She weeps, blesses you, and tells the whole lane about it over her shutter.
+=== card 8: 10 10 0 240 0 ===
+You pray, and the cat turns its back on you.
+=== card 9: 10 10 0 240 0 ===
+You walk on, and leave the widow scolding the moon. Nothing comes of it.
+=== card 10: 10 10 0 240 0 ===
+In the gutter at the end of the roof lies a cat's treasury a year in the making: the widow's ring, a silver thimble, a heap of buttons, two silver spoons with a goldsmith's mark, a child's pilgrim badge, and a heavy signet ring with a councilman's arms. The cat has been robbing the whole street. You...
+\14\15...\1dgive everything back to its owners.
+\15...\1dgive the widow her ring and keep the rest.
+=== card 11: 10 10 0 240 0 ===
+It takes two hours of knocking on doors, but everything goes home: the thimble to the tailor's wife, the spoons to the goldsmith, the signet to a councilman who had already had two servants whipped for it. The widow kisses her ring and swears Mohrle will have no more goose-fat. By morning the whole street knows the strangers' names.
+=== card 12: 10 10 0 240 0 ===
+The widow gets her ring back with tears of joy. The rest goes into your purse, and a goldsmith in the next street pays $Money1 for it, signet and all, without asking whose arms are on it.

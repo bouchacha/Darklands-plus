@@ -1,0 +1,37 @@
+# $NVICE00: the ice-going (New encounters)
+=== card 0: 10 10 0 240 0 ===
+The thaw has come early to the hills, and the river is running with ice: grey floes as big as barn doors come turning down the current, grinding against one another and booming against the hull. The boatmen fend them off with their poles, cursing.
+\14"The ice-going," says the captain grimly. "We must make the landing before it thickens, or she will crack like an egg."
+\14You...
+\14\15...\1dtake a pole and fend off the floes.
+\15...\1dread the river for open water.
+\15...\1drun her into the bank and wait for the ice to pass.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName takes a pole to the bow and works there for hours, setting its iron point against floe after floe and turning them aside, until $his arms are dead and $his hands frozen to the wood. But the boat comes through without a sprung plank, and you reach the landing aching and half frozen.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName sets $his pole against a great floe, but the floe does not turn; the pole does, and its butt drives into $his chest and throws $him down on the deck. The floe strikes the bow, swings the boat round, and the current carries her helpless round the bend.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName stands in the bow and reads the river: dark water where the current runs clear, grey where the ice thickens, the swirl that means a rock beneath. At $his word the steersman threads the boat from one open lead to the next, and you slip down to the landing between the floes, slowly, but whole.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName calls out a lead of open water, but it closes as you enter it, and the floes take the boat, turn her round and carry her helpless round the bend.
+=== card 5: 10 10 0 240 0 ===
+The boatmen run her into a little bay and haul her half up the bank, and there you sit by a smoky fire, stamping your feet, while the river grinds past day and night. When at last it runs clear, you go on, chilled to the marrow.
+=== card 6: 10 10 0 240 0 ===
+Round the bend the ice has jammed from bank to bank: a wall of heaped floes taller than a man, with the black water piling up behind it. The boat is driven against it, and behind you the floes come crowding down, groaning, closing in. Her timbers begin to creak.
+\14"She will be crushed!" shouts the captain.
+\14You...
+\14\15...\1dhack a channel through with axes and poles.
+\10...\1dburst the jam with a potion.
+\15...\1dabandon her and cross the ice to the bank.
+=== card 7: 10 10 0 240 0 ===
+You go over the side onto the jam with axes, poles and the boatmen's hooks, and hack and lever at the floes for three hours, soaked and freezing, until at last a channel opens and the boat is poled through it, scraped and groaning, but whole.
+=== card 8: 10 10 0 240 0 ===
+You hack at the floes until your arms are dead, but the ice closes faster than you can cut it. With a crack the hull gives way. You scramble across the floes to the bank as she goes down, and $ChosenOneName, last off, leaves some of $his baggage in the river. You walk the rest of the way to the landing.
+=== card 9: 10 10 0 240 0 ===
+The flask bursts against the heart of the jam with a crack like the Day of Judgement. Ice flies up in a white cloud, the wall shudders and gives way, and the boat rides the flood down through the gap with the boatmen on their knees. They will tell of it in every tavern on the river.
+=== card 10: 10 10 0 240 0 ===
+The flask bursts against the ice, and the ice does not care. The floes keep closing in.
+=== card 11: 10 10 0 240 0 ===
+You leap from floe to floe, the boatmen behind you, the black water opening and closing under your feet, and reach the bank one after another, soaked to the knees. Behind you the boat groans, and holds: the captain will free her when the ice has passed. You walk the rest of the way to the landing.
+=== card 12: 10 10 0 240 0 ===
+You leap from floe to floe. Halfway across, a floe tips under $ChosenOneName and $he goes into the black water between the ice. The boatmen drag $him out by the hair, blue and gasping, but some of what $he carried stays with the river. You walk the rest of the way to the landing.

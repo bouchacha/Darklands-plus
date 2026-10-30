@@ -1,0 +1,46 @@
+# The sleeping watchman: a watchman asleep at his post, the hour to call, and his sergeant coming.
+name     The sleeping watchman
+card     $NnDoz00
+picture  XWATCH2
+where    street
+when     night
+weight   1
+
+[start]
+do       money1 12 + size * 6
+block    0
+chosen   bestattr(Cha)
+saints   0x80                            # Vitus, who wakes the oversleeping
+option 0                                   # shake him awake
+  chance none
+  ok     text 1; attr party, End, 2; practice party, Streetwise, 1, 10, 0; exit
+option 1                                   # call the hour for him
+  who    bestattr(Cha)
+  chance clamp(5, 90, attr(who, Cha) + skill(who, SpeakCommon) / 3 - 10)
+  ok     chosen who; text 2; reputation 1, 2; practice who, SpeakCommon, 1, 10, 0; exit
+  fail   chosen who; text 3; practice who, SpeakCommon, 0, 10, 0; goto sergeant
+option 2                                   # take up his halberd and stand his post (Polearms)
+  who    bestskill(Polearms)
+  chance clamp(5, 90, skill(who, Polearms) + attr(who, Per) / 3 - 5)
+  ok     chosen who; text 4; reputation 1, 2; practice who, Polearms, 1, 10, 0; hours 1; exit
+  fail   chosen who; text 5; practice who, Polearms, 0, 10, 0; goto sergeant
+option 3 saint
+  ok     text 6; attr party, DF, 1; exit
+  fail   text 7
+option 4                                   # leave him to his dreams
+  chance none
+  ok     text 8; exit
+
+[sergeant]
+block    9
+option 0                                   # swear he was showing you the way
+  who    bestattrskill(Cha, SpeakCommon)
+  chance clamp(5, 85, (4 * attr(who, Cha) + skill(who, SpeakCommon)) / 5 - 10)
+  ok     chosen who; text 10; attr party, End, 2; attr party, DF, -1; practice who, SpeakCommon, 1, 10, 0; exit
+  fail   chosen who; money1 min(money, money1); text 11; pay money1; reputation -1, -2; exit
+option 1                                   # tell the truth
+  chance none
+  ok     text 12; reputation 1, 2; attr party, DF, -2; exit
+option 2                                   # say nothing and go
+  chance none
+  ok     text 13; exit

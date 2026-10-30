@@ -1,0 +1,38 @@
+# $NVWIN00: the fox's share (New encounters)
+=== card 0: 10 10 0 240 0 ===
+The barge is laden to the gunwales with casks of Alsace wine, and the merchant who owns them sleeps on top of them with his purse in his armpit and his mouth open. After dark the boatmen gather at the stern round the last cask in the row. One has a gimlet, one a hollow reed, and one a wooden peg to stop the hole afterward.
+\14"The fox's share," grins the steersman, holding out the reed. "Every boat on the river takes it. We top the cask up with good river water, and he never knows."
+\14You...
+\14\15...\1dtake your turn at the reed.
+\15...\1dwake the merchant.
+\15...\1droll yourselves in your cloaks and sleep.
+=== card 1: 10 10 0 240 0 ===
+The wine is good, far too good for boatmen, and the reed goes round and round. You sing, the boatmen sing, the steersman sings loudest of all, and nobody so much as sways. At last you all sleep where you sit, very pleased with yourselves.
+\14It was another man's wine, all the same.
+=== card 2: 10 10 0 240 0 ===
+The wine is strong, and you drink it like boatmen without a boatman's head for it. Before midnight you are hanging over the gunwale one after another, giving the fox's share back to the river.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName shakes the merchant awake and shows him the gimlet hole. He roars, the boatmen swear by every saint that the cask must have leaked, and the captain, who knows better, docks their pay and sets a sober man at the steering oar.
+\14The merchant presses $Money1 on you for your honesty. The boatmen do not speak to you again for the rest of the voyage.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName shakes the merchant awake, and he wakes shouting "Thieves!" at $him, not at the boatmen, who lie innocently asleep round a cask with a peg in it. The quarrel lasts half the night. Nobody sleeps, and nobody, in all the uproar, is watching the river.
+=== card 5: 10 10 0 240 0 ===
+You roll yourselves in your cloaks at the bow. The singing at the stern grows louder, and then slurred, and then stops, and you sleep.
+=== card 6: 10 10 0 240 0 ===
+Grey dawn, and shouting from the bank. You start awake: the steersman is snoring against his oar, half the crew lie where they fell, and the barge is drifting broadside down on a floating mill, two hulls moored in midstream with a great wheel churning between them. On its gangway the miller is waving his arms and screaming.
+\14You...
+\14\15...\1dseize the steering oar.
+\15...\1dthrow a line to the mill's moorings.
+\15...\1dgrab your baggage and jump for the bank.
+=== card 7: 10 10 0 240 0 ===
+$ChosenOneName shoves the snoring steersman aside and throws $his weight on the oar. The barge comes round, slowly, slowly, and slides past the mill close enough to be splashed by its wheel. The miller sits down on his gangway and crosses himself.
+\14The merchant, who slept through it all, wakes to hear the tale and pays $ChosenOneName $Money1 for the deliverance of his wine.
+=== card 8: 10 10 0 240 0 ===
+$ChosenOneName heaves on the oar, but too late. The barge strikes the mill with a crash that wakes even the steersman, and the wheel smashes two of its paddles on the bow. The miller wants his damages, the captain wants the passengers' share of them, and by the time it is all settled three hours are gone, and $Money1 of yours with them.
+=== card 9: 10 10 0 240 0 ===
+$ChosenOneName's line snakes across the water and drops over a mooring post of the mill. The boatmen take a turn round the bitts, and the barge swings round on the rope and stops a fathom short of the wheel.
+\14The miller, who was sure he was a dead man, laughs like a boy and has you all into his hut for hot porridge and bacon while the crew sober up.
+=== card 10: 10 10 0 240 0 ===
+$ChosenOneName's line falls short and trails uselessly in the water. The mill comes on.
+=== card 11: 10 10 0 240 0 ===
+You snatch up what you can carry and leap for the bank as the barge drifts past it. Behind you comes a crash of timber and a great deal of shouting. You walk the rest of the way to the landing along the towpath, and arrive hours later, muddy to the knee.

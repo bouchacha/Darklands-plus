@@ -1,0 +1,33 @@
+# $NNCST00: the last customer (New encounters)
+=== card 0: 10 10 0 240 0 ===
+The wine-tavern is putting up its shutters, and its keeper stands in the doorway wringing his apron. Inside, at the last table, a plump man in a chandler's smock sits clutching his cup in both hands.
+\14"Master Ott won't go home, and the watch fines me if my light burns past the bell." Master Ott looks up at you, white as his own tallow. "I can't go home. There's something in my house. It throws my pots, sours the milk, pinches my wife and laughs in the chimney. Three nights now." You...
+\14\15...\1dwalk him home and see for yourselves.
+\15...\1dcarry him out into the street for the keeper.
+\15...\1dleave the keeper to his troubles.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName picks Master Ott up, cup and all, and sets him down outside, where he sits on the step and weeps. The keeper, delighted, pours you the dregs of a good jug before he bars his door.
+=== card 2: 10 10 0 240 0 ===
+You wish the keeper joy of his customer and go on your way. Nothing comes of it.
+=== card 3: 10 10 0 240 0 ===
+The chandler's kitchen is a ruin of broken crocks. As you come in, a pot leaps off the shelf by itself and bursts against the wall, and something small and grey whisks behind the hearth, giggling.
+\14Ott's wife, in her nightcap, is furious. "It was no trouble for twenty years, while we gave it its bowl of porridge by the hearth. Then this skinflint said it ate too much!" You...
+\14\15...\1dset out its bowl and speak it fair.
+\15...\1dtry to catch it.
+\16...\1dcall on a saint to drive it out.
+\15...\1dwish them good night.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName sets a bowl of porridge with a lump of butter in it by the hearth, and a cup of milk beside it, and speaks to the dark behind the hearth as one would to an offended old uncle. After a long silence a small grey hand comes out and takes the bowl.
+\14The house goes quiet. In the morning Master Ott gives you a candle of his best wax, and tells half his guild about you.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName sets down a bowl of porridge and addresses the hearth politely. The porridge comes back at once, bowl and all, and catches $him on the ear. After three nights of insult, it seems, the creature wants more than porridge.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName lunges and comes up with a squirming grey thing the size of a cat, all beard and elbows. "Leave go, leave go! I'll be good! There's money under the third stone of the cellar, the old master's, I'll show you!" There is: $Money1 in a mouldy purse. The kobold, set down, bows to the chandler's wife, and the house is quiet after that.
+=== card 7: 10 10 0 240 0 ===
+$ChosenOneName lunges, and gets a fistful of soot and a bite on the thumb that goes to the bone. Every pot left in the kitchen comes down at once, most of them on $ChosenOneName.
+=== card 8: 10 10 0 240 0 ===
+As the prayer rises, the giggling stops. Something scrabbles up the chimney with a wail, and the house goes quiet and cold and empty. Master Ott weeps for joy; his wife, oddly, looks as if she will miss it. By morning the chandlers' guild knows what you did.
+=== card 9: 10 10 0 240 0 ===
+You pray, and a crock bursts against the wall beside you. Something behind the hearth laughs.
+=== card 10: 10 10 0 240 0 ===
+You wish them good night and leave the chandler and his wife to their quarrel and their kobold. Nothing more comes of it.

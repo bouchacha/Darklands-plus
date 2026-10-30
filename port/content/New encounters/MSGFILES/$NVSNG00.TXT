@@ -1,0 +1,41 @@
+# $NVSNG00: the singing match (New encounters)
+=== card 0: 10 10 0 240 0 ===
+On a broad, slow reach a second barge draws level with yours: a salt boat, low in the water, its crew lounging on the sacks. Its steersman, a man with a chest like a cask and a voice like a church organ, strikes up a song about your captain: his leaking tub, his scrawny crew, and what his wife does while he is away on the river.
+\14Your boatmen roar back a verse of their own, and it is on: a singing match, as old as the river, verse for verse until one crew runs dry. The losers stand the beer at the landing. Your captain, hoarse already, turns to you. "Masters! You have been out in the world. Give them something they have never heard!"
+\14You...
+\14\15...\1dteach them a song from the city taverns.
+\15...\1dplay them a tune on harp or flute.
+\15...\1draise a hymn.
+\15...\1dleave the singing to the boatmen.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName climbs onto the bales and gives them a song $he learned in a tavern where the watch never went: forty verses about a miller's wife, a fat pardoner and a cask of herring. By the twentieth your boatmen are roaring the refrain, and by the thirtieth the salt-boat crew are laughing too hard to answer. The match is yours.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName climbs onto the bales and starts a tavern song, forgets the third verse, and then the first. The salt-boat crew hoot and pelt you with crusts.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName strikes up a dance tune so quick and merry that the salt-boat crew forget to sing and begin to stamp their feet on the sacks. Your boatmen bawl a verse over the top of it, and the other steersman has no answer. The match is yours.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName's tune is sweet, much too sweet for boatmen. "A cradle song!" bellows the salt-boat steersman. "Hush, little ones!" His crew make kissing noises across the water, and your boatmen hang their heads.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName begins "Christ ist erstanden," and one after another your boatmen take it up, and then, to everyone's surprise, the salt-boat crew. The two barges drift down the river side by side with every cap off and every voice raised, and when the last "Kyrieleis" dies away, nobody has the heart for another verse about anybody's wife.
+\14The match is never decided, and nobody minds.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName begins a hymn. "A priest's song!" roars the salt-boat steersman. "Has your captain hired a choir?" His crew answer with a verse about an abbess that cannot be repeated, and your boatmen have nothing to match it.
+=== card 7: 10 10 0 240 0 ===
+You sit on the bales and listen. Your boatmen hold out for an hour, but the salt-boat steersman knows a hundred verses and they know sixty. At the landing the captain stands the beer with a face like vinegar. Nothing more comes of it.
+=== card 8: 10 10 0 240 0 ===
+The match is lost. At the landing the captain stands the salt-boat crew their beer, and since it was his passengers who lost it, he makes you pay your share: $Money1.
+=== card 9: 10 10 0 240 0 ===
+The salt-boat steersman does not take it well. "Hired singers!" he bellows. "It doesn't count!" He throws his steering oar over, his barge comes grinding alongside yours, and his crew come over the gunwale with poles and fists.
+\14You...
+\14\15...\1dlaugh, and offer to stand them the beer yourselves.
+\06...\1dfight them off.
+=== card 10: 10 10 0 240 0 ===
+"Peace, peace! Beer for everyone, and we pay!" The salt-boat crew stop, poles raised, and then grin. At the landing you all drink together until the tavern-keeper puts out the candles, and the salt-boat steersman sings your song, badly, all night long. It costs you $Money1, and it is money well spent.
+=== card 11: 10 10 0 240 0 ===
+In the tangle both barges run aground on the bank, and the fight spills out onto the mud.
+=== card 12: 10 10 0 240 0 ===
+The salt-boat crew are hauled back aboard their barge by the scruffs of their necks, and their captain, mortified, pays for the beer and more besides to keep the matter from the bailiff: $Money1. The boatmen will be singing about this fight too.
+=== card 13: 10 10 0 240 0 ===
+You scramble back aboard your barge and pole away, with the salt-boat crew jeering from the bank. You won the singing, at least.
+=== card 14: 10 10 0 240 0 ===
+The salt-boat crew beat you soundly in the mud and take the price of their beer, and more, out of your purses: $Money1.

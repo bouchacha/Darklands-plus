@@ -1,0 +1,47 @@
+# The safe-conduct: a Jewish moneylender travels under a count's escort, and the escort means to rob him.
+name     The safe-conduct
+card     $NrGel00
+picture  BANKER
+where    wild
+terrain  road plains farmland
+when     day
+weight   1
+
+[start]
+block    0
+option 0                                   # get a quiet word to him (Stealth)
+  who    bestskill(Stealth)
+  chance clamp(5, 90, skill(who, Stealth) + attr(who, Agl) / 3 + attr(who, Cha) / 4 - 10)
+  ok     chosen who; money1 random(48) + 48; text 1; gain money1; reputation 1, 3; attr party, DF, 2; practice who, Stealth, 1, 10, 0; tocity
+  fail   chosen who; text 2; practice who, Stealth, 0, 10, 0; goto fight
+option 1                                   # ride ahead for the Count's Vogt (Riding)
+  need   mounted
+  who    bestskill(Riding)
+  chance clamp(5, 90, skill(who, Riding) * 2 + attr(who, Agl) / 3 - 10)
+  ok     chosen who; money1 random(36) + 36; text 3; gain money1; reputation 1, 3; hours 3; practice who, Riding, 1, 10, 0; exit
+  fail   chosen who; text 4; hours 4; attr party, DF, 1; practice who, Riding, 0, 10, 0; exit
+option 2                                   # call the sergeant a thief
+  chance combat
+  ok     text 5; goto fight
+option 3                                   # pretend to agree
+  chance none
+  ok     hours 2; goto ford
+option 4                                   # ride on
+  chance none
+  ok     text 9; exit
+
+[ford]
+block    6
+option 0                                   # turn on the escort
+  chance combat
+  ok     text 8; goto fight
+option 1                                   # take your share
+  chance none
+  ok     money1 random(60) + 60; text 7; gain money1; attr party, DF, -6; reputation -1, -3; exit
+
+[fight]
+picture  XBANDITS
+do       battle Clearing, Trooper, lore / 4 + 1, random(3) + 3, Sergeant, lore % 3 + 1, 1
+         if result == Won then { money1 random(60) + 60; text 10; gain money1; fame 1; reputation 1, 3; attr party, DF, 2; hours 1; exit }
+         if result == Fled then { rejoin; text 11; until 18; exit }
+         keepitems party, 60; text 12; hours 2; exit

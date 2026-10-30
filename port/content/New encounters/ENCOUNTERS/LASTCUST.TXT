@@ -1,0 +1,41 @@
+# The last customer: a chandler who will not go home, for something in his house throws pots.
+name     The last customer
+card     $NnCst00
+picture  XTIPSEY
+where    street
+when     night
+weight   1
+
+[start]
+block    0
+chosen   bestattr(Str)
+option 0                                   # walk him home and see for yourselves
+  chance none
+  ok     hours 1; goto house
+option 1                                   # carry him out for the keeper
+  chance none
+  ok     text 1; attr party, End, 2; exit
+option 2                                   # leave the keeper to his troubles
+  chance none
+  ok     text 2; exit
+
+[house]
+picture  XKBOLD2
+block    3
+saints   0x60, 0x4f, 0x39                # Michael, Joseph, Gertrude of Nivelles
+option 0                                   # set out its bowl and speak it fair (Woodwise)
+  who    bestattrskill(Cha, Woodwise)
+  chance clamp(5, 90, skill(who, Woodwise) + attr(who, Cha) / 2 - 5)
+  ok     chosen who; text 4; additem leader, 0x3a; reputation 1, 2; practice who, Woodwise, 1, 10, 0; exit
+  fail   chosen who; text 5; injure who, 1, 1, 5; practice who, Woodwise, 0, 10, 0; disable 0
+option 1                                   # try to catch it
+  who    bestattrsum(Agl, Per)
+  chance clamp(5, 75, (attr(who, Agl) + attr(who, Per)) / 2 - 15)
+  ok     chosen who; money1 24 + random(36); text 6; gain money1; exit
+  fail   chosen who; text 7; injure who, 1, 1, 5; attr who, End, -2; disable 1
+option 2 saint
+  ok     text 8; reputation 1, 2; exit
+  fail   text 9
+option 3                                   # wish them good night
+  chance none
+  ok     text 10; exit
