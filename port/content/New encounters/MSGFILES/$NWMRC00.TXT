@@ -1,6 +1,6 @@
 # $NWMRC00: mercenaries home from Italy (New encounters)
 === card 0: 10 10 0 240 0 ===
-A band of mercenaries comes swaggering down the road: sunburnt men in slashed doublets and dented breastplates, singing a song in three languages, none of them decent. They have fought for Milan or Venice, or both, and are going home with their pay. Their captain hails you. "Friends! Drink with us, buy a blade, or put your best against our champion for $Money2!"
+A band of mercenaries comes swaggering down the road: sunburnt men in faded doublets and dented breastplates, singing a song in three languages, none of them decent. They have fought for Milan or Venice, or both, and are going home with their pay. Their captain hails you. "Friends! Drink with us, buy a blade, or put your best against our champion for $Money2!"
 \14You...
 \14\15...\1dshare their wine.
 \15...\1dbuy a sword of Milanese steel for $Money1.

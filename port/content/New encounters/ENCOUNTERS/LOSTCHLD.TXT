@@ -29,5 +29,5 @@ do       attr party, DF, 4; practice party, Virtue, 1, 10, 0; reputation 1, 2; e
 picture  XWOLF3
 do       until 18; text 7; battle Wilds, Wolf, lore / 4 + 1, random(5) + 3
          if result == Won then { text 8; hours 1; fame 1; goto found }
-         if result == Fled then { dropaway; text 9; until 5; exit }
+         if result == Fled then { rejoin; text 9; until 5; exit }
          text 10; injure party, 1, 1, 10; until 5; exit

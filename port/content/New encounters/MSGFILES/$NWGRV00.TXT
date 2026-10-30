@@ -5,7 +5,7 @@ A lantern bobs among the gravestones of a lonely churchyard, and spades bite int
 \14\06...\1dfall upon them.
 \15...\1droar at them like the wrath of God.
 \16...\1dcall on a saint to guard the dead.
-\15...\1dwait until they have gone, and see what they left.
+\15...\1dwait until they have gone, and rob the grave of what they missed.
 \15...\1dleave the dead to their fate and go on.
 === card 1: 10 10 0 240 0 ===
 "Defilers of the dead!" roars $ChosenOneName, in a voice that would wake them. The robbers drop their spades and lantern and flee howling over the churchyard wall. You fill in the open grave and say a prayer over it.

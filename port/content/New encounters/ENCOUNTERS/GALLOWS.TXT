@@ -30,4 +30,4 @@ option 4                                   # go on
   ok     text 6; exit
 
 [bailiff]
-do       text 4; reputation -2, -5; attr party, DF, skill(who, Religion) / 8 + 1; exit
+do       text 4; reputation -1, -3; attr party, DF, skill(who, Religion) / 8 + 1; exit

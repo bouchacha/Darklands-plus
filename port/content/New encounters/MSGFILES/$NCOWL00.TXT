@@ -16,3 +16,7 @@ $ChosenTwoName's shot knocks the owl off the ridge-pole in a burst of feathers. 
 $ChosenTwoName's shot goes wide. The owl spreads its wings and sails off slowly, low over $ChosenOneName's head: the worst omen of all. $ChosenOneName sits shaking by the dead fire, and nothing you say can make $him eat.
 === card 5: 10 10 0 240 0 ===
 You pull up the tent pegs in the half-dark and get away down the road with the owl's eyes on your backs. It is a cold, stumbling start to the day, but by sunrise $ChosenOneName is breathing easier.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName will not wait to learn whom the bird has come for. With shaking hands $he takes aim, and the shot knocks the owl off the ridge-pole in a burst of feathers. "There. It goes home without me." Then $he lies down again and sleeps a full hour, deep and quiet, while you break camp around $him.
+=== card 7: 10 10 0 240 0 ===
+$ChosenOneName takes aim with shaking hands, and the shot goes wide. The owl spreads its wings and sails off slowly, low over $his head: the worst omen of all. $ChosenOneName sits shaking by the dead fire, and nothing you say can make $him eat.

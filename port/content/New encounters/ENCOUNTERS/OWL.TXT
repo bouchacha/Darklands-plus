@@ -15,14 +15,16 @@ option 0                                   # comfort them with a prayer and good
   chance clamp(10, 90, skill(who, Religion) + attr(who, Cha) / 3)
   ok     chosen2 who; text 1; hours 1; attr chosen, DF, 2; practice who, Religion, 1, 10, 0; exit
   fail   chosen2 who; text 2; attr chosen, End, -4; practice who, Religion, 0, 10, 0; exit
-option 1                                   # shoot the owl (Bows, Missile)
+option 1                                   # shoot the owl (Bows, Missile; the frightened one may be the best shot)
   who    bestskill2(Bows, Missile)
   need   has(party, 0x1a) or has(party, 0x1b) or has(party, 0x1c) or has(party, 0x1d) or has(party, 0x1e)
   chance clamp(5, 90, max(skill(who, Bows), skill(who, Missile)) + attr(who, Per) / 3 - 15)
-  ok     chosen2 who; text 3; hours 1; attr chosen, End, 2
+  ok     chosen2 who; if who == chosen then text 6 else text 3
+         hours 1; attr chosen, End, 2
          if skill(who, Bows) >= skill(who, Missile) then practice who, Bows, 1, 10, 0 else practice who, Missile, 1, 10, 0
          exit
-  fail   chosen2 who; text 4; attr chosen, End, -4; exit
+  fail   chosen2 who; if who == chosen then text 7 else text 4
+         attr chosen, End, -4; exit
 option 2                                   # break camp at once (time)
   chance assured
   ok     text 5; hours 2; attr party, End, -2; exit

@@ -25,6 +25,6 @@ As dusk falls you hear a child crying, and with it a low growling. Gaunt grey sh
 The last of the wolves slinks away, whining. From inside the hollow tree a small, tear-stained face peers out at you, and then Grete flings herself into the arms of the nearest of you and will not let go.
 \14You carry her back to the village by torchlight. Her mother weeps and laughs, the villagers press bread and cheese on you, and the priest blesses you in front of the whole village.
 === card 9: 10 10 0 240 0 ===
-You run from the pack. Behind you the howling rises, and then, horribly, stops. Not all of you came away.
+You run from the pack and scatter in the dark. Behind you the howling rises, and then, horribly, stops. It is dawn before you find one another again.
 === card 10: 10 10 0 240 0 ===
 The villagers find you at dawn, torn and bleeding, drawn by the wolves' howling. Of the child there is no trace.

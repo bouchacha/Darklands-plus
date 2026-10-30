@@ -36,3 +36,5 @@ You scatter into the forest. Only at dusk do you find each other again.
 The huntsmen beat you senseless. When you wake, your purse is lighter by $Money1: the lord's fine, collected in full.
 === card 13: 10 10 0 240 0 ===
 You throw down your weapons. The master of the hunt counts out the lord's fine from your purse, $Money1, and adds a few kicks of his own for the trouble. "Keep to the road, poachers."
+=== card 14: 10 10 0 240 0 ===
+The huntsmen are dead or fled. They hunted you into that ravine and you fought for your lives, but a lord's men lie bleeding over his stag, and the tale will get about.

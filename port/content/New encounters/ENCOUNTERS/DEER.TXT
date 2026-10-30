@@ -5,6 +5,7 @@ picture  XDEER
 terrain  forest woods pinewood
 when     day
 weight   1
+vars     cornered
 
 [start]
 block    0
@@ -40,13 +41,14 @@ option 2                                   # run for it
   who    party
   chance clamp(10, 85, avgagility + avgskill(Woodwise) / 2)
   ok     text 8; hours 2; practice party, Woodwise, 1, 10, 0; exit
-  fail   text 9; goto fight
+  fail   set cornered = 1; text 9; goto fight
 option 3                                   # fight the huntsmen
   chance combat
   ok     goto fight
 
 [fight]
 do       battle Wilds, Huntsman, lore / 4 + 1, random(3) + 3
+         if result == Won and cornered then { text 14; hours 1; reputation -1, -3; exit }
          if result == Won then { text 10; hours 1; reputation -10, -20; exit }
          if result == Fled then { rejoin; until 18; text 11; exit }
          money1 min(money, 480); pay money1

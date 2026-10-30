@@ -9,7 +9,7 @@ A curtained litter sways down the street between two horses, with liveried serva
 $ChosenOneName wipes the glove clean, steps up to the litter with a bow fit for a duchess, and returns it with a compliment on the hand that dropped it. A lady with a pale face and bright eyes laughs and asks $his name.
 \14By evening the tale of the courteous stranger has gone round every patrician house in town.
 === card 2: 10 10 0 240 0 ===
-$ChosenOneName stoops for the glove and steps toward the litter, a little too quickly. The men-at-arms see only an armed stranger rushing their lady. A stave cracks down across $his arm, and the glove falls back into the muck.
+$ChosenOneName stoops for the glove and steps toward the litter, a little too quickly. The men-at-arms see only an armed stranger rushing their lady. A stave knocks the glove out of $his hand and back into the muck.
 === card 3: 10 10 0 240 0 ===
 $ChosenOneName sets a foot on the glove, and when the litter has passed, it is in $his sleeve. That evening a goldsmith pays $Money1 for the pearl buttons and asks no questions.
 \14Somewhere a lady is wondering why no one brought back her glove.

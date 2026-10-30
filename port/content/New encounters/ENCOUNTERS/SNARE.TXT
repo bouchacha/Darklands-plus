@@ -12,7 +12,7 @@ only     size >= 2                           # one is snared, another frees him
 block    0
 chosen   worstskill(Woodwise)
 option 0                                   # free the snared one carefully
-  who    bestattrskill(Agl, Woodwise)
+  who    bestskill(Woodwise, chosen)
   chance clamp(10, 95, skill(who, Woodwise) + attr(who, Agl) / 2 + 10)
   ok     chosen2 who; text 1; practice who, Woodwise, 1, 10, 0; goto poacher
   fail   chosen2 who; text 2; injure chosen, 1, 1, 5; practice who, Woodwise, 0, 10, 0; goto poacher

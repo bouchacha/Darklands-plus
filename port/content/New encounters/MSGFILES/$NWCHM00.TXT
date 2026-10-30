@@ -9,7 +9,7 @@ An old man with a staff and a tray slung from his neck hails you from the waysid
 === card 1: 10 10 0 240 0 ===
 You hang the charms about your necks. The red threads are only thread, and the Lamb is stamped in tallow, not holy wax. But the root-man, at least, is a true mondragora root, and some alchemist may pay for it.
 === card 2: 10 10 0 240 0 ===
-$ChosenOneName scrapes the "holy wax" with a thumbnail: tallow, smelling of mutton. The "relic thread" leaves red dye on $his fingers. $He holds both up for the peasants gathering round to see, and the cunning man packs his tray in a hurry and goes off followed by jeers. A good many poor folk keep their pennies today.
+$ChosenOneName scrapes the "holy wax" with a thumbnail: tallow, smelling of mutton. The "relic thread" leaves red dye on $his fingers. $He holds both up for the peasants gathering round to see, and the cunning man packs his tray in a hurry and goes off followed by jeers. A good many poor folk keep their pfennigs today.
 === card 3: 10 10 0 240 0 ===
 $ChosenOneName frowns at the wax and the threads, and cannot say what is wrong with them. "Doubting Thomas!" cackles the old man. "Even the Apostle believed in the end!"
 === card 4: 10 10 0 240 0 ===

@@ -32,3 +32,5 @@ The raiders' leader falls, and his men gallop off with their plunder. The villag
 You fall back from the riders and lose them in the smoke. Later, from a distance, you watch the tower's roof fall in.
 === card 10: 10 10 0 240 0 ===
 The riders take everything you have, as they took the manor's. "A lesson," says the knight, "in minding your own business."
+=== card 11: 10 10 0 240 0 ===
+You leave the road and give the burning village a wide berth. The smoke and the crying follow you a long way. Nothing more comes of it.

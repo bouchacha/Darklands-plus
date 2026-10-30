@@ -5,6 +5,7 @@ picture  XPRTYLDY
 where    street
 when     day
 weight   1
+vars     thief
 
 [start]
 block    0
@@ -18,7 +19,7 @@ option 1                                   # slip it into your sleeve
   who    bestskill(Stealth)
   chance clamp(5, 90, skill(who, Stealth) + attr(who, Agl) / 3)
   ok     chosen who; money1 random(36) + 36; text 3; gain money1; attr party, DF, -2; practice who, Stealth, 1, 10, 0; exit
-  fail   chosen who; text 4; practice who, Stealth, 0, 10, 0; goto guards
+  fail   chosen who; set thief = 1; text 4; practice who, Stealth, 0, 10, 0; goto guards
 option 2                                   # let it lie
   chance none
   ok     text 5; exit
@@ -35,6 +36,10 @@ option 1                                   # stand your ground and fight
 
 [fight]
 do       battle MainStreet, Guard, lore / 4 + 1, 4
-         if result == Won then { text 8; reputation -6, -12; hours 1; exit }
-         if result == Fled then { rejoin; text 9; reputation -3, -6; exit }
-         text 10; reputation -2, -4; hours 4; exit
+         if result == Won and thief then { text 8; reputation -6, -12; hours 1; exit }
+         if result == Won then { text 8; reputation -1, -3; hours 1; exit }
+         if result == Fled and thief then { rejoin; text 9; reputation -3, -6; exit }
+         if result == Fled then { rejoin; text 9; reputation -1, -3; exit }
+         text 10; hours 4
+         if thief then reputation -2, -4 else reputation -1, -2
+         exit
