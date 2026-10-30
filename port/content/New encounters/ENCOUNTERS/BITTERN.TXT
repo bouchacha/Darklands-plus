@@ -1,0 +1,52 @@
+# The booming in the reeds: a fen village kept awake by a beast that bellows from the bog every spring.
+name     The booming in the reeds
+card     $NmBit00
+picture  XMS057
+where    wild
+terrain  marsh farmland
+when     night
+weight   1
+only     month >= 3 and month <= 6             # the bittern booms in spring
+
+[start]
+do       money1 size * 24
+block    0
+chosen   spotter
+saints   0x60, 0x45, 0x63, 0x47          # Michael, Hubert, Nicholas, Isidore
+option 0                                   # wade into the reeds and find it (Woodwise)
+  who    spotter
+  chance clamp(5, 90, skill(who, Woodwise) + attr(who, Per) / 3 - 10)
+  ok     chosen who; text 1; hours 2; practice who, Woodwise, 1, 10, 0; goto bird
+  fail   chosen who; text 2; until 5; attr who, End, -3; practice who, Woodwise, 0, 10, 0; exit
+option 1                                   # beat the reeds with the village lads (Flails)
+  who    bestskill(Flails)
+  chance clamp(5, 90, skill(who, Flails) + attr(who, Str) / 3 + 10)
+  ok     chosen who; text 3; hours 2; practice who, Flails, 1, 10, 0; goto bird
+  fail   chosen who; text 4; until 5; injure who, 1, 1, 5; practice who, Flails, 0, 10, 0; exit
+option 2 saint                             # pray that the beast be driven off
+  ok     text 5; until 5; reputation 1, 2; exit
+  fail   text 6
+option 3                                   # bar the door and let it bellow
+  chance none
+  ok     text 7; until 5; exit
+
+[bird]
+block    8
+option 0                                   # shoot the bird and carry it back (a bow or crossbow)
+  who    bestskill2(Bows, Missile)
+  need   has(party, 0x1a) or has(party, 0x1b) or has(party, 0x1c) or has(party, 0x1d) or has(party, 0x1e)
+  chance clamp(5, 90, max(skill(who, Bows), skill(who, Missile)) + attr(who, Per) / 3 - 10)
+  ok     chosen who; text 9; gain money1; until 5
+         if skill(who, Bows) >= skill(who, Missile) then practice who, Bows, 1, 10, 0 else practice who, Missile, 1, 10, 0
+         exit
+  fail   chosen who; text 10; until 5
+         if skill(who, Bows) >= skill(who, Missile) then practice who, Bows, 0, 10, 0 else practice who, Missile, 0, 10, 0
+         exit
+option 1                                   # go back and tell them the truth (Speak Common)
+  who    bestattr(Cha)
+  chance clamp(5, 90, skill(who, SpeakCommon) + attr(who, Cha) / 3 - 10)
+  ok     chosen who; text 11; until 5; attr party, End, 3; reputation 1, 2; practice who, SpeakCommon, 1, 10, 0; exit
+  fail   chosen who; text 12; until 5; reputation -1, -2; practice who, SpeakCommon, 0, 10, 0; exit
+option 2                                   # leave the bird in peace and say nothing
+  chance none
+  ok     text 13; until 5; exit

@@ -1,0 +1,41 @@
+# The man in the peat: peat-cutters dig up a strangled man, and the village has the smith in chains for his murder.
+name     The man in the peat
+card     $NmPea00
+picture  XGRV1
+where    wild
+terrain  marsh farmland woods
+when     day
+weight   1
+only     month >= 4 and month <= 9             # the peat is cut in spring and summer
+
+[start]
+block    0
+chosen   bestskill(Healing)
+option 0                                   # look at the body closely (Healing)
+  who    bestskill(Healing)
+  chance clamp(5, 90, skill(who, Healing) + attr(who, Int) / 3 - 5)
+  ok     chosen who; text 1; hours 1; practice who, Healing, 1, 10, 0; goto proof
+  fail   chosen who; text 2; hours 1; practice who, Healing, 0, 10, 0; disable 0
+option 1                                   # pray for the dead man's soul
+  who    bestskill(Religion)
+  chance assured
+  ok     text 3; hours 1; attr party, DF, 1 + skill(who, Religion) / 15; exit
+option 2                                   # leave the village to its justice
+  chance none
+  ok     text 4; exit
+
+[proof]
+block    5
+option 0                                   # show the village what the peat has kept (Speak Common)
+  who    bestattr(Cha)
+  chance clamp(5, 90, skill(who, SpeakCommon) + attr(who, Cha) / 3 - 10)
+  ok     chosen2 who; text 6; hours 2; attr party, DF, 3; reputation 1, 3; practice who, SpeakCommon, 1, 10, 0; exit
+  fail   chosen2 who; text 7; practice who, SpeakCommon, 0, 10, 0; disable 0
+option 1                                   # write it down as a sworn statement for the bailiff (Read & Write)
+  who    bestskill(ReadWrite)
+  chance clamp(5, 90, skill(who, ReadWrite) + attr(who, Int) / 3 - 10)
+  ok     chosen2 who; text 8; hours 4; attr party, DF, 3; reputation 1, 2; practice who, ReadWrite, 1, 10, 0; exit
+  fail   chosen2 who; text 9; hours 4; practice who, ReadWrite, 0, 10, 0; exit
+option 2                                   # say no more and go on
+  chance none
+  ok     text 10; exit

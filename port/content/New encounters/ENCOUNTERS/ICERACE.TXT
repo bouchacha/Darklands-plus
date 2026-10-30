@@ -1,0 +1,40 @@
+# The race on the ice: a fen village races on bone skates for a goose, and the ice is thinner than it looks.
+name     The race on the ice
+card     $NmIce00
+picture  XMS056
+where    wild
+terrain  marsh farmland
+when     day
+weight   1
+only     month == 12 or month <= 2             # the fen freezes hard
+vars     safe
+
+[start]
+block    0
+option 0                                   # race on borrowed skates (Agility and Endurance)
+  who    bestattrsum(Agl, End)
+  chance clamp(5, 85, attr(who, Agl) + attr(who, End) / 3 - 10)
+  ok     chosen who; if safe goto won else goto crack
+  fail   chosen who; text 1; hours 1; injure who, 1, 1, 5; exit
+option 1                                   # walk the course first (Woodwise)
+  who    spotter
+  chance clamp(5, 90, skill(who, Woodwise) + attr(who, Per) / 3 - 5)
+  ok     chosen who; text 2; set safe = 1; hours 1; reputation 1, 2; practice who, Woodwise, 1, 10, 0; disable 1
+  fail   chosen who; text 3; hours 1; practice who, Woodwise, 0, 10, 0; disable 1
+option 2                                   # watch from the bank
+  chance none
+  ok     text 4; hours 1; exit
+
+[won]
+do       text 5; hours 2; attr party, End, 3; reputation 1, 2; exit
+
+[crack]
+block    6
+option 0                                   # stop and pull him out
+  who    chosen
+  chance clamp(10, 90, attr(who, Str) + attr(who, Agl) / 2)
+  ok     text 7; hours 2; attr who, End, -2; attr party, DF, 3; reputation 1, 3; exit
+  fail   text 8; hours 2; attr who, End, -5; injure who, 1, 1, 5; attr party, DF, 2; exit
+option 1                                   # skate on and take the goose
+  chance none
+  ok     text 9; hours 2; attr party, End, 3; attr chosen, DF, -3; reputation -1, -2; exit

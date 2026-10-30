@@ -1,0 +1,30 @@
+# The spade in the dike: an old farmer who cannot keep his stretch of dike drives his spade into it and gives up his land, by the old law.
+name     The spade in the dike
+card     $NmSpd00
+picture  VILLAGE
+where    wild
+terrain  marsh farmland road
+when     day
+weight   1
+
+[start]
+do       money1 clamp(60, 240, size * 36)
+block    0
+chosen   bestattrskill(Per, Artifice)
+option 0                                   # look closely at where the water comes through (Artifice)
+  who    bestattrskill(Per, Artifice)
+  chance clamp(5, 90, skill(who, Artifice) + attr(who, Per) / 3 - 10)
+  ok     chosen who; text 1; hours 2; attr party, DF, 2; reputation 1, 3; practice who, Artifice, 1, 10, 0; exit
+  fail   chosen who; text 2; hours 1; practice who, Artifice, 0, 10, 0; disable 0
+option 1                                   # pay the old man's fine
+  need   money >= money1
+  chance none
+  ok     pay money1; text 3; attr party, DF, 3; exit
+option 2                                   # mend the stretch with him (Endurance)
+  who    party
+  chance clamp(10, 90, avgattr(End) + 25)
+  ok     text 4; hours 6; attr party, End, -3; attr party, DF, 2; exit
+  fail   text 5; hours 6; attr party, End, -4; exit
+option 3                                   # leave him to the dike and the law
+  chance none
+  ok     text 6; exit

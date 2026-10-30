@@ -1,0 +1,45 @@
+# The fern seed: on a midsummer night the fern is said to bloom at midnight, and the Devil guards its seed.
+name     The fern seed
+card     $NmFrn00
+picture  XGROVE27
+where    wild
+terrain  marsh woods forest
+when     night
+weight   1
+only     month == 6                             # midsummer
+
+[start]
+block    0
+chosen   bestskill(Woodwise)
+option 0                                   # sit up by the fern with a white cloth (Virtue)
+  who    bestskill(Virtue)
+  chance clamp(5, 85, skill(who, Virtue) + attr(who, End) / 2 - 5)
+  ok     chosen who; text 1; practice who, Virtue, 1, 10, 0; goto stranger
+  fail   chosen who; practice who, Virtue, 0, 10, 0; goto terror
+option 1                                   # gather St. John's wort in the dew instead (Healing)
+  who    bestskill(Healing)
+  chance clamp(5, 90, skill(who, Healing) + attr(who, Int) / 3)
+  ok     chosen who; text 2; until 5; heal party, End, 40; practice who, Healing, 1, 10, 0; exit
+  fail   chosen who; text 3; until 5; practice who, Healing, 0, 10, 0; exit
+option 2                                   # forbid such devilry and pray the night through
+  who    bestskill(Religion)
+  chance assured
+  ok     text 4; until 5; attr party, DF, 1 + skill(who, Religion) / 15; exit
+option 3                                   # sleep, and let the fern bloom unwatched
+  chance none
+  ok     text 5; until 5; exit
+
+[terror]
+picture  XNYTMARE
+do       text 6; until 5; attr chosen, End, -3; attr chosen, DF, -2; exit
+
+[stranger]
+block    7
+option 0                                   # bid him begone in God's name (Religion)
+  who    bestskill(Religion)
+  chance clamp(5, 90, skill(who, Religion) + attr(who, DF) / 3 - 10)
+  ok     chosen2 who; text 8; until 5; skill chosen, Stealth, 2; attr party, DF, 2; practice who, Religion, 1, 10, 0; exit
+  fail   chosen2 who; text 9; until 5; attr party, End, -2; practice who, Religion, 0, 10, 0; exit
+option 1                                   # sell him the seed
+  chance none
+  ok     text 10; until 5; attr party, DF, -4; exit

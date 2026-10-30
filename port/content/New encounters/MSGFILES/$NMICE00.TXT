@@ -1,0 +1,35 @@
+# $NMICE00: the race on the ice (New encounters)
+=== card 0: 10 10 0 240 0 ===
+The fen has frozen hard from bank to bank, and the whole village is out on the ice. Today is the winter race: on skates of polished horse-bone, pushing with iron-tipped poles, out to the old willow stump and back, for a fat goose and a keg of beer.
+\14The Schulz's son has won six years running, and tells everyone so. "Strangers too!" he calls, grinning at you. "Unless you are afraid of a little ice."
+\14You...
+\14\15...\1dborrow a pair of skates and race him.
+\15...\1dwalk the course out to the willow first.
+\15...\1dwatch from the bank with a cup of hot wine.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName pushes off with the others, finds that horse-bone skates have opinions of their own, and goes down in a whirl of arms and legs at the first stroke. The whole village laughs, not unkindly, and the Schulz's son wins the goose for the seventh year running.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName walks the course out to the willow stump, tapping the ice. Halfway, beside the reeds, the ice turns dark and soft: a spring wells up from below and has kept it as thin as a wafer. $ChosenOneName marks the place with a willow branch, and the course is moved.
+\14The old people nod at one another. Somebody's grandson went through just there, years ago.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName walks out to the willow and back, tapping the ice here and there. It seems sound enough everywhere.
+=== card 4: 10 10 0 240 0 ===
+You stand on the bank with the old people and drink hot wine while the young ones race. The Schulz's son wins the goose for the seventh year running, and you hear about it for the rest of the afternoon. Nothing more comes of it.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName finds the knack of the bone skates at the third stroke, and the Schulz's son's heels at the willow stump. Coming home, $he drives past him and over the line by a pole's length, to a roar from the bank.
+\14That night the goose is roasted and the beer goes round, and even the Schulz's son, after the third cup, admits that it was a fair race.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName finds the knack of the bone skates at the third stroke, and by the willow stump $he is at the Schulz's son's heels. Coming home along the reeds, the young man looks back, laughing, and the ice opens under him with a crack like a shot.
+\14He is in the black water to his chest, clawing at edges that break as he grips them. The finish is a hundred paces ahead. The villagers are running, but they are far behind.
+\14$ChosenOneName...
+\14\15...\1dstops, drops flat on the ice and reaches for him.
+\15...\1dskates on to take the goose.
+=== card 7: 10 10 0 240 0 ===
+$ChosenOneName stops short, drops flat and slides out to the hole on $his belly. $He gets a hand in the young man's collar and holds on, and holds on, until the villagers come with poles and ropes and haul them both back to the bank.
+\14The Schulz embraces $ChosenOneName before the whole village. His son, blue and shivering in three blankets, says nothing at all, which the village agrees is a greater miracle than the rescue.
+=== card 8: 10 10 0 240 0 ===
+$ChosenOneName slides out to the hole on $his belly, but the ice gives way beneath $him too, and in a moment there are two of them in the black water. By the time the villagers drag them out with poles and ropes, both are blue and half dead with cold.
+\14But both are alive. The Schulz weeps and blesses you, and his son, shivering, holds $ChosenOneName's hand and will not let go.
+=== card 9: 10 10 0 240 0 ===
+$ChosenOneName skates on. Behind $him there are shouts and running feet; ahead, the finish and the roaring crowd. $He crosses it alone.
+\14The villagers drag the Schulz's son out of the water, half dead but alive. That night you eat the goose. Nobody sits near you to share it, and nobody in the village will forget who skated past.

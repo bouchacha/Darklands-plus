@@ -1,0 +1,32 @@
+# $NMSHP00: the ship-mill adrift (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Shouts and lanterns on the river bank in the dark. Out on the black water a ship-mill has torn loose from its moorings: a mill-house built across two moored hulls, its great wheel still turning in the current as it drifts. A light burns in its window, and downstream, not half a mile off, stands the stone bridge.
+\14The miller runs along the bank in his nightshirt with a coil of rope, howling to every saint he knows. "My mill! It will break on the piers!"
+\14You...
+\14\15...\1dtake his rope and throw it out to the mill.
+\15...\1dgallop ahead along the dike to rouse the bridge.
+\15...\1drun to the landing stage and catch it with a boathook.
+\16...\1dpray to a saint for the mill.
+\15...\1dwatch it go.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName swings the rope twice round $his head and lets fly. The loop drops over a post of the mill's gallery, every hand on the bank seizes the rope, and slowly, groaning, the mill swings in and grinds onto the mud.
+\14The door of the mill-house opens, and out climb the miller's daughter and the baker's apprentice, both with straw in their hair. The miller forgets his mill entirely. The whole bank can hear him, and by morning so will the town; but your names are blessed with every breath he can spare.
+=== card 2: 10 10 0 240 0 ===
+The rope falls short and slaps on the water. The miller drags it back, wailing, and the mill drifts on toward the bridge, its wheel turning slowly.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName gallops along the dike in the dark and hammers on the bridge-keeper's door. By the time the mill comes looming out of the night, men stand ready on the piers with poles and boathooks. They fend it off the stone, and it runs gently aground on the gravel below the bridge.
+\14From the mill-house climb the miller's daughter and the baker's apprentice, both with straw in their hair. The bridge-men will be telling this one in the taverns of $NearestCity for a year.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName gallops along the dike in the dark. A rabbit hole, a stumble, and horse and rider go down together into the ditch. By the time $he limps to the bridge, the mill has struck the pier and broken up, and the bridge-men are fishing a pair of young people out of the river, alive, soaked and very sorry.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName runs out onto the landing stage, seizes a long boathook and plants $his feet. As the mill swings past, $he drives the hook into its gallery rail and hangs on while the rest of you fling a line round the post. The mill shudders, stops, and swings in against the stage.
+\14From the mill-house climb the miller's daughter and the baker's apprentice, both with straw in their hair. The miller forgets his mill entirely, but not your names.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName drives the boathook into the mill's rail, and the mill, which weighs as much as a church, simply takes $him along. $He goes off the end of the landing stage into the black river, and you fish $him out a long bowshot downstream, half drowned and lighter by much of what $he carried. The mill drifts on into the dark.
+=== card 7: 10 10 0 240 0 ===
+As $ChosenOneName prays to $NamedOneName, the mill turns slowly in the current, as if a hand had been laid on it, and runs aground on a gravel bank a stone's throw short of the bridge. In the morning the miller's neighbours will row out to it.
+\14For now, a young man's voice calls from the mill window to ask whether someone could tell the miller that his daughter is quite safe. The miller, on his knees on the bank, swears to light candles for you, once he has dealt with the young man.
+=== card 8: 10 10 0 240 0 ===
+You pray, but the mill drifts on toward the bridge, its wheel turning slowly.
+=== card 9: 10 10 0 240 0 ===
+You stand on the bank with the miller and watch the light drift away into the dark. Far downstream there is a long crash of timber, then shouting. In the morning they will fish out what they can. Nothing more comes of it for you.

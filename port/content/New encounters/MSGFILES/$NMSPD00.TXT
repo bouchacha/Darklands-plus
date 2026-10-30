@@ -1,0 +1,26 @@
+# $NMSPD00: the spade in the dike (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Where the road runs along the river dike, an old farmer stands on the crown of the bank with a spade in his hands. Below him, on the land side, water is seeping through the dike in a dozen little runnels, and his field is turning to bog.
+\14"The dike-court has fined me $Money1 for a stretch I cannot keep," he says. "My sons are dead and my back is broken. So be it, by the old law." He drives the spade deep into the dike and lets go of it. "Whoever pulls it out has my farm, and my dike with it."
+\14A well-fed man in a good coat is already strolling up from the next farm, his hands behind his back.
+\14You...
+\14\15...\1dlook closely at where the water comes through.
+\15...\1dpay the old man's fine of $Money1.
+\15...\1dset to with him and mend the stretch yourselves.
+\15...\1dleave him to the dike and the law.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName walks the foot of the dike and stops where the seeping is worst. Someone has cut a fresh ditch on the neighbour's side, deep and close under the bank, and neatly hidden it with reeds. Water drawn to it would undermine any dike in the world.
+\14The dike-reeve is fetched and sees it with his own eyes. The well-fed neighbour goes red, then grey. He is fined for the ditch and for the old man's stretch both, and set to mend it with his own hands, while the old farmer pulls his spade out of the dike and weeps on your shoulders. The dike-reeve will tell the tale at market.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName walks the foot of the dike, frowning at the runnels, but can find no cause but age and rain. The neighbour watches, smiling politely.
+=== card 3: 10 10 0 240 0 ===
+You count the coins into the old man's hand. He stares at them, then pulls his spade out of the dike and holds it like a holy relic. The neighbour turns on his heel without a word.
+\14"God sees," says the old farmer. "God sees everything." He will light a candle for you at Easter, he swears, and at every Easter after.
+=== card 4: 10 10 0 240 0 ===
+You strip to your shirts and work beside him all day, cutting sods, ramming clay and driving willow stakes, while the river laps at the other side. By evening the runnels have stopped, and the stretch would satisfy any dike-reeve.
+\14The old man pulls his spade out of the dike and shakes each of your hands with his blistered ones. The neighbour has long since gone home to his supper.
+=== card 5: 10 10 0 240 0 ===
+You work beside him all day, cutting sods and ramming clay, but the water finds a new way through as fast as you stop the old one. By evening you are wet to the waist and worn out, and the spade still stands in the dike.
+\14As you leave, the neighbour spits on his hands and pulls it out, smiling politely.
+=== card 6: 10 10 0 240 0 ===
+You go on along the dike road. Behind you the neighbour reaches the spade, spits on his hands and pulls it out of the bank. Nothing more comes of it for you.

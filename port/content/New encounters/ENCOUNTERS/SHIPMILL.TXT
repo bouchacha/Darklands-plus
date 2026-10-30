@@ -1,0 +1,36 @@
+# The ship-mill adrift: a mill built on moored hulls tears loose in the night and drifts toward the bridge, a light still burning aboard.
+name     The ship-mill adrift
+card     $NmShp00
+picture  XSTMTIDE
+where    wild
+terrain  marsh farmland road woods
+when     night
+weight   1
+
+[start]
+block    0
+chosen   bestskill(Thrown)
+saints   0x63, 0x16, 0x33, -1            # Nicholas, Christopher, Florian
+option 0                                   # throw the miller's rope out to it (Thrown)
+  who    bestskill(Thrown)
+  chance clamp(5, 90, skill(who, Thrown) + attr(who, Agl) / 3 - 5)
+  ok     chosen who; text 1; hours 2; reputation 1, 3; practice who, Thrown, 1, 10, 0; exit
+  fail   chosen who; text 2; practice who, Thrown, 0, 10, 0; disable 0
+option 1                                   # gallop ahead along the dike to rouse the bridge (Riding)
+  need   mounted
+  who    bestskill(Riding)
+  chance clamp(5, 90, skill(who, Riding) + attr(who, Agl) / 3 - 5)
+  ok     chosen who; text 3; hours 2; reputation 1, 2; practice who, Riding, 1, 10, 0; exit
+  fail   chosen who; text 4; hours 2; injure who, 1, 1, 10; practice who, Riding, 0, 10, 0; exit
+option 2                                   # catch it with a boathook from the landing stage (Polearms)
+  who    bestskill(Polearms)
+  chance clamp(5, 90, skill(who, Polearms) + attr(who, Str) / 3 - 10)
+  ok     chosen who; text 5; hours 2; reputation 1, 3; practice who, Polearms, 1, 10, 0; exit
+  fail   chosen who; text 6; hours 1; attr who, End, -4; keepitems who, clamp(1, 95, attr(who, Agl) + 50)
+         practice who, Polearms, 0, 10, 0; exit
+option 3 saint
+  ok     text 7; hours 1; reputation 1, 2; exit
+  fail   text 8
+option 4                                   # watch it go
+  chance none
+  ok     text 9; exit

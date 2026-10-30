@@ -1,0 +1,35 @@
+# $NMPEA00: the man in the peat (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Out on the moor a crowd stands around a fresh peat cutting. In the black wall of the trench lies a man, brown as an old saddle, his knees drawn up as if asleep and a braided cord drawn tight around his throat. The peat has kept every hair of his head.
+\14"J{rg the pedlar," says the Schulz grimly. "Seven years gone, and the last man to see him was Hans the smith, who owed him money." Two men hold the smith by the arms, a big grey-faced fellow who keeps saying that he never touched him. The lord's bailiff has been sent for, and the bailiff hangs murderers.
+\14You...
+\14\15...\1dclimb down and look at the body closely.
+\15...\1dpray for the dead man's soul.
+\15...\1dleave the village to its justice.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName kneels in the wet trench and looks at the dead man as $he would look at any corpse. The skin is tanned like leather and the bones have gone soft as wax: the peat did that, and not in seven years. The bog has dyed his hair fox-red. The cord is of braided hide, such as no one has made in living memory, and at his shoulder is a bronze pin shaped like a coiled snake.
+\14"This is not your pedlar," $ChosenOneName says slowly. "This man has lain here since before the first church was built in these parts."
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName looks him over, but can make nothing of him. He is dead and he was strangled; that much anyone can see. The villagers mutter, and the smith hangs his head.
+=== card 3: 10 10 0 240 0 ===
+You kneel at the edge of the trench and pray for the dead man, whoever he was, and for the living. The villagers join in, and the smith prays loudest of all. You go on before the bailiff comes. Whatever he decides, it is in God's hands now.
+=== card 4: 10 10 0 240 0 ===
+You leave the village to its justice and the bailiff to his work. Looking back from the causeway, you see the smith still standing between his guards, staring at the trench. Nothing more comes of it.
+=== card 5: 10 10 0 240 0 ===
+The Schulz scowls. The villagers look at one another. "J{rg had red hair," somebody says. The smith looks up at you as a drowning man looks at a rope.
+\14You...
+\14\15...\1dshow the village what the peat has kept.
+\15...\1dwrite it all down as a sworn statement for the bailiff.
+\15...\1dsay no more and go on.
+=== card 6: 10 10 0 240 0 ===
+$ChosenTwoName shows them the soft bones, the hide cord and the bronze snake, and asks whether J{rg the pedlar wore such things. Nobody answers. Then an old woman says that her grandmother used to tell of the bog-men the peat gives back now and then, from heathen times.
+\14The smith is let go. He falls on his knees in the peat and thanks God and you, in that order, and the dead heathen is buried at the edge of the churchyard, with a prayer for a soul that never heard the Gospel.
+=== card 7: 10 10 0 240 0 ===
+$ChosenTwoName shows them the bones and the cord, but the Schulz has made up his mind. "J{rg had red hair," he says, "and the smith owed him money. Strangers know nothing of our moor."
+=== card 8: 10 10 0 240 0 ===
+$ChosenTwoName sits on a peat stack and writes it all down: the bones, the hide cord, the bronze snake, the colour of the hair, and what a body seven years in a bog ought to look like. You all set your marks to it as witnesses.
+\14When the bailiff comes he reads it twice, climbs down into the trench himself and comes up thoughtful. The smith walks home that night to his wife. The bailiff keeps the bronze pin, to show his lord.
+=== card 9: 10 10 0 240 0 ===
+$ChosenTwoName writes it all down, but the words come out tangled, and the bailiff, when he comes, reads three lines and hands it back. "A learned tale," he says, and takes the smith away in chains. Nothing more comes of it for you.
+=== card 10: 10 10 0 240 0 ===
+You say no more and go on. It is not your moor, and not your smith. Nothing more comes of it.

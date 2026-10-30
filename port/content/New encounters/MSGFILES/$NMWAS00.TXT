@@ -1,0 +1,40 @@
+# $NMWAS00: the Wassermann's pots (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Below a broken weir the river spreads into a deep black pool. On a stone at its edge sits a little man in a green coat and a red cap, and though the night is dry, water drips steadily from the hem of his coat.
+\14"Travellers! Come, sit, drink," he calls, holding up a jug. "It is lonely work, keeping a pool."
+\14$ChosenOneName catches at your sleeves. "A Wassermann," $he whispers. "They say he keeps the souls of the drowned under pots in his house beneath the water, and never lets them go."
+\14You...
+\14\15...\1dsit down and match him cup for cup.
+\16...\1dcall on a saint.
+\15...\1dthank him kindly and go round the pool.
+=== card 1: 10 10 0 240 0 ===
+The wine is cold as well water and strong as sin. The Wassermann drinks like a fish, naturally, but $ChosenTwoName drinks like a carter at Shrovetide, and by the twelfth cup it is the little man who sways.
+\14"Come and see my treasures," he hiccups, and takes $ChosenTwoName by the hand. A stair of wet stones leads down into the pool, and the water parts before you like a curtain. At the bottom he falls asleep across his own doorstep, snoring bubbles.
+=== card 2: 10 10 0 240 0 ===
+The wine is cold as well water and strong as sin. Cup follows cup, the Wassermann's laugh grows louder, and the stars begin to swim...
+\14$ChosenTwoName wakes at dawn lying in the shallows, blue with cold and with a pack much lighter than before. Of the little man there is no sign but wet footprints leading into the pool.
+=== card 3: 10 10 0 240 0 ===
+At the name of $NamedOneName the little man drops his jug, gives a croak like a startled frog, and goes into the pool head first. The black water closes over him without a ripple.
+\14You go round the pool quickly. Behind you the jug floats out to the middle and sinks.
+=== card 4: 10 10 0 240 0 ===
+The Wassermann only laughs. "Saints! What do saints know of water?" He pats the stone beside him.
+=== card 5: 10 10 0 240 0 ===
+"Another time, then," says the Wassermann, not at all offended, and drinks your health. You go the long way round the pool, through the nettles, and do not look back. Nothing more comes of it.
+=== card 6: 10 10 0 240 0 ===
+His house is a room of green stone under the water, lit by a light that comes from nowhere. Along the walls stand rows of earthen pots turned upside down, dozens of them, and from under each comes a faint sound, like someone sighing in their sleep.
+\14In a corner lies a heap of coins, green and black with slime: the purses of the drowned. The Wassermann snores on the doorstep.
+\14You...
+\14\15...\1dturn up the pots, one by one, and let the souls go.
+\15...\1dfill your pockets with the drowned men's silver.
+\15...\1dcreep back up the stair while he sleeps.
+=== card 7: 10 10 0 240 0 ===
+$ChosenOneName tiptoes along the rows, lifting pot after pot. From each a little bubble rises, silver in the green light, and drifts up through the roof of water toward the stars. The sighing grows fainter, and stops.
+\14The Wassermann sleeps through it all. You climb the stair into the cool night air, and the pool behind you lies still and empty, as if something had gone out of it.
+=== card 8: 10 10 0 240 0 ===
+$ChosenOneName lifts a dozen pots, and a dozen bubbles rise, before one slips from $his fingers and cracks on the stone. The Wassermann sits up with a howl. The walls of water bulge, and burst.
+\14You come up through the pool in a roar of black water, choking, battered against the stones, and drag one another onto the bank. A dozen souls are free. The rest he keeps.
+=== card 9: 10 10 0 240 0 ===
+You fill your pockets with the slimy coins: $Money1, when they are scraped clean. Under the pots the sighing rises, like a crowd that has seen something shameful.
+\14You climb the stair while the Wassermann snores. The coins are cold, and for days afterwards they stay cold, however long you carry them.
+=== card 10: 10 10 0 240 0 ===
+You climb back up the stair as quietly as you can. The water closes over the Wassermann's house behind you, and the sighing of the pots goes with it. Nothing more comes of it.

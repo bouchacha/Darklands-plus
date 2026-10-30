@@ -1,0 +1,34 @@
+# $NMBEV00: the Lenten beaver (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Where a stream winds through the alders, a beaver dam has backed the water across a meadow, and a peasant stands up to his shins in what was his hay, shaking a mattock at a man in a grey habit.
+\14The man in grey is a lay brother of the abbey, with a net, a club and a sack. "The beavers of this stream are the abbot's," he says, "and it is Lent. The beaver's tail is scaled and it swims, so it is fish, and the brothers may eat it. Help me take them, friends, and you shall have a share of what the pelts fetch."
+\14"Help me break that cursed dam," says the peasant, "before my whole meadow drowns."
+\14You...
+\14\15...\1dhelp the lay brother take the beavers.
+\15...\1dhelp the peasant break the dam.
+\10...\1dblow the dam apart with a potion.
+\15...\1dargue with the brother that a beaver is no fish.
+\15...\1dleave them to their quarrel.
+=== card 1: 10 10 0 240 0 ===
+The brother stretches his net across the run, the peasant pounds on the lodge in spite of himself, and when the beaver bolts, $ChosenOneName fells it with one blow of the club.
+\14The brother is delighted. He will sell the pelt and the castor pouch to an apothecary in $NearestCity and keep the tail for the abbot's table. He counts out your share, $Money1. The peasant spits and goes back to his drowned hay.
+=== card 2: 10 10 0 240 0 ===
+The beaver bursts out of the lodge, and $ChosenOneName's blow strikes only water. Before $he can swing again, the beast sinks its great yellow teeth into $his leg and is gone downstream.
+\14"A fish," says the peasant, "that bites like a dog." The lay brother says nothing at all.
+=== card 3: 10 10 0 240 0 ===
+You wade in with the peasant and haul the dam apart, branch by branch, until the stream breaks through with a roar and the meadow begins to drain. The beavers watch from the far bank, offended.
+\14The peasant's wife brings bread, cheese and Lenten ale, and blesses you. The lay brother writes your names on his wax tablet for the abbot, who is a power in $NearestCity.
+=== card 4: 10 10 0 240 0 ===
+The dam is built better than most town walls. You heave and haul for hours, soaked to the waist in snow-water, and pull out a few branches. By morning the beavers will have put them back.
+=== card 5: 10 10 0 240 0 ===
+The potion goes off in the heart of the dam with a roar that echoes from the hills. Mud, sticks and one astonished beaver fly into the air, and the stream pours through the gap.
+\14The peasant falls on his knees, though whether in thanks or in terror is hard to say, and his wife brings bread and ale. The lay brother, spattered with mud from cowl to sandals, writes your names on his tablet for the abbot, who is a power in $NearestCity.
+=== card 6: 10 10 0 240 0 ===
+The potion falls short into the water and fizzles. The beavers slap their tails on the pond, as if in applause.
+=== card 7: 10 10 0 240 0 ===
+$ChosenOneName addresses the brother in Latin: a fish has no legs, and the beaver has four; a fish lays eggs, and the beaver bears its young; Aristotle himself counts it among the beasts. To eat it in Lent is to eat flesh, and to sin.
+\14The brother's face falls. He has been looking forward to beaver tail since Candlemas. He gathers up his net and trudges home to his salt herring, and the peasant, laughing, breaks the dam himself.
+=== card 8: 10 10 0 240 0 ===
+$ChosenOneName argues in Latin, but the brother has had this argument before. He answers with Pliny, with Isidore of Seville and with the abbot's own ruling, until $ChosenOneName has no Latin left. "It swims," he ends, "therefore it is fish. Now, will you help me or not?"
+=== card 9: 10 10 0 240 0 ===
+You leave the brother and the peasant shouting at each other across the drowned meadow. The beavers go on working. Nothing more comes of it.

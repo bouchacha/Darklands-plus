@@ -1,0 +1,38 @@
+# The Wassermann's pots: a little man in a dripping green coat offers wine by a deep pool at night, and keeps the souls of the drowned.
+name     The Wassermann's pots
+card     $NmWas00
+picture  XCOAST2
+where    wild
+terrain  marsh woods farmland
+when     night
+weight   1
+
+[start]
+block    0
+chosen   bestskill(Religion)
+saints   0x63, 0x16, 0x60, -1            # Nicholas, Christopher, Michael
+option 0                                   # drink with him cup for cup (Endurance)
+  who    bestattr(End)
+  chance clamp(5, 85, attr(who, End) + attr(who, Str) / 3 - 5)
+  ok     chosen2 who; text 1; hours 2; goto house
+  fail   chosen2 who; text 2; until 6; attr who, End, -4; keepitems who, clamp(1, 95, attr(who, Per) + 50); exit
+option 1 saint                             # call on a saint
+  ok     text 3; attr party, DF, 2; exit
+  fail   text 4
+option 2                                   # thank him and go round the pool
+  chance none
+  ok     text 5; hours 1; exit
+
+[house]
+block    6
+option 0                                   # turn up the pots and let the souls go (Stealth)
+  who    bestattrskill(Agl, Stealth)
+  chance clamp(5, 90, skill(who, Stealth) + attr(who, Agl) / 2)
+  ok     chosen who; text 7; until 5; attr party, DF, 4; practice who, Stealth, 1, 10, 0; exit
+  fail   chosen who; text 8; until 5; injure who, 1, 1, 10; attr party, End, -3; attr party, DF, 2; practice who, Stealth, 0, 10, 0; exit
+option 1                                   # fill your pockets with the drowned men's silver
+  chance none
+  ok     money1 random(72) + 36; text 9; gain money1; until 5; attr party, DF, -4; exit
+option 2                                   # creep back up the stair
+  chance none
+  ok     text 10; until 5; exit

@@ -1,0 +1,51 @@
+# $NMADD00: the adder king (New encounters)
+=== card 0: 10 10 0 240 0 ===
+At noon, in a meadow at the edge of the marsh, the grass is moving. Adders, dozens of them, lie coiled on the warm stones around a little pool, and among them a great white serpent glides down to the water. On its head sits a crown of gold no bigger than a ring.
+\14At the water's edge the white serpent lays the crown carefully on a flat stone and slides into the pool to bathe.
+\14"The adder king," breathes $ChosenOneName. "Whoever has his crown will never want for gold, they say, but the serpents hunt him to the ends of the earth. Unless..." $He frowns, trying to remember what the old books of secrets say about a white cloth.
+\14You...
+\14\15...\1dsnatch the crown while the king bathes.
+\15...\1dspread a white cloth, as the books of secrets teach.
+\15...\1dstrike off the king's head as it comes out of the water.
+\16...\1dpray to a saint against the serpents.
+\15...\1dback away quietly and leave the meadow to them.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName creeps between the sleeping adders, quick and light, snatches the crown from the stone and runs. Behind $him the white serpent rears out of the pool with a hiss like water thrown on hot iron, and the whole meadow hisses, but $he is over the ditch and away.
+\14The little crown is pure gold, heavy for its size and warm, as if it were alive. For days afterwards you all start at every rustle in the grass.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName creeps toward the stone, but a dry stick cracks under $his foot. The white serpent rears out of the pool with a hiss like water thrown on hot iron, and in an instant the adders are on $him. $He tears free and runs, bitten twice above the boot.
+\14By the time you stop, $his leg is swelling black.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName lays $his whitest shirt on the grass by the pool, smoothing it flat, and you all withdraw behind the willows. When the white serpent comes out of the water, it stops, considers the cloth, and then, with great care, carries its crown over and lays it there, as on an altar.
+\14When it slides back into the pool, $ChosenOneName steps out, folds the shirt over the crown and walks away. No serpent follows. The crown is pure gold, heavy for its size, and warm.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName spreads $his whitest shirt on the grass, and you wait behind the willows. The white serpent comes out of the water, looks at the shirt, and lies down on it to sun itself, with its crown on its head. After an hour $ChosenOneName decides that the shirt was not white enough, and that $he can do without it. Nothing more comes of it.
+=== card 5: 10 10 0 240 0 ===
+As the white serpent slides out of the pool, $ChosenOneName's blade flashes once, and the adder king's head rolls on the stone. The adders pour away into the grass like water.
+\14The crown is pure gold, heavy for its size, and growing cold. The old wives say that whoever kills the adder king will never have luck again. You laugh at that. Mostly.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName strikes as the white serpent leaves the water, but it is quicker than any blade. It hisses like water thrown on hot iron, and in an instant the adders are on $him. $He tears free and runs, bitten twice above the boot.
+\14By the time you stop, $his leg is swelling black.
+=== card 7: 10 10 0 240 0 ===
+As $ChosenOneName prays to $NamedOneName, a shudder runs through the meadow. The adders uncoil and pour away into the grass, and the white serpent slides out of the pool and after them, in such haste that it leaves its crown behind on the stone.
+\14You pick it up: pure gold, heavy for its size, and warm.
+=== card 8: 10 10 0 240 0 ===
+You pray. The adders lie on, coiled and drowsy, and the white serpent bathes as if it had all the time in the world.
+=== card 9: 10 10 0 240 0 ===
+You back away step by step and leave the meadow by the long way round. Behind you the adder king takes his bath in peace. Nothing more comes of it.
+=== card 10: 10 10 0 240 0 ===
+$ChosenOneName lies in the grass, grey-faced, $his leg swollen to the knee. Adder bites seldom kill a strong man, but they have killed weaker ones, and a fever is coming on.
+\14You...
+\14\15...\1dcut the bites, draw out the venom and bind the leg.
+\10...\1dgive $him a healing draught.
+\15...\1dmake camp and let the fever run its course.
+=== card 11: 10 10 0 240 0 ===
+$ChosenTwoName cuts the bites crosswise with a clean blade, draws out the venom, washes the wound with wine and binds on a poultice of plantain. By evening the swelling has gone down and $ChosenOneName can stand.
+=== card 12: 10 10 0 240 0 ===
+$ChosenTwoName cuts and draws and binds, but the venom is already in the blood. $ChosenOneName burns with fever into the night and rises weak as a kitten.
+=== card 13: 10 10 0 240 0 ===
+The draught does its work. Within the hour the swelling fades and $ChosenOneName's colour comes back.
+=== card 14: 10 10 0 240 0 ===
+The draught does nothing for the venom.
+=== card 15: 10 10 0 240 0 ===
+You make camp at the edge of the meadow. $ChosenOneName burns and raves through a night and a day, talking to the serpents, and rises at last pale and weak, but alive.

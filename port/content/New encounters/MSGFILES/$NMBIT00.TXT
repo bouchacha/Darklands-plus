@@ -1,0 +1,47 @@
+# $NMBIT00: the booming in the reeds (New encounters)
+=== card 0: 10 10 0 240 0 ===
+In the fen village where you stop for the night, nobody sleeps. Out in the reeds something bellows: a deep, hollow boom, like a bull lowing into a barrel, over and over, now near, now far.
+\14"The Moor-ox," says the Schulz, crossing himself. "Every spring it comes back. Last year it took Hensel's heifer into the bog, and his wife has not been right since." The village will give $Money1 to whoever rids them of it, he says, and he looks at your weapons with hope.
+\14You...
+\14\15...\1dwade into the reeds and find the beast.
+\15...\1dlead the village lads through the reeds, beating with flails.
+\16...\1dpray to a saint to drive the beast away.
+\15...\1dbar the door and let the Moor-ox bellow.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName wades out alone toward the sound, feeling for firm ground at every step. At last, parting the reeds by moonlight, $he finds the Moor-ox: a brown, speckled bird no bigger than a hen, its neck stretched to the sky, swelling its throat and booming like the last trump.
+\14A bittern. The fowlers call it the reed-drum. It stares at $ChosenOneName with yellow eyes, quite unashamed.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName follows the booming into the reeds. It is always ahead, always a little to the left. After an hour $he is up to $his waist in black water, and the booming comes from behind $him.
+\14$He comes back near dawn, soaked and shaking with cold, having found nothing at all. The Moor-ox booms on.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName forms the village lads into a line, flails on their shoulders, and leads them into the reeds, threshing the rushes as if they were sheaves. They whoop and beat and splash, and no beast in the fen could stand it for long.
+\14Out of the reeds ahead flaps a brown bird no bigger than a hen, and drops into a pool. A moment later, from the pool: BOOM. The lads stop and look at one another.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName leads the lads into the reeds, but in the dark the line soon breaks up. Somebody swings at a shadow, and a flail comes round and catches $ChosenOneName on the head.
+\14Back in the village the lads swear they saw the beast, as big as a bullock, with eyes like coals. The booming goes on until dawn.
+=== card 5: 10 10 0 240 0 ===
+As $ChosenOneName prays to $NamedOneName, the booming stops in mid-bellow. There is a great flapping in the reeds, and then silence over the whole fen.
+\14The village sleeps for the first time in a week. In the morning the Schulz can talk of nothing but your holiness, and the tale will be told at market in $NearestCity.
+=== card 6: 10 10 0 240 0 ===
+You pray. Out in the reeds the Moor-ox booms on, as if in answer.
+=== card 7: 10 10 0 240 0 ===
+You bar the door and stop your ears with wool. The Moor-ox booms till dawn and you sleep badly, but nothing comes in at the door. In the morning you go on your way. Nothing more comes of it.
+=== card 8: 10 10 0 240 0 ===
+The bittern swells its throat and booms again, so close that you feel it in your teeth. Behind you the village waits, praying, for news of the Moor-ox.
+\14You...
+\14\15...\1dshoot the bird and carry it back to the village.
+\15...\1dgo back and tell them what their Moor-ox is.
+\15...\1dleave the bird in peace and say nothing.
+=== card 9: 10 10 0 240 0 ===
+$ChosenOneName's shot takes the bird in the reeds. You carry it back by the legs and lay it on the Schulz's table.
+\14The village gathers round and stares at the little brown bird for a long time. "That is the Moor-ox?" someone says at last. The Schulz pays the $Money1 all the same, with the face of a man who has been cheated. Behind you, the old women are already saying that the real one is still out there.
+=== card 10: 10 10 0 240 0 ===
+$ChosenOneName shoots, and misses. The bittern flaps away low over the reeds, and a little later it booms again, far off and mocking. When you come back empty-handed, the village decides that the beast was too much for you. Nothing more comes of it.
+=== card 11: 10 10 0 240 0 ===
+$ChosenOneName stands up in the Schulz's house and tells them the truth: a bird, a brown bird no bigger than a hen, that booms in the spring to call its mate.
+\14There is a long silence. Then the oldest man in the village begins to laugh, wheezing, until he has to sit down. "The reed-drum," he says. "My father told me. God forgive us, a whole village afraid of a hen." They feed you like lords, and nobody mentions Hensel's heifer again.
+=== card 12: 10 10 0 240 0 ===
+"A bird," says $ChosenOneName. "A little brown bird." The villagers look at one another. "Did you hear it?" says the Schulz slowly. "Did that sound like a bird to you?"
+\14By morning the whole village knows that the strangers lost their nerve in the reeds and made up a tale to cover it, and the tale goes to market with them.
+=== card 13: 10 10 0 240 0 ===
+You leave the bittern to its booming. In the morning you slip away before the Schulz can ask what you found, and the village goes on fearing its Moor-ox. Nothing more comes of it.

@@ -1,0 +1,38 @@
+# $NMFRN00: the fern seed (New encounters)
+=== card 0: 10 10 0 240 0 ===
+It is the short night of midsummer, and you camp where the marsh meets the wood, among ferns as tall as a man. $ChosenOneName will not stop looking at them.
+\14"Tonight the fern blooms," $he says at last. "Once a year, at midnight, a little golden flower, and then it sheds its seed. Catch the seed on a white cloth without touching it, and you can walk unseen. But the Devil wants it too, and he guards it with every terror he has."
+\14You...
+\14\15...\1dsit up by the fern till midnight with a white cloth.
+\15...\1dgather St. John's wort in the dew instead.
+\15...\1dforbid such devilry and pray the night through.
+\15...\1dgo to sleep and let the fern bloom unwatched.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName spreads a white cloth beneath the tallest fern and sits down to wait. Toward midnight the wood fills with noises: hoofbeats where there are no horses, laughter in the treetops, a voice calling $his name in $his mother's voice. $He does not turn round.
+\14At midnight a tiny golden flower opens on the fern, glowing like an ember, and a pinch of seed falls onto the cloth. At once the noises stop.
+\14Then someone steps out of the dark: a gentleman in a green hunting coat, a cock's feather in his hat. He smiles very pleasantly, and his eyes catch the light like a cat's. "A fine harvest," he says. "I will give you a purse of gold for it."
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName goes out before dawn and gathers St. John's wort while the dew is still on it, the herb that chases devils. By sunrise $he has steeped it in oil and made a salve that takes the ache out of every bruise in the party.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName goes out before dawn and gathers a fine armful of yellow flowers, which turn out by daylight to be ragwort. Nothing more comes of it.
+=== card 4: 10 10 0 240 0 ===
+You will have no truck with the Devil's flowers. You pray the night through, psalm after psalm, while things rustle in the ferns and something laughs in the treetops. Toward dawn the laughter stops.
+=== card 5: 10 10 0 240 0 ===
+You roll yourselves in your cloaks and sleep. If the fern blooms at midnight, none of you sees it. Nothing more comes of it.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName spreads a white cloth beneath the tallest fern and sits down to wait. Toward midnight the wood fills with noises, and then with shapes: a burning wheel that rolls between the trees, a hanged man who sits down beside $him, a sow with a woman's face.
+\14$ChosenOneName runs. You find $him at dawn, a mile into the marsh, white-haired at the temples and unwilling to speak of it. The cloth, when you go back for it, has been torn into strips.
+=== card 7: 10 10 0 240 0 ===
+The gentleman in green holds out a purse. It is heavy, and it chinks. He has not set foot on the cloth, you notice, nor on the ground where the fern grows.
+\14You...
+\14\15...\1dbid him begone in God's name.
+\15...\1dsell him the seed.
+=== card 8: 10 10 0 240 0 ===
+"In the name of the Father, and of the Son, and of the Holy Ghost," says $ChosenTwoName, "begone."
+\14The gentleman's smile does not change, but he goes, and where he stood the ferns are scorched brown and the air stinks of brimstone. $ChosenOneName folds the cloth over the seed. By morning it is gone, as such things go; but for a long time afterwards people's eyes seem to slide past $ChosenOneName as if $he were not there at all.
+=== card 9: 10 10 0 240 0 ===
+"In the name of the Father..." begins $ChosenTwoName, but the gentleman only laughs, leans down and blows softly on the cloth. The seed scatters into the dark like sparks.
+\14"Another year," he says, and is gone. You do not sleep again that night.
+=== card 10: 10 10 0 240 0 ===
+The gentleman tips the seed into a little box, bows, and is gone. The purse is heavy and full of gold.
+\14In the morning you open it. It is full of dry oak leaves. Nothing more comes of it, except that none of you can look at the others.

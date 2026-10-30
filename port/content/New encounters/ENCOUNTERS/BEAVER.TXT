@@ -1,0 +1,36 @@
+# The Lenten beaver: an abbey's lay brother hunts beavers for the Lenten table ("it swims, so it is fish"), and a peasant wants their dam broken.
+name     The Lenten beaver
+card     $NmBev00
+picture  XLANDHO
+where    wild
+terrain  marsh woods farmland
+when     day
+weight   1
+only     month >= 2 and month <= 3             # Lent
+
+[start]
+do       money1 size * 18
+block    0
+items    0x66                            # Thunderbolt
+option 0                                   # help the lay brother take the beavers (Impact)
+  who    bestskill(Impact)
+  chance clamp(5, 90, skill(who, Impact) + attr(who, Agl) / 3 - 5)
+  ok     chosen who; text 1; hours 2; gain money1; practice who, Impact, 1, 10, 0; exit
+  fail   chosen who; text 2; hours 2; injure who, 1, 1, 5; practice who, Impact, 0, 10, 0; exit
+option 1                                   # help the peasant break the dam (Strength)
+  who    party
+  chance clamp(10, 90, avgattr(Str) + 25)
+  ok     text 3; hours 3; attr party, End, 3; reputation -1, -2; exit
+  fail   text 4; hours 3; attr party, End, -3; exit
+option 2 potion                            # blow the dam apart with a potion
+  potion 0x66, clamp(0, 99, 50 + q / 2)
+  ok     text 5; hours 1; attr party, End, 3; reputation -1, -2; exit
+  fail   text 6
+option 3                                   # argue that a beaver is no fish (Latin)
+  who    bestskill(Latin)
+  chance clamp(5, 90, skill(who, Latin) + attr(who, Int) / 3 - 10)
+  ok     chosen who; text 7; hours 1; attr party, DF, 2; practice who, Latin, 1, 10, 0; exit
+  fail   chosen who; text 8; practice who, Latin, 0, 10, 0; disable 3
+option 4                                   # leave them to their quarrel
+  chance none
+  ok     text 9; exit

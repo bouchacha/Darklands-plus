@@ -1,0 +1,24 @@
+# $NMSLT00: the salt smugglers (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A shaded lantern blinks in the reeds by the river. A flat boat lies drawn up on the mud, and men are carrying sacks from it to a cart on the bank, quickly and without a word. White dust lies on their shoulders: salt, brought past the lord's toll castle upstream by night.
+\14A dog barks. The men freeze. Their leader comes toward you, a heavy man in an oilskin hood, and holds out a hand with coins in it. "A fine night for walking. You saw nothing, and here is $Money1 for your trouble." As he speaks his hood slips back, and you see the shaven crown of a priest.
+\14"The lord takes a third of the price in toll," he says, unashamed. "My parish eats its bread unsalted, or it eats this."
+\14You...
+\14\15...\1dtake his $Money1 and see nothing.
+\15...\1dhelp them carry the sacks before the lord's riders come by.
+\15...\1dsuggest that silence is worth rather more than that.
+\15...\1dwalk on without a word.
+=== card 1: 10 10 0 240 0 ===
+You take the coins. The priest blesses you, a little absently, and goes back to his sacks. When you look round again, boat, cart and lantern are gone into the dark.
+=== card 2: 10 10 0 240 0 ===
+You shoulder sacks with the rest and trot them up the bank in the dark. Halfway through, hoofbeats come along the dike: the lord's riders, with torches. Everyone drops flat in the reeds, and the riders pass within a spear's length, talking of a girl in the castle kitchen.
+\14By the small hours the cart is loaded and away. The priest blesses each of you in turn, with salt on his fingers, and means it.
+=== card 3: 10 10 0 240 0 ===
+Halfway through, hoofbeats come along the dike: the lord's riders, with torches. Somebody stumbles, and a sack splits white across the path. The riders give a shout, and you scatter into the reeds with the rest.
+\14You get away, but not before a torch has shown your faces, and the castellan will know whom to describe at the town gate.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName mentions, pleasantly, how much the castellan pays for news of salt. The priest looks at $him for a long moment. Then he empties his purse into $his hand: $Money2. "Thirty pieces would have been more fitting," he says, and goes back to his sacks.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName mentions, pleasantly, how much the castellan pays for news of salt. The priest laughs out loud. "The castellan's own steward is buying half this load. Go and tell him, by all means." He pockets his coins again, and the boat is gone before you have thought of an answer. Nothing more comes of it.
+=== card 6: 10 10 0 240 0 ===
+You walk on without a word. Behind you the sacks go on moving up the bank in the dark. Nothing more comes of it.

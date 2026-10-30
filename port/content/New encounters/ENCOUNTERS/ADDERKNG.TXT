@@ -1,0 +1,52 @@
+# The adder king: at noon in a marsh meadow a white serpent lays down its golden crown to bathe.
+name     The adder king
+card     $NmAdd00
+picture  XBUDLGHT
+where    wild
+terrain  marsh farmland woods
+when     day
+weight   1
+only     month >= 5 and month <= 8             # the adders are out in summer
+
+[start]
+block    0
+chosen   bestskill(Alchemy)
+saints   0x68, 0x6f, 0x60, -1            # Patrick, Raphael, Michael
+option 0                                   # snatch the crown while the king bathes (Agility)
+  who    bestattrsum(Agl, Per)
+  chance clamp(5, 85, attr(who, Agl) + attr(who, Per) / 3 - 10)
+  ok     chosen who; text 1; additem who, 0x48; attr party, DF, -2; exit
+  fail   chosen who; text 2; injure who, 1, 1, 10; goto bitten
+option 1                                   # spread a white cloth, as the books of secrets teach (Alchemy)
+  who    bestskill(Alchemy)
+  chance clamp(5, 90, skill(who, Alchemy) + attr(who, Int) / 3 - 10)
+  ok     chosen who; text 3; hours 1; additem who, 0x48; practice who, Alchemy, 1, 10, 0; exit
+  fail   chosen who; text 4; hours 1; practice who, Alchemy, 0, 10, 0; exit
+option 2                                   # strike off the king's head as it leaves the water (Edged)
+  who    bestskill(Edged)
+  chance clamp(5, 90, skill(who, Edged) + attr(who, Agl) / 3 - 15)
+  ok     chosen who; text 5; additem who, 0x48; attr party, DF, -3; practice who, Edged, 1, 10, 0; exit
+  fail   chosen who; text 6; injure who, 1, 1, 10; practice who, Edged, 0, 10, 0; goto bitten
+option 3 saint                             # pray to a saint against the serpents
+  ok     text 7; additem leader, 0x48; exit
+  fail   text 8
+option 4                                   # back away quietly
+  chance none
+  ok     text 9; exit
+
+[bitten]
+block    10
+items    0x73, 0x70                      # Essence o'Grace, New-wind
+option 0                                   # cut and draw the bites and bind them (Healing)
+  who    bestskill(Healing)
+  chance clamp(5, 90, skill(who, Healing) + attr(who, Int) / 3)
+  ok     chosen2 who; text 11; hours 3; heal chosen, End, 50; practice who, Healing, 1, 10, 0; exit
+  fail   chosen2 who; text 12; until 6; attr chosen, End, -4; attr chosen, Str, -2; practice who, Healing, 0, 10, 0; exit
+option 1 potion                            # a healing draught
+  potion 0x73, clamp(0, 99, 60 + q / 2)
+  potion 0x70, clamp(0, 99, 25 + q / 2)
+  ok     text 13; hours 1; heal chosen, End, 100; exit
+  fail   text 14
+option 2                                   # make camp and let the fever run its course
+  chance none
+  ok     text 15; days 1; attr chosen, End, -4; attr chosen, Str, -2; exit
