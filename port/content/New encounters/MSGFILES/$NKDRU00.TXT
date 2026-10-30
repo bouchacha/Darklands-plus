@@ -1,0 +1,28 @@
+# $NKDRU00: the hag-ridden horses (New encounters)
+=== card 0: 10 10 0 240 0 ===
+At first light the horses stand trembling at their tethers, flanks white with dried lather, as if they had been ridden hard all night. Their eyes roll at every sound. All down their necks the manes are twisted into tight little knotted loops, each just big enough for a small foot.
+\14"Stirrups," says $ChosenOneName grimly. "The Drude has been riding them. She comes in the night through a knot-hole and sits on a sleeper's chest till he cannot breathe, and when she cannot get at the sleepers, she takes the horses." Now that you think of it, none of you slept well, and every one of you woke with a weight on the chest.
+\14You...
+\14\15...\1drub them down and comb the knots out patiently.
+\15...\1dwrite the names of the Three Kings on slips and braid them into the manes.
+\15...\1dcut the knots off with a knife.
+\16...\1dpray to a saint who loves horses.
+\15...\1dlead the horses on foot until they recover.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName rubs the horses down with twists of straw, talking to them low and steady, and works the knots loose one by one with $his fingers, never cutting a hair, as the grooms say you must. By the time the sun is over the trees the horses are munching their oats and flicking their ears, as if the night had never been.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName tries to rub the horses down, but they are wild-eyed and will not be touched, and one of them lashes out and catches $him on the thigh. In the end you must walk them half the morning before they will take a rider.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName writes CASPAR, MELCHIOR and BALTHASAR on slips of parchment, three for each horse, as the pilgrims bring them home from Cologne, and braids them into the manes. The horses quieten at once and lower their heads to the grass. And somehow, as you ride, the weight lifts from your own chests too.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName writes the names of the Three Kings on slips of parchment, but spells Balthasar wrong twice, and the third slip blows into the fire. The horses stand shaking with their heads low. You walk them half the morning before they will carry anyone.
+=== card 5: 10 10 0 240 0 ===
+You hack the knots off close to the neck and throw them in the fire, where they burn with a smell like singed feathers. The horses shake themselves and seem none the worse. Nothing more comes of it.
+=== card 6: 10 10 0 240 0 ===
+You hack the knots off and throw them in the fire. The grooms say you must never cut a Drude's stirrups, and the grooms know something: by midmorning one horse is lame and the rest hang their heads, and you lead them on foot all the rest of the morning.
+=== card 7: 10 10 0 240 0 ===
+You pray together over the horses. One by one they stop trembling, lower their heads and begin to crop the dewy grass, and when you look again the knots in their manes have fallen loose of themselves. A weight you had hardly noticed lifts from your own chests, too.
+=== card 8: 10 10 0 240 0 ===
+You pray over the horses, but they only shiver and roll their eyes.
+=== card 9: 10 10 0 240 0 ===
+You lead the horses on foot, slowly, until they have stopped shaking, and walk beside them all morning. It is a long, tired day, and nobody says much about the night.

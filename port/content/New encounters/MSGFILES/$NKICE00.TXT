@@ -1,0 +1,36 @@
+# $NKICE00: the frozen mere (New encounters)
+=== card 0: 10 10 0 240 0 ===
+A hard frost came down in the night. At dawn the mere beside your camp, black open water at dusk, lies white and still from shore to shore, and the reeds along it are furred with rime. The road you meant to take goes the long way round: half a day at least. Straight across it is an hour.
+\14Near the shore the ice is white and thick. Further out it is black and clear, and here and there it groans. Far off a peasant is already crossing with a bundle of reeds on his back, testing the ice ahead of him with a long pole.
+\14You...
+\14\15...\1drope yourselves together and cross.
+\15...\1dspread out and cross, testing every step.
+\16...\1dpray to a saint before you set foot on the ice.
+\15...\1dtake the long way round.
+=== card 1: 10 10 0 240 0 ===
+You tie yourselves together a few paces apart and walk out onto the ice. It booms and sings under you, and once a crack runs off past your feet like a thrown rope, but it holds. Within the hour you are across, cold and very pleased with yourselves.
+=== card 2: 10 10 0 240 0 ===
+You walk out roped together. Halfway across, the ice gives under $ChosenOneName with a noise like a crossbow shot, and $he drops into the black water to the neck. The rope holds and you drag $him out, but it takes a roaring fire and two hours before $he stops shaking, and the mere keeps some of what $he carried.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName goes first, tapping the ice with a staff and listening to it, and picks a way across the white ice where the springs do not reach. The rest of you follow in $his footsteps. Within the hour you are across, cold and very pleased with yourselves.
+=== card 4: 10 10 0 240 0 ===
+You spread out across the ice, testing each step. Halfway over there is a crack like a crossbow shot, and $ChosenOneName drops into the black water to the neck. $He claws at the edge, and it breaks away under $his hands. The cold is already taking $his breath.
+\14You...
+\14\15...\1dthrow $him a rope.
+\15...\1dlie flat on the ice and inch out to haul $him free.
+=== card 5: 10 10 0 240 0 ===
+You pray on the shore. When you step out onto the ice it is as solid as a church floor and white all the way across, and a light wind at your backs hurries you over. Within the hour you are across. As you climb the far bank, the whole mere breaks up behind you with a long groan.
+=== card 6: 10 10 0 240 0 ===
+You pray on the shore, but the ice only groans on, and the black patches further out look blacker than before.
+=== card 7: 10 10 0 240 0 ===
+You take the long way round the mere, along frozen ruts and through deep drifts. It costs you half the day, but you keep your feet dry.
+=== card 8: 10 10 0 240 0 ===
+$ChosenTwoName throws the rope, and it lands across $ChosenOneName's shoulders at the first cast. You haul $him out onto the ice like a netted pike and drag $him to the shore, where it takes a roaring fire and two hours before $he stops shaking.
+=== card 9: 10 10 0 240 0 ===
+$ChosenTwoName throws the rope, but it falls short, and short again, and by the third cast $ChosenOneName's hands are too numb to hold it.
+=== card 10: 10 10 0 240 0 ===
+You lie flat on the ice and inch out, holding on to one another's belts, until a hand can reach $ChosenOneName's collar. One heave, two, and $he slides out onto the ice like a seal. A roaring fire and two hours later, $he has stopped shaking.
+=== card 11: 10 10 0 240 0 ===
+You lie flat on the ice and inch out toward $ChosenOneName, but the edge breaks under the foremost of you too, and now there are two in the water.
+=== card 12: 10 10 0 240 0 ===
+The peasant with the reeds comes running across the ice and lays his long pole flat across the hole, and between you, you haul everyone out. $ChosenOneName is blue and senseless. It takes all morning by a roaring fire to bring $him round, and the mere keeps some of what $he carried. The peasant accepts a swallow of wine and goes on his way, shaking his head at strangers.

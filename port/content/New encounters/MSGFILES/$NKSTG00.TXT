@@ -1,0 +1,25 @@
+# $NKSTG00: the stag at dawn (New encounters)
+=== card 0: 10 10 0 240 0 ===
+In the first grey light a great stag stands at the edge of the clearing, not twenty paces off, watching you with dark and steady eyes. It is old, white about the muzzle, with a crown of antlers like a winter oak; and between the antlers, where the sun is just coming through the trees, something glints like gold.
+\14It does not run. $ChosenOneName's hand has already crept to $his quiver. There stands meat for a week, and a hide worth good silver in any town.
+\14You...
+\14\15...\1dshoot it for the pot.
+\15...\1dcreep closer to see what shines between its antlers.
+\16...\1dpray to a saint who knows hunters.
+\15...\1dlet it be and break camp.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName draws and looses in one smooth motion, a shot that cannot miss. The shaft flies true, and stops in the air a hand's breadth from the stag's breast, and drops into the grass. The stag turns its great head toward you, and now you all see plainly what shines between its antlers: a cross of light, and on it the Christ.
+\14$ChosenOneName lets the bow fall and goes down on $his knees, and so do you all. When you look up the stag is gone. It is a long while before anyone speaks of breakfast, and $ChosenOneName never quite hunts the same way again.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName draws and looses, but the shot goes high, into the branches. The stag looks at $him, unhurried, almost sorrowfully, and walks away into the trees. Where it stood the dew lies unbroken on the grass, as if nothing had stood there at all.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName creeps through the bracken, step by silent step, until $he could almost touch the stag's flank. It does not move. Between its antlers, shining in the first sun, stands a cross of light, and on it the Christ.
+\14$ChosenOneName kneels in the wet grass, and behind $him, one by one, so do you all. When you raise your heads the stag is gone, and the whole clearing smells of incense.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName creeps toward the stag, but a stick cracks underfoot like a whip. The stag throws up its head and is gone in two bounds, and whatever shone between its antlers goes with it.
+=== card 5: 10 10 0 240 0 ===
+You pray to the saint who knows hunters best. The stag lowers its antlers toward you, gravely, as a lord bows to his guests, and for a moment the thing between them blazes so that you must shut your eyes. When you open them it is gone, and your weariness has gone with it.
+=== card 6: 10 10 0 240 0 ===
+You pray, but the stag only watches you, and the light between its antlers stays a glint of sun on wet horn.
+=== card 7: 10 10 0 240 0 ===
+You let the stag be and go on rolling up your blankets. When you look again it has gone, and you never learn what shone between its antlers. Nothing more comes of it.

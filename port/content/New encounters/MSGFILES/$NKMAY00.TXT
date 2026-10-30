@@ -1,0 +1,22 @@
+# $NKMAY00: the May birch (New encounters)
+=== card 0: 10 10 0 240 0 ===
+You wake to singing. Through the dawn trees comes a troop of young men and girls from some village below, ribbons in their hair and a single blunt axe between them, looking for a birch fit to stand as the May tree on their green. They find it right over your tent: the tallest, straightest, whitest birch in the wood.
+\14"Strangers at the May-cutting!" cries a red-faced lad. "That is luck for the whole year. Lend us your arms, friends, and there will be beer at the end of it."
+\14You...
+\14\15...\1dfell it for them, since you have the better axes.
+\15...\1dsing and dance with them round the birch first.
+\15...\1dsend them off to find another tree.
+\15...\1dpack up and leave them to it.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName walks round the birch twice, squints up at its lean, cuts a notch, and says where it will fall. It falls exactly there, a hand's breadth from the tent, to a roar of cheering. You carry it down to the village on your shoulders with the girls singing before you, and the beer at the end of it is the best you have tasted since Easter. The village will speak well of you in $NearestCity.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName walks round the birch, squints up at it, cuts a notch, and says where it will fall. It falls straight across your tent, snaps the pole, and flattens the cooking pot. The village lads laugh until they have to sit down. Mending the tent and beating the pot round again takes the rest of the morning.
+=== card 3: 10 10 0 240 0 ===
+The girls drag you into the round, and $ChosenOneName dances so well and sings so loud that they crown $him with a wreath of birch leaves and hail $him May Count, lord of the May for a year and a day. It is a great honour. The May Count, by ancient custom, also pays for the beer: $Money1.
+\14It is a long, merry, foolish morning, and the whole village will remember the stranger who was May Count.
+=== card 4: 10 10 0 240 0 ===
+The girls drag you into the round, but $ChosenOneName dances like a bear in boots and treads on every foot in the ring. The girls laugh themselves breathless, a broad-shouldered lad is crowned May Count instead, and the whole morning is gone in merriment before you can get away.
+=== card 5: 10 10 0 240 0 ===
+"Find yourselves another tree," you tell them. "This one is spoken for." The singing stops. The young people look at one another, and at your weapons, and go off muttering through the wood. You will not be the most welcome strangers in their village this year.
+=== card 6: 10 10 0 240 0 ===
+You pack up quickly and leave them to it. Behind you the axe rings and the singing goes on, and later, far off, you hear the crash of the birch coming down and a burst of cheering. Nothing more comes of it.

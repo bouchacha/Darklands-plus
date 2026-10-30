@@ -1,0 +1,22 @@
+# $NKPER00: the goose-foot track (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Snow fell in the night, a thin clean sheet of it. Across it, straight through your camp, runs a line of tracks: on one side the print of a woman's shoe, on the other a great webbed foot like a goose's, but as long as a man's forearm. They circle the dead fire, stop at every sleeper's head, and go off into the trees. At $ChosenOneName's head they stopped a long while.
+\14It is the dark of the year, when Frau Perchta walks. She looks in on households in the long nights, the old women say: the diligent she rewards with a silver coin in the shoe, and the idle she slits open and stuffs with straw. $ChosenOneName, who slept through $his watch last night, has gone very quiet and is holding $his belly.
+\14You...
+\14\15...\1dlook in your boots, to see how she judged you.
+\15...\1dsweep the camp and leave the hearth as clean as a goodwife's.
+\15...\1dpray, and chalk the Three Kings' crosses on a tree.
+\15...\1dlaugh at old wives' tales and march.
+=== card 1: 10 10 0 240 0 ===
+You pull off your boots and shake them out. From every boot but one drops a small, bright, very old silver coin, $Money1 in all. From $ChosenOneName's falls a wisp of straw.
+\14$ChosenOneName has a bellyache all morning, and nobody lets $him forget it.
+=== card 2: 10 10 0 240 0 ===
+You pull off your boots and shake them out, and from every one of them falls a wisp of straw. Perchta has weighed you all and found you idle. You march all morning with gripes in your bellies, as if you had eaten a basket of green apples.
+=== card 3: 10 10 0 240 0 ===
+You sweep the snow off the hearth, rake out the ashes, stack the unburnt wood, fold the blankets square and leave the clearing neater than a nunnery kitchen, with $ChosenOneName made to do the most of it. It takes two hours. By the end $his bellyache is gone, and the goose-foot track, when you look for it, has melted away in the sun.
+=== card 4: 10 10 0 240 0 ===
+$ChosenTwoName chalks three crosses on the bark of an oak, as on a house door at Epiphany, and leads you in prayer against everything that walks in the long nights. The wind stirs and the snow begins to fall again, softly, filling the tracks until there is nothing to see. $ChosenOneName's bellyache passes with the last of them.
+=== card 5: 10 10 0 240 0 ===
+$ChosenTwoName chalks the crosses and prays, but the words fall flat in the cold air, and the tracks stay as sharp as if they were made a moment ago. Before you have gone a mile $ChosenOneName doubles up with cramps, and all morning $he walks bent like an old man.
+=== card 6: 10 10 0 240 0 ===
+You laugh, and $ChosenOneName laughs loudest. A mile down the road $he stops laughing and doubles over with cramps, and all morning $he walks as if $his belly were stuffed with straw.

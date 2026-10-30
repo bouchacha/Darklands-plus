@@ -1,0 +1,30 @@
+# Ants in the bedrolls: you slept on a wood-ants' hill, and the stiffest of you wakes without an ache.
+name     Ants in the bedrolls
+card     $NkAnt00
+picture  XBUDLGHT
+where    camp
+when     any
+weight   1
+only     month >= 5 and month <= 9 and size >= 2
+
+[start]
+block    0
+chosen   worstattr(End)                        # the stiffest and sorest
+option 0                                   # sit them in the ant-hill, as the herb-wives prescribe (Healing)
+  who    bestskill(Healing)
+  chance clamp(10, 90, skill(who, Healing) + attr(who, Int) / 3)
+  ok     chosen2 who; text 1; heal chosen, End, 75; hours 1; practice who, Healing, 1, 10, 0; exit
+  fail   chosen2 who; text 2; attr chosen, End, -3; hours 2; practice who, Healing, 0, 10, 0; exit
+option 1                                   # gather ants for their choleric fire (Alchemy)
+  who    bestskill(Alchemy)
+  chance clamp(5, 90, skill(who, Alchemy) + attr(who, Int) / 3 - 5)
+  ok     chosen2 who; itemname 0x5b; text 3; additem who, 0x5b; hours 1; practice who, Alchemy, 1, 10, 0; exit
+  fail   chosen2 who; text 4; attr who, End, -2; hours 1; practice who, Alchemy, 0, 10, 0; exit
+option 2                                   # smoke them out of the blankets with green boughs (Woodwise)
+  who    bestskill(Woodwise)
+  chance clamp(10, 90, skill(who, Woodwise) + attr(who, Int) / 3 + 10)
+  ok     chosen2 who; text 5; hours 1; practice who, Woodwise, 1, 10, 0; exit
+  fail   chosen2 who; text 6; attr party, End, -2; hours 2; practice who, Woodwise, 0, 10, 0; exit
+option 3                                   # shake everything out and get away from here
+  chance assured
+  ok     text 7; attr party, End, -2; exit

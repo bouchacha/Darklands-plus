@@ -1,0 +1,48 @@
+# The stowaway kobold: a house-kobold has ridden out of the last inn in your baggage, and plays its tricks.
+name     The stowaway kobold
+card     $NkKob00
+picture  XKBOLD2
+where    camp
+when     any
+weight   1
+only     money >= 48
+
+[start]
+block    0
+chosen   bestattr(Per)                         # whose pack it sits in
+option 0                                   # leave out a bowl of porridge, as the farmwives do
+  chance unknown
+  ok     if roll(65) then { text 1; attr party, End, 2; attr party, DF, -1; exit }
+         text 2; attr party, End, -2; hours 1; exit
+option 1                                   # sew it a little coat: a kobold given clothes must leave (Artifice)
+  who    bestskill(Artifice)
+  chance clamp(10, 90, skill(who, Artifice) + attr(who, Agl) / 3 + 10)
+  ok     chosen who; money1 random(24) + 12; text 3; gain money1; hours 1; practice who, Artifice, 1, 10, 0; exit
+  fail   chosen who; text 4; hours 1; practice who, Artifice, 0, 10, 0; disable 1
+option 2                                   # upend the pack and catch it (Agility, Perception)
+  who    bestattrsum(Agl, Per)
+  chance clamp(5, 85, (attr(who, Agl) + attr(who, Per)) / 2 - 5)
+  ok     chosen who; goto caught
+  fail   chosen who; text 6; injure who, 1, 1, 5; disable 2
+option 3                                   # sprinkle the baggage with holy water and pray it out (Religion)
+  who    bestskill(Religion)
+  chance clamp(10, 90, skill(who, Religion) + attr(who, Cha) / 3)
+  ok     chosen who; text 7; attr who, DF, 1; practice who, Religion, 1, 10, 0; exit
+  fail   chosen who; text 8; attr party, End, -2; practice who, Religion, 0, 10, 0; disable 3
+option 4                                   # shoulder the packs, kobold and all
+  chance assured
+  ok     text 9; attr party, End, -3; exit
+
+[caught]
+block    5
+option 0                                   # take its crock of gold
+  chance none
+  ok     money1 min(money, random(48) + 24); text 10; pay money1; exit
+option 1                                   # make it undo its mischief and go (Charisma, Speak Common)
+  who    bestattr(Cha)
+  chance clamp(10, 90, (4 * attr(who, Cha) + skill(who, SpeakCommon)) / 5 + 10)
+  ok     chosen who; text 11; attr party, End, 2; practice who, SpeakCommon, 1, 10, 0; exit
+  fail   chosen who; text 12; attr party, End, -2; practice who, SpeakCommon, 0, 10, 0; exit
+option 2                                   # tie it in a sack and carry it to the nearest church
+  chance assured
+  ok     text 13; hours 3; attr party, DF, 2; exit

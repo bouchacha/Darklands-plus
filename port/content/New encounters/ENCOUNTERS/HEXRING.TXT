@@ -1,0 +1,30 @@
+# The witches' ring: a ring of toadstools has sprung up around the camp overnight, the grass inside trodden flat.
+name     The witches' ring
+card     $NkRng00
+picture  XMS057
+where    camp
+when     any
+weight   1
+only     month >= 8 and month <= 10            # the mushroom months
+
+[start]
+block    0
+chosen   worstattr(End)                        # the one who slept in the middle, and woke footsore
+option 0                                   # pick the mushrooms for breakfast (Woodwise)
+  who    bestskill(Woodwise)
+  chance clamp(10, 90, skill(who, Woodwise) + attr(who, Per) / 3)
+  ok     chosen2 who; text 1; attr party, End, 3; practice who, Woodwise, 1, 10, 0; exit
+  fail   chosen2 who; text 2; attr party, End, -4; hours 2; practice who, Woodwise, 0, 10, 0; exit
+option 1                                   # dig at the yellow crust in the middle of the ring (Alchemy)
+  who    bestskill(Alchemy)
+  chance clamp(5, 90, skill(who, Alchemy) + attr(who, Int) / 3 - 5)
+  ok     chosen2 who; itemname 0x5a; text 3; additem who, 0x5a; practice who, Alchemy, 1, 10, 0; exit
+  fail   chosen2 who; text 4; attr who, End, -3; hours 1; practice who, Alchemy, 0, 10, 0; exit
+option 2                                   # sprinkle the ring with holy water and pray (Religion)
+  who    bestskill(Religion)
+  chance clamp(10, 90, skill(who, Religion) + attr(who, DF) / 3)
+  ok     chosen2 who; text 5; attr party, DF, 2; practice who, Religion, 1, 10, 0; exit
+  fail   chosen2 who; text 6; attr chosen, End, -2; practice who, Religion, 0, 10, 0; exit
+option 3                                   # step out of the ring backwards and go
+  chance assured
+  ok     text 7; attr chosen, End, -2; exit

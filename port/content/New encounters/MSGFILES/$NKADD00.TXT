@@ -1,0 +1,42 @@
+# $NKADD00: the adder in the boot (New encounters)
+=== card 0: 10 10 0 240 0 ===
+The sun is up and the dew is smoking off the grass. $ChosenOneName sits down on a stump to pull on $his boots, and goes quite still. Something inside the left boot has moved.
+\14A flat head with copper eyes rises out of the boot-top and tastes the air: an adder, with the black zigzag down its back that the old folk call the Devil's signature. It crept in out of the night chill, and now it is warm and in no hurry to leave. $ChosenOneName's bare foot is a hand's breadth away.
+\14You...
+\14\15...\1dtip the boot over slowly with a long stick.
+\15...\1dstrike off its head as it comes out.
+\15...\1dsit very still and let the sun draw it out.
+=== card 1: 10 10 0 240 0 ===
+$ChosenTwoName cuts a forked hazel stick, lays the boot gently on its side and shakes it, slowly, slowly. The adder pours out onto the grass like brown oil, considers you all for a long moment, and slides off into the bracken.
+\14$ChosenOneName shakes the boot out three more times before putting it on, and twice more for luck.
+=== card 2: 10 10 0 240 0 ===
+$ChosenTwoName reaches in with a stick, but the boot rolls, the adder spills out in a fury, and quick as a whip it strikes $ChosenTwoName's wrist. Then it is gone into the bracken.
+=== card 3: 10 10 0 240 0 ===
+$ChosenTwoName waits with a drawn blade while the boot is eased over with a stick. The adder slides out, the blade flicks down once, and the head goes one way and the body another, still writhing.
+\14"Burn the head," says someone, "or it bites from the grave." You burn it, to be safe. The rest goes into the pan, and tastes, the brave ones agree, very like eel.
+=== card 4: 10 10 0 240 0 ===
+$ChosenTwoName's blade comes down a moment too late and rings off a stone. The adder, now thoroughly roused, strikes $ChosenOneName above the ankle and is gone into the bracken before anyone can move.
+=== card 5: 10 10 0 240 0 ===
+Nobody moves. You eat your bread standing, and $ChosenOneName sits on the stump like a saint on a pillar, barefoot, watching the boot. When the sun is high and hot the adder slides out at last, coils a while on the warm stones, and goes its way.
+\14You set out two hours late. $ChosenOneName shakes the boot out five times before putting it on.
+=== card 6: 10 10 0 240 0 ===
+The bite is two small holes, and already the flesh around them is swelling tight and turning dark. $ChosenOneName is grey in the face and sweating, and complains of a taste of iron in $his mouth.
+\14You...
+\14\15...\1dcut the bite, suck out the poison and bind the limb.
+\10...\1dgive $him a healing draught.
+\16...\1dpray to a saint for $him.
+\15...\1dwrap $him in blankets and let it run its course.
+=== card 7: 10 10 0 240 0 ===
+$ChosenTwoName binds a strap above the bite, makes two quick cuts with a knife heated in the embers, and sucks and spits, sucks and spits, until the blood runs clean. By midmorning the swelling has stopped climbing. $ChosenOneName is weak and sick, but $he can walk.
+=== card 8: 10 10 0 240 0 ===
+$ChosenTwoName cuts and sucks and binds, but the poison is quicker. The swelling climbs past the strap, and $ChosenOneName vomits and shakes in the shade for hours before $he can stand.
+=== card 9: 10 10 0 240 0 ===
+$ChosenOneName gulps down the $ItemName. The swelling stops, then slowly begins to go down, and within the hour the colour has come back into $his face.
+=== card 10: 10 10 0 240 0 ===
+$ChosenOneName chokes and brings the draught back up before it can do any good. The swelling climbs.
+=== card 11: 10 10 0 240 0 ===
+You kneel around $ChosenOneName and pray. By the time you say Amen the swelling has gone down and the dark colour faded, as if the poison had been drawn out by a hand you cannot see. $ChosenOneName sits up and asks, a little shakily, for $his boot.
+=== card 12: 10 10 0 240 0 ===
+You pray, but the swelling climbs on.
+=== card 13: 10 10 0 240 0 ===
+You wrap $ChosenOneName in every blanket you have and sit by $him while $he sweats, shivers and raves. By afternoon the fever has broken and the limb has gone from black to yellow-green. You set out late, with $ChosenOneName grey and limping.

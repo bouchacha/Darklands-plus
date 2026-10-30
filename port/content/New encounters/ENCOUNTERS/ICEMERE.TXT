@@ -1,0 +1,46 @@
+# The frozen mere: a hard frost has frozen the mere by the camp; across is an hour, round is half a day.
+name     The frozen mere
+card     $NkIce00
+picture  XMTRANGE
+where    camp
+when     any
+weight   1
+only     month == 12 or month <= 2
+
+[start]
+block    0
+saints   0x16, 0x63, 0x51, -1                  # Christopher, Nicholas, Julian the Hospitaller
+option 0                                   # rope yourselves together and cross (the party's Agility, Woodwise)
+  need   has(party, 0x3b)
+  who    party
+  chance clamp(20, 95, avgagility + avgskill(Woodwise) / 2 + 20)
+  ok     text 1; practice party, Woodwise, 1, 10, 0; exit
+  fail   chosen slowest; text 2; attr chosen, End, -4; keepitems chosen, 85; hours 2; exit
+option 1                                   # spread out and cross, testing every step (Woodwise, Perception)
+  who    spotter
+  chance clamp(10, 90, maxskill(Woodwise) + maxattr(Per) / 2)
+  ok     chosen who; text 3; practice party, Woodwise, 1, 10, 0; exit
+  fail   chosen slowest; practice party, Woodwise, 0, 10, 0; goto hole
+option 2 saint
+  ok     text 5; exit
+  fail   text 6
+option 3                                   # take the long way round
+  chance none
+  ok     text 7; hours 6; exit
+
+[hole]
+block    4
+option 0                                   # throw a rope (Thrown)
+  need   has(party, 0x3b)
+  who    bestskill(Thrown)
+  chance clamp(20, 95, skill(who, Thrown) + attr(who, Agl) / 2 + 20)
+  ok     chosen2 who; text 8; attr chosen, End, -4; hours 2; practice who, Thrown, 1, 10, 0; exit
+  fail   chosen2 who; text 9; practice who, Thrown, 0, 10, 0; goto peasant
+option 1                                   # lie flat on the ice, inch out and haul (the party's Strength)
+  who    party
+  chance clamp(10, 90, avgattr(Str) + 25)
+  ok     text 10; attr chosen, End, -4; hours 2; exit
+  fail   text 11; attr party, End, -2; goto peasant
+
+[peasant]
+do       text 12; attr chosen, End, -4; injure chosen, 1, 1, 5; keepitems chosen, 75; hours 3; exit

@@ -1,0 +1,24 @@
+# $NKRNG00: the witches' ring (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Something has happened to the clearing in the night. At dawn your camp stands in the middle of a perfect ring of pale toadstools, a dozen paces across, that were not there when you lay down. The grass inside the ring is trodden flat, as by many feet going round and round, and $ChosenOneName, who slept at its very centre, woke with $his feet aching as if $he had danced till cockcrow.
+\14A witches' ring, the country folk call it: where they dance on their sabbath nights. In the middle, where the grass is flattest, there is a crust of something yellow in the earth. The toadstools, it must be said, look very good to eat.
+\14You...
+\14\15...\1dpick the mushrooms for breakfast.
+\15...\1ddig up the yellow crust in the middle of the ring.
+\15...\1dsprinkle the ring with holy water and pray.
+\15...\1dstep carefully out of the ring, backwards, and go.
+=== card 1: 10 10 0 240 0 ===
+$ChosenTwoName goes round the ring on hands and knees, sniffing, breaking caps and throwing away every third one. The rest go into the pan with a lump of bacon fat. Whatever the witches eat, it is not these: they are the best breakfast you have had in weeks.
+=== card 2: 10 10 0 240 0 ===
+$ChosenTwoName picks a hatful and swears they are the very kind that grandmothers fry on Sundays. By midmorning you are all sitting by the road, green and sweating, and $ChosenOneName swears that the trees are dancing.
+=== card 3: 10 10 0 240 0 ===
+$ChosenTwoName kneels in the middle of the ring, crumbles the yellow crust between finger and thumb, sniffs, and goes pale. Brimstone. Whoever danced here, the Devil piped for them.
+\14$ChosenTwoName scrapes it up into a twist of cloth all the same. $ItemName is $ItemName, wherever it comes from.
+=== card 4: 10 10 0 240 0 ===
+$ChosenTwoName kneels in the middle of the ring and digs at the yellow crust, and a breath of foul smoke comes up out of the earth into $ChosenTwoName's face. It is an hour before the coughing stops.
+=== card 5: 10 10 0 240 0 ===
+$ChosenTwoName sprinkles holy water round the ring and says the prayer against the works of the Devil. As the last drops fall the toadstools blacken and slump into slime, one after another all the way round, with a smell like a struck flint. The yellow crust is gone, and the morning seems suddenly brighter.
+=== card 6: 10 10 0 240 0 ===
+$ChosenTwoName sprinkles holy water round the ring and prays, but the toadstools stand there pale and fat and unconcerned, and somewhere in the trees a magpie laughs. $ChosenOneName's feet ache worse than ever.
+=== card 7: 10 10 0 240 0 ===
+You step carefully out of the ring one at a time, backwards, as the old folk say you must, and take the road. $ChosenOneName limps all morning and will not say what $he dreamed.

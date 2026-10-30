@@ -1,0 +1,36 @@
+# $NKTRS00: the treasure fire (New encounters)
+=== card 0: 10 10 0 240 0 ===
+In the dead of night the watch saw a small blue flame burning low on the hillside above the camp, among the roots of an old thorn. It burned without smoke or sound, went out, and came again, three times before dawn.
+\14Everyone knows what that means. A treasure lies buried there, and on certain nights it blooms and shows itself with a fire. But such a fire is the Devil's lantern as often as not, and the rule for digging is old and strict: not one word until it is out of the ground, or it sinks back seven fathoms. Everyone looks at $ChosenOneName, who has never held $his tongue for an hour together in $his life.
+\14You...
+\14\15...\1ddig for it in silence.
+\16...\1dpray to a saint before you put a spade in the ground.
+\15...\1dleave the Devil's lantern alone.
+=== card 1: 10 10 0 240 0 ===
+You dig in silence, two hours by the sun, with the sweat running. At last a spade rings on iron. "There it is!" cries $ChosenOneName, and under your feet there is a sound like a great door closing far below, and the iron is gone. You dig on until noon and find nothing but stones.
+=== card 2: 10 10 0 240 0 ===
+You dig in silence, two hours by the sun, with the sweat running into your eyes and $ChosenOneName chewing on a strap to keep $his mouth shut. At last a spade rings on iron, and nobody says a word.
+=== card 3: 10 10 0 240 0 ===
+You pray together under the thorn, and a great quiet comes over you all, even over $ChosenOneName. You dig for two hours without a word, and at last a spade rings on iron.
+=== card 4: 10 10 0 240 0 ===
+You pray, but the thorn creaks in the wind and the hillside stays cold and strange. Nobody feels much like digging yet.
+=== card 5: 10 10 0 240 0 ===
+You leave the thorn and its fire alone and take the road. A treasure that shows itself to strangers, the old folk say, is a treasure with a hook in it. Nothing more comes of it.
+=== card 6: 10 10 0 240 0 ===
+Out of the earth comes a small chest, its iron bands rusted through. Inside, wrapped in rotten leather, lies silver black with age: $Money1 in old coin. Beside the chest, curled on its side as if asleep at its post, lies a skeleton. The old folk say a treasure-keeper is killed and buried with a hoard, so that his ghost will guard it.
+\14There are letters cut in the lid, worn and crabbed. You...
+\14\15...\1dpuzzle out the Latin on the lid.
+\15...\1dtake the silver and give the bones a Christian burial.
+\15...\1dtake the silver and go.
+\15...\1dcarry it all back to the church it came from.
+=== card 7: 10 10 0 240 0 ===
+$ChosenOneName scrapes the lid clean and reads it out slowly: "These are the alms of the church of St. Gall below this hill, hidden by me, Konrad, sacristan, in the year of the great burning. God curse the hand that takes them, save to give them back."
+\14The skeleton, it seems, is Konrad, who hid the alms from the riders and never came back for them.
+=== card 8: 10 10 0 240 0 ===
+$ChosenOneName frowns over the letters a long while, but they are worn and crabbed, and in a Latin no schoolmaster ever taught. You are none the wiser.
+=== card 9: 10 10 0 240 0 ===
+You scoop the coins into your purses, then lay the bones back in the hole with a prayer and a cross of thorn twigs over them. Whoever he was, he guarded it long enough.
+=== card 10: 10 10 0 240 0 ===
+You scoop the coins into your purses and leave the bones where they lie. All the way down the hill nobody looks back, and all that day the purses weigh heavier than silver should.
+=== card 11: 10 10 0 240 0 ===
+You carry the chest and the bones down the hill to the village, where the old church still bears St. Gall's name. The priest weeps over them both. Konrad is buried in the churchyard with a Mass for his soul, and the alms go into the poor box, where they belong. The tale will be told in $NearestCity.

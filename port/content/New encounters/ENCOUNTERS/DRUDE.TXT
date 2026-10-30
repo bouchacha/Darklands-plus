@@ -1,0 +1,33 @@
+# The hag-ridden horses: at dawn the horses are lathered and their manes knotted into stirrups, as if the Drude had ridden them all night.
+name     The hag-ridden horses
+card     $NkDru00
+picture  XNYTMARE
+where    camp
+when     any
+weight   1
+only     mounted
+
+[start]
+block    0
+chosen   bestskill(Riding)
+saints   0x2a, 0x5d, 0x09, -1                  # Eligius (who shod the possessed horse), Martin of Tours (of horsemen), Anthony (of beasts)
+option 0                                   # rub them down and comb the knots out patiently (Riding)
+  who    bestskill(Riding)
+  chance clamp(10, 90, skill(who, Riding) + attr(who, Cha) / 3 + 5)
+  ok     chosen who; text 1; hours 1; practice who, Riding, 1, 10, 0; exit
+  fail   chosen who; text 2; injure who, 1, 1, 5; hours 3; practice who, Riding, 0, 10, 0; exit
+option 1                                   # write the Three Kings' names on slips and braid them into the manes (Read & Write)
+  who    bestskill(ReadWrite)
+  chance clamp(10, 90, skill(who, ReadWrite) + attr(who, Int) / 3)
+  ok     chosen who; text 3; attr party, End, 2; practice who, ReadWrite, 1, 10, 0; exit
+  fail   chosen who; text 4; hours 3; attr party, End, -2; practice who, ReadWrite, 0, 10, 0; exit
+option 2                                   # cut the knots off with a knife
+  chance unknown
+  ok     if roll(50) then { text 5; exit }
+         text 6; hours 4; attr party, End, -2; exit
+option 3 saint
+  ok     text 7; attr party, End, 2; exit
+  fail   text 8
+option 4                                   # lead the horses on foot until they recover (time)
+  chance assured
+  ok     text 9; hours 4; attr party, End, -3; exit

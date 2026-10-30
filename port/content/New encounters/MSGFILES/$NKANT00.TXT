@@ -1,0 +1,23 @@
+# $NKANT00: ants in the bedrolls (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Last night, in the dark, the soft hummock of pine needles under the trees looked like the best bed in the forest. At dawn it is boiling. You slept on a wood-ants' hill. They are in your blankets, your bread, your shirts and your hair, and every one of them bites like a spark from the fire.
+\14While the rest of you hop about the clearing slapping and cursing, $ChosenOneName, the stiffest and sorest of you, sits bolt upright in the middle of it all with a strange look. "My back," $he says. "It does not hurt." The herb-wives, you remember, send old men with the gout to sit in an ant-hill.
+\14You...
+\14\15...\1dsit $ChosenOneName properly in the ant-hill, as the herb-wives prescribe.
+\15...\1dgather a flask of ants, for their fire is choleric, say the alchemists.
+\15...\1dsmoke them out of your blankets with green boughs.
+\15...\1dshake everything out and get away from here.
+=== card 1: 10 10 0 240 0 ===
+$ChosenTwoName sits $ChosenOneName down in the ant-hill up to the waist and holds $him there by the shoulders while the ants swarm, counting it out in Pater Nosters: seven of them, no more, as the herb-wives say. $ChosenOneName howls through the first three and is silent for the rest. When $he climbs out, red as a boiled crab, $he walks without a limp for the first time in weeks.
+=== card 2: 10 10 0 240 0 ===
+$ChosenTwoName sits $ChosenOneName down in the ant-hill and holds $him there, but loses count of the Pater Nosters somewhere after the ninth. When $ChosenOneName is let up at last $he is swollen and burning from neck to knee, and spends the morning sitting in a stream.
+=== card 3: 10 10 0 240 0 ===
+$ChosenTwoName scoops a seething handful into a flask of spirits and corks it tight. The ant's fire is hot and dry, choleric in its nature, and steeped and drawn off it makes a base for the alchemist's work as good as any bought in town: $ItemName.
+=== card 4: 10 10 0 240 0 ===
+$ChosenTwoName scoops up a handful of ants, and they go up $ChosenTwoName's sleeve faster than into the flask. The flask breaks, the spirits are lost, and $ChosenTwoName spends the next hour in a stream.
+=== card 5: 10 10 0 240 0 ===
+$ChosenTwoName heaps green pine boughs on the fire and holds the blankets in the smoke one by one, beating them with a stick. The ants pour out and away, the bread is saved, and within the hour you are on the road, smelling like smoked hams.
+=== card 6: 10 10 0 240 0 ===
+The green boughs smoulder and spit, the wind turns, and the smoke goes everywhere but into the blankets. You set out late, red-eyed and coughing, and still full of ants.
+=== card 7: 10 10 0 240 0 ===
+You shake out the blankets, the shirts and the bread, and leave at a trot. The ants go on turning up all morning, in your collars and your boots, biting.
