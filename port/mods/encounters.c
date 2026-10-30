@@ -130,6 +130,7 @@ typedef struct {
     int nblocks;                        /* the card text's blocks (0: not found, e.g. one of the game's own cards) */
     long card_bytes;                    /* its size as the game loads it (.MSG) */
     unsigned char nopts[64], optcode[64][NOPT];   /* each block's option lines and their codes (0x15 0x16 0x10 0x06) */
+    unsigned char optmoney[64][NOPT];             /* an option line that shows $Money1 (1) or $Money2 (2): its sum is known */
     int maxopts;                        /* the most option lines in one block */
     int builtin;                        /* one of Darklands+'s own (cut content restored: cutcards.c), not a mod's */
 } Enc;
@@ -146,7 +147,7 @@ static struct {
     int active, enc, card, sec, last_menu, jumped;
     int flag[NOPT];                      /* option overrides: -1 none, 0 hidden, 1 on, 2 greyed */
     long var[24];
-    int who, q, saint, item, result, cur_opt;
+    int who, q, saint, item, result, cur_opt, opt_block;   /* (cur_opt -1 outside an option's actions; opt_block its menu's block) */
     int where, resume;                   /* where it came up; the card a street encounter goes back to */
     int pending;                         /* a text block waiting for the actions that follow it (-1 none) */
     u16 tvars[16];                       /* the card variables as they were when that text was asked for */
@@ -333,6 +334,17 @@ static void snap_take(Snap *s)
     s->money = money_get(G_MONEY);
     s->fame = (s16)g_rw(GV_party_fame);
     for (int t = 0; t < 0x5c; t++) { u32 r = g_location(t); s->rep[t] = r ? (s16)rw((u16)(r >> 16), (u16)((u16)r + 0x12)) : 0; }
+}
+/* what the player did knowingly is no news: the Divine Favor a prayer spends, the potion drunk - taken into
+   the note the band compares with (What came of it lists only what the choice brought) */
+static void snap_known_df(int m)
+{
+    if (m < 0 || m > 4 || !snap0.st[m]) return;
+    gm_member_attr(m, 6, &snap0.cur[m][6], &snap0.max[m][6]);
+}
+static void snap_known_item(int id, int n)
+{
+    for (int i = 0; i < snap0.nit; i++) if (snap0.it_id[i] == id) { snap0.it_n[i] -= n; return; }
 }
 static void out_add(int kind, int m, int k, long v) { if (v && noutc < 64) { outc[noutc].kind = kind; outc[noutc].m = m; outc[noutc].k = k; outc[noutc].v = v; noutc++; } }
 static void outcome_since(const Snap *a)
@@ -898,7 +910,14 @@ static int exec_stmt(P *p)
     else if (!strcasecmp(w, "until")) { int h = g_hours_until((int)a[0]); g_hours(h); if (h > 0) rt.hours += h; }
     else if (!strcasecmp(w, "practice")) g_practice((int)a[0], (int)a[1], n > 2 ? (int)a[2] : 1, n > 3 ? (int)a[3] : 10, n > 4 ? (int)a[4] : 0);
     else if (!strcasecmp(w, "injure")) g_injure((int)a[0], (int)a[1], n > 2 ? (int)a[2] : (int)a[1], n > 3 ? (int)a[3] : 10);
-    else if (!strcasecmp(w, "pay")) money_put(G_MONEY, money_get(G_MONEY) - a[0]);
+    else if (!strcasecmp(w, "pay")) {
+        money_put(G_MONEY, money_get(G_MONEY) - a[0]);
+        int b = rt.opt_block, k = rt.cur_opt;                    /* (the sum the chosen option's line showed: no news) */
+        if (rt.active && b >= 0 && b < 64 && k >= 0 && k < NOPT) {
+            int m = encs[rt.enc].optmoney[b][k];
+            if (((m & 1) && a[0] == money_get(V_MONEY1)) || ((m & 2) && a[0] == money_get(GV_var_money2))) snap0.money -= a[0];
+        }
+    }
     else if (!strcasecmp(w, "gain")) money_put(G_MONEY, money_get(G_MONEY) + a[0]);
     else if (!strcasecmp(w, "money1")) money_put(V_MONEY1, a[0]);
     else if (!strcasecmp(w, "money2")) money_put(GV_var_money2, a[0]);
@@ -1195,7 +1214,7 @@ static void card_shape(Enc *e)
             break;
         }
         if (c == 0x15 || c == 0x16 || c == 0x10 || c == 0x06) {
-            if (e->nopts[b] < NOPT) e->optcode[b][e->nopts[b]] = (unsigned char)c;
+            if (e->nopts[b] < NOPT) { e->optcode[b][e->nopts[b]] = (unsigned char)c; e->optmoney[b][e->nopts[b]] = (unsigned char)((strstr(line, "$Money1") ? 1 : 0) | (strstr(line, "$Money2") ? 2 : 0)); }
             if (++nl > e->maxopts) e->maxopts = nl;
             if (e->nopts[b] < 255) e->nopts[b]++;
         }
@@ -1440,7 +1459,6 @@ static void menu_round(Enc *e, Sec *s)
     if (k < 0 || k >= NOPT || !s->opt[k].defined) { LOG("menu: option %d has no actions\n", k); return; }
     Opt *o = &s->opt[k];
     int ok = 1;
-    rt.cur_opt = k;
     if (o->kind == 2) {                          /* a saint */
         if (!popup || m < 0 || m > 4 || sl < 0 || sl > 3 || s->saints[sl] < 0) return;
         rt.who = m; rt.saint = s->saints[sl];
@@ -1449,6 +1467,7 @@ static void menu_round(Enc *e, Sec *s)
         int r = g_invoke_saint(m, rt.saint);
         LOG("saint %d by %d: %d\n", rt.saint, m, r);
         if (aborting || r < 0) return;           /* the prayer was called off */
+        snap_known_df(m);
         ok = r > 0;
     } else if (o->kind == 1) {                   /* a potion */
         if (!popup || m < 0 || m > 4 || sl < 0 || sl > 3 || s->items[sl] < 0) return;
@@ -1458,6 +1477,7 @@ static void menu_round(Enc *e, Sec *s)
         int j = pot_index(o, rt.item);
         int c = j < 0 ? 100 : (int)eval_src(e, &o->pot[j], 0, 0);
         g_take_item(m, rt.item);
+        snap_known_item(rt.item, 1);
         ok = g_rand(100) <= c;
         LOG("potion %d (q %d) by %d: chance %d -> %d\n", rt.item, rt.q, m, c, ok);
     } else {
@@ -1469,7 +1489,10 @@ static void menu_round(Enc *e, Sec *s)
         }
     }
     if (aborting) return;
-    if (run_src(e, ok ? &o->ok : &o->fail, 0) == 2 && !aborting && !rt.jumped && (s16)g_rw(V_NEXT_CARD) == rt.card) script_error(e);
+    rt.cur_opt = k; rt.opt_block = s->block;
+    int rr = run_src(e, ok ? &o->ok : &o->fail, 0);
+    rt.cur_opt = -1;
+    if (rr == 2 && !aborting && !rt.jumped && (s16)g_rw(V_NEXT_CARD) == rt.card) script_error(e);
 }
 
 static int run_encounter(int card)
@@ -1482,6 +1505,7 @@ static int run_encounter(int card)
     int resume = run_resume;
     memset(&rt, 0, sizeof rt);
     for (int k = 0; k < NOPT; k++) rt.flag[k] = -1;
+    rt.cur_opt = -1;
     rt.active = 1; rt.enc = i; rt.card = card; rt.sec = 0; rt.last_menu = -1;
     rt.who = leader(); rt.result = -1;
     rt.where = e->where; rt.resume = resume; rt.pending = -1;
