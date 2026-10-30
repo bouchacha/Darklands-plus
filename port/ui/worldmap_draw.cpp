@@ -288,6 +288,34 @@ std::vector<Place> places(void)
 
 float aspect(void) { return ui_settings.aspect ? 1.2f : 1.0f; }
 void tile_px(int x, int y, float *px, float *py) { *px = x * 16.0f + ((y & 1) ? 8 : 0) + 8; *py = y * 4.0f + 6; }
+/* The travel map's rows are half a tile apart, every other one shifted half a tile to the right: a route due
+   north or south steps right and left from row to row, and a slant one goes in stairs, though the way is straight
+   (GitHub issue 3). Drawn, its tiles' middles (travel-screen pixels, or any picture of them to scale) are first
+   averaged with their neighbours (1 2 1: a zigzag row to row becomes straight), then the points the line keeps
+   within a third of a tile of are left out (Douglas-Peucker); its ends stay where they are */
+void route_smooth(std::vector<ImVec2> &p)
+{
+    size_t n = p.size();
+    if (n < 3) return;
+    std::vector<ImVec2> q(p);
+    for (size_t i = 1; i + 1 < n; i++) q[i] = ImVec2((p[i - 1].x + 2 * p[i].x + p[i + 1].x) * 0.25f, (p[i - 1].y + 2 * p[i].y + p[i + 1].y) * 0.25f);
+    std::vector<char> keep(n, 0); keep[0] = keep[n - 1] = 1;
+    std::vector<std::pair<size_t, size_t>> st; st.push_back({ 0, n - 1 });
+    const float tol = 16.0f / 3;
+    while (!st.empty()) {
+        size_t a = st.back().first, b = st.back().second; st.pop_back();
+        if (b <= a + 1) continue;
+        float dx = q[b].x - q[a].x, dy = q[b].y - q[a].y, L = sqrtf(dx * dx + dy * dy);
+        size_t far = a; float fd = -1;
+        for (size_t i = a + 1; i < b; i++) {
+            float d = L > 1e-3f ? fabsf((q[i].x - q[a].x) * dy - (q[i].y - q[a].y) * dx) / L : sqrtf((q[i].x - q[a].x) * (q[i].x - q[a].x) + (q[i].y - q[a].y) * (q[i].y - q[a].y));
+            if (d > fd) { fd = d; far = i; }
+        }
+        if (fd > tol) { keep[far] = 1; st.push_back({ a, far }); st.push_back({ far, b }); }
+    }
+    p.clear();
+    for (size_t i = 0; i < n; i++) if (keep[i]) p.push_back(q[i]);
+}
 
 
 float map_border_px(void) { return fmaxf(26.0f, ui_text_px() * 1.25f); }

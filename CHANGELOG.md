@@ -1,5 +1,21 @@
 # Darklands+ changelog
 
+## 1.5
+
+What changed since 1.4.
+
+**Added**
+
+- **Doors:** out of a fight, clicking a shut door walks the party to it and opens it.
+- **Level map (Tab)** shows every room the party has entered, walls on each side of the floor, and the openings not yet explored.
+
+**Fixed**
+
+- On the level map, a click beside a wall could walk the party to the far side of it.
+- The level map could forget rooms the party had seen, after a save was loaded or the place was entered again.
+- A walk chosen on the level map just after loading a battle stood still.
+- Auto-travel routes due north or south were drawn as a zigzag (GitHub issue 3).
+
 ## 1.4
 
 What changed since 1.3.1.

@@ -5,8 +5,10 @@
 // them). The game waits while it is open; Tab or Esc closes it.
 //
 // The level is floor_img (far 20a5:0000, level%d.flr): long cells[40][40] (column-major,
-// cell (x, y) at (x * 40 + y) * 4), a negative cell is solid rock; byte 0 high nibble: door art,
-// byte 1 high nibble: furniture, byte 3 bits 4..5: the door's state. The view's centre cell is
+// cell (x, y) at (x * 40 + y) * 4), negative (bit 31) for solid rock and for floor not revealed to
+// the party yet (a save keeps which are); the low nibble of each byte a wall on one side (east,
+// west, north, south: 1..11 a wall, 12..15 a door open); byte 0 high nibble: door art, byte 1 high
+// nibble: furniture, byte 3 bits 4..5: the door's state; the cell's art 20a5:1900 + x * 40 + y (0 rock). The view's centre cell is
 // DS:c866 / c886 and its 140 cells lie at the offsets DS:1fc6[k] / 2052[k] (s017 1ef8:0000);
 // floor_shown DS:11ca; combatants DS:9c55 + 0x80 * i (+4 x, +6 y map pixels, 32 x 16 a cell;
 // +0x14 status), their floors cbt_floor DS:a6b4.
@@ -34,8 +36,19 @@ extern "C" int levelwalk_goal_x, levelwalk_goal_y, levelwalk_goal_floor;   /* (t
 extern "C" char dlp_data_dir[];
 extern "C" void levelwalk_stairs(int s);
 
+/* cell (x, y) of the floor shown (negative: rock, or not revealed yet) */
+static inline s32 cell(int x, int y)
+{
+    u16 o = (u16)((x * 40 + y) * 4);
+    return (s32)((u32)rw(G_FAR20A5, o) | (u32)rw(G_FAR20A5, (u16)(o + 2)) << 16);
+}
+
 #define NFLOORS 16
 static unsigned char seen[NFLOORS][40][40];
+/* the cells the game has revealed: floor the party has seen. The game hides a floor's cells again (bit 31) in a
+   save made before they were revealed, or when the place is entered anew, so the map draws a remembered cell as
+   floor from this, not from the cell's bit (1.4: "does not work consistently") */
+static unsigned char kfloor[NFLOORS][40][40];
 static bool open_lm;
 /* the ways between floors, as each floor's records stood when the party was last on it (only the
    floor shown is in memory): map pixels x, y, w, h and the floor led to (20a5:2fb8, +6) */
@@ -44,17 +57,24 @@ static Exit exits[NFLOORS][6]; static int nexits[NFLOORS];
 #define GV_NFLOORS 0xd661               /* the battle's number of floors (s002 tac start, D_d661) */
 /* What the party saw of a castle, mine or dungeon is kept for the game (party seed) in darklands_levels_<seed>.bin
    beside the journal (dlp_data_dir): loading a save made in it, or coming back to it, forgot it all (1.4-RC7).
-   One record a floor: the place (G_CUR_LOC), its number of floors, the floor, a fingerprint of the floor's
-   layout (its cells' art, 20a5:1900, which no door or reveal changes), the cells seen (a bit each) and its
-   ways to the other floors. A floor whose fingerprint does not match its record (a street fight in a town:
-   another map each time) starts afresh, and its record is made anew. Out of a town, castle, mine or
-   dungeon (a fight in the wilds) nothing is kept. */
+   One record a floor and layout: the place (G_CUR_LOC), its number of floors, the floor, a fingerprint of the
+   floor's layout (its cells' art, 20a5:1900, which no door or reveal changes), the cells seen (a bit each) and
+   its ways to the other floors. A floor is matched to its record only once it has settled - the same place,
+   number of floors, floor and fingerprint for SETTLE frames running - since while a battle is set up the
+   art can hold another map for a moment, and a check made then took the dungeon for another one and threw
+   away what was seen of it (1.4: "does not work consistently"). A layout with no record (a street fight in a
+   town: another map each time) gets one of its own; none is thrown away for another (at most KEEP a floor,
+   the oldest goes). With each record the cells that were floor when seen (DLLV2; 1.4's DLLV1 files, which
+   lacked them, start afresh). Out of a town, castle, mine or dungeon (a fight in the wilds) nothing is kept. */
 #pragma pack(push, 1)
-struct LvRec { s16 loc; u8 nf, fl; u32 hash; u8 bits[200]; u8 ne; Exit ex[6]; };
+struct LvRec { s16 loc; u8 nf, fl; u32 hash; u8 bits[200]; u8 ne; Exit ex[6]; u8 floor[200]; };
 #pragma pack(pop)
+#define SETTLE 12
+#define KEEP 3
 static std::vector<LvRec> recs;
 static int recs_seed = -99999, lv_loc = -2, lv_nf = -1;
-static bool recs_dirty, fl_checked[NFLOORS];
+static int cur_rec[NFLOORS];                     /* the record matched to each floor of the place, -1 none yet */
+static bool recs_dirty;
 static double recs_saved;
 static void lv_path(char *b, size_t n, int seed) { snprintf(b, n, "%s/darklands_levels_%u.bin", dlp_data_dir, (unsigned)(u16)seed); }
 static void lv_load(int seed)
@@ -64,7 +84,7 @@ static void lv_load(int seed)
     FILE *f = fopen(p, "rb");
     if (!f) return;
     char magic[6] = ""; u32 n = 0;
-    if (fread(magic, 1, 6, f) == 6 && !memcmp(magic, "DLLV1", 6) && fread(&n, 4, 1, f) == 1 && n < 4096)
+    if (fread(magic, 1, 6, f) == 6 && !memcmp(magic, "DLLV2", 6) && fread(&n, 4, 1, f) == 1 && n < 4096)
         for (u32 k = 0; k < n; k++) { LvRec r; if (fread(&r, sizeof r, 1, f) != 1) break; if (r.fl < NFLOORS && r.ne <= 6) recs.push_back(r); }
     fclose(f);
 }
@@ -76,7 +96,7 @@ static void lv_save(void)
     FILE *f = fopen(p, "wb");
     if (!f) return;
     u32 n = (u32)recs.size();
-    fwrite("DLLV1", 1, 6, f); fwrite(&n, 4, 1, f);
+    fwrite("DLLV2", 1, 6, f); fwrite(&n, 4, 1, f);
     if (n) fwrite(recs.data(), sizeof(LvRec), n, f);
     fclose(f);
 }
@@ -86,36 +106,69 @@ static u32 floor_hash(void)                      /* (FNV-1a of the floor's cell 
     for (int k = 0; k < 1600; k++) { h ^= rb(G_FAR20A5, (u16)(0x1900 + k)); h *= 16777619u; }
     return h;
 }
-static LvRec *lv_find(int loc, int nf, int fl) { for (LvRec &r : recs) if (r.loc == loc && r.nf == nf && r.fl == fl) return &r; return nullptr; }
-/* every frame in a battle: the records of this place taken up once (seen and ways OR'd in), the floor shown
-   checked against its record, and what is seen now written back (the file at most every few seconds) */
+static int lv_find(int loc, int nf, int fl, u32 h) { for (size_t i = recs.size(); i-- > 0;) if (recs[i].loc == loc && recs[i].nf == nf && recs[i].fl == fl && recs[i].hash == h) return (int)i; return -1; }
+static void rec_to_seen(const LvRec &r)
+{
+    int ns = 0, nf = 0;
+    for (int c = 0; c < 1600; c++) {
+        if (r.bits[c >> 3] >> (c & 7) & 1) { seen[r.fl][c / 40][c % 40] = 1; ns++; }
+        if (r.floor[c >> 3] >> (c & 7) & 1) { kfloor[r.fl][c / 40][c % 40] = 1; nf++; }
+    }
+    if (getenv("DL_LEVELS_LOG")) fprintf(stderr, "levels: floor %d taken up: %d cells seen, %d floor\n", r.fl, ns, nf);
+}
+/* every frame in a battle: once the floor shown has settled, its record found (or made) and what was seen of
+   it taken up; then what is seen now written back (the file at most every few seconds) */
 static void lv_keep(int fl)
 {
     int seed = (s16)g_rw(G_PARTY_SEED), loc = (s16)g_rw(G_CUR_LOC), nf = g_rb(GV_NFLOORS);
     if (seed != recs_seed) { lv_save(); lv_load(seed); lv_loc = -2; }
-    if (loc < 0 || nf < 1 || nf > NFLOORS) return;
-    if (loc != lv_loc || nf != lv_nf) {
+    if (loc < 0 || nf < 1 || nf > NFLOORS || fl >= nf) return;
+    u32 h = floor_hash();
+    static int s_loc = -9, s_nf = -9, s_fl = -9, s_n; static u32 s_h;
+    if (loc != s_loc || nf != s_nf || fl != s_fl || h != s_h) { s_loc = loc; s_nf = nf; s_fl = fl; s_h = h; s_n = 0; }
+    if (s_n < SETTLE) { s_n++; return; }                          /* (not settled yet: nothing matched, nothing written) */
+    if (loc != lv_loc || nf != lv_nf) {                            /* (another place: its floors' records taken up anew) */
         lv_loc = loc; lv_nf = nf;
-        for (int f = 0; f < NFLOORS; f++) fl_checked[f] = false;
-        for (const LvRec &r : recs) {
-            if (r.loc != loc || r.nf != nf) continue;
-            for (int c = 0; c < 1600; c++) if (r.bits[c >> 3] >> (c & 7) & 1) seen[r.fl][c / 40][c % 40] = 1;
-            if (!nexits[r.fl]) { for (int k = 0; k < r.ne; k++) exits[r.fl][k] = r.ex[k]; nexits[r.fl] = r.ne; }
+        for (int f = 0; f < NFLOORS; f++) cur_rec[f] = -1;
+        for (int f = 0; f < nf; f++) {                             /* (the floors not shown: their latest record) */
+            if (f == fl) continue;
+            for (size_t i = recs.size(); i-- > 0;) {
+                const LvRec &r = recs[i];
+                if (r.loc != loc || r.nf != nf || r.fl != f) continue;
+                rec_to_seen(r);
+                if (!nexits[f]) { for (int k = 0; k < r.ne; k++) exits[f][k] = r.ex[k]; nexits[f] = r.ne; }
+                break;
+            }
         }
     }
-    LvRec *r = lv_find(loc, nf, fl);
-    if (!fl_checked[fl]) {
-        fl_checked[fl] = true;
-        u32 h = floor_hash();
-        if (r && r->hash != h) {                   /* (another map under the same name: what was taken up is not this one's) */
-            memset(seen[fl], 0, sizeof seen[fl]);
-            r->hash = h; memset(r->bits, 0, sizeof r->bits); r->ne = 0; recs_dirty = true;
+    int ri = cur_rec[fl];
+    if (ri < 0 || ri >= (int)recs.size() || recs[ri].hash != h) {
+        ri = lv_find(loc, nf, fl, h);
+        if (getenv("DL_LEVELS_LOG")) fprintf(stderr, "levels: place %d floor %d/%d layout %08x: %s\n", loc, fl, nf, h, ri >= 0 ? "its record" : "a new record");
+        if (ri < 0) {
+            int same = 0;                                          /* (a floor keeps KEEP layouts at most: the oldest goes) */
+            for (size_t i = 0; i < recs.size(); i++) if (recs[i].loc == loc && recs[i].nf == nf && recs[i].fl == fl) same++;
+            for (size_t i = 0; same >= KEEP && i < recs.size();) {
+                if (recs[i].loc == loc && recs[i].nf == nf && recs[i].fl == fl) { recs.erase(recs.begin() + (long)i); same--; } else i++;
+            }
+            LvRec n{}; n.loc = (s16)loc; n.nf = (u8)nf; n.fl = (u8)fl; n.hash = h; recs.push_back(n); ri = (int)recs.size() - 1; recs_dirty = true;
+            for (int f = 0; f < NFLOORS; f++) cur_rec[f] = -1;          /* (indices moved) */
+        } else {
+            LvRec r = recs[ri]; recs.erase(recs.begin() + ri); recs.push_back(r); ri = (int)recs.size() - 1;   /* (the latest last) */
+            for (int f = 0; f < NFLOORS; f++) cur_rec[f] = -1;
+            rec_to_seen(recs[ri]);
+            if (!nexits[fl]) { for (int k = 0; k < recs[ri].ne; k++) exits[fl][k] = recs[ri].ex[k]; nexits[fl] = recs[ri].ne; }
         }
-        if (!r) { LvRec n{}; n.loc = (s16)loc; n.nf = (u8)nf; n.fl = (u8)fl; n.hash = h; recs.push_back(n); r = &recs.back(); recs_dirty = true; }
+        cur_rec[fl] = ri;
     }
-    if (!r) return;
+    for (int x = 0; x < 40; x++) for (int y = 0; y < 40; y++)          /* (what the game has revealed: seen, and floor) */
+        if (cell(x, y) >= 0) { seen[fl][x][y] = 1; kfloor[fl][x][y] = 1; }
+    LvRec *r = &recs[ri];
     for (int c = 0; c < 1600; c++)
+    {
         if (seen[fl][c / 40][c % 40] && !(r->bits[c >> 3] >> (c & 7) & 1)) { r->bits[c >> 3] |= (u8)(1 << (c & 7)); recs_dirty = true; }
+        if (kfloor[fl][c / 40][c % 40] && !(r->floor[c >> 3] >> (c & 7) & 1)) { r->floor[c >> 3] |= (u8)(1 << (c & 7)); recs_dirty = true; }
+    }
     if (r->ne != nexits[fl] || memcmp(r->ex, exits[fl], sizeof(Exit) * (size_t)nexits[fl])) { r->ne = (u8)nexits[fl]; memcpy(r->ex, exits[fl], sizeof(Exit) * (size_t)nexits[fl]); recs_dirty = true; }
     if (recs_dirty && ImGui::GetTime() - recs_saved > 4.0) lv_save();
 }
@@ -123,15 +176,10 @@ static void lv_keep(int fl)
    s004 0e76:0000, from s002's tac start) or come out of a save (EXPLODE, s003 1016:0d07, the battle save's
    blocks), and the kept records of the place taken up again (lv_keep); the same dungeon taken up again
    after a card (a riddle, a talk) keeps it as it is */
-static void forget(void) { lv_save(); memset(seen, 0, sizeof seen); memset(nexits, 0, sizeof nexits); lv_loc = -2; }
+static void forget(void) { lv_save(); memset(seen, 0, sizeof seen); memset(kfloor, 0, sizeof kfloor); memset(nexits, 0, sizeof nexits); lv_loc = -2; }
 static void floors_made_hook(void) { forget(); hook_call_original(); }
 static void save_read_hook(void) { forget(); hook_call_original(); }
 
-static inline s32 cell(int x, int y)
-{
-    u16 o = (u16)((x * 40 + y) * 4);
-    return (s32)((u32)rw(G_FAR20A5, o) | (u32)rw(G_FAR20A5, (u16)(o + 2)) << 16);
-}
 static int floor_now(void) { return (s8)g_rb(GV_floor_shown); }
 
 extern "C" int levelmap_is_open(void) { return open_lm; }
@@ -157,7 +205,7 @@ extern "C" void levelmap_frame(void)
     int cx = (s8)g_rb(0xc866), cy = (s8)g_rb(0xc886);
     for (int k = 0; k < 140; k++) {
         int x = cx + (s8)g_rb((u16)(0x1fc6 + k)), y = cy + (s8)g_rb((u16)(0x2052 + k));
-        if (x >= 0 && x < 40 && y >= 0 && y < 40) seen[fl][x][y] = 1;
+        if (x >= 0 && x < 40 && y >= 0 && y < 40) { seen[fl][x][y] = 1; if (cell(x, y) >= 0) kfloor[fl][x][y] = 1; }
     }
     if (!config_get_int("original", 0)) lv_keep(fl);
 }
@@ -293,7 +341,9 @@ extern "C" void levelmap_draw(void)
     static bool all = false;
     all = config_get_int("assist.level_map_all", 0) != 0;
     if (fl < 0 || fl >= NFLOORS) { ImGui::End(); return; }
-    auto known = [&](int x, int y) { return x >= 0 && x < 40 && y >= 0 && y < 40 && (all || seen[fl][x][y]); };
+    /* seen: in the view, or revealed by the game (a cell >= 0: the rooms the party has been in or looked into, which
+       a save keeps), or so when last here */
+    auto known = [&](int x, int y) { return x >= 0 && x < 40 && y >= 0 && y < 40 && (all || seen[fl][x][y] || cell(x, y) >= 0); };
 
     /* the view's slant (s014: screen x = map x - map y, screen y = map y; a cell is 32 x 16 map
        pixels, and the picture's pixels are 1.2 times as tall as wide): a cell's x edge runs
@@ -302,7 +352,8 @@ extern "C" void levelmap_draw(void)
     /* floor: a cell >= 0; with "the whole level" also the rooms not yet revealed (hidden cells,
        bit 31, that have floor art; solid rock has none) */
     auto hidden_floor = [&](int x, int y) { return all && cell(x, y) < 0 && rb(G_FAR20A5, (u16)(0x1900 + x * 40 + y)) != 0; };
-    auto is_floor = [&](int x, int y) { return x >= 0 && x < 40 && y >= 0 && y < 40 && (cell(x, y) >= 0 || hidden_floor(x, y)); };
+    auto is_floor = [&](int x, int y) { return x >= 0 && x < 40 && y >= 0 && y < 40 && (cell(x, y) >= 0 || kfloor[fl][x][y] || hidden_floor(x, y)); };
+    auto floor_art = [&](int x, int y) { return x >= 0 && x < 40 && y >= 0 && y < 40 && rb(G_FAR20A5, (u16)(0x1900 + x * 40 + y)) != 0; };
     float minx = 1e9f, maxx = -1e9f, miny = 1e9f, maxy = -1e9f; int any = 0;
     for (int x = 0; x < 40; x++) for (int y = 0; y < 40; y++) {
         if (!known(x, y) || !is_floor(x, y)) continue;
@@ -322,31 +373,75 @@ extern "C" void levelmap_draw(void)
     if (s > 60) s = 60;
     ImVec2 org(o.x + (sz.x - right) * 0.5f - (minx + maxx) * 0.5f * s, o.y + top + (sz.y - top - bottom) * 0.5f - (miny + maxy) * 0.5f * s);
     auto P = [&](float X, float Y) { return ImVec2(org.x + (X * SX + Y * YX) * s, org.y + Y * YY * s); };
+    if (getenv("DL_LEVELMAP_LOG")) { static float lo = -1; if (lo != org.x + org.y + s) { lo = org.x + org.y + s; fprintf(stderr, "levelmap: org %.1f,%.1f scale %.2f\n", org.x, org.y, s); } }
 
-    const ImU32 FLOOR = IM_COL32(120, 112, 98, 255), FLOOR_NOW = IM_COL32(150, 140, 120, 255), ROCK = IM_COL32(52, 46, 40, 255),
+    const ImU32 FLOOR = IM_COL32(120, 112, 98, 255), FLOOR_NOW = IM_COL32(150, 140, 120, 255), ROCK = IM_COL32(84, 76, 68, 255),
+                ROCK_TOP = IM_COL32(112, 102, 92, 255), WALL = IM_COL32(176, 160, 134, 255), UNSEEN = IM_COL32(150, 140, 120, 150),
                 EDGE = IM_COL32(30, 26, 22, 255), DOOR = IM_COL32(150, 96, 40, 255), FURN = IM_COL32(88, 66, 44, 255),
                 STAIRS = IM_COL32(196, 170, 90, 255), HIDDEN = IM_COL32(86, 80, 96, 255);
-    /* rock next to known floor, then the floor */
+    /* a wall on a cell's side (s014's cells: bits 0-3 east, 8-11 west, 16-19 north, 24-27 south; 1..11 a wall,
+       a door open 12..15), and a door's cells (20a5:1f52 count, 14-byte records at 1f54: x, y, w, h map pixels) */
+    auto wall_side = [&](int x, int y, int side) { if (x < 0 || x >= 40 || y < 0 || y >= 40) return true; int t = (int)((u32)cell(x, y) >> (side * 8)) & 15; return t >= 1 && t <= 11; };
+    int ndoors = (s8)rb(G_FAR20A5, 0x1f52); if (ndoors < 0 || ndoors > 40) ndoors = 0;
+    auto door_cell = [&](int x, int y) {
+        for (int k = 0; k < ndoors; k++) {
+            u16 r0 = (u16)(0x1f54 + 14 * k);
+            int dx = (s16)rw(G_FAR20A5, r0), dy = (s16)rw(G_FAR20A5, (u16)(r0 + 2)), w = rb(G_FAR20A5, (u16)(r0 + 4)), h = rb(G_FAR20A5, (u16)(r0 + 5));
+            if (x * 32 + 16 >= dx && x * 32 + 16 < dx + w && y * 16 + 8 >= dy && y * 16 + 8 < dy + h) return true;
+        }
+        return false;
+    };
+    static const int SDX[4] = { 1, -1, 0, 0 }, SDY[4] = { 0, 0, -1, 1 };   /* (east, west, north, south) */
+    auto kf = [&](int x, int y) { return known(x, y) && is_floor(x, y); };
+    /* the way goes on from known floor into floor not explored yet: through a side with no wall, or a door */
+    auto opening = [&](int x, int y) {
+        if (!floor_art(x, y) || kf(x, y)) return false;
+        for (int sd = 0; sd < 4; sd++) {
+            int u = x + SDX[sd], v = y + SDY[sd];
+            if (!kf(u, v)) continue;
+            if ((!wall_side(x, y, sd) && !wall_side(u, v, sd ^ 1)) || (door_cell(x, y) && door_cell(u, v))) return true;
+        }
+        return false;
+    };
+    /* beside known floor: rock as stone, floor not explored yet that the way leads into as an opening (an outline of
+       dashes over the dark), floor behind a wall left dark; then the floor, and the walls on its sides */
     for (int x = 0; x < 40; x++) for (int y = 0; y < 40; y++) {
-        if (!known(x, y)) continue;
         ImVec2 a = P((float)x, (float)y), b = P((float)x + 1, (float)y), cc = P((float)x + 1, (float)y + 1), d = P((float)x, (float)y + 1);
-        if (!is_floor(x, y)) {
+        if (!kf(x, y)) {
             bool by_floor = false;
             for (int dx = -1; dx <= 1 && !by_floor; dx++) for (int dy = -1; dy <= 1; dy++) {
                 int u = x + dx, v = y + dy;
-                if (known(u, v) && is_floor(u, v)) { by_floor = true; break; }
+                if ((dx || dy) && kf(u, v)) { by_floor = true; break; }
             }
-            if (by_floor) dl->AddQuadFilled(a, b, cc, d, ROCK);
+            if (!by_floor) continue;
+            if (!floor_art(x, y)) { dl->AddQuadFilled(a, b, cc, d, ROCK); dl->AddLine(a, b, ROCK_TOP, 1.5f); }
+            else if (opening(x, y)) {                                    /* (dashes along the cell's four sides) */
+                ImVec2 q[5] = { a, b, cc, d, a };
+                for (int e = 0; e < 4; e++)
+                    for (int k = 0; k < 4; k++) {
+                        float t0 = (k + 0.15f) / 4.0f, t1 = (k + 0.6f) / 4.0f;
+                        dl->AddLine(ImVec2(q[e].x + (q[e + 1].x - q[e].x) * t0, q[e].y + (q[e + 1].y - q[e].y) * t0),
+                                    ImVec2(q[e].x + (q[e + 1].x - q[e].x) * t1, q[e].y + (q[e + 1].y - q[e].y) * t1), UNSEEN, 1.2f);
+                    }
+            }
             continue;
         }
         dl->AddQuadFilled(a, b, cc, d, hidden_floor(x, y) ? HIDDEN : in_view_now(x, y) ? FLOOR_NOW : FLOOR);
         dl->AddQuad(a, b, cc, d, EDGE, 1.0f);
     }
+    for (int x = 0; x < 40; x++) for (int y = 0; y < 40; y++) {     /* (the walls on known floor's sides: inside a room too) */
+        if (!kf(x, y)) continue;
+        ImVec2 a = P((float)x, (float)y), b = P((float)x + 1, (float)y), cc = P((float)x + 1, (float)y + 1), d = P((float)x, (float)y + 1);
+        const ImVec2 *ends[4][2] = { { &b, &cc }, { &a, &d }, { &a, &b }, { &d, &cc } };
+        for (int sd = 0; sd < 4; sd++)
+            if (wall_side(x, y, sd) || (floor_art(x + SDX[sd], y + SDY[sd]) && wall_side(x + SDX[sd], y + SDY[sd], sd ^ 1)))
+                dl->AddLine(*ends[sd][0], *ends[sd][1], WALL, fmaxf(2.0f, s * 0.08f));
+    }
     /* furniture */
     for (int x = 0; x < 40; x++) for (int y = 0; y < 40; y++) {
         if (!known(x, y)) continue;
         s32 c = cell(x, y);
-        if (c < 0) continue;
+        if (c < 0 && !kfloor[fl][x][y]) continue;                    /* (a remembered cell the game hides again: its furniture still in it) */
         ImVec2 m = P(x + 0.5f, y + 0.5f);
         int furn = (c >> 12) & 15;
         if (furn) dl->AddRectFilled(ImVec2(m.x - s * 0.18f, m.y - s * 0.1f), ImVec2(m.x + s * 0.18f, m.y + s * 0.1f), FURN);
@@ -469,27 +564,31 @@ extern "C" void levelmap_draw(void)
             wx = x + w / 2; wy = y + h / 2; qx0 = X0; qy0 = Y0; qx1 = X1; qy1 = Y1;
             return true;
         };
+        auto walkable = [&](int x, int y) { return x >= 0 && x < 40 && y >= 0 && y < 40 && known(x, y) && (cell(x, y) >= 0 || kfloor[fl][x][y]); };   /* (floor seen: open now, or remembered) */
         int nd = (s8)rb(G_FAR20A5, 0x1f52), ns = (s8)rb(G_FAR20A5, 0x2fb6);
-        for (int k = 0; k < ns && k < 6 && wx < 0; k++) in_rect((u16)(0x2fb8 + 14 * k), 0.15f);
+        for (int k = 0; k < ns && k < 6 && wx < 0; k++) in_rect((u16)(0x2fb8 + 14 * k), 0.0f);   /* (no wider than they are: a click beside them is for the floor there) */
         for (int k = 0; k < nd && k < 40 && wx < 0; k++)
-            if (in_rect((u16)(0x1f54 + 14 * k), 0.3f)) {      /* a door stands in the wall: the floor cell before it, on the seen side */
+            if (in_rect((u16)(0x1f54 + 14 * k), 0.0f)) {      /* a door stands in the wall: the floor cell before it, on the seen side */
                 float bd = 1e9f; int bx = -1, by = -1;
                 for (int x = (int)(wx / 32.0f) - 3; x <= (int)(wx / 32.0f) + 3; x++)
                     for (int y = (int)(wy / 16.0f) - 3; y <= (int)(wy / 16.0f) + 3; y++) {
-                        if (x < 0 || x >= 40 || y < 0 || y >= 40 || !known(x, y) || cell(x, y) < 0) continue;
+                        if (!walkable(x, y)) continue;
                         float dx = x + 0.5f - wx / 32.0f, dy = y + 0.5f - wy / 16.0f, d = dx * dx + dy * dy;
                         if (d < bd) { bd = d; bx = x; by = y; }
                     }
                 if (bx < 0) { wx = -1; continue; }
                 wx = bx * 32 + 16; wy = by * 16 + 8;
             }
-        if (wx < 0 && known(hx, hy) && hx >= 0 && hx < 40 && hy >= 0 && hy < 40 && cell(hx, hy) >= 0) {
+        if (wx < 0 && walkable(hx, hy)) {
             wx = hx * 32 + 16; wy = hy * 16 + 8; qx0 = (float)hx; qy0 = (float)hy; qx1 = qx0 + 1; qy1 = qy0 + 1;
         }
+        if (wx < 0 && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && getenv("DL_LEVELMAP_LOG"))
+            fprintf(stderr, "levelmap: click at %.0f,%.0f: cell %d,%d: nothing there (known %d, cell %s)\n", mp.x, mp.y, hx, hy, known(hx, hy), hx >= 0 && hx < 40 && hy >= 0 && hy < 40 ? (cell(hx, hy) >= 0 ? "open" : kfloor[fl][hx][hy] ? "remembered" : "hidden or rock") : "off");
         if (wx >= 0) {
             ImVec2 a = P(qx0, qy0), b = P(qx1, qy0), cc = P(qx1, qy1), d = P(qx0, qy1);
             dl->AddQuad(a, b, cc, d, IM_COL32(250, 220, 120, 255), 2.5f);
             if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                if (getenv("DL_LEVELMAP_LOG")) fprintf(stderr, "levelmap: click at %.0f,%.0f: cell %d,%d, walk to %d,%d\n", mp.x, mp.y, hx, hy, wx, wy);
                 levelwalk_x = wx; levelwalk_y = wy; levelwalk_floor = fl;
                 open_lm = false;
             }
@@ -515,6 +614,18 @@ extern "C" void levelmap_draw(void)
         dl->AddText(f, LS, ImVec2(lx + 22 * u, ly), IM_COL32(220, 205, 170, 255), txt);
         lx += 30 * u + f->CalcTextSizeA(LS, FLT_MAX, 0, txt).x;
     };
+    auto legend_dashed = [&](const char *txt) {                 /* (an opening not yet explored: as drawn on the map) */
+        float u = LS / 18.0f;
+        ImVec2 a(lx, ly + 3 * u), b(lx + 16 * u, ly + 15 * u);
+        for (int k = 0; k < 3; k++) {
+            float x0 = a.x + (b.x - a.x) * (k + 0.15f) / 3.0f, x1 = a.x + (b.x - a.x) * (k + 0.6f) / 3.0f;
+            float y0 = a.y + (b.y - a.y) * (k + 0.15f) / 3.0f, y1 = a.y + (b.y - a.y) * (k + 0.6f) / 3.0f;
+            dl->AddLine(ImVec2(x0, a.y), ImVec2(x1, a.y), UNSEEN, 1.2f); dl->AddLine(ImVec2(x0, b.y), ImVec2(x1, b.y), UNSEEN, 1.2f);
+            dl->AddLine(ImVec2(a.x, y0), ImVec2(a.x, y1), UNSEEN, 1.2f); dl->AddLine(ImVec2(b.x, y0), ImVec2(b.x, y1), UNSEEN, 1.2f);
+        }
+        dl->AddText(f, LS, ImVec2(lx + 22 * u, ly), IM_COL32(220, 205, 170, 255), txt);
+        lx += 30 * u + f->CalcTextSizeA(LS, FLT_MAX, 0, txt).x;
+    };
     legend(IM_COL32(70, 150, 230, 255), "party", 2);
     legend(IM_COL32(210, 60, 50, 255), "enemies seen", true);
     legend(FLOOR_NOW, "in view now", false);
@@ -522,6 +633,8 @@ extern "C" void levelmap_draw(void)
     legend(DOOR, "door", false);
     legend(FURN, "furniture", false);
     legend(STAIRS, "stairs, ways out", false);
+    legend(ROCK, "wall", false);
+    legend_dashed("not explored yet");
     if (all) legend(HIDDEN, "not yet revealed", false);
     {   /* (what a click does, on a line of its own above the legend when the legend leaves no room) */
         const char *how = walk ? "Click the floor to walk the party there (the map closes, and they go). Tab or Esc closes the level map; the game is paused until then." : "Tab or Esc closes the level map; the game is paused until then.";
@@ -548,6 +661,14 @@ extern "C" void levelmap_dump(void)
         if (x >= 0 && x < 40 && y >= 0 && y < 40) rows[y][x] = (char)('0' + i);
     }
     for (int y = 0; y < 40; y++) fprintf(stderr, "  %2d %s\n", y, rows[y]);
+    if (getenv("DL_LEVELS_LOG")) {                                  /* (the cells' art and sign, a hex digit pair each) */
+        for (int y = 0; y < 40; y++) { fprintf(stderr, "  art %2d ", y); for (int x = 0; x < 40; x++) { int k = x * 40 + y; fprintf(stderr, "%c%02x", cell(x, y) < 0 ? '-' : ' ', rb(G_FAR20A5, (u16)(0x1900 + k))); } fprintf(stderr, "\n"); }
+    }
+    if (getenv("DL_LEVELS_LOG")) {                                  /* (the walls on each cell's sides: 1 east, 2 west, 4 north, 8 south; '-' void) */
+        for (int y = 0; y < 40; y++) { fprintf(stderr, "  wall %2d ", y); for (int x = 0; x < 40; x++) { u32 v = (u32)cell(x, y); int m = 0;
+            for (int k = 0; k < 4; k++) { int t = (int)(v >> (k * 8)) & 15; if (t >= 1 && t <= 11) m |= 1 << k; }
+            fprintf(stderr, "%c", (v & 0x80000000u) ? '-' : "0123456789abcdef"[m]); } fprintf(stderr, "\n"); }
+    }
     int nd = (s8)rb(G_FAR20A5, 0x1f52);
     for (int k = 0; k < nd && k < 40; k++) {
         u16 r0 = (u16)(0x1f54 + 14 * k);

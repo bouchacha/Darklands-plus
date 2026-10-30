@@ -472,6 +472,7 @@ static void cursor_read(const u32 *lut)
         o = (u16)(o + n);
     }
     cur_x = (s16)rw(ds, 0x202); cur_y = (s16)rw(ds, 0x204); cur_w = w; cur_h = h;
+    if (getenv("DL_CURSOR_DUMP")) { static int done; if (!done++) for (int r = 0; r < h && r < CUR_MAX; r++) { char line[CUR_MAX + 1]; for (int c = 0; c < w && c < CUR_MAX; c++) line[c] = cur_px[r * CUR_MAX + c] ? '#' : '.'; line[w < CUR_MAX ? w : CUR_MAX] = 0; fprintf(stderr, "cursor %2d %s\n", r, line); } }
     for (int i = 0; i < CUR_MAX * CUR_MAX; i++) cur_rgb[i] = cur_px[i] ? (lut[cur_px[i]] | 0xff000000u) : 0;
     cur_on = 1;
 }

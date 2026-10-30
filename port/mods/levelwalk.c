@@ -41,16 +41,32 @@ static void stairs_arrive(void)
     ns_call(GF_take_exit, 2, n, lead);                     /* (the others follow: take_exit_hook) */
     if (!ns_unwinding) ns_call(GF_cbt_cancel_action, 1, lead);
 }
-/* the leader's walk to (tx, ty), or the nearest spot round it the leader can reach (a cell under a wall,
-   or one a door still shut keeps apart): its destination, path_find and path_give, the action "walk",
-   the others following (single file). 1 given, 0 no way */
+/* the leader's walk to (tx, ty) - or a spot in its cell, or in the cells round it, that the leader can reach (a
+   cell under a wall, or one a door still shut keeps apart): its destination, path_find and path_give, the action
+   "walk", the others following (single file). 1 given, 0 no way */
 void pathfix_long_search(int on);
 static int walk_to(int lead, int tx, int ty, int *gx, int *gy)
 {
     int otx = (s16)g_rw(CBF(lead, CB_TO_X)), oty = (s16)g_rw(CBF(lead, CB_TO_Y));
     int mx = -1, my = -1;
     pathfix_long_search(1);
-    for (int r = 0; r <= 2 && mx < 0; r++)
+    /* first the cell itself: its middle, else the spot in it nearest the middle a member can stand on (beside a
+       wall the middle can be too near it for the member's breadth, and the walk went to the next cell: 1.4,
+       "only works when you pick a tile that isn't next to a wall"; a spot the game refuses is told at once) */
+    static int off[49][2], noff;
+    if (!noff) {
+        for (int dy = -6; dy <= 6; dy += 2) for (int dx = -12; dx <= 12; dx += 4) { off[noff][0] = dx; off[noff][1] = dy; noff++; }
+        for (int i = 1; i < noff; i++) for (int j = i; j > 0 && off[j][0] * off[j][0] + 4 * off[j][1] * off[j][1] < off[j - 1][0] * off[j - 1][0] + 4 * off[j - 1][1] * off[j - 1][1]; j--) {
+            int t0 = off[j][0], t1 = off[j][1]; off[j][0] = off[j - 1][0]; off[j][1] = off[j - 1][1]; off[j - 1][0] = t0; off[j - 1][1] = t1; }
+    }
+    for (int k = 0; k < noff && mx < 0; k++) {
+        int px = tx + off[k][0], py = ty + off[k][1];
+        if (px < 0 || py < 0 || px >= 40 * 32 || py >= 40 * 16 || px / 32 != tx / 32 || py / 16 != ty / 16) continue;
+        g_ww(CBF(lead, CB_TO_X), (u16)px); g_ww(CBF(lead, CB_TO_Y), (u16)py);
+        if (ns_call(GF_path_find, 1, lead) == 1) { mx = px; my = py; }
+        if (ns_unwinding) { pathfix_long_search(0); return 0; }
+    }
+    for (int r = 1; r <= 2 && mx < 0; r++)
         for (int dy = -r; dy <= r && mx < 0; dy++)
             for (int dx = -r; dx <= r && mx < 0; dx++) {
                 if (r && dx > -r && dx < r && dy > -r && dy < r) continue;      /* (the ring at distance r) */
@@ -94,7 +110,9 @@ static void goal_check(void)
         int gd = in_doorway(lead), d = door_pending;
         if (gd >= 0 && (gd == d || gd == door_partner(d)) && (s8)g_rb(GV_floor_shown) == door_floor) {
             goal_drop();
-            ns_call(GF_door_toggle, 2, gd, lead);
+            ns_call(GF_door_toggle, 2, gd, lead);                   /* (then as the game's Use Door, s016: the view drawn anew - the room */
+            if (!ns_unwinding) ns_call(GF_floor_view_draw, 1, -1);   /*  beyond an opened door shows at once - and the order ended) */
+            if (!ns_unwinding) ns_call(GF_cbt_cancel_action, 1, lead);
             if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: door %d used by %d\n", gd, lead);
             return;
         }
@@ -118,8 +136,22 @@ static void goal_check(void)
 }
 static void input_hook(void)                 /* s014 0e76:3166 combat_input () */
 {
+    extern unsigned dos_save_read_ms; static unsigned last_read;
+    if (dos_save_read_ms != last_read) {         /* (a game loaded: a walk, stairs or door asked for before it are not its) */
+        last_read = dos_save_read_ms;
+        goal_drop(); stairs_pending = -1; levelwalk_x = levelwalk_y = levelwalk_floor = -1;
+        if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: a game loaded, walks forgotten\n");
+    }
     if (stairs_pending >= 0 && levelwalk_x < 0) { stairs_arrive(); if (ns_unwinding) return; }
     if (levelwalk_x < 0) { goal_check(); if (ns_unwinding) return; hook_call_original(); return; }
+    /* (a battle's start - a save loaded too - chooses its leader and pauses for orders once the leader is on the
+       screen, D_d6f1 till then: a walk given before that pause stood still in it. It waits for it, a moment) */
+    static u32 defer_t;
+    if (g_rb(0xd6f1) == 1) {
+        if (!defer_t) { defer_t = plat_ticks_ms() | 1; if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: the walk waits for the battle's first pause\n"); }
+        if (plat_ticks_ms() - defer_t < 10000) { hook_call_original(); return; }
+    }
+    defer_t = 0;
     int tx = levelwalk_x, ty = levelwalk_y, tfl = levelwalk_floor;
     levelwalk_x = levelwalk_y = levelwalk_floor = -1;
     int door = door_pending >= 0 && tx == door_wx && ty == door_wy ? door_pending : -1;   /* (another walk asked since: no door) */
@@ -138,7 +170,7 @@ static void input_hook(void)                 /* s014 0e76:3166 combat_input () *
     }
     goal_lead = lead; levelwalk_goal_x = mx; levelwalk_goal_y = my; levelwalk_goal_floor = tfl; goal_legs = 0; door_pending = door; door_wait = 0;
     goal_fx = (s16)g_rw(CBF(lead, CB_X)); goal_fy = (s16)g_rw(CBF(lead, CB_Y));
-    if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: map %d,%d -> %d,%d for %d (move mode %d, was %d)\n", tx, ty, mx, my, lead, g_rb(GV_move_mode), was_mode);
+    if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: map %d,%d -> %d,%d for %d (move mode %d, was %d; paused %d)\n", tx, ty, mx, my, lead, g_rb(GV_move_mode), was_mode, g_rb(GV_ai_paused));
     /* (word that the click was taken: the map closes on it, and the party is seen to go. Out of a fight the
        battle paused goes on at once, as for the stairs; in a fight it waits for Space) */
     const char *file = was_mode != 2 ? " in single file (press G to move as a group again)" : "";
@@ -246,11 +278,17 @@ void levelwalk_battle_begins(void) { goal_drop(); stairs_pending = -1; }
  * before it and uses it on arrival (door_toggle, s023 1ef8:00b8, as the order does: a lock still holds).
  * The view: a ground point (map x, y) is drawn at field x = (x - 32 ox) - (y - 16 oy) + 135, y = y - 16 oy
  * + 109 (ox, oy the view's origin, D_c866 / c886; field x = the game's x - 60), measured from the
- * combatants' boxes (D_d8f1 ...) against their places; a door's picture stands on an edge of its doorway
- * and rises some 40 pixels above it. Doors: count 20a5:1f52, 14-byte records at 1f54 (x, y, w, h map pixels), open 20a5:33d3[k]. */
+ * combatants' boxes (D_d8f1 ...) against their places; a door's picture stands on the edge between its
+ * doorway and its pair's and rises some 40 pixels above it: a click is for the door on that face only (a
+ * box round it took in floor and the dark beside it: 1.4-RC, "the whole area registers a click to the
+ * door"), and only for a door seen (its doorway or its pair's revealed). Doors: count 20a5:1f52, 14-byte
+ * records at 1f54 (x, y, w, h map pixels; +12 its pair), open 20a5:33d3[k]. */
 static s32 lw_cell(int x, int y) { u16 o = (u16)((x * 40 + y) * 4); return (s32)((u32)rw(G_FAR20A5, o) | (u32)rw(G_FAR20A5, (u16)(o + 2)) << 16); }
-/* the cells the party reaches from the leader's without going through a shut door's doorway (floor cells,
-   by their sides): dist (cells, -1 not), and which cells are such doorways */
+/* a wall on side d of cell (x, y) (d 0 east, 1 west, 2 south, 3 north: the low nibble of the cell's bytes 0, 1,
+   3, 2 - 1..11 a wall, 12..15 a door open) */
+static int lw_wall(int x, int y, int d) { static const int SH[4] = { 0, 8, 24, 16 }; int t = (int)((u32)lw_cell(x, y) >> SH[d]) & 15; return t >= 1 && t <= 11; }
+/* the cells the party reaches from the leader's without going through a shut door's doorway or a wall (floor
+   cells, by their sides): dist (cells, -1 not), and which cells are such doorways */
 static signed char rdist[40][40];
 static unsigned char rdoor[40][40];
 static int reach(int lead)
@@ -277,19 +315,15 @@ static int reach(int lead)
         for (int k = 0; k < 4; k++) {
             int nx = cx + D[k][0], ny = cy + D[k][1];
             if (nx < 0 || nx >= 40 || ny < 0 || ny >= 40 || rdist[nx][ny] >= 0 || rdoor[nx][ny] || lw_cell(nx, ny) < 0) continue;
+            if (lw_wall(cx, cy, k) || lw_wall(nx, ny, k ^ 1)) continue;
             rdist[nx][ny] = (signed char)(rdist[cx][cy] < 120 ? rdist[cx][cy] + 1 : 120); qx_[qt_] = (short)nx; qy_[qt_++] = (short)ny;
         }
     }
     return 1;
 }
 int levelwalk_door_open(int n);
-/* Off for now (1.4): a door opened so was open, but the room beyond it showed only once the view moved.
-   Until that is put right no click or pointer note is taken for a door (the tests udoorat and udoorwalk
-   still reach the code: DL_DOOR_CLICKS=1 turns it on). */
-static int door_clicks(void) { static int on = -1; if (on < 0) on = getenv("DL_DOOR_CLICKS") != 0; return on; }
 int levelwalk_door_at(int gx, int gy)          /* the door under the game's pointer (gx, gy), or -1 */
 {
-    if (!door_clicks()) return -1;
     if (game_mode() != GM_BATTLE || config_get_int("original", 0) || g_rb(GV_real_combat)) return -1;
     int menuview_open(void), ui_is_open(void); extern int ns_screen;
     if (menuview_open() || ui_is_open() || ns_screen != NS_NONE) return -1;    /* (a menu, a window or a screen over the field: the click is theirs) */
@@ -304,11 +338,25 @@ int levelwalk_door_at(int gx, int gy)          /* the door under the game's poin
     for (int k = 0; k < n; k++) {
         u16 r0 = DOOR_REC(k);
         if (levelwalk_door_open(k)) continue;                              /* (an open door: its doorway is a way through, walked as the game walks) */
+        int p = door_partner(k);
+        if (p < 0 || p >= n) continue;
         int x = (s16)rw(G_FAR20A5, r0), y = (s16)rw(G_FAR20A5, (u16)(r0 + 2)), w = rb(G_FAR20A5, (u16)(r0 + 4)), h = rb(G_FAR20A5, (u16)(r0 + 5));
-        int sx0 = (x - ox) - (y + h - oy) + 135 - 4, sx1 = (x + w - ox) - (y - oy) + 135;   /* (the picture: along the doorway's edge, rising above it) */
-        int sy1 = (y + h - oy) + 109, sy0 = (y - oy) + 109 - 40;
-        if (fx < sx0 || fx > sx1 || gy < sy0 || gy > sy1) continue;
-        int cx = (sx0 + sx1) / 2, d = abs(fx - cx) + abs(gy - (sy0 + sy1) / 2);
+        int px = (s16)rw(G_FAR20A5, DOOR_REC(p)), py = (s16)rw(G_FAR20A5, (u16)(DOOR_REC(p) + 2));
+        if (x < 0 || y < 0 || px < 0 || py < 0) continue;
+        if ((x / 32 >= 40 || y / 16 >= 40 || lw_cell(x / 32, y / 16) < 0) && (px / 32 >= 40 || py / 16 >= 40 || lw_cell(px / 32, py / 16) < 0)) continue;   /* (in the dark: not seen) */
+        /* the door's face: on the edge between its doorway and its pair's, rising H pixels (a point of it: its
+           place along the edge, and its height above the floor; M pixels' grace round it) */
+        const int H = 40, M = 3;
+        int along, up, len;
+        if (py == y && px != x) {                                          /* (the pair east or west: the edge runs north-south, down and to the left on the screen) */
+            int ex = (x > px ? x : px) - ox, u = ex + 135 - fx;            /* (u: the edge's point under the pointer's column, map y - oy) */
+            along = u + oy - y; len = h; up = u + 109 - gy;
+        } else if (px == x && py != y) {                                   /* (north or south: the edge runs across the screen) */
+            int ey = (y > py ? y : py) - oy, mx = fx - 135 + ox + ey;
+            along = mx - x; len = w; up = ey + 109 - gy;
+        } else continue;
+        if (along < -M || along > len + M || up < -M || up > H + M) continue;
+        int d = abs(along - len / 2) + abs(up - H / 2);
         if (d < bd) { bd = d; best = k; }
     }
     if (best < 0) return -1;

@@ -145,6 +145,10 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "ulevelmap")) { void levelmap_toggle(void); levelmap_toggle(); }   /* test: Tab in a battle */
         else if (!strcmp(cmd, "ulvwalk")) { extern int levelwalk_x, levelwalk_y, levelwalk_floor; int x = 0, y = 0; sscanf(arg, "%d,%d", &x, &y); levelwalk_x = x; levelwalk_y = y; levelwalk_floor = (s8)g_rb(GV_floor_shown); }   /* test: a click on the level map (Tab) at x, y (map pixels): the party walks there */
         else if (!strcmp(cmd, "udoorat")) { int levelwalk_door_at(int, int); int x = 0, y = 0; sscanf(arg, "%d,%d", &x, &y); fprintf(stderr, "udoorat %d,%d: %d\n", x, y, levelwalk_door_at(x, y)); }   /* test: the door a click at game x, y would take (-1 none) */
+        else if (!strcmp(cmd, "udoorscan")) {          /* test: the door a click would take at each game pixel (every other one), as text in file arg: a letter a door (a = 0), '.' none */
+            int levelwalk_door_at(int, int); FILE *f = fopen(arg, "w");
+            if (f) { for (int y = 0; y < 200; y += 2) { for (int x = 0; x < 320; x += 2) { int d = levelwalk_door_at(x, y); fputc(d < 0 ? '.' : 'a' + d % 26, f); } fputc('\n', f); } fclose(f); }
+            fprintf(stderr, "udoorscan %s\n", arg); }
         else if (!strcmp(cmd, "udoorwalk")) { int levelwalk_door(int); int n = atoi(arg); fprintf(stderr, "udoorwalk %d: %d\n", n, levelwalk_door(n)); }   /* test: as a click on door n (ufloor's number): the walk to it, the door used there */
         else if (!strcmp(cmd, "udoor")) { int n = 0, o = 1; sscanf(arg, "%d,%d", &n, &o); u16 a[3] = { (u16)n, (u16)o, 1 }; game_call_far(23, 0x1ef8, 0x04ac, 3, a); }   /* test: door n (ufloor's number) opened (o 1) or shut (0): door_set, s023 1ef8:04ac */
         else if (!strcmp(cmd, "artexport")) { char m[400]; hdart_export(m, sizeof m); fprintf(stderr, "%s\n", m); }
@@ -398,6 +402,7 @@ int testcmd_run(const char *cmd, const char *arg)
         }
         else if (!strcmp(cmd, "ualchemy")) { extern int uscreen_pending, uscreen_a, uscreen_b; uscreen_a = 0; uscreen_b = 8; sscanf(arg, "%d,%d", &uscreen_a, &uscreen_b); uscreen_pending = 1; }   /* test: the alchemy screen (member, hours) at the next card menu */
         else if (!strcmp(cmd, "uunpause")) { int p = g_rb(0xa695) == 1; if (p) { void bios_kbd_inject(u16); bios_kbd_inject(0x3920); } fprintf(stderr, "unpause: %s\n", p ? "was paused" : "running"); }   /* test: a battle running (Space only if it is paused: ai_paused) */
+        else if (!strcmp(cmd, "upaused")) fprintf(stderr, "paused: ai_paused %d real_combat %d choice pending %d\n", g_rb(0xa695), g_rb(GV_real_combat), g_rb(0xd6f1));   /* test: is the battle paused */
         else if (!strcmp(cmd, "umenu")) { int m = 0, i = 0, j = -1; sscanf(arg, "%d,%d,%d", &m, &i, &j); void menuview_request(int, int, int); menuview_request(m, i, j); }   /* test: menu m's entry i (sub-entry j) chosen, as a click on it does */
         else if (!strcmp(cmd, "ulib")) {                /* test: the saints the library at location k teaches */
             int k = atoi(arg), o[4]; int gm_library_saints(int loc, int out[4]); gm_library_saints(k, o);

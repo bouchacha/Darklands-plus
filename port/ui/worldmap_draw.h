@@ -1,5 +1,5 @@
 /* worldmap_draw.h - the world map's pictures and its places, shared by the map window
- * (ui/worldmap.cpp), the travel map's labels and the test sheet (ui/worldmap_draw.cpp). */
+ * (ui/worldmap.cpp), the travel map's labels and route (ui/travel.cpp) and the test sheet (ui/worldmap_draw.cpp). */
 #pragma once
 #include <string>
 #include <vector>
@@ -28,6 +28,7 @@ void quest_ring(std::vector<ImVec2> &at, int n, ImVec2 mid, ImVec2 pin, float is
 std::string hhmm(int minutes);                         /* "40 minutes", "22 hours", "1.4 days" */
 float aspect(void);
 void tile_px(int x, int y, float *px, float *py);      /* a tile's middle, in travel-screen pixels */
+void route_smooth(std::vector<ImVec2> &p);             /* a route of tiles' middles drawn as the way goes, not the rows' zigzag */
 float map_border_px(void);
 void compass_rose(ImDrawList *dl, ImVec2 c, float r);
 void draw_map_frame(ImDrawList *dl, ImVec2 a, ImVec2 b);

@@ -53,7 +53,7 @@ static u32 decided_t;                  /* when combat_over last said the battle 
 static void over_hook(void)
 {
     hook_call_original();
-    if (!on() || AX) return;
+    if (unw_active || !on() || AX) return;            /* (unw_active: a game loaded in a card the battle showed - the riddle of a door - is torn down through here) */
     int res = (s16)g_rw(GV_battle_result);
     u16 now = g_rw(GV_combat_clock), until = g_rw(GV_battle_end_at);
     int hold = res == 0 ? HOLD_WON : res == 3 || res == 5 ? HOLD_LOST : -1;

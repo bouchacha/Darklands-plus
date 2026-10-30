@@ -1269,22 +1269,25 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/journal.cpp:1155` | No shop's wares noted yet. |
 | `ui/journal.cpp:1155` | Not seen in any shop yet. |
 | `ui/journal.cpp:1160` | Town (nearest first) |
-| `ui/levelmap.cpp:248` |  Stairs seen to floor  |
-| `ui/levelmap.cpp:248` |  Stairs seen to floors  |
-| `ui/levelmap.cpp:249` | Floor %d: the party has been here.%s%s%s |
-| `ui/levelmap.cpp:249` |  Stairs seen to floor  |
-| `ui/levelmap.cpp:249` |  Stairs seen to floors  |
-| `ui/levelmap.cpp:250` | A floor nobody has been on yet: stairs from floor %s lead there. |
-| `ui/levelmap.cpp:251` |  Click: the party walks to those stairs. |
-| `ui/levelmap.cpp:251` |  Click: the party walks to those stairs and takes them. |
-| `ui/levelmap.cpp:508` | The whole level  (floor %d) |
-| `ui/levelmap.cpp:508` | The level, as far as the party has seen it  (floor %d) |
-| `ui/levelmap.cpp:519` | enemies seen |
-| `ui/levelmap.cpp:521` | arrows: who targets whom |
-| `ui/levelmap.cpp:524` | stairs, ways out |
-| `ui/levelmap.cpp:525` | not yet revealed |
-| `ui/levelmap.cpp:527` | Click the floor to walk the party there (the map closes, and they go). Tab or Esc closes the level map; the game is paused until then. |
-| `ui/levelmap.cpp:527` | Tab or Esc closes the level map; the game is paused until then. |
+| `ui/levelmap.cpp:50` | does not work consistently |
+| `ui/levelmap.cpp:65` | does not work consistently |
+| `ui/levelmap.cpp:296` |  Stairs seen to floor  |
+| `ui/levelmap.cpp:296` |  Stairs seen to floors  |
+| `ui/levelmap.cpp:297` | Floor %d: the party has been here.%s%s%s |
+| `ui/levelmap.cpp:297` |  Stairs seen to floor  |
+| `ui/levelmap.cpp:297` |  Stairs seen to floors  |
+| `ui/levelmap.cpp:298` | A floor nobody has been on yet: stairs from floor %s lead there. |
+| `ui/levelmap.cpp:299` |  Click: the party walks to those stairs. |
+| `ui/levelmap.cpp:299` |  Click: the party walks to those stairs and takes them. |
+| `ui/levelmap.cpp:607` | The whole level  (floor %d) |
+| `ui/levelmap.cpp:607` | The level, as far as the party has seen it  (floor %d) |
+| `ui/levelmap.cpp:630` | enemies seen |
+| `ui/levelmap.cpp:632` | arrows: who targets whom |
+| `ui/levelmap.cpp:635` | stairs, ways out |
+| `ui/levelmap.cpp:637` | not explored yet |
+| `ui/levelmap.cpp:638` | not yet revealed |
+| `ui/levelmap.cpp:640` | Click the floor to walk the party there (the map closes, and they go). Tab or Esc closes the level map; the game is paused until then. |
+| `ui/levelmap.cpp:640` | Tab or Esc closes the level map; the game is paused until then. |
 | `ui/lodgeview.cpp:168` | Camping in the wild |
 | `ui/lodgeview.cpp:168` | Staying here |
 | `ui/lodgeview.cpp:190` | The room: %s a day.%s |
@@ -1478,7 +1481,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/margins_battle.cpp:447` | gravely wounded |
 | `ui/margins_battle.cpp:452` | The master of this place: once this one has fallen and the fight is over, the place is won. |
 | `ui/margins_battle.cpp:457` | None in sight yet. |
-| `ui/margins_battle.cpp:459` | To explore: in Single File (Q) or as a Group (G), click a passage or stairs and the party walks there%s. |
+| `ui/margins_battle.cpp:459` | To explore: in Single File (Q) or as a Group (G), click a passage or stairs and the party walks there; click a shut door and they walk to it and open it%s. |
 | `ui/margins_battle.cpp:460` | ; Tab shows the level map (as far as the party has seen it), and a click on it walks the party there |
 | `ui/margins_battle.cpp:469` | The fight is won. To go on, walk the party out of this place: click a way out (the edge of the street, a door, stairs). |
 | `ui/menuview.cpp:106` | Arrows, Enter; Esc closes |
@@ -2447,91 +2450,93 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui_windows.cpp:304` | Point at anyone |
 | `ui/ui_windows.cpp:304` | who it is and how badly hurt |
 | `ui/ui_windows.cpp:305` | a map of the level as far as the party has seen it; a click on its floor walks the party there (Darklands+) |
-| `ui/ui_windows.cpp:307` | The battle log |
-| `ui/ui_windows.cpp:307` | every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal > Battle log keeps it all |
-| `ui/ui_windows.cpp:309` | Now: the loot |
-| `ui/ui_windows.cpp:310` | Take / Put back |
-| `ui/ui_windows.cpp:310` | on the row under the pointer: the whole stack (1: just one) |
-| `ui/ui_windows.cpp:311` | everything into the party's pack |
-| `ui/ui_windows.cpp:311` | go to the member shown above the right list (each member's own); the rest into the party's pack |
-| `ui/ui_windows.cpp:312` | Take all / Share out |
-| `ui/ui_windows.cpp:312` | everything to the member shown / to whoever has some already, else whoever has the most room (A / S) |
-| `ui/ui_windows.cpp:313` | Names above the right list, D |
-| `ui/ui_windows.cpp:313` | switch to another member |
-| `ui/ui_windows.cpp:314` | L, Esc or Leave |
-| `ui/ui_windows.cpp:314` | leave (what is left stays behind) |
-| `ui/ui_windows.cpp:316` | Now: the loot |
-| `ui/ui_windows.cpp:317` | get the chosen item from the pile / put one back (the cursor's list) |
-| `ui/ui_windows.cpp:318` | switch to the next member (the one who gets what you take) |
-| `ui/ui_windows.cpp:319` | take the whole pile for the member shown |
-| `ui/ui_windows.cpp:319` | share the pile out: each item to whoever has some already, else whoever has the most room |
-| `ui/ui_windows.cpp:320` | leave (what is left stays behind) |
-| `ui/ui_windows.cpp:323` | on the row under the pointer; with Shift: ten / the whole stack |
-| `ui/ui_windows.cpp:324` | Names above your list |
-| `ui/ui_windows.cpp:324` | whose items are listed (B: the next member); right-click a name: that member holds the purse |
-| `ui/ui_windows.cpp:325` | Wheel, Up, Down |
-| `ui/ui_windows.cpp:325` | scroll the list under the pointer |
-| `ui/ui_windows.cpp:326` | L, Esc or Leave |
-| `ui/ui_windows.cpp:329` | buy the merchant's chosen item / sell your chosen item (one at a time) |
-| `ui/ui_windows.cpp:330` | buy ten of the merchant's chosen item (while the money lasts) |
-| `ui/ui_windows.cpp:330` | sell the whole stack of your chosen item |
-| `ui/ui_windows.cpp:331` | barter for the next member |
-| `ui/ui_windows.cpp:334` | Now: the store room |
-| `ui/ui_windows.cpp:335` | on the row under the pointer: the whole stack (1: just one) |
-| `ui/ui_windows.cpp:336` | every item not equipped (with the party's pack, Darklands+: except kept items and potions) |
-| `ui/ui_windows.cpp:337` | a potion taken goes to the member shown above the right list; the rest into the party's pack |
-| `ui/ui_windows.cpp:338` | The store room |
-| `ui/ui_windows.cpp:338` | the same at every inn (Darklands+; F12 > Settings > New screens) |
-| `ui/ui_windows.cpp:339` | L, Esc or Leave |
-| `ui/ui_windows.cpp:341` | Now: a character sheet |
-| `ui/ui_windows.cpp:342` | Equip / Unequip / Drink / Keep / Drop |
-| `ui/ui_windows.cpp:342` | on the row under the pointer on the Items page: with the shared pack (Darklands+) the spare items are in the party's pack, and Equip moves the item from the pack to this member and equips it (Drop with Shift: all of them) |
-| `ui/ui_windows.cpp:343` | each member's own: drag one onto someone at the left to give it |
-| `ui/ui_windows.cpp:344` | marks an item never to be sold or dropped (a small seal on its row) |
-| `ui/ui_windows.cpp:345` | only equipped items count toward the load, as in the original |
-| `ui/ui_windows.cpp:346` | Equip / Unequip / Drink / Give / Drop |
-| `ui/ui_windows.cpp:346` | on the row under the pointer on the Items page (Give and Drop with Shift: the whole stack) |
-| `ui/ui_windows.cpp:347` | Items, Skills, Saints, Formulae |
-| `ui/ui_windows.cpp:347` | the pages at the top (Tab or Right: next page; Shift+Tab or Left: previous page) |
-| `ui/ui_windows.cpp:348` | Portraits, F1 ... F5 |
-| `ui/ui_windows.cpp:348` | another member's sheet; this member's own portrait, Esc or Close: back |
-| `ui/ui_windows.cpp:349` | Ctrl+F1 ... Ctrl+F5 |
-| `ui/ui_windows.cpp:349` | make member 1 ... 5 the leader (or Make leader) |
-| `ui/ui_windows.cpp:350` | Wheel, Up, Down |
-| `ui/ui_windows.cpp:350` | scroll the list |
-| `ui/ui_windows.cpp:352` | Now: a character sheet |
-| `ui/ui_windows.cpp:353` | Ctrl+F1 ... Ctrl+F5 |
-| `ui/ui_windows.cpp:353` | make member 1 ... 5 the leader (or Make leader at the top) |
-| `ui/ui_windows.cpp:354` | Up, Down, PgUp, PgDn |
-| `ui/ui_windows.cpp:354` | move in a list (the mouse wheel too) |
-| `ui/ui_windows.cpp:355` | in the equipment list: give the chosen item to member 1 ... 5 (with Shift: all of them) |
-| `ui/ui_windows.cpp:356` | in the equipment list: ready or wear the chosen item |
-| `ui/ui_windows.cpp:357` | in the equipment list: drop the chosen item (with Shift: all of them) |
-| `ui/ui_windows.cpp:359` | Keys of the original game |
-| `ui/ui_windows.cpp:360` | the menu bar: click an entry (or hold the button and let go on it); a click elsewhere or any key closes it; F10 with the keyboard |
-| `ui/ui_windows.cpp:361` | Right mouse button |
-| `ui/ui_windows.cpp:361` | the menu bar, while it is held: let go on an entry (F10 with the keyboard) |
-| `ui/ui_windows.cpp:362` | Alt+S / Alt+L |
-| `ui/ui_windows.cpp:362` | save / load, with a comment (the original's screens list nine saves) |
-| `ui/ui_windows.cpp:363` | the marching order |
-| `ui/ui_windows.cpp:364` | difficulty    Alt+M music    Alt+F sound effects |
-| `ui/ui_windows.cpp:365` | messages about saints' changes on / off |
-| `ui/ui_windows.cpp:367` | quit to the desktop |
-| `ui/ui_windows.cpp:369` | the Darklands+ window (pauses the game) |
-| `ui/ui_windows.cpp:370` | Ctrl+S / F9 or Ctrl+L |
-| `ui/ui_windows.cpp:370` | quick save / quick load |
-| `ui/ui_windows.cpp:371` | full screen    Ctrl+F12 screenshot |
-| `ui/ui_windows.cpp:374` | The controller |
-| `ui/ui_windows.cpp:380` | moves the pointer (slowly while the left trigger is held) |
-| `ui/ui_windows.cpp:381` | the mouse wheel; pressed: Z (fast forward in a battle) |
-| `ui/ui_windows.cpp:382` | click / right-click (the menu bar) |
-| `ui/ui_windows.cpp:384` | the arrow keys |
-| `ui/ui_windows.cpp:385` | Tab (the level map) / Space (pause) |
-| `ui/ui_windows.cpp:386` | {START} {BACK} |
-| `ui/ui_windows.cpp:386` | F12 (the Darklands+ window) / M (the world map) |
-| `ui/ui_windows.cpp:387` | held: Ctrl (in the overland view: Ctrl+click travels there) |
-| `ui/ui_windows.cpp:388` | pressed: F11 (this list) |
-| `ui/ui_windows.cpp:390` | F11, Esc or a click closes this. |
+| `ui/ui_windows.cpp:306` | Click a shut door |
+| `ui/ui_windows.cpp:306` | out of a fight: the party walks to it and opens it (Darklands+) |
+| `ui/ui_windows.cpp:308` | The battle log |
+| `ui/ui_windows.cpp:308` | every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal > Battle log keeps it all |
+| `ui/ui_windows.cpp:310` | Now: the loot |
+| `ui/ui_windows.cpp:311` | Take / Put back |
+| `ui/ui_windows.cpp:311` | on the row under the pointer: the whole stack (1: just one) |
+| `ui/ui_windows.cpp:312` | everything into the party's pack |
+| `ui/ui_windows.cpp:312` | go to the member shown above the right list (each member's own); the rest into the party's pack |
+| `ui/ui_windows.cpp:313` | Take all / Share out |
+| `ui/ui_windows.cpp:313` | everything to the member shown / to whoever has some already, else whoever has the most room (A / S) |
+| `ui/ui_windows.cpp:314` | Names above the right list, D |
+| `ui/ui_windows.cpp:314` | switch to another member |
+| `ui/ui_windows.cpp:315` | L, Esc or Leave |
+| `ui/ui_windows.cpp:315` | leave (what is left stays behind) |
+| `ui/ui_windows.cpp:317` | Now: the loot |
+| `ui/ui_windows.cpp:318` | get the chosen item from the pile / put one back (the cursor's list) |
+| `ui/ui_windows.cpp:319` | switch to the next member (the one who gets what you take) |
+| `ui/ui_windows.cpp:320` | take the whole pile for the member shown |
+| `ui/ui_windows.cpp:320` | share the pile out: each item to whoever has some already, else whoever has the most room |
+| `ui/ui_windows.cpp:321` | leave (what is left stays behind) |
+| `ui/ui_windows.cpp:324` | on the row under the pointer; with Shift: ten / the whole stack |
+| `ui/ui_windows.cpp:325` | Names above your list |
+| `ui/ui_windows.cpp:325` | whose items are listed (B: the next member); right-click a name: that member holds the purse |
+| `ui/ui_windows.cpp:326` | Wheel, Up, Down |
+| `ui/ui_windows.cpp:326` | scroll the list under the pointer |
+| `ui/ui_windows.cpp:327` | L, Esc or Leave |
+| `ui/ui_windows.cpp:330` | buy the merchant's chosen item / sell your chosen item (one at a time) |
+| `ui/ui_windows.cpp:331` | buy ten of the merchant's chosen item (while the money lasts) |
+| `ui/ui_windows.cpp:331` | sell the whole stack of your chosen item |
+| `ui/ui_windows.cpp:332` | barter for the next member |
+| `ui/ui_windows.cpp:335` | Now: the store room |
+| `ui/ui_windows.cpp:336` | on the row under the pointer: the whole stack (1: just one) |
+| `ui/ui_windows.cpp:337` | every item not equipped (with the party's pack, Darklands+: except kept items and potions) |
+| `ui/ui_windows.cpp:338` | a potion taken goes to the member shown above the right list; the rest into the party's pack |
+| `ui/ui_windows.cpp:339` | The store room |
+| `ui/ui_windows.cpp:339` | the same at every inn (Darklands+; F12 > Settings > New screens) |
+| `ui/ui_windows.cpp:340` | L, Esc or Leave |
+| `ui/ui_windows.cpp:342` | Now: a character sheet |
+| `ui/ui_windows.cpp:343` | Equip / Unequip / Drink / Keep / Drop |
+| `ui/ui_windows.cpp:343` | on the row under the pointer on the Items page: with the shared pack (Darklands+) the spare items are in the party's pack, and Equip moves the item from the pack to this member and equips it (Drop with Shift: all of them) |
+| `ui/ui_windows.cpp:344` | each member's own: drag one onto someone at the left to give it |
+| `ui/ui_windows.cpp:345` | marks an item never to be sold or dropped (a small seal on its row) |
+| `ui/ui_windows.cpp:346` | only equipped items count toward the load, as in the original |
+| `ui/ui_windows.cpp:347` | Equip / Unequip / Drink / Give / Drop |
+| `ui/ui_windows.cpp:347` | on the row under the pointer on the Items page (Give and Drop with Shift: the whole stack) |
+| `ui/ui_windows.cpp:348` | Items, Skills, Saints, Formulae |
+| `ui/ui_windows.cpp:348` | the pages at the top (Tab or Right: next page; Shift+Tab or Left: previous page) |
+| `ui/ui_windows.cpp:349` | Portraits, F1 ... F5 |
+| `ui/ui_windows.cpp:349` | another member's sheet; this member's own portrait, Esc or Close: back |
+| `ui/ui_windows.cpp:350` | Ctrl+F1 ... Ctrl+F5 |
+| `ui/ui_windows.cpp:350` | make member 1 ... 5 the leader (or Make leader) |
+| `ui/ui_windows.cpp:351` | Wheel, Up, Down |
+| `ui/ui_windows.cpp:351` | scroll the list |
+| `ui/ui_windows.cpp:353` | Now: a character sheet |
+| `ui/ui_windows.cpp:354` | Ctrl+F1 ... Ctrl+F5 |
+| `ui/ui_windows.cpp:354` | make member 1 ... 5 the leader (or Make leader at the top) |
+| `ui/ui_windows.cpp:355` | Up, Down, PgUp, PgDn |
+| `ui/ui_windows.cpp:355` | move in a list (the mouse wheel too) |
+| `ui/ui_windows.cpp:356` | in the equipment list: give the chosen item to member 1 ... 5 (with Shift: all of them) |
+| `ui/ui_windows.cpp:357` | in the equipment list: ready or wear the chosen item |
+| `ui/ui_windows.cpp:358` | in the equipment list: drop the chosen item (with Shift: all of them) |
+| `ui/ui_windows.cpp:360` | Keys of the original game |
+| `ui/ui_windows.cpp:361` | the menu bar: click an entry (or hold the button and let go on it); a click elsewhere or any key closes it; F10 with the keyboard |
+| `ui/ui_windows.cpp:362` | Right mouse button |
+| `ui/ui_windows.cpp:362` | the menu bar, while it is held: let go on an entry (F10 with the keyboard) |
+| `ui/ui_windows.cpp:363` | Alt+S / Alt+L |
+| `ui/ui_windows.cpp:363` | save / load, with a comment (the original's screens list nine saves) |
+| `ui/ui_windows.cpp:364` | the marching order |
+| `ui/ui_windows.cpp:365` | difficulty    Alt+M music    Alt+F sound effects |
+| `ui/ui_windows.cpp:366` | messages about saints' changes on / off |
+| `ui/ui_windows.cpp:368` | quit to the desktop |
+| `ui/ui_windows.cpp:370` | the Darklands+ window (pauses the game) |
+| `ui/ui_windows.cpp:371` | Ctrl+S / F9 or Ctrl+L |
+| `ui/ui_windows.cpp:371` | quick save / quick load |
+| `ui/ui_windows.cpp:372` | full screen    Ctrl+F12 screenshot |
+| `ui/ui_windows.cpp:375` | The controller |
+| `ui/ui_windows.cpp:381` | moves the pointer (slowly while the left trigger is held) |
+| `ui/ui_windows.cpp:382` | the mouse wheel; pressed: Z (fast forward in a battle) |
+| `ui/ui_windows.cpp:383` | click / right-click (the menu bar) |
+| `ui/ui_windows.cpp:385` | the arrow keys |
+| `ui/ui_windows.cpp:386` | Tab (the level map) / Space (pause) |
+| `ui/ui_windows.cpp:387` | {START} {BACK} |
+| `ui/ui_windows.cpp:387` | F12 (the Darklands+ window) / M (the world map) |
+| `ui/ui_windows.cpp:388` | held: Ctrl (in the overland view: Ctrl+click travels there) |
+| `ui/ui_windows.cpp:389` | pressed: F11 (this list) |
+| `ui/ui_windows.cpp:391` | F11, Esc or a click closes this. |
 | `ui/worldmap.cpp:74` | Unwelcome here |
 | `ui/worldmap.cpp:74` | The watch on alert here |
 | `ui/worldmap.cpp:74` | Wanted by the watch here |
@@ -2552,61 +2557,61 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/worldmap.cpp:233` | Boat routes between the towns' docks |
 | `ui/worldmap.cpp:233` | Each place as an icon of its kind (else a dot) |
 | `ui/worldmap.cpp:234` | The days of travel from the party to every town, under its name (off at first: it crowds the map) |
-| `ui/worldmap.cpp:446` | Towns with ... |
-| `ui/worldmap.cpp:535` | the marked spot |
-| `ui/worldmap.cpp:552` | Click for what it offers, and to travel there |
-| `ui/worldmap.cpp:588` | No way there from here |
-| `ui/worldmap.cpp:589` | Travel there |
+| `ui/worldmap.cpp:451` | Towns with ... |
+| `ui/worldmap.cpp:540` | the marked spot |
+| `ui/worldmap.cpp:557` | Click for what it offers, and to travel there |
+| `ui/worldmap.cpp:593` | No way there from here |
 | `ui/worldmap.cpp:594` | Travel there |
-| `ui/worldmap.cpp:597` | Leave town and travel there |
-| `ui/worldmap.cpp:606` | No way there by land from here. |
-| `ui/worldmap.cpp:608` | To travel, be in the overland view or in a town's streets |
-| `ui/worldmap.cpp:614` | Walk out of %s's gate and travel to %s? |
-| `ui/worldmap.cpp:615` | The party walks through the streets to a gate and out; in the overland view the journey begins. |
-| `ui/worldmap.cpp:616` | Leave and travel |
-| `ui/worldmap.cpp:635` | The wares noted here (%d shop%s) |
-| `ui/worldmap.cpp:652` | Boats leave here for these towns (not every day: the docks say which leave today). |
-| `ui/worldmap.cpp:653` | Boats from these towns call here; none sail back to them from here. |
-| `ui/worldmap.cpp:654` | Boats sail both ways between here and these towns (not every day: the docks say which leave today). |
-| `ui/worldmap.cpp:676` | Its docks have no boats leaving (the original game has none either). |
-| `ui/worldmap.cpp:718` | Collect your reward |
-| `ui/worldmap.cpp:718` | Robber knights |
-| `ui/worldmap.cpp:718` | Treasures to fetch |
-| `ui/worldmap.cpp:718` | Papers to get in a town |
-| `ui/worldmap.cpp:718` | City politics |
-| `ui/worldmap.cpp:718` | Cities at war |
-| `ui/worldmap.cpp:718` | The Wild Hunt |
-| `ui/worldmap.cpp:718` | Other quests |
-| `ui/worldmap.cpp:736` | %s (%d)###qg |
-| `ui/worldmap.cpp:742` | Sorted %s first: click for %s first. |
-| `ui/worldmap.cpp:742` | the soonest due |
-| `ui/worldmap.cpp:751` | No quests or rumors yet. |
-| `ui/worldmap.cpp:845` | cave near Köln |
-| `ui/worldmap.cpp:851` | and %d more: type more of the name to narrow the list |
-| `ui/worldmap.cpp:852` | No place of that name. |
-| `ui/worldmap.cpp:856` | Alchemical ingredients |
-| `ui/worldmap.cpp:872` | Click one to circle those towns on the map. |
-| `ui/worldmap.cpp:884` |  the party has been to: |
-| `ui/worldmap.cpp:888` | ... and %d more (circled on the map) |
-| `ui/worldmap.cpp:889` | %s %dq##tl%d |
-| `ui/worldmap.cpp:899` | Show on the map |
-| `ui/worldmap.cpp:916` | shown (click to hide) |
-| `ui/worldmap.cpp:916` | hidden (click to show) |
-| `ui/worldmap.cpp:931` | Places: click a kind to show or hide it. |
-| `ui/worldmap.cpp:960` | The party: a click shows it on the map. |
-| `ui/worldmap.cpp:964` | Map of Greater Germany |
-| `ui/worldmap.cpp:970` | {LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes. |
-| `ui/worldmap.cpp:971` | Drag to move, wheel to zoom. M or Esc closes. |
-| `ui/worldmap.cpp:973` | Traveling to %s |
-| `ui/worldmap.cpp:1036` | faded: leaves later this week |
-| `ui/worldmap.cpp:1101` | Click to take the boat. |
+| `ui/worldmap.cpp:599` | Travel there |
+| `ui/worldmap.cpp:602` | Leave town and travel there |
+| `ui/worldmap.cpp:611` | No way there by land from here. |
+| `ui/worldmap.cpp:613` | To travel, be in the overland view or in a town's streets |
+| `ui/worldmap.cpp:619` | Walk out of %s's gate and travel to %s? |
+| `ui/worldmap.cpp:620` | The party walks through the streets to a gate and out; in the overland view the journey begins. |
+| `ui/worldmap.cpp:621` | Leave and travel |
+| `ui/worldmap.cpp:640` | The wares noted here (%d shop%s) |
+| `ui/worldmap.cpp:657` | Boats leave here for these towns (not every day: the docks say which leave today). |
+| `ui/worldmap.cpp:658` | Boats from these towns call here; none sail back to them from here. |
+| `ui/worldmap.cpp:659` | Boats sail both ways between here and these towns (not every day: the docks say which leave today). |
+| `ui/worldmap.cpp:681` | Its docks have no boats leaving (the original game has none either). |
+| `ui/worldmap.cpp:723` | Collect your reward |
+| `ui/worldmap.cpp:723` | Robber knights |
+| `ui/worldmap.cpp:723` | Treasures to fetch |
+| `ui/worldmap.cpp:723` | Papers to get in a town |
+| `ui/worldmap.cpp:723` | City politics |
+| `ui/worldmap.cpp:723` | Cities at war |
+| `ui/worldmap.cpp:723` | The Wild Hunt |
+| `ui/worldmap.cpp:723` | Other quests |
+| `ui/worldmap.cpp:741` | %s (%d)###qg |
+| `ui/worldmap.cpp:747` | Sorted %s first: click for %s first. |
+| `ui/worldmap.cpp:747` | the soonest due |
+| `ui/worldmap.cpp:756` | No quests or rumors yet. |
+| `ui/worldmap.cpp:850` | cave near Köln |
+| `ui/worldmap.cpp:856` | and %d more: type more of the name to narrow the list |
+| `ui/worldmap.cpp:857` | No place of that name. |
+| `ui/worldmap.cpp:861` | Alchemical ingredients |
+| `ui/worldmap.cpp:877` | Click one to circle those towns on the map. |
+| `ui/worldmap.cpp:889` |  the party has been to: |
+| `ui/worldmap.cpp:893` | ... and %d more (circled on the map) |
+| `ui/worldmap.cpp:894` | %s %dq##tl%d |
+| `ui/worldmap.cpp:904` | Show on the map |
+| `ui/worldmap.cpp:921` | shown (click to hide) |
+| `ui/worldmap.cpp:921` | hidden (click to show) |
+| `ui/worldmap.cpp:936` | Places: click a kind to show or hide it. |
+| `ui/worldmap.cpp:965` | The party: a click shows it on the map. |
+| `ui/worldmap.cpp:969` | Map of Greater Germany |
+| `ui/worldmap.cpp:975` | {LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes. |
+| `ui/worldmap.cpp:976` | Drag to move, wheel to zoom. M or Esc closes. |
+| `ui/worldmap.cpp:978` | Traveling to %s |
+| `ui/worldmap.cpp:1041` | faded: leaves later this week |
+| `ui/worldmap.cpp:1106` | Click to take the boat. |
 | `ui/worldmap_draw.cpp:105` | ruined castle |
 | `ui/worldmap_draw.cpp:107` | ruined village |
 | `ui/worldmap_draw.cpp:108` | standing stone |
 | `ui/worldmap_draw.cpp:108` | witches' meeting place |
 | `ui/worldmap_draw.cpp:137` | Spring or lake |
-| `ui/worldmap_draw.cpp:359` | Map of Greater Germany |
-| `ui/worldmap_draw.cpp:523` | About %s of travel |
+| `ui/worldmap_draw.cpp:387` | Map of Greater Germany |
+| `ui/worldmap_draw.cpp:551` | About %s of travel |
 
 ## The game side (mods/)
 
@@ -2785,19 +2790,20 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/hdart.c:992` |  (some could not be written) |
 | `mods/hdtext.c:457` | cursor: shown %d page %d save %d,%d %dx%d at %d,%d |
 | `mods/keep.c:46` | # formulae first or last in the alchemy screen's list (formula f first\|last)  |
-| `mods/levelwalk.c:104` | The party could not get into the doorway. |
-| `mods/levelwalk.c:112` | The party could get no nearer to the place chosen on the level map. |
-| `mods/levelwalk.c:136` | The party cannot get there from where it stands. |
-| `mods/levelwalk.c:144` |  in single file (press G to move as a group again) |
-| `mods/levelwalk.c:147` | The party goes in single file (press G to move as a group again). |
-| `mods/levelwalk.c:150` | The party walks there%s. |
-| `mods/levelwalk.c:151` | The party will walk there%s: Space resumes the battle. |
-| `mods/levelwalk.c:152` | The party walks there%s. |
-| `mods/levelwalk.c:223` | There are no stairs on this floor that the party has found. |
-| `mods/levelwalk.c:236` | The party walks to the stairs and takes them. |
-| `mods/levelwalk.c:236` | The party walks to the stairs. |
-| `mods/levelwalk.c:375` | The party walks to the door to close it. |
-| `mods/levelwalk.c:375` | The party walks to the door to open it. |
+| `mods/levelwalk.c:55` | only works when you pick a tile that isn't next to a wall |
+| `mods/levelwalk.c:122` | The party could not get into the doorway. |
+| `mods/levelwalk.c:130` | The party could get no nearer to the place chosen on the level map. |
+| `mods/levelwalk.c:168` | The party cannot get there from where it stands. |
+| `mods/levelwalk.c:176` |  in single file (press G to move as a group again) |
+| `mods/levelwalk.c:179` | The party goes in single file (press G to move as a group again). |
+| `mods/levelwalk.c:182` | The party walks there%s. |
+| `mods/levelwalk.c:183` | The party will walk there%s: Space resumes the battle. |
+| `mods/levelwalk.c:184` | The party walks there%s. |
+| `mods/levelwalk.c:255` | There are no stairs on this floor that the party has found. |
+| `mods/levelwalk.c:268` | The party walks to the stairs and takes them. |
+| `mods/levelwalk.c:268` | The party walks to the stairs. |
+| `mods/levelwalk.c:423` | The party walks to the door to close it. |
+| `mods/levelwalk.c:423` | The party walks to the door to open it. |
 | `mods/lodgeview.c:140` | Castle Guard |
 | `mods/lodgeview.c:143` | Castle Servant |
 | `mods/lodgeview.c:144` | Castle Steward |

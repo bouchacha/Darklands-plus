@@ -89,6 +89,15 @@ void hook_run(int idx)
 }
 
 /* the next hook of the chain, or the game's function */
+static void unw_note(int idx, int d)            /* (debugging, DL_UNW_LOG: the hooks a game unwinding - a load, Quit - passes back through) */
+{
+    static int on = -1; if (on < 0) on = getenv("DL_UNW_LOG") != 0;
+    if (!on || !unw_active) return;
+    unsigned lin = 0; int sect = -9;
+    for (int i = 0; i < HOOK_COUNT; i++) if (HOOK_POINTS[i].idx == idx) { lin = HOOK_POINTS[i].lin; sect = HOOK_POINTS[i].sect; break; }
+    void (*h)(void) = chain_ok(idx) && d < chains[idx].n ? chains[idx].fn[d] : 0;
+    fprintf(stderr, "unwind: back through the hook of s%d %05x (chain %d, hook %p)\n", sect, lin, d, (void *)h);
+}
 void hook_call_original(void)
 {
     int idx = hook_current, d = hook_depth;
@@ -96,6 +105,7 @@ void hook_call_original(void)
         hook_depth = d + 1;
         chains[idx].fn[d + 1]();
         hook_current = idx; hook_depth = d;
+        unw_note(idx, d);
         return;
     }
     void (*f)(void) = func_of(idx);
@@ -103,6 +113,7 @@ void hook_call_original(void)
     hook_bypass = idx;
     f();
     hook_current = idx; hook_depth = d;
+    unw_note(idx, d);
 }
 
 void hook_return_far(unsigned n) { SP = (u16)(SP + 4 + n); }

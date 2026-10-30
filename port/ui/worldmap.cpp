@@ -324,7 +324,9 @@ extern "C" void worldmap_draw(void)
     // auto-travel route
     if (travel.active && travel.n > 1) {
         std::vector<ImVec2> pts;
-        for (int i = travel.i > 0 ? travel.i - 1 : 0; i < travel.n; i++) { float x, y; tile_px(travel.rx[i], travel.ry[i], &x, &y); pts.push_back(to_scr(x, y)); }
+        for (int i = travel.i > 0 ? travel.i - 1 : 0; i < travel.n; i++) { float x, y; tile_px(travel.rx[i], travel.ry[i], &x, &y); pts.push_back(ImVec2(x, y)); }
+        route_smooth(pts);
+        for (ImVec2 &q : pts) q = to_scr(q.x, q.y);
         dl->AddPolyline(pts.data(), (int)pts.size(), IM_COL32(0, 0, 0, 160), 0, 5);
         dl->AddPolyline(pts.data(), (int)pts.size(), IM_COL32(255, 220, 90, 255), 0, 2.5f);
     }
@@ -378,8 +380,11 @@ extern "C" void worldmap_draw(void)
             float dz = fmaxf(3.5f, 4.0f * fminf(1.6f, zoom / fitz));
             float t = (float)ImGui::GetTime(), sp = dz * 4.0f, acc = sp - fmodf(t * 30.0f, sp);   /* (the dots run from the party towards the place) */
             ImVec2 prev = ImVec2(0, 0);
-            for (int i = 0; i < pn; i++) {
-                float x, y; tile_px(px_[i], py_[i], &x, &y); ImVec2 q = to_scr(x, y);
+            std::vector<ImVec2> way; way.reserve((size_t)pn);
+            for (int i = 0; i < pn; i++) { float x, y; tile_px(px_[i], py_[i], &x, &y); way.push_back(ImVec2(x, y)); }
+            route_smooth(way);
+            for (int i = 0; i < (int)way.size(); i++) {
+                ImVec2 q = to_scr(way[i].x, way[i].y);
                 if (i) {
                     float L = sqrtf((q.x - prev.x) * (q.x - prev.x) + (q.y - prev.y) * (q.y - prev.y));
                     for (float s0 = fmodf(sp - acc + 1000 * sp, sp); s0 < L; s0 += sp) {

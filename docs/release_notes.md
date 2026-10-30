@@ -4,44 +4,19 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 
 **Install:** unpack the zip anywhere and start `darklands.exe`. It finds a GOG or Steam installation by itself or asks for the folder once. The first start takes about two minutes while Darklands+ translates the game program from your `DARKLAND.EXE`; after that it starts at once. Your saved games stay where they always were. `Darklands+ README.txt` in the zip has the details.
 
-**New in 1.4** (what changed since 1.3.1)
+**New in 1.5** (what changed since 1.4)
 
 **Added**
 
-- **Ways of fighting:** each member has one (Skirmisher, Archer, Charger or Manual), set on their box in the party panel and kept between battles. It decides what they do between your orders, and replaces the bow-or-sword switch.
-- **64 new encounters**, 80 in all (F12 > Mods): more in the wild, and new ones on the river boats, in town streets and in camp, each showing what came of your choice.
-- **Level map (Tab)** remembers what the party has seen. Click anywhere seen to walk there, or a floor to walk to its stairs.
-- **Ingredients of one quality:** all are quality 25, so each kind is one stack (quality only ever changed the price). F12 > Settings > The party and its items turns it off.
-- **Report a problem** (F12 > About) zips the logs, settings and newest saves, and opens a prefilled GitHub bug form.
-- **Alchemy:** a chart of the chance for each number of batches, the possible outcomes, starred formulae. Each town sells the Philosopher's Stone at one fixed quality.
-- **Saints** can be picked by what they raise; praying spends no more favor than the best chance needs.
-- **World map:** Find... looks up places, ingredients and wares; a town's panel shows its saints, formulae, teachers and boats.
-- **Battle order buttons** are larger pictures with their keys, in fixed places; potions have their own grid.
-- **Blessings and potions at work** are listed compactly in the margin, in battles too.
-- **Camp** shows the chance of the lord's men finding the party; Train or study, never possible in the wild, is gone.
-- **Aging forecast:** point at a member's age on the character sheet.
-- **Save and Load** show each save's file name.
-- **Beasts** have their own death sound in sound packs.
-- **Various UI legibility improvements.**
-- **For modders:** encounters can be placed on boats, in streets or in camp; `port/tools/enccheck.c` checks scripts.
+- **Doors:** out of a fight, clicking a shut door walks the party to it and opens it.
+- **Level map (Tab)** shows every room the party has entered, walls on each side of the floor, and the openings not yet explored.
 
 **Fixed**
 
-- Loading a save made during a new encounter crashed the game.
-- Save 100 did not appear on the Load page, and every later save overwrote it.
-- Lauf, west of Speyer, could not be entered: stepping onto it led into the Rammelsburg mine (original bug).
-- Party members could box each other in at a corner in a castle, mine or dungeon, leaving all but the leader stuck.
-- U beside a door walked the party to the stairs in single file instead of opening the door.
-- After a Darklands+ screen, the pointer could be drawn a little left of the spot a click takes.
-- Relics found deep in mines were always quality 35 and not the real item (original bug).
-- Near Basel, Zürich and Konstanz the party jumped two to four rows north on the travel map (original bug); journeys along Zürich's road got stuck at the map's edge.
-- Fast travel could walk in place without end; it now stops when 150 steps bring it no nearer.
-- Loading a save did not stop a journey under way or end an open encounter.
-- A battle loaded from a save stayed black until someone moved.
-- Battle saves made in a castle, mine or dungeon got garbled names.
-- Windows reporting a permanent loss could be closed by a stray key or click before being read.
-- City politics counted February 29s the game never has.
-- "Can't walk there" hints showed over the order buttons and panels.
+- On the level map, a click beside a wall could walk the party to the far side of it.
+- The level map could forget rooms the party had seen, after a save was loaded or the place was entered again.
+- A walk chosen on the level map just after loading a battle stood still.
+- Auto-travel routes due north or south were drawn as a zigzag (GitHub issue 3).
 
 ### What it adds
 

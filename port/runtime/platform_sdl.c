@@ -748,8 +748,9 @@ static void run_script(void)
         else if (!strcmp(s->cmd, "travel")) { void travel_click(int, int); travel_click(x, y); }   /* as Ctrl+click at game x,y */
         else if (!strcmp(s->cmd, "travelto")) { int travel_to_loc(int, const char *); travel_to_loc(atoi(s->arg), "test"); }
         else if (!strcmp(s->cmd, "travelnear")) { int travel_nearest(int); travel_nearest(atoi(s->arg)); }   /* nearest location of a type */
-        else if (!strcmp(s->cmd, "uclick") || !strcmp(s->cmd, "urclick")) {   /* a click (urclick: right) as from the system, window pixels */
+        else if (!strcmp(s->cmd, "uclick") || !strcmp(s->cmd, "urclick") || !strcmp(s->cmd, "ugclick")) {   /* a click (urclick: right) as from the system, window pixels (ugclick: game pixels) */
             int btn = s->cmd[1] == 'r' ? SDL_BUTTON_RIGHT : SDL_BUTTON_LEFT;
+            if (s->cmd[1] == 'g') { float wx, wy; plat_game_to_win((float)x + 0.5f, (float)y + 0.5f, &wx, &wy); x = (int)wx; y = (int)wy; }
             SDL_Event ev; memset(&ev, 0, sizeof ev);
             Uint32 wid = win ? SDL_GetWindowID(win) : 0;
             if (win) SDL_WarpMouseInWindow(win, x, y);
