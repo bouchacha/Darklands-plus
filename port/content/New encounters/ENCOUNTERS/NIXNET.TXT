@@ -13,7 +13,7 @@ saints   0x63, 0x16, 0x6f                # Nicholas, Christopher, Raphael
 option 0                                   # cut the oar free (Edged)
   who    bestskill(Edged)
   chance clamp(5, 90, skill(who, Edged) + attr(who, Agl) / 3 - 5)
-  ok     chosen who; money1 random(48) + 24; text 1; gain money1; practice who, Edged, 1, 10, 0; exit
+  ok     chosen who; text 1; attr party, End, 2; practice who, Edged, 1, 10, 0; exit
   fail   chosen who; text 2; attr who, End, -4; practice who, Edged, 0, 10, 0; hours 3; exit
 option 1                                   # haul the net aboard (the party's Strength)
   who    party
@@ -32,10 +32,10 @@ block    3
 option 0                                   # cut him loose and let him go
   chance none
   ok     money1 random(48) + 24; text 8; gain money1; exit
-option 1                                   # hold him and drive a harder bargain (Streetwise)
+option 1                                   # hold him till he swears to speed you to the landing (Streetwise)
   who    bestskill(Streetwise)
   chance clamp(5, 90, skill(who, Streetwise) + attr(who, Int) / 3 - 10)
-  ok     chosen who; money1 random(120) + 96; text 9; gain money1; practice who, Streetwise, 1, 10, 0; attr party, DF, -3; exit
+  ok     chosen who; text 9; attr party, End, 3; practice who, Streetwise, 1, 10, 0; attr party, DF, -2; exit
   fail   chosen who; text 10; attr who, End, -5; practice who, Streetwise, 0, 10, 0; exit
 option 2                                   # bind him in God's name (Religion)
   who    bestskill(Religion)

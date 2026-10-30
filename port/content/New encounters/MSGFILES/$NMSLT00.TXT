@@ -1,15 +1,15 @@
 # $NMSLT00: the salt smugglers (New encounters)
 === card 0: 10 10 0 240 0 ===
-A shaded lantern blinks in the reeds by the river. A flat boat lies drawn up on the mud, and men are carrying sacks from it to a cart on the bank, quickly and without a word. White dust lies on their shoulders: salt, brought past the lord's toll castle upstream by night.
+A shaded lantern blinks in the reeds by the river. A flat boat lies drawn up on the mud, and men are carrying sacks from it to a cart on the bank, quickly and without a word. White dust lies on their shoulders: salt.
 \14A dog barks. The men freeze. Their leader comes toward you, a heavy man in an oilskin hood, and holds out a hand with coins in it. "A fine night for walking. You saw nothing, and here is $Money1 for your trouble." As he speaks his hood slips back, and you see the shaven crown of a priest.
-\14"The lord takes a third of the price in toll," he says, unashamed. "My parish eats its bread unsalted, or it eats this."
+\14"It is slaughtering time," he says, unashamed. "Every house in my parish has killed its pig, and the lord lets no salt be sold in his lands but from his own salt-house, at his own price. Without salt the pork rots by Candlemas, and my flock eats turnips till Easter. So I fetch it."
 \14You...
 \14\15...\1dtake his $Money1 and see nothing.
 \15...\1dhelp them carry the sacks before the lord's riders come by.
 \15...\1dsuggest that silence is worth rather more than that.
 \15...\1dwalk on without a word.
 === card 1: 10 10 0 240 0 ===
-You take the coins. The priest blesses you, a little absently, and goes back to his sacks. When you look round again, boat, cart and lantern are gone into the dark.
+You take the coins: worn pfennigs and a few thin groschen, the kind that comes out of an alms box. The priest blesses you, a little absently, and goes back to his sacks. When you look round again, boat, cart and lantern are gone into the dark.
 === card 2: 10 10 0 240 0 ===
 You shoulder sacks with the rest and trot them up the bank in the dark. Halfway through, hoofbeats come along the dike: the lord's riders, with torches. Everyone drops flat in the reeds, and the riders pass within a spear's length, talking of a girl in the castle kitchen.
 \14By the small hours the cart is loaded and away. The priest blesses each of you in turn, with salt on his fingers, and means it.

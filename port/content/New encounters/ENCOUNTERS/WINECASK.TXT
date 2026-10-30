@@ -31,7 +31,7 @@ option 0                                   # seize the steering oar (Artifice)
   chance clamp(5, 90, skill(who, Artifice) + attr(who, Per) / 3 - drunk * 10)
   ok     chosen who; money1 size * 12; text 7; gain money1; practice who, Artifice, 1, 10, 0; exit
   fail   chosen who; money1 min(money, 48 + random(48)); text 8; pay money1; practice who, Artifice, 0, 10, 0; hours 3; exit
-option 1                                   # throw a line to the mill's moorings (Thrown)
+option 1                                   # throw a line to the fisherman's post (Thrown)
   who    bestskill(Thrown)
   chance clamp(5, 90, skill(who, Thrown) + attr(who, Agl) / 3 - drunk * 10)
   ok     chosen who; text 9; attr party, End, 3; practice who, Thrown, 1, 10, 0; hours 1; exit

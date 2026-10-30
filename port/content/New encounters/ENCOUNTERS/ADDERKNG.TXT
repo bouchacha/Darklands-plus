@@ -16,7 +16,7 @@ option 0                                   # snatch the crown while the king bat
   who    bestattrsum(Agl, Per)
   chance clamp(5, 85, attr(who, Agl) + attr(who, Per) / 3 - 10)
   ok     chosen who; text 1; additem who, 0x48; attr party, DF, -2; exit
-  fail   chosen who; text 2; injure who, 1, 1, 10; goto bitten
+  fail   chosen who; text 2; injure who, 1, 1, 10; goto hunt
 option 1                                   # spread a white cloth, as the books of secrets teach (Alchemy)
   who    bestskill(Alchemy)
   chance clamp(5, 90, skill(who, Alchemy) + attr(who, Int) / 3 - 10)
@@ -26,7 +26,7 @@ option 2                                   # strike off the king's head as it le
   who    bestskill(Edged)
   chance clamp(5, 90, skill(who, Edged) + attr(who, Agl) / 3 - 15)
   ok     chosen who; text 5; additem who, 0x48; attr party, DF, -3; practice who, Edged, 1, 10, 0; exit
-  fail   chosen who; text 6; injure who, 1, 1, 10; practice who, Edged, 0, 10, 0; goto bitten
+  fail   chosen who; text 6; injure who, 1, 1, 10; practice who, Edged, 0, 10, 0; goto hunt
 option 3 saint                             # pray to a saint against the serpents
   ok     text 7; additem leader, 0x48; exit
   fail   text 8
@@ -34,19 +34,5 @@ option 4                                   # back away quietly
   chance none
   ok     text 9; exit
 
-[bitten]
-block    10
-items    0x73, 0x70                      # Essence o'Grace, New-wind
-option 0                                   # cut and draw the bites and bind them (Healing)
-  who    bestskill(Healing)
-  chance clamp(5, 90, skill(who, Healing) + attr(who, Int) / 3)
-  ok     chosen2 who; text 11; hours 3; heal chosen, End, 50; practice who, Healing, 1, 10, 0; exit
-  fail   chosen2 who; text 12; until 6; attr chosen, End, -4; attr chosen, Str, -2; practice who, Healing, 0, 10, 0; exit
-option 1 potion                            # a healing draught
-  potion 0x73, clamp(0, 99, 60 + q / 2)
-  potion 0x70, clamp(0, 99, 25 + q / 2)
-  ok     text 13; hours 1; heal chosen, End, 100; exit
-  fail   text 14
-option 2                                   # make camp and let the fever run its course
-  chance none
-  ok     text 15; days 1; attr chosen, End, -4; attr chosen, Str, -2; exit
+[hunt]                                     # the serpents hunt the party out of the marsh
+do       text 10; attr party, End, -3; hours 2; exit

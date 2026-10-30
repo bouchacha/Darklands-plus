@@ -1,6 +1,6 @@
 # $NMSHP00: the ship-mill adrift (New encounters)
 === card 0: 10 10 0 240 0 ===
-Shouts and lanterns on the river bank in the dark. Out on the black water a ship-mill has torn loose from its moorings: a mill-house built across two moored hulls, its great wheel still turning in the current as it drifts. A light burns in its window, and downstream, not half a mile off, stands the stone bridge.
+Shouts and lanterns on the river bank in the dark. The river is running high and fast after a week of rain, and out on the black water a ship-mill has torn loose from its moorings: a mill-house built across two moored hulls, its great wheel still turning in the current as it drifts. A light burns in its window, and downstream, not half a mile off, stands the stone bridge.
 \14The miller runs along the bank in his nightshirt with a coil of rope, howling to every saint he knows. "My mill! It will break on the piers!"
 \14You...
 \14\15...\1dtake his rope and throw it out to the mill.

@@ -19,20 +19,20 @@ $ChosenOneName shakes the merchant awake, and he wakes shouting "Thieves!" at $h
 === card 5: 10 10 0 240 0 ===
 You roll yourselves in your cloaks at the bow. The singing at the stern grows louder, and then slurred, and then stops, and you sleep.
 === card 6: 10 10 0 240 0 ===
-Grey dawn, and shouting from the bank. You start awake: the steersman is snoring against his oar, half the crew lie where they fell, and the barge is drifting broadside down on a floating mill, two hulls moored in midstream with a great wheel churning between them. On its gangway the miller is waving his arms and screaming.
+Grey dawn, and shouting from the bank. You start awake: the steersman is snoring against his oar, half the crew lie where they fell, and the barge is drifting broadside into the narrows, where the river runs white over a reef of black rocks that the boatmen call the Wolf's Teeth. On the bank a fisherman is waving his arms and screaming.
 \14You...
 \14\15...\1dseize the steering oar.
-\15...\1dthrow a line to the mill's moorings.
+\15...\1dthrow a line to the fisherman's mooring post.
 \15...\1dgrab your baggage and jump for the bank.
 === card 7: 10 10 0 240 0 ===
-$ChosenOneName shoves the snoring steersman aside and throws $his weight on the oar. The barge comes round, slowly, slowly, and slides past the mill close enough to be splashed by its wheel. The miller sits down on his gangway and crosses himself.
+$ChosenOneName shoves the snoring steersman aside and throws $his weight on the oar. The barge comes round, slowly, slowly, and slides past the reef close enough to hear the rocks grate along the keel. The fisherman sits down on the bank and crosses himself.
 \14The merchant, who slept through it all, wakes to hear the tale and pays $ChosenOneName $Money1 for the deliverance of his wine.
 === card 8: 10 10 0 240 0 ===
-$ChosenOneName heaves on the oar, but too late. The barge strikes the mill with a crash that wakes even the steersman, and the wheel smashes two of its paddles on the bow. The miller wants his damages, the captain wants the passengers' share of them, and by the time it is all settled three hours are gone, and $Money1 of yours with them.
+$ChosenOneName heaves on the oar, but too late. The barge strikes the reef with a crash that wakes even the steersman, and hangs there with the river piling against her side. It takes three hours and every back aboard to work her off and patch the sprung planks, and the captain, who has decided that it was somehow the passengers' fault, makes you pay your share of the damage: $Money1.
 === card 9: 10 10 0 240 0 ===
-$ChosenOneName's line snakes across the water and drops over a mooring post of the mill. The boatmen take a turn round the bitts, and the barge swings round on the rope and stops a fathom short of the wheel.
-\14The miller, who was sure he was a dead man, laughs like a boy and has you all into his hut for hot porridge and bacon while the crew sober up.
+$ChosenOneName's line snakes across the water and drops over the fisherman's mooring post. The boatmen take a turn round the bitts, and the barge swings round on the rope and stops a fathom short of the rocks.
+\14The fisherman, who was sure he would be pulling drowned men out of his nets all week, laughs like a boy and has you all into his hut for hot porridge and bacon while the crew sober up.
 === card 10: 10 10 0 240 0 ===
-$ChosenOneName's line falls short and trails uselessly in the water. The mill comes on.
+$ChosenOneName's line falls short and trails uselessly in the water. The rocks come on.
 === card 11: 10 10 0 240 0 ===
 You snatch up what you can carry and leap for the bank as the barge drifts past it. Behind you comes a crash of timber and a great deal of shouting. You walk the rest of the way to the landing along the towpath, and arrive hours later, muddy to the knee.

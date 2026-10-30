@@ -29,7 +29,7 @@ The gentleman in green holds out a purse. It is heavy, and it chinks. He has not
 \15...\1dsell him the seed.
 === card 8: 10 10 0 240 0 ===
 "In the name of the Father, and of the Son, and of the Holy Ghost," says $ChosenTwoName, "begone."
-\14The gentleman's smile does not change, but he goes, and where he stood the ferns are scorched brown and the air stinks of brimstone. $ChosenOneName folds the cloth over the seed. By morning it is gone, as such things go; but for a long time afterwards people's eyes seem to slide past $ChosenOneName as if $he were not there at all.
+\14The gentleman's smile does not change, but he goes, and where he stood the ferns are scorched brown and the air stinks of brimstone. $ChosenOneName folds the cloth over the seed. By morning the seed is gone, as such things go, but not all of its gift: from that night on, eyes slide past $ChosenOneName a little more easily than they should, as if $he were hardly there.
 === card 9: 10 10 0 240 0 ===
 "In the name of the Father..." begins $ChosenTwoName, but the gentleman only laughs, leans down and blows softly on the cloth. The seed scatters into the dark like sparks.
 \14"Another year," he says, and is gone. You do not sleep again that night.

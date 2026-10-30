@@ -12,12 +12,12 @@ vars     bit                                   # who was bitten
 block    0
 chosen   worstattr(Per)                        # the boot's owner
 option 0                                   # tip the boot over slowly with a stick (Woodwise, Agility)
-  who    bestattrskill(Agl, Woodwise)
+  who    bestskill(Woodwise, chosen)
   chance clamp(10, 90, skill(who, Woodwise) + attr(who, Agl) / 2 + 10)
   ok     chosen2 who; text 1; practice who, Woodwise, 1, 10, 0; exit
   fail   chosen2 who; set bit = who; text 2; practice who, Woodwise, 0, 10, 0; goto bitten
 option 1                                   # strike off its head as it comes out (Edged)
-  who    bestskill(Edged)
+  who    bestskill(Edged, chosen)
   chance clamp(5, 90, skill(who, Edged) + attr(who, Agl) / 3 - 10)
   ok     chosen2 who; text 3; attr party, End, 1; practice who, Edged, 1, 10, 0; exit
   fail   chosen2 who; set bit = chosen; text 4; practice who, Edged, 0, 10, 0; goto bitten
@@ -31,7 +31,7 @@ chosen   bit
 saints   0x69, 0x68, 0x6f, -1                  # Paul (the viper of Malta), Patrick, Raphael
 items    0x73, 0x70                            # Essence o'Grace, New-wind
 option 0                                   # cut, suck and bind the bite (Healing)
-  who    bestskill(Healing)
+  who    bestskill(Healing, chosen)
   chance clamp(10, 90, skill(who, Healing) + attr(who, Int) / 3)
   ok     chosen2 who; text 7; attr chosen, End, -3; hours 1; practice who, Healing, 1, 10, 0; exit
   fail   chosen2 who; text 8; injure chosen, 1, 1, 10; hours 3; practice who, Healing, 0, 10, 0; exit

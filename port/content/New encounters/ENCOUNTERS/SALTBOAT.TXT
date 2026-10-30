@@ -1,4 +1,4 @@
-# The salt smugglers: by night, men land salt from a flat boat in the reeds to cheat the lord's toll, and their leader wears a tonsure.
+# The salt smugglers: at slaughtering time, men land salt from a flat boat in the reeds by night against the lord's salt-house, and their leader wears a tonsure.
 name     The salt smugglers
 card     $NmSlt00
 picture  XHIDDEN
@@ -6,13 +6,14 @@ where    wild
 terrain  marsh woods road
 when     night
 weight   1
+only     month >= 10 and month <= 12           # slaughtering time, when the winter pork is salted
 
 [start]
 do       money1 size * 24
 block    0
 option 0                                   # take his coins and see nothing
   chance none
-  ok     text 1; gain money1; exit
+  ok     text 1; gain money1; attr party, DF, -1; exit
 option 1                                   # help carry the sacks before the riders pass (Stealth)
   who    party
   chance clamp(5, 90, avgskill(Stealth) + avgagility * 2 / 3)

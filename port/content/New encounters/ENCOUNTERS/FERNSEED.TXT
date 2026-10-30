@@ -38,7 +38,7 @@ block    7
 option 0                                   # bid him begone in God's name (Religion)
   who    bestskill(Religion)
   chance clamp(5, 90, skill(who, Religion) + attr(who, DF) / 3 - 10)
-  ok     chosen2 who; text 8; until 5; skill chosen, Stealth, 2; attr party, DF, 2; practice who, Religion, 1, 10, 0; exit
+  ok     chosen2 who; text 8; until 5; skill chosen, Stealth, 1; attr party, DF, 2; practice who, Religion, 1, 10, 0; exit
   fail   chosen2 who; text 9; until 5; attr party, End, -2; practice who, Religion, 0, 10, 0; exit
 option 1                                   # sell him the seed
   chance none

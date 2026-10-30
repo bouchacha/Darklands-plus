@@ -13,7 +13,7 @@ The mast jams halfway out of its step, swings, and catches $ChosenOneName a blow
 === card 3: 10 10 0 240 0 ===
 The ward's men let down ropes and two of their own, who know the arch. Between them they lay the mast along the deck and, with much shouting and no haste at all, warp the boat through, scraping the stones. They take their money in a bucket let down on a cord.
 === card 4: 10 10 0 240 0 ===
-You tie up under a willow and wait. The river takes its time: a day, then another, while you sleep, eat the captain's bacon and watch drowned sheep go by. At last the water falls, and you pass under the bridge with room to spare, well rested.
+You tie up under a willow and wait. The river takes its time, a day or two of it, while you sleep, eat the captain's bacon and watch drowned sheep go by. At last the water falls, and you pass under the bridge with room to spare, well rested.
 === card 5: 10 10 0 240 0 ===
 With a crack of timber the boat jams fast under the arch, and the river, piling up white against her stern, begins to pour over the gunwale. She will be pushed under in minutes. Faces crowd the parapet above you.
 \14"Down!" bellows the captain. "She must sit lower! One hand's breadth, and she goes through!"
