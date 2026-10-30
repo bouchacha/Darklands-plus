@@ -8,7 +8,7 @@ What changed since 1.3.1.
 
 - **Ways of fighting:** each member has one (Skirmisher, Archer, Charger or Manual), set on their box in the party panel and kept between battles. It decides what they do between your orders, and replaces the bow-or-sword switch.
 - **64 new encounters**, 80 in all (F12 > Mods): more in the wild, and new ones on the river boats, in town streets and in camp, each showing what came of your choice.
-- **Level map (Tab)** remembers what the party has seen. Click anywhere seen to walk there, or a floor to walk to its stairs. In a castle, mine or dungeon, clicking a door walks to it and opens it.
+- **Level map (Tab)** remembers what the party has seen. Click anywhere seen to walk there, or a floor to walk to its stairs.
 - **Ingredients of one quality:** all are quality 25, so each kind is one stack (quality only ever changed the price). F12 > Settings > The party and its items turns it off.
 - **Report a problem** (F12 > About) zips the logs, settings and newest saves, and opens a prefilled GitHub bug form.
 - **Alchemy:** a chart of the chance for each number of batches, the possible outcomes, starred formulae. Each town sells the Philosopher's Stone at one fixed quality.

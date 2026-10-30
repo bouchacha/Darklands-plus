@@ -303,7 +303,6 @@ void help_window(void)
             row("Ctrl+click a member", "make that member the active one: the view follows them (scrolling at an edge stops it)");
             row("Point at anyone", "who it is and how badly hurt");
             if (levelmap_available()) row("Tab", "a map of the level as far as the party has seen it; a click on its floor walks the party there (Darklands+)");
-            if (!ui_original_mode()) row("Click a door", "out of a fight: the party walks to it and opens it, or closes it (Darklands+)");
             if (!ui_original_mode() && config_get_int("battle.fast_key", 1)) row("Z", "fast forward (six times the pace) / back to the chosen speed (Darklands+)");
             { extern int ui_battle_log; if (ui_battle_log && !ui_original_mode()) row("The battle log", "every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal > Battle log keeps it all"); }
         } else if (loot_active && lootview_showing()) {

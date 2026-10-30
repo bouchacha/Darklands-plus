@@ -283,8 +283,13 @@ static int reach(int lead)
     return 1;
 }
 int levelwalk_door_open(int n);
+/* Off for now (1.4): a door opened so was open, but the room beyond it showed only once the view moved.
+   Until that is put right no click or pointer note is taken for a door (the tests udoorat and udoorwalk
+   still reach the code: DL_DOOR_CLICKS=1 turns it on). */
+static int door_clicks(void) { static int on = -1; if (on < 0) on = getenv("DL_DOOR_CLICKS") != 0; return on; }
 int levelwalk_door_at(int gx, int gy)          /* the door under the game's pointer (gx, gy), or -1 */
 {
+    if (!door_clicks()) return -1;
     if (game_mode() != GM_BATTLE || config_get_int("original", 0) || g_rb(GV_real_combat)) return -1;
     int menuview_open(void), ui_is_open(void); extern int ns_screen;
     if (menuview_open() || ui_is_open() || ns_screen != NS_NONE) return -1;    /* (a menu, a window or a screen over the field: the click is theirs) */
