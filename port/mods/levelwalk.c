@@ -77,7 +77,12 @@ static int walk_to(int lead, int tx, int ty, int *gx, int *gy)
    given, up to a dozen; a fight (real_combat) or another order ends it */
 int levelwalk_goal_x = -1, levelwalk_goal_y = -1, levelwalk_goal_floor = -1;   /* (ui/levelmap.cpp marks it) */
 static int goal_lead = -1, goal_legs, goal_fx, goal_fy;
-static int door_pending = -1, door_floor = -1, door_wx, door_wy;   /* a door clicked on the field: used on arrival (levelwalk_door) */
+static int door_pending = -1, door_floor = -1, door_wx, door_wy, door_wait;   /* a door clicked on the field: used on arrival (levelwalk_door) */
+#define DOOR_REC(n) ((u16)(0x1f54 + 14 * (n)))      /* doors: count 20a5:1f52, 14-byte records (x, y, w, h map pixels; +12 the door paired with it, -1 none) */
+static int door_partner(int n) { return (s8)rb(G_FAR20A5, (u16)(DOOR_REC(n) + 12)); }
+/* the door whose doorway member i stands in, as the game has it (s014 19cd:1ade, each round: D_a696[i] bit 2, the door D_c64c[i];
+   with it what Use Door will do, D_c678[i] open or shut, and from which side, D_c6ef[i]), or -1 */
+static int in_doorway(int i) { return (g_rb((u16)(0xa696 + 2 * i)) & 2) ? (s8)g_rb((u16)(0xc64c + i)) : -1; }
 static void goal_drop(void) { levelwalk_goal_x = levelwalk_goal_y = levelwalk_goal_floor = -1; goal_lead = -1; door_pending = -1; }
 static void goal_check(void)
 {
@@ -85,12 +90,20 @@ static void goal_check(void)
     int lead = goal_lead;
     if (g_rb(GV_real_combat) || g_rb(CBF(lead, CB_STATUS)) != 1 || (s8)g_rb((u16)(GV_cbt_floor + lead)) != levelwalk_goal_floor) { goal_drop(); return; }
     int x = (s16)g_rw(CBF(lead, CB_X)), y = (s16)g_rw(CBF(lead, CB_Y));
-    if (abs(x - levelwalk_goal_x) <= 20 && abs(y - levelwalk_goal_y) <= 12) {                         /* (there) */
-        int d = door_pending; goal_drop();
-        if (d >= 0 && (s8)g_rb(GV_floor_shown) == door_floor && !g_rb(GV_real_combat)) {               /* (a door clicked: it is used, as Use Door) */
-            ns_call(GF_door_toggle, 2, d, lead);
-            if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: door %d used by %d\n", d, lead);
+    if (door_pending >= 0) {                                       /* (a door clicked: used as Use Door, once the game has the leader in its doorway) */
+        int gd = in_doorway(lead), d = door_pending;
+        if (gd >= 0 && (gd == d || gd == door_partner(d)) && (s8)g_rb(GV_floor_shown) == door_floor) {
+            goal_drop();
+            ns_call(GF_door_toggle, 2, gd, lead);
+            if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: door %d used by %d\n", gd, lead);
+            return;
         }
+    }
+    if (abs(x - levelwalk_goal_x) <= 20 && abs(y - levelwalk_goal_y) <= 12) {                         /* (there) */
+        if (door_pending >= 0 && !g_rb((u16)(GV_cbt_moving + lead)) && ++door_wait > 20) {           /* (stopped short of the doorway) */
+            goal_drop(); ui_notice("The party could not get into the doorway.");
+        }
+        if (door_pending < 0) goal_drop();
         return;
     }
     if (g_rb((u16)(GV_cbt_moving + lead)) || g_rw(CBF(lead, CB_ORDER)) == 1) return;                 /* (on the way) */
@@ -123,7 +136,7 @@ static void input_hook(void)                 /* s014 0e76:3166 combat_input () *
         ui_notice("The party cannot get there from where it stands.");
         hook_call_original(); return;
     }
-    goal_lead = lead; levelwalk_goal_x = mx; levelwalk_goal_y = my; levelwalk_goal_floor = tfl; goal_legs = 0; door_pending = door;
+    goal_lead = lead; levelwalk_goal_x = mx; levelwalk_goal_y = my; levelwalk_goal_floor = tfl; goal_legs = 0; door_pending = door; door_wait = 0;
     goal_fx = (s16)g_rw(CBF(lead, CB_X)); goal_fy = (s16)g_rw(CBF(lead, CB_Y));
     if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: map %d,%d -> %d,%d for %d (move mode %d, was %d)\n", tx, ty, mx, my, lead, g_rb(GV_move_mode), was_mode);
     /* (word that the click was taken: the map closes on it, and the party is seen to go. Out of a fight the
@@ -236,67 +249,108 @@ void levelwalk_battle_begins(void) { goal_drop(); stairs_pending = -1; }
  * combatants' boxes (D_d8f1 ...) against their places; a door's picture stands on an edge of its doorway
  * and rises some 40 pixels above it. Doors: count 20a5:1f52, 14-byte records at 1f54 (x, y, w, h map pixels), open 20a5:33d3[k]. */
 static s32 lw_cell(int x, int y) { u16 o = (u16)((x * 40 + y) * 4); return (s32)((u32)rw(G_FAR20A5, o) | (u32)rw(G_FAR20A5, (u16)(o + 2)) << 16); }
-int levelwalk_door_at(int gx, int gy)          /* the door under the game's pointer (gx, gy), or -1 */
+/* the cells the party reaches from the leader's without going through a shut door's doorway (floor cells,
+   by their sides): dist (cells, -1 not), and which cells are such doorways */
+static signed char rdist[40][40];
+static unsigned char rdoor[40][40];
+static int reach(int lead)
 {
-    if (game_mode() != GM_BATTLE || config_get_int("original", 0) || g_rb(GV_real_combat)) return -1;
-    int fx = gx - 60;
-    if (fx < 0 || fx >= 0x104) return -1;
-    int ox = (s8)g_rb(0xc866) * 32, oy = (s8)g_rb(0xc886) * 16;
-    int n = (s8)rb(G_FAR20A5, 0x1f52), best = -1, bd = 1 << 30;
-    if (n < 0 || n > 40) return -1;
-    for (int k = 0; k < n; k++) {
-        u16 r0 = (u16)(0x1f54 + 14 * k);
-        int x = (s16)rw(G_FAR20A5, r0), y = (s16)rw(G_FAR20A5, (u16)(r0 + 2)), w = rb(G_FAR20A5, (u16)(r0 + 4)), h = rb(G_FAR20A5, (u16)(r0 + 5));
-        int sx0 = (x - ox) - (y + h - oy) + 135 - 12, sx1 = (x + w - ox) - (y - oy) + 135 + 2;   /* (the picture: along the doorway's edge, rising above it) */
-        int sy1 = (y + h - oy) + 109, sy0 = (y - oy) + 109 - 44;
-        if (fx < sx0 || fx > sx1 || gy < sy0 || gy > sy1) continue;
-        int cx = (sx0 + sx1) / 2, d = abs(fx - cx) + abs(gy - (sy0 + sy1) / 2);
-        if (d < bd) { bd = d; best = k; }
-    }
-    return best;
-}
-int levelwalk_door_open(int n) { return n >= 0 && n < 40 && rb(G_FAR20A5, (u16)(0x33d3 + n)) != 0; }
-/* the party to the floor before door n (the nearest floor cell to it, on the side the party is), the door used there */
-int levelwalk_door(int n)
-{
-    int nd = (s8)rb(G_FAR20A5, 0x1f52), lead = (s8)g_rb(GV_marching_order);
-    if (n < 0 || n >= nd || lead < 0 || lead > 4) return 0;
-    u16 r0 = (u16)(0x1f54 + 14 * n);
-    int x = (s16)rw(G_FAR20A5, r0), y = (s16)rw(G_FAR20A5, (u16)(r0 + 2)), w = rb(G_FAR20A5, (u16)(r0 + 4)), h = rb(G_FAR20A5, (u16)(r0 + 5));
-    float dx = x + w / 2.0f, dy = y + h / 2.0f;
-    int lx = (s16)g_rw(CBF(lead, CB_X)), ly = (s16)g_rw(CBF(lead, CB_Y));
-    /* the cells the party reaches without going through a doorway (floor cells, by their sides), from the
-       leader's: of those round the door, the nearest to it is where they stop (on their own side of it) */
-    static signed char dist[40][40];
-    static unsigned char doorway[40][40];
-    memset(doorway, 0, sizeof doorway);
-    for (int k = 0; k < nd && k < 40; k++) {
-        u16 q = (u16)(0x1f54 + 14 * k);
+    int nd = (s8)rb(G_FAR20A5, 0x1f52);
+    if (lead < 0 || lead > 4 || nd < 0 || nd > 40) return 0;
+    memset(rdoor, 0, sizeof rdoor);
+    for (int k = 0; k < nd; k++) {
+        if (rb(G_FAR20A5, (u16)(0x33d3 + k))) continue;                   /* (an open door is no wall) */
+        u16 q = DOOR_REC(k);
         int qx = (s16)rw(G_FAR20A5, q), qy = (s16)rw(G_FAR20A5, (u16)(q + 2)), qw = rb(G_FAR20A5, (u16)(q + 4)), qh = rb(G_FAR20A5, (u16)(q + 5));
+        if (qx < 0 || qy < 0) continue;
         for (int cx = qx / 32; cx <= (qx + qw - 1) / 32; cx++) for (int cy = qy / 16; cy <= (qy + qh - 1) / 16; cy++)
-            if (cx >= 0 && cx < 40 && cy >= 0 && cy < 40) doorway[cx][cy] = 1;
+            if (cx >= 0 && cx < 40 && cy >= 0 && cy < 40) rdoor[cx][cy] = 1;
     }
-    memset(dist, -1, sizeof dist);
+    memset(rdist, -1, sizeof rdist);
     static short qx_[1600], qy_[1600]; int qh_ = 0, qt_ = 0;
-    int sx = lx / 32, sy = ly / 16;
-    if (sx >= 0 && sx < 40 && sy >= 0 && sy < 40) { dist[sx][sy] = 0; qx_[qt_] = (short)sx; qy_[qt_++] = (short)sy; }
+    int sx = (s16)g_rw(CBF(lead, CB_X)) / 32, sy = (s16)g_rw(CBF(lead, CB_Y)) / 16;
+    if (sx < 0 || sx >= 40 || sy < 0 || sy >= 40) return 0;
+    rdist[sx][sy] = 0; qx_[qt_] = (short)sx; qy_[qt_++] = (short)sy;
     while (qh_ < qt_) {
         int cx = qx_[qh_], cy = qy_[qh_++];
         static const int D[4][2] = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } };
         for (int k = 0; k < 4; k++) {
             int nx = cx + D[k][0], ny = cy + D[k][1];
-            if (nx < 0 || nx >= 40 || ny < 0 || ny >= 40 || dist[nx][ny] >= 0 || doorway[nx][ny] || lw_cell(nx, ny) < 0) continue;
-            dist[nx][ny] = (signed char)(dist[cx][cy] < 120 ? dist[cx][cy] + 1 : 120); qx_[qt_] = (short)nx; qy_[qt_++] = (short)ny;
+            if (nx < 0 || nx >= 40 || ny < 0 || ny >= 40 || rdist[nx][ny] >= 0 || rdoor[nx][ny] || lw_cell(nx, ny) < 0) continue;
+            rdist[nx][ny] = (signed char)(rdist[cx][cy] < 120 ? rdist[cx][cy] + 1 : 120); qx_[qt_] = (short)nx; qy_[qt_++] = (short)ny;
         }
     }
-    float bd = 1e9f; int bx = -1, by = -1;
-    for (int cx = (int)(dx / 32) - 2; cx <= (int)(dx / 32) + 2; cx++)
-        for (int cy = (int)(dy / 16) - 2; cy <= (int)(dy / 16) + 2; cy++) {
-            if (cx < 0 || cx >= 40 || cy < 0 || cy >= 40 || dist[cx][cy] < 0) continue;
-            float px = cx * 32 + 16.0f, py = cy * 16 + 8.0f;
-            float d = (px - dx) * (px - dx) + 4 * (py - dy) * (py - dy);
-            if (d < bd) { bd = d; bx = cx; by = cy; }
-        }
+    return 1;
+}
+int levelwalk_door_open(int n);
+int levelwalk_door_at(int gx, int gy)          /* the door under the game's pointer (gx, gy), or -1 */
+{
+    if (game_mode() != GM_BATTLE || config_get_int("original", 0) || g_rb(GV_real_combat)) return -1;
+    int menuview_open(void), ui_is_open(void); extern int ns_screen;
+    if (menuview_open() || ui_is_open() || ns_screen != NS_NONE) return -1;    /* (a menu, a window or a screen over the field: the click is theirs) */
+    int fx = gx - 60;
+    if (fx < 0 || fx >= 0x104) return -1;
+    int ox = (s8)g_rb(0xc866) * 32, oy = (s8)g_rb(0xc886) * 16;
+    int n = (s8)rb(G_FAR20A5, 0x1f52), best = -1, bd = 1 << 30;
+    if (n < 0 || n > 40) return -1;
+    int nh = (s8)g_rb(GV_hotspot_count);                                  /* (on a figure: the figure's, a member chosen or a foe) */
+    for (int k = 0; k < nh && k < 40; k++)
+        if (fx >= (s16)g_rw((u16)(0xd8f1 + 2 * k)) && fx <= (s16)g_rw((u16)(0xd8d7 + 2 * k)) && gy >= (s16)g_rw((u16)(0xd8bd + 2 * k)) && gy <= (s16)g_rw((u16)(0xd8a3 + 2 * k))) return -1;
+    for (int k = 0; k < n; k++) {
+        u16 r0 = DOOR_REC(k);
+        if (levelwalk_door_open(k)) continue;                              /* (an open door: its doorway is a way through, walked as the game walks) */
+        int x = (s16)rw(G_FAR20A5, r0), y = (s16)rw(G_FAR20A5, (u16)(r0 + 2)), w = rb(G_FAR20A5, (u16)(r0 + 4)), h = rb(G_FAR20A5, (u16)(r0 + 5));
+        int sx0 = (x - ox) - (y + h - oy) + 135 - 4, sx1 = (x + w - ox) - (y - oy) + 135;   /* (the picture: along the doorway's edge, rising above it) */
+        int sy1 = (y + h - oy) + 109, sy0 = (y - oy) + 109 - 40;
+        if (fx < sx0 || fx > sx1 || gy < sy0 || gy > sy1) continue;
+        int cx = (sx0 + sx1) / 2, d = abs(fx - cx) + abs(gy - (sy0 + sy1) / 2);
+        if (d < bd) { bd = d; best = k; }
+    }
+    if (best < 0) return -1;
+    /* the box round a door's picture takes in the floor before it: a point on floor the party can walk to
+       (on its side of every doorway) is a walk there, the game's, not the door */
+    int my = gy - 109 + oy, mx = fx - 135 + ox + (my - oy);
+    int cx = mx >= 0 ? mx / 32 : -1, cy = my >= 0 ? my / 16 : -1;
+    if (cx >= 0 && cx < 40 && cy >= 0 && cy < 40 && lw_cell(cx, cy) >= 0 && reach((s8)g_rb(GV_marching_order)) && !rdoor[cx][cy] && rdist[cx][cy] >= 0) return -1;
+    return best;
+}
+int levelwalk_door_open(int n) { return n >= 0 && n < 40 && rb(G_FAR20A5, (u16)(0x33d3 + n)) != 0; }
+/* the party into door n's doorway, from the side it is on (the game's Use Door is for a member standing in
+   it), the door used there (goal_check); a doorway it cannot step into: the nearest floor before it */
+int levelwalk_door(int n)
+{
+    int nd = (s8)rb(G_FAR20A5, 0x1f52), lead = (s8)g_rb(GV_marching_order);
+    if (n < 0 || n >= nd || lead < 0 || lead > 4 || !reach(lead)) return 0;
+    u16 r0 = DOOR_REC(n);
+    int x = (s16)rw(G_FAR20A5, r0), y = (s16)rw(G_FAR20A5, (u16)(r0 + 2)), w = rb(G_FAR20A5, (u16)(r0 + 4)), h = rb(G_FAR20A5, (u16)(r0 + 5));
+    float dx = x + w / 2.0f, dy = y + h / 2.0f;
+    int bx = -1, by = -1, bdist = 1 << 30;
+    for (int s = 0; s < 2; s++) {                                          /* the doorway's cells beside one the party reaches (and its pair's: */
+        int dn = s ? door_partner(n) : n;                                  /*  of a double door one leaf may stand over the wall) */
+        if (dn < 0 || dn >= nd) continue;
+        u16 q = DOOR_REC(dn);
+        int qx = (s16)rw(G_FAR20A5, q), qy = (s16)rw(G_FAR20A5, (u16)(q + 2)), qw = rb(G_FAR20A5, (u16)(q + 4)), qh = rb(G_FAR20A5, (u16)(q + 5));
+        for (int cx = qx / 32; cx <= (qx + qw - 1) / 32; cx++)
+            for (int cy = qy / 16; cy <= (qy + qh - 1) / 16; cy++) {
+                if (qx < 0 || qy < 0 || cx < 0 || cx >= 40 || cy < 0 || cy >= 40 || lw_cell(cx, cy) < 0) continue;
+                static const int D[4][2] = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } };
+                for (int k = 0; k < 4; k++) {
+                    int nx = cx + D[k][0], ny = cy + D[k][1];
+                    if (nx < 0 || nx >= 40 || ny < 0 || ny >= 40 || rdist[nx][ny] < 0 || rdist[nx][ny] >= bdist) continue;
+                    bdist = rdist[nx][ny]; bx = cx; by = cy;
+                }
+            }
+    }
+    if (bx < 0) {                                                          /* (none: the floor before it) */
+        float bd = 1e9f;
+        for (int cx = (int)(dx / 32) - 2; cx <= (int)(dx / 32) + 2; cx++)
+            for (int cy = (int)(dy / 16) - 2; cy <= (int)(dy / 16) + 2; cy++) {
+                if (cx < 0 || cx >= 40 || cy < 0 || cy >= 40 || rdist[cx][cy] < 0) continue;
+                float px = cx * 32 + 16.0f, py = cy * 16 + 8.0f;
+                float d = (px - dx) * (px - dx) + 4 * (py - dy) * (py - dy);
+                if (d < bd) { bd = d; bx = cx; by = cy; }
+            }
+    }
     if (bx < 0) return 0;
     levelwalk_x = bx * 32 + 16; levelwalk_y = by * 16 + 8; levelwalk_floor = (s8)g_rb(GV_floor_shown);
     door_pending = n; door_floor = levelwalk_floor; door_wx = levelwalk_x; door_wy = levelwalk_y;

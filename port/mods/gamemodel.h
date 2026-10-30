@@ -27,6 +27,9 @@ enum { SKILL_EDGED, SKILL_IMPACT, SKILL_FLAIL, SKILL_POLEARM, SKILL_THROWN, SKIL
        SKILL_ARTIFICE, SKILL_STEALTH, SKILL_STREETWISE, SKILL_RIDING, SKILL_WOODWISE };
 void gm_member_attr(int m, int k, int *cur, int *max);
 int gm_member_skill(int m, int k);
+/* the part of member m's attribute (kind 0x48) or skill (0x49) idx that the boosts and lowerings running
+   for a while add (saints, potions, their prices): the events of the table in memory */
+int gm_temp_boost(int kind, int m, int idx);
 /* the game's rules (no state): what a shield of type 95 (small), 96 (medium) or 97 (large) and
    quality q adds to its bearer's defence against a blow (missile 0) or a shot or a throw (1); -5 for
    no shield, or a type that is none of these. The to-hit roll (s014 18bf:02a8): a blow (an order with

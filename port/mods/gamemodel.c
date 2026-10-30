@@ -217,6 +217,16 @@ void gm_member_attr(int m, int k, int *cur, int *max)
     *cur = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + k));
     *max = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + k));
 }
+int gm_temp_boost(int kind, int m, int idx)
+{
+    int t = 0;
+    for (int i = 0; i < G_NEVENTS; i++) {
+        u32 e = g_event(i); if (!e) continue;
+        u16 s = (u16)(e >> 16), o = (u16)e;
+        if ((s16)rw(s, (u16)(o + 0x22)) == kind && (s16)rw(s, (u16)(o + 0x1a)) == m && (s16)rw(s, o) == idx) t += (s16)rw(s, (u16)(o + 0x1e));
+    }
+    return t;
+}
 int gm_shield_defence(int type, int q, int missile)
 {
     if (!missile) return type == 95 ? 2 * q / 7 : type == 96 ? 2 * q / 5 : type == 97 ? q / 2 : -5;      /* (s014 18bf:0592, a blow) */

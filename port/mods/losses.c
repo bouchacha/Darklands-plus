@@ -29,17 +29,6 @@ static struct { char name[24]; s8 max[7]; s8 skill[19]; int have; } snap[5];
 static int in_battle;
 static int snap_seed;
 
-/* the temporary part of attribute a (0x48) or skill k (0x49) of member m: the boosts and lowerings running */
-static int temp_of(int kind, int m, int idx)
-{
-    int t = 0;
-    for (int i = 0; i < G_NEVENTS; i++) {
-        u32 e = g_event(i); if (!e) continue;
-        u16 s = (u16)(e >> 16), o = (u16)e;
-        if ((s16)rw(s, (u16)(o + 0x22)) == kind && (s16)rw(s, (u16)(o + 0x1a)) == m && (s16)rw(s, o) == idx) t += (s16)rw(s, (u16)(o + 0x1e));
-    }
-    return t;
-}
 /* the events are in memory (the battle and what follows it until the next card swap them out: the
    table reads empty, a saint's boost to a skill cannot be told from the skill then) */
 static int events_known(void) { for (int i = 0; i < G_NEVENTS; i++) if (g_event(i)) return 1; return 0; }
@@ -50,7 +39,7 @@ static void take(int m)
     memcpy(snap[m].name, nm, sizeof nm);
     for (int a = 0; a < 7; a++) snap[m].max[a] = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + a));
     if (!same || events_known())                      /* (else the skills as last known stand) */
-        for (int k = 0; k < 19; k++) snap[m].skill[k] = (s8)(g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + k)) - temp_of(0x49, m, k));
+        for (int k = 0; k < 19; k++) snap[m].skill[k] = (s8)(g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + k)) - gm_temp_boost(0x49, m, k));
     snap[m].have = gm_member_present(m);
 }
 /* (aging.c lowered member m's attributes and told it: taken as they are now) */
@@ -96,7 +85,7 @@ void losses_frame(void)
             }
         }
         for (int k = 0; k < 19 && ek; k++) {          /* (the skills only while their boosts can be told) */
-            int v = (s8)(g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + k)) - temp_of(0x49, m, k));
+            int v = (s8)(g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + k)) - gm_temp_boost(0x49, m, k));
             if (v < snap[m].skill[k]) {
                 pl += (size_t)snprintf(part + pl, sizeof part - pl, "%s%s %d (was %d)", pl ? ", " : "", gm_skill_name(k), v, snap[m].skill[k]); if (pl >= sizeof part) pl = sizeof part - 1;
                 row->ch[row->n].key = 7 + k; row->ch[row->n].was = snap[m].skill[k]; row->ch[row->n].now = v; row->n++;

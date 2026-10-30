@@ -141,7 +141,9 @@ lists what changed since the last one: each member's attributes and skills (as t
 shields: "Each" when all changed alike), members lost, things gained or lost, money, fame, a
 town's reputation and the time that passed; "Nothing came of it." when a choice that ends the
 encounter changed nothing. A battle's wounds and spoils are left to the battle's own screens: the
-band after it lists what came after it. A `text` is shown when the script next stops (another `text`, a menu,
+band after it lists what came after it. A saint's or a potion's help for a while (a prayer in the
+encounter) is not listed: it is in the margin's blessings and potions; the Divine Favor a prayer
+spends is. A `text` is shown when the script next stops (another `text`, a menu,
 a battle, `exit`), so the actions after it on the same line are the ones listed under it: write
 `ok text 1; attr party, End, 4; exit`, not the other way round.
 

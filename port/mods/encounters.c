@@ -325,8 +325,8 @@ static void snap_take(Snap *s)
         s->st[m] = gm_member_present(m) ? gm_member_status(m) : 0;
         if (!s->st[m]) continue;
         gm_member_name(m, s->name[m], sizeof s->name[m]);
-        for (int k = 0; k < 7; k++) gm_member_attr(m, k, &s->cur[m][k], &s->max[m][k]);
-        for (int k = 0; k < 19; k++) s->skill[m][k] = gm_member_skill(m, k);
+        for (int k = 0; k < 7; k++) { gm_member_attr(m, k, &s->cur[m][k], &s->max[m][k]); s->cur[m][k] -= gm_temp_boost(0x48, m, k); }
+        for (int k = 0; k < 19; k++) s->skill[m][k] = gm_member_skill(m, k) - gm_temp_boost(0x49, m, k);   /* (a saint's or a potion's help for a while: not what came of it) */
         GmItem g;
         for (int i = 0; i < gm_item_count(m); i++) if (gm_item(m, i, &g) && g.id > 0) snap_item(s, g.id, g.count > 0 ? g.count : 1);
     }

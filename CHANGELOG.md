@@ -30,6 +30,7 @@ What changed since 1.3.1.
 - Lauf, west of Speyer, could not be entered: stepping onto it led into the Rammelsburg mine (original bug).
 - Party members could box each other in at a corner in a castle, mine or dungeon, leaving all but the leader stuck.
 - U beside a door walked the party to the stairs in single file instead of opening the door.
+- After a Darklands+ screen, the pointer could be drawn a little left of the spot a click takes.
 - Relics found deep in mines were always quality 35 and not the real item (original bug).
 - Near Basel, Zürich and Konstanz the party jumped two to four rows north on the travel map (original bug); journeys along Zürich's road got stuck at the map's edge.
 - Fast travel could walk in place without end; it now stops when 150 steps bring it no nearer.

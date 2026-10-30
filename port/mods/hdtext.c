@@ -502,12 +502,22 @@ void hdtext_pointer_hotspot(int *hx, int *hy) { *hx = hot_x; *hy = hot_y; }
 static void pointer_out(u32 *rgb, const u32 *lut, u8 *idx)
 {
     if (!cur_on) return;
-    {   static int lmx = -1, lmy = -1, still; int mx, my; plat_mouse_game(&mx, &my);
+    {   /* (an offset is taken only when seen alike at two places the mouse stood still: while the game is
+           held - a screen of ours, a menu - its sprite stays where it was, and the mouse's offset from it
+           is no hot spot; the pointer then pointed beside what a click took) */
+        static int lmx = -1, lmy = -1, still, cand_x, cand_y, cand_mx = -9999, cand_my, cand_ok;
+        int mx, my; plat_mouse_game(&mx, &my);
         u16 seg = drvseg_mgraphic ? rw((u16)(drvseg_mgraphic + 0x140), 0x200) : 0;
-        if (seg != hot_seg || cur_w != hot_w || cur_h != hot_h) { hot_seg = seg; hot_w = cur_w; hot_h = cur_h; hot_x = hot_y = 0; still = 0; }
+        if (seg != hot_seg || cur_w != hot_w || cur_h != hot_h) { hot_seg = seg; hot_w = cur_w; hot_h = cur_h; hot_x = hot_y = 0; still = 0; cand_ok = 0; }
         if (mx == lmx && my == lmy) still++; else still = 0;
         lmx = mx; lmy = my;
-        if (still >= 3) { int hx = cur_x - mx, hy = cur_y - my; if (hx > -CUR_MAX && hx <= 0 && hy > -CUR_MAX && hy <= 0) { hot_x = hx; hot_y = hy; } }
+        if (still == 3) {
+            int hx = cur_x - mx, hy = cur_y - my;
+            if (hx > -CUR_MAX && hx <= 0 && hy > -CUR_MAX && hy <= 0) {
+                if (cand_ok && hx == cand_x && hy == cand_y && (mx != cand_mx || my != cand_my)) { hot_x = hx; hot_y = hy; }
+                cand_x = hx; cand_y = hy; cand_mx = mx; cand_my = my; cand_ok = 1;
+            }
+        }
     }
     if (!hdtext_live_pointer) return;
     for (int r = 0; r < cur_h; r++)

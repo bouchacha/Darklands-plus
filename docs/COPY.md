@@ -2773,32 +2773,33 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixgroups.c:13` | Bugs players have long used to their advantage (invulnerability from fire protection, confession's clock turned back, the same bounty again and again). Leave these off to keep the old tricks. |
 | `mods/fixgroups.c:14` | Left over from 1992 |
 | `mods/fixgroups.c:14` | Not bugs, but nobody misses them: the question from the printed manual before the party first sets out. |
-| `mods/gamemodel.c:341` | Divine Favor |
-| `mods/gamemodel.c:346` | Edged Weapons |
-| `mods/gamemodel.c:346` | Impact Weapons |
-| `mods/gamemodel.c:346` | Thrown Weapons |
-| `mods/gamemodel.c:346` | Missile Devices |
-| `mods/gamemodel.c:347` | Speak Common |
-| `mods/gamemodel.c:347` | Read & Write |
-| `mods/gamemodel.c:366` | Missile Devices |
+| `mods/gamemodel.c:351` | Divine Favor |
+| `mods/gamemodel.c:356` | Edged Weapons |
+| `mods/gamemodel.c:356` | Impact Weapons |
+| `mods/gamemodel.c:356` | Thrown Weapons |
+| `mods/gamemodel.c:356` | Missile Devices |
+| `mods/gamemodel.c:357` | Speak Common |
+| `mods/gamemodel.c:357` | Read & Write |
+| `mods/gamemodel.c:376` | Missile Devices |
 | `mods/hdart.c:779` | Create a New World |
 | `mods/hdart.c:780` | The Story Continues |
 | `mods/hdart.c:992` | %d pictures written to %s%s |
 | `mods/hdart.c:992` |  (some could not be written) |
 | `mods/hdtext.c:457` | cursor: shown %d page %d save %d,%d %dx%d at %d,%d |
 | `mods/keep.c:46` | # formulae first or last in the alchemy screen's list (formula f first\|last)  |
-| `mods/levelwalk.c:99` | The party could get no nearer to the place chosen on the level map. |
-| `mods/levelwalk.c:123` | The party cannot get there from where it stands. |
-| `mods/levelwalk.c:131` |  in single file (press G to move as a group again) |
-| `mods/levelwalk.c:134` | The party goes in single file (press G to move as a group again). |
-| `mods/levelwalk.c:137` | The party walks there%s. |
-| `mods/levelwalk.c:138` | The party will walk there%s: Space resumes the battle. |
-| `mods/levelwalk.c:139` | The party walks there%s. |
-| `mods/levelwalk.c:210` | There are no stairs on this floor that the party has found. |
-| `mods/levelwalk.c:223` | The party walks to the stairs and takes them. |
-| `mods/levelwalk.c:223` | The party walks to the stairs. |
-| `mods/levelwalk.c:316` | The party walks to the door to close it. |
-| `mods/levelwalk.c:316` | The party walks to the door to open it. |
+| `mods/levelwalk.c:104` | The party could not get into the doorway. |
+| `mods/levelwalk.c:112` | The party could get no nearer to the place chosen on the level map. |
+| `mods/levelwalk.c:136` | The party cannot get there from where it stands. |
+| `mods/levelwalk.c:144` |  in single file (press G to move as a group again) |
+| `mods/levelwalk.c:147` | The party goes in single file (press G to move as a group again). |
+| `mods/levelwalk.c:150` | The party walks there%s. |
+| `mods/levelwalk.c:151` | The party will walk there%s: Space resumes the battle. |
+| `mods/levelwalk.c:152` | The party walks there%s. |
+| `mods/levelwalk.c:223` | There are no stairs on this floor that the party has found. |
+| `mods/levelwalk.c:236` | The party walks to the stairs and takes them. |
+| `mods/levelwalk.c:236` | The party walks to the stairs. |
+| `mods/levelwalk.c:370` | The party walks to the door to close it. |
+| `mods/levelwalk.c:370` | The party walks to the door to open it. |
 | `mods/lodgeview.c:140` | Castle Guard |
 | `mods/lodgeview.c:143` | Castle Servant |
 | `mods/lodgeview.c:144` | Castle Steward |
@@ -2856,12 +2857,12 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/lootview.c:255` | Took everything. |
 | `mods/lootview.c:256` | Shared out what fits. |
 | `mods/lootview.c:256` | Shared out everything. |
-| `mods/losses.c:112` | Lost for good |
-| `mods/losses.c:112` | The maximum of an attribute, or a skill, is lower now (what it was, and what it is now), and will not come back by itself. |
-| `mods/losses.c:134` | worn to nothing and gone (it was %dq). |
-| `mods/losses.c:135` | now %dq (was %dq). |
-| `mods/losses.c:142` | Armor worn down |
-| `mods/losses.c:142` | Acid and fire wear armor down for good: a smith's work cannot mend it; a better piece must be bought. |
+| `mods/losses.c:101` | Lost for good |
+| `mods/losses.c:101` | The maximum of an attribute, or a skill, is lower now (what it was, and what it is now), and will not come back by itself. |
+| `mods/losses.c:123` | worn to nothing and gone (it was %dq). |
+| `mods/losses.c:124` | now %dq (was %dq). |
+| `mods/losses.c:131` | Armor worn down |
+| `mods/losses.c:131` | Acid and fire wear armor down for good: a smith's work cannot mend it; a better piece must be bought. |
 | `mods/menuview.c:169` | Darklands+ window |
 | `mods/menuview.c:169` | Quests (world map) |
 | `mods/menuview.c:171` | Keys and clicks on this screen |
