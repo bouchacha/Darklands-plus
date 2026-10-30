@@ -18,7 +18,7 @@ option 0                                   # look in your boots to see how she j
 option 1                                   # sweep the camp as clean as a goodwife's kitchen (time)
   chance assured
   ok     text 3; hours 2; practice chosen, Virtue, 1, 10, 0; exit
-option 2                                   # pray, and chalk the Three Kings' crosses on a tree (Religion)
+option 2                                   # pray, and smoke the camp with juniper, as in the rough nights (Religion)
   who    bestskill(Religion)
   chance clamp(10, 90, skill(who, Religion) + attr(who, Cha) / 3 + 5)
   ok     chosen2 who; text 4; attr party, DF, 2; practice who, Religion, 1, 10, 0; exit

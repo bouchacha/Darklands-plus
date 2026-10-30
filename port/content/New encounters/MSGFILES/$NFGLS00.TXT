@@ -1,7 +1,7 @@
 # $NFGLS00: the glass-makers' hut (New encounters)
 === card 0: 10 10 0 240 0 ===
 A roar like a dragon's breath comes through the beeches, and then a clearing hacked out of the forest, all stumps, ash heaps and smoke. Under a bark roof a furnace glows white, and sweating men turn long iron pipes with gobbets of fire on their ends: glassblowers. When they have burned a hillside of beech for their ash, they move on and burn the next.
-\14Their master holds a beaker up to the light, green as pond water and full of bubbles. "Forest glass," he says sourly. "Nuremberg pays pennies for it. In Venice they make glass as clear as spring water, and drown any man who tells how."
+\14Their master holds a beaker up to the light, green as pond water and full of bubbles. "Forest glass," he says sourly. "Nuremberg pays a pfennig a beaker for it. In Venice they make glass as clear as spring water, and drown any man who tells how."
 \14You...
 \14\15...\1dtell him the alchemists' secret of clear glass.
 \15...\1doffer him your Manganes.

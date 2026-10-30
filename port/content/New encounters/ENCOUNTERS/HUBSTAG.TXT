@@ -15,16 +15,14 @@ option 0                                   # shoot it for the pot (Bows, Missile
   need   has(party, 0x1a) or has(party, 0x1b) or has(party, 0x1c) or has(party, 0x1d) or has(party, 0x1e)
   chance clamp(5, 90, max(skill(who, Bows), skill(who, Missile)) + attr(who, Per) / 3 - 5)
   ok     chosen who; text 1; attr who, DF, 3; attr party, DF, 1; practice who, Virtue, 1, 10, 0; exit
-  fail   chosen who
-         if skill(who, Bows) >= skill(who, Missile) then practice who, Bows, 0, 10, 0 else practice who, Missile, 0, 10, 0
-         text 2; exit
+  fail   chosen who; text 2; attr who, End, -2; exit   # the hands will not shoot: no shot, no practice
 option 1                                   # creep closer to see what shines (Stealth, Woodwise)
   who    bestskill2(Stealth, Woodwise)
   chance clamp(5, 90, skill(who, Stealth) + skill(who, Woodwise) / 2 + attr(who, Agl) / 4)
   ok     chosen who; text 3; attr party, DF, 3; practice who, Stealth, 1, 10, 0; exit
   fail   chosen who; text 4; practice who, Stealth, 0, 10, 0; exit
 option 2 saint
-  ok     text 5; heal party, End, 50; exit
+  ok     text 5; attr party, End, 2; practice party, Virtue, 1, 5, -1; exit
   fail   text 6
 option 3                                   # let it be and break camp
   chance none

@@ -24,10 +24,10 @@ option 1                                   # write the Three Kings' names on sli
 option 2                                   # cut the knots off with a knife
   chance unknown
   ok     if roll(50) then { text 5; exit }
-         text 6; hours 4; attr party, End, -2; exit
+         text 6; hours 5; attr party, End, -3; exit
 option 3 saint
   ok     text 7; attr party, End, 2; exit
   fail   text 8
 option 4                                   # lead the horses on foot until they recover (time)
   chance assured
-  ok     text 9; hours 4; attr party, End, -3; exit
+  ok     text 9; hours 4; attr party, End, -2; exit

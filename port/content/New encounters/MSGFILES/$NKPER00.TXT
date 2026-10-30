@@ -5,7 +5,7 @@ Snow fell in the night, a thin clean sheet of it. Across it, straight through yo
 \14You...
 \14\15...\1dlook in your boots, to see how she judged you.
 \15...\1dsweep the camp and leave the hearth as clean as a goodwife's.
-\15...\1dpray, and chalk the Three Kings' crosses on a tree.
+\15...\1dpray, and smoke the camp with juniper, as the farmwives do.
 \15...\1dlaugh at old wives' tales and march.
 === card 1: 10 10 0 240 0 ===
 You pull off your boots and shake them out. From every boot but one drops a small, bright, very old silver coin, $Money1 in all. From $ChosenOneName's falls a wisp of straw.
@@ -15,8 +15,8 @@ You pull off your boots and shake them out, and from every one of them falls a w
 === card 3: 10 10 0 240 0 ===
 You sweep the snow off the hearth, rake out the ashes, stack the unburnt wood, fold the blankets square and leave the clearing neater than a nunnery kitchen, with $ChosenOneName made to do the most of it. It takes two hours. By the end $his bellyache is gone, and the goose-foot track, when you look for it, has melted away in the sun.
 === card 4: 10 10 0 240 0 ===
-$ChosenTwoName chalks three crosses on the bark of an oak, as on a house door at Epiphany, and leads you in prayer against everything that walks in the long nights. The wind stirs and the snow begins to fall again, softly, filling the tracks until there is nothing to see. $ChosenOneName's bellyache passes with the last of them.
+$ChosenTwoName heaps juniper on the embers and carries the smoking pan round the camp, past every sleeper's place, as the farmwives smoke house and byre in the rough nights between Christmas and Epiphany, and leads you in prayer against everything that walks in the long dark. The wind stirs and the snow begins to fall again, softly, filling the tracks until there is nothing to see. $ChosenOneName's bellyache passes with the last of them.
 === card 5: 10 10 0 240 0 ===
-$ChosenTwoName chalks the crosses and prays, but the words fall flat in the cold air, and the tracks stay as sharp as if they were made a moment ago. Before you have gone a mile $ChosenOneName doubles up with cramps, and all morning $he walks bent like an old man.
+$ChosenTwoName carries the juniper smoke round the camp and prays, but the smoke lies sullen on the snow, the words fall flat in the cold air, and the tracks stay as sharp as if they were made a moment ago. Before you have gone a mile $ChosenOneName doubles up with cramps, and all morning $he walks bent like an old man.
 === card 6: 10 10 0 240 0 ===
 You laugh, and $ChosenOneName laughs loudest. A mile down the road $he stops laughing and doubles over with cramps, and all morning $he walks as if $his belly were stuffed with straw.

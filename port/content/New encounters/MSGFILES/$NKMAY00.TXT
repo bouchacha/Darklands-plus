@@ -12,10 +12,10 @@ $ChosenOneName walks round the birch twice, squints up at its lean, cuts a notch
 === card 2: 10 10 0 240 0 ===
 $ChosenOneName walks round the birch, squints up at it, cuts a notch, and says where it will fall. It falls straight across your tent, snaps the pole, and flattens the cooking pot. The village lads laugh until they have to sit down. Mending the tent and beating the pot round again takes the rest of the morning.
 === card 3: 10 10 0 240 0 ===
-The girls drag you into the round, and $ChosenOneName dances so well and sings so loud that they crown $him with a wreath of birch leaves and hail $him May Count, lord of the May for a year and a day. It is a great honour. The May Count, by ancient custom, also pays for the beer: $Money1.
-\14It is a long, merry, foolish morning, and the whole village will remember the stranger who was May Count.
+The girls drag you into the round, and $ChosenOneName dances so well and sings so loud that the whole troop chooses $him for their leaf-man. It is a great honour. They wind $him from head to foot in birch boughs until only $his nose shows, march $him down to the village behind the May tree with a fiddle squealing, and there, by ancient custom, throw $him in the brook, so that the summer will not want for rain.
+\14$ChosenOneName climbs out blue and dripping to the loudest cheer of the morning. The whole village will remember the stranger who was their leaf-man.
 === card 4: 10 10 0 240 0 ===
-The girls drag you into the round, but $ChosenOneName dances like a bear in boots and treads on every foot in the ring. The girls laugh themselves breathless, a broad-shouldered lad is crowned May Count instead, and the whole morning is gone in merriment before you can get away.
+The girls drag you into the round, but $ChosenOneName dances like a bear in boots and treads on every foot in the ring. The girls laugh themselves breathless, a broad-shouldered lad is chosen for the leaf-man instead, and the whole morning is gone in merriment before you can get away.
 === card 5: 10 10 0 240 0 ===
 "Find yourselves another tree," you tell them. "This one is spoken for." The singing stops. The young people look at one another, and at your weapons, and go off muttering through the wood. You will not be the most welcome strangers in their village this year.
 === card 6: 10 10 0 240 0 ===

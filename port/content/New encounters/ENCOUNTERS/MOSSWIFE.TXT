@@ -1,7 +1,7 @@
 # The moss-wife: a little forest woman begs for three crosses on a stump, and cannot abide caraway.
 name     The moss-wife
 card     $NfMos00
-picture  XWITBRGN
+picture  XGROVE1                    # a forest path (XWITBRGN shows a tall young woman, not a tiny old one)
 where    wild
 terrain  forest woods pinewood
 when     day

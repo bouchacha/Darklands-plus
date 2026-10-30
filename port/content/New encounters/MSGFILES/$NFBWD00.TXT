@@ -1,7 +1,7 @@
 # $NFBWD00: the bearward (New encounters)
 === card 0: 10 10 0 240 0 ===
 On the forest track you meet a bearward leading a brown bear by a chain through a ring in its nose. The bear is grey about the muzzle, carries its head crooked and drools, and shuffles as if every step hurts.
-\14"Old Petz has danced at every fair from Basel to Breslau," says the bearward, scratching its ears. "But he won't dance now, nor eat, and I can't feed him through another winter. The castellan up the valley will pay $Money2 for him, to set his dogs on at the church-ale." He sighs. "One last show, masters? A groschen to wrestle him, and $Money1 to the one who throws him."
+\14"Old Petz has danced at every fair from Basel to Breslau," says the bearward, scratching its ears. "But he won't dance now, nor eat, and I can't feed him through another winter. The castellan up the valley will pay $Money2 for him, to set his dogs on at the parish fair." He sighs. "One last show, masters? A groschen to wrestle him, and $Money1 to the one who throws him."
 \14You...
 \14\15...\1dwrestle the old bear.
 \15...\1dlook in his mouth for what ails him.

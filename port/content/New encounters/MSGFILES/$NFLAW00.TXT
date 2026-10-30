@@ -2,17 +2,17 @@
 === card 0: 10 10 0 240 0 ===
 In a clearing the lord's forester, in green with a horn at his belt, has a widow by the arm. Her boy clutches a bundle of firewood and a little hatchet, and two under-keepers are untying the cow that was to carry it home.
 \14"Wood cut in my lord's forest," says the forester. "The forfeit is the hatchet and the cow, or $Money1."
-\14"It was cut on village ground!" cries the widow. "Our right runs a hatchet's throw beyond the hedge, every child knows it!" The village hedge shows through the trees, and the boy's stump is a long way from it. The forester grins. "Then throw, by the old custom. One throw from the hedge-post, and where the hatchet falls, there the right ends."
+\14"It was cut on village ground!" cries the widow. "Our right runs a hatchet's throw beyond the hedge, every child knows it!" The village hedge shows through the trees, and the place where the boy was chopping, white with fresh chips, is a long throw from it. The forester grins. "Then throw, by the old custom. One throw from the hedge-post, and where the hatchet falls, there the right ends."
 \14You...
 \14\15...\1dtake the hatchet and throw it for her.
 \15...\1dshow the forester that the wood is dead and fallen.
 \15...\1dpay the forfeit for her.
 \15...\1dleave them to their quarrel.
 === card 1: 10 10 0 240 0 ===
-$ChosenOneName sets $his back against the hedge-post, swings the little hatchet twice for the feel of it, and lets fly. It turns over and over through the air, clips a hazel, and buries itself in the turf a good three paces beyond the boy's stump.
+$ChosenOneName sets $his back against the hedge-post, swings the little hatchet twice for the feel of it, and lets fly. It turns over and over through the air, clips a hazel, and buries itself in the turf a good three paces beyond the boy's chips.
 \14The under-keepers cheer before they can stop themselves. The forester spits, but custom is custom, and he lets the cow go. The village will soon hear who threw for the widow.
 === card 2: 10 10 0 240 0 ===
-$ChosenOneName sets $his back against the hedge-post and lets fly. The hatchet clips a branch and drops into the bracken, a long way short of the stump. "One throw, by the custom," says the forester, well pleased.
+$ChosenOneName sets $his back against the hedge-post and lets fly. The hatchet clips a branch and drops into the bracken, a long way short of the chips. "One throw, by the custom," says the forester, well pleased.
 === card 3: 10 10 0 240 0 ===
 $ChosenOneName pulls sticks from the boy's bundle and snaps them one by one across $his knee: grey, barkless and dry as bone, every one. "Windfall from the winter storms. The boy only cut it into lengths. Show me the stump of a living tree, forester, and I will pay her forfeit myself."
 \14The forester looks about, finds no fresh stump, and lets the cow go with poor grace. The village will soon hear who spoke for the widow.

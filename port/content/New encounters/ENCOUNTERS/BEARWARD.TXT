@@ -24,9 +24,9 @@ option 1                                   # draw the bad tooth (Artifice, Stren
   ok     chosen who; text 3; attr party, DF, 2; practice who, Artifice, 1, 10, 0; hours 2; exit
   fail   chosen who; text 4; injure who, 1, 1, 10; practice who, Artifice, 0, 10, 0; hours 1; exit
 option 2                                   # buy the bear and set it free
-  need   money >= 240
+  need   money >= money2
   chance none
-  ok     pay 240; text 5; attr party, DF, 3; practice party, Virtue, 1, 10, 0; hours 1; exit
+  ok     pay money2; text 5; attr party, DF, 3; practice party, Virtue, 1, 10, 0; hours 1; exit
 option 3                                   # go on
   chance none
   ok     text 6; exit

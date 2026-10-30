@@ -1,32 +1,33 @@
 # $NKKOB00: the stowaway kobold (New encounters)
 === card 0: 10 10 0 240 0 ===
 You wake to mischief. Every pair of boots in the camp has been laced to its neighbour, soot moustaches have been drawn on the sleepers, the salt-crock is empty and the wine tastes of the sea. And from somewhere deep in $ChosenOneName's pack comes a small, wheezing snigger.
-\14A kobold: one of the little house-spirits that live behind the stove in farmhouses and inns. This one must have climbed into your baggage at the last place you slept, and it seems to have decided that it lives with you now. Kobolds are loyal to a household, the old wives say, and repay a slight a hundredfold.
+\14A kobold: one of the little house-spirits that live behind the stove in farmhouses and inns. This one must have climbed into your baggage at the inn where you ate at noon yesterday, and it seems to have decided that it lives with you now. Kobolds are loyal to a household, the old wives say, and repay a slight a hundredfold.
 \14You...
-\14\15...\1dleave out a bowl of porridge for it, as the farmwives do.
+\14\15...\1dcarry it back to the inn, a morning's walk behind you.
 \15...\1dsew it a little coat, for a kobold given clothes must leave.
 \15...\1dupend the pack and catch the creature.
 \15...\1dsprinkle the baggage with holy water and pray it out.
 \15...\1dshoulder the packs, kobold and all, and march.
 === card 1: 10 10 0 240 0 ===
-You set a bowl of porridge beside the fire and go about breaking camp without looking at it. When you turn round the bowl is licked clean, the boots are unlaced, the soot has been wiped from every face, and someone has mended the tear in your best cloak with stitches finer than a nun's.
-\14The pack sniggers contentedly. A priest would frown at you, no doubt, but you set out in the best of tempers.
+You trudge back down the road with the pack sniggering on $ChosenOneName's back, and find the landlord in despair. Since you left, the beer has soured in the cask, the fire smokes and will not draw, and the cat will not come indoors. A house's luck, the old wives say, goes where its kobold goes.
+\14The moment the pack crosses the threshold the hearth roars up, and something small and brown streaks out of the baggage and behind the stove. The landlord feeds you till you can eat no more, and swears he will tell every carter on the road what honest folk you are.
 === card 2: 10 10 0 240 0 ===
-You set a bowl of porridge beside the fire. When you turn round it is upside down on $ChosenOneName's head. The kobold, it seems, is used to better houses, where the porridge comes with butter in it. All day there are pebbles in your boots, however often you shake them out.
+You trudge back down the road with the pack sniggering on $ChosenOneName's back. The landlord hears you out, crosses himself and bars his door. He paid the priest a florin at Candlemas to be rid of that thing, and it will not cross his threshold again while he lives.
+\14There is nothing for it but to trudge back the way you came, with the kobold crowing in the pack. Somewhere along the road the pack goes light. It has found a house it likes better, or tired of yours.
 === card 3: 10 10 0 240 0 ===
 $ChosenOneName cuts up an old shirt and sews a coat no longer than $his hand, with a hood and three wooden buttons, and lays it on the pack. A small brown hand snatches it inside. There is a long, delighted silence, and then a voice like a creaking hinge sings out: "Now I am a fine gentleman, and I will serve no man again!"
 \14The pack goes quiet for good. In the bottom of it, where the kobold sat, lies a little heap of old coins, $Money1: its wages, perhaps, from the house it left.
 === card 4: 10 10 0 240 0 ===
 $ChosenOneName sews a little coat and lays it on the pack. It comes flying straight back out, with one sleeve longer than the other and the hood on backwards, and the sniggering redoubles. The kobold is not going anywhere in that.
 === card 5: 10 10 0 240 0 ===
-$ChosenOneName upends the pack and grabs. Out of the tumble of shirts $he comes up holding, by the scruff, something the size of a cat: brown and wrinkled as a walnut, with a red cap, a long nose, and teeth it is trying to use.
-\14"Let me go!" it squeals. "Let me go and I will give you my crock of gold! A whole crock!" Kobold gold, the old wives say, is a fine thing until noon.
+$ChosenOneName upends the pack and grabs. Out of the tumble of shirts $he comes up holding, by the scruff, something no bigger than a hare: brown and wrinkled as a walnut, with a red cap, a long nose, and teeth it is trying to use.
+\14"Let me go!" it squeals. "Let me go and I will bring you a treasure! A purse of silver, a fat one, all for you!" A kobold keeps faith with its own household, the old wives say, and with no one else.
 \14You...
-\14\15...\1dtake its crock of gold.
+\14\15...\1dlet it go and take the treasure it promises.
 \15...\1dmake it undo its mischief and leave you in peace.
 \15...\1dtie it in a sack and carry it to the nearest church.
 === card 6: 10 10 0 240 0 ===
-$ChosenOneName upends the pack and grabs at something brown and quick. It bites $him to the bone, squeals with laughter and vanishes among the baggage, and the sniggering goes on from somewhere else.
+$ChosenOneName upends the pack and grabs at something brown and quick. It sinks a row of needle teeth into $his wrist, squeals with laughter and vanishes among the baggage, and the sniggering goes on from somewhere else.
 === card 7: 10 10 0 240 0 ===
 $ChosenOneName sprinkles every pack and bundle with holy water and says the prayer against spirits that haunt houses. There is a thin wail, a scurry, and a small brown shape bolts out of the baggage and away into the trees, dragging a stolen sausage. The camp is suddenly very quiet.
 === card 8: 10 10 0 240 0 ===
@@ -34,11 +35,12 @@ $ChosenOneName sprinkles the baggage with holy water and begins to pray, and the
 === card 9: 10 10 0 240 0 ===
 You shoulder the packs, sniggering and all, and march. All day your laces come undone, your bread turns up in your boots and your boots in the bushes, and at every halt something pinches whoever sits down. By evening the giggling has stopped. Perhaps it found a farm it liked better.
 === card 10: 10 10 0 240 0 ===
-You let the creature go. It dives into the bracken and comes back with a little crock full to the brim with gold coins, which you pour into your purse with great care.
-\14At noon you open the purse. It is full of dry oak leaves, and so, you find, are $Money1 of your own good coins that lay in with them.
+You let the creature go. It dives into the bracken and comes back dragging a fat leather purse, which it lays at $ChosenOneName's feet with a bow.
+\14"The landlord's," it says proudly. "He charged you for a candle you never burned, and for the hay twice over. I took it back for you, and a little more. A kobold looks after its own." Then it is gone into the bracken for good.
+\14The purse holds $Money1, and the landlord's mark is stitched on it. Somewhere behind you an innkeeper is asking every carter on the road who ate at his table yesterday.
 === card 11: 10 10 0 240 0 ===
 $ChosenOneName shakes the kobold until its cap falls off and lays down the law: every lace untied, every face washed, the salt back in its crock, and then off with it to some honest stove. The kobold sulks and swears in a German three hundred years old, but it does it all, and greases your boots into the bargain before it scuttles away down the road.
 === card 12: 10 10 0 240 0 ===
 $ChosenOneName lays down the law, but the kobold only laughs, twists out of $his grip like an eel and is gone into the baggage again. It saves its best tricks for the march: sand in the bread, burrs in the blankets and a knot in every strap.
 === card 13: 10 10 0 240 0 ===
-You tie the kobold in a sack, where it howls and swears and promises you every crock of gold in Christendom, and carry it three hours out of your way to a village church. The moment the sack crosses the churchyard wall it goes limp and empty. The priest blesses your baggage and asks no questions.
+You tie the kobold in a sack, where it howls and swears and promises you every purse in Christendom, and carry it three hours out of your way to a village church. The moment the sack crosses the churchyard wall it goes limp and empty. The priest blesses your baggage and asks no questions.
