@@ -149,6 +149,7 @@ the files where each switch's key is read.
 | `assist.teachers` | Teachers | show | teachersui.cpp |
 | `assist.city_goto` | Go to (G) | ease | margins.cpp, ui.cpp |
 | `assist.docks_map` | Map at the docks | ease | cardview.cpp |
+| `assist.card_outcomes` | What came of it | show | encounters.c |
 | `journal.enabled` | Note each town's shops and wares | look | journal.cpp, ui.cpp |
 | `journal.chronicle` | Chronicle | look | journal.cpp |
 | **The party and its items** | | | |
