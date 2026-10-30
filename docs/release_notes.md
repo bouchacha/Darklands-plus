@@ -8,6 +8,7 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 
 **Added**
 
+- **80 more new encounters**, 160 in all: 40 more in the wild, 22 in the towns' streets, 10 at camp and 8 on the river boats. All 160 were checked for balance and tone.
 - **Doors:** out of a fight, clicking a shut door walks the party to it and opens it.
 - **What came of it** on the game's own cards too: under the text that follows a choice, what that text does not tell (a skill or attribute changed, things, money, fame, a town's opinion). Part of the card helpers (F12 > Settings > Cards and towns).
 - **Level map (Tab)** shows every room the party has entered, walls on each side of the floor, and the openings not yet explored.
@@ -19,6 +20,7 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 - The level map could forget rooms the party had seen, after a save was loaded or the place was entered again.
 - A walk chosen on the level map just after loading a battle stood still.
 - Auto-travel routes due north or south were drawn as a zigzag (GitHub issue 3).
+- F12 > Mods showed the New encounters' description from the middle of a word.
 
 ### What it adds
 
@@ -56,7 +58,7 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 - **Music volume:** its own slider (F12 > Settings > Sound), for the FM and the MT-32 alike.
 - **Music packs:** a mod (or a "music" folder) can replace the game's pieces of music with recordings (Ogg or WAV), piece by piece; F12 > Settings > Sound names the piece playing and lists them all by number (under "Custom sound packs"). None comes with Darklands+.
 - **Battle sounds:** a mod with real recordings (swords clashing, shields, blows, cries, the bow, the handgun, a war horn for an ambush) in place of the synthesizer notes comes with the download; tick it in F12 > Mods. The recordings are from 0 A.D. (CC BY-SA 3.0).
-- **New encounters:** sixteen new wilderness encounters in the spirit of the original come with the download as a mod (tick it in F12 > Mods): a mandrake under the gallows oak, a herb-wife, flagellants, a robber knight's bridge toll, the lord's deer and his huntsmen, kobolds at a mine, will-o'-the-wisps in the marsh, a procession of the dead, an overturned wagon that may be bait, a lost child, a relic seller, charcoal burners, grave robbers, a peasants' boar hunt, a camp of deserters and a knight's feud. They are cards like the game's own, with its pictures, saints, potions, skill checks and battles, balanced against the original encounters, and they come up among them about as often as one of the game's own. A small red seal on the card marks a new one. Mods can add their own: an encounter is a text file with a short script (docs/MODDING.md).
+- **New encounters:** 160 new encounters in the spirit of the original come with the download as a mod (tick it in F12 > Mods): 90 in the wild (a mandrake under the gallows oak, flagellants, a robber knight's bridge toll, kobolds at a mine, the Devil's bridge, a moss-wife, the Wild Hunt and more), 34 in the towns' streets (a cutpurse, a fire, the popinjay shoot, the Fools' Court), 18 on the river boats and 18 at camp. They are cards like the game's own, with its pictures, saints, potions, skill checks and battles, balanced against the original encounters; in the wild each comes up about as often as one of the game's own. Under the text a choice ends on, "What came of it" lists what changed. A small red seal on the card marks a new one. Mods can add their own: an encounter is a text file with a short script (docs/MODDING.md).
 - **Modding:** mod folders for game data, single card texts, menu texts, weapon numbers, items, pictures and sounds; mods switch on and off at once, sounds included. F12 > Mods makes a new mod folder with instructions.
 
 ### Limits kept from the original

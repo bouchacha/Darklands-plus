@@ -6,6 +6,7 @@ What changed since 1.4.
 
 **Added**
 
+- **80 more new encounters**, 160 in all: 40 more in the wild, 22 in the towns' streets, 10 at camp and 8 on the river boats. All 160 were checked for balance and tone.
 - **Doors:** out of a fight, clicking a shut door walks the party to it and opens it.
 - **What came of it** on the game's own cards too: under the text that follows a choice, what that text does not tell (a skill or attribute changed, things, money, fame, a town's opinion). Part of the card helpers (F12 > Settings > Cards and towns).
 - **Level map (Tab)** shows every room the party has entered, walls on each side of the floor, and the openings not yet explored.
@@ -17,6 +18,7 @@ What changed since 1.4.
 - The level map could forget rooms the party had seen, after a save was loaded or the place was entered again.
 - A walk chosen on the level map just after loading a battle stood still.
 - Auto-travel routes due north or south were drawn as a zigzag (GitHub issue 3).
+- F12 > Mods showed the New encounters' description from the middle of a word.
 
 ## 1.4
 

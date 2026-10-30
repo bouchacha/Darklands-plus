@@ -94,9 +94,9 @@ it in F12 > Mods (F12 > Settings > Sound sets the volume). The recordings are fr
 Games, CC BY-SA 3.0 (mods\Battle sounds\CREDITS.txt).
 
 NEW ENCOUNTERS
-The mods folder also holds "New encounters": sixteen new wilderness encounters (the gallows
-oak, a herb-wife, flagellants, a robber knight's toll bridge, kobolds at a mine, deserters,
-a knight's feud and more),
+The mods folder also holds "New encounters": 160 new encounters, 90 in the wild (the gallows
+oak, flagellants, a robber knight's toll bridge, kobolds at a mine, the Devil's bridge, the
+Wild Hunt and more), 34 in the towns' streets, 18 on the river boats and 18 at camp,
 balanced against the game's own and coming up among them. Tick it in F12 > Mods; a small red
 seal marks a new encounter's card. F12 > Mods sets how often they come up.
 

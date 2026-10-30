@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 #define DATAMODS_MAX 64
-typedef struct { char folder[96], path[1100], title[96], desc[400]; int on; } DataMod;
+typedef struct { char folder[96], path[1100], title[96], desc[2048]; int on; } DataMod;
 extern DataMod datamods[DATAMODS_MAX];
 extern int datamods_n;
 void datamods_init(void);

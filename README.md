@@ -30,7 +30,7 @@ An open-world role-playing game from 1992. You lead a party of up to five throug
 - **Bugs fixed.** 63 fixes for bugs of the original, among them 43 saints that now do what their descriptions say.
 - **What MicroProse left unfinished**, on a page of its own (F12 > Reconstructed Content), experimental and off unless you tick it: a whole political campaign written and coded but never switched on (take the rebels' side or the rulers' in a city in turmoil, sway the guilds, and march on the town hall or arrest the ringleaders), cities preparing for war or under siege, with guarded gates, patrols on the walls and soaring prices, an ambush by soldiers of a private war ("Fehde!"), a town's hospice, Black Cloud in battle and the Honor Roll of Glory the game never showed. [What else the game holds unused](docs/cut_content.md).
 - **Ironman**, if you want it: one save that the game keeps itself, with no loading back.
-- **Mods.** Two come with it: real battle sounds and sixteen new wilderness encounters. You can make your own (items, card texts, pictures, sounds, rules).
+- **Mods.** Two come with it: real battle sounds and 160 new encounters (in the wild, in the towns' streets, on the river boats and at camp). You can make your own (items, card texts, pictures, sounds, rules).
 
 **You decide how much changes.** F12 > Settings > Preset offers presets, from *Full Original* (the original game's play exactly, bugs and all; the look stays yours to choose) and *Purist* (its bugs fixed) to *Darklands+* (recommended), and every switch one by one; easier play comes as built-in mods in F12 > Mods.
 

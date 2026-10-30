@@ -137,13 +137,19 @@ void datamods_scan(void)
         if (find_ci(p, "mod.txt", t, sizeof t)) {
             FILE *f = fopen(t, "rb");
             if (f) {
-                char line[400]; int first = 1; size_t dn = 0;
-                while (fgets(line, sizeof line, f)) {
-                    size_t l = strlen(line); while (l && (line[l - 1] == '\n' || line[l - 1] == '\r')) line[--l] = 0;
-                    if (first) { if (!l) continue; snprintf(m->title, sizeof m->title, "%s", line); first = 0; continue; }
-                    if (dn + l + 2 < sizeof m->desc) { if (dn) m->desc[dn++] = '\n'; memcpy(m->desc + dn, line, l); dn += l; m->desc[dn] = 0; }
-                }
+                /* the whole file, then its lines: read 400 bytes at a time, a longer line (the New
+                   encounters' description) lost its first part, and the page showed it from mid-word */
+                static char buf[8192]; size_t n = fread(buf, 1, sizeof buf - 1, f); buf[n] = 0;
                 fclose(f);
+                int first = 1; size_t dn = 0;
+                for (char *s = buf; *s; ) {
+                    char *nl = strchr(s, '\n'); size_t l = nl ? (size_t)(nl - s) : strlen(s);
+                    char *next = nl ? nl + 1 : s + l;
+                    while (l && s[l - 1] == '\r') l--;
+                    if (first) { if (l) { snprintf(m->title, sizeof m->title, "%.*s", (int)l, s); first = 0; } }
+                    else if (dn + l + 2 < sizeof m->desc) { if (dn) m->desc[dn++] = '\n'; memcpy(m->desc + dn, s, l); dn += l; m->desc[dn] = 0; }
+                    s = next;
+                }
             }
         }
         char key[200]; snprintf(key, sizeof key, "datamod.%s", m->folder);
