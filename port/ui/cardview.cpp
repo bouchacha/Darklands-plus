@@ -153,7 +153,7 @@ static void wrap(ImFont *f, float size, const std::string &t, float w, float ind
 
 static std::string gtext(const char *s) { return game_text(s, strlen(s)); }
 
-/* what came of a new encounter's choice (mods/encounters.h), under the text that tells of it: each member's
+/* what came of a choice (mods/encounters.h: a new encounter's, or a game card's), under the text that tells of it: each member's
    changes as their head and shields with the amounts (the same for everyone: "Each" once), things gained or
    lost, money, fame, a town's opinion, the time it took; "Nothing came of it." under the last text of a choice
    that changed nothing. "" when it is not an encounter's text */
@@ -301,8 +301,8 @@ extern "C" void cardview_draw(void)
        would leave a word or two a line beside it) */
     const int dropcap = c.dropcap && c.w < 110 ? 0 : c.dropcap;
     if (c.dropcap && !dropcap && c.npieces > 0) { char t[2] = { (char)c.dropcap, 0 }; utf[0] = t + utf[0]; }
-    /* a new encounter's text: what came of the choice, under a rule (mods/encounters.h) */
-    const std::string outcome = menu ? std::string() : encounter_outcome_text();
+    /* what came of the choice, under a rule (mods/encounters.h): a new encounter's text, a game card's text or menu */
+    const std::string outcome = encounter_outcome_text();
     float oc_y = 0, oc_fs = 0;
     for (int tries = 0; tries < 10; tries++) {
         size = 7.1f * k * fk * scale;

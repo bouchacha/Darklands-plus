@@ -413,8 +413,8 @@ const char *encounters_outcome_name(int m) { return m >= 0 && m < 5 ? outc_names
 
 /* ---------------------------------------------------------------- what came of it, on the game's own cards
  * (assist.card_outcomes, one of the card helpers; not in the Full Original preset). The party is noted as an option of a game
- * card's menu is chosen, and the next text the card shows lists what changed since (the same band, drawn by
- * ui/cardview.cpp: so only with the card screen of Darklands+), then it is noted again. Only what the player
+ * card's menu is chosen and after each text, and the next text or menu the card shows lists what changed since (the
+ * same band, drawn by ui/cardview.cpp: so only with the card screen of Darklands+). Only what the player
  * could not know: not a sum the card named ($Money1, $Money2: a change of just that much), the thing it named
  * ($ItemName: one of it; $Number1 or $Number2 of a thing), the Divine Favor a prayer from the card's box spends or the potion used from it,
  * nor the time (its texts tell it). A battle, a shop or another screen in between, the map, a load: nothing is
@@ -456,7 +456,16 @@ static void gtext_hook(void)                    /* card_text (block, how), s043 
 }
 static void gmenu_hook(void)                    /* card_menu (win, win2), s043 150b:1142: the option chosen */
 {
+    /* (what came since the last text, under the menu: many cards show their text, then do what it tells -
+       the Divine Favor a confession gives - and go back to their menu) */
+    if (gcard_here() && gsnap_ok) {
+        outcome_since(&gsnap);
+        gcard_filter();
+        LOG("a game card's menu: %d consequence%s\n", noutc, noutc == 1 ? "" : "s");
+        outc_final = 0; outc_on = noutc > 0;
+    }
     hook_call_original();
+    outc_on = 0;
     if (unw_active || !gcard_here()) return;
     int sel = (s16)AX;
     g_pray_m = g_potion = -1;
