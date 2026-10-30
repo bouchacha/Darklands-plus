@@ -1,7 +1,7 @@
 # The hanged man lives: at a crossroads gibbet by night, a journeyman hanged at noon still breathes.
 name     The hanged man lives
 card     $NrGib00
-picture  XHUNT
+picture  MS018
 where    wild
 terrain  road farmland plains
 when     night

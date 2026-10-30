@@ -1,36 +1,36 @@
-# $NRSLT00: the salt-master's charter (New encounters)
+# $NRSLT00: the dead duke's charter (New encounters)
 === card 0: 10 10 0 240 0 ===
-A string of heavy wagons stands halted in the road, piled high with casks of salt and drawn by plodding oxen. Riders in the colours of $NearestCity have stopped the first of them. Their captain claims the staple right: every cask on this road must go into $NearestCity and be offered for sale there three days, as the law says.
-\14The salt-master, a broad red-faced man from Reichenhall, waves a parchment with a great seal dangling from it. "The Duke's own charter! It frees my wagons of every staple from here to the Rhine!" Neither he nor the captain can read a word of it, and both turn to you.
+A string of heavy wagons stands halted in the road, piled high with bundles of Styrian bar iron and drawn by plodding oxen. Riders in the colours of $NearestCity have stopped the first of them. Their captain claims the staple right: every load on this road must go into $NearestCity and be offered for sale there three days, as the law says.
+\14The iron-merchant, a broad red-faced man from Steyr, waves a parchment with a great seal dangling from it. "The Duke's own charter! It frees my wagons of every staple from here to the Rhine!" Neither he nor the captain can read a word of it, and both turn to you.
 \14You...
 \14\15...\1dread the charter out for them.
 \15...\1dswear to the charter without reading it.
 \15...\1dleave them to their quarrel.
 === card 1: 10 10 0 240 0 ===
-$ChosenOneName takes the parchment and works through the chancery hand. It is a true charter, seal and all, freeing the wagons of Hans Pfannberger, salter of Reichenhall, of every staple on this road... for ten years from its giving. It was given by the old Duke, who has lain in his crypt these twenty years.
-\14The salt-master is watching $ChosenOneName's face. So is the captain. You...
+$ChosenOneName takes the parchment and works through the chancery hand. It is a true charter, seal and all, freeing the iron wagons of Hans Hammerl, merchant of Steyr, from every staple on this road... for ten years from its giving. It was given by the old Duke, who has lain in his crypt these twenty years.
+\14The iron-merchant is watching $ChosenOneName's face. So is the captain. You...
 \14\15...\1dread it out as it stands, date and all.
 \15...\1dread it out, and somehow never come to the date.
-\15...\1dtake the salt-master aside and tell him first.
+\15...\1dtake the iron-merchant aside and tell him first.
 === card 2: 10 10 0 240 0 ===
-$ChosenOneName frowns over the crabbed chancery hand, its flourishes and its abbreviations, and gets no further than "We, by the grace of God..." before the captain loses patience and the salt-master loses hope. They go back to shouting at each other, and you have lost an hour.
+$ChosenOneName frowns over the crabbed chancery hand, its flourishes and its abbreviations, and gets no further than "We, by the grace of God..." before the captain loses patience and the iron-merchant loses hope. They go back to shouting at each other, and you have lost an hour.
 === card 3: 10 10 0 240 0 ===
-$ChosenOneName lays a hand on the parchment and swears on $his soul that a better charter never left the Duke's chancery. The captain eyes $him, eyes the seal, and waves the wagons on with an ill grace. The salt-master presses $Money1 on you, and a slap on the back that nearly fells $ChosenOneName.
+$ChosenOneName lays a hand on the parchment and swears on $his soul that a better charter never left the Duke's chancery. The captain eyes $him, eyes the seal, and waves the wagons on with an ill grace. The iron-merchant presses $Money1 on you, and a slap on the back that nearly fells $ChosenOneName.
 \14What the charter really says, you never learn. An oath sworn blind sits uneasily on the soul.
 === card 4: 10 10 0 240 0 ===
 $ChosenOneName swears on $his soul that the charter is good. "Then read it to me," says the captain. $ChosenOneName cannot, and the captain laughs and takes down your names along with the wagons. "False witness on the Duke's road. The council shall hear of it."
 === card 5: 10 10 0 240 0 ===
 You squeeze past the halted wagons and leave them to it. Behind you the shouting goes on. Nothing more comes of it.
 === card 6: 10 10 0 240 0 ===
-$ChosenOneName reads it out, every word, the date too. The salt-master's face falls a long way. The captain grins, turns the wagons toward $NearestCity and thanks you warmly: the council likes strangers who know the law and tell it straight.
-\14The salt-master spits in the road. "Ten years. Who counts ten years?"
+$ChosenOneName reads it out, every word, the date too. The iron-merchant's face falls a long way. The captain grins, turns the wagons toward $NearestCity and thanks you warmly: the council likes strangers who know the law and tell it straight.
+\14The iron-merchant spits in the road. "Ten years. Who counts ten years?"
 === card 7: 10 10 0 240 0 ===
-$ChosenOneName reads it out grandly, wagons and casks and staples and all, and somehow never comes to the date. The captain grumbles, but lets the wagons pass. A mile on, the salt-master catches you up and fills your hands with $Money1 in good silver.
+$ChosenOneName reads it out grandly, wagons and iron and staples and all, and somehow never comes to the date. The captain grumbles, but lets the wagons pass. A mile on, the iron-merchant catches you up and fills your hands with $Money1 in good silver.
 \14"You read like a canon," he says, and winks. He knew all along.
 === card 8: 10 10 0 240 0 ===
-$ChosenOneName reads it out grandly, but stumbles where the date should be, and the salt-master grins too wide. The captain is no scholar, but he is no fool either. He takes the charter, the wagons and your names to $NearestCity, where the council's clerk will read it properly.
+$ChosenOneName reads it out grandly, but stumbles where the date should be, and the iron-merchant grins too wide. The captain is no scholar, but he is no fool either. He takes the charter, the wagons and your names to $NearestCity, where the council's clerk will read it properly.
 === card 9: 10 10 0 240 0 ===
-$ChosenOneName draws the salt-master aside and tells him. He goes grey, then thoughtful. Between you, you make the captain an offer: a fair sum for his riders' trouble, paid on the spot, and the wagons go on their way. The captain would rather have silver in hand than three days of haggling over salt.
-\14The salt-master pays you $Money1 for your counsel, and the captain speaks well of you in $NearestCity.
+$ChosenOneName draws the iron-merchant aside and tells him. He goes grey, then thoughtful. Between you, you make the captain an offer: a fair sum for his riders' trouble, paid on the spot, and the wagons go on their way. The captain would rather have silver in hand than three days of haggling over iron.
+\14The iron-merchant pays you $Money1 for your counsel, and the captain speaks well of you in $NearestCity.
 === card 10: 10 10 0 240 0 ===
-$ChosenOneName draws the salt-master aside and tells him. He bellows that you are in the town's pay, snatches back his charter and goes on shouting at the captain. In the end the riders take the wagons to $NearestCity anyway. You have lost an hour, and gained a salter's curses.
+$ChosenOneName draws the iron-merchant aside and tells him. He bellows that you are in the town's pay, snatches back his charter and goes on shouting at the captain. In the end the riders take the wagons to $NearestCity anyway. You have lost an hour, and gained an iron-merchant's curses.

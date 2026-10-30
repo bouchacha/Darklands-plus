@@ -6,7 +6,7 @@ In a village by the road, a sergeant in a lord's colours and four men-at-arms ha
 \14\15...\1dpay $Money1 for the boy.
 \15...\1dlook the line over for yourselves.
 \15...\1doffer to drill the levy for the sergeant.
-\15...\1dmarch with the levy in the boy's place.
+\15...\1dmarch with the levy in the boy's place, for as many days as it takes.
 \15...\1dgo on your way.
 === card 1: 10 10 0 240 0 ===
 The sergeant counts the coins and strikes the boy's name from his tally. The mother falls on her knees in the mud and blesses you, your mothers and your mothers' mothers.

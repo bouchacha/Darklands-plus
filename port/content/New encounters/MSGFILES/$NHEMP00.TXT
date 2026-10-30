@@ -1,9 +1,9 @@
 # $NHEMP00: the sleeping emperor (New encounters)
 === card 0: 10 10 0 240 0 ===
 Toward midnight, as you cross the wooded shoulder of the hill, a light comes bobbing between the trees: a dwarf no taller than a child, grey-bearded, in a hood of a fashion two hundred years old, holding up a lantern. He bows. "My master would speak with you." Behind him a cleft stands open in the rock where there was none a moment ago.
-\14The old folk hereabouts say the Emperor Frederick never died, but sleeps inside this hill with his knights until the Empire needs him. They also say that those who go in come out long after they went.
+\14The old folk hereabouts say the Emperor Frederick never died, but sleeps inside this hill with his knights until the Empire needs him. They also say that time runs otherwise under the hill: whoever goes in for an hour comes out days later.
 \14You...
-\14\15...\1dfollow the dwarf into the hill.
+\14\15...\1dfollow the dwarf into the hill, though days will pass.
 \16...\1dcross yourselves and pray to a saint.
 \15...\1dbid him good night and walk on.
 === card 1: 10 10 0 240 0 ===
@@ -38,4 +38,4 @@ While the emperor talks of ravens, $ChosenOneName slips a little golden cup into
 \14But the moon is the wrong shape. Days have passed, not hours, and the cup weighed heavier than gold should.
 === card 10: 10 10 0 240 0 ===
 $ChosenOneName's hand is on the cup when the dwarf's lantern swings round. The nearest knight wakes, and the flat of his sword sends $ChosenOneName sprawling. You are thrown out onto the hillside without ceremony, and the cleft slams shut.
-\14When you can stand again, the moon is the wrong shape. More days have passed than you can count.
+\14When you can stand again, the moon is the wrong shape. More days have passed than you care to count.

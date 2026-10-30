@@ -39,6 +39,6 @@ option 0                                   # haul him before the council
 option 1                                   # make him pour it into the road
   chance assured
   ok     text 11; hours 1; attr party, DF, 2; practice party, Virtue, 1, 10, 0; exit
-option 2                                   # take silver for your silence
+option 2                                   # let the carters make him drink his own wine
   chance none
-  ok     money1 random(48) + 36; text 12; gain money1; attr party, DF, -4; exit
+  ok     money1 random(36) + 24; text 12; gain money1; attr party, DF, -4; exit

@@ -13,7 +13,7 @@ $ChosenOneName worms close enough through the bracken to mark every face, and th
 === card 2: 10 10 0 240 0 ===
 A dry branch cracks under $ChosenOneName's knee. The hammering stops. "Spies!" Men snatch up cudgels and knives and come scrambling up the cleft.
 === card 3: 10 10 0 240 0 ===
-$ChosenOneName strolls in and admires their work like a fellow tradesman, and when they offer a purse of fresh groschen for $his silence, $he laughs. "Your own coin? Do you take us for peasants? Pay us in the silver you buy." After some grumbling, they do: $Money1 in honest money.
+$ChosenOneName strolls in and admires their work like a fellow tradesman, and when they offer a purse of fresh groschen for $his silence, $he laughs. "Your own coin? Do you take us for fools? Pay us in the silver you buy." After some grumbling, they do: $Money1 in honest money.
 \14You leave them hammering, and try not to think about the oil.
 === card 4: 10 10 0 240 0 ===
 $ChosenOneName strolls in and admires their work, and they press a fat purse of fresh groschen on $him for $his silence. In the next village the baker bites one and it bends: lead under a wash of silver. You throw the lot into a stream before anyone can ask where you got them.

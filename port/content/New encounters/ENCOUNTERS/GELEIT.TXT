@@ -1,7 +1,7 @@
 # The safe-conduct: a Jewish moneylender travels under a count's escort, and the escort means to rob him.
 name     The safe-conduct
 card     $NrGel00
-picture  BANKER
+picture  KNGT
 where    wild
 terrain  road plains farmland
 when     day

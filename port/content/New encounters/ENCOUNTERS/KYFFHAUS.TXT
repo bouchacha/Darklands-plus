@@ -23,7 +23,7 @@ option 2                                   # walk on
 
 [hall]
 picture  XDNITE
-do       set lost = 2 + random(3)
+do       set lost = 2 + random(2)                # two or three days (a failed theft one more)
 block    4
 option 0                                   # yes, the ravens still fly
   chance none
@@ -40,4 +40,4 @@ option 3                                   # slip a golden cup from the table (A
   who    bestattrsum(Agl, Per)
   chance clamp(5, 90, (attr(who, Agl) + attr(who, Per)) * 2 / 3 - 10)
   ok     chosen who; money1 random(120) + 120; text 9; days lost; gain money1; attr party, DF, -3; exit
-  fail   chosen who; text 10; days lost + 2; injure who, 1, 1, 10; exit
+  fail   chosen who; text 10; days lost + 1; injure who, 1, 1, 10; exit

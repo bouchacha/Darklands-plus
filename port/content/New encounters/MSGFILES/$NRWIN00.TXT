@@ -27,13 +27,15 @@ $ChosenOneName does what $he can for the carter, but nothing eases the cramps, a
 You leave the sweet wine untouched and go out into the night, and find a dry corner in a farmer's barn down the road. Nothing more comes of it.
 === card 9: 10 10 0 240 0 ===
 Found out, the landlord goes pale and wrings his hands. "Everyone does it! Sour wine won't sell! Don't tell the Vogt, masters, he'll hang me from my own sign!"
+\14But the carter has heard, and so have his two mates, in from the yard with their whips. "Sweet, is it?" says the carter through his teeth. "Then let him drink it. A jug for every gripe he's given me." The landlord looks at you as if you were the last friends he had.
 \14You...
 \14\15...\1dhaul him before the council of $NearestCity.
 \15...\1dmake him pour every cask into the road.
-\15...\1dtake his silver to keep quiet.
+\15...\1dstand back and let the carters pour it into him.
 === card 10: 10 10 0 240 0 ===
-You march the landlord to $NearestCity with his keg of litharge on a barrow. The council's wine-tasters are delighted: he is fined half his inn, and his casks are staved in on the market square. A share of the fine comes to you, $Money1, along with the thanks of a town that likes its wine honest.
+You march the landlord to $NearestCity with his keg of litharge on a barrow and the carters behind you to swear to their bellies. The council's wine-tasters are delighted: he is fined half his inn, and his casks are staved in on the market square. A share of the fine comes to you, $Money1, along with the thanks of a town that likes its wine honest.
 === card 11: 10 10 0 240 0 ===
-Under your eyes the landlord rolls out his casks one by one and staves them in. The ditch runs dark and sweet, and the whole yard smells like a bishop's feast. "Ruined," he weeps. "Better you than your guests," says $ChosenOneName.
+Under your eyes the landlord rolls out his casks one by one and staves them in, while the carters, cheated of their sport, jeer at every one. The ditch runs dark and sweet, and the whole yard smells like a bishop's feast. "Ruined," he weeps. "Better you than your guests," says $ChosenOneName.
 === card 12: 10 10 0 240 0 ===
-The landlord counts out $Money1 with shaking hands. You drink no more of his wine, and you tell no one. Tomorrow he will pour it for the next travellers.
+You step back. The carters hold the landlord down on his own table and pour his sweet wine into him, jug after jug, while the potboy wails. When he lies groaning in the straw, they break open his money-box for their gripes and push a share across the table to you: $Money1.
+\14Whether he lives to sweeten another cask is between him and his belly.

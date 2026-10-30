@@ -30,7 +30,7 @@ option 0                                   # swear on the relic (Virtue)
   chance clamp(5, 90, skill(who, Virtue) + attr(who, Cha) / 3 + standing / 5)
   ok     chosen who; text 4; practice who, Virtue, 1, 10, 0; exit
   fail   chosen who; text 5; pay fine; reputation -1, -2; practice who, Virtue, 0, 10, 0; exit
-option 1                                   # find the real thief (Streetwise)
+option 1                                   # find out where it went (Streetwise): it was never stolen
   who    bestattrskill(Per, Streetwise)
   chance clamp(5, 90, skill(who, Streetwise) + attr(who, Per) / 2 - 5)
   ok     chosen who; practice who, Streetwise, 1, 10, 0; goto thief
@@ -46,9 +46,9 @@ option 3                                   # snatch up your clothes and run (Ste
 
 [thief]
 block    10
-option 0                                   # name him before them all
+option 0                                   # say what you saw: a love-token, not a theft
   chance none
   ok     text 11; reputation 1, 3; exit
-option 1                                   # let him slip it back
+option 1                                   # let the journeyman put it back; the wife pays for your silence
   chance none
-  ok     text 12; attr party, DF, 2; practice party, Virtue, 1, 10, 0; exit
+  ok     money1 random(24) + 24; text 12; gain money1; exit

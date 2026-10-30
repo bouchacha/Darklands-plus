@@ -15,9 +15,9 @@ option 0                                   # hire him
   chance none
   ok     pay money1; goto hangman
 option 1                                   # buy his lantern outright
-  need   money >= 60
+  need   money >= money2
   chance none
-  ok     text 2; pay 60; additem leader, 0x3d; exit
+  ok     text 2; pay money2; additem leader, 0x3d; exit
 option 2                                   # find your own way in the dark
   who    bestattrskill(Per, Streetwise)
   chance clamp(5, 90, attr(who, Per) + skill(who, Streetwise) / 2 - 10)

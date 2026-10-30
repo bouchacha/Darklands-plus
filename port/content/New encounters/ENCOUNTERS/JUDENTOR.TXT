@@ -1,7 +1,7 @@
 # The shut gate: a physician of the Jews' lane, a gate locked for the night, and a choking child.
 name     The shut gate
 card     $NnJud00
-picture  XPORTCUL
+picture  XMS062
 where    street
 when     night
 weight   1

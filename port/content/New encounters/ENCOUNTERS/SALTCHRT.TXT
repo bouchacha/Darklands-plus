@@ -1,5 +1,5 @@
-# The salt-master's charter: a salt convoy stopped by a town's riders, and a charter no one can read.
-name     The salt-master's charter
+# The dead duke's charter: an iron convoy stopped by a town's riders under the staple right, and a charter no one can read.
+name     The dead duke's charter
 card     $NrSlt00
 picture  GUARD1
 where    wild
@@ -34,7 +34,7 @@ option 1                                   # never come to the date (SpeakCommon
   chance clamp(5, 90, (4 * attr(who, Cha) + skill(who, SpeakCommon)) / 5)
   ok     money1 random(36) + 36; text 7; gain money1; attr party, DF, -3; practice who, SpeakCommon, 1, 10, 0; exit
   fail   text 8; reputation -1, -3; attr who, DF, -1; practice who, SpeakCommon, 0, 10, 0; exit
-option 2                                   # tell the salt-master first, and broker a bargain (Streetwise)
+option 2                                   # tell the merchant first, and broker a bargain (Streetwise)
   who    bestskill(Streetwise)
   chance clamp(5, 90, skill(who, Streetwise) + attr(who, Cha) / 3)
   ok     chosen who; money1 random(24) + 12; text 9; gain money1; reputation 1, 2; practice who, Streetwise, 1, 10, 0; exit
