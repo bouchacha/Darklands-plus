@@ -39,6 +39,6 @@ At the church door the carter kneels before the dead man's widow, the candle bur
 \14\15...\1dgo into the church with them.
 \15...\1dgo your own way.
 === card 14: 10 10 0 240 0 ===
-You follow the procession through the crowd into the church close, where the whole parish is pressing in to see the end of it.
+You follow the procession into the church and hear the Mass of reconciliation through, packed in among the whole parish, with the carter on his knees before the altar and his candle burning. When you come out into the church close an hour later, your hearts are the lighter for it.
 === card 15: 10 10 0 240 0 ===
 You go your own way, and the bell follows you down the street. Nothing more comes of it.

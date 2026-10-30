@@ -1,7 +1,7 @@
 # The midwife's errand: the town's sworn midwife turns her ankle on the way to a hard birth.
 name     The midwife's errand
 card     $NnMid00
-picture  XRUN
+picture  XNMAIN
 where    street
 when     night
 weight   1
@@ -32,7 +32,7 @@ items    0x73, 0x70                      # Essence o'Grace, New-wind
 option 0                                   # be her hands (Healing; harder if you came late)
   who    bestskill(Healing)
   chance clamp(5, 90, skill(who, Healing) + attr(who, Agl) / 3 + 10 - late * 20)
-  ok     chosen who; text 7; reputation 1, 3; attr party, DF, 2; practice who, Healing, 1, 20, 0; hours 3; exit
+  ok     chosen who; text 7; reputation 1, 3; attr party, DF, 2; practice who, Healing, 1, 10, 0; hours 3; exit
   fail   chosen who; text 8; attr who, End, -3; practice who, Healing, 0, 10, 0; hours 3; exit
 option 1 saint
   ok     text 9; reputation 1, 2; attr party, DF, 1; hours 3; exit

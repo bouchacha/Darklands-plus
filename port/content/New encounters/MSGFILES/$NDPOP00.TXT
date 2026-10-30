@@ -14,7 +14,7 @@ You sit on the guild's benches with a jug of their beer and watch bolt after bol
 You walk on against the stream of the crowd, and the drum dwindles away toward the walls. Nothing comes of it.
 === card 4: 10 10 0 240 0 ===
 $ChosenOneName waits for $his turn, sights and looses. The shot takes the popinjay clean off its perch in a shower of painted splinters, and the crowd roars. The guild master hangs the shooters' silver chain round $ChosenOneName's neck and announces the new king's first duty, by ancient custom: the king stands the whole guild its beer. There are sixty thirsty crossbowmen, and the beer will cost $Money1. You...
-\14\15...\1dstand the guild its beer like a king.
+\14\15...\1dstand the guild its $Money1 of beer like a king.
 \15...\1dplead an empty purse, royally.
 \15...\1dgive the chain to the town's own champion.
 \15...\1dmake off with the silver chain.

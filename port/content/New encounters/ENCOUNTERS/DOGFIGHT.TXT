@@ -29,7 +29,7 @@ option 2                                   # walk on
 block    6
 option 0                                   # say the Paternoster without a stumble
   who    bestskill(Latin)
-  chance clamp(10, 95, skill(who, Latin) + attr(who, Int) / 3 + 15)
+  chance clamp(10, 90, skill(who, Latin) + attr(who, Int) / 3 + 15)
   ok     chosen who; text 7; reputation 1, 2; practice who, Latin, 1, 10, 0; exit
   fail   chosen who; text 8; reputation -2, -4; practice who, Latin, 0, 10, 0; exit
 option 1                                   # stand the crowd beer with the winnings

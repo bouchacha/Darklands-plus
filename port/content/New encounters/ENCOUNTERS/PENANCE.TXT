@@ -48,7 +48,7 @@ option 2                                   # stand back
 block    13
 option 0                                   # go into the church with them
   chance none
-  ok     text 14; card 0x13
+  ok     text 14; attr party, DF, 1; hours 1; card 0x13
 option 1                                   # go your own way
   chance none
   ok     text 15; exit

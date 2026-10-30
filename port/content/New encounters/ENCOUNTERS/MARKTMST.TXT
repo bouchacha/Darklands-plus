@@ -7,7 +7,7 @@ when     day
 weight   1
 
 [start]
-do       money1 6
+do       money1 24
 block    0
 chosen   bestattrsum(Agl, Per)
 option 0                                   # let the market master measure it

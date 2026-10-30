@@ -29,7 +29,7 @@ block    5
 option 0                                   # write him a true one in its place
   who    bestattrskill(Int, ReadWrite)
   chance clamp(5, 90, skill(who, ReadWrite) + attr(who, Int) / 2 - 10)
-  ok     chosen who; text 6; gain money1; attr party, DF, 1; practice who, ReadWrite, 1, 20, 0; hours 1; exit
+  ok     chosen who; text 6; gain money1; attr party, DF, 1; practice who, ReadWrite, 1, 10, 0; hours 1; exit
   fail   chosen who; text 7; practice who, ReadWrite, 0, 10, 0; hours 1; exit
 option 1                                   # tell him what it says
   chance none

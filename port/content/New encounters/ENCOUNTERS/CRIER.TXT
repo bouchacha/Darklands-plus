@@ -10,9 +10,11 @@ weight   1
 do       money1 240
 block    0
 chosen   bestattr(Str)
-option 0                                   # ask the crier to read on
-  chance none
-  ok     text 1; goto spot
+option 0                                   # read the rest of the notice yourselves (ReadWrite)
+  who    bestskill(ReadWrite)
+  chance clamp(5, 90, skill(who, ReadWrite) + attr(who, Int) / 3 + 10)
+  ok     chosen2 who; text 1; practice who, ReadWrite, 1, 10, 0; goto spot
+  fail   chosen2 who; text 12; practice who, ReadWrite, 0, 10, 0; disable 0
 option 1                                   # face the crowd down
   who    bestattr(Cha)
   chance clamp(5, 90, (2 * attr(who, Cha) + skill(who, SpeakCommon)) / 3 + min(15, fame / 10) - 5)

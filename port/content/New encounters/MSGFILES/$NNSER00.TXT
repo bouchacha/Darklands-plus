@@ -6,7 +6,7 @@ Under a lit window on the square, three students in ragged gowns are singing to 
 \15...\1dtalk them home before the watch comes.
 \15...\1dwalk on.
 === card 1: 10 10 0 240 0 ===
-$ChosenOneName strikes up, the students join in, and the song goes up to the window in four keys at once. The shutter flies open, and the contents of a chamber pot come down on all of you. Windows open the length of the square to curse the strangers howling under them.
+$ChosenOneName strikes up, the students join in, and the song goes up to the window in four keys at once. Agnes's shutter stays shut. The next one flies open instead, on the syndic himself in his nightcap, who takes your names for the council, and windows open the length of the square to curse the strangers howling under them.
 === card 2: 10 10 0 240 0 ===
 $ChosenOneName points out that the syndic's window is lit because the syndic is awake, and that he is a man who keeps the sergeant of the watch in beer. The students look at one another and drift away into the dark, grumbling. The square goes back to sleep, and its people will be grateful in the morning.
 === card 3: 10 10 0 240 0 ===

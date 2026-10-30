@@ -1,7 +1,7 @@
 # $NNLOV00: the love-letter (New encounters)
 === card 0: 10 10 0 240 0 ===
 A young man in a floury apron catches at your sleeves in a dark lane: a baker's journeyman, out between batches while the oven heats. He holds out a folded letter, sealed with a blob of dough.
-\14"For Gretlin, the cooper's daughter, the window over the yard. I paid the notary's clerk to write it in Latin, so she knows I'm in earnest. I can't take it myself; her father has sworn to break my head. $Money1 for your trouble, masters. It's all I have." You...
+\14"For Gretlin, the cooper's daughter, the window over the yard. I paid the notary's clerk to write it in Latin, so she knows I'm in earnest. I can't take it myself; her father has sworn to break my head. $Money1 for your trouble, masters. It's all I can spare." You...
 \14\15...\1dcarry it to her window as it is.
 \15...\1dread it first.
 \15...\1dsend him back to his oven.
@@ -21,11 +21,11 @@ $ChosenOneName reads it twice to be sure. It is no love-letter. In good Latin th
 \15...\1dtell him what it says.
 \15...\1ddeliver it anyway, for the joke.
 === card 6: 10 10 0 240 0 ===
-On the back of a baker's tally, $ChosenOneName writes a letter, half in Latin and half in honest German, of eyes like the morning and bread baked for her alone. You carry it up; a long silence; then a red ribbon comes floating down from the window.
+On the back of a baker's tally, $ChosenOneName writes a letter, half in Latin and half in honest German, of eyes like the morning and bread baked for her alone. You carry it up; a long silence; then the basket comes down again on its string with a sprig of rosemary in it, the bride's herb.
 \14The lad weeps into his flour and presses his coins on you. It is good, now and then, to have used one's letters for something.
 === card 7: 10 10 0 240 0 ===
 $ChosenOneName writes a new letter, but it comes out as stiff as a notary's deed. Gretlin reads it by her candle, giggles, and closes the shutter, not unkindly. "Perhaps," says the lad, with more hope than you have. An hour has gone.
 === card 8: 10 10 0 240 0 ===
-The lad goes white, then red, and tears the letter to flour-dust. "An ass, am I? We'll see who's the ass when I find that clerk." He presses $Money1 on you, double his promise, for saving him from ruin, and sets off up the street rolling up his sleeves.
+The lad goes white, then red, and tears the letter to flour-dust. "An ass, am I? We'll see who's the ass when I find that clerk." He presses $Money1 on you, double his promise and the last of his week's wage, for saving him from ruin, and sets off up the street rolling up his sleeves.
 === card 9: 10 10 0 240 0 ===
 You take the lad's coins and carry the letter up. Gretlin reads it by her candle; there is a shriek, and a bucket of slops narrowly misses you. The lad goes home glowing, none the wiser. You laugh about it later, though not as much as you expected to.

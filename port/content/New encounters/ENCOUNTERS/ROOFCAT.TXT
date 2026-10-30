@@ -1,7 +1,7 @@
 # The cat on the roof: a widow's ring in a cat's mouth, and a whole street's treasure in its gutter.
 name     The cat on the roof
 card     $NnCat00
-picture  XSIDE
+picture  XCHURCH
 where    street
 when     night
 weight   1

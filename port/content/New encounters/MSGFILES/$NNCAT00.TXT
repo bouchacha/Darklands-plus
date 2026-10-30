@@ -8,7 +8,7 @@
 \16...\1dcall on St. Gertrude, who loves cats.
 \15...\1dwalk on.
 === card 1: 10 10 0 240 0 ===
-$ChosenOneName goes up by a water-butt, a shed and a drainpipe, and creeps along the ridge on hands and knees. The cat retreats, unhurried, to the gutter at the end of the roof, and sits down on a heap of something that glitters.
+$ChosenOneName goes up by a water-butt, a shed and the timbers of the gable, and creeps along the ridge on hands and knees. The cat retreats, unhurried, to the gutter at the end of the roof, and sits down on a heap of something that glitters.
 === card 2: 10 10 0 240 0 ===
 $ChosenOneName goes up by a water-butt and a shed, puts a foot on the roof, and comes down again with a dozen tiles, into a dung-heap. Shutters bang open all along the lane. By morning the street knows who broke the widow's roof.
 === card 3: 10 10 0 240 0 ===

@@ -26,7 +26,7 @@ You pray, but nothing changes. The furnace roars, and the boy waits.
 === card 9: 10 10 0 240 0 ===
 You walk on. Behind you the boy stands by the furnace, wringing his hands. Nothing comes of it.
 === card 10: 10 10 0 240 0 ===
-In comes the master founder, red with beer and rage, a casting hammer in his fist. "Who tapped my furnace?" The boy cowers behind you, and the hammer comes up. You...
+In comes the master founder, red with beer and rage, a casting hammer in his fist. "Who has been at my furnace?" The boy cowers behind you, and the hammer comes up. You...
 \14\15...\1dtake the hammer from him.
 \15...\1dreason with him.
 \15...\1dleave them to it.

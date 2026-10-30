@@ -1,12 +1,12 @@
 # $NDCRY00: the crier's proclamation (New encounters)
 === card 0: 10 10 0 240 0 ===
-On a mounting-block by the town hall the crier rings his handbell and reads out the council's notice, nailed up on the door behind him: "...whereas on Sunday night a thief broke into the goldsmiths' hall and carried off the guild's great silver drinking-horn, the honourable council will pay a florin to whoever brings him in. He is a stranger, tall, armed, travelling with others..."
+On a mounting-block by the town hall the crier rings his handbell and cries the council's notice, nailed up on the door behind him: "...whereas on Sunday night a thief broke into the goldsmiths' hall and carried off the guild's great silver drinking-horn, the honourable council will pay a florin to whoever brings him in. He is a stranger, tall, armed, travelling with others..." There he stops: that is as much as the clerk told him. The rest is writing, and nobody in the square can read it.
 \14Heads turn. One by one, the whole crowd is looking at $ChosenOneName. A butcher's boy slips away toward the watch-house. You...
-\14\15...\1dask the crier to read on.
+\14\15...\1dread the rest of the notice yourselves.
 \15...\1dface the crowd down.
 \15...\1dleave the square quickly.
 === card 1: 10 10 0 240 0 ===
-"Read on, crier," says $ChosenOneName. The crier squints at the notice. "...and he lacks his left ear, which was cropped at Ulm for theft." Every eye goes to $ChosenOneName's ears. There are two of them. The crowd laughs, a little sheepishly, and turns away.
+$ChosenTwoName pushes through to the door and reads the clerk's crabbed hand aloud: "...and he lacks his left ear, which was cropped at Ulm for theft." Every eye goes to $ChosenOneName's ears. There are two of them. The crowd laughs, a little sheepishly, and turns away.
 === card 2: 10 10 0 240 0 ===
 $ChosenOneName folds $his arms and stares back at the crowd until, one by one, they find something else to look at. "We came in by the gate this very morning," $he says, "as the gate-ward will tell you." The crowd mutters and turns away.
 === card 3: 10 10 0 240 0 ===
@@ -30,3 +30,5 @@ $ChosenOneName trails him through the lanes, but at the fourth corner he glances
 You point him out to a watchman, who strolls after him. To your surprise he is back within the hour, with the hooded man by the collar and the drinking-horn in his hand, and the council sends the strangers a share of the reward.
 === card 11: 10 10 0 240 0 ===
 You point him out to a watchman, who strolls after him without hurry and comes back an hour later without him. Nothing more comes of it.
+=== card 12: 10 10 0 240 0 ===
+$ChosenTwoName squints at the notice, but the council's clerk writes a crabbed chancery hand, all loops and flourishes, and the longer the squinting goes on, the louder the crowd mutters that the strangers are only stalling. Somewhere behind it, the watch are coming.

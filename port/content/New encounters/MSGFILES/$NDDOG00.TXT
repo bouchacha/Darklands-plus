@@ -17,7 +17,7 @@ $ChosenOneName steps into the ring and asks, loud enough for the street, whether
 You walk on. Behind you the roaring rises to a howl, and somebody's dog stops barking. Nothing comes of it.
 === card 6: 10 10 0 240 0 ===
 The brindle's owner, a butcher with a neck like a bullock's, does not take it well. He points his cleaver at $ChosenOneName. "That one looked at my dog! Stared him down before the fight! The evil eye, I tell you!"
-\14Some in the crowd make the horns with their fingers. Others edge away from you. Everyone knows a witch cannot say the Lord's Prayer without stumbling. You...
+\14Some in the crowd cross themselves, or make the fig against the evil eye. Others edge away from you. Everyone knows a witch cannot say the Lord's Prayer without stumbling. You...
 \14\15...\1dsay the Paternoster aloud, every word of it.
 \15...\1dlaugh and stand the crowd $Money1 of beer.
 \15...\1dwalk off with your winnings.

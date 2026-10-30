@@ -48,5 +48,4 @@ option 2                                   # slip away into the dark
 
 [bier]
 picture  MS041
-do       until 8; text 11; reputation 1, 3; if clue then fame 1
-         exit
+do       until 8; text 11; reputation 1, 3; exit
