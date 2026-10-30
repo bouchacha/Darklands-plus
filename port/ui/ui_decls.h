@@ -9,14 +9,13 @@ extern char game_dir[1024];
 extern const unsigned char FONT_MEDIUM[], FONT_SEMIBOLD[], FONT_ALEGREYA[], FONT_FELL[], FONT_MEDIEVAL[], FONT_ATKINSON[], FONT_FRAKTUR[], FONT_GRENZE[], FONT_COMIC[];
 extern const unsigned int FONT_MEDIUM_SIZE, FONT_SEMIBOLD_SIZE, FONT_ALEGREYA_SIZE, FONT_FELL_SIZE, FONT_MEDIEVAL_SIZE, FONT_ATKINSON_SIZE, FONT_FRAKTUR_SIZE, FONT_GRENZE_SIZE, FONT_COMIC_SIZE;
 extern "C" { int mt32_available(void); int mt32_is_open(void); void plat_restart(void); }
-std::string news_key(void);
 void welcome_window(void);
 extern "C" { void tips_init(void); int tips_open(void); void ui_open_tab(int t); }
 void tips_frame(void);
 bool tips_never_box(bool *never);       /* ui/tips.cpp: "Never show again", from the fourth start */
 extern "C" int orders_click_attack;
 void help_window(void);
-void tab_about(void); void news_window(void); void mt32_window(void);
+void tab_about(void); void mt32_window(void);
 extern "C" int citynav_window(void);
 extern "C" int citynav_available(void);
 extern "C" void citynav_draw_cover(void);

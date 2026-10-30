@@ -5,7 +5,7 @@
 
 The same things are said in several places - README.md, the changelog's newest section, the release
 notes (docs/release_notes.md, what is above "New in 1.2" and from "What it adds" on), the README of
-the download (tools/release_readme.txt), docs/MODDING.md and the game's own welcome and news windows
+the download (tools/release_readme.txt), docs/MODDING.md and the game's own welcome window
 (ui/ui_windows.cpp). Older sections of the changelog and release notes are history and left alone.
 Checked:
   - a skill's or attribute's shield is never drawn by a fixed number (it stands for that skill only);
@@ -58,7 +58,7 @@ def sections_of_docs():
     out.append(('docs/release_notes.md', rn[:i if i >= 0 else len(rn)] + (rn[j:] if j >= 0 else '')))
     out.append(('tools/release_readme.txt', rd('port/tools/release_readme.txt')))
     out.append(('docs/MODDING.md', rd('docs/MODDING.md')))
-    out.append(('ui/ui_windows.cpp (welcome, news)', '\n'.join(c_strings(rd('port/ui/ui_windows.cpp')))))
+    out.append(('ui/ui_windows.cpp (welcome)', '\n'.join(c_strings(rd('port/ui/ui_windows.cpp')))))
     return out
 
 

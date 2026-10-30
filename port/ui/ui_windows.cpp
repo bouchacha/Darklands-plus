@@ -1,6 +1,6 @@
-// ui_windows.cpp - the interface's side windows: About, the welcome on the first start, the news
-// of a new version, getting the MT-32 working, and F11's keys and clicks for the screen in view.
-// Split from ui/ui.cpp, which opens them (its flags open_help, open_welcome, open_mt32, open_news).
+// ui_windows.cpp - the interface's side windows: About, the welcome on the first start, getting the
+// MT-32 working, and F11's keys and clicks for the screen in view.
+// Split from ui/ui.cpp, which opens them (its flags open_help, open_welcome, open_mt32).
 #include <SDL.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -53,7 +53,7 @@ extern const unsigned int FONT_MEDIUM_SIZE, FONT_SEMIBOLD_SIZE, FONT_ALEGREYA_SI
 }
 #include "ornament.h"
 
-extern bool open_help, open_welcome, open_mt32, open_news;
+extern bool open_help, open_welcome, open_mt32;
 static void bulletf(const char *fmt, ...)   /* a bullet whose text wraps (ImGui's BulletText does not) */
 {
     va_list ap; va_start(ap, fmt); ImGui::Bullet(); ImGui::TextWrappedV(fmt, ap); va_end(ap);
@@ -171,50 +171,7 @@ void welcome_window(void)
         { ImGui::Bullet(); ImGui::TextWrapped("%s", "Right-click: the game's menu bar (save, load, orders in battle)"); }
         { ImGui::Bullet(); ImGui::TextWrapped("%s", "Alt+Enter: full screen   Ctrl+S: quick save   F9: quick load"); }
         if (ImGui::IsKeyPressed(ImGuiKey_Escape)) done = true;
-        if (done) { open_welcome = false; config_set_int("ui.welcome_seen", 1); if (!news_key().empty()) config_set("ui.news_seen", news_key().c_str()); config_save(); }
-    }
-    ImGui::End();
-    ImGui::PopFont();
-}
-
-/* what is new in this version (its first two numbers: "1.2" from "1.2-preview35"; "" for a build
-   that is no release), shown once to a player of an earlier one */
-extern "C" const char dlp_release[];
-std::string news_key(void)
-{
-    std::string r = dlp_release;
-    size_t a = r.find('.'); if (a == std::string::npos) return "";
-    size_t b = a + 1; while (b < r.size() && isdigit((unsigned char)r[b])) b++;
-    return r.substr(0, b);
-}
-void news_window(void)
-{
-    ImGuiIO &io = ImGui::GetIO();
-    ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 140));
-    float w = fminf(io.DisplaySize.x * 0.9f, UIS(760));
-    ImGui::SetNextWindowSize(ImVec2(w, 0), ImGuiCond_Always);
-    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-    ImGui::PushFont(font_body);
-    std::string title = "New in Darklands+ " + news_key();
-    if (ImGui::Begin(title.c_str(), nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
-        static const char *NEWS[] = {
-            "Ways of fighting: each member has one (Skirmisher, Archer, Charger or Manual), chosen on their box in the party panel. "
-            "It sets what they do between your orders.",
-            "64 new encounters, 80 in all: in the wild, on the river boats, in the towns' streets and in camp, each with what came of your choice (F12 > Mods).",
-            "The level map (Tab) keeps what the party has seen. A click anywhere seen walks the party there, a click on a floor walks to its stairs. "
-            "In a castle, mine or dungeon, a click on a door walks to it and opens it.",
-            "Ingredients are all of one quality, so one kind is one stack (F12 > Settings > The party and its items).",
-            "Report a problem (F12 > About) packs what a bug report needs and opens the GitHub form.",
-            "Alchemy charts the chance for each number of batches; saints can be picked by what they raise; the world map's Find... looks up places, ingredients and wares.",
-            "Your saved games are copied into \"Darklands+ save backups\" the first time each new version starts." };
-        for (const char *t : NEWS) { ImGui::Bullet(); ImGui::TextWrapped("%s", t); }
-        ImGui::Spacing();
-        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-        ImGui::TextWrapped("Most changes can be switched off in F12 > Settings (the Full Original preset turns off all that changes the play). F11 lists the keys for the current screen.");
-        ImGui::PopStyleColor();
-        ImGui::Spacing();
-        bool done = ImGui::Button("  Back to the game  ") || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_Escape);
-        if (done) { open_news = false; config_set("ui.news_seen", news_key().c_str()); config_save(); }
+        if (done) { open_welcome = false; config_set_int("ui.welcome_seen", 1); config_save(); }
     }
     ImGui::End();
     ImGui::PopFont();

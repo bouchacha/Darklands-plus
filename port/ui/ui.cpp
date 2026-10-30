@@ -48,7 +48,7 @@ extern "C" {
 #include "ornament.h"
 
 static bool open_menu, open_map, open_goto;
-bool open_help, open_welcome, open_mt32, open_news;   /* (the side windows: ui/ui_windows.cpp) */
+bool open_help, open_welcome, open_mt32;   /* (the side windows: ui/ui_windows.cpp) */
 extern "C" void ui_toggle_help(void) { open_help = !open_help; }
 /* "Go to" in cities (ui/citynav.cpp): G on a city card */
 static bool goto_allowed(void) { return config_get_int("assist.city_goto", 1) && !config_get_int("original", 0) && citynav_available(); }
@@ -237,8 +237,6 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     money_glyphs_paint(io.Fonts);
     tips_init();                         /* (the starts counted: ui/tips.cpp) */
     open_welcome = getenv("DL_WELCOME") != nullptr;   /* (the first start's welcome comes on the start screen: tips_title_reached) */
-    /* what is new, once, for a player of an earlier version (the first start's welcome says it all for a new one) */
-    open_news = (config_get_int("ui.welcome_seen", 0) && !getenv("DL_SCRIPT") && !getenv("DL_CTL") && !getenv("DL_RESTARTED") && !news_key().empty() && news_key() != config_get("ui.news_seen", "")) || getenv("DL_NEWS");
     {   /* the MT-32 recommendation: at each start while its ROM files are missing, until "don't remind me" */
         const char *dev = config_get("sound.device", "auto");
         open_mt32 = ((!getenv("DL_SCRIPT") && !getenv("DL_CTL") && !getenv("DL_RESTARTED")) || getenv("DL_MT32_PROMPT")) && config_get_int("sound.mt32_prompt", 1)
@@ -293,7 +291,7 @@ void dl_imgui_assert(const char *expr, const char *file, int line)
     fprintf(stderr, "imgui: check failed: %s (%s:%d)\n", expr, file, line);
 }
 extern "C" void ui_show_mt32_help(void) { open_mt32 = true; }   /* (the settings' Sound: how to get the MT-32) */
-extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || open_news || tips_open() || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || ui_alert_open(); }
+extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || tips_open() || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || ui_alert_open(); }
 extern "C" void ui_open_tab(int t) { open_map = false; open_goto = false; open_help = false; open_menu = true; if (t >= 0) ui_select_tab(t); }   /* (-1: the page it was on) */
 extern "C" int ui_map_open(void) { return open_map; }
 extern "C" void ui_toggle(void) { open_map = false; open_goto = false; open_help = false; open_menu = !open_menu; if (!open_menu && ui_dirty_config) { config_save(); ui_dirty_config = 0; } }
@@ -316,10 +314,6 @@ extern "C" int levelwalk_door_click(void);            /* (mods/levelwalk.c: a cl
 extern "C" int ui_event(const SDL_Event *e)
 {
     if (e->type == SDL_RENDER_TARGETS_RESET || e->type == SDL_RENDER_DEVICE_RESET) dc_reset();   /* (the kept pictures lost) */
-    if (open_news && !open_welcome) {       /* what is new: as the welcome */
-        ImGui_ImplSDL2_ProcessEvent(e);
-        return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
-    }
     if (open_mt32 && !open_welcome) {       /* the MT-32 recommendation, as the welcome */
         ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
@@ -433,7 +427,7 @@ static void tab_editor_all(void)
    there, and the game's hand not drawn, so the one pointer seen is where a click lands */
 static bool windows_up(void)
 {
-    return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || open_news || tips_open() || levelmap_is_open() || halloffame_is_open() || figpick_is_open();
+    return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || tips_open() || levelmap_is_open() || halloffame_is_open() || figpick_is_open();
 }
 static void ui_cursor(void)
 {
@@ -567,9 +561,9 @@ extern "C" void ui_draw(SDL_Renderer *ren)
         sound_music_hushed = open_menu && settings_shown && !soundpreview_active() && !settings_pack_preview;
         { void playlist_frame(int); playlist_frame(open_menu && settings_shown); }   /* (the soundtrack's player stops with the settings: mods/playlist.c) */
     }
-    { void screenpics_frame(int); screenpics_frame(open_menu || open_map || open_goto || open_help || open_welcome || open_news);
-      void screenpics_map_frame(int, int); screenpics_map_frame(open_map, open_menu || open_goto || open_help || open_welcome || open_news);
-      void screenpics_land_frame(int); screenpics_land_frame(open_menu || open_map || open_goto || open_help || open_welcome || open_news || levelmap_is_open()); }   /* (ui/screenpics.cpp) */
+    { void screenpics_frame(int); screenpics_frame(open_menu || open_map || open_goto || open_help || open_welcome);
+      void screenpics_map_frame(int, int); screenpics_map_frame(open_map, open_menu || open_goto || open_help || open_welcome);
+      void screenpics_land_frame(int); screenpics_land_frame(open_menu || open_map || open_goto || open_help || open_welcome || levelmap_is_open()); }   /* (ui/screenpics.cpp) */
     ns_defer_frame_end(open_menu || open_map);                    /* (requests while the game is held: mods/nscreen.h) */
     if (open_menu) {
         ImGuiIO &io = ImGui::GetIO();
@@ -647,7 +641,6 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     figpick_window();
     if (open_help) help_window();
     if (open_welcome) welcome_window();
-    else if (open_news) news_window();
     else if (open_mt32) mt32_window();
     else tips_frame();                      /* (the start screen's note, the first battle's tips: ui/tips.cpp) */
     { extern int hg_active, hg_hour, hg_day, hg_month;          /* time passing under a Darklands+ page (mods/lodgeview.c) */

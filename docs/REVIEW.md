@@ -10,14 +10,14 @@ last one stopped and what it missed.
 ## 1. The whole, first: walk it as each kind of reader
 
 Play through, as a player would, with the one-time windows shown (the test sessions hide them: start with
-`DL_TIPS=1 DL_WELCOME=1 DL_NEWS=1 DL_MT32_PROMPT=1`), and take a screenshot at each step:
+`DL_TIPS=1 DL_WELCOME=1 DL_MT32_PROMPT=1`), and take a screenshot at each step:
 
 - **A new player**: the first start (the MT-32 window, the intro, the welcome on the start screen, the guide's
   note), a new party, the first town, the first card, the first battle (its tips), the loot, the inn, travel,
   saving, quitting. Is every step explained where it happens, once, in plain words? Is anything said twice in
   two ways?
 - **A player of the original** on the Full Original and Purist presets: does anything of Darklands+ still show?
-- **A returning player** of an earlier version: what is new, and does anything they knew move without a word?
+- **A returning player** of an earlier version: does anything they knew move without a word?
 - **A maintainer** opening the code for the first time (docs/DEVELOPERS.md, CODE_MAP.md): can they find where a
   thing on screen is drawn, and the switch and the reason for it, in a few minutes?
 - **A modder** (docs/MODDING.md): does the example mod still work as written?
