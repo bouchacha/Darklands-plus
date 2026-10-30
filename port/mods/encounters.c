@@ -1738,11 +1738,21 @@ void encounters_force(int i)
 }
 int encounters_force_pending(void) { return (force_next >= 0 && force_next < nenc && encs[force_next].where == WH_WILD) || camp_pending; }
 
+/* the main loop (root 03a1:000a), once the game's start-up has cleared its data: the cards' entries
+   written there, before any save is read. A save made during a new encounter names its card, and the
+   main loop calls that card's entry as soon as the save is read: written only at start-up (cleared
+   then) or when an encounter was chosen, a fresh session that loaded such a save called 0000:0000. */
+static void mainloop_hook(void)
+{
+    install_cards();
+    hook_call_original();
+}
+
 void encounters_init(void)
 {
     hook_install(GF_overland_loop, overland_hook);
     hook_install(36, 0x1462, 0x0082, camp_hook);   /* (after lodgeview's: it wraps the stay) */
-    install_cards();                             /* also for a save made during a new encounter */
+    hook_install(-1, 0x03a1, 0x000a, mainloop_hook);
     hook_install(45, 0x18fc, 0x0000, place_hook);   /* card 6, the main street by day */
     hook_install(46, 0x1838, 0x0000, place_hook);   /* card 8, by night */
     hook_install(46, 0x18aa, 0x0004, place_hook);   /* card 9, a side street by day */
