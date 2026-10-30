@@ -1,0 +1,36 @@
+# $NHBRD00: the border keep (New encounters)
+=== card 0: 10 10 0 240 0 ===
+On a saddle of the ridge, where the border runs, a square tower looms against the stars. Torches move on its walls. At the gate a grizzled castellan with a game leg looks you over by lantern light.
+\14"In the next valley, over the border, a free company has been camped three days," he says, "waiting to learn how many spears hold this keep. Five is the answer: two old men, two boys and me. My lord sends neither men nor pay. Stand on my walls tonight, and let them count you."
+\14You...
+\14\15...\1dwalk the walls with torches until dawn.
+\15...\1dcreep down into their camp in the dark.
+\15...\1dride out under a torch to parley with their captain.
+\10...\1dset off a potion on the walls at midnight, for them to hear.
+\15...\1dwish him luck and go on your way.
+=== card 1: 10 10 0 240 0 ===
+All night you tramp the walls with torches, swapping cloaks and hats and calling to one another in different voices, while the boys beat a kettle like a drum. At dawn the free company's fires are cold, and their tracks lead back the way they came.
+\14The castellan has no pay to give you, but he swears the town will hear your names.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName slips down through the dark into the camp, past a sentry asleep on his spear, and cuts the picket ropes of the horses. Then $he gives the herd a fright. By dawn the free company is scattered over three valleys chasing its mounts, and in no mood for a siege.
+\14The castellan laughs until he has to sit down.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName is halfway into the camp when a sentry trips over $him. There is a shout, a blow, a scramble back up the slope with arrows humming past, and behind $him the whole company is up and arming. Now they know the keep is awake, and they mean to find out how strongly.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName rides down under a torch and shares a cup of wine with the company's captain, mentioning in passing the forty crossbowmen the castellan's lord sent up yesterday, and how bored they are. The captain studies $him a long while, then laughs. "Give your forty my greetings." At dawn the company marches away.
+=== card 5: 10 10 0 240 0 ===
+$ChosenOneName speaks of forty crossbowmen in the keep. The captain listens politely. "Forty," he says. "And not one of them could be spared to come down here in your place?" $ChosenOneName rides back with the company's laughter behind $him.
+=== card 6: 10 10 0 240 0 ===
+At midnight the potion goes off on the battlements with a flash and a roar that rolls down the valley like a great gun. The free company's fires go out one by one. At dawn they are gone, and the castellan is trying to buy whatever is left.
+=== card 7: 10 10 0 240 0 ===
+The potion fizzles and smokes on the battlements and goes out. From the valley comes a long jeer, and then the sound of men arming.
+=== card 8: 10 10 0 240 0 ===
+The castellan watches you go without a word, and limps back up to his walls. Nothing more comes of it.
+=== card 9: 10 10 0 240 0 ===
+An hour after midnight, ladders thud against the walls and men come swarming up with axes and swords. The free company has come to count you after all!
+=== card 10: 10 10 0 240 0 ===
+The last of the company tumble back down their ladders and flee into the dark. At dawn the castellan walks among the dead, counting. "My lord will hear of this," he says, "and so will every tavern on both sides of the border."
+=== card 11: 10 10 0 240 0 ===
+You are driven off the walls and scatter down the mountainside in the dark. At dawn you find one another again. Smoke is rising from the keep.
+=== card 12: 10 10 0 240 0 ===
+You go down under the company's axes. When you come to at dawn, the keep is plundered, the castellan is gone, and so is much of what you carried.

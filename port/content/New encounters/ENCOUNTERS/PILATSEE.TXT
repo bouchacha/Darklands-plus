@@ -1,0 +1,37 @@
+# Pilate's tarn: a mountain lake where Pilate's damned body lies, and a scholar come to hallow his conjuring book.
+name     Pilate's tarn
+card     $NhPil00
+picture  XMTLAKE
+where    wild
+terrain  mountains
+when     day
+weight   1
+
+[start]
+block    0
+chosen   bestskill(Latin)
+option 0                                   # dispute with him in Latin
+  who    bestskill(Latin)
+  chance clamp(5, 90, skill(who, Latin) + attr(who, Int) / 3 - 10)
+  ok     chosen who; text 1; attr party, DF, 3; practice who, Latin, 1, 10, 0; exit
+  fail   chosen who; text 2; attr party, DF, -2; practice who, Latin, 0, 10, 0; goto storm
+option 1                                   # knock the book from his hands with a stone (Thrown)
+  who    bestskill(Thrown)
+  chance clamp(5, 90, skill(who, Thrown) + attr(who, Per) / 3 - 5)
+  ok     chosen who; text 3; attr party, DF, 2; practice who, Thrown, 1, 10, 0; goto storm
+  fail   chosen who; text 4; practice who, Thrown, 0, 10, 0; goto storm
+option 2                                   # seize him and his bullies
+  chance combat
+  ok     text 5; goto fight
+option 3                                   # leave him to it
+  chance none
+  ok     text 6; exit
+
+[storm]
+do       text 7; hours 3; attr party, End, -3; exit
+
+[fight]
+do       battle Clearing, Cultist, lore / 4 + 1, 1, Thug, lore / 4 + 1, random(3) + 2
+         if result == Won then { text 8; hours 2; attr party, DF, 2; fame 1; reputation 1, 3; exit }
+         if result == Fled then { rejoin; text 9; hours 2; exit }
+         text 10; hours 3; keepitems party, 60; exit

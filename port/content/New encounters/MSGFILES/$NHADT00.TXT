@@ -1,0 +1,40 @@
+# $NHADT00: the old silver adit (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Half hidden by brambles, the mouth of an old adit gapes in the hillside, its timbers grey with age. Spoil heaps spill down the slope below it, and a cold draught breathes out of the dark. Over the entrance someone has nailed a board with a cross burnt into it: "Here the mountain took eleven men. Pray for them."
+\14The seam was rich, the tale goes, until the miners grew greedy and cursed in the galleries, and the mountain-monk closed it on them: the tall, hooded overseer of the deep places, whom miners still meet now and then, lamp in hand.
+\14You...
+\14\15...\1dlight your torches and go in.
+\15...\1dpick over the old spoil heaps outside.
+\15...\1dpray for the eleven and their souls.
+\15...\1dleave the place to its dead and go on.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName leads the way, reading the old timbers, testing each prop before trusting it, choosing the galleries where the roof still holds. Far in, past a fall of rock, you come to the old face. In the torchlight a seam of grey ore glints in the wall.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName has gone barely twenty paces when a rotten prop gives way with a crack, and the roof comes down. You drag $him out by the ankles, bruised and bleeding, in a cloud of dust. No one wants to go back in.
+=== card 3: 10 10 0 240 0 ===
+You spend the morning turning over the spoil, and find a handful of ore the old miners threw away in their haste. Any smelter will give you $Money1 for it.
+=== card 4: 10 10 0 240 0 ===
+You kneel before the board and pray for the eleven, and for all who die in the dark without a priest. As you rise, the cold draught from the adit seems to sigh, and then is still.
+=== card 5: 10 10 0 240 0 ===
+You leave the old adit to its dead. Nothing more comes of it.
+=== card 6: 10 10 0 240 0 ===
+A light comes swaying up the gallery behind you. It is carried by a figure in a miner's hooded robe, taller than any man, whose face you cannot see. The mountain-monk sets his lamp down on a rock beside the seam, folds his hands in his sleeves, and waits.
+\14You...
+\14\15...\1dgreet him humbly and ask his leave to take a little.
+\15...\1dhack out all the ore you can carry before he stops you.
+\16...\1dpray to a saint to protect you.
+\15...\1dback away and leave the silver to the dead.
+=== card 7: 10 10 0 240 0 ===
+The mountain-monk looks at you a long while from under his hood. Then he takes a hammer from his sleeve and taps the wall once. A lump of ore drops at your feet, heavier than it has any right to be, and when you look up, he and his lamp are gone.
+\14A smelter in the valley pays you $Money1 for it and asks no questions.
+=== card 8: 10 10 0 240 0 ===
+The mountain-monk shakes his head, slowly, and blows out his lamp. All your torches die with it. You grope your way back through the black galleries for hours, bruised and frozen, and come out into the daylight shaking.
+=== card 9: 10 10 0 240 0 ===
+You fall on the seam with picks and daggers. The mountain-monk does not move. Then the timbers begin to groan all along the gallery, and you flee with what you have in your hands, rocks raining on your heads.
+\14Behind you the adit mouth falls in. The ore you saved brings $Money1.
+=== card 10: 10 10 0 240 0 ===
+As $ChosenOneName prays to $NamedOneName, the mountain-monk bows his hooded head, and is gone. His lamp stays where he set it: an ordinary miner's lamp now, cold to the touch. It lights at the first spark, and lights you out of the mountain.
+=== card 11: 10 10 0 240 0 ===
+The mountain-monk does not stir. Your prayer echoes away down the gallery, unanswered.
+=== card 12: 10 10 0 240 0 ===
+You back away from the seam without turning your backs on him, and find your own way out into the daylight. Nothing more comes of it.

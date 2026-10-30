@@ -1,0 +1,27 @@
+# $NHGMS00: the white chamois (New encounters)
+=== card 0: 10 10 0 240 0 ===
+High on the screes you fall in with a chamois hunter, a lean, sun-blackened man with irons strapped to his boots and a crossbow on his back. He seizes your arm and points. On a ledge across the gully stands a chamois as white as new snow, watching you.
+\14"Twenty years on these crags and I never saw her," he whispers. "The herdsmen say she belongs to the Saligen, the wild women of the ice, and that the mountain takes whoever kills her within the year. Old wives' talk. Her hide would fetch more than the abbot pays me in a twelvemonth. She is too far for my bow. Is she too far for yours?"
+\14You...
+\14\15...\1dshoot the white chamois.
+\15...\1dtalk him out of it.
+\15...\1dfollow her across the crags, to see where she leads.
+\15...\1dleave him to his hunting.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName's shot takes her through the heart. She falls without a sound. The hunter whoops, skins her on the spot and counts $Money1 into $ChosenOneName's hand as $his share.
+\14On the way down, a stone the size of a loaf comes bounding out of a clear sky and strikes $ChosenOneName to the ground. No one saw where it came from. The hunter crosses himself and walks on a little faster.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName's shot goes wide. The white chamois turns her head and looks at $him for a long moment, and then she is gone, as if the rock had swallowed her. $ChosenOneName feels cold to the marrow, and does not feel warm again all day.
+=== card 3: 10 10 0 240 0 ===
+"Some beasts God made for the hunter," $ChosenOneName says, "and some He keeps for Himself. Is her hide worth your soul, or your neck?" The hunter chews his lip a long while. Then he lowers his crossbow, and the white chamois leaps away up the crags.
+\14"Old wives' talk," he mutters. But he says it more quietly.
+=== card 4: 10 10 0 240 0 ===
+The hunter hears $ChosenOneName out, laughs, and creeps off along the gully for a closer shot. You hear his crossbow crack, and his shout of triumph, and then the rattle of a rockfall.
+\14You find him at the foot of the scree with the white hide in his arms and his leg broken in two places, and you carry him down to his hut, cursing all the way.
+=== card 5: 10 10 0 240 0 ===
+The white chamois lets you come close, then leaps away along ledges you would never have dared alone, always waiting for $ChosenOneName to find the next foothold. At last she brings you to a hollow below the ice where a spring wells up among bright flowers, and vanishes.
+\14The water is so cold it burns. When you have drunk, your weariness is gone.
+=== card 6: 10 10 0 240 0 ===
+You follow her from ledge to ledge until the mist comes down and she is gone, and you are left clinging to the mountainside. It takes hours to climb down again.
+=== card 7: 10 10 0 240 0 ===
+You leave the hunter creeping along the gully with his crossbow and go on. Nothing more comes of it.

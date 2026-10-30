@@ -1,0 +1,46 @@
+# The old silver adit: an abandoned working, and the mountain-monk who keeps what is left in it.
+name     The old silver adit
+card     $NhAdt00
+picture  XCAVE2
+where    wild
+terrain  hills mountains pinewood
+when     any
+weight   1
+
+[start]
+block    0
+chosen   bestskill(Artifice)
+option 0                                   # go in with lights (Artifice reads the old timbers)
+  who    bestskill(Artifice)
+  need   has(party, 0x39) or has(party, 0x3a) or has(party, 0x3d)
+  chance clamp(5, 90, skill(who, Artifice) + attr(who, Per) / 3 - 5)
+  ok     chosen who; text 1; hours 1; practice who, Artifice, 1, 10, 0; goto deep
+  fail   chosen who; text 2; hours 1; injure who, 1, 1, 10; practice who, Artifice, 0, 10, 0; exit
+option 1                                   # pick over the spoil heaps
+  chance assured
+  ok     money1 random(24) + 12; text 3; hours 3; gain money1; exit
+option 2                                   # pray for the dead miners
+  chance assured
+  ok     text 4; hours 1; attr party, DF, 2; exit
+option 3                                   # go on
+  chance none
+  ok     text 5; exit
+
+[deep]
+picture  XMINER4
+saints   0x0d, 0x60, 0x39, -1            # Barbara, Michael, Gertrude of Nivelles
+block    6
+option 0                                   # greet him humbly and ask his leave (Virtue)
+  who    party
+  chance clamp(10, 90, avgskill(Virtue) + 30)
+  ok     money1 random(96) + 72; text 7; hours 2; gain money1; practice party, Virtue, 1, 10, 0; exit
+  fail   text 8; hours 6; attr party, End, -3; exit
+option 1                                   # hack out all the ore you can carry (greed is punished)
+  chance assured
+  ok     money1 random(36) + 12; text 9; hours 2; gain money1; injure party, 1, 1, 5; attr party, DF, -2; exit
+option 2 saint
+  ok     text 10; additem leader, 0x3d; exit
+  fail   text 11
+option 3                                   # back away and leave the silver to the dead
+  chance none
+  ok     text 12; exit

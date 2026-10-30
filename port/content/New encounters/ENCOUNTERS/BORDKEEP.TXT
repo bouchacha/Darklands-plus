@@ -1,0 +1,41 @@
+# The border keep: a tower held by five men, and a free company waiting to see how many.
+name     The border keep
+card     $NhBrd00
+picture  XKEEP
+where    wild
+terrain  hills mountains
+when     night
+weight   1
+
+[start]
+block    0
+chosen   bestskill(Stealth)
+items    0x66, 0x65                      # Thunderbolt, Sunburst
+option 0                                   # walk the walls with torches all night
+  chance assured
+  ok     if roll(25) goto assault
+         text 1; until 6; attr party, End, -3; reputation 1, 3; exit
+option 1                                   # creep into their camp and loose their horses (Stealth)
+  who    bestskill(Stealth)
+  chance clamp(5, 90, skill(who, Stealth) + attr(who, Agl) / 3 - 5)
+  ok     chosen who; text 2; until 6; practice who, Stealth, 1, 10, 0; reputation 1, 3; exit
+  fail   chosen who; text 3; injure who, 1, 1, 10; practice who, Stealth, 0, 10, 0; goto assault
+option 2                                   # ride out under a torch to parley (SpeakCommon)
+  who    bestattr(Cha)
+  chance clamp(5, 90, skill(who, SpeakCommon) + attr(who, Cha) / 3 + fame / 4 - 10)
+  ok     chosen who; text 4; until 6; practice who, SpeakCommon, 1, 10, 0; reputation 1, 3; exit
+  fail   chosen who; text 5; practice who, SpeakCommon, 0, 10, 0; goto assault
+option 3 potion                            # set off a potion on the walls at midnight
+  potion 0x66, clamp(0, 99, 55 + q / 2)
+  potion 0x65, clamp(0, 99, 40 + q / 2)
+  ok     text 6; until 6; reputation 1, 3; exit
+  fail   text 7; goto assault
+option 4                                   # go on your way
+  chance none
+  ok     text 8; exit
+
+[assault]
+do       text 9; battle Clearing, Mercenary, lore / 4 + 1, random(4) + 3, Captain, lore % 3 + 1, 1
+         if result == Won then { text 10; until 6; fame 1; reputation 1, 3; exit }
+         if result == Fled then { rejoin; text 11; until 6; exit }
+         text 12; keepitems party, 50; until 7; exit

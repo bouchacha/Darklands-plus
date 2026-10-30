@@ -1,0 +1,34 @@
+# The white chamois: a hunter's prize that the mountain wants left alone.
+name     The white chamois
+card     $NhGms00
+picture  XMTRANGE
+where    wild
+terrain  mountains hills
+when     day
+weight   1
+only     month >= 8 and month <= 11
+
+[start]
+block    0
+chosen   bestskill2(Bows, Missile)
+option 0                                   # shoot her (a bow or crossbow); the mountain takes its due
+  who    bestskill2(Bows, Missile)
+  need   has(party, 0x1a) or has(party, 0x1b) or has(party, 0x1c) or has(party, 0x1d) or has(party, 0x1e)
+  chance clamp(5, 90, max(skill(who, Bows), skill(who, Missile)) + attr(who, Per) / 3 - 15)
+  ok     chosen who; money1 random(60) + 60; text 1; gain money1; attr party, DF, -3; injure who, 1, 1, 10; hours 2
+         if skill(who, Bows) >= skill(who, Missile) then practice who, Bows, 1, 10, 0 else practice who, Missile, 1, 10, 0
+         exit
+  fail   chosen who; text 2; hours 1; attr who, DF, -1; exit
+option 1                                   # talk him out of it (Religion)
+  who    bestskill(Religion)
+  chance clamp(5, 90, skill(who, Religion) + attr(who, Cha) / 3 - 5)
+  ok     chosen who; text 3; attr party, DF, 2; practice who, Religion, 1, 10, 0; exit
+  fail   chosen who; text 4; hours 3; attr party, End, -3; practice who, Religion, 0, 10, 0; exit
+option 2                                   # follow where she leads (Woodwise)
+  who    spotter
+  chance clamp(5, 85, skill(who, Woodwise) + attr(who, Agl) / 3 - 5)
+  ok     chosen who; text 5; hours 3; heal party, End, 50; practice who, Woodwise, 1, 10, 0; exit
+  fail   chosen who; text 6; hours 4; attr party, End, -3; practice who, Woodwise, 0, 10, 0; exit
+option 3                                   # leave him to his hunt
+  chance none
+  ok     text 7; exit

@@ -1,0 +1,37 @@
+# $NHWDD00: the winter dead (New encounters)
+=== card 0: 10 10 0 240 0 ===
+In a hamlet of three smoke-blackened houses high on the mountain, a woman runs out into the snow to stop you. Her husband's mother died at Martinmas. The ground is frozen as hard as iron and the path down to the parish church is buried, so the old woman lies in the woodshed under a sheet, frozen stiff, waiting for the thaw, as the dead always wait up here.
+\14"But now there is scratching in the shed at night," says the husband, "and her shroud is torn at the mouth. She is a Nachzehrer, chewing her shroud, and while she chews, her kin will die one by one. We must cut off her head, or put a stone in her mouth." His wife weeps.
+\14You...
+\14\15...\1dlook closely at the body.
+\15...\1dkeep watch over her in the shed tonight.
+\15...\1dcarry her down to the churchyard in the valley.
+\16...\1dpray to a saint for her soul.
+\15...\1dleave them to their trouble and go on.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName lifts the sheet, looks closely, then points out the little paired tooth marks in the shroud and at the corner of the old woman's mouth, and the gnawed hole under the eaves. "A marten," $he says, "or rats. Hungry in the cold, like everyone else up here." You block the hole with stones.
+\14The wife kisses $ChosenOneName's hands. The husband puts away his axe, ashamed and relieved.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName looks the body over, but finds nothing $he can explain. In the end the husband puts a stone in his mother's mouth, as his fathers did, and you leave them to their grief.
+=== card 3: 10 10 0 240 0 ===
+You sit up all night in the freezing shed beside the old woman, telling your beads. Near midnight the scratching begins, and a marten slips in under the eaves, sleek and hungry. You chase it out into the snow and stop up its hole.
+\14At dawn the family brings you hot broth, and the husband puts away his axe.
+=== card 4: 10 10 0 240 0 ===
+You lash the old woman to a hay sledge and take her down the mountain, hauling and braking by turns on the ice, with the family stumbling behind. By nightfall she lies in the churchyard and the priest has said the Mass for her. "Now she will sleep," says her son.
+\14The priest will tell the town what you did.
+=== card 5: 10 10 0 240 0 ===
+On the steepest pitch the sledge runs away on the ice and takes $ChosenOneName with it, all the way down to the next bend. Bruised and bloody, you get the old woman to the churchyard at last, long after dark. "Now she will sleep," says her son. "God reward you."
+=== card 6: 10 10 0 240 0 ===
+You kneel in the shed while $ChosenOneName prays to $NamedOneName for the old woman's soul. That night the scratching does not come. The family warms you at their hearth and feeds you on what little they have.
+=== card 7: 10 10 0 240 0 ===
+You pray, but the shed stays cold, and the family looks at you doubtfully.
+=== card 8: 10 10 0 240 0 ===
+You leave the hamlet. Behind you the husband goes to fetch his axe. Nothing more comes of it.
+=== card 9: 10 10 0 240 0 ===
+Near midnight the sheet stirs. The old woman sits up, slowly, her jaw working, her eyes white with frost. The husband was right. She rises to go to her kin, and you are between her and the door.
+=== card 10: 10 10 0 240 0 ===
+The thing that was the old woman lies still at last. You do what must be done, with the husband's axe and a stone between her teeth, and at dawn you burn the shroud. The family will never speak of it, but the valleys will.
+=== card 11: 10 10 0 240 0 ===
+You flee out into the snow. When you creep back at dawn, the woodshed is empty, and the tracks of bare feet lead up the mountain.
+=== card 12: 10 10 0 240 0 ===
+You wake on the woodshed floor at dawn, aching and cold to the bone. The old woman lies under her sheet as if she had never moved, a stone between her teeth. The husband will not say who put it there.

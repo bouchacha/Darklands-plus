@@ -1,0 +1,26 @@
+# $NHDRK00: the dragon's skull (New encounters)
+=== card 0: 10 10 0 240 0 ===
+At a quarry cut into the hillside, blocks of stone for some cathedral lie half dressed and abandoned. The quarrymen sit about in a frightened knot, and their master, a broad man in a leather cap, is beside himself.
+\14"We broke into a cave," he says, "and it is full of bones. A skull as long as a man's arm, with teeth like daggers. The men say it is a dragon's lair, and they will not lift a pick until a learned man tells them what it is. And the canons want their stone by Michaelmas!"
+\14You...
+\14\15...\1dexamine the skull and give a learned opinion.
+\15...\1dbless the cave and the quarry.
+\15...\1dswear it is a dragon, and sell them charms against its kin.
+\15...\1dleave them to their bones.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName turns the great skull over and quotes Albertus Magnus at some length. "A bear," $he pronounces, "of the giant kind that lived before the Flood, which drowned them in their caves. Quite dead these four thousand years."
+\14The quarrymen go back to work, much relieved, and the master pays $Money1 for the opinion. Then he looks thoughtfully at the skull. "Still," he says, "the canons need never know. A dragon draws more pilgrims than a bear."
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName turns the great skull over, quotes Albertus Magnus at some length, and in the end has to admit that it might, after all, be a dragon. At the word the quarrymen throw down their tools and go home. The master curses you all the way back to the road. Work will stand for a week, and the canons will hear why.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName sprinkles the cave with water and salt and prays at its mouth while the quarrymen kneel. Whatever the bones were, they lie under God's protection now. One by one the men pick up their tools.
+\14The master will tell the canons who got his stone moving again.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName prays at the cave mouth, but at the amen a stone rattles down somewhere inside, and the quarrymen bolt for the road. The master spreads his hands.
+=== card 5: 10 10 0 240 0 ===
+"A dragon, beyond doubt," says $ChosenOneName gravely, "and where there is one, there are others." By good fortune $he has just the thing: knots of red thread and scraps of parchment with holy words on them. The quarrymen pay $Money1 between them and go back to work feeling much safer.
+\14Somehow you feel less safe yourselves.
+=== card 6: 10 10 0 240 0 ===
+$ChosenOneName starts to sell charms against dragons, but the master knows a pedlar's patter when he hears one. "Out of my quarry, you thieving rogues!" The tale of the charm-sellers will reach the canons, and the town, before you do.
+=== card 7: 10 10 0 240 0 ===
+You leave the quarrymen staring at their cave. Nothing more comes of it.

@@ -1,0 +1,31 @@
+# $NHCOI00: the coiners' cave (New encounters)
+=== card 0: 10 10 0 240 0 ===
+From a cleft in the hillside comes a steady clink of hammers, too quick and too light for a smithy, and a thread of smoke that smells of charcoal and hot metal. Peering down through the pines, you see five men at a little forge under an overhang. One heats silver in a crucible; another lays blanks on an anvil and strikes them with a die.
+\14Coiners. Groschen are pouring off that anvil that no mint ever struck. The law boils coiners in oil, and those who shield them fare little better.
+\14You...
+\14\15...\1dcreep close to mark their faces, then fetch the Vogt.
+\15...\1dwalk in as fellow rogues and bargain for a share.
+\06...\1drush them at their forge.
+\15...\1dback away quietly and forget what you saw.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName worms close enough through the bracken to mark every face, and then you hurry down to the Vogt. His men take the coiners at their anvil that same afternoon, and the Vogt pays you $Money1 of the reward.
+\14He pays it a little coldly. One of the faces $ChosenOneName marked was his wife's brother.
+=== card 2: 10 10 0 240 0 ===
+A dry branch cracks under $ChosenOneName's knee. The hammering stops. "Spies!" Men snatch up cudgels and knives and come scrambling up the cleft.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName strolls in and admires their work like a fellow tradesman, and when they offer a purse of fresh groschen for $his silence, $he laughs. "Your own coin? Do you take us for peasants? Pay us in the silver you buy." After some grumbling, they do: $Money1 in honest money.
+\14You leave them hammering, and try not to think about the oil.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName strolls in and admires their work, and they press a fat purse of fresh groschen on $him for $his silence. In the next village the baker bites one and it bends: lead under a wash of silver. You throw the lot into a stream before anyone can ask where you got them.
+=== card 5: 10 10 0 240 0 ===
+You come down the cleft with weapons drawn. The coiners snatch up hammers and cudgels and turn to fight for their necks.
+=== card 6: 10 10 0 240 0 ===
+You back away through the pines and leave the coiners to their hammering. Nothing more comes of it.
+=== card 7: 10 10 0 240 0 ===
+The coiners are dead or fled. You smash their dies and carry the bag of false groschen down to the Vogt, who pays you $Money1 of the reward and has the tale cried in the market.
+=== card 8: 10 10 0 240 0 ===
+You flee down the hillside with the coiners at your heels. By the time you dare go back, the forge is cold and they are gone.
+=== card 9: 10 10 0 240 0 ===
+You wake at the foot of the cleft, battered and robbed. Someone has filled your empty purses with lead groschen, by way of a joke.
+=== card 10: 10 10 0 240 0 ===
+You throw down your weapons. The coiners strip you of whatever they fancy, make you swear on their anvil to say nothing, and send you on your way with their hammers ringing behind you.

@@ -1,0 +1,41 @@
+# $NHEMP00: the sleeping emperor (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Toward midnight, as you cross the wooded shoulder of the hill, a light comes bobbing between the trees: a dwarf no taller than a child, grey-bearded, in a hood of a fashion two hundred years old, holding up a lantern. He bows. "My master would speak with you." Behind him a cleft stands open in the rock where there was none a moment ago.
+\14The old folk hereabouts say the Emperor Frederick never died, but sleeps inside this hill with his knights until the Empire needs him. They also say that those who go in come out long after they went.
+\14You...
+\14\15...\1dfollow the dwarf into the hill.
+\16...\1dcross yourselves and pray to a saint.
+\15...\1dbid him good night and walk on.
+=== card 1: 10 10 0 240 0 ===
+As $ChosenOneName prays to $NamedOneName, the dwarf sighs. "Wise, perhaps," he says. "Then take this for your trouble." He drops a grey pebble into each of your hands, and he and his cleft are gone.
+\14By dawn light the pebbles are gold, worth $Money1 together.
+=== card 2: 10 10 0 240 0 ===
+The dwarf waits politely until you are done. The cleft stays open.
+=== card 3: 10 10 0 240 0 ===
+"As you will," says the dwarf. He blows out his lantern, and the hillside is only a hillside again. Nothing more comes of it.
+=== card 4: 10 10 0 240 0 ===
+You follow the lantern down a long stair cut in the living rock, deeper than the hill can possibly be, into a vaulted hall lit by torches. Knights in old-fashioned mail sleep along the walls, leaning on their swords. At a stone table sits an old man with a crown, asleep, his beard, once red and now white as frost, grown down through the stone of the table.
+\14As you come in he lifts his head. "Tell me, strangers," he says. "Do the ravens still fly about the mountain?"
+\14You...
+\14\15...\1danswer truthfully that the ravens still fly.
+\15...\1dtell him the ravens are gone, and the Empire needs him.
+\15...\1dtell him how things stand in the Empire.
+\15...\1dslip a golden cup from the table while he talks.
+=== card 5: 10 10 0 240 0 ===
+"Then I must sleep another hundred years," says the emperor, and his head sinks. The dwarf fills your hands with grey pebbles and leads you up the stair. Outside, you throw most of them away. By daylight the few left in your pockets are gold, worth $Money1.
+\14But the moon is the wrong shape. Days have passed, not hours.
+=== card 6: 10 10 0 240 0 ===
+The emperor rises, and all along the walls the knights lift their heads. Then he looks past you, up the stair, to where the ravens wheel black against the dawn. "A liar," he says softly, "is no herald of mine." Mailed hands fling you out onto the hillside.
+\14When you can stand again, the moon is the wrong shape. Days have passed, not hours.
+=== card 7: 10 10 0 240 0 ===
+$ChosenOneName tells him how things stand: the princes squabbling, robber knights on every road, the Turk pressing on Hungary, and the crown worn by lesser men. The old emperor listens to every word, shaking his head. At the end he gives $ChosenOneName a gold coin struck with his own face. "For the news," he says, "bad as it is." A goldsmith pays you $Money1 for it, and stares at it a long time.
+\14When you come out, the moon is the wrong shape. Days have passed, not hours.
+=== card 8: 10 10 0 240 0 ===
+$ChosenOneName tells him how things stand in the Empire, at length, from the beginning, leaving nothing out. Somewhere among the tolls of the Rhine the emperor's head sinks back onto the table, and he sleeps. The dwarf leads you out without a word.
+\14Outside, the moon is the wrong shape. Days have passed, not hours.
+=== card 9: 10 10 0 240 0 ===
+While the emperor talks of ravens, $ChosenOneName slips a little golden cup into $his sleeve. No one stirs. Outside, it is worth $Money1 to the first goldsmith who asks no questions.
+\14But the moon is the wrong shape. Days have passed, not hours, and the cup weighed heavier than gold should.
+=== card 10: 10 10 0 240 0 ===
+$ChosenOneName's hand is on the cup when the dwarf's lantern swings round. The nearest knight wakes, and the flat of his sword sends $ChosenOneName sprawling. You are thrown out onto the hillside without ceremony, and the cleft slams shut.
+\14When you can stand again, the moon is the wrong shape. More days have passed than you can count.

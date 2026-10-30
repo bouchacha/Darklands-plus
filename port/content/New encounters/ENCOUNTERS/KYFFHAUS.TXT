@@ -1,0 +1,43 @@
+# The sleeping emperor: at midnight a dwarf leads you into the hill where old Emperor Frederick sleeps; time runs differently there.
+name     The sleeping emperor
+card     $NhEmp00
+picture  XGROVE27
+where    wild
+terrain  hills mountains
+when     night
+weight   1
+vars     lost
+
+[start]
+block    0
+saints   0x60, 0x16, 0x5d, 0x63          # Michael, Christopher, Martin of Tours, Nicholas
+option 0                                   # follow the dwarf into the hill (days will pass inside)
+  chance assured
+  ok     goto hall
+option 1 saint                             # cross yourselves and pray (no time lost)
+  ok     money1 size * 24; text 1; gain money1; exit
+  fail   text 2
+option 2                                   # walk on
+  chance none
+  ok     text 3; exit
+
+[hall]
+picture  XDNITE
+do       set lost = 2 + random(3)
+block    4
+option 0                                   # yes, the ravens still fly
+  chance none
+  ok     money1 random(96) + 48; text 5; days lost; gain money1; exit
+option 1                                   # no, the ravens are gone: wake him
+  chance none
+  ok     text 6; days lost; injure party, 1, 1, 5; attr party, DF, -3; exit
+option 2                                   # tell him how things stand in the Empire (SpeakCommon)
+  who    bestskill(SpeakCommon)
+  chance clamp(5, 90, skill(who, SpeakCommon) + attr(who, Int) / 3 - 10)
+  ok     chosen who; money1 random(120) + 120; text 7; days lost; gain money1; fame 1; practice who, SpeakCommon, 1, 10, 0; exit
+  fail   chosen who; text 8; days lost; practice who, SpeakCommon, 0, 10, 0; exit
+option 3                                   # slip a golden cup from the table (Agility and Perception)
+  who    bestattrsum(Agl, Per)
+  chance clamp(5, 90, (attr(who, Agl) + attr(who, Per)) * 2 / 3 - 10)
+  ok     chosen who; money1 random(120) + 120; text 9; days lost; gain money1; attr party, DF, -3; exit
+  fail   chosen who; text 10; days lost + 2; injure who, 1, 1, 10; exit

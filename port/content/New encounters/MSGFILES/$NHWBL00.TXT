@@ -1,0 +1,29 @@
+# $NHWBL00: the weather bell (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Above a village of shingled roofs, a little chapel crowns a crag, reached by steps cut in the rock. Black clouds are piling over the peaks, and the light has turned a sickly yellow: hail weather, the kind that flattens a year's barley in a quarter of an hour.
+\14Villagers are shouting up from the fields. The weather bell must be rung, the bell the bishop blessed against storms and the devils that ride in them. But the sexton is old and lame, and everyone knows the lightning seeks out bell-ringers.
+\14You...
+\14\15...\1drun up the steps and ring the bell yourselves.
+\15...\1drig the rope so it can be rung from the shelter of the stair.
+\16...\1dpray to a saint to turn the storm aside.
+\15...\1dtake shelter from the storm in the chapel.
+\15...\1dhurry on before the storm breaks.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName hauls on the bell rope until $his palms blister, while the thunder cracks overhead and the bell shouts back at it. Then the cloud splits over the crag. The hail falls white on the bare rock to either side, and the barley below gets nothing worse than rain.
+\14The villagers climb up with a jug of beer and their thanks. They will speak of you in the town.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName is still hauling on the rope when the lightning strikes the tower. $He comes to at the foot of the steps, smoking gently, with $his hair on end. Below, the barley lies flat under the hail. The villagers carry $him down and thank $him for trying.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName runs the rope through an iron ring and down the stair, and you take turns ringing from the shelter of the rock while the thunder cracks overhead. The lightning strikes the tower twice and finds nobody there. The storm splits over the crag, and the barley is spared.
+\14The villagers will speak of you in the town.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName's rig jams at the first pull, and by the time the rope is free, the hail is drumming on the chapel roof. Below, the barley lies flattened. The villagers say nothing. There is nothing to say.
+=== card 5: 10 10 0 240 0 ===
+As $ChosenOneName prays to $NamedOneName, the hail turns to rain in mid-air and the storm rolls away over the next valley. The villagers swear it was their own prayers that did it, but they will speak well of you in the town all the same.
+=== card 6: 10 10 0 240 0 ===
+The thunder rolls on, nearer than before.
+=== card 7: 10 10 0 240 0 ===
+You crowd into the chapel while the hail hammers the roof and flattens the barley below. The bell rope hangs a hand's breadth from your noses the whole time.
+\14Afterwards the villagers come up and look at the rope, and at you. Then they go home. Their tale will be in the town before you are.
+=== card 8: 10 10 0 240 0 ===
+You hurry on down the track, but the hail catches you on the open slope, stones as big as hazelnuts, with nowhere to hide. You reach the next valley bruised and soaked to the skin.

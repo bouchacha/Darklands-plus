@@ -1,0 +1,29 @@
+# $NHDVB00: the Devil's bridge (New encounters)
+=== card 0: 10 10 0 240 0 ===
+The track drops into a gorge where a torrent roars white between the rocks. Across it, where no bridge stood in living memory, leaps a new bridge of dressed stone, a single arch as fine as any in Regensburg. On your side a crowd of villagers waits with their priest and a billy goat on a rope, and no one is crossing.
+\14"It went up in one night," says their headman. "The builder wore a red cap and asked no wage but the first soul across." The priest calls that a fable and the bridge sound stone. The villagers have invited him to go first. He has not.
+\14You...
+\14\15...\1dcross first, with a prayer on your lips.
+\15...\1ddrive the goat across first, as the old tales advise.
+\16...\1dpray to a saint to bless the bridge.
+\15...\1dclimb down into the gorge and ford the torrent.
+\15...\1dturn back and find another way round.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName walks out onto the arch, praying aloud. At the crown of it the air stinks suddenly of brimstone, and a thin, red-capped figure climbs dripping out of the spray and snatches at $him.
+\14$ChosenOneName does not stop praying. The figure shrieks as if scalded and drops into the torrent. When the villagers dare to follow, the bridge is only a bridge. They will tell the tale to their grandchildren.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName walks out onto the arch, praying. At the crown of it the air stinks of brimstone, the words go clean out of $his head, and a cold hand closes on $his heart. $He staggers across, white as chalk, and sits down shaking on the far side.
+\14Whatever was taken, it was not all of $him. The villagers follow at a run.
+=== card 3: 10 10 0 240 0 ===
+You drive the billy goat out onto the bridge with a switch. At the crown of the arch there is a howl of rage and a stink of brimstone, and the goat is gone, leaving only a tuft of hair. The villagers cheer and stream across.
+\14The priest does not cheer. "Cheating the Devil is still dealing with him," he says, and he will tell the bishop so.
+=== card 4: 10 10 0 240 0 ===
+As $ChosenOneName prays to $NamedOneName, the priest kneels beside $him, and then the villagers. A gust of clean wind sweeps down the gorge, and a red cap goes bobbing away on the torrent. That afternoon the whole village crosses the bridge, singing.
+=== card 5: 10 10 0 240 0 ===
+The torrent roars on. The villagers look at you, and at the bridge, and no one moves.
+=== card 6: 10 10 0 240 0 ===
+You climb down into the gorge, wade the torrent where it spreads over a gravel bar, and haul one another up the far side. It takes the best part of the morning, but at least no one is owed your souls.
+=== card 7: 10 10 0 240 0 ===
+Halfway across the torrent, $ChosenOneName's foot slips on a stone and the water takes $him. You drag $him out on the rocks below, battered and half drowned.
+=== card 8: 10 10 0 240 0 ===
+You turn your backs on the bridge and its builder and go the long way round, by a path that climbs over the next shoulder of the mountain.

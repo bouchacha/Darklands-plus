@@ -1,0 +1,32 @@
+# The Devil's bridge: a bridge raised in one night, and a builder owed the first soul across.
+name     The Devil's bridge
+card     $NhDvb00
+picture  XBRIDGE
+where    wild
+terrain  mountains hills
+when     day
+weight   1
+
+[start]
+block    0
+chosen   bestskill(Religion)
+saints   0x16, 0x60, 0x63, 0x6f          # Christopher, Michael, Nicholas, Raphael
+option 0                                   # cross first, with a prayer (Religion)
+  who    bestskill(Religion)
+  chance clamp(10, 90, skill(who, Religion) + skill(who, Virtue) / 2 + attr(who, Cha) / 4 - 10)
+  ok     chosen who; text 1; attr who, DF, 3; practice who, Religion, 1, 10, 0; fame 1; exit
+  fail   chosen who; text 2; attr who, DF, -4; attr who, End, -4; practice who, Religion, 0, 10, 0; exit
+option 1                                   # drive the goat across first
+  chance none
+  ok     text 3; reputation 1, 2; attr party, DF, -1; exit
+option 2 saint
+  ok     text 4; reputation 1, 3; exit
+  fail   text 5
+option 3                                   # climb down and ford the torrent
+  who    party
+  chance clamp(5, 85, avgagility + avgskill(Woodwise) / 2 - 10)
+  ok     text 6; hours 3; practice party, Woodwise, 1, 10, 0; exit
+  fail   chosen slowest; text 7; hours 4; injure slowest, 1, 1, 10; practice party, Woodwise, 0, 10, 0; exit
+option 4                                   # turn back and go round
+  chance none
+  ok     text 8; hours 8 + random(8); exit

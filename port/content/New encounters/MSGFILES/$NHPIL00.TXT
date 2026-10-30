@@ -1,0 +1,30 @@
+# $NHPIL00: Pilate's tarn (New encounters)
+=== card 0: 10 10 0 240 0 ===
+Below the summit lies a lake as black and still as a mirror, with no bird on it. The herdsmen will not water their beasts here. Pontius Pilate's body was sunk in it, they say: once a year he rises in his red robe to wash his hands, and a stone thrown into the water brings hail down on every valley around.
+\14Today a man in a scholar's black gown kneels at the water's edge with a book open on a rock before him, chanting and drawing circles in the mud with a hazel rod, while two hired bullies keep watch. Necromancers come here, it is said, to hallow their books of conjuring.
+\14You...
+\14\15...\1ddispute with him in Latin, to break his spell.
+\15...\1dknock the book from his hands with a well-thrown stone.
+\06...\1dseize the necromancer and his bullies.
+\15...\1dleave him to his conjuring and go on.
+=== card 1: 10 10 0 240 0 ===
+$ChosenOneName stands over the circle and corrects the necromancer's Latin, word by word: his cases, his tenses, his barbarous verbs. "The dead," $he says, "do not answer to schoolboy grammar." The scholar falters, stammers, loses his place, and at last bursts into tears.
+\14He tears up his book himself and you burn the pages on the spot. Then he slinks off down the mountain after his bullies, who want their wages.
+=== card 2: 10 10 0 240 0 ===
+$ChosenOneName starts to correct the necromancer's Latin, but the scholar only sneers and chants the faster. On the last word the black water stirs, and far out a figure in a red robe rises to the waist, washing its hands, over and over. Then it turns its head toward you.
+=== card 3: 10 10 0 240 0 ===
+$ChosenOneName's stone strikes the book from the scholar's hands, and it slides down the rock and into the tarn. The necromancer shrieks. Where the book sank, the black water begins to boil.
+=== card 4: 10 10 0 240 0 ===
+$ChosenOneName's stone flies wide of the book and plops into the tarn. Everyone, the necromancer too, stares at the rings spreading on the black water. Then the sky darkens.
+=== card 5: 10 10 0 240 0 ===
+You draw your weapons and charge. The bullies come off their rocks to meet you, and the necromancer snatches up his hazel rod.
+=== card 6: 10 10 0 240 0 ===
+You leave the scholar chanting by the water. Nothing more comes of it, at least while you are on the mountain.
+=== card 7: 10 10 0 240 0 ===
+A wind howls down off the summit, and out of a clear sky comes hail, then sleet, then a black storm that lasts all afternoon. You cower among the rocks, battered and frozen. When at last it clears, the scholar is gone.
+=== card 8: 10 10 0 240 0 ===
+The bullies are dead or fled, and the necromancer sits bound on a rock, weeping. You burn his book and hand him over to the herdsmen, who will take him down to the bishop's court. The tale will go down the valleys before you.
+=== card 9: 10 10 0 240 0 ===
+You are driven off and flee down the mountain. Behind you the chanting starts again.
+=== card 10: 10 10 0 240 0 ===
+You come to among the rocks, battered and robbed. The necromancer's bullies have taken their wages out of your packs.
