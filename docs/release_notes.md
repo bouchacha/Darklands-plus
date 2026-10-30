@@ -9,10 +9,12 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 **Added**
 
 - **Doors:** out of a fight, clicking a shut door walks the party to it and opens it.
+- **What came of it** on the game's own cards too: under the text that follows a choice, what that text does not tell (a skill or attribute changed, things, money, fame, a town's opinion). Part of the card helpers (F12 > Settings > Cards and towns).
 - **Level map (Tab)** shows every room the party has entered, walls on each side of the floor, and the openings not yet explored.
 
 **Fixed**
 
+- Loading a save while a card from a castle, mine or dungeon was showing (the riddle of the dwarves' iron door) usually crashed the game.
 - On the level map, a click beside a wall could walk the party to the far side of it.
 - The level map could forget rooms the party had seen, after a save was loaded or the place was entered again.
 - A walk chosen on the level map just after loading a battle stood still.

@@ -18,6 +18,8 @@ void (*game_func(int s, u16 a, u16 b))(void) { (void)s; (void)a; (void)b; return
 void dispatch_far(u16 a, u16 b) { (void)a; (void)b; abort(); }
 void hook_call_original(void) {}
 int hook_install(int s, unsigned a, unsigned b, void (*f)(void)) { (void)s; (void)a; (void)b; (void)f; return 0; }
+void hook_remove(int s, unsigned a, unsigned b, void (*f)(void)) { (void)s; (void)a; (void)b; (void)f; }
+int game_mode(void) { return 0; } int ns_screen; int dos_no_writes;
 u32 native_far_ptr(NativeFn f, int a) { (void)f; (void)a; return 0; }
 void ovl_enter(int n) { (void)n; } void ovl_save(OvlSet *o) { (void)o; } void ovl_restore(const OvlSet *o) { (void)o; }
 int datamods_dirs(const char *sub, char out[][1200], int max) { (void)max; const char *m = getenv("ENC_MSG"); if (!m || strcasecmp(sub, "MSGFILES")) return 0; snprintf(out[0], 1200, "%s", m); return 1; }

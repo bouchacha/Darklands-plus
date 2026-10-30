@@ -24,6 +24,8 @@ enum { EO_ATTR = 1, EO_ATTRMAX, EO_SKILL, EO_ITEM, EO_MONEY, EO_FAME, EO_REP, EO
 typedef struct { int kind, m, k; long v; } EncOutcome;
 int encounters_outcome(EncOutcome *out, int max, int *final);
 const char *encounters_outcome_name(int m);  /* a member's name as it was before (game charset) */
+void encounters_frame(void);                 /* each frame: what came of it on the game's own cards forgets away from them */
+void encounters_rehook(void);                /* mods/cardview.c switched: the game cards' hooks first again */
 #ifdef __cplusplus
 }
 #endif

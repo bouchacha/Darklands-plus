@@ -61,7 +61,7 @@ static const Bundle BUNDLES[] = {
     { "battle.pauses", { "battle.pause_down", "battle.pause_hurt", "battle.pause_foes", 0 } },
     { "battle.scrolling", { "battle.smooth_scroll", "battle.scroll_paced", "battle.scroll_rest", 0 } },
     { "assist.card_helpers", { "assist.chances", "assist.card_help", "assist.shop_info", "assist.fast_fades", "assist.card_keys",
-      "assist.teachers", "assist.docks_map", 0 } },
+      "assist.teachers", "assist.docks_map", "assist.card_outcomes", 0 } },
     { "assist.endless", { "assist.infinite_ammo", "assist.infinite_thrown", 0 } },
     { "map.overland_marks", { "map.names", "map.quest_marks", 0 } },
 };
@@ -130,7 +130,7 @@ static Option OPTIONS[] = {
     { "display.native_mapmsg", S_SCREENS, 0, "New overland view messages", "the overland view's messages (a robber knight's land and the like) drawn in the style of the cards.", OC_SHOW, 0, 1, 1, 0, 0, mapmsg_set },
     { "display.native_saves", S_SCREENS, 0, "New Save and Load screens", "each save listed with its place, date and party; Save asks for its comment beside the list, and Load lists every save (the original lists only nine).", OC_SHOW, 0, 1, 1, 0, 0, savesview_set },
 
-    { "assist.card_helpers", S_CARDS, 0, "Chances and hints on the cards", "on a card, the chance of each option that can fail and who would try it; which saints and items it accepts and who has them; a lectern by an option that brings a teacher (skill, level, fee); the options at once without the fade-in, and 1 to 9 to choose them; at the docks, a small map of where each boat goes. Tooltips say what an item, saint or formula is good for.", OC_SHOW, 0, 1, 1, 0, 0, 0, 0, 0, 5, bundle_set },
+    { "assist.card_helpers", S_CARDS, 0, "Chances and hints on the cards", "on a card, the chance of each option that can fail and who would try it; which saints and items it accepts and who has them; a lectern by an option that brings a teacher (skill, level, fee); the options at once without the fade-in, and 1 to 9 to choose them; at the docks, a small map of where each boat goes; under the text that follows a choice, what came of it that the text does not tell (a skill or attribute changed, a town's opinion, fame). Tooltips say what an item, saint or formula is good for.", OC_SHOW, 0, 1, 1, 0, 0, 0, 0, 0, 5, bundle_set },
     { "assist.chances", S_CARDS, 0, "Chances of success", "beside each card option that can fail, with the member who would try it (the original shows one at a time while Shift is held).", OC_SHOW, 0, 2, 2, "Always, as numbers|As the difficulty level allows|Off", V_CHANCES, assist_set_chances },
     { "assist.best_leader", S_CARDS, 0, "The best member speaks for the party", "when a card tests the leader, the member best at it takes the test instead, and the one with the best Charisma haggles in shops; the chance shown is theirs, with their head. The arrow at the end of the chance shows every member's: a click on one has that member speak instead. After the card, your chosen leader is leader again. (When off, the leader speaks, and the arrow still lets you pick another.)", OC_EASE, 0, 1, 1, 0, 0, assist_set_best_leader },
     { "assist.card_help", S_CARDS, 0, "Saints and items on cards", "which saints and items a card accepts, and who knows or carries them (as the Darklands Companion, a players' reference, did: saints are listed even when nobody knows them yet).", OC_SHOW, 0, 1, 1, 0, 0, assist_set_card_help },
@@ -141,6 +141,7 @@ static Option OPTIONS[] = {
     { "assist.teachers", S_CARDS, 0, "Teachers", "a lectern beside each card option that brings a teacher to the inn, with the skill, the teacher's level and the fee; the margin and the world map (M) show which teachers each town can offer.", OC_SHOW, 0, 1, 1 },
     { "assist.city_goto", S_CARDS, 0, "Go to (G)", "G on a town's card lists its places; pick one and the party goes there, clicking through the menus for you.", OC_EASE, 0, 1, 1 },
     { "assist.docks_map", S_CARDS, 0, "Map at the docks", "beside the docks' list of boats, a small map of the towns they go to and the way each takes along the rivers and coasts; a click on a town takes that boat.", OC_EASE, 0, 1, 1 },
+    { "assist.card_outcomes", S_CARDS, 0, "What came of it", "under the text that follows a choice on a card, what came of it that the text does not tell: a member's skill or attribute changed, things, money, fame, a town's opinion.", OC_SHOW, 0, 1, 1 },
     { "journal.enabled", S_CARDS, 0, "Note each town's shops and wares", "each town's shops, their wares, qualities and prices, noted on arrival (shown on the world map, M). Switched in F12 > Journal.", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
     { "journal.chronicle", S_CARDS, "journal.enabled", "Chronicle", "every text the cards show, word for word, with the date, the place and the choice made, so a clue read weeks ago can be found again (F12 > Journal > Chronicle, where it is switched).", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
 

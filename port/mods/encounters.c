@@ -45,7 +45,8 @@
 void ui_notice(const char *);
 
 #define ENC_BASE   0x170                 /* card numbers of the new encounters */
-#define ENC_MAX    128                   /* 0x170..0x1ef: unused space after the card table */
+#define ENC_MAX    184                   /* 0x170..0x227: the card table's segment (2dae, 0x8a0 bytes up to 2e38) holds 0x16e
+                                            cards; the rest of it the game never uses (zeros) */
 #define CARD_TABLE ((u16)(LOADSEG + 0x2dae))
 #define NOPT       10
 
@@ -409,6 +410,79 @@ int encounters_outcome(EncOutcome *out, int max, int *final)
     return n;
 }
 const char *encounters_outcome_name(int m) { return m >= 0 && m < 5 ? outc_names[m] : ""; }
+
+/* ---------------------------------------------------------------- what came of it, on the game's own cards
+ * (assist.card_outcomes, one of the card helpers; not in the Full Original preset). The party is noted as an option of a game
+ * card's menu is chosen, and the next text the card shows lists what changed since (the same band, drawn by
+ * ui/cardview.cpp: so only with the card screen of Darklands+), then it is noted again. Only what the player
+ * could not know: not a sum the card named ($Money1, $Money2: a change of just that much), the thing it named
+ * ($ItemName: one of it; $Number1 or $Number2 of a thing), the Divine Favor a prayer from the card's box spends or the potion used from it,
+ * nor the time (its texts tell it). A battle, a shop or another screen in between, the map, a load: nothing is
+ * listed for what happened there (the screens show it). */
+static Snap gsnap; static int gsnap_ok, g_pray_m = -1, g_potion = -1;
+static int gout_on(void) { return config_get_int("assist.card_outcomes", 1) && !config_get_int("original", 0); }
+static void gcard_note(void) { snap_take(&gsnap); gsnap_ok = 1; }
+static void gcard_filter(void)
+{
+    long m1 = money_get(V_MONEY1), m2 = money_get(GV_var_money2);
+    int item = (s16)g_rw(V_ITEM), n1 = (s16)g_rw(V_NUMBER1), n2 = (s16)g_rw(V_NUMBER2);
+    int k = 0;
+    for (int i = 0; i < noutc; i++) {
+        const EncOutcome *e = &outc[i];
+        long v = e->v < 0 ? -e->v : e->v;
+        if (e->kind == EO_MONEY && v && (v == m1 || v == m2)) continue;
+        if (e->kind == EO_ITEM && ((e->k == item && v == 1) || (v > 1 && (v == n1 || v == n2)))) continue;   /* ($ItemName, or $Number1 of a thing) */
+        if (e->kind == EO_ITEM && e->k == g_potion && e->v < 0) continue;
+        if (e->kind == EO_ATTR && e->k == 6 && e->m == g_pray_m && e->v < 0) continue;
+        if (e->kind == EO_HOURS) continue;
+        outc[k++] = *e;
+    }
+    noutc = k;
+}
+extern int dos_no_writes;
+static int gcard_here(void) { return !rt.active && gout_on() && !dos_no_writes && game_mode() == GM_CARD; }
+static void gtext_hook(void)                    /* card_text (block, how), s043 150b:03b0 */
+{
+    if (!gcard_here() || !gsnap_ok) { hook_call_original(); if (!unw_active && gcard_here()) gcard_note(); return; }
+    outcome_since(&gsnap);
+    gcard_filter();
+    LOG("a game card's text %d: %d consequence%s\n", (s16)rw(SS, (u16)(SP + 4)), noutc, noutc == 1 ? "" : "s");
+    outc_final = 0; outc_on = noutc > 0;
+    hook_call_original();
+    outc_on = 0;
+    if (unw_active) return;
+    g_pray_m = g_potion = -1;
+    gcard_note();
+}
+static void gmenu_hook(void)                    /* card_menu (win, win2), s043 150b:1142: the option chosen */
+{
+    hook_call_original();
+    if (unw_active || !gcard_here()) return;
+    int sel = (s16)AX;
+    g_pray_m = g_potion = -1;
+    if (g_rw(GV_menu_popup) == 1) {             /* (from the card's box: a saint prayed to, a potion used) */
+        int kind = 0, n = (s8)g_rb(GV_card_layout);
+        for (int i = 0; i < n && i < 20; i++) if ((s8)g_rb((u16)(GV_card_layout_opt + i)) == sel) kind = (s16)g_rw((u16)(GV_card_layout_kind + 2 * i));
+        int mem = (s16)g_rw(GV_menu_member), slot = (s16)g_rw(GV_menu_slot);
+        if (kind == 2) g_pray_m = mem;
+        else if (kind == 1 && slot >= 0 && slot < 4) g_potion = (s16)g_rw((u16)(GV_card_items + 2 * slot));
+    }
+    LOG("a game card's option %d chosen: the party noted\n", sel);
+    gcard_note();
+}
+/* each frame: away from the cards (the map, a battle, a shop or a sheet), nothing is kept */
+void encounters_frame(void)
+{
+    if (!gsnap_ok) return;
+    if (game_mode() != GM_CARD || (ns_screen != NS_NONE && ns_screen != NS_CARD && ns_screen != NS_PRAY)) gsnap_ok = 0;   /* (a prayer from the card's box is the choice's own) */
+}
+/* the card screen of Darklands+ was switched (mods/cardview.c): these hooks first again (they set the band
+   before that screen's text hook, which does not hand on to the game's) */
+void encounters_rehook(void)
+{
+    hook_remove(GF_card_text, gtext_hook); hook_install(GF_card_text, gtext_hook);
+    hook_remove(43, 0x150b, 0x1142, gmenu_hook); hook_install(43, 0x150b, 0x1142, gmenu_hook);
+}
 
 static void script_error_at(const char *file)     /* a script error while it runs: the encounter ends, the player is never stuck in it */
 {
@@ -1323,11 +1397,19 @@ static void reload(void)
         }
     }
     qsort(encs, (size_t)nenc, sizeof(Enc), cmp_enc);
-    /* card numbers by name, so a save made during one still finds it with other mods in use */
+    /* card numbers by name, so a save made during one still finds it with other mods in use: the slot its name
+       gives among the first 128 (as up to 1.4, which had no more), and for one whose slot is taken, the first
+       free one of the rest */
     for (int i = 0; i < ENC_MAX; i++) by_slot[i] = -1;
+    for (int i = 0; i < nenc; i++) encs[i].slot = -1;
     for (int i = 0; i < nenc; i++) {
-        int sl = (int)(slot_hash(encs[i].id) % ENC_MAX);
-        while (by_slot[sl] >= 0) sl = (sl + 1) % ENC_MAX;
+        int sl = (int)(slot_hash(encs[i].id) % 128);
+        if (by_slot[sl] < 0) { by_slot[sl] = i; encs[i].slot = sl; }
+    }
+    for (int i = 0; i < nenc; i++) {
+        if (encs[i].slot >= 0) continue;
+        int sl = 128;
+        for (int k = 0; k < ENC_MAX && by_slot[sl] >= 0; k++) sl = (sl + 1) % ENC_MAX;
         by_slot[sl] = i; encs[i].slot = sl;
     }
     int good = 0; for (int i = 0; i < nenc; i++) good += encs[i].ok;
@@ -1752,7 +1834,7 @@ int encounters_in_street(void) { return rt.active && rt.where == WH_STREET; }
    by the unwinding: it stayed "on the screen", and Go to, the margins and the mods' reload took the town for
    the road); a night in camp's encounter and a voyage's are the old game's too */
 static int just_loaded;                  /* the card a save resumes on: not a street newly come into */
-void encounters_after_load(void) { memset(&rt, 0, sizeof rt); rt.pending = -1; rt.result = -1; aborting = 0; camp_pending = 0; boat_done = 0; outc_on = 0; just_loaded = 1; }
+void encounters_after_load(void) { memset(&rt, 0, sizeof rt); rt.pending = -1; rt.result = -1; aborting = 0; camp_pending = 0; boat_done = 0; outc_on = 0; just_loaded = 1; gsnap_ok = 0; }
 void encounters_force(int i)
 {
     reload();
@@ -1782,4 +1864,5 @@ void encounters_init(void)
     hook_install(46, 0x18aa, 0x0004, place_hook);   /* card 9, a side street by day */
     hook_install(46, 0x194b, 0x0002, place_hook);   /* card 0x0a, by night */
     hook_install(66, 0x19ec, 0x000e, place_hook);   /* card 0x5a, arriving by water ($Enter00) */
+    encounters_rehook();                            /* (what came of it on the game's cards: after mods/cardview.c's and mods/assist.c's) */
 }

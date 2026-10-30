@@ -54,6 +54,7 @@ static const struct { const char *key, *why; } WHY[] = {
     { "assist.teachers", "Teachers are easy to miss: nothing in the original says an option brings one." },
     { "assist.city_goto", "Reaching one place in a town took many clicks through its menus, none of them a real choice." },
     { "assist.docks_map", "Boat destinations are names without a map." },
+    { "assist.card_outcomes", "The original's cards often change a skill, an attribute, a town's opinion or fame without a word; the change, shown." },
     { "journal.enabled", "The player otherwise keeps notes on paper." },
     { "journal.chronicle", "A record of the journey the original does not keep." },
     { "rules.ingredients_one_quality", "Ingredients of one kind at two qualities were listed twice, and the quality changed nothing but the price." },

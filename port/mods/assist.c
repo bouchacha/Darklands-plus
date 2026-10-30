@@ -64,6 +64,8 @@ int assist_best_at_attr(int k)
 int assist_bargainer(void) { return assist_best_leader && !config_get_int("original", 0) ? assist_best_at_attr(5) : (s8)g_rb(G_LEADER); }
 void assist_leader_restore(void)
 {
+    extern unsigned dos_save_read_ms; static unsigned last_read;
+    if (dos_save_read_ms != last_read) { last_read = dos_save_read_ms; saved_leader = stand_in = -1; return; }   /* (a game loaded since: its leader is its own) */
     if (saved_leader < 0) return;
     if (stand_in >= 0 && (s8)g_rb(G_LEADER) != stand_in) {                  /* (the leader changed since: by the player or the game) */
         if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: the leader was changed to %d meanwhile: kept\n", (s8)g_rb(G_LEADER));
@@ -192,6 +194,11 @@ static void card_menu_hook(void)        /* s043 150b:1142 card_menu(win, win2) *
         int sel = cardview_menu();
         int cardview_unwinding(void);
         if (cardview_unwinding()) { cm_depth--; if (!cm_depth) card_chances.active = 0; return; }
+        if (sel == -2) {                                        /* (a load asked for: the game's own menu takes it, mods/cardview.c) */
+            hook_call_original();
+            cm_depth--; if (!cm_depth) card_chances.active = 0;
+            return;
+        }
         chronicle_choice(sel);
         leader_for_choice(sel);
         cm_depth--;
@@ -201,6 +208,7 @@ static void card_menu_hook(void)        /* s043 150b:1142 card_menu(win, win2) *
         return;
     }
     hook_call_original();
+    if (unw_active) { cm_depth--; if (!cm_depth) card_chances.active = 0; return; }   /* (a game loaded from the menu bar: no choice was made, and the leader is the save's) */
     chronicle_choice((s16)AX);           /* and the option chosen */
     leader_for_choice((s16)AX);
     cm_depth--;

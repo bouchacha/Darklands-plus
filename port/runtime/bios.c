@@ -120,11 +120,11 @@ void fatal(const char *fmt, ...)
     fprintf(stderr, "\n  CS=%04x DS=%04x ES=%04x SS=%04x SP=%04x BP=%04x AX=%04x BX=%04x CX=%04x DX=%04x SI=%04x DI=%04x LOADSEG=%04x\n",
             CS, DS, ES, SS, SP, BP, AX, BX, CX, DX, SI, DI, LOADSEG);
     va_end(ap);
-    {   char msg[512]; va_start(ap, fmt); vsnprintf(msg, sizeof msg, fmt, ap); va_end(ap);
-        void plat_error_box(const char *); plat_error_box(msg); }
-    ftrace_dump();
+    ftrace_dump();                                   /* (into the log before the box, which waits for a click) */
     { void interp_ring_dump(void); interp_ring_dump(); void ovl_dump(void); ovl_dump(); }
     fflush(stderr);
+    {   char msg[512]; va_start(ap, fmt); vsnprintf(msg, sizeof msg, fmt, ap); va_end(ap);
+        void plat_error_box(const char *); plat_error_box(msg); }
     plat_quit(3);
 }
 

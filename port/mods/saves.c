@@ -68,6 +68,10 @@ static int quick_due;
 static char auto_due[24];
 static char load_name[16];
 static int load_stage;           /* 1 asked for, 2 load_game called, 3 confirmed, 4 read */
+static int load_reask;           /* the game's own Load list, asked for inside the card screen of Darklands+: asked again from the game's */
+/* a load waits for the game's own card screen (mods/cardview.c: from inside the native one, a card a castle, mine or
+   dungeon brought up left the battle the save resumed corrupt) */
+int saves_load_pending(void) { return (load_stage == 1 || load_reask) && g_rb(GV_font_flag_b) == 1; }
 static u32 load_t, loaded_t;
 static int in_save;
 static char iron[16];            /* the running game's save comment when it is an Ironman game ("Ironman 3f2a"), else "" */
@@ -248,6 +252,10 @@ static void menubar_hook(void)             /* menu_bar_run(menu, once): with onc
         fprintf(stderr, "program exit: window closed (Ironman: saved first)\n");
         plat_quit(0);
     }
+    if (load_reask) {                              /* (the original's Load list, from the game's own card screen now: its key) */
+        load_reask = 0;
+        void bios_kbd_inject(u16); bios_kbd_inject(0x2600);   /* Alt-L */
+    }
     if (load_stage == 1) {
         if (g_rb(D_LOAD_OK) == 1) {
             load_stage = 2; load_t = plat_ticks_ms();
@@ -384,6 +392,16 @@ static void save_hook(void)                /* save_game () */
 static void load_hook(void)                /* load_game () */
 {
     if (iron[0] && !load_stage) { ui_notice(IRON_NO_LOAD); hook_return_far(0); return; }
+    int cardview_phase(void);
+    if (!load_stage && cardview_phase()) {     /* (the menu bar's Load inside the card screen of Darklands+: the save chosen, it is
+                                                  loaded from the game's own card screen, saves_load_pending) */
+        char f[16];
+        int r = saves_on ? savesview_load(f, sizeof f) : -1;
+        if (r > 0) { snprintf(load_name, sizeof load_name, "%s", f); load_stage = 1; load_t = plat_ticks_ms(); }
+        else if (r < 0) load_reask = 1;
+        hook_return_far(0);
+        return;
+    }
     if (load_stage || !saves_on) { hook_call_original(); return; }   /* (ours under way; or the original's list and question) */
     char f[16];
     int r = savesview_load(f, sizeof f);
