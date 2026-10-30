@@ -228,7 +228,7 @@ menu comes back unless its actions went elsewhere.
 | `additem WHO, CODE[, QUALITY]`, `takeitem WHO, CODE` | items (`$ItemName` names the last added) |
 | `loseitems WHO`, `keepitems WHO, PCT`, `removeitems WHO, MASK` | the game's losses: robbed (with `party` also the purse), each stack kept with PCT % |
 | `fame K` | the game's reward of fame (1 to 5: 3, 10, 25, 64, 200) |
-| `reputation A, B` | the nearest city's reputation (the game's random change: `1, 3` up, `-1, -3` down) |
+| `reputation A, B` | the nearest city's reputation (the game's random change: `1, 3` up, `-1, -3` down: from A to one short of B, so 1 or 2; the game makes it only with a chance of 100 less the town's present opinion (-99 to 99, its sign dropped), in %; its own quests give 10 to 50, a fight with the watch -10 to -70) |
 | `battle FIELD, ENEMY, QUALITY, COUNT[, ENEMY, QUALITY, COUNT ...]` | a battle; `result` is then `Won`, `Fled`, `Beaten` or `Surrendered` |
 | `rejoin`, `dropaway` | after fleeing: members left behind come back, or are lost |
 | `kill WHO` | a member is lost for good (as the game's harshest cards do; never the last one) |
