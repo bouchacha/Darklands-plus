@@ -483,7 +483,7 @@ static void gmenu_hook(void)                    /* card_menu (win, win2), s043 1
 void encounters_frame(void)
 {
     if (!gsnap_ok) return;
-    if (game_mode() != GM_CARD || (ns_screen != NS_NONE && ns_screen != NS_CARD && ns_screen != NS_PRAY)) gsnap_ok = 0;   /* (a prayer from the card's box is the choice's own) */
+    if (game_mode() != GM_CARD || (ns_screen != NS_NONE && ns_screen != NS_CARD && ns_screen != NS_PRAY && ns_screen != NS_CHOOSE)) gsnap_ok = 0;   /* (a prayer from the card's box is the choice's own, and so is a thing chosen for it) */
 }
 /* the card screen of Darklands+ was switched (mods/cardview.c): these hooks first again (they set the band
    before that screen's text hook, which does not hand on to the game's) */

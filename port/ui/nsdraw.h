@@ -234,6 +234,7 @@ static inline bool ns_shows_quality(int id, int q)
 {
     const ItemDef *d = ns_itemdef(id);
     if (!d || d->kind == K_POTION || d->kind == K_INSTRUMENT || d->kind == K_INGREDIENT) return false;
+    if (d->kind == K_RELIC) return q != 25 && q != 99;         /* (the maintainer's rule: a relic's quality unless it is the plain 25 or the 99 of a holy thing) */
     bool fixed = (d->type >= 0x17 && d->type <= 0x19) || (d->type >= 0x40 && d->type <= 0x42);
     if (fixed) return q != 25;
     return d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_ARMOR || d->kind == K_SHIELD || d->kind == K_POTION ||

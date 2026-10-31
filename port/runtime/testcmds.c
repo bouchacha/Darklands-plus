@@ -193,6 +193,16 @@ int testcmd_run(const char *cmd, const char *arg)
             }
             eval_free(snap);
         }
+        else if (!strcmp(cmd, "urelic")) {              /* test: member m's least favor and chance with favor x for saint s, through saint_fns (relics.c's discount in them) */
+            int m = 0, st = 0, x = 20; sscanf(arg, "%d,%d,%d", &m, &st, &x);
+            u16 tseg = (u16)(LOADSEG + 0x290e), off = rw(tseg, (u16)(0x2937 + 4 * st)), seg = rw(tseg, (u16)(0x2937 + 4 * st + 2));
+            void *snap = eval_snapshot();
+            u16 a2[3] = { (u16)m, 0, 2 }; int least = (s16)game_call_ptr(seg, off, 3, a2, 0); eval_restore(snap);
+            u16 a7[3] = { (u16)m, (u16)x, 7 }; int ch = (s16)game_call_ptr(seg, off, 3, a7, 0); eval_restore(snap);
+            eval_free(snap);
+            int relic_discount(int, int, int *); int code = 0, d = relic_discount(m, st, &code);
+            fprintf(stderr, "relic test: member %d saint %d: least %d, chance with %d favor %d (relic %#x takes off %d)\n", m, st, least, x, ch, code, d);
+        }
         else if (!strcmp(cmd, "uchronfill")) { void journal_test_chronicle(int); journal_test_chronicle(atoi(arg)); }   /* test: n made-up texts in the chronicle (memory only) */
         else if (!strcmp(cmd, "usubtab")) { extern int ui_want_subtab; ui_want_subtab = atoi(arg); }   /* test: the sub-tab to open next (the journal's: 7 the chronicle) */
         else if (!strcmp(cmd, "usaintdo")) {            /* test: saint s's help for member m (saint_fns[s](m, 50, 8)) */

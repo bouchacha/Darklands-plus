@@ -19,6 +19,7 @@
 void plat_hold(int ms);
 #include "gamemodel.h"
 #include "prayview.h"
+#include "relics.h"
 
 PrayModel pray_model;
 static int pv_on = 1;
@@ -57,6 +58,7 @@ static void build(void)
     p->vmin = H(p->saint, p->who, 0, 4); p->xmin = H(p->saint, p->who, 0, 2);
     if (!p->chance && p->vmin > 0 && p->vmin < 100) { if (p->virtue < p->vmin) p->why = 1; else if (p->df < p->xmin) p->why = 2; }
     for (int m = 0; m < 5; m++) { p->present[m] = gm_member_present(m) && gm_member_status(m) != 0; gm_member_name(m, p->names[m], sizeof p->names[m]); }
+    p->relic_df = relic_discount(p->who, p->saint, &p->relic);   /* (already in the least favor and the chance: the saint's function asks it) */
     p->seq++;
 }
 

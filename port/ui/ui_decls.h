@@ -52,6 +52,7 @@ extern "C" { int lodgeview_is_on(void); void lodgeview_set(int on); }
 extern "C" void enemyview_draw(void);
 extern "C" { int enemyview_is_on(void); void enemyview_set(int on); }
 extern "C" void mapmsg_draw(void);
+extern "C" void choose_draw(void);
 extern "C" { int mapmsg_is_on(void); void mapmsg_set(int on); }
 extern "C" { int infoview_is_on(void); void infoview_set(int on); }
 extern "C" { int rosterview_is_on(void); void rosterview_set(int on); }

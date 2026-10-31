@@ -27,7 +27,7 @@ std::string ns_item_line(int id, int q)
         return "Defense " + std::to_string(gm_shield_defence(d->type, q, 0)) + " against blows, " + std::to_string(gm_shield_defence(d->type, q, 1)) +
                " against shots and throws; unusable with a two-handed weapon";
     }
-    if (d->type >= 0 && d->type <= 33 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
+    if (item_weaponlike(d) && d->type <= 33) {
         int w = d->type, sk = rb(G_FAR20A5, (u16)(0x75ac + w)), cp = rb(G_FAR20A5, (u16)(0x76a8 + w)), dmg = rb(G_FAR20A5, (u16)(0x76e7 + w));
         int tm = rb(G_FAR20A5, (u16)(0x7669 + w)), rl = rb(G_FAR20A5, (u16)(0x77e3 + w));
         std::string r = (sk < 7 ? "{" + std::string(gm_skill_short(sk)) + "}" : std::string("?")) + ", " + ((cp >> 4) >= 2 ? "two hands" : "one hand") + ", damage " + std::to_string(dmg) + ", penetration " + std::to_string(cp & 15);
@@ -76,7 +76,7 @@ std::string ns_item_compare(int id, int q, int m)
         if (!slot(0x48, 0x47, t, wq)) return who + " carries no shield.";
         return who + " carries " + name_of(t, wq) + " (" + std::to_string(wq) + "q): this is " + cmpq(q, wq) + ".";
     }
-    if (d->type >= 0 && d->type <= 62 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
+    if (item_weaponlike(d)) {
         int w = d->type, sk = rb(G_FAR20A5, (u16)(0x75ac + w)), smin = rb(G_FAR20A5, (u16)(0x7765 + w));
         bool missile = sk == 5 || sk == 6;
         std::string r = who + " " + (sk < 7 ? "{" + std::string(gm_skill_short(sk)) + ":" + std::to_string(gm_member_skill(m, sk)) + "}" : std::string("skill: ?")) + ".";
@@ -133,7 +133,7 @@ std::string ns_item_compare_party(int id, int q)
         if (!none.empty()) r += (r.empty() ? "" : " ") + join(none) + (none.size() == 1 ? " carries" : " carry") + " no shield.";
         return r.empty() ? "Everyone's shield is as good or better." : r;
     }
-    if (d->type >= 0 && d->type <= 62 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
+    if (item_weaponlike(d)) {
         int w = d->type, sk = rb(G_FAR20A5, (u16)(0x75ac + w)), smin = rb(G_FAR20A5, (u16)(0x7765 + w));
         if (sk >= 7) return "";
         std::vector<std::pair<int, int>> v; std::vector<std::string> heavy;
@@ -311,7 +311,7 @@ float ns_item_strip(NsDraw &P, float y0, const NsStripThing &t)
     if (!t.right.empty()) P.text(P.fo, NsDraw::FS_BODY, 0, y0 + 1.8f, t.right_col, t.right, 314);
     /* (the weight only of what can be worn or wielded: the load is the equipped things' alone,
        equip_weight s031 18e7:140a; what is merely carried weighs nothing) */
-    bool wearable = d && (d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_ARMOR || d->kind == K_SHIELD);
+    bool wearable = item_wieldable(d);
     std::string l1 = std::string(d ? kind_name_one(d->kind) : "") + ns_quality_words(t.id, t.qual) + (wearable ? ", weight " + std::to_string(t.weight) + " when equipped" : std::string());
     if (t.count > 1) l1 += " each, " + std::to_string(t.count) + " of them";
     if (!t.status.empty()) l1 += "; " + t.status;
@@ -373,7 +373,7 @@ int ns_slot_of(int id)
     if (!d) return 0;
     if (d->type >= 67 && d->type <= 84) return d->type <= 75 ? 1 : 2;
     if (d->kind == K_SHIELD) return 3;
-    if (d->type >= 0 && d->type <= 62 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
+    if (item_weaponlike(d)) {
         int sk = rb(G_FAR20A5, (u16)(0x75ac + d->type));
         return sk == 4 || sk == 5 || sk == 6 ? 5 : 4;   /* (thrown weapons are readied as the missile weapon) */
     }

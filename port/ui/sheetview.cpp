@@ -397,7 +397,7 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         y += P.para(f, NsDraw::FS_NAME, SX0 + 2.5f, y, SW, ink, ns_item_name(it.id)) + 0.5f;
         std::string l1 = std::string(d ? kind_name_one(d->kind) : "");
         if (shows_quality(d, it.qual)) l1 += ns_quality_words(it.id, it.qual);
-        bool wearable = d && (d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_ARMOR || d->kind == K_SHIELD);   /* (only equipped things count toward the load: equip_weight) */
+        bool wearable = item_wieldable(d);   /* (only equipped things count toward the load: equip_weight) */
         if (wearable) l1 += ", weight " + std::to_string(it.weight) + (it.equipped ? "" : " when equipped");
         if (it.count > 1) l1 += std::string(wearable ? " each" : "") + ", " + std::to_string(it.count) + " of them";
         if (it.equipped == 2) l1 += "; this member's mount";
@@ -422,7 +422,7 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         }
         else if (it.holder >= 0 && !it.equipped && s.npar > 1)          /* (how to hand it over: the pack's spares are anyone's already) */
             y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, NsDraw::INK_DIM, it.count > 1 ? "To give the lot, drag it onto a member at the left, or press their number (1 to 5); Shift: just one." : "To give it, drag it onto a member at the left, or press their number (1 to 5).") + 0.5f;
-        if (d && d->type >= 0 && d->type <= 33 && (d->kind == K_WEAPON || d->kind == K_MISSILE)) {
+        if (item_weaponlike(d) && d->type <= 33) {
             int sk = rb(G_FAR20A5, (u16)(0x75ac + d->type)), minsk = rb(G_FAR20A5, (u16)(0x7726 + d->type)), minst = rb(G_FAR20A5, (u16)(0x7765 + d->type));
             int have = sk < 7 ? s.skill[sk] : 0;
             std::string fit = (have < minsk ? "needs " + std::to_string(minsk - have) + " more skill" : std::string("")) +
@@ -481,7 +481,7 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
 static void gear_tip(const SvItem &it)
 {
     const ItemDef *d = ns_itemdef(it.id);
-    if (!d || !((d->type >= 0 && d->type <= 33 && (d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_RELIC)) ||
+    if (!d || !((item_weaponlike(d) && d->type <= 33) || d->kind == K_RELIC ||
                 (d->type >= 67 && d->type <= 84) || (d->type >= 95 && d->type <= 97))) return;
     ns_tip_begin(30);
     ImGui::TextUnformatted(ns_item_name(it.id).c_str());
@@ -632,7 +632,7 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         if (vs) ns_compare_arrow(P.dl, fminf(qend + 4, name_end - 3), y + ROWH * 0.5f, vs, P.k);
         if (!(h || busy)) continue;
         /* the actions */
-        bool gear = d && (d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_ARMOR || d->kind == K_SHIELD);
+        bool gear = item_wieldable(d);                    /* (a weapon relic too: the game's item_ready readies it as the weapon it is) */
         bool pack = it.holder < 0;                         /* a row of the shared pack: the actions by kind and quality */
         float x = RX1 - 58;
         if (it.drinkable && !it.equipped) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Drink", IM_COL32(52, 70, 120, 235), 4.4f)) { if (pack) ns_push(SV_PDRINK, it.id, it.qual, 0); else ns_push(SV_DRINK, it.idx, 0, 0); } }

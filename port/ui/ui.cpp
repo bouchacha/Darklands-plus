@@ -550,7 +550,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     }
     else if (halloffame_is_open()) halloffame_draw();
     else if (levelmap_is_open()) levelmap_draw();
-    else { VT(banner_draw()); VT(hdtext_draw()); VT(partypanel_draw()); VT(cardview_draw()); VT(barterview_draw()); VT(sheetview_draw()); VT(lootview_draw()); VT(alchemyview_draw()); VT(cacheview_draw()); VT(prayview_draw()); VT(createview_draw()); VT(rosterview_draw()); VT(infoview_draw()); VT(titleview_draw()); VT(marchview_draw()); VT(lodgeview_draw()); VT(enemyview_draw()); VT(mapmsg_draw()); VT(savesview_draw()); VT(menuview_draw()); }
+    else { VT(banner_draw()); VT(hdtext_draw()); VT(partypanel_draw()); VT(cardview_draw()); VT(barterview_draw()); VT(sheetview_draw()); VT(lootview_draw()); VT(alchemyview_draw()); VT(cacheview_draw()); VT(prayview_draw()); VT(createview_draw()); VT(rosterview_draw()); VT(infoview_draw()); VT(titleview_draw()); VT(marchview_draw()); VT(lodgeview_draw()); VT(enemyview_draw()); VT(mapmsg_draw()); VT(choose_draw()); VT(savesview_draw()); VT(menuview_draw()); }
     if (!open_menu && !open_map && !levelmap_is_open() && !halloffame_is_open()) VT(ui_overlay());
     {
         if (!windows_up()) hdtext_draw_cursor();

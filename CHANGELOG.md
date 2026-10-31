@@ -8,8 +8,11 @@ What changed since 1.4.
 
 - **80 more new encounters**, 160 in all: 40 more in the wild, 22 in the towns' streets, 10 at camp and 8 on the river boats. All 160 were checked for balance and tone.
 - **Doors:** out of a fight, clicking a shut door walks the party to it and opens it.
+- **Relics as the manual has them:** a relic's bearer with the Virtue it asks pays less Divine Favor to pray to its saint (four relics whose saint the game lacks help with any saint); the relic's description and the prayer screen say how much. Relics take no lasting harm, and a cathedral asks which relic you give. Switch: F12 > Settings > The party and its items.
+- **Weapon relics can be equipped** from the character sheet (St. George's Greatsword and eight more), and a relic's quality is shown unless it is 25 or 99.
 - **What came of it** on the game's own cards too: under the text that follows a choice, what that text does not tell (a skill or attribute changed, things, money, fame, a town's opinion). Part of the card helpers (F12 > Settings > Cards and towns).
 - **Level map (Tab)** shows every room the party has entered, walls on each side of the floor, and the openings not yet explored.
+- **MT-32 or CM-32L:** with the ROM files of both found, F12 > Settings > Sound chooses which one plays (the MT-32 unless you pick the CM-32L).
 
 **Fixed**
 

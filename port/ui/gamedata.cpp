@@ -127,6 +127,7 @@ void gamedata_load(const char *dir)
             d.type = w16(r + 30); d.flags = w16(r + 32); d.flags2 = w16(r + 34);
             d.weight = r[37]; d.quality = r[38]; d.value = w16(r + 44);
             d.flags5 = r[36]; d.rarity = r[39];
+            d.relic_virtue = w16(r + 40); d.relic_df = w16(r + 42);
             d.mineral = (d.flags2 & 0x1000) != 0;
             d.kind = classify(d);
             gamedata.items.push_back(d);

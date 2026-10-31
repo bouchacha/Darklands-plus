@@ -13,10 +13,17 @@ struct ItemDef {
     std::string plain;               // as shown, without where an armour is worn ("Chainmail")
     int type = 0, flags = 0, flags2 = 0, weight = 0, quality = 0, value = 0;
     int flags5 = 0, rarity = 0;      // flag byte +0x24 (0x80: not sold in shops), rarity 0..12
+    int relic_virtue = 0, relic_df = 0;   // a relic's: +0x28 the Virtue its bearer needs, +0x2a the Divine Favor it takes off a prayer (mods/relics.c)
     unsigned cats() const { return (unsigned)flags | ((unsigned)flags2 << 16); }
     ItemKind kind = K_OTHER;
     bool mineral = false;
 };
+
+/* worn or wielded (the load counts only these: equip_weight s031 18e7:140a): weapons, missile weapons,
+   armour, shields, and the relics that are weapons (St. George's Greatsword, St. Hubert's Bow ...) */
+static inline bool item_wieldable(const ItemDef *d) { return d && (d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_ARMOR || d->kind == K_SHIELD || (d->kind == K_RELIC && d->type >= 0 && d->type <= 62)); }
+/* a weapon by its type (the combat tables, far 20a5: 63 weapon types), a weapon relic too */
+static inline bool item_weaponlike(const ItemDef *d) { return d && d->type >= 0 && d->type <= 62 && (d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_RELIC); }
 
 struct FormulaIngr { int count, item; };
 struct Formula {

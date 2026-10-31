@@ -30,6 +30,7 @@ static void click_attack(int v) { orders_click_attack = v; }
 static void return_thrown(int v) { loot_return_thrown = v; }
 void loot_ingredients_set(int on);
 static void ingredients_one(int v) { loot_ingredients_set(v); }
+static void relics_apply(int v) { void relics_set(int); relics_set(v); }
 static void fast_key(int v) { if (!v) battle_fast_set(0); }
 static void auto_arrive(int v) { saves_auto_arrive = v; }
 static void auto_battle(int v) { saves_auto_battle = v; }
@@ -150,6 +151,7 @@ static Option OPTIONS[] = {
     { "assist.endless", S_PARTY, 0, "Endless ammunition and thrown weapons", "arrows, quarrels and balls, and javelins, throwing axes, throwing knives and darts, never run out (one is enough to shoot or throw); enemies still use up theirs. When off: each shot uses one, and about 7 in 10 arrows and quarrels can be picked up in the loot afterwards; with the shared pack they are then each member's own, listed with them like potions (picked-up ones go to whoever shoots them; drag them onto another member to hand them over).", OC_PLUS, 0, 1, 1, 0, 0, 0, 0, 0, 6, bundle_set },
     { "assist.infinite_ammo", S_PARTY, 0, "Endless ammunition", "arrows, quarrels and balls never run out (one is enough to shoot); enemies still use up theirs. When off: each shot uses one, and about 7 in 10 arrows and quarrels can be picked up in the loot afterwards; with the shared pack they are then each member's own, listed with them like potions.", OC_PLUS, 0, 1, 1, 0, 0, ammo_set },
     { "assist.infinite_thrown", S_PARTY, 0, "Endless thrown weapons", "javelins, throwing axes, throwing knives and darts never run out either (one is enough to throw). When off, with the shared pack they are each member's own, listed with them like potions.", OC_PLUS, 0, 1, 1, 0, 0, thrown_set },
+    { "rules.relics", S_PARTY, 0, "Relics as the manual has them", "a relic's bearer with the Virtue it asks pays less Divine Favor to pray to its saint (a relic whose saint the game does not have: to any saint), as the manual promised and the game never did; its two numbers are DARKLAND.LST's, which nothing read. Relics take no lasting harm (corroding water, acid, fire), and a cathedral given one of the party's relics asks which.", OC_PLUS, 0, 1, 1, 0, 0, relics_apply },
     { "rules.aging", S_PARTY, 0, "Aging during play", "characters go on aging during play (Darklands+ only; the original ages them only during character creation): from thirty on, a little each month, more with age (by seventy, a total loss of 25 Endurance, 21 Strength and Agility each, 10 Perception and Charisma each, and 5 Intelligence).", OC_PLUS, 0, 1, 0 },
     { "assist.loss_alerts", S_PARTY, 0, "Warn about permanent losses", "anything lost for good (an attribute's maximum, a skill, armor eaten by acid or fire, the toll of the years) pauses the game with a window saying exactly what was lost, and by whom.", OC_SHOW, 0, 1, 1 },
 

@@ -15,6 +15,7 @@ typedef struct {
     int df99;                        /* the least favor that gives the best chance (more is wasted), -1 none */
     int why, virtue, vmin, xmin;     /* no chance: 1 the member's Virtue is below the saint's minimum (vmin), 2 less favor than its least (xmin), 0 another reason */
     int cls;                         /* the statue (the handler's class) */
+    int relic, relic_df;             /* a relic the one who prays bears, and the favor it takes off (mods/relics.c), 0 none */
     char day[32];                    /* the saint's day */
     int present[5];
     char names[5][24];

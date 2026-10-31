@@ -158,6 +158,7 @@ the files where each switch's key is read.
 | `assist.endless` | Endless ammunition and thrown weapons | plus | a group of switches: options.c (BUNDLES) |
 | `assist.infinite_ammo` | Endless ammunition | plus | ammo.c |
 | `assist.infinite_thrown` | Endless thrown weapons | plus | ammo.c |
+| `rules.relics` | Relics as the manual has them | plus | relics.c |
 | `rules.aging` | Aging during play | plus | aging.c |
 | `assist.loss_alerts` | Warn about permanent losses | show | losses.c |
 | `assist.more_jobs` | More day jobs | ease | lodgeview.c |

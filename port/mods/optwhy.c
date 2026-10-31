@@ -57,6 +57,7 @@ static const struct { const char *key, *why; } WHY[] = {
     { "assist.card_outcomes", "The original's cards often change a skill, an attribute, a town's opinion or fame without a word; the change, shown." },
     { "journal.enabled", "The player otherwise keeps notes on paper." },
     { "journal.chronicle", "A record of the journey the original does not keep." },
+    { "rules.relics", "The manual says a relic lowers the Divine Favor a prayer to its saint costs, for a bearer of enough Virtue; the game never did it. Relics could be worn down like any weapon, and a cathedral took whichever relic came first." },
     { "rules.ingredients_one_quality", "Ingredients of one kind at two qualities were listed twice, and the quality changed nothing but the price." },
     { "assist.return_thrown", "Gathering thrown weapons after each battle is busywork." },
     { "assist.endless", "Counting arrows and gathering javelins is bookkeeping, not play; enemies still run out." },

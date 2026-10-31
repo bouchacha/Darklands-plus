@@ -462,7 +462,7 @@ void plat_hold_until_drawn(void) { hold_draw = 1; hold_draw_t = SDL_GetTicks(); 
 void plat_drawn(void) { hold_draw = 0; }
 void plat_present(const u8 *vga, const u8 *pal)
 {
-    { void fixes_frame(void); fixes_frame(); void saves_frame(void); saves_frame(); void rules_frame(void); rules_frame(); void autopause_frame(void); autopause_frame(); void battlelog_frame(void); battlelog_frame(); void memberlooks_frame(void); memberlooks_frame(); void losses_frame(void); losses_frame(); void battleend_frame(void); battleend_frame(); void orders_frame(void); orders_frame(); void encounters_frame(void); encounters_frame(); }   /* game-side checks, headless too */
+    { void fixes_frame(void); fixes_frame(); void saves_frame(void); saves_frame(); void rules_frame(void); rules_frame(); void autopause_frame(void); autopause_frame(); void battlelog_frame(void); battlelog_frame(); void memberlooks_frame(void); memberlooks_frame(); void losses_frame(void); losses_frame(); void battleend_frame(void); battleend_frame(); void orders_frame(void); orders_frame(); void encounters_frame(void); encounters_frame(); void relics_frame(void); relics_frame(); }   /* game-side checks, headless too */
     { static int slow = -1; if (slow < 0) slow = getenv("DL_SLOW_PRESENT") ? atoi(getenv("DL_SLOW_PRESENT")) : 0; if (slow) plat_sleep_ms(slow); }   /* test: a slow display */
     if (headless) return;
     if (hold_until && (s32)(hold_until - SDL_GetTicks()) > 0) { SDL_PumpEvents(); return; }

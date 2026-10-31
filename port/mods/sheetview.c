@@ -205,6 +205,9 @@ static Snap snap(int who, int idx)
 static int changed(Snap a, Snap b) { return a.n != b.n || a.cnt != b.cnt || a.eq != b.eq || a.load != b.load; }
 
 static int pack_holder(int prefer, int id, int q, int *m_out, int *i_out) { return gm_pack_find(prefer, id, q, m_out, i_out); }
+/* "the " before a thing's name, not before a saint's ("St. George's Greatsword"): cap 1 at the start of a sentence */
+static const char *the(const char *nm, int cap) { return !strncmp(nm, "St.", 3) ? "" : cap ? "The " : "the "; }
+
 static int record_of(int m, int id, int q, int unequipped_first)
 {
     int any = -1;
@@ -263,8 +266,8 @@ static void act(const NsAction *a, int *who)
             Snap s0 = snap(w, r);
             ns_call(GF_item_ready, 2, w, r);
             if (ns_unwinding) return;
-            if (changed(s0, snap(w, r))) snprintf(t, sizeof t, "%s takes up the %s.", sheet_model.names[w], nm);
-            else snprintf(t, sizeof t, "The %s cannot be readied.", nm);
+            if (changed(s0, snap(w, r))) snprintf(t, sizeof t, "%s takes up %s%s.", sheet_model.names[w], the(nm, 0), nm);
+            else snprintf(t, sizeof t, "%s%s cannot be readied.", the(nm, 1), nm);
             break; }
         case SV_PDRINK: {
             if (!drinkable(id)) return;
@@ -346,12 +349,12 @@ static void act(const NsAction *a, int *who)
         return; }
     case SV_READY:
         ns_call(GF_item_ready, 2, w, idx);
-        if (changed(s0, snap(w, idx))) snprintf(t, sizeof t, "%s takes up the %s.", sheet_model.names[w], nm);
-        else snprintf(t, sizeof t, "The %s cannot be readied.", nm);
+        if (changed(s0, snap(w, idx))) snprintf(t, sizeof t, "%s takes up %s%s.", sheet_model.names[w], the(nm, 0), nm);
+        else snprintf(t, sizeof t, "%s%s cannot be readied.", the(nm, 1), nm);
         break;
     case SV_PUTAWAY:
         ns_call(GF_item_unequip, 3, w, idx, 9);
-        snprintf(t, sizeof t, "%s puts the %s away.", sheet_model.names[w], nm);
+        snprintf(t, sizeof t, "%s puts %s%s away.", sheet_model.names[w], the(nm, 0), nm);
         break;
     case SV_GIVE: {
         int to = a->b, all = a->c == 255;
