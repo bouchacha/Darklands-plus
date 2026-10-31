@@ -16,6 +16,7 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 **Fixed**
 
 - Loading a save while a card from a castle, mine or dungeon was showing (the riddle of the dwarves' iron door) usually crashed the game.
+- Some of 1.4's encounters punished a fight forced on the party as hard as one it chose (the flagellants: Divine Favor -20), and fleeing the lost child's wolves could lose a member for good without warning.
 - On the level map, a click beside a wall could walk the party to the far side of it.
 - The level map could forget rooms the party had seen, after a save was loaded or the place was entered again.
 - A walk chosen on the level map just after loading a battle stood still.
