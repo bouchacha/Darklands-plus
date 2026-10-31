@@ -1804,6 +1804,8 @@ static int pick_where(int where, int pct, int force)
 /* the street cards and the arrival by water (their functions, hooked at the start): a new encounter in their place, or
    the game's own */
 static int just_loaded;
+static int test_arrive;                   /* test (uarrive:): the next arrival card counts as one by boat */
+void encounters_test_arrive(void) { test_arrive = 1; fprintf(stderr, "encounters: the next arrival counts as one by boat\n"); }
 static void place_hook(void)
 {
     aborting = 0;
@@ -1811,7 +1813,7 @@ static void place_hook(void)
     int card = (s16)g_rw(V_CUR_CARD), prev = (s16)g_rw(GV_prev_screen), c = -1;
     if (card == 0x5a) {                          /* arriving by water */
         if (boat_done) { boat_done = 0; g_ww(GV_prev_screen, 0x11a); }   /* (after ours: as after the pirates) */
-        else if (prev == 0x1f || prev == 0x110) c = pick_where(WH_BOAT, 30, 0);
+        else if (prev == 0x1f || prev == 0x110 || test_arrive) { test_arrive = 0; c = pick_where(WH_BOAT, 30, 0); }
     } else if ((card == 6 || card == 8 || card == 9 || card == 0x0a) && prev != card && !(prev >= ENC_BASE && prev < ENC_BASE + ENC_MAX)
                && (s16)g_rw(G_CUR_LOC) >= 0 && (s16)g_rw(G_CUR_LOC) < 0x5c)
         c = pick_where(WH_STREET, card == 6 ? 3 : card == 8 || card == 9 ? 6 : 10, 0);
