@@ -536,18 +536,19 @@ static void give(int from, int to, int idx, bool one = false)
  * effect (the character sheet's and the shops' tooltips) */
 void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's quality, -1 unknown: its usual one) */
 {
-    if (d && d->kind == K_RELIC && d->relic_df > 0) {      /* a relic: the saint it helps a prayer to, and who could bear it (mods/relics.c) */
-        int s = relic_saint(id);
-        std::string saint = s >= 0 && s < (int)gamedata.saints.size() ? gamedata.saints[s].name : std::string("any saint");
+    if (d && d->kind == K_RELIC && d->relic_df > 0) {      /* a relic: what it takes off a prayer, and who could bear it (mods/relics.c) */
+        bool weapon = relic_is_weapon(id);
         ImGui::Separator();
-        if (s == -1) ui_rich_textf("Its bearer pays {Divine Favor:%d} less to pray to any saint (no saint asks less than 5), with {Virtue:%d} at least.", d->relic_df, d->relic_virtue);
-        else ui_rich_textf("Its bearer pays {Divine Favor:%d} less to pray to %s, with {Virtue:%d} at least.", d->relic_df, saint.c_str(), d->relic_virtue);
-        std::string who;
+        if (weapon) ui_rich_textf("Wielded, it takes {Divine Favor:%d} off every prayer of the one wielding it, to any saint (none below 5). "
+                                  "Wielding it asks {Virtue:%d}.", d->relic_df, d->relic_virtue);
+        else ui_rich_textf("It takes {Divine Favor:%d} off every prayer of the one carrying it, to any saint (none below 5), "
+                           "if they have {Virtue:%d}.", d->relic_df, d->relic_virtue);
+        ui_rich_textf_dim("Of several relics, the best counts.");
         int size = (s16)g_rw(G_PARTY_SIZE); if (size < 0 || size > 5) size = 0;
         for (int m = 0; m < size; m++) {
             int v = (s8)g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + 9));
             ui_rich_textf_c(v >= d->relic_virtue ? ImVec4(0.18f, 0.40f, 0.16f, 1) : ImVec4(0.62f, 0.20f, 0.12f, 1), "%s {Virtue:%d}%s", rich_member(m).c_str(), v,
-                            v >= d->relic_virtue ? "" : " - too little");
+                            v >= d->relic_virtue ? "" : weapon ? " - too little to wield it" : " - too little");
         }
         if (!relics_on()) ui_rich_textf_dim("Off: Relics as the manual has them (F12 > Settings > The party and its items).");
         else ui_rich_textf_dim("It takes no lasting harm.");

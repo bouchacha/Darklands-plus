@@ -75,7 +75,7 @@ int gm_item_in_use(int m, int i);                 /* equipped, or (shared pack) 
 int gm_is_potion(int id);                         /* a potion (items 95-116): each member's own, never the shared pack's */
 int gm_is_ammo(int id);                           /* arrows, quarrels, balls (items 33-35) */
 int gm_ammo_hidden(void);                         /* they never run out (assist.infinite_ammo): not shown anywhere */
-int gm_member_own(int id, int type);              /* with the shared pack, each member's own (potions; ammunition and thrown weapons that run out) */
+int gm_member_own(int id, int type);              /* with the shared pack, each member's own (potions; ammunition and thrown weapons that run out; relics that are no weapon) */
 int gm_room_for(int m, int id, int qual);         /* one more fits: a free record (64 at most) or one it stacks onto */
 /* the shared pack (inventory.shared): a member's spares of record i (its count, less the one in use);
    who carries a spare (id, qual) - `prefer` first, else whoever has the most - 0 if nobody */
@@ -93,7 +93,8 @@ typedef struct { int idx, holder, id, type, qual, count, weight, use, own; } GmP
 int gm_pack_rows(int who, GmPackRow *out, int max);
 /* whom a thing taken in goes to with the shared pack, among the members in allow (a bit each):
  * whoever carries some already (it stacks), else whoever has the most free places (prefer on a
- * tie); a member's own arrows and the like (gm_member_own) to one who shoots them. -1: no room */
+ * tie); a member's own arrows and the like (gm_member_own) to one who shoots them, a relic to one
+ * with the Virtue it asks (who has none as good, first). -1: no room */
 int gm_pack_target(int id, int qual, int prefer, int allow);
 
 /* what a member knows (far data 2e38): formulae (DARKLAND.ALC order, 3 per potion), saints

@@ -7,6 +7,7 @@
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
 #include "gamemodel.h"
+#include "relics.h"
 #include "../runtime/config.h"
 
 int gm_party_size(void) { int n = (s16)g_rw(G_PARTY_SIZE); return n < 0 ? 0 : n > 5 ? 5 : n; }
@@ -75,12 +76,14 @@ int gm_ammo_hidden(void) { return ammo_infinite && !config_get_int("original", 0
 /* a thing each member keeps for themselves with the shared pack, listed with them and never in the
    party's pack: potions; arrows, quarrels and balls when they run out (assist.infinite_ammo off);
    javelins, throwing axes, darts and throwing knives when those run out (assist.infinite_thrown off) -
-   a shooter's are their own to spend */
+   a shooter's are their own to spend; a relic that is no weapon (rules.relics: what it does is its
+   carrier's, mods/relics.c; a weapon relic is its wielder's, in use) */
 extern int thrown_infinite;
 int gm_member_own(int id, int type)
 {
     if (gm_is_potion(id)) return 1;
     if (config_get_int("original", 0)) return 0;
+    if (relics_on() && relic_is(id & 0xfff) && !relic_is_weapon(id & 0xfff)) return 1;
     if (!ammo_infinite && gm_is_ammo(id)) return 1;
     if (!thrown_infinite && type >= 0x17 && type <= 0x1a) return 1;
     return 0;
@@ -161,6 +164,11 @@ int gm_pack_target(int id, int qual, int prefer, int allow)
         for (int j = 0; j < gm_item_count(k) && !stacks; j++) { GmItem g; if (gm_item(k, j, &g) && g.id == id && g.qual == qual && g.count < 255) stacks = 1; }
         int score = stacks ? 1000 : 2 * (64 - gm_item_count(k)) + (k == prefer);
         if (gm_member_own(id, gm_itemdef_type(id)) && gm_member_uses(k, id)) score += 5000;   /* (arrows that run out: to the one who shoots them) */
+        if (relics_on() && relic_is(id) && !relic_is_weapon(id) && relic_bearer_ok(k, id)) {   /* (a relic: to one with the Virtue it asks, who has none as good) */
+            int better = 0;
+            for (int j = 0; j < gm_item_count(k); j++) { GmItem g; if (gm_item(k, j, &g) && relic_is(g.id) && !relic_is_weapon(g.id) && relic_favor(g.id) >= relic_favor(id)) better = 1; }
+            score += better ? 2000 : 5000;
+        }
         if (score > best) { best = score; bm = k; }
     }
     return bm;

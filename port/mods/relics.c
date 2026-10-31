@@ -1,29 +1,31 @@
-/* relics.c - relics as the manual has them (rules.relics, Darklands+):
+/* relics.c - relics as the manual has them (rules.relics, Darklands+), as the maintainer wants them:
  *
- *  - "Possession of a relic may reduce the DF cost of praying to that saint", and a relic's
- *    advantages apply only if its bearer has the Virtue it asks (the manual, About Religion). The
- *    game never did either. DARKLAND.LST keeps two numbers only relics have, which nothing read:
- *    +0x28, 6 to 80, read here as the Virtue the bearer needs, and +0x2a, 5 to 20, the Divine
- *    Favor the relic takes off a prayer to its saint (on every relic of a saint in the game's list
- *    it is less than that saint's least favor: a prayer never comes free). A relic whose saint the
- *    list does not have (the Thorn of the Crown, St. Mary's Tears, St. Emygdius' Finger,
- *    St. Thealeaus' Spoon) helps a prayer to any saint, never below the least favor of 5 any saint
- *    asks. The bearer is the member who carries it; with the shared pack, a spare relic is
- *    everyone's (one in another's hands is theirs). Done in each saint's function (s039 165c, the
- *    table saint_fns, far 290e:2937): asked its least favor (what 2) it answers that much less,
- *    asked the chance (what 7) it counts the favor spent as that much more, so every caller (the
- *    prayer screen, Darklands+'s and the game's, the cards' saint options, the margins) sees it,
- *    and the favor taken is what the player spends.
+ *  - The manual (About Religion): "Possession of a relic may reduce the DF cost of praying to that
+ *    saint. However, relics require the bearer to have sufficient virtue to gain this advantage."
+ *    The game never did either. DARKLAND.LST keeps two numbers only relics have, which nothing
+ *    read: +0x28, 6 to 80, read here as the Virtue the bearer needs, and +0x2a, 5 to 20, the Divine
+ *    Favor the relic takes off a prayer. Off every prayer its bearer makes, to any saint (to its own
+ *    saint alone was too narrow: his call, 1.5-RC3), never below the least favor of 5 any saint
+ *    asks; of several relics, the best. The bearer: of a weapon relic, the member wielding it; of
+ *    any other, the member carrying it (with the shared pack, those are each member's own, as the
+ *    potions: gm_member_own). Done in each saint's function (s039 165c, the table saint_fns, far
+ *    290e:2937): asked its least favor (what 2) it answers that much less, asked the chance (what 7)
+ *    it counts the favor spent as that much more, so every caller (the prayer screens, the Saints
+ *    page, the cards' saint options, the margins) sees it, and the favor taken is what is spent.
+ *  - A weapon relic is readied (item_ready, s031 18e7:11b2: the sheets, the game's own too) only by
+ *    a member with the Virtue it asks.
  *  - Relics take no lasting harm: the corroding water of a dragon's cursed land ($Drago01) lowers
  *    each weapon's quality, a weapon relic's too; acid and fire wear armour in a battle (s019
  *    1ef8:0968). A relic below its own quality (DARKLAND.LST +0x26) is made whole again (with the
  *    member's record of it in hand), and battle wear passes a relic by.
  *  - A cathedral's "donate one of your relics" (s056 19c4:0c6e, $Cathe00 and $Cathe01) gave the
- *    first relic the party's records held. With two or more, the player now picks which one (or
- *    none: back to the cathedral), in a box (mods/choose.c); the game's own routine then gives
- *    that one: its search for the first relic (s031 18e7:0fac) answers the one picked, and its
- *    taking of one (18e7:0e14) takes that one, from whoever carries it, who is then the
- *    $ChosenOneName of the text. */
+ *    first relic the party's records held, without saying what giving it does. The player now picks
+ *    which one (or none: back to the cathedral) in a box, shown for a single relic too, that says
+ *    what each gives and what giving does (mods/choose.c): the town's opinion +30 (loc_reputation_adj(
+ *    here, 30, 30): by a chance of 100 less its opinion's size), every member's Divine Favor in full
+ *    (add_attr(-2, DF, 99)), three hours. The game's own routine then gives that one: its search for the first
+ *    relic (s031 18e7:0fac) answers the one picked, and its taking of one (18e7:0e14) takes that
+ *    one, from whoever carries it, who is then the $ChosenOneName of the text. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,7 +39,6 @@
 #include "choose.h"
 #include "relics.h"
 
-int sheetview_shared(void);
 int hook_point(int sect, unsigned seg, unsigned off);
 
 static int on = 1;
@@ -45,20 +46,6 @@ int relics_on(void) { return on && !config_get_int("original", 0); }
 
 #define RELIC_FIRST 0x96
 #define RELIC_LAST  0xab
-/* the saint of each relic, items 0x96..0xab (DARKLAND.LST's saints; -1: any saint, none in the list) */
-static const signed char RELIC_SAINT[RELIC_LAST - RELIC_FIRST + 1] = {
-    -1,   /* 96 Thorn of the Crown */      -1,   /* 97 St. Mary's Tears */
-    11,   /* 98 St. Arnulf's Greatsword */ 16,   /* 99 St. Catherine's Pain */
-    102,  /* 9a St. Olaf's Battleaxe */    55,   /* 9b St. George's Greatsword */
-    39,   /* 9c St. Dunstan's Hammer */    45,   /* 9d Spar of St. Erasmus */
-    86,   /* 9e Spear of Longinus */       104,  /* 9f Staff of St. Patrick */
-    69,   /* a0 St. Hubert's Bow */        41,   /* a1 St. Edward's Ring */
-    -1,   /* a2 St. Emygdius' Finger */    53,   /* a3 St. Gabriel's Horn */
-    72,   /* a4 St. Ita's Needle */        82,   /* a5 St. Kessog's Medallion */
-    101,  /* a6 St. Odo's Testament */     100,  /* a7 St. Odilia's Oil */
-    111,  /* a8 St. Raphael's Water */     120,  /* a9 St. Swithbert's Foot */
-    131,  /* aa St. Willehad's Shoe */     -1,   /* ab St. Thealeaus' Spoon */
-};
 /* each saint's function in s039 165c (the vector saint_fns[i] leads to), and the least favor it asks (its table's t[2]) */
 #define NSAINT 136
 static const u16 SAINT_OFF[NSAINT] = {
@@ -80,41 +67,38 @@ static const unsigned char SAINT_LEAST[NSAINT] = {
     15, 35, 20, 40, 20, 25, 30, 50, 30, 40, 20, 35, 25, 25, 25, 25, 20, 30, 25, 35, 10, 25, 20, 30, 15, 25,
     25, 27, 20, 40, 25, 25, 10, 40, 10, 10, 25, 40, 25, 15, 40, 20, 30, 40, 10, 25, 10, 15, 10, 30, 40, 35,
     15, 20, 25, 15, 20, 10 };
-#define FLOOR_FAVOR 5                         /* (the least favor any saint asks: a relic of any saint takes a prayer no lower) */
+#define FLOOR_FAVOR 5                         /* (the least favor any saint asks: no relic takes a prayer lower) */
 
-static int is_relic(int code)
+static int def_word(int code, int off) { u32 d = g_itemdef(code); return d ? (s16)rw((u16)(d >> 16), (u16)((u16)d + off)) : 0; }
+int relic_is(int code)
 {
     if (code < RELIC_FIRST || code > RELIC_LAST) return 0;
-    u32 d = g_itemdef(code);
-    return d && (rw((u16)(d >> 16), (u16)((u16)d + 0x20)) & 0x1000);      /* (DARKLAND.LST +0x21 bit 4: a relic) */
+    return (def_word(code, 0x20) & 0x1000) != 0;                          /* (DARKLAND.LST +0x21 bit 4: a relic) */
 }
-static int def_word(int code, int off) { u32 d = g_itemdef(code); return d ? (s16)rw((u16)(d >> 16), (u16)((u16)d + off)) : 0; }
-int relic_saint(int code) { return is_relic(code) ? RELIC_SAINT[code - RELIC_FIRST] : -2; }
-int relic_virtue(int code) { return is_relic(code) ? def_word(code, 0x28) : 0; }
-int relic_favor(int code) { return is_relic(code) ? def_word(code, 0x2a) : 0; }
+int relic_is_weapon(int code) { int t = def_word(code, 0x1e); return relic_is(code) && t >= 0 && t <= 62; }   /* (its item type a weapon's) */
+int relic_virtue(int code) { return relic_is(code) ? def_word(code, 0x28) : 0; }
+int relic_favor(int code) { return relic_is(code) ? def_word(code, 0x2a) : 0; }
 static int relic_quality(int code) { u32 d = g_itemdef(code); return d ? rb((u16)(d >> 16), (u16)((u16)d + 0x26)) : 0; }
+static int virtue_of(int m) { return (s8)g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + 9)); }
+int relic_member_virtue(int m) { return m >= 0 && m < 5 ? virtue_of(m) : 0; }
+int relic_bearer_ok(int m, int code) { return relic_is(code) && m >= 0 && m < 5 && virtue_of(m) >= relic_virtue(code); }
 
 int relic_discount(int who, int saint, int *code)
 {
     if (code) *code = 0;
     if (!relics_on() || who < 0 || who > 4 || saint < 0 || saint >= NSAINT || !gm_member_present(who)) return 0;
-    int virtue = (s8)g_rb((u16)(G_MEMBER(who) + G_M_SKILLS + 9)), shared = sheetview_shared(), best = 0, bc = 0;
-    for (int m = 0; m < 5; m++) {
-        if (!gm_member_present(m) || (m != who && !shared)) continue;
-        for (int i = 0; i < gm_item_count(m); i++) {
-            GmItem g;
-            if (!gm_item(m, i, &g) || !is_relic(g.id)) continue;
-            if (m != who && gm_item_equipped(m, i)) continue;        /* (with the shared pack: a spare is anyone's, one in hand its wielder's) */
-            int s = RELIC_SAINT[g.id - RELIC_FIRST];
-            if ((s != saint && s != -1) || virtue < relic_virtue(g.id)) continue;
-            int d = relic_favor(g.id);
-            if (s == -1) { int room = SAINT_LEAST[saint] - FLOOR_FAVOR; if (d > room) d = room; }
-            if (d > best) { best = d; bc = g.id; }
-        }
+    int best = 0, bc = 0, room = SAINT_LEAST[saint] - FLOOR_FAVOR;
+    for (int i = 0; i < gm_item_count(who); i++) {
+        GmItem g;
+        if (!gm_item(who, i, &g) || !relic_bearer_ok(who, g.id)) continue;
+        if (relic_is_weapon(g.id) && !gm_item_equipped(who, i)) continue;   /* (a weapon relic helps the one who wields it) */
+        int d = relic_favor(g.id);
+        if (d > best) { best = d; bc = g.id; }
     }
-    if (best > SAINT_LEAST[saint]) best = SAINT_LEAST[saint];
+    if (best > room) best = room;
+    if (best <= 0) return 0;
     if (code) *code = bc;
-    return best > 0 ? best : 0;
+    return best;
 }
 
 /* ---------------------------------------------------------------- the saints' functions */
@@ -139,6 +123,19 @@ static void saint_hook(void)                  /* a saint's function (who, favor,
     }
 }
 
+/* ---------------------------------------------------------------- a weapon relic asks its Virtue */
+static void ready_hook(void)                  /* item_ready (who, idx), s031 18e7:11b2 */
+{
+    int who = (s16)rw(SS, (u16)(SP + 4)), idx = (s16)rw(SS, (u16)(SP + 6));
+    GmItem g;
+    if (relics_on() && who >= 0 && who < 5 && gm_item(who, idx, &g) && relic_is_weapon(g.id) && !relic_bearer_ok(who, g.id)) {
+        fprintf(stderr, "relics: member %d's Virtue %d is below the %d relic %#x asks: not readied\n", who, virtue_of(who), relic_virtue(g.id), g.id);
+        hook_return_far(0);
+        return;
+    }
+    hook_call_original();
+}
+
 /* ---------------------------------------------------------------- no lasting harm */
 static const u8 USE_T[5] = { 0x3d, 0x0e, 0x37, 0x38, 0x48 }, USE_Q[5] = { 0x44, 0x46, 0x3b, 0x3c, 0x47 };   /* (the member's things in use: type, quality; gamemodel.c) */
 void relics_frame(void)
@@ -148,7 +145,7 @@ void relics_frame(void)
         if (!gm_member_present(m)) continue;
         for (int i = 0; i < gm_item_count(m); i++) {
             GmItem g;
-            if (!gm_item(m, i, &g) || !is_relic(g.id)) continue;
+            if (!gm_item(m, i, &g) || !relic_is(g.id)) continue;
             int q = relic_quality(g.id);
             if (g.qual >= q || q <= 0 || q > 99) continue;
             u16 b = G_MEMBER(m);
@@ -162,7 +159,7 @@ void relics_frame(void)
 static void wear_hook(void)                   /* s019 1ef8:0968 (combatant, item, quality, amount): battle wear */
 {
     int code = (s16)rw(SS, (u16)(SP + 6));
-    if (relics_on() && is_relic(code)) { hook_return_far(0); return; }
+    if (relics_on() && relic_is(code)) { hook_return_far(0); return; }
     hook_call_original();
 }
 
@@ -197,11 +194,24 @@ static void gift_hook(void)                   /* s056 19c4:0c6e: "donate one of 
         if (!gm_member_present(m)) continue;
         for (int i = 0; i < gm_item_count(m) && n < CHOOSE_MAX; i++) {
             GmItem g;
-            if (gm_item(m, i, &g) && is_relic(g.id)) { rows[n].id = g.id; rows[n].qual = g.qual; rows[n].member = m; rows[n].index = i; n++; }
+            if (!gm_item(m, i, &g) || !relic_is(g.id)) continue;
+            ChooseRow *r = &rows[n++];
+            memset(r, 0, sizeof *r);
+            r->id = g.id; r->qual = g.qual; r->member = m; r->index = i;
+            int v = relic_virtue(g.id), have = virtue_of(m);
+            char low[24] = "";
+            if (have < v) snprintf(low, sizeof low, " (has %d)", have);          /* (who: the head at the right) */
+            snprintf(r->info, sizeof r->info, "%sprayers cost {Divine Favor:%d} less, with {Virtue:%d}%s",
+                     relic_is_weapon(g.id) ? "Wielded: " : "", relic_favor(g.id), v, low);
+            if (r->info[0] == 'p') r->info[0] = 'P';
+            r->bad = have < v;
         }
     }
-    if (n < 2) { hook_call_original(); return; }             /* (one relic: the game's own way) */
-    int c = choose_run("Which relic do you lay on the altar?", rows, n, "Keep them all");
+    if (!n) { hook_call_original(); return; }                /* (none: the game's own words for it) */
+    int c = choose_run("Which relic do you lay on the altar?",
+                       "The relic stays with the cathedral. The town's opinion of you rises by 30 (the stronger its opinion already, "
+                       "for or against, the less likely), every member's {Divine Favor} is restored in full, and three hours pass.",
+                       rows, n, "Keep them all");
     if (ns_unwinding) return;
     if (c < 0) {                                             /* none: back to the cathedral's own menu */
         u16 card = g_rw(0xa772);                            /* (the card on show: the option's function returns the next one, and sets it) */
@@ -224,7 +234,12 @@ void relics_set(int v)
         if (v) { hook_install(39, 0x165c, SAINT_OFF[i], saint_hook); saint_hook_at[i] = hook_point(39, 0x165c, SAINT_OFF[i]); }
         else hook_remove(39, 0x165c, SAINT_OFF[i], saint_hook);
     }
-    if (v) { hook_install(19, 0x1ef8, 0x0968, wear_hook); hook_install(56, 0x19c4, 0x0c6e, gift_hook); hook_install(31, 0x18e7, 0x0fac, find_hook); hook_install(31, 0x18e7, 0x0e14, take_hook); }
-    else { hook_remove(19, 0x1ef8, 0x0968, wear_hook); hook_remove(56, 0x19c4, 0x0c6e, gift_hook); hook_remove(31, 0x18e7, 0x0fac, find_hook); hook_remove(31, 0x18e7, 0x0e14, take_hook); }
+    static const struct { int sect; u16 seg, off; void (*fn)(void); } H[] = {
+        { 19, 0x1ef8, 0x0968, wear_hook }, { 56, 0x19c4, 0x0c6e, gift_hook }, { 31, 0x18e7, 0x0fac, find_hook },
+        { 31, 0x18e7, 0x0e14, take_hook }, { 31, 0x18e7, 0x11b2, ready_hook } };
+    for (size_t k = 0; k < sizeof H / sizeof H[0]; k++) {
+        if (v) hook_install(H[k].sect, H[k].seg, H[k].off, H[k].fn);
+        else hook_remove(H[k].sect, H[k].seg, H[k].off, H[k].fn);
+    }
 }
 void relics_init(void) { relics_set(config_get_int("rules.relics", 1)); }

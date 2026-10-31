@@ -45,9 +45,11 @@ typedef struct {
     int nsaints;
     /* the saint chosen on the Saints page (pray_ask, the view's): each member's best chance of being
        heard (0: none, -1: does not know it) and the least Divine Favor that gives it, as the prayer
-       screen reckons them (the saint's handler, what 7) */
+       screen reckons them (the saint's handler, what 7); the favor they have then, the least favor it
+       hears at all (what 2), the favor a 99% chance takes (0: none does), and what a relic takes off
+       (mods/relics.c), its code */
     int pray_ask, pray_saint;
-    int pray_best[5], pray_df[5];
+    int pray_best[5], pray_df[5], pray_have[5], pray_least[5], pray_df99[5], pray_relic[5], pray_relic_code[5];
     /* things left behind on this sheet, to take back */
     int ndrops;
     SvDrop drops[16];

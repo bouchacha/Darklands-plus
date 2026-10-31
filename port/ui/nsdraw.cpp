@@ -444,7 +444,9 @@ void ns_compare_arrow(ImDrawList *dl, float ax, float ay, int vs, float k)
 
 /* the section of the items list a thing goes in (the character sheet, the shops): 0 equipped (the
    caller's), 1 potions, 2 spare equipment (weapons, armour, shields, mounts), 3 utility (rope,
-   lockpicks, instruments, tools ...), 4 trophies and quest things (relics, documents), 5 ingredients */
+   lockpicks, instruments, tools ...), 4 trophies and quest things (documents ...), 5 ingredients,
+   6 relics (with the potions: what a relic does is its bearer's, mods/relics.c). Listed in the
+   order ns_section_at gives (6 came last: sheet.folded keeps a bit per section) */
 int ns_item_section(int id)
 {
     const ItemDef *d = ns_itemdef(id);
@@ -452,15 +454,16 @@ int ns_item_section(int id)
     switch (d->kind) {
     case K_POTION: return 1;
     case K_WEAPON: case K_MISSILE: case K_ARMOR: case K_SHIELD: case K_HORSE: return 2;
-    case K_RELIC: case K_DOCUMENT: case K_QUEST: return 4;
+    case K_RELIC: return 6;
+    case K_DOCUMENT: case K_QUEST: return 4;
     case K_INGREDIENT: return 5;
     default: return 3;
     }
 }
 const char *ns_item_section_name(int sec)
 {
-    static const char *N[6] = { "Equipped", "Potions", "Spare equipment", "Tools and other goods", "Trophies and quest items", "Ingredients" };
-    return sec >= 0 && sec < 6 ? N[sec] : "";
+    static const char *N[NS_NSECT] = { "Equipped", "Potions", "Spare equipment", "Tools and other goods", "Trophies and quest items", "Ingredients", "Relics" };
+    return sec >= 0 && sec < NS_NSECT ? N[sec] : "";
 }
 
 /* ---------------------------------------------------------------- a merchant's counter

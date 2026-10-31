@@ -56,7 +56,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/builtin.c` | 191 | the built-in mods. The same changes as the source mods in mods/ (built into a DOS executable there), done here as run-time hooks on the recompiled game. |
 | `mods/cacheview.c` | 288 | the store room as a native screen (nscreen.h; the view is ui/cacheview.cpp). |
 | `mods/cardview.c` | 626 | the card screen drawn by Darklands+ itself. |
-| `mods/choose.c` | 47 | a box asking which of the party's things (ui/choose.cpp draws it): the native screens' frame (mods/nscreen.h), a line clicked or its number pressed picks it, Esc or the way out's button picks none. |
+| `mods/choose.c` | 48 | a box asking which of the party's things (ui/choose.cpp draws it): the native screens' frame (mods/nscreen.h), a line clicked or its number pressed picks it, Esc or the way out's button picks none. |
 | `mods/createview.c` | 199 | making a character as a native screen (display.native_create; the view is ui/createview.cpp). |
 | `mods/cutcards.c` | 185 | encounters MicroProse wrote and never used, put back (rules.fehde, rules.hospice: F12 > Reconstructed Content, experimental, off by default; the catalogue of what the game holds unused is docs/cut_content.md). |
 | `mods/datamods.c` | 415 | mod folders: game files replaced without touching the game's own. |
@@ -65,7 +65,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/fixes.c` | 2656 | fixes for bugs that are still in the last official version (483.07). |
 | `mods/fixgroups.c` | 35 | the fixes (fixes.c) sorted by kind, for the settings' list: from what the game plainly gets wrong to what is open to argument, as players have talked of them over the years (the GOG and Steam forums, the old Usenet posts and the patch notes MicroProse left). |
 | `mods/foesleft.c` | 131 | the foes a place still holds that the party has not met yet (battle.foes_left, on by default): shown under the battle margin's enemies, so a castle, dungeon or mine whose fight "does not end" says where the rest still wait (the game ends it only when they are all beaten, or the party walks out and counts as fled). |
-| `mods/gamemodel.c` | 378 | the game's state by name (gamemodel.h says what each function reads): where the party, the members, their things and their equipment are kept, and the shared pack's listing and "whom it goes to" (gm_pack_rows, gm_pack_target) for the sheet, the shop, the loot and the store room. |
+| `mods/gamemodel.c` | 386 | the game's state by name (gamemodel.h says what each function reads): where the party, the members, their things and their equipment are kept, and the shared pack's listing and "whom it goes to" (gm_pack_rows, gm_pack_target) for the sheet, the shop, the loot and the store room. |
 | `mods/hdart.c` | 1058 | replacement art. A picture file PICS\NAME.PIC can be replaced by art\NAME.png of any size (true colour, with transparency); it is drawn at window resolution wherever the game shows that picture, with the game's own pixel |
 | `mods/hdtext.c` | 772 | crisp text. Darklands draws its text with small bitmap fonts (FONTS.FNT; the card font is a 7-pixel blackletter) that players find hard to read once scaled up. Here every string the game draws on the visible page is note |
 | `mods/infoview.c` | 125 | the party information screen as a native page (display.native_info; the view is ui/infoview.cpp). |
@@ -93,7 +93,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/playlist.c` | 201 | the soundtrack, piece by piece, in F12 > Settings > Sound (ui/settings_setup.cpp): each piece of the game's music (8 ... |
 | `mods/politics.c` | 729 | the political campaign MicroProse wrote and never switched on (docs/cut_politics.md), restored as an experimental option (rules.politics, off in every preset). |
 | `mods/prayview.c` | 147 | the prayer screen as a native screen (display.native_pray; the view is ui/prayview.cpp). |
-| `mods/relics.c` | 230 | relics as the manual has them (rules.relics, Darklands+): |
+| `mods/relics.c` | 245 | relics as the manual has them (rules.relics, Darklands+), as the maintainer wants them: |
 | `mods/rosterview.c` | 307 | the party of a new game as a native screen (display.native_roster; the view is ui/rosterview.cpp). |
 | `mods/saintinfo.c` | 502 | what each saint's help does in the game's code, beside the description the game shows (DARKLAND.SNT), for Darklands+'s screens (saintinfo.h). |
 | `mods/sainttexts.c` | 434 | the "sainttexts" fix: saints whose help, in the game's code, plainly falls short of or departs from their own description (DARKLAND.SNT) do what the description says. |
@@ -101,7 +101,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/savesview.c` | 170 | the game's Save and Load as native dialogs (display.native_saves; the Full Original preset keeps the game's). |
 | `mods/sfx.c` | 630 | battle sound effects. The battle driver (PSOUND.DB and the others) makes every combat sound on the FM chip or MIDI synthesizer ("random notes rather than clashing swords"). Here they are played as recorded-style sounds i |
 | `mods/sharedstore.c` | 224 | one store room for every inn (store.shared, F12 > Settings; on by default): what is left with one innkeeper (a town's inn, a village's old woman) is there at every other, like a chest that follows the party. |
-| `mods/sheetview.c` | 483 | a member's sheet as a native screen (nscreen.h; the view is ui/sheetview.cpp, which draws the whole page anew: the doll from the game's pictures, the things, the stats, the party's saints and formulae). |
+| `mods/sheetview.c` | 500 | a member's sheet as a native screen (nscreen.h; the view is ui/sheetview.cpp, which draws the whole page anew: the doll from the game's pictures, the things, the stats, the party's saints and formulae). |
 | `mods/soundpreview.c` | 161 | hearing a sound device before choosing it (F12 > Settings): a piece of music, or ten seconds of a real battle's sounds, played through that device now, then the chosen one back. |
 | `mods/styles.c` | 62 | each party member's way of fighting: what they do in a battle while the player gives them no order (Improved combat, mods/ways.c carries it out; an order of the player's is carried out, then they go back to their way). |
 | `mods/teachers.c` | 267 | the teachers a town can offer, and the card options that bring them (teachers.h). |
@@ -122,7 +122,7 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/alchemyview.cpp` | 395 | draws the alchemy screen (mods/alchemyview.c runs it; docs/NATIVE_SCREENS.md) on an alchemist's workbench (ui/alchemydesk.cpp): the formulary open, its left page the index of the formulas the alchemist knows (how many potions the party's ingredients make; a star puts one first, a mark puts it aside, last), its right page the chosen one written out (what it does, its mystic number and risk, its ingredients needed and at hand); the apothecary's chest beside it, a compartment for each of the 23 ingredients with what the party carries, those the formula needs tagged; the wax tablet below: the batches (- and +), the chance for every number of them the ingredients allow (a click there sets it), what may come of the brew and what the chance is made of, in pictures; Start on the furnace. |
 | `ui/alerts.cpp` | 156 | news the player must read: a window to click through, the game waiting meanwhile (ui_is_open). |
 | `ui/banner.cpp` | 156 | the travel map's banner drawn anew (with the period ornaments, display.ornate): the plaited band across the top (MAPHEADA, 229 x 16 at (60, 0): two strands, a light copper one and a dark brown one, over and under, on grey) and the sky box at its right end (MAPHEADB and its eight frames MAPBRS00..21 at (289, 0): the game shows the hour as a sun eclipsed by a dark disc). |
-| `ui/barterview.cpp` | 415 | draws the shop screen (mods/barterview.c runs it; docs/NATIVE_SCREENS.md). |
+| `ui/barterview.cpp` | 416 | draws the shop screen (mods/barterview.c runs it; docs/NATIVE_SCREENS.md). |
 | `ui/battlelog.cpp` | 351 | what happens in a battle, line by line. |
 | `ui/battleoverlay.cpp` | 490 | drawn over a battle: a bar over each fighter (endurance, and strength once it is down by half), who the pointer is on (condition, attack, defence, weapon, and against the party's weapons), and the fast-forward badge (Z). |
 | `ui/bestiary.cpp` | 240 | F12 > Appendices > Enemies: every foe of the game (DARKLAND.ENM: 71 kinds of 204 bytes, then 82 named foes of 24 bytes; formats/dlformats/enm.py has the layout) with its attributes, weapon skills, armour (and how hard it is against which weapons), shield and weapons. |
@@ -130,7 +130,7 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/cardhints.cpp` | 40 | why an option of a card is greyed: the cards' scripts (src/c) show some options without letting them be chosen - something done already, the time of day, a fact the party has yet to learn, money - and the game never says which. |
 | `ui/cardview.cpp` | 886 | draws the card screen (mods/cardview.c runs it): the card's picture stays the game's own (with its palette, frame and any replacement art), the text and the options are set here in the chosen typeface, sized to the text block the card file gives for them. |
 | `ui/careericons.cpp` | 93 | a picture for each kind of profession on the making of a character (arms, nobility, church, trade, learning, crafts, common folk), in the manner of the town's pictures (ui/townicons.cpp): a parchment disc, bold shapes with an ink outline. |
-| `ui/choose.cpp` | 47 | the box asking which of the party's things (mods/choose.c runs it): over the card, in the cards' style, a line each (the thing's picture, name and quality, who carries it: their head), a click or its number picks it; and a button for none. |
+| `ui/choose.cpp` | 57 | the box asking which of the party's things (mods/choose.c runs it): over the card, in the cards' style, the question and what picking does, a line each (the thing's picture, name and quality, what it does under them, who carries it: their head), a click or its number picks it; and a button for none. |
 | `ui/citynav.cpp` | 1127 | "Go to" in cities. A city in Darklands is a maze of card menus (main street, market, churches, the crafts district, side streets ...); the list here names every place at once, and picking one walks the party there throug |
 | `ui/createview.cpp` | 382 | making a character, drawn by Darklands+ (mods/createview.c runs it), over the whole screen. |
 | `ui/drawcache.cpp` | 226 | see drawcache.h |
@@ -145,7 +145,7 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/hourglass.cpp` | 364 | the game's time-passing clock (the "hourglass" of pass_hours_hourglass, s043 150b:2a04), drawn by the interface wherever a Darklands+ page stands over the game's own: the armillary of TIMER01.PIC with the sun-and-moon disc (TIMER03/04/05.PIC, turned by flipping them as hourglass_frame 150b:2d3a does, one of eight positions for each three hours), and the bell, the day and the month in its boxes. |
 | `ui/iconsheets.cpp` | 147 | the test command uiconstyles:N: sheets of the pictures drawn with ImGui shapes, to compare them across families and to look at new line art large (docs/REVIEW.md). |
 | `ui/infoview.cpp` | 151 | the party information page drawn by Darklands+ (mods/infoview.c runs it): the party's fame and its title, the time and date, where it is and its reputation there, its wealth, and its reputation in every city (sorted by reputation or by name; the city the party is in or nearest marked). |
-| `ui/inventory.cpp` | 664 | the things' pictures, drawn by kind (weapons, armour, ingredients, potions ...) for every screen that lists them; what a thing is good for (ui_item_details: the numbers of a weapon, armour or shield and who in the party could use it); the tidy order of a pack; and giving a thing to another member through the game's own routine (give_stack, s031 18e7:007c: the test command ugive). |
+| `ui/inventory.cpp` | 665 | the things' pictures, drawn by kind (weapons, armour, ingredients, potions ...) for every screen that lists them; what a thing is good for (ui_item_details: the numbers of a weapon, armour or shield and who in the party could use it); the tidy order of a pack; and giving a thing to another member through the game's own routine (give_stack, s031 18e7:007c: the test command ugive). |
 | `ui/itemedit.cpp` | 137 | F12 > Editor > Items (for a mod): the item list (DARKLAND.LST: 200 records of 46 bytes, then the saints' and formulas' names) as an editable table. |
 | `ui/journal.cpp` | 1186 | the town journal: as the party travels, it notes the towns it reaches (with the shops each one has, from DARKLAND.CTY) and the full stock of every shop whose wares it looks at, with qualities and prices. |
 | `ui/levelmap.cpp` | 691 | Tab in a battle or while exploring a castle, mine or dungeon (the tactical view, which shows only 14 x 10 cells around the party): a map of the level as far as the party has seen it, in the view's own slant, with the party, the enemies in sight, doors and furniture, and at its top right the floors in short (a square a floor, the stairs seen between them). |
@@ -160,7 +160,7 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/menuview.cpp` | 172 | the game's menu bar drawn by Darklands+ (mods/menuview.c runs it): the bar over the top of the picture, the open menu under its title, a sub-menu beside its item. |
 | `ui/money.cpp` | 189 | see money.h. |
 | `ui/niche.cpp` | 272 | the character sheet's stone niche drawn anew (with the period ornaments): the game's ARMSBACK.PIC (136 x 170) at the window's resolution. |
-| `ui/nsdraw.cpp` | 543 | see nsdraw.h |
+| `ui/nsdraw.cpp` | 546 | see nsdraw.h |
 | `ui/optpreview.cpp` | 185 | small pictures of what a switch in the settings turns on, up to four in a row under the switch, each with a word (ui/settings.cpp option_row). |
 | `ui/ordericons.cpp` | 290 | the pictures on the battle's order buttons (ui/margins.cpp: the game's Orders and Attack menus as buttons): a sword for Std Attack, a shield for Parry, footprints for Walk towards, a white flag for Surrender ... |
 | `ui/ornament.cpp` | 545 | the period ornaments (ornament.h) |
@@ -187,7 +187,7 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/settings.cpp` | 602 | the Darklands+ window's Settings page (F12), and its Mods and Reconstructed Content tabs. |
 | `ui/settings_look.cpp` | 274 | the Settings page's sections on what things look like (ui/settings.cpp draws the page): Text (the original lettering or the new text, the typeface, the coins) and Frames and clock (the band around the windows, the frames, the buttons, the clock, the potions' grade marks). |
 | `ui/settings_setup.cpp` | 429 | the Settings page's sections on the game on this computer (ui/settings.cpp draws the page): Screen, Intro, Sound and Controller. |
-| `ui/sheetview.cpp` | 1543 | draws a member's sheet (mods/sheetview.c runs it; docs/NATIVE_SCREENS.md), the whole page anew beside the party panel. |
+| `ui/sheetview.cpp` | 1612 | draws a member's sheet (mods/sheetview.c runs it; docs/NATIVE_SCREENS.md), the whole page anew beside the party panel. |
 | `ui/skillicons.cpp` | 647 | the skills', attributes' and F12 tabs' pictures, drawn with ImGui shapes so they read at any size (the character sheet, character creation, the roster, card chances, the tabs). |
 | `ui/teachersui.cpp` | 143 | the teachers a town can offer, as shown (ui/teachersui.h). |
 | `ui/tipplace.cpp` | 144 | where every tooltip goes: beside the thing it describes, never over it nor over the pointer - below it, or above when there is no room below, else at its side, and inside the window. |

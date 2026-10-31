@@ -12,11 +12,12 @@
 
 ChooseModel choose_model;
 
-int choose_run(const char *title, const ChooseRow *rows, int n, const char *none)
+int choose_run(const char *title, const char *note, const ChooseRow *rows, int n, const char *none)
 {
     ChooseModel *c = &choose_model;
     if (n > CHOOSE_MAX) n = CHOOSE_MAX;
     snprintf(c->title, sizeof c->title, "%s", title);
+    snprintf(c->note, sizeof c->note, "%s", note ? note : "");
     snprintf(c->none, sizeof c->none, "%s", none ? none : "None");
     memcpy(c->row, rows, (size_t)n * sizeof *rows);
     c->n = n; c->open = 1; c->seq++;

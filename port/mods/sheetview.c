@@ -26,6 +26,7 @@ void plat_hold(int ms);
 #include "gamemodel.h"
 #include "sheetview.h"
 #include "keep.h"
+#include "relics.h"
 
 SheetModel sheet_model;
 int sheetview_dragging;
@@ -156,12 +157,16 @@ static void build(int who)
 /* for the saint chosen on the Saints page: each member's best chance of being heard and the least
    Divine Favor that gives it (handler (who, favor, 7), within 0 and 99, the chance rising with the
    favor: the least found by halves), the game put back after each ask */
-static int pray_chance(u16 seg, u16 off, void *snap, int m, int d)
+static int pray_ask_saint(u16 seg, u16 off, void *snap, int m, int d, int what)
 {
-    u16 a[3] = { (u16)m, (u16)d, 7 };
+    u16 a[3] = { (u16)m, (u16)d, (u16)what };
     u32 r = game_call_ptr(seg, off, 3, a, 0);
     eval_restore(snap);
-    int v = game_call_timed_out ? 0 : (s16)r;
+    return game_call_timed_out ? -1 : (s16)r;
+}
+static int pray_chance(u16 seg, u16 off, void *snap, int m, int d)
+{
+    int v = pray_ask_saint(seg, off, snap, m, d, 7);
     return v < 0 ? 0 : v > 99 ? 99 : v;
 }
 static void pray_reckon(void)
@@ -169,7 +174,7 @@ static void pray_reckon(void)
     SheetModel *s = &sheet_model;
     int t = s->pray_ask;
     s->pray_saint = t;
-    for (int m = 0; m < 5; m++) { s->pray_best[m] = -1; s->pray_df[m] = 0; }
+    for (int m = 0; m < 5; m++) { s->pray_best[m] = -1; s->pray_df[m] = s->pray_have[m] = s->pray_least[m] = s->pray_df99[m] = s->pray_relic[m] = s->pray_relic_code[m] = 0; }
     if (t < 0 || t >= saint_cls_n) return;
     u16 tseg = (u16)(LOADSEG + 0x290e), seg = rw(tseg, (u16)(0x2937 + 4 * t + 2)), off = rw(tseg, (u16)(0x2937 + 4 * t));
     void *snap = eval_snapshot();
@@ -179,7 +184,14 @@ static void pray_reckon(void)
         if (c < 0) c = 0;
         int best = pray_chance(seg, off, snap, m, c), lo = 0, hi = c;
         while (best > 0 && lo < hi) { int mid = (lo + hi) / 2; if (pray_chance(seg, off, snap, m, mid) >= best) hi = mid; else lo = mid + 1; }
-        s->pray_best[m] = best; s->pray_df[m] = best > 0 ? lo : 0;
+        s->pray_best[m] = best; s->pray_df[m] = best > 0 ? lo : 0; s->pray_have[m] = c;
+        s->pray_least[m] = pray_ask_saint(seg, off, snap, m, c, 2);
+        if (pray_chance(seg, off, snap, m, 99) >= 99) {           /* (the favor a 99% chance takes, had they as much) */
+            lo = 0; hi = 99;
+            while (lo < hi) { int mid = (lo + hi) / 2; if (pray_chance(seg, off, snap, m, mid) >= 99) hi = mid; else lo = mid + 1; }
+            s->pray_df99[m] = lo;
+        }
+        s->pray_relic[m] = relic_discount(m, t, &s->pray_relic_code[m]);
     }
     eval_free(snap);
 }
@@ -267,6 +279,7 @@ static void act(const NsAction *a, int *who)
             ns_call(GF_item_ready, 2, w, r);
             if (ns_unwinding) return;
             if (changed(s0, snap(w, r))) snprintf(t, sizeof t, "%s takes up %s%s.", sheet_model.names[w], the(nm, 0), nm);
+            else if (relics_on() && relic_is_weapon(id) && !relic_bearer_ok(w, id)) snprintf(t, sizeof t, "Wielding %s%s asks more Virtue than %s has.", the(nm, 0), nm, sheet_model.names[w]);
             else snprintf(t, sizeof t, "%s%s cannot be readied.", the(nm, 1), nm);
             break; }
         case SV_PDRINK: {
@@ -350,6 +363,7 @@ static void act(const NsAction *a, int *who)
     case SV_READY:
         ns_call(GF_item_ready, 2, w, idx);
         if (changed(s0, snap(w, idx))) snprintf(t, sizeof t, "%s takes up %s%s.", sheet_model.names[w], the(nm, 0), nm);
+        else if (relics_on() && relic_is_weapon(g.id) && !relic_bearer_ok(w, g.id)) snprintf(t, sizeof t, "Wielding %s%s asks more Virtue than %s has.", the(nm, 0), nm, sheet_model.names[w]);
         else snprintf(t, sizeof t, "%s%s cannot be readied.", the(nm, 1), nm);
         break;
     case SV_PUTAWAY:
@@ -416,7 +430,10 @@ static void sheet_hook(void)                /* member_sheet(who), s031 1462:0124
     sheet_model.pray_ask = sheet_model.pray_saint = -1;
     while (!leave) {
         if (!ns_round()) break;
-        if (sheet_model.pray_ask != sheet_model.pray_saint) pray_reckon();
+        int stale = sheet_model.pray_ask != sheet_model.pray_saint;
+        for (int m = 0; m < 5 && !stale; m++)                  /* (and when someone's favor changed meanwhile) */
+            if (sheet_model.pray_best[m] >= 0) { int c, mx; gm_member_attr(m, ATTR_DF, &c, &mx); if ((c < 0 ? 0 : c) != sheet_model.pray_have[m]) stale = 1; }
+        if (stale) pray_reckon();
         int cx, cy;
         if (ns_in.click && ns_in.cx < 0x3c && !sheetview_dragging) {   /* the party panel: another member, or this one: close (not the end of a drag: a give) */
             ns_take_click(&cx, &cy);

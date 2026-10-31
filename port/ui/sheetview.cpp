@@ -47,6 +47,7 @@
 #include "../mods/gamemodel.h"
 #include "../mods/saintinfo.h"
 #include "../mods/fixes.h"
+#include "../mods/relics.h"
 #include "nsdraw.h"
 #include "marks.h"
 #include "libraries.h"
@@ -412,6 +413,19 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         if (!use.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, use) + 0.5f;
         if (d && d->kind == K_INGREDIENT) y += ns_ingredient_row(P, SX0 + 2.5f, y + 0.5f, SX0 + 2.5f + SW, it.id) + 1.0f;
         { ImU32 ec; std::string enc = ns_item_encounters(it.id, &ec); if (!enc.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, ec, enc) + 0.5f; }
+        const bool relic_low = d && d->kind == K_RELIC && relics_on() && s.who >= 0 && s.who < 5 && !relic_bearer_ok(s.who, it.id);
+        if (d && d->kind == K_RELIC && d->relic_df > 0 && relics_on()) {     /* a relic: what it takes off a prayer, and whether this member has the Virtue (mods/relics.c) */
+            bool wpn = relic_is_weapon(it.id);
+            char b[300];
+            snprintf(b, sizeof b, wpn ? "Wielded, it takes {Divine Favor:%d} off every prayer of the one wielding it, to any saint (none below 5); wielding it asks {Virtue:%d}."
+                                      : "It takes {Divine Favor:%d} off every prayer of the one carrying it, to any saint (none below 5), if they have {Virtue:%d}. Of several relics, the best counts.",
+                     d->relic_df, d->relic_virtue);
+            y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, b) + 0.5f;
+            if (relic_low && !wpn) {
+                snprintf(b, sizeof b, "%s has {Virtue:%d}: too little, it does nothing for them.", ns_gtext(s.names[s.who]).c_str(), relic_member_virtue(s.who));
+                y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, NsDraw::RED, b) + 0.5f;
+            }
+        }
         if (it.type == 108) {                                       /* a horse or mule: how riding works (mods/pack.c: party_get(5), the chases) */
             std::string r = "Each member rides the best horse or mule they carry; the party travels mounted only when every member has one.";
             if (s.shared) r += " A member without one is given the best spare one when the game needs it (setting out on the road, a chase).";
@@ -427,6 +441,8 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
             int have = sk < 7 ? s.skill[sk] : 0;
             std::string fit = (have < minsk ? "needs " + std::to_string(minsk - have) + " more skill" : std::string("")) +
                               (s.attr[1] < minst ? std::string(have < minsk ? ", " : "") + "too weak by " + std::to_string(minst - s.attr[1]) : "");
+            if (relic_low && relic_is_weapon(it.id))                   /* (a weapon relic asks its Virtue) */
+                fit = "{Virtue:" + std::to_string(relic_member_virtue(s.who)) + "}, too little to wield it" + (fit.empty() ? "" : "; " + fit);
             P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, fit.empty() ? NsDraw::GREEN : NsDraw::RED, fit.empty() ? ns_gtext(s.names[s.who]) + " can use it well" : ns_gtext(s.names[s.who]) + ": " + fit);
         } else if (d && d->type >= 95 && d->type <= 97) {     /* a shield: the defence it gives this member (mods/gamemodel.h) */
             int sb = gm_shield_defence(d->type, it.qual, 0), sh = gm_shield_defence(d->type, it.qual, 1), ag = gm_member_fight_agility(s.who), a = s.attr[2];
@@ -505,7 +521,7 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
     /* the pack's sections (all of them without the shared pack) fold away: a click on the heading (sheet.folded, kept;
        the ingredients folded at first: a long list, rarely looked through) */
     const int folded = config_get_int("sheet.folded", 1 << 5);
-    std::vector<int> nsec(6, 0);                           /* (a folded section: how many things in it) */
+    std::vector<int> nsec(NS_NSECT, 0);                    /* (a folded section: how many things in it) */
     auto section = [&](int sec, int part) {               /* part 0 in use, 1 the member's own, 2 the pack (or all the rest) */
         bool fold = part == 2 && (folded >> sec & 1);
         size_t head = rows.size(); rows.push_back(part == 2 ? -20 - sec : -1 - sec);
@@ -519,11 +535,11 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
     };
     section(0, 0);
     if (s.shared) {
-        for (int sec = 1; sec < 6; sec++) section(sec, 1);
+        for (int k = 0; k < 6; k++) section(ns_section_at(k), 1);
         bool more = false; for (int i = 0; i < s.nitems; i++) if (!s.item[i].equipped && s.item[i].holder < 0) more = true;
         if (more) rows.push_back(-10);                     /* (the pack's sections under one heading) */
-        for (int sec = 1; sec < 6; sec++) section(sec, 2);
-    } else for (int sec = 1; sec < 6; sec++) section(sec, 2);
+        for (int k = 0; k < 6; k++) section(ns_section_at(k), 2);
+    } else for (int k = 0; k < 6; k++) section(ns_section_at(k), 2);
     int n = (int)rows.size();
     int &sc = V.scroll[TAB_THINGS];
     if (ns_in.wheel != 0) { sc -= (int)(ns_in.wheel * 2); ns_in.wheel = 0; }
@@ -622,12 +638,30 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
             float pl = 0.5f + 0.5f * sinf(plat_ticks_ms() * 0.008f);
             P.rect(RX0 + 0.5f, y, RX1 - 0.5f, y + ROWH, IM_COL32(214, 170, 60, (int)(40 + 50 * pl)));
         }
-        float nw = P.width(f, NsDraw::FS_NAME, nm), qend = RX0 + 11 + nw;
-        P.text(f, NsDraw::FS_NAME, RX0 + 11, y + 1.0f, ink, nm, -1, name_end - (vs ? 6 : 0));
+        /* a relic whose bearer (this member) has less Virtue than it asks (rules.relics): a Virtue shield struck through in red after
+           its name (room kept for it), and why under the pointer */
+        const bool vlow = d && d->kind == K_RELIC && relics_on() && s.who >= 0 && s.who < 5 && !relic_bearer_ok(s.who, it.id);
+        const float room = name_end - (vs ? 6 : 0) - (vlow ? 6 : 0);
+        float nw = P.width(f, NsDraw::FS_NAME, nm), qend = fminf(RX0 + 11 + nw, room);
+        P.text(f, NsDraw::FS_NAME, RX0 + 11, y + 1.0f, ink, nm, -1, room);
         if (!ns_quality_tag(it.id, it.qual).empty()) {
             char qs[16]; snprintf(qs, sizeof qs, "%s", ns_quality_tag(it.id, it.qual).c_str());
             float qx = RX0 + 11 + nw + 2;
-            if (qx + P.width(fo, NsDraw::FS_SMALL, qs) < name_end - (vs ? 6 : 0)) { P.text(fo, NsDraw::FS_SMALL, qx, y + 1.9f, soft, qs); qend = qx + P.width(fo, NsDraw::FS_SMALL, qs); }
+            if (qx + P.width(fo, NsDraw::FS_SMALL, qs) < room) { P.text(fo, NsDraw::FS_SMALL, qx, y + 1.9f, soft, qs); qend = qx + P.width(fo, NsDraw::FS_SMALL, qs); }
+        }
+        if (vlow) {
+            float ix = qend + 3.6f;
+            ImVec2 c = NsDraw::w(ix, y + ROWH * 0.5f);
+            float is = 3.0f * P.k;
+            ui_key_icon(P.dl, c, is, UI_KEY_SKILL + SKILL_VIRTUE);
+            P.dl->AddLine(ImVec2(c.x - is * 0.75f, c.y + is * 0.85f), ImVec2(c.x + is * 0.75f, c.y - is * 0.85f), IM_COL32(176, 28, 18, 255), fmaxf(1.2f, 0.55f * P.k));
+            if (P.over(ix - 2.6f, y, ix + 2.6f, y + ROWH)) {
+                char t[260]; int v = relic_member_virtue(s.who);
+                snprintf(t, sizeof t, "%s has {Virtue:%d}, less than the {Virtue:%d} this relic asks: %s", ns_gtext(s.names[s.who]).c_str(), v, d->relic_virtue,
+                         relic_is_weapon(it.id) ? "it cannot be wielded, and does nothing for their prayers." : "it does nothing for their prayers.");
+                ns_tip(t, 22); tip_i = -1;
+            }
+            qend = ix + 2.6f;
         }
         if (vs) ns_compare_arrow(P.dl, fminf(qend + 4, name_end - 3), y + ROWH * 0.5f, vs, P.k);
         if (!(h || busy)) continue;
@@ -641,6 +675,10 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         else if (pack && it.type == 108) {                 /* a spare mount: this member rides it (a better one than theirs) */
             int rq = -1; for (int k = 0; k < s.nitems; k++) if (s.item[k].equipped == 2 && s.item[k].holder == s.who) rq = s.item[k].qual;
             if (it.qual > rq && P.button(x, y + 1, x + 18, y + ROWH - 1, "Ride", IM_COL32(40, 92, 34, 235), 4.4f)) ns_push(SV_PTAKE, it.id, it.qual, s.who);
+        }
+        else if (gear && relics_on() && relic_is_weapon(it.id) && !relic_bearer_ok(s.who, it.id)) {   /* (a weapon relic asks its Virtue: mods/relics.c) */
+            P.button_off(x, y + 1, x + 18, y + ROWH - 1, "Equip", 4.4f);
+            if (P.over(x, y + 1, x + 18, y + ROWH - 1)) { char t[120]; snprintf(t, sizeof t, "Wielding it asks {Virtue:%d}.", d ? d->relic_virtue : 0); ns_tip(t, 16); }
         }
         else if (gear) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Equip", IM_COL32(40, 92, 34, 235), 4.4f)) { if (pack) ns_push(SV_PREADY, it.id, it.qual, 0); else ns_push(SV_READY, it.idx, 0, 0); } }
         x += 19;
@@ -896,7 +934,9 @@ static void saint_chips_parse(const std::string &does, std::vector<SaintChip> &o
 /* what a saint's help does (saint_info_does), for the panel at the right, the prayer screen and the tooltips: each
    effect on its line, the attributes and skills as their shields; names sharing one value side by side (a bracket
    under them) with the value once, lines of the same value joined ("{Charisma} +6 to 11" and "{Riding} and {Speak
-   Common} +6 to 11": "{Charisma}{Riding}{Speak Common} +6 to 11"); the conditions in words */
+   Common} +6 to 11": "{Charisma}{Riding}{Speak Common} +6 to 11"); the conditions in words. In the order of the
+   saint's chips (the most first, the costs, the words last: saint_chips_update), as the list has them */
+static const std::vector<SaintChip> &saint_chips(int s);
 std::string saint_effects_text(int s)
 {
     std::string does = saint_info_does(s);
@@ -922,21 +962,35 @@ std::string saint_effects_text(int s)
         if (e == std::string::npos) break;
         a = e + 2;
     }
+    /* each line's place: the first chip whose words hold it or are held by it; a line no chip has, after the one before */
+    const std::vector<SaintChip> &chips = saint_chips(s);
+    std::vector<int> rank(lines.size(), -1);
+    for (size_t i = 0; i < lines.size(); i++) {
+        for (size_t k = 0; k < chips.size() && rank[i] < 0; k++) {
+            const std::string &p = chips[k].part;
+            if (!p.empty() && (p.find(lines[i]) != std::string::npos || lines[i].find(p) != std::string::npos)) rank[i] = (int)k;
+        }
+        if (rank[i] < 0) rank[i] = i ? rank[i - 1] : -1;
+    }
     static const std::regex sep("\\}(, and |, | and )\\{"), pure("^((?:\\{[^{}:]+\\})+) (\\+[0-9]+(?: to [0-9]+)?)$");
-    std::vector<std::string> out; std::vector<std::string> val;
-    for (std::string &l : lines) {
+    std::vector<std::string> out; std::vector<std::string> val; std::vector<int> orank;
+    for (size_t li = 0; li < lines.size(); li++) {
+        std::string &l = lines[li];
         std::string r = std::regex_replace(rich_auto(l.c_str()), sep, "}{");
         if (!r.empty()) r[0] = (char)toupper((unsigned char)r[0]);
         std::smatch m;
         if (std::regex_match(r, m, pure)) {                       /* a value given before: these names join that line */
             bool joined = false;
-            for (size_t i = 0; i < out.size(); i++) if (val[i] == m[2].str()) { out[i] = out[i].substr(0, out[i].size() - val[i].size() - 1) + m[1].str() + " " + val[i]; joined = true; break; }
+            for (size_t i = 0; i < out.size(); i++) if (val[i] == m[2].str()) { out[i] = out[i].substr(0, out[i].size() - val[i].size() - 1) + m[1].str() + " " + val[i]; orank[i] = std::min(orank[i], rank[li]); joined = true; break; }
             if (joined) continue;
-            out.push_back(r); val.push_back(m[2].str());
-        } else { out.push_back(r); val.push_back(""); }
+            out.push_back(r); val.push_back(m[2].str()); orank.push_back(rank[li]);
+        } else { out.push_back(r); val.push_back(""); orank.push_back(rank[li]); }
     }
+    std::vector<size_t> ord(out.size());
+    for (size_t i = 0; i < ord.size(); i++) ord[i] = i;
+    std::stable_sort(ord.begin(), ord.end(), [&](size_t a, size_t b) { return orank[a] < orank[b]; });
     std::string t;
-    for (const std::string &l : out) t += (t.empty() ? "" : "\n") + l;
+    for (size_t i : ord) t += (t.empty() ? "" : "\n") + out[i];
     return t;
 }
 /* how much a chip gives, to set one saint's against another's: a rise its middle ("+6 to 11": 8.5), healing
@@ -1285,15 +1339,30 @@ static void saints(NsDraw &P, const SheetModel &s)
         for (int m = 0; m < 5; m++) {
             if (!s.present[m] || !s.saint[m][t]) continue;
             float hx = tx + head_tag(P, m, tx + 6.5f, ty, bh + 0.6f, false, false) + 1.2f;
-            char b[96];
+            /* the favor a 99% chance takes, when they have it; else the best chance their favor gives; else what it asks */
+            char b[120], tip[400];
             bool asked = s.pray_saint == t && s.pray_best[m] >= 0;
-            if (!asked) b[0] = 0;
-            else if (s.pray_best[m] > 0) snprintf(b, sizeof b, "%d%% with %d of %d favor", s.pray_best[m], s.pray_df[m], s.df[m]);
-            else snprintf(b, sizeof b, "no chance now");
+            bool vlow = t < s.nsaints && s.pskill[m][9] < s.saint_vmin[t];
+            b[0] = tip[0] = 0;
+            if (!asked) ;
+            else if (vlow) { snprintf(b, sizeof b, "{Virtue} too low"); snprintf(tip, sizeof tip, "This saint asks a {Virtue} of %d: no prayer is heard below it.", s.saint_vmin[t]); }
+            else if (s.pray_best[m] >= 99) {
+                snprintf(b, sizeof b, "{Divine Favor:%d} needed for a 99%% chance", s.pray_df[m]);
+                snprintf(tip, sizeof tip, "The least Divine Favor that gives the best chance of being heard (of the %d they have): more is spent for nothing. The prayer screen sets the favor.", s.pray_have[m]);
+            } else if (s.pray_best[m] > 0) {
+                snprintf(b, sizeof b, "Max %d%% with current {Divine Favor:%d}", s.pray_best[m], s.pray_have[m]);
+                if (s.pray_df99[m] > 0) snprintf(tip, sizeof tip, "All their Divine Favor gives this chance; a 99%% chance takes {Divine Favor:%d}. The prayer screen sets the favor.", s.pray_df99[m]);
+                else snprintf(tip, sizeof tip, "All their Divine Favor gives this chance. The prayer screen sets the favor.");
+            } else {
+                snprintf(b, sizeof b, "{Divine Favor:%d} needed at least, has %d", s.pray_least[m], s.pray_have[m]);
+                snprintf(tip, sizeof tip, "This saint hears no prayer of less than %d Divine Favor.", s.pray_least[m]);
+            }
+            if (asked && s.pray_relic[m] > 0) {                      /* (a relic's share: mods/relics.c) */
+                size_t k = strlen(tip);
+                snprintf(tip + k, sizeof tip - k, " With the %s, it costs them {Divine Favor:%d} less (counted here).", ns_item_name(s.pray_relic_code[m]).c_str(), s.pray_relic[m]);
+            }
             P.text(P.fo, NsDraw::FS_SMALL, hx, ty + 1.2f, asked && !s.pray_best[m] ? NsDraw::RED : ink, b, -1, DX1 - 16);
-            if (P.over(hx, ty, DX1 - 16, ty + bh))
-                ns_tip(asked && s.pray_best[m] > 0 ? "The best chance of being heard, and the least Divine Favor that gives it: more is spent for nothing. The prayer screen sets the favor."
-                                                   : "Virtue too low for this saint, or too little Divine Favor: see above and the prayer screen.", 22);
+            if (tip[0] && P.over(hx, ty, DX1 - 16, ty + bh)) ns_tip(tip, 22);
             if (s.able[m] && P.button(DX1 - 15, ty, DX1 - 2, ty + bh, "Pray", IM_COL32(40, 70, 130, 235))) ns_push(SV_PRAY, m, t, 0);
             if (P.over(DX1 - 15, ty, DX1 - 2, ty + bh)) ns_tip("Call on this saint now: the prayer screen, where you choose how much Divine Favor to spend.", 20);
             ty += bh + 1.2f;
