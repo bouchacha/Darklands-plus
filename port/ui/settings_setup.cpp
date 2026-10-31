@@ -235,7 +235,7 @@ void setup_sound(void)
     };
     auto tier = [&](const char *t) { ImGui::Spacing(); ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(120, 52, 20, 255)); ImGui::TextUnformatted(t); ImGui::PopStyleColor(); };
     tier("Best");
-    device("mt32", "Roland MT-32", "Roland's synthesizer of 1987, the one Darklands was written for. Music and battle sounds alike are notes played on it: the music as composed, the blows as near to steel as a synthesizer gets.",
+    device("mt32", "Roland MT-32 / CM-32L", "Roland's synthesizer of 1987 (the CM-32L is its later twin), the one Darklands was written for. Music and battle sounds alike are notes played on it: the music as composed, the blows as near to steel as a synthesizer gets.",
            !strcmp(cur, "mt32") || !strcmp(cur, "auto"));
     {
         ImGui::Indent(UIS(30));
@@ -262,6 +262,16 @@ void setup_sound(void)
             ImGui::SameLine();
             if (ImGui::Button("Look again##mt32")) { mt32_rescan(); mt32_switch(); }
             ui_hint("Darklands+ finds them by their contents, whatever their names: in that folder, in the game's folder and its \"roms\" folder, and where Munt and DOSBox keep them.");
+            if (mt32_families() == 3) {                /* both pairs found: which one plays (sound.mt32_model; mt32.c) */
+                const char *m = config_get("sound.mt32_model", "mt32");
+                bool cm = !strcmp(m, "cm32l");
+                ImGui::TextUnformatted("Plays as");
+                ImGui::SameLine();
+                if (ImGui::RadioButton("MT-32", !cm) && cm) { config_set("sound.mt32_model", "mt32"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
+                ImGui::SameLine();
+                if (ImGui::RadioButton("CM-32L", cm) && !cm) { config_set("sound.mt32_model", "cm32l"); mt32_rescan(); mt32_switch(); ui_dirty_config = 1; }
+                ui_hint("Both ROM pairs are here. They sound much the same; a few battle sounds come out differently on the CM-32L (Darklands was written for the MT-32).");
+            }
             {   bool lcd = config_get_int("sound.mt32_lcd", 1), click = false;
                 ImGui::PushID("lcd");
                 if (ImGui::Checkbox("##lcd", &lcd)) click = true;

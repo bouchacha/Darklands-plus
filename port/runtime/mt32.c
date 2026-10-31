@@ -14,9 +14,9 @@
  * do not come with Darklands+. They are looked for, by their contents (any file names), in
  * mt32_dirs(): the folder set in F12 > Settings, "roms" folders of Darklands+ and of the game,
  * Munt's own ROM folder (its registry setting, or %USERPROFILE%\roms) and DOSBox Staging's
- * mt32-roms folder. An MT-32 pair is preferred when both are there (the game was written for the
- * MT-32); a CM-32L / LAPC-I pair alone plays too. (F12 > Settings offered a choice between them
- * until 1.3; heard side by side they did not differ enough to keep it.) */
+ * mt32-roms folder. The two are taken as one synthesizer: whichever pair is found plays; with both,
+ * the MT-32 (the game was written for it), or the CM-32L / LAPC-I when F12 > Settings says so
+ * (sound.mt32_model; offered only when both pairs are there). */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -120,13 +120,13 @@ static int in_list(const char *id, const char **ids, size_t n)
     return 0;
 }
 
-/* the machines in order of preference: the MT-32s (the older first), then the CM-32L / LAPC-I,
- * then whatever else the library knows */
+/* the machines in order of preference: the MT-32s (the older first), then the CM-32L / LAPC-I (or
+ * the other way round, as chosen), then whatever else the library knows */
 static int machine_rank(const char *m)
 {
     static const char *pref[] = { "cm32l_1_02", "cm32l_1_00", "cm32ln_1_00", "mt32_1_07", "mt32_1_06", "mt32_1_05", "mt32_1_04",
                                   "mt32_bluer", "mt32_2_04", "mt32_2_07", "mt32_2_06", "mt32_2_03" };
-    int mt_first = 1;                    /* the MT-32 first, the CM-32L when only its ROMs are there (they sound alike: no choice offered since 1.3) */
+    int mt_first = strcmp(config_get("sound.mt32_model", "mt32"), "cm32l") != 0;   /* the MT-32 first (the default), or the CM-32L */
     for (size_t i = 0; i < sizeof pref / sizeof pref[0]; i++)
         if (!strcmp(pref[i], m)) return (int)i + (mt_first && !strncmp(m, "cm32l", 5) ? 50 : 0);
     return 100;

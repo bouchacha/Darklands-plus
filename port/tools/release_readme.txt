@@ -84,8 +84,8 @@ already: Darklands+ finds them by their contents (any file names) in Munt's ROM 
 DOSBox Staging's mt32-roms folder, or in a "roms" folder next to darklands.exe or in the
 Darklands folder. When none are found, Darklands+ says so when it starts and lets you choose
 their folder (or "Don't remind me again"); F12 > Settings > Sound can name the folder too. With
-both a CM-32L and an MT-32 pair the MT-32 plays (on the CM-32L the battle sounds turn into
-chimes).
+both a CM-32L and an MT-32 pair the MT-32 plays, unless F12 > Settings > Sound says CM-32L (a
+few battle sounds come out differently on it).
 
 BATTLE SOUNDS
 The mods folder of this download holds "Battle sounds (0 A.D. recordings)": real sounds of

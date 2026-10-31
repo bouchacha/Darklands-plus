@@ -197,7 +197,7 @@ void mt32_window(void)
                            "wrong instruments altogether.");
         ImGui::Spacing();
         ImGui::TextWrapped("Darklands+ has an MT-32 built in (Munt's imitation of it). It only needs two files copied from a real one's memory, its ROM files: "
-                           "control and PCM, of an MT-32 or of the later CM-32L (either works and they sound much the same; with both, Darklands+ plays the MT-32). "
+                           "control and PCM, of an MT-32 or of the later CM-32L (either works and they sound much the same; with both, the MT-32 plays unless you choose the CM-32L in F12 > Settings > Sound). "
                            "They are usually named MT32_CONTROL.ROM and MT32_PCM.ROM (CM32L_CONTROL.ROM and CM32L_PCM.ROM for a CM-32L); any names do, Darklands+ knows them by what is in them. "
                            "They belong to Roland, so they cannot come "
                            "with this download. If you play other games with Munt or DOSBox and an MT-32, you have them already: "
