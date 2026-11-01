@@ -1,6 +1,6 @@
 # Darklands+ changelog
 
-## 1.5
+## 1.4.5
 
 What changed since 1.4.
 

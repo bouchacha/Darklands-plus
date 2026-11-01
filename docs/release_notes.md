@@ -4,7 +4,7 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 
 **Install:** unpack the zip anywhere and start `darklands.exe`. It finds a GOG or Steam installation by itself or asks for the folder once. The first start takes about two minutes while Darklands+ translates the game program from your `DARKLAND.EXE`; after that it starts at once. Your saved games stay where they always were. `Darklands+ README.txt` in the zip has the details.
 
-**New in 1.5** (what changed since 1.4)
+**New in 1.4.5** (what changed since 1.4)
 
 **Added**
 
@@ -66,7 +66,7 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 - **Music volume:** its own slider (F12 > Settings > Sound), for the FM and the MT-32 alike.
 - **Music packs:** a mod (or a "music" folder) can replace the game's pieces of music with recordings (Ogg or WAV), piece by piece; F12 > Settings > Sound names the piece playing and lists them all by number (under "Custom sound packs"). None comes with Darklands+.
 - **Battle sounds:** a mod with real recordings (swords clashing, shields, blows, cries, the bow, the handgun, a war horn for an ambush) in place of the synthesizer notes comes with the download; tick it in F12 > Mods. The recordings are from 0 A.D. (CC BY-SA 3.0).
-- **New encounters:** 160 new encounters in the spirit of the original come with the download as a mod (tick it in F12 > Mods): 90 in the wild (a mandrake under the gallows oak, flagellants, a robber knight's bridge toll, kobolds at a mine, the Devil's bridge, a moss-wife, the Wild Hunt and more), 34 in the towns' streets (a cutpurse, a fire, the popinjay shoot, the Fools' Court), 18 on the river boats and 18 at camp. They are cards like the game's own, with its pictures, saints, potions, skill checks and battles, balanced against the original encounters; in the wild each comes up about as often as one of the game's own. Under the text a choice ends on, "What came of it" lists what changed. A small red seal on the card marks a new one. Mods can add their own: an encounter is a text file with a short script (docs/MODDING.md).
+- **New encounters:** 160 new encounters in the spirit of the original come with the download as a mod (tick it in F12 > Mods): 90 in the wild (a mandrake under the gallows oak, flagellants, a robber knight's bridge toll, kobolds at a mine, the Devil's bridge, a moss-wife, the Huntsman's horn and more), 34 in the towns' streets (a cutpurse, a fire, the popinjay shoot, the Fools' Court), 18 on the river boats and 18 at camp. They are cards like the game's own, with its pictures, saints, potions, skill checks and battles, balanced against the original encounters; in the wild each comes up about as often as one of the game's own. Under the text a choice ends on, "What came of it" lists what changed. A small red seal on the card marks a new one. Mods can add their own: an encounter is a text file with a short script (docs/MODDING.md).
 - **Modding:** mod folders for game data, single card texts, menu texts, weapon numbers, items, pictures and sounds; mods switch on and off at once, sounds included. F12 > Mods makes a new mod folder with instructions.
 
 ### Limits kept from the original

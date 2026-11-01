@@ -5,7 +5,7 @@
  *    The game never did either. DARKLAND.LST keeps two numbers only relics have, which nothing
  *    read: +0x28, 6 to 80, read here as the Virtue the bearer needs, and +0x2a, 5 to 20, the Divine
  *    Favor the relic takes off a prayer. Off every prayer its bearer makes, to any saint (to its own
- *    saint alone was too narrow: his call, 1.5-RC3), never below the least favor of 5 any saint
+ *    saint alone was too narrow: his call, the third 1.4.5 test build), never below the least favor of 5 any saint
  *    asks; of several relics, the best. The bearer: of a weapon relic, the member wielding it; of
  *    any other, the member carrying it (with the shared pack, those are each member's own, as the
  *    potions: gm_member_own). Done in each saint's function (s039 165c, the table saint_fns, far

@@ -1,5 +1,5 @@
-# The Wild Hunt: horns in the night sky, hounds, and the Huntsman's call.
-name     The Wild Hunt
+# The Huntsman's Horn: horns in the night sky, hounds, and the Huntsman's call (not the game's Wild Hunt quest).
+name     The Huntsman's Horn
 card     $NwWhn00
 picture  XHUNT
 where    wild
