@@ -102,6 +102,7 @@ static const struct { const char *key, *why; } WHY[] = {
     /* travel */
     { "travel.auto", "Steering across the overland view step by step took many key presses, none of them a real choice." },
     { "travel.fast", "A matter of taste." },
+    { "travel.camp_at_8", "From 20:00 a day in camp lasts 9 hours, from 21:00 it lasts 32: making camp on time meant watching the clock all the way. A player asked for it." },
     { "map.names", "The original overland view names nothing." },
     { "map.quest_marks", "Where a quest leads was in the player's notes only." },
     { "map.offers_unvisited", "Easier: knowledge the party could not have." },

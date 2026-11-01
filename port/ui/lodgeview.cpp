@@ -368,6 +368,10 @@ extern "C" void lodgeview_draw(void)
         P.text(fo, NsDraw::FS_SMALL, 136, 175, soft, hd);
         std::string amt = m.cost ? money(m.cost < 0 ? -m.cost : m.cost) : std::string("nothing");
         P.text(fo, NsDraw::FS_HEAD, 136, 182, short_ ? NsDraw::RED : m.cost < 0 ? GREEN : ink, amt);
+        /* how long it is: until 5:00, or 5:00 the day after when that is under 9 hours away (camp_spend_day, s036 1462:147a) */
+        int hr = (s16)g_rw(GV_cur_hour), dh = (5 - hr + 24) % 24; if (dh < 9) dh += 24;
+        char lb[64]; snprintf(lb, sizeof lb, "%d hours, until 5:00", dh);
+        if (!m.passing) P.text(fo, 3.9f, 136, 190.8f, dh > 24 ? NsDraw::RED : soft, lb, -1, 195);
     }
     bool pay = m.cost <= m.purse;
     float bx = 199;
@@ -381,6 +385,7 @@ extern "C" void lodgeview_draw(void)
     if (!pay && P.over(bx, 174, bx + 84, 184)) tip = "The purse cannot pay for a day. Members set to Earn a little money may make up the difference; otherwise, leave.";
     else if (P.over(bx + 50, 174, bx + 84, 184)) tip = m.resting || hurt ? "Days pass until no one is regaining Strength or praying (at most 14; it stops if anything happens)." : "Nobody is short of Strength, regaining it or praying.";
     else if (P.over(bx + 24, 174, bx + 48, 184)) tip = "Seven days, each member doing what was chosen (it stops if anything happens, or when a day cannot be paid).";
+    else if (P.over(bx, 174, bx + 22, 184)) tip = "A day lasts until 5:00, or until 5:00 the day after when that is less than 9 hours away: from 20:00 a night of 9 hours, from 21:00 one of 32.";
     if (tip) P.para(fo, 3.9f, 199, 186.5f, 117, TABLE_INK, tip);
     if (P.button(bx + 86, 174, bx + 117, 184, "Leave", RED, NsDraw::FS_SMALL, PB_Y)) ns_push(LV_LEAVE, 0, 0, 0);
 

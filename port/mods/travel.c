@@ -28,6 +28,8 @@
 #include "encounters.h"
 #include "sainttexts.h"
 #include "fixes.h"
+#include "gamemodel.h"
+#include "lodgeview.h"
 
 extern char game_dir[1024];
 
@@ -37,6 +39,7 @@ TravelState travel;
 int travel_enabled = 1, travel_fast = 1;          /* fast: 0 normal, 1 4x, 2 instant */
 int travel_step_result = -1;                      /* what the last step on the map led to (1000: a random encounter) */
 static int travel_min_left = -1, travel_stall;    /* the journey's progress: the least time left yet, the steps since it last fell */
+static int camp_resume, camp_seen, camp_tx, camp_ty, camp_loc; static char camp_name[48];   /* after a camp at 20:00 (travel.camp_at_8): the journey taken up again */
 
 /* minutes per one-pixel step by terrain (s030 1462:2ac8; with a saint's speed, mods/sainttexts.h) */
 static int minutes_base(int t);
@@ -228,7 +231,7 @@ int travel_to_tile(int x, int y, int loc, const char *name)
     int px, py; travel_party_tile(&px, &py);
     field(px, py);
     if (!plan(x, y)) return 0;
-    travel.active = 1; travel.loc = loc; travel.tx = x; travel.ty = y;
+    travel.active = 1; travel.loc = loc; travel.tx = x; travel.ty = y; camp_resume = 0;
     snprintf(travel.name, sizeof travel.name, "%s", name ? name : "");
     travel.replan = 0; travel_min_left = -1; travel_stall = 0;
     fprintf(stderr, "travel: to %s (%d,%d) from (%d,%d): %d tiles, %d minutes\n", travel.name, x, y, px, py, travel.n, travel.minutes);
@@ -363,11 +366,57 @@ static void foot_fix(int e0, int c0, int y0)
     ns_call(30, 0x1462, 0x16c6, 4, g_rw(GV_map_marker_x), y, g_rw(0x2910), g_rw(0x8676));      /* the marker (frame, facing) */
 }
 
+/* travel.camp_at_8 (the campfire under the clock, ui/travel.cpp): a party on the move when the clock strikes 20:00 stops
+ * and makes camp (the game's C), since a day in camp or at an inn (camp_spend_day, s036 1462:147a) lasts until 5:00, or until
+ * 5:00 the day after when that is less than 9 hours away: from 20:00 a night of 9 hours, from 21:00 one of 32. 1: when a
+ * member is short of Endurance, Strength or Divine Favor; 2: always (alchemy on the road). Once a day; a step that ends
+ * in an encounter leaves it for the next step on the map at that hour. On auto-travel, a step that may take an hour or
+ * more (hills, mountains: travel time per step, s030 1462:2ac8) is not begun at 19:00 lest it pass 20:00 by. */
+static long camp_done, camp_due = -1;
+static long today(void) { return (long)(s16)g_rw(GV_cur_year) * 400 + (s16)g_rw(GV_cur_month) * 32 + (s16)g_rw(GV_cur_day); }
+int travel_camp_needed(void)                /* a member short of Endurance, Strength or Divine Favor */
+{
+    for (int m = 0; m < 5; m++) {
+        int st = gm_member_status(m);
+        if (st != 1 && st != 2) continue;
+        for (int k = 0; k < 3; k++) { int a = k == 2 ? ATTR_DF : k, c, x; gm_member_attr(m, a, &c, &x); if (c < x) return 1; }
+    }
+    return 0;
+}
+static int camp_now(const char *why)
+{
+    int mode = config_get_int("travel.camp_at_8", 0);
+    if (!mode || config_get_int("original", 0) || camp_done == today()) return 0;
+    camp_done = today();
+    if (mode == 1 && !travel_camp_needed()) return 0;
+    void ui_notice(const char *); void plat_press_key(int scancode);
+    if (travel.active) {                                 /* auto-travel goes on after the camp, as after an encounter */
+        camp_resume = 1; camp_seen = lodge_entered; camp_tx = travel.tx; camp_ty = travel.ty; camp_loc = travel.loc;
+        snprintf(camp_name, sizeof camp_name, "%s", travel.name);
+    }
+    travel.active = 0;
+    plat_press_key(6);                                   /* (SDL_SCANCODE_C: the game's camp) */
+    fprintf(stderr, "travel: camp at %d:00 (%s, travel.camp_at_8 %d)\n", (s16)g_rw(GV_cur_hour), why, mode);
+    ui_notice((s16)g_rw(GV_cur_hour) == 20 ? "20:00: the party makes camp (the campfire under the clock). A night in camp lasts until 5:00."
+                                           : "The party makes camp before 20:00 (the campfire under the clock): the way ahead would take past it.");
+    return 1;
+}
+
 static void step_hook(void)                 /* s030 1462:0c44 (key): one step of the overland loop */
 {
     int started = pending_check();                  /* (this step's key was read before: not the player's taking over) */
     { static int lg = -1; if (lg < 0) lg = getenv("DL_MAP_POLL_LOG") != 0; u32 t = plat_ticks_ms(); if (lg && t - map_polled > 200) fprintf(stderr, "map poll gap %u ms\n", t - map_polled); }
     map_polled = plat_ticks_ms();
+    if (camp_resume && !travel.active && lodge_entered != camp_seen) {   /* back from the camp at 20:00: on with the journey */
+        int px, py; travel_party_tile(&px, &py);
+        camp_resume = 0;
+        field(px, py);
+        if (plan(camp_tx, camp_ty)) {
+            travel.active = 1; travel.loc = camp_loc; travel.tx = camp_tx; travel.ty = camp_ty; snprintf(travel.name, sizeof travel.name, "%s", camp_name);
+            travel.replan = 0; travel_min_left = -1; travel_stall = 0; started = 1;
+            fprintf(stderr, "travel: on to %s after the camp (%d tiles)\n", travel.name, travel.n);
+        }
+    }
     if (travel.active) {
         u16 key = rw(SS, (u16)(SP + 4));
         if (key != 0x4c35 && !started) { travel.active = 0; fprintf(stderr, "travel: stopped by key %04x (the player took over)\n", key); }   /* the player took over */
@@ -382,6 +431,9 @@ static void step_hook(void)                 /* s030 1462:0c44 (key): one step of
                 travel.i = found + 1;
                 if (travel.i >= travel.n) { travel.active = 0; if (getenv("DL_TRAVEL_LOG")) fprintf(stderr, "travel: arrived at (%d,%d)\n", px, py); }   /* arrived (a location is entered by the game) */
             }
+            if (travel.active && (s16)g_rw(GV_cur_hour) == 19                    /* a long step from 19:00 could pass 20:00 by (travel.camp_at_8) */
+                && (minutes(travel_terrain(px, py)) >= 60 || minutes(travel_terrain(travel.rx[travel.i], travel.ry[travel.i])) >= 60))
+                camp_now("a long step ahead");
             if (travel.active) {
                 int mx, my; marker_target(travel.rx[travel.i], travel.ry[travel.i], &mx, &my);
                 int x = (s16)g_rw(GV_map_marker_x), y = (s16)g_rw(GV_map_marker_y);
@@ -435,10 +487,20 @@ static void step_hook(void)                 /* s030 1462:0c44 (key): one step of
         }
     }
     int e0 = (s16)g_rw(GV_map_buf_row), c0 = (s16)g_rw(GV_map_view_row), y0 = (s16)g_rw(GV_map_marker_y);
+    int x0 = (s16)g_rw(GV_map_marker_x), v0 = (s16)g_rw(GV_map_view_col), h0 = (s16)g_rw(GV_cur_hour);
     hook_call_original();
     int r = (s16)AX;
     foot_fix(e0, c0, y0);
     travel_step_result = r;
+    {   /* travel.camp_at_8: on the move, the clock strikes 20:00 */
+        int moved = e0 != (s16)g_rw(GV_map_buf_row) || c0 != (s16)g_rw(GV_map_view_row) || y0 != (s16)g_rw(GV_map_marker_y)
+                    || x0 != (s16)g_rw(GV_map_marker_x) || v0 != (s16)g_rw(GV_map_view_col);
+        if (moved && !travel.active && camp_resume) camp_resume = 0;   /* (walked by hand meanwhile: no journey taken up later) */
+        if (moved && (s16)g_rw(GV_cur_hour) == 20 && (h0 == 19 || camp_due == today())) {
+            if (r >= 0) camp_due = today();               /* an encounter, a place: on the next step */
+            else camp_now("20:00");
+        }
+    }
     if (travel.active && r >= 0 && getenv("DL_TRAVEL_LOG")) { int px, py; travel_party_tile(&px, &py); fprintf(stderr, "travel: step result %d at (%d,%d), route %d/%d\n", r, px, py, travel.i, travel.n); }
     if (travel.active && r >= 0) {
         if (r == 9999) travel.replan = 1;                     /* water in the way: plan again */

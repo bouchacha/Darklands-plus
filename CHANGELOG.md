@@ -8,6 +8,7 @@ What changed since 1.4.
 
 - **80 more new encounters**, 160 in all: 40 more in the wild, 22 in the towns' streets, 10 at camp and 8 on the river boats. All 160 were checked for balance and tone.
 - **Doors:** out of a fight, clicking a shut door walks the party to it and opens it.
+- **Stop to camp at 20:00:** a campfire under the clock in the overland view (or F12 > Settings > Travel): off, at 20:00 when someone is short of Endurance, Strength or Divine Favor, or every night. From 20:00 a day in camp lasts 9 hours, from 21:00 it lasts 32; the camp and inn screen now says how long a day will be. Auto-travel goes on after the camp.
 - **Weapon relics can be equipped** from the character sheet (St. George's Greatsword and eight more), and a relic's quality is shown unless it is 25 or 99.
 - **What came of it** on the game's own cards too: under the text that follows a choice, what that text does not tell (a skill or attribute changed, things, money, fame, a town's opinion). Part of the card helpers (F12 > Settings > Cards and towns).
 - **Level map (Tab)** shows every room the party has entered, walls on each side of the floor, and the openings not yet explored.

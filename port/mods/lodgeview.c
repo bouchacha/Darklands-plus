@@ -348,9 +348,11 @@ static int select_member(int i)
     return 1;
 }
 
+int lodge_entered;                          /* how often a camp or an inn was entered, in either look (mods/travel.c: back on the road after a camp at 20:00) */
 static void lodge_hook(void)               /* the lodging screen (mode), s036 1462:0082 */
 {
     int mode = (s16)rw(SS, (u16)(SP + 4));
+    lodge_entered++;
     if (!lv_on || !ns_active()) { hook_call_original(); return; }
     plat_hold(600);                              /* (the old screen drawn while it is set up: not shown) */
     LodgeModel *m = &lodge_model;

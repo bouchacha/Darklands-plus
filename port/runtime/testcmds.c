@@ -356,6 +356,10 @@ int testcmd_run(const char *cmd, const char *arg)
             g_ww(G_CUR_HOUR, (u16)h); g_ww(G_CUR_DAY, (u16)d); g_ww(G_CUR_MONTH, (u16)mo); g_ww(G_CUR_YEAR, (u16)y);
             fprintf(stderr, "clock %d:00 day %d month %d year %d\n", h, d, mo, y);
         }
+        else if (!strcmp(cmd, "udsdump")) {            /* debug: the whole of DGROUP (64 KB) into a file, to compare two moments */
+            FILE *f = fopen(arg, "wb");
+            if (f) { for (unsigned o = 0; o < 0x10000; o++) fputc(g_rb((u16)o), f); fclose(f); fprintf(stderr, "dgroup dumped to %s\n", arg); }
+        }
         else if (!strcmp(cmd, "uww")) {                /* test: a word of DGROUP (hex offset), set to v when given, then shown */
             unsigned of = 0; int v = 0; int n = sscanf(arg, "%x,%d", &of, &v);
             if (n == 2) g_ww((u16)of, (u16)v);

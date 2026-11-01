@@ -42,6 +42,7 @@ static const int V_TIPDELAY[] = { 0, 500, 1000 };
 static const int V_SPEED[] = { 100, 150, 200, 300 };
 static const int V_PACE[] = { 0, 1, 2 };
 static const int V_RATE[] = { 25, 50, 100, 200 };
+static const int V_CAMP[] = { 0, 1, 2 };
 
 
 /* groups: one switch for a set of features nobody would want one by one (a screen at a time, each
@@ -195,6 +196,7 @@ static Option OPTIONS[] = {
     { "map.key_m", S_TRAVEL, 0, "World map (M)", "M opens a map of the whole land (the towns, the quests, where saints and formulae are found).", OC_SHOW, 0, 1, 1 },
     { "travel.auto", S_TRAVEL, "map.key_m", "Auto-travel", "the party follows the roads to a place you pick: double-click it (or Travel there) on the world map (M), or Ctrl+click it in the overland view. Any key or click stops it.", OC_EASE, 0, 1, 1, 0, 0, tr_auto },
     { "travel.fast", S_TRAVEL, "travel.auto", "Auto-travel speed", "", OC_TASTE, 0, 1, 1, "walking pace|4x|instant", V_PACE, tr_fast },
+    { "travel.camp_at_8", S_TRAVEL, 0, "Stop to camp at 20:00", "a party on the move stops and makes camp when the clock strikes 20:00, the last hour from which a day in camp (or at an inn) is only the night, until 5:00: 9 hours, where from 21:00 it lasts until 5:00 the day after, 32 hours. When someone is short of Endurance, Strength or Divine Favor, or every night (to brew on the road). The campfire under the clock in the overland view switches it too.", OC_EASE, 0, 0, 0, "off|when someone needs rest|every night", V_CAMP },
     { "map.overland_marks", S_TRAVEL, 0, "Names and quest markers in the overland view", "the towns and places named in the overland view, each quest's icon above its place, and a sign beside a town that bars the party or where the watch is after it.", OC_SHOW, 0, 1, 1, 0, 0, 0, 0, 0, 7, bundle_set },
     { "map.names", S_TRAVEL, 0, "Place names in the overland view", "the towns and places named in the overland view.", OC_SHOW, 0, 1, 1 },
     { "map.quest_marks", S_TRAVEL, 0, "Quest markers in the overland view", "each quest's icon above its place in the overland view, and a sign beside a town that bars the party or where the watch is after it.", OC_SHOW, 0, 1, 1 },

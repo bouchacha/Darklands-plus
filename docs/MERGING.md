@@ -212,6 +212,7 @@ the files where each switch's key is read.
 | `map.key_m` | World map (M) | show | settings.cpp, ui.cpp |
 | `travel.auto` | Auto-travel | ease | travel.c, worldmap_draw.cpp |
 | `travel.fast` | Auto-travel speed | taste | travel.c |
+| `travel.camp_at_8` | Stop to camp at 20:00 | ease | travel.c, travel.cpp |
 | `map.overland_marks` | Names and quest markers in the overland view | show | a group of switches: options.c (BUNDLES), settings.cpp |
 | `map.names` | Place names in the overland view | show | optpreview.cpp, worldmap_draw.cpp |
 | `map.quest_marks` | Quest markers in the overland view | show | optpreview.cpp, worldmap_draw.cpp |

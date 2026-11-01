@@ -29,6 +29,7 @@ int travel_boat_way(int a, int b, const short **xs, const short **ys);   /* the 
 void travel_party_tile(int *x, int *y);
 int travel_map_live(void);                   /* the overland loop is running (no card or screen over the map) */
 int travel_terrain(int x, int y);
+int travel_camp_needed(void);                /* travel.camp_at_8: a member short of Endurance, Strength or Divine Favor */
 #ifdef __cplusplus
 }
 #endif

@@ -720,9 +720,10 @@ static void draw_loot_buttons(void)
 }
 /* a click outside the menus on something the overlay drew: 1 if taken */
 extern "C" int battleoverlay_arrow_click(int x, int y);
+extern "C" int travel_camp_click(int x, int y);           /* (ui/travel.cpp: the campfire under the clock) */
 extern "C" int overlay_click(int x, int y)
 {
-    if (battleoverlay_arrow_click(x, y)) { click_taken = 1; return 1; }
+    if (battleoverlay_arrow_click(x, y) || travel_camp_click(x, y)) { click_taken = 1; return 1; }
     if (ImGui::GetFrameCount() - loot_btn_frame <= 2 && (loot_active || barter_active))
         for (int i = 0; i < 2; i++)
             if (x >= loot_btn[i][0].x && x < loot_btn[i][1].x && y >= loot_btn[i][0].y && y < loot_btn[i][1].y) { loot_press(i); click_taken = 1; return 1; }
@@ -782,6 +783,7 @@ extern "C" void ui_overlay(void)
     draw_card_help();
     if (assist_card_help) { watch_saints(); draw_learned(); }
     travel_overlay();
+    { void travel_camp_button(void); travel_camp_button(); }
     travelmap_labels();
     draw_picture_name();
     draw_new_encounter_seal();

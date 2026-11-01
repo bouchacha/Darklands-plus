@@ -47,6 +47,7 @@ typedef struct {
 } LodgeModel;
 
 extern LodgeModel lodge_model;
+extern int lodge_entered;                   /* how often a camp or an inn was entered (either look) */
 
 enum { LV_SELECT = 1, LV_ACT, LV_TEACH, LV_DAY, LV_REST, LV_LEAVE, LV_SHEET, LV_DAYS };
 /* LV_SELECT m; LV_ACT a (0 relax, 1 strength, 2 pray, 3 alchemy, 4 earn, 5 guard); LV_TEACH t
