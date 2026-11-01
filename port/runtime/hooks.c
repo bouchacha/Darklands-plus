@@ -84,6 +84,14 @@ void hook_run(int idx)
 {
     int prev = hook_current, pd = hook_depth;
     hook_current = idx; hook_depth = 0;
+    /* ns_unwinding (mods/nscreen.c) tells a hook that a game call it made was cut short by the game
+       unwinding (a load, Quit), so it must return at once and leave the stack to the unwinding. Once that
+       unwinding has landed it means nothing, but nothing cleared it until the next ns_call: after a save
+       loaded from the menu (a native screen's game call unwinds) a hook that made no game call of its own
+       read it, returned without returning (levelwalk's on combat_input, every tick of the battle), the
+       stack crept down 4 bytes a tick into the game's data, and the battle stopped ("interp: opcode d9 at
+       6675:426f", build 1130). A hook is only ever entered with no unwinding under way: clear it here. */
+    { extern int ns_unwinding; if (!unw_active) ns_unwinding = 0; }
     hook_table[idx]();
     hook_current = prev; hook_depth = pd;
 }
