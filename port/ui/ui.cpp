@@ -427,7 +427,8 @@ static void tab_editor_all(void)
    there, and the game's hand not drawn, so the one pointer seen is where a click lands */
 static bool windows_up(void)
 {
-    return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || tips_open() || levelmap_is_open() || halloffame_is_open() || figpick_is_open();
+    return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || tips_open() || levelmap_is_open() || halloffame_is_open() || figpick_is_open()
+           || ui_alert_open();                 /* (a notice to click through: its OK under the system's pointer, not the game's hand drawn beneath it) */
 }
 static void ui_cursor(void)
 {

@@ -1,7 +1,8 @@
 // alerts.cpp - news the player must read: a window to click through, the game waiting meanwhile
 // (ui_is_open). For what cannot be undone: the years' toll (mods/aging.c), an attribute or a skill
 // lost for good, armour worn down or ruined (mods/losses.c). Several at once are read one after the
-// other. Only its OK button closes one, and not in its first half second: a key (Space in a battle,
+// other. Its OK button closes one, but not in its first half second, and Enter or Space (his wish,
+// 2026-11-01: the pointer could not be found over it) not in its first second: a key (Space in a battle,
 // Enter on a card) or a click meant for what was under it closed it before it could be read (1.4-RC7).
 // In the test sessions (DL_CTL) they are logged and pass by themselves, unless DL_ALERT_KEEP.
 #include <stdio.h>
@@ -93,7 +94,7 @@ void ui_alert_draw(void)
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, UIS(3));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(UIS(22), UIS(18)));
     if (ImGui::Begin("##alert", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse
-                     | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav)) {   /* (no keys: the OK button alone) */
+                     | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav)) {   /* (OK after half a second; Enter or Space after a second) */
         ImGui::PushFont(ui_font_head);
         ImGui::TextColored(ImVec4(0.55f, 0.16f, 0.10f, 1), "%s", a.title.c_str());
         ImGui::PopFont();
@@ -104,7 +105,9 @@ void ui_alert_draw(void)
         ImGui::Spacing(); ImGui::Spacing();
         char lab[48]; snprintf(lab, sizeof lab, queue.size() > 1 ? "  OK (%d more)  " : "  OK  ", (int)queue.size() - 1);
         ImGui::BeginDisabled(!ready);
-        bool done = ImGui::Button(lab) && ready;
+        bool key = ImGui::GetTime() - a.shown >= 1.0
+                   && (ImGui::IsKeyPressed(ImGuiKey_Enter, false) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter, false) || ImGui::IsKeyPressed(ImGuiKey_Space, false));
+        bool done = (ImGui::Button(lab) || key) && ready;   /* (the notice takes every event while up: the key goes no further, ui.cpp) */
         ImGui::EndDisabled();
         if (done) queue.pop_front();
     }
