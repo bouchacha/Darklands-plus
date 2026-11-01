@@ -126,7 +126,7 @@ An encounter's `where` says where it comes up:
 
 | where | |
 |---|---|
-| `wild` (the default) | among the random encounters of the overland view. It counts as `weight` more entries of the game's own table of encounters for the terrain (9 to 29 entries), so with a weight of 1 it is about as common as one of the game's own |
+| `wild` (the default) | among the random encounters of the overland view. It counts as `weight` more entries of the game's own table of encounters for the terrain (9 to 29 entries), so with a weight of 1 it is about as common as one of the game's own. It never takes the place of the game's encounters that give what little else does (the witch's hut, the hermit, the travelling alchemist, the merchant caravan, the knight bound for a tournament, the cave in the pass) |
 | `boat` | on a boat trip, before the landing (3 trips in 10 bring one, in place of the river pirates). `exit` lands the party |
 | `street` | as the party comes into a town's street: the main street by day 3 times in 100, at night or in a side street by day 6, a side street at night 10. `exit` goes on into the street; `card N` to another of the town's cards |
 | `camp` | after a night camping in the wild (12 nights in 100), as the party sets out again. `exit` goes on to the map |

@@ -1693,6 +1693,14 @@ static void install_cards(void)
 /* ================================================================ choosing one */
 static const int REGION_CARDS[] = { 0x112, 0x117, 0x116, 0x11b, 0xa0, 0x102, 0x103, 0x111, 0x122, 0xa5, 0x107, 0x118, 0x106,
     0x7f, 0x104, 0x105, 0x108, 0x24, 0xf0, 0xa6, 0xa7, 0x3d, 0xc3, 0x163, 0x113 };
+/* the game's encounters a new one never stands in for: what they give comes from nowhere else, or
+   from few other places (his ask, 2026-11-01: the witch's hut, and any other unique one) - the witch's
+   sod hut ($MeetW01: the witch to beat or catch, who starts the Wild Hunt and tells of a High Sabbat),
+   the hermit ($MeetH00: a saint taught, Divine Favor), the travelling alchemist ($MeetA00, $MeetA01:
+   potions he trades), the merchant caravan ($MeetM00: trade and company on the road), the knight on
+   his way to a tournament ($MeetJ00: news, a race, a joust) and the cave in the pass ($MeetC00: its
+   chest). The others (wolves, boars, robbers, storms, pilgrims, tolls ...) a new encounter may replace. */
+static const int KEEP_CARDS[] = { 0x122, 0x118, 0xa6, 0xa7, 0x104, 0xc3, 0xf0 };
 /* entries of the game's table for a terrain (s030 1462:02c0): a new encounter of weight w
  * counts as w more entries */
 static int table_size(int t)
@@ -1744,6 +1752,7 @@ static int choose(int r, int t)
 {
     int region = 0;
     for (int i = 0; i < (int)(sizeof REGION_CARDS / sizeof REGION_CARDS[0]); i++) if (REGION_CARDS[i] == r) region = 1;
+    for (int i = 0; i < (int)(sizeof KEEP_CARDS / sizeof KEEP_CARDS[0]); i++) if (KEEP_CARDS[i] == r) region = 0;
     if (travel_step_result != 1000 || !region) return r;
     if (!encounters_offered()) return r;
     install_cards();

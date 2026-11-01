@@ -609,10 +609,10 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/alchemyview.cpp:381` | Start mixing |
 | `ui/alchemyview.cpp:382` | Start mixing |
 | `ui/alchemyview.cpp:390` | The mystic number: the higher, the harder the formula is to brew. The risk is what a failed batch can cause. At an inn, in a village or a hideout, one failure in two ends in a mishap: %s in %s it is an explosion (the party hurt, damages to pay, no room at the inn for four months), otherwise a stink (no room for a month). In a camp in the wild a failure only costs the ingredients. |
-| `ui/alerts.cpp:73` | %s: %d, was %d |
-| `ui/alerts.cpp:105` |   OK (%d more)   |
-| `ui/alerts.cpp:154` | Y: yes     N: no |
-| `ui/alerts.cpp:154` | Any key or click: go on |
+| `ui/alerts.cpp:74` | %s: %d, was %d |
+| `ui/alerts.cpp:106` |   OK (%d more)   |
+| `ui/alerts.cpp:157` | Y: yes     N: no |
+| `ui/alerts.cpp:157` | Any key or click: go on |
 | `ui/barterview.cpp:137` | Click to have %s pay from now on |
 | `ui/barterview.cpp:194` | Nothing to sell. |
 | `ui/barterview.cpp:194` | Nothing for sale today. |
@@ -2378,16 +2378,16 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui.cpp:414` | A deep editor, for fixing and modding: |
 | `ui/ui.cpp:416` | it changes the saved game's own data directly, as the community's save editors do (to repair a character hit by an old bug, to cheat, or to make a mod). Nothing here is needed to play. |
 | `ui/ui.cpp:420` | Items (for a mod) |
-| `ui/ui.cpp:471` | Darklands+: the potions and the alchemical ingredients |
-| `ui/ui.cpp:473` | Potions, grades 1, 2 and 3 (the gold dots on the neck) |
-| `ui/ui.cpp:585` | Reconstructed Content |
-| `ui/ui.cpp:589` | Reconstructed Content |
-| `ui/ui.cpp:611` |              |
-| `ui/ui.cpp:716` | an index past the vertices |
-| `ui/ui.cpp:716` | not a number |
-| `ui/ui.cpp:716` | far past the window |
-| `ui/ui.cpp:748` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
-| `ui/ui.cpp:754` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
+| `ui/ui.cpp:472` | Darklands+: the potions and the alchemical ingredients |
+| `ui/ui.cpp:474` | Potions, grades 1, 2 and 3 (the gold dots on the neck) |
+| `ui/ui.cpp:586` | Reconstructed Content |
+| `ui/ui.cpp:590` | Reconstructed Content |
+| `ui/ui.cpp:612` |              |
+| `ui/ui.cpp:717` | an index past the vertices |
+| `ui/ui.cpp:717` | not a number |
+| `ui/ui.cpp:717` | far past the window |
+| `ui/ui.cpp:749` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
+| `ui/ui.cpp:755` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
 | `ui/ui_windows.cpp:74` | Darklands+ is made by Yassine Meskhout. |
 | `ui/ui_windows.cpp:75` | Darklands (c) 1992 MicroProse. This is the original game, rebuilt to run directly on today's computers, with the game files of your own copy. F12 > Settings has the Full Original preset, the game as it played, and switches for most of what Darklands+ adds. |
 | `ui/ui_windows.cpp:78` | F11: the keys for the current screen.  F12: this window (the game waits while it is open).  Alt+Enter: full screen.  Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities). |
@@ -2801,7 +2801,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/encounters.c:1374` | [%s] block %d: the game holds 25 blocks (0 to 24) |
 | `mods/encounters.c:1421` | (Darklands+ %s) |
 | `mods/encounters.c:1447` | New encounters: %d file%s with errors left out (see darklands_port.log). |
-| `mods/encounters.c:1866` | on the screen |
+| `mods/encounters.c:1875` | on the screen |
 | `mods/fixgroups.c:10` | Crashes, freezes, items or progress lost, saved games spoiled, quests that can never be finished. Nobody wants these. |
 | `mods/fixgroups.c:11` | Plain mistakes |
 | `mods/fixgroups.c:11` | Something the game sets out to do and gets wrong: the wrong member, the wrong town, a check on the wrong option, a number lost on the way. |

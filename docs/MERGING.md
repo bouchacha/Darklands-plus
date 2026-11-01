@@ -335,6 +335,7 @@ the files where each switch's key is read.
 | `fix.minerelic` | A relic found in a mine is as good as the relic itself | fix | fixes.c |
 | `fix.ownplace` | A village beside another place can be entered | fix | fixes.c |
 | `fix.hitsound` | Ordinary hits make a sound | fix | fixes.c, sfx.c |
+| `fix.rkcastle` | A robber knight asked for lives in a castle | fix | fixes.c |
 
 The fixes (`fix.<id>`) are listed with their explanations in `port/mods/fixes.c`; the built-in
 rule changes (`mod.<id>`) in `port/mods/builtin.c`.
