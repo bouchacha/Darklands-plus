@@ -553,15 +553,17 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:364` | In the original, a blow that hits without knocking the target back makes no sound at all: only misses, parries, knock-backs, shots and deaths are heard, so many blows that land pass in silence. Now an ordinary hit sounds like a blow (the game's own knock-back sound, or the hit sound of a custom sound pack). |
 | `mods/fixes.c:365` | A robber knight asked for lives in a castle |
 | `mods/fixes.c:366` | A town's council, lord or merchants, or a village, ask the party to kill the robber knight of the castle nearest them. Once no robber knight's castle stood anywhere (every keep burnt out: the party killed the knights faster than new ones moved into the ruins, one every three months), the game named a knight in the town itself, who could never be found, and could name him again. Now a new knight moves into the burnt-out keep nearest the town first, as the game's own rule would have him do, and the task names him there; tasks already given for a town or a village go to that keep too. |
-| `mods/fixes.c:1136` | The store room keeps at most 127 of one item. |
-| `mods/fixes.c:1137` | The store room is full: it keeps 100 kinds of items. |
-| `mods/fixes.c:1307` | abandon the horses |
-| `mods/fixes.c:1689` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
-| `mods/fixes.c:1948` | claim friendship |
-| `mods/fixes.c:2252` | You need a missile weapon |
-| `mods/fixes.c:2318` | Not bought: nobody in the party has room for another kind of item. |
-| `mods/fixes.c:2336` | Nobody in the party has room for another kind of item. |
-| `mods/fixes.c:2667` | a hook (or { -2 }) for each fix, in the same order |
+| `mods/fixes.c:367` | Hiding from a dragon takes Stealth and Woodwise |
+| `mods/fixes.c:368` | When a dragon flies over (or crawls out of the earth), the chance to hide and follow it to its lair came from the leader's Charisma and Speak Latin, a pair no other check in the game uses, and nothing in the code says why: most likely a slip. A guess at what was meant, since the game does not say: the party's average Stealth (all of them must stay hidden) and its best Woodwise (to follow the beast), half of their sum. |
+| `mods/fixes.c:1138` | The store room keeps at most 127 of one item. |
+| `mods/fixes.c:1139` | The store room is full: it keeps 100 kinds of items. |
+| `mods/fixes.c:1309` | abandon the horses |
+| `mods/fixes.c:1691` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
+| `mods/fixes.c:1950` | claim friendship |
+| `mods/fixes.c:2254` | You need a missile weapon |
+| `mods/fixes.c:2320` | Not bought: nobody in the party has room for another kind of item. |
+| `mods/fixes.c:2338` | Nobody in the party has room for another kind of item. |
+| `mods/fixes.c:2687` | a hook (or { -2 }) for each fix, in the same order |
 
 ## The interface (ui/)
 

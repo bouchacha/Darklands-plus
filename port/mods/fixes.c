@@ -364,6 +364,8 @@ Fix FIXES[] = {
       "In the original, a blow that hits without knocking the target back makes no sound at all: only misses, parries, knock-backs, shots and deaths are heard, so many blows that land pass in silence. Now an ordinary hit sounds like a blow (the game's own knock-back sound, or the hit sound of a custom sound pack).", 1 },
     { "rkcastle", "A robber knight asked for lives in a castle",
       "A town's council, lord or merchants, or a village, ask the party to kill the robber knight of the castle nearest them. Once no robber knight's castle stood anywhere (every keep burnt out: the party killed the knights faster than new ones moved into the ruins, one every three months), the game named a knight in the town itself, who could never be found, and could name him again. Now a new knight moves into the burnt-out keep nearest the town first, as the game's own rule would have him do, and the task names him there; tasks already given for a town or a village go to that keep too.", 1 },
+    { "dragonhide", "Hiding from a dragon takes Stealth and Woodwise",
+      "When a dragon flies over (or crawls out of the earth), the chance to hide and follow it to its lair came from the leader's Charisma and Speak Latin, a pair no other check in the game uses, and nothing in the code says why: most likely a slip. A guess at what was meant, since the game does not say: the party's average Stealth (all of them must stay hidden) and its best Woodwise (to follow the beast), half of their sum.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -2614,6 +2616,24 @@ static void rkcastle_frame(void)
     }
 }
 
+/* ---------------------------------------------------------------- dragonhide
+ * $Drago01, the dragon seen in its land (s081 19bc): its first option, "hide, then follow it back to
+ * its lair" (and "hide, wait until the crack cools, and enter its lair"), asks its chance of 19bc:0a40:
+ * (member_attr(-1, 5) + member_skill(-1, 11)) / 2, the leader's Charisma and Speak Latin, clamped 0..99
+ * (AX the chance, DX the leader). No other check pairs them (s076's priest adds Religion, Charisma,
+ * Latin and Virtue); the card's other options use the numbers they mean (Riding 17 for riding away), so
+ * an old numbering is unlikely. Here: the party's average Stealth (party_avg_skill(15)) and its best
+ * Woodwise (party_max_skill(18)), half the sum, clamped as before; the leader still the one named. */
+static void dragonhide_hook(void)           /* s081 19bc:0a40 () -> AX chance, DX who */
+{
+    int st = ns_call(GF_party_avg_skill, 1, 15); if (ns_unwinding) return;
+    int ww_ = ns_call(GF_party_max_skill, 1, 18); if (ns_unwinding) return;
+    int c = (st + ww_) / 2; if (c < 0) c = 0; if (c > 99) c = 99;
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix dragonhide: Stealth %d, Woodwise %d: %d%%\n", st, ww_, c);
+    AX = (u16)c; DX = (u16)(s16)(s8)g_rb(GV_leader);
+    hook_return_far(0);
+}
+
 /* ---------------------------------------------------------------- ownplace
  * The place a step on the overland map enters (s030 1462:1300 (mx, my), the marker's place on the
  * screen): the terrain under it from the view buffer (an icon, 50 and up, counts as 28; the
@@ -2663,7 +2683,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 36, 0x1462, 0x1b80, campguard_hook }, { GF_groups_fixup, enemygroups_hook }, { GF_loc_hostile_impl, cityalert_hook },
     { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook },
     { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
-    { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook } };   /* (hitsound: mods/sfx.c) */
+    { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook } };   /* (hitsound: mods/sfx.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
