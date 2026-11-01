@@ -551,15 +551,17 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:362` | Stepping onto a village, the game looks for a place up to four tiles around and takes the first in its list, not the nearest: where a mine, castle or other place earlier in the list lies that close, the village could never be entered. Walking onto Lauf, west of Speyer, led into the Rammelsburg mine four tiles east. Now the party enters the place on the very tile it steps onto. |
 | `mods/fixes.c:363` | Ordinary hits make a sound |
 | `mods/fixes.c:364` | In the original, a blow that hits without knocking the target back makes no sound at all: only misses, parries, knock-backs, shots and deaths are heard, so many blows that land pass in silence. Now an ordinary hit sounds like a blow (the game's own knock-back sound, or the hit sound of a custom sound pack). |
-| `mods/fixes.c:1132` | The store room keeps at most 127 of one item. |
-| `mods/fixes.c:1133` | The store room is full: it keeps 100 kinds of items. |
-| `mods/fixes.c:1303` | abandon the horses |
-| `mods/fixes.c:1685` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
-| `mods/fixes.c:1944` | claim friendship |
-| `mods/fixes.c:2248` | You need a missile weapon |
-| `mods/fixes.c:2314` | Not bought: nobody in the party has room for another kind of item. |
-| `mods/fixes.c:2332` | Nobody in the party has room for another kind of item. |
-| `mods/fixes.c:2588` | a hook (or { -2 }) for each fix, in the same order |
+| `mods/fixes.c:365` | A robber knight asked for lives in a castle |
+| `mods/fixes.c:366` | A town's council, lord or merchants, or a village, ask the party to kill the robber knight of the castle nearest them. Once no robber knight's castle stood anywhere (every keep burnt out: the party killed the knights faster than new ones moved into the ruins, one every three months), the game named a knight in the town itself, who could never be found, and could name him again. Now a new knight moves into the burnt-out keep nearest the town first, as the game's own rule would have him do, and the task names him there; tasks already given for a town or a village go to that keep too. |
+| `mods/fixes.c:1136` | The store room keeps at most 127 of one item. |
+| `mods/fixes.c:1137` | The store room is full: it keeps 100 kinds of items. |
+| `mods/fixes.c:1307` | abandon the horses |
+| `mods/fixes.c:1689` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
+| `mods/fixes.c:1948` | claim friendship |
+| `mods/fixes.c:2252` | You need a missile weapon |
+| `mods/fixes.c:2318` | Not bought: nobody in the party has room for another kind of item. |
+| `mods/fixes.c:2336` | Nobody in the party has room for another kind of item. |
+| `mods/fixes.c:2667` | a hook (or { -2 }) for each fix, in the same order |
 
 ## The interface (ui/)
 

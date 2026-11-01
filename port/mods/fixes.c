@@ -362,6 +362,8 @@ Fix FIXES[] = {
       "Stepping onto a village, the game looks for a place up to four tiles around and takes the first in its list, not the nearest: where a mine, castle or other place earlier in the list lies that close, the village could never be entered. Walking onto Lauf, west of Speyer, led into the Rammelsburg mine four tiles east. Now the party enters the place on the very tile it steps onto.", 1 },
     { "hitsound", "Ordinary hits make a sound",
       "In the original, a blow that hits without knocking the target back makes no sound at all: only misses, parries, knock-backs, shots and deaths are heard, so many blows that land pass in silence. Now an ordinary hit sounds like a blow (the game's own knock-back sound, or the hit sound of a custom sound pack).", 1 },
+    { "rkcastle", "A robber knight asked for lives in a castle",
+      "A town's council, lord or merchants, or a village, ask the party to kill the robber knight of the castle nearest them. Once no robber knight's castle stood anywhere (every keep burnt out: the party killed the knights faster than new ones moved into the ruins, one every three months), the game named a knight in the town itself, who could never be found, and could name him again. Now a new knight moves into the burnt-out keep nearest the town first, as the game's own rule would have him do, and the task names him there; tasks already given for a town or a village go to that keep too.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -698,6 +700,7 @@ static void useitem_hook(void)             /* use_item_idx(who, idx): one of a s
 static void altar_frame(void);
 static void armourday_frame(void);
 static void greatpower_frame(void);
+static void rkcastle_frame(void);
 void fixes_frame(void)
 {
     colours_frame();
@@ -707,6 +710,7 @@ void fixes_frame(void)
     if (fix_on("altar")) altar_frame();
     if (fix_on("armorday")) armourday_frame();
     if (fix_on("greatpower") || sainttexts_on) greatpower_frame();
+    if (fix_on("rkcastle")) rkcastle_frame();
 }
 
 /* ---------------------------------------------------------------- potions
@@ -2535,6 +2539,81 @@ static void minerelic_hook(void)            /* s009 182c:1146 (struct grp far *g
     hook_call_original();
 }
 
+/* ---------------------------------------------------------------- rkcastle
+ * The givers of robber knights (the councils, lords, merchants, the Hanse, the Fuggers, a village:
+ * s039 1462:10b6 and its ten callers) name the knight of the castle nearest them: nearest_loc_type
+ * (x, y, 2), s030 1462:2842, the nearest place of icon 2 not marked gone (+0x14 bit 2). With none on
+ * the map it answers the place the party is in (cur_loc): a knight in the town itself, never to be
+ * found, asked for again and again ("Robber knight @ Goslar", two at once: GitHub issue 5). The game
+ * brings a new knight into a ruin only every third month (s029 0e76:281c: a place of icon 0x1a, the
+ * burnt-out keep, becomes icon 2 again: +0x14 cleared, +0x0c 0x93, +0x0e 0x92, +8 4); a party killing
+ * them faster runs out. Here, asked for a castle and finding none, a new knight moves into the ruin
+ * nearest the place first, as that rule does. Tasks a game holds already for a town or a village
+ * (kind 8, tag 3, and their facts, kind 0x1c tag 3, at the same place) go to such a keep. */
+static int rk_dist(u32 q, int x, int y)
+{
+    int dx = abs((s16)rw((u16)(q >> 16), (u16)((u16)q + 4)) - x), dy = abs((s16)rw((u16)(q >> 16), (u16)((u16)q + 6)) - y) / 3;
+    return dx >= dy ? dy / 2 + dx : dx / 2 + dy;
+}
+static int rk_icon(int i) { u32 r = i >= 0 && i < 414 ? g_location(i) : 0; return r ? (s16)rw((u16)(r >> 16), (u16)r) : -1; }
+static int rk_nearest(int x, int y, int icon)          /* (as nearest_loc_type_impl: not a place marked gone) */
+{
+    int best = -1, bd = 1 << 30;
+    for (int j = 0; j < 414; j++) {
+        u32 q = g_location(j);
+        if (!q || (s16)rw((u16)(q >> 16), (u16)q) != icon || (rb((u16)(q >> 16), (u16)((u16)q + 0x14)) & 4)) continue;
+        int d = rk_dist(q, x, y);
+        if (d < bd) { bd = d; best = j; }
+    }
+    return best;
+}
+static int rk_new_knight(int x, int y)                 /* the ruin nearest x, y a robber knight's castle again; -1 none */
+{
+    int best = -1, bd = 1 << 30;
+    for (int j = 0; j < 414; j++) {
+        u32 q = g_location(j);
+        if (!q || (s16)rw((u16)(q >> 16), (u16)q) != 0x1a) continue;
+        int d = rk_dist(q, x, y);
+        if (d < bd) { bd = d; best = j; }
+    }
+    if (best < 0) return -1;
+    u32 q = g_location(best); u16 qs = (u16)(q >> 16), qo = (u16)q;
+    ww(qs, qo, 2); wb(qs, (u16)(qo + 0x14), 0); ww(qs, (u16)(qo + 0x0c), 0x93); ww(qs, (u16)(qo + 0x0e), 0x92); ww(qs, (u16)(qo + 8), 4);
+    fprintf(stderr, "fix rkcastle: no robber knight's castle left: one moves into the burnt-out keep %d\n", best);
+    return best;
+}
+static void rkcastle_hook(void)             /* nearest_loc_type_impl (x, y, icon) */
+{
+    int x = (s16)rw(SS, (u16)(SP + 4)), y = (s16)rw(SS, (u16)(SP + 6)), icon = (s16)rw(SS, (u16)(SP + 8));
+    hook_call_original();
+    if (ns_unwinding || icon != 2) return;
+    int r = (s16)AX;
+    if (r >= 0 && rk_icon(r) == 2) return;
+    int c = rk_new_knight(x, y);
+    if (c >= 0) AX = (u16)c;
+}
+static void rkcastle_frame(void)
+{
+    static int tick;
+    if (++tick % 120) return;
+    for (int i = 0; i < G_NEVENTS; i++) {
+        u32 e = g_event(i);
+        if (!e || g_ev(e, G_EV_KIND) != 8 || g_ev(e, G_EV_TAG) != 3) continue;
+        int town = g_ev(e, G_EV_LOC), ic = rk_icon(town);
+        if (ic != 0 && ic != 8) continue;                            /* (a city or a village: never a knight's) */
+        u32 t = g_location(town);
+        int x = (s16)rw((u16)(t >> 16), (u16)((u16)t + 4)), y = (s16)rw((u16)(t >> 16), (u16)((u16)t + 6));
+        int c = rk_nearest(x, y, 2);
+        if (c < 0) c = rk_new_knight(x, y);
+        if (c < 0) continue;
+        for (int k = 0; k < G_NEVENTS; k++) {
+            u32 f = g_event(k);
+            if (f && (g_ev(f, G_EV_KIND) == 8 || g_ev(f, G_EV_KIND) == 0x1c) && g_ev(f, G_EV_TAG) == 3 && g_ev(f, G_EV_LOC) == town) g_ev_set(f, G_EV_LOC, c);
+        }
+        fprintf(stderr, "fix rkcastle: the robber knight asked for in place %d now lives at %d\n", town, c);
+    }
+}
+
 /* ---------------------------------------------------------------- ownplace
  * The place a step on the overland map enters (s030 1462:1300 (mx, my), the marker's place on the
  * screen): the terrain under it from the view buffer (an icon, 50 and up, counts as 28; the
@@ -2584,7 +2663,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 36, 0x1462, 0x1b80, campguard_hook }, { GF_groups_fixup, enemygroups_hook }, { GF_loc_hostile_impl, cityalert_hook },
     { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook },
     { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
-    { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 } };   /* (hitsound: mods/sfx.c) */
+    { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook } };   /* (hitsound: mods/sfx.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
