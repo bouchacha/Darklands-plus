@@ -511,7 +511,7 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "ulivecard")) { void citynav_test_live(void); citynav_test_live(); }   /* test: the card's text as loaded against MSGFILES */
         else if (!strcmp(cmd, "ucitylines")) { void citynav_check_lines(void); citynav_check_lines(); }   /* test: every hub card line through the Go to rules; unmatched ones logged */
         else if (!strcmp(cmd, "ureport")) { void ui_report_test(void); ui_report_test(); }   /* test: the report's zip made (ui/report.cpp), nothing opened */
-        else if (!strcmp(cmd, "usaintchips")) { void sheetview_check_saint_chips(void); sheetview_check_saint_chips(); }   /* test: every saint's help through the Saints page's parse; parts it did not know logged */
+        else if (!strcmp(cmd, "usaintchips")) { void saintchips_check(void); saintchips_check(); }   /* test: every saint's help through the Saints page's parse; parts it did not know logged */
         else if (!strcmp(cmd, "ugoto")) { void citynav_go(int); citynav_go(atoi(arg)); }   /* test: Go to place N in the city */
         else if (!strcmp(cmd, "uhelp")) { void ui_toggle_help(void); ui_toggle_help(); }
         else if (!strcmp(cmd, "ugotowin")) { void ui_open_goto(void); ui_open_goto(); }       /* test: the Go to window (G) */

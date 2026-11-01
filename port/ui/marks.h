@@ -1,6 +1,7 @@
 /* marks.h - small signs drawn with ImGui shapes (marks.cpp), at c, r its half size in window pixels:
  * the alchemy screen's (a formula starred or put aside, the mystic number's pentacle, the part of the
- * chance the batches give, what may come of a brew: the ingredients lost, a stink, an explosion);
+ * chance the batches give, what may come of a brew: the ingredients lost, a stink, an explosion); the campfire
+ * (camp in the wild: the margin's C, the overland view's stop at 20:00);
  * on the icon sheets (uiconstyles:2) with the other families */
 #pragma once
 #include "imgui.h"
@@ -15,3 +16,4 @@ void ui_mark_lost(ImDrawList *dl, ImVec2 c, float r, int item, float th);       
    chevrons' half width, th their stroke (pixels). Gold pointing up; down (a cost, a loss): red pointing down.
    A potion's grade (ui/alchemyicons.cpp); a saint's help where the pictures are not shields (ui_icon_rank). Returns the badge's half width */
 float ui_mark_chevrons(ImDrawList *dl, ImVec2 base, float hw, float th, int n, bool down);
+void ui_campfire_icon(ImDrawList *dl, ImVec2 c, float s);                                 /* s: its height; camp in the wild */

@@ -19,12 +19,6 @@
 
 #include "effects.h"
 
-/* the roundels' names in a text ({*Fire}) and under the pointer, in the order of EI_* (ui/effects.h) */
-static const char *const EFFECT_NAME[] = { "Fire", "Armor", "Armor Quality", "Missile Armor", "Weapon Quality", "Damage", "Penetration", "Travel", "Woods Travel", "No Death", "Stays" };
-static const char *const EFFECT_SAY[] = { "Fire protection", "Armor", "Armor quality", "Armor against missiles", "Weapon quality", "Damage", "Penetration",
-                                          "Faster travel", "Faster travel in woods", "No death from wounds", "A companion's stay" };
-static_assert(sizeof EFFECT_NAME / sizeof *EFFECT_NAME == EI_STAYS + 1 && sizeof EFFECT_SAY / sizeof *EFFECT_SAY == EI_STAYS + 1, "a name for each EI_*");
-
 namespace {
 struct Atom { int key; std::string text; bool space; bool br; };   /* key -1: words; br: a line break before it */
 struct Hit { ImVec2 a, b; int key; };
@@ -38,9 +32,7 @@ int token_at(const char *s, size_t i, std::string *value, size_t *end)
     const char *n = s + i + 1, *ne = colon ? colon : e;
     int key = -1;
     if (ne == n + 2 && n[0] == '@' && n[1] >= '0' && n[1] <= '4') key = RICH_MEMBER + (n[1] - '0');
-    else if (n < ne && n[0] == '*') {
-        for (int k = 0; k <= EI_STAYS; k++) if ((int)strlen(EFFECT_NAME[k]) == ne - n - 1 && !strncmp(EFFECT_NAME[k], n + 1, (size_t)(ne - n - 1))) key = RICH_EFFECT + k;
-    } else if (n < ne && n[0] == '~') { key = ui_key_of(n + 1, (int)(ne - n - 1)); if (key >= 0) key |= RICH_STRUCK; }
+    else if (n < ne && n[0] == '*') { int k = ui_effect_of(n + 1, (int)(ne - n - 1)); if (k >= 0) key = RICH_EFFECT + k; } else if (n < ne && n[0] == '~') { key = ui_key_of(n + 1, (int)(ne - n - 1)); if (key >= 0) key |= RICH_STRUCK; }
     else key = ui_key_of(n, (int)(ne - n));
     if (key < 0) return -1;
     *value = colon ? std::string(colon + 1, e) : std::string();
@@ -118,12 +110,12 @@ std::string rich_member(int m, const std::string &value)
 }
 std::string rich_effect(int ei, const std::string &value)
 {
-    return ei < 0 || ei > EI_STAYS ? "" : std::string("{*") + EFFECT_NAME[ei] + (value.empty() ? "" : ":" + value) + "}";
+    return ei < 0 || ei > EI_STAYS ? "" : std::string("{*") + ui_effect_name(ei) + (value.empty() ? "" : ":" + value) + "}";
 }
 std::string rich_key_name(int key)
 {
     if (key & RICH_STRUCK) return std::string(ui_key_name(key & ~RICH_STRUCK)) + ": too low";
-    return key >= RICH_EFFECT ? EFFECT_SAY[key - RICH_EFFECT] : key >= RICH_MEMBER ? ui_member_name(key - RICH_MEMBER) : ui_key_name(key);
+    return key >= RICH_EFFECT ? ui_effect_say(key - RICH_EFFECT) : key >= RICH_MEMBER ? ui_member_name(key - RICH_MEMBER) : ui_key_name(key);
 }
 
 ImVec2 rich_size(ImFont *f, float fs, float wrap, const char *s)

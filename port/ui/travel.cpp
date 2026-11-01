@@ -8,6 +8,7 @@
 #include "imgui.h"
 #include "worldmap_draw.h"
 #include "richtext.h"
+#include "marks.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -17,7 +18,6 @@ extern "C" {
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 void ui_notice(const char *msg);
 }
-void ui_campfire_icon(ImDrawList *dl, ImVec2 c, float s);   /* ui/margins.cpp */
 
 extern "C" int ns_showing(void);
 /* the route over the map while travelling */

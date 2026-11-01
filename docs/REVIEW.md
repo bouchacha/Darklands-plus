@@ -249,3 +249,19 @@ covered and found, and what it could not check.
   The same day the ways went from eight to four and Manual (the maintainer's call: anything else is an
   order); Holdfast lives on only as what a walk or Halt order of the player's leaves (ST_HELD), and the
   Bodyguard's walking and the parrying stances went with their ways.
+- 2026-11-01 (1.4.5): a structural pass after the round of fixes (the code sweep; the pictures only for what
+  this round added). sheetview.cpp had grown past 1,600 lines with two things in it: the character sheet's
+  pages, and the parse of a saint's help into chips with their ranking against the other saints, which the
+  prayer screen, the margins and the tooltips also read (saint_effects_text). The parse moved to
+  ui/saintchips.cpp (saintchips.h: the chips, the filter's saint_effect / saint_touches / saint_key_count);
+  the page drawing stays. ui/saints.cpp held both the saints' descriptions and what is at work on the party
+  (the event table read into effects_now): the latter moved to ui/effects.cpp beside effects.h, with the
+  roundels' names (EFFECT_NAME, read by check_docs for {*Fire}) that rich text had kept. One home for the
+  campfire picture (ui/marks.cpp: the margin's C, the overland view's stop at 20:00, the icon sheet; it was
+  margins.cpp's with a wrapper). The struck shield is one function (ui_key_icon_struck) for the relic's row,
+  the rich text's {~Virtue} and ui_shield_value (UI_KEY_STRUCK), not three hand-drawn strokes. A load from a
+  native screen had left ns_unwinding set (the stack crept 4 bytes a battle tick until the game crashed):
+  cleared in hook_run, the one place every hook passes, rather than in the hooks that read it. Not done: the
+  play-through as each kind of reader and the sweeps of words and switches (the changelog and the new
+  switch's texts were read; COPY.md regenerated, not read through); fixes.c (2,755 lines) and encounters.c
+  (1,909) are past the mark but each is one subject (the fixes' table, the encounters' engine).

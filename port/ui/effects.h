@@ -1,4 +1,4 @@
-// effects.h - what is at work on the party now (ui/saints.cpp makes the list from the game's
+// effects.h - what is at work on the party now (ui/effects.cpp makes the list from the game's
 // events): a saint's boost of an attribute or a skill, or the lowering some saints bring with it,
 // a weapon potion, and a companion's time with the party. Shown in the margin's "Blessings and potions"
 // (ui/margins.cpp) and on the character sheet (ui/sheetview.cpp: the raised values, how long).
@@ -19,3 +19,6 @@ struct Eff {
 };
 enum { EI_FIRE, EI_ARMOR, EI_ARMOR_Q, EI_MISSILE_ARMOR, EI_WEAPON_Q, EI_DAMAGE, EI_PENETRATION, EI_TRAVEL, EI_TRAVEL_WOODS, EI_NO_DEATH, EI_STAYS };
 std::vector<Eff> effects_now(int size);   /* (members 0 .. size-1) */
+const char *ui_effect_name(int ei);       /* the roundel's name in a text: "Fire" for {*Fire} (ui/richtext.h) */
+const char *ui_effect_say(int ei);        /* its name under the pointer: "Fire protection" */
+int ui_effect_of(const char *name, int len);   /* EI_* of a name in a text, -1 none */

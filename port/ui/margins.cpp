@@ -555,24 +555,10 @@ extern "C" int ui_nearest_town(void)                /* in the wilds: the nearest
 }
 
 #include "repwatch.h"
+#include "marks.h"
 static bool goto_hint, camp_hint;
 extern "C" void plat_press_key(int scancode);
-/* a small campfire: two crossed logs, the flames over them (the map's "C: camp here") */
-static void campfire_icon(ImDrawList *dl, ImVec2 c, float s);
-void ui_campfire_icon(ImDrawList *dl, ImVec2 c, float s) { campfire_icon(dl, c, s); }   /* (the icon sheet, uiconstyles:2) */
-static void campfire_icon(ImDrawList *dl, ImVec2 c, float s)
-{
-    float u = s / 20.0f;
-    auto P = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
-    ImU32 wood = IM_COL32(120, 74, 36, 255), wood_dk = IM_COL32(70, 40, 18, 255);
-    dl->AddLine(P(-8, 8), P(8, 3), wood_dk, 3.6f * u); dl->AddLine(P(-8, 3), P(8, 8), wood_dk, 3.6f * u);
-    dl->AddLine(P(-8, 8), P(8, 3), wood, 2.4f * u); dl->AddLine(P(-8, 3), P(8, 8), wood, 2.4f * u);
-    ImVec2 f1[3] = { P(-6, 4), P(0, -10), P(6, 4) }, f2[3] = { P(-3.5f, 4), P(0.5f, -5), P(3.5f, 4) }, f3[3] = { P(-1.6f, 4), P(0, -1), P(1.6f, 4) };
-    dl->AddTriangleFilled(f1[0], f1[1], f1[2], IM_COL32(200, 70, 20, 255));
-    dl->AddTriangleFilled(f2[0], f2[1], f2[2], IM_COL32(240, 150, 40, 255));
-    dl->AddTriangleFilled(f3[0], f3[1], f3[2], IM_COL32(255, 230, 140, 255));
-}
-/* the blessings and potions at work (ui/saints.cpp effects_now), a row a member; false when none (the town's
+/* the blessings and potions at work (ui/effects.cpp effects_now), a row a member; false when none (the town's
    margin, and the battle's under its enemies: what is at work goes on in a fight). Each thing at work is a
    picture and a short value: an attribute or a skill raised (or lowered) its shield, the rest a roundel
    (ui_effect_icon) with a saint's halo or a potion's flask at its foot; one attribute's or skill's boosts
@@ -832,7 +818,7 @@ static void right_panel(int size)
         if (foot > ImGui::GetCursorPosY() + sp * 2) ImGui::SetCursorPosY(foot);
         ImGui::Separator();
         ImVec2 p = ImGui::GetCursorScreenPos();
-        campfire_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + lh * 0.7f, p.y + lh * 0.7f), lh * 1.4f);
+        ui_campfire_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + lh * 0.7f, p.y + lh * 0.7f), lh * 1.4f);
         ImGui::SetCursorScreenPos(ImVec2(p.x + lh * 1.6f, p.y + lh * 0.2f));
         ImGui::TextDisabled("%s", ui_pad_prompts() ? "Camp here" : "C: camp here");
         if (ImGui::IsItemHovered()) { ImGui::SetMouseCursor(ImGuiMouseCursor_Hand); margin_tip("Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp."); }

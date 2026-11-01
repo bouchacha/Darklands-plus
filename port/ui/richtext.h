@@ -8,7 +8,7 @@
 //   {~Virtue} {~Virtue:12} the shield struck through in red: too little of it (a saint's or a relic's Virtue)
 //   {*Fire} {*Damage:+4}   what is at work's roundel (ui_effect_icon, the margin's "Blessings and potions"): Fire,
 //                          Armor, Armor Quality, Missile Armor, Weapon Quality, Damage, Penetration, Travel, Woods
-//                          Travel, No Death, Stays; its words kept beside it, the roundel's name under the pointer
+//                          Travel, No Death, Stays (ui/effects.cpp); its words kept beside it, its name under the pointer
 // With display.coins on, an amount of money in words ("3 groschen", "12pfs", "2 florins") is written with its
 // coin instead of the word (money_words).
 // A name is the character sheet's (ui_key_of: "Edged Weapons" or "Edged", "Speak Latin" or "Latin",

@@ -71,3 +71,17 @@ float ui_mark_chevrons(ImDrawList *dl, ImVec2 base, float hw, float th, int n, b
     }
     return hw + th;
 }
+
+/* a small campfire: two crossed logs, the flames over them (the map's "C: camp here", the campfire under the clock) */
+void ui_campfire_icon(ImDrawList *dl, ImVec2 c, float s)
+{
+    float u = s / 20.0f;
+    auto P = [&](float x, float y) { return ImVec2(c.x + x * u, c.y + y * u); };
+    ImU32 wood = IM_COL32(120, 74, 36, 255), wood_dk = IM_COL32(70, 40, 18, 255);
+    dl->AddLine(P(-8, 8), P(8, 3), wood_dk, 3.6f * u); dl->AddLine(P(-8, 3), P(8, 8), wood_dk, 3.6f * u);
+    dl->AddLine(P(-8, 8), P(8, 3), wood, 2.4f * u); dl->AddLine(P(-8, 3), P(8, 8), wood, 2.4f * u);
+    ImVec2 f1[3] = { P(-6, 4), P(0, -10), P(6, 4) }, f2[3] = { P(-3.5f, 4), P(0.5f, -5), P(3.5f, 4) }, f3[3] = { P(-1.6f, 4), P(0, -1), P(1.6f, 4) };
+    dl->AddTriangleFilled(f1[0], f1[1], f1[2], IM_COL32(200, 70, 20, 255));
+    dl->AddTriangleFilled(f2[0], f2[1], f2[2], IM_COL32(240, 150, 40, 255));
+    dl->AddTriangleFilled(f3[0], f3[1], f3[2], IM_COL32(255, 230, 140, 255));
+}

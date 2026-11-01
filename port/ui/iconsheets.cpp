@@ -20,7 +20,7 @@ void ui_page_icon(ImDrawList *dl, ImVec2 c, float s, int page); void ui_section_
 static int sheet_on;
 extern "C" void ui_icon_styles_sheet(int on) { sheet_on = on; }
 extern "C" const char *gm_skill_name(int k); extern "C" const char *gm_attr_name(int a);
-void ui_lodge_act_icon(ImDrawList *, ImVec2, float, int); void ui_campfire_icon(ImDrawList *, ImVec2, float);   /* (the other sets, for the sheet) */
+void ui_lodge_act_icon(ImDrawList *, ImVec2, float, int);   /* (the other sets, for the sheet) */
 void draw_icon_seal(ImDrawList *, ImVec2, float, int); void layer_glyph(ImDrawList *, ImVec2, float, int, ImU32);
 void ui_compass_icon(ImDrawList *, ImVec2, float, float); void ui_boot_icon(ImDrawList *, ImVec2, float, unsigned int);
 void ui_draw_teach_mark(ImDrawList *, ImVec2, float, unsigned, unsigned); void ui_item_icon(ImDrawList *, ImVec2, float, int);

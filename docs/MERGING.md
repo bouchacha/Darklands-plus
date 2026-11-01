@@ -273,7 +273,7 @@ the files where each switch's key is read.
 | `assist.hall_of_fame` | Honor Roll of Glory (hall of fame) | experiment | builtin.c, halloffame.cpp, journal.cpp |
 | **Fixes for bugs of the original** | | | |
 | `fix.blessing` | Blessings no longer cost attribute points for good | fix | fixes.c, nsdraw.cpp |
-| `fix.fireward` | No invulnerability from fire protection | fix | fixes.c, saintinfo.c, nsdraw.cpp, sheetview.cpp |
+| `fix.fireward` | No invulnerability from fire protection | fix | fixes.c, saintinfo.c, nsdraw.cpp, saintchips.cpp |
 | `fix.nullitem` | No "(null)" or empty items | fix | fixes.c |
 | `fix.castle` | Castle battles end when the knight dies | fix | fixes.c, worldmap_draw.cpp |
 | `fix.bounty` | Robber-knight bounties from merchants pay out properly | fix | fixes.c |
@@ -299,16 +299,16 @@ the files where each switch's key is read.
 | `fix.altar` | No quests to a purged pagan altar | fix | fixes.c |
 | `fix.tomb` | The item taken from a tomb goes to the winner of the fight | fix | fixes.c, worldmap_draw.cpp |
 | `fix.lordreward` | The lord pays for his quests | fix | fixes.c, citynav.cpp |
-| `fix.armorday` | Armor and fire protection from potions and saints last a day; Hardarmor works as the manual says | fix | fixes.c, saintinfo.c, sainttexts.c, nsdraw.cpp, sheetview.cpp |
-| `fix.greatpower` | Great Power raises the weapon's quality | fix | fixes.c, nsdraw.cpp, saints.cpp |
+| `fix.armorday` | Armor and fire protection from potions and saints last a day; Hardarmor works as the manual says | fix | fixes.c, saintinfo.c, sainttexts.c, nsdraw.cpp, saintchips.cpp |
+| `fix.greatpower` | Great Power raises the weapon's quality | fix | fixes.c, effects.cpp, nsdraw.cpp |
 | `fix.standings` | Saved games keep the party's standing with the Fugger, the Medici and the Hanse | fix | fixes.c |
 | `fix.battlesaints` | A saint's help called in a battle wears off | fix | fixes.c |
 | `fix.healboost` | Healing no longer takes a boost away | fix | fixes.c |
 | `fix.teachcap` | Teachers teach only up to their own ability | fix | fixes.c, teachers.c, teachers.h, citynav.cpp, lodgeview.cpp, margins.cpp, teachersui.cpp |
 | `fix.oilweapons` | Each weapon oil works with the weapons the manual names | fix | fixes.c, nsdraw.cpp |
-| `fix.pauls` | The two St. Pauls do what their texts say | fix | fixes.c, saintinfo.c, sheetview.cpp |
-| `fix.saintrep` | A saint's reputation bonus goes to the right town | fix | fixes.c, saintinfo.c, sheetview.cpp |
-| `fix.sainttexts` | Saints do what their texts say | fix | fixes.c, saintinfo.c, sainttexts.c, sainttexts.h, sheetview.cpp |
+| `fix.pauls` | The two St. Pauls do what their texts say | fix | fixes.c, saintinfo.c, saintchips.cpp |
+| `fix.saintrep` | A saint's reputation bonus goes to the right town | fix | fixes.c, saintinfo.c, saintchips.cpp |
+| `fix.sainttexts` | Saints do what their texts say | fix | fixes.c, saintinfo.c, sainttexts.c, sainttexts.h, saintchips.cpp |
 | `fix.nightbowyer` | The bowyer sells bows at night too | fix | fixes.c |
 | `fix.confession` | Confession always takes at least an hour | fix | fixes.c |
 | `fix.appointment` | An audience promised for tomorrow is kept | fix | fixes.c |
