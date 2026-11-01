@@ -1,7 +1,8 @@
 // richtext.cpp - text with the attributes' and skills' shields in it (richtext.h): the text cut into words
 // and shields, laid out a line at a time like ImGui's own wrapped text, each shield the size of the
 // type's capitals (UI_SHIELD_W wide), its value after it; shields side by side (a group sharing one value)
-// joined by a bracket under them; a member's head ({@m}) square, the type's height. With display.coins on, an
+// joined by a bracket under them; a member's head ({@m}) square, the type's height; a roundel of what is at work
+// ({*Fire}) round, a little less; a struck shield ({~Virtue}) a red stroke over it. With display.coins on, an
 // amount in words is given its coin first (money_words). The shields and heads drawn last are kept, so that the
 // pointer on one names it.
 #include "richtext.h"
@@ -16,6 +17,14 @@
 #include <algorithm>
 #include <ctype.h>
 
+#include "effects.h"
+
+/* the roundels' names in a text ({*Fire}) and under the pointer, in the order of EI_* (ui/effects.h) */
+static const char *const EFFECT_NAME[] = { "Fire", "Armor", "Armor Quality", "Missile Armor", "Weapon Quality", "Damage", "Penetration", "Travel", "Woods Travel", "No Death", "Stays" };
+static const char *const EFFECT_SAY[] = { "Fire protection", "Armor", "Armor quality", "Armor against missiles", "Weapon quality", "Damage", "Penetration",
+                                          "Faster travel", "Faster travel in woods", "No death from wounds", "A companion's stay" };
+static_assert(sizeof EFFECT_NAME / sizeof *EFFECT_NAME == EI_STAYS + 1 && sizeof EFFECT_SAY / sizeof *EFFECT_SAY == EI_STAYS + 1, "a name for each EI_*");
+
 namespace {
 struct Atom { int key; std::string text; bool space; bool br; };   /* key -1: words; br: a line break before it */
 struct Hit { ImVec2 a, b; int key; };
@@ -26,9 +35,13 @@ int token_at(const char *s, size_t i, std::string *value, size_t *end)
     const char *e = strchr(s + i, '}');
     if (!e) return -1;
     const char *colon = (const char *)memchr(s + i, ':', (size_t)(e - (s + i)));
-    const char *ne = colon ? colon : e;
-    int key = ne == s + i + 3 && s[i + 1] == '@' && s[i + 2] >= '0' && s[i + 2] <= '4' ? RICH_MEMBER + (s[i + 2] - '0')
-                                                                                     : ui_key_of(s + i + 1, (int)(ne - (s + i + 1)));
+    const char *n = s + i + 1, *ne = colon ? colon : e;
+    int key = -1;
+    if (ne == n + 2 && n[0] == '@' && n[1] >= '0' && n[1] <= '4') key = RICH_MEMBER + (n[1] - '0');
+    else if (n < ne && n[0] == '*') {
+        for (int k = 0; k <= EI_STAYS; k++) if ((int)strlen(EFFECT_NAME[k]) == ne - n - 1 && !strncmp(EFFECT_NAME[k], n + 1, (size_t)(ne - n - 1))) key = RICH_EFFECT + k;
+    } else if (n < ne && n[0] == '~') { key = ui_key_of(n + 1, (int)(ne - n - 1)); if (key >= 0) key |= RICH_STRUCK; }
+    else key = ui_key_of(n, (int)(ne - n));
     if (key < 0) return -1;
     *value = colon ? std::string(colon + 1, e) : std::string();
     *end = (size_t)(e - s) + 1;
@@ -57,7 +70,11 @@ std::vector<Atom> atoms_of(const char *s0)
     return out;
 }
 float shield_size(float fs) { return fs * 0.66f; }
-float pic_width(float fs, int key) { return key >= RICH_MEMBER ? fs * 0.92f / 1.2f : UI_SHIELD_W * shield_size(fs); }   /* a head; a shield */
+float pic_width(float fs, int key)                                  /* a head; a roundel; a shield */
+{
+    key &= ~RICH_STRUCK;
+    return key >= RICH_EFFECT ? fs * 0.86f : key >= RICH_MEMBER ? fs * 0.92f / 1.2f : UI_SHIELD_W * shield_size(fs);
+}
 float atom_width(ImFont *f, float fs, const Atom &a)
 {
     float w = a.text.empty() ? 0 : f->CalcTextSizeA(fs, FLT_MAX, 0, a.text.c_str()).x;
@@ -99,7 +116,15 @@ std::string rich_member(int m, const std::string &value)
 {
     return "{@" + std::to_string(m) + (value.empty() ? "" : ":" + value) + "}";
 }
-std::string rich_key_name(int key) { return key >= RICH_MEMBER ? ui_member_name(key - RICH_MEMBER) : ui_key_name(key); }
+std::string rich_effect(int ei, const std::string &value)
+{
+    return ei < 0 || ei > EI_STAYS ? "" : std::string("{*") + EFFECT_NAME[ei] + (value.empty() ? "" : ":" + value) + "}";
+}
+std::string rich_key_name(int key)
+{
+    if (key & RICH_STRUCK) return std::string(ui_key_name(key & ~RICH_STRUCK)) + ": too low";
+    return key >= RICH_EFFECT ? EFFECT_SAY[key - RICH_EFFECT] : key >= RICH_MEMBER ? ui_member_name(key - RICH_MEMBER) : ui_key_name(key);
+}
 
 ImVec2 rich_size(ImFont *f, float fs, float wrap, const char *s)
 {
@@ -120,10 +145,14 @@ ImVec2 rich_draw(ImDrawList *dl, ImFont *f, float fs, ImVec2 pos, float wrap, Im
         if (a.key < 0) { dl->AddText(f, fs, p, col, a.text.c_str()); continue; }
         float sw = pic_width(fs, a.key);
         int v0 = dl->VtxBuffer.Size;
-        if (a.key >= RICH_MEMBER) ui_member_head(dl, a.key - RICH_MEMBER, ImVec2(p.x, p.y + fs * 0.04f), fs * 0.92f);
+        ImVec2 c(p.x + sw * 0.5f, p.y + fs * 0.52f);
+        int base = a.key & ~RICH_STRUCK;                          /* (struck: only a shield) */
+        if (base >= RICH_EFFECT) ui_effect_icon(dl, c, fs * 0.64f, base - RICH_EFFECT, 0);
+        else if (base >= RICH_MEMBER) ui_member_head(dl, base - RICH_MEMBER, ImVec2(p.x, p.y + fs * 0.04f), fs * 0.92f);
         else {
             extern int ui_icon_disc; int disc = ui_icon_disc; ui_icon_disc = 0;
-            ui_key_icon(dl, ImVec2(p.x + sw * 0.5f, p.y + fs * 0.52f), is, a.key);
+            if (a.key & RICH_STRUCK) ui_key_icon_struck(dl, c, is, base);
+            else ui_key_icon(dl, c, is, a.key);
             ui_icon_disc = disc;
         }
         unsigned al = (col >> IM_COL32_A_SHIFT) & 255;
@@ -154,8 +183,8 @@ std::string rich_plain(const char *s)
         std::string value; size_t end;
         int key = s[i] == '{' ? token_at(s, i, &value, &end) : -1;
         if (key < 0) { out += s[i++]; continue; }
-        const char *colon = (const char *)memchr(s + i, ':', end - i);
-        out += key >= RICH_MEMBER ? rich_key_name(key) : std::string(s + i + 1, colon ? colon : s + end - 1);   /* (the name as written) */
+        const char *colon = (const char *)memchr(s + i, ':', end - i), *n = s + i + 1 + (s[i + 1] == '~');
+        out += key >= RICH_MEMBER && !(key & RICH_STRUCK) ? rich_key_name(key) : std::string(n, colon ? colon : s + end - 1);   /* (the name as written) */
         if (!value.empty()) out += " " + value;
         i = end;
     }

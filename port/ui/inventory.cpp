@@ -547,7 +547,7 @@ void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's qual
         int size = (s16)g_rw(G_PARTY_SIZE); if (size < 0 || size > 5) size = 0;
         for (int m = 0; m < size; m++) {
             int v = (s8)g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + 9));
-            ui_rich_textf_c(v >= d->relic_virtue ? ImVec4(0.18f, 0.40f, 0.16f, 1) : ImVec4(0.62f, 0.20f, 0.12f, 1), "%s {Virtue:%d}%s", rich_member(m).c_str(), v,
+            ui_rich_textf_c(v >= d->relic_virtue ? ImVec4(0.18f, 0.40f, 0.16f, 1) : ImVec4(0.62f, 0.20f, 0.12f, 1), "%s {%sVirtue:%d}%s", rich_member(m).c_str(), v >= d->relic_virtue ? "" : "~", v,
                             v >= d->relic_virtue ? "" : weapon ? " - too little to wield it" : " - too little");
         }
         if (!relics_on()) ui_rich_textf_dim("Off: Relics as the manual has them (F12 > Settings > The party and its items).");

@@ -5,6 +5,10 @@
 //   {Edged}{Impact} +15    shields side by side share the value after them, a bracket under the group
 //   {@2} {@2:54}           a party member's head (2: the member's place in the party, 0..4), its value after it;
 //                          the member's name under the pointer (rich_member writes one)
+//   {~Virtue} {~Virtue:12} the shield struck through in red: too little of it (a saint's or a relic's Virtue)
+//   {*Fire} {*Damage:+4}   what is at work's roundel (ui_effect_icon, the margin's "Blessings and potions"): Fire,
+//                          Armor, Armor Quality, Missile Armor, Weapon Quality, Damage, Penetration, Travel, Woods
+//                          Travel, No Death, Stays; its words kept beside it, the roundel's name under the pointer
 // With display.coins on, an amount of money in words ("3 groschen", "12pfs", "2 florins") is written with its
 // coin instead of the word (money_words).
 // A name is the character sheet's (ui_key_of: "Edged Weapons" or "Edged", "Speak Latin" or "Latin",
@@ -13,11 +17,14 @@
 // (margin_tip) and ui_rich_text write takes them; tools/check_docs.py checks the names.
 #pragma once
 #include "imgui.h"
+#include "skillicons.h"
 #include <string>
 
 bool rich_has(const char *s);                                   /* the text holds a shield, a head or (coins on) an amount in words */
-enum { RICH_MEMBER = 64 };                                      /* a head's key: RICH_MEMBER + the member's place */
+enum { RICH_MEMBER = 64, RICH_EFFECT = 80, RICH_STRUCK = UI_KEY_STRUCK }; /* a head's key: RICH_MEMBER + the member's place; a roundel's
+                                                                   RICH_EFFECT + EI_*; a struck shield's its key | RICH_STRUCK */
 std::string rich_member(int m, const std::string &value = "");  /* "{@m}" or "{@m:value}" */
+std::string rich_effect(int ei, const std::string &value = ""); /* "{*Fire}" or "{*Fire:90}": EI_* (ui/effects.h) */
 std::string rich_key_name(int key);                             /* the shield's name or the member's */
 /* member m's head (the figure beside a battle: its head and shoulders), sz tall (as wide as the game's pixels
    make it: sz / 1.2) with its top left at p0 (ui/partypanel.cpp) */

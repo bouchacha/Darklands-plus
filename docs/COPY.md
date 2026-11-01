@@ -108,7 +108,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:153` | Endless thrown weapons |
 | `mods/options.c:153` | javelins, throwing axes, throwing knives and darts never run out either (one is enough to throw). When off, with the shared pack they are each member's own, listed with them like potions. |
 | `mods/options.c:154` | Relics as the manual has them |
-| `mods/options.c:154` | a relic takes Divine Favor off every prayer of its bearer, to any saint, when the bearer has the Virtue it asks (of several, the best; no prayer below 5), as the manual promised and the game never did; its two numbers are DARKLAND.LST's, which nothing read. A weapon relic counts while wielded, and only a member with its Virtue wields it; another relic counts for the member carrying it. Relics take no lasting harm (corroding water, acid, fire), and a cathedral given one of the party's relics asks which, saying what giving does. |
+| `mods/options.c:154` | a relic takes Divine Favor off every prayer of its bearer, to any saint, when the bearer has the Virtue it asks (of several, the best; no prayer below 5), as the manual promised and the game never did: a borderline fix, our good-faith reading of the manual, which speaks only of prayers to the relic's own saint and gives no numbers; the two numbers are DARKLAND.LST's, which nothing read. A weapon relic counts while wielded, and only a member with its Virtue wields it; another relic counts for the member carrying it. Relics take no lasting harm (corroding water, acid, fire), and a cathedral given one of the party's relics asks which, saying what giving does. |
 | `mods/options.c:155` | Aging during play |
 | `mods/options.c:155` | characters go on aging during play (Darklands+ only; the original ages them only during character creation): from thirty on, a little each month, more with age (by seventy, a total loss of 25 Endurance, 21 Strength and Agility each, 10 Perception and Charisma each, and 5 Intelligence). |
 | `mods/options.c:156` | Warn about permanent losses |
@@ -350,7 +350,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/optwhy.c:57` | The original's cards often change a skill, an attribute, a town's opinion or fame without a word; the change, shown. |
 | `mods/optwhy.c:58` | The player otherwise keeps notes on paper. |
 | `mods/optwhy.c:59` | A record of the journey the original does not keep. |
-| `mods/optwhy.c:60` | The manual says a relic lowers the Divine Favor a prayer to its saint costs, for a bearer of enough Virtue; the game never did it. To its own saint alone was too narrow, so here it is any prayer. Relics could be worn down like any weapon, and a cathedral took whichever relic came first, without saying what giving it does. |
+| `mods/optwhy.c:60` | The manual says a relic lowers the Divine Favor a prayer to its saint costs, for a bearer of enough Virtue; the game never did it, so this is half a fix: a good-faith reading of two sentences. To its own saint alone was too narrow, so here it is any prayer. Relics could be worn down like any weapon, and a cathedral took whichever relic came first, without saying what giving it does. |
 | `mods/optwhy.c:61` | Ingredients of one kind at two qualities were listed twice, and the quality changed nothing but the price. |
 | `mods/optwhy.c:62` | Gathering thrown weapons after each battle is busywork. |
 | `mods/optwhy.c:63` | Counting arrows and gathering javelins is bookkeeping, not play; enemies still run out. |
@@ -1201,7 +1201,6 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/inventory.cpp:542` | Wielded, it takes {Divine Favor:%d} off every prayer of the one wielding it, to any saint (none below 5). Wielding it asks {Virtue:%d}. |
 | `ui/inventory.cpp:544` | It takes {Divine Favor:%d} off every prayer of the one carrying it, to any saint (none below 5), if they have {Virtue:%d}. |
 | `ui/inventory.cpp:546` | Of several relics, the best counts. |
-| `ui/inventory.cpp:550` | %s {Virtue:%d}%s |
 | `ui/inventory.cpp:551` |  - too little to wield it |
 | `ui/inventory.cpp:551` |  - too little |
 | `ui/inventory.cpp:553` | Off: Relics as the manual has them (F12 > Settings > The party and its items). |
@@ -1563,24 +1562,24 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/nsdraw.cpp:274` | Thrown: it bursts with great force: damage 4, 6 or 8 (grade 1, 2, 3) plus up to 8 more at random, penetration 6, 7 or 8 on the target and less around it; it also wears the armor down by a quarter of the damage. |
 | `ui/nsdraw.cpp:275` | Thrown: burning pitch that no armor stops: damage 4, 6 or 8 (grade 1, 2, 3) plus up to 6 more at random, a quarter of that further off, minus a tenth of the armor's quality (and of Firewall's protection); it also wears the armor down. |
 | `ui/nsdraw.cpp:276` | Thrown: a pool of sticky sludge (up to 4 by 4 paces) that slows whoever crosses it to 1/2, 3/8 or 1/4 of their pace (grade 1, 2, 3), for a long while. |
-| `ui/nsdraw.cpp:277` | Used (P in the inventory) by a member: +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land with any weapon except an impact weapon or a flail. Damage only, not the chance to hit; |
-| `ui/nsdraw.cpp:278` | Used (P in the inventory) by a member: +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land, with any weapon: bows, guns, impact weapons and fists too. Damage only, not the chance to hit; |
-| `ui/nsdraw.cpp:279` | Used by a member: +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land with a blade or a polearm,  |
+| `ui/nsdraw.cpp:277` | Used (P in the inventory) by a member: {*Damage} +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land with any weapon except an impact weapon or a flail. Damage only, not the chance to hit; |
+| `ui/nsdraw.cpp:278` | Used (P in the inventory) by a member: {*Damage} +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land, with any weapon: bows, guns, impact weapons and fists too. Damage only, not the chance to hit; |
+| `ui/nsdraw.cpp:279` | Used by a member: {*Penetration} +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land with a blade or a polearm,  |
 | `ui/nsdraw.cpp:279` | up to 15 in all |
 | `ui/nsdraw.cpp:279` | past 15 the penetration starts again from 0 |
-| `ui/nsdraw.cpp:280` | Used by a member: +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land, with any weapon,  |
+| `ui/nsdraw.cpp:280` | Used by a member: {*Penetration} +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land, with any weapon,  |
 | `ui/nsdraw.cpp:280` | up to 15 in all |
 | `ui/nsdraw.cpp:280` | past 15 the penetration starts again from 0 (a bow's 6 + 10 hits as 0) |
-| `ui/nsdraw.cpp:281` | Used by a member: the weapon in hand counts as 14, 22 or 30 points higher in quality (grade 1, 2, 3; up to 99),  |
+| `ui/nsdraw.cpp:281` | Used by a member: {*Weapon Quality} the weapon in hand counts as 14, 22 or 30 points higher in quality (grade 1, 2, 3; up to 99),  |
 | `ui/nsdraw.cpp:281` | if it is an impact weapon, a flail or a handgun |
 | `ui/nsdraw.cpp:281` | including bows, guns and fists |
 | `ui/nsdraw.cpp:281` | , for about a day (19 to 21 hours). Each 10 points of quality add one step of damage. A second dose adds to the first. |
-| `ui/nsdraw.cpp:282` | Used by a member, on every hit they land, with any weapon: grade 1 +14 penetration; grade 2 +1 damage and +6 penetration; grade 3 +1 damage and +14 penetration.  |
+| `ui/nsdraw.cpp:282` | Used by a member, on every hit they land, with any weapon: grade 1 {*Penetration} +14 penetration; grade 2 {*Damage} +1 damage and {*Penetration} +6 penetration; grade 3 {*Damage} +1 damage and {*Penetration} +14 penetration.  |
 | `ui/nsdraw.cpp:282` | Penetration counts up to 15 in all |
 | `ui/nsdraw.cpp:282` | Penetration past 15 starts again from 0, so grades 1 and 3 lower a bow's penetration |
-| `ui/nsdraw.cpp:283` | Used by a member: +14, +22 or +30 (grade 1, 2, 3) to Bows, Thrown Weapons and Missile Devices (up to 99), for about a day (19 to 21 hours). A second dose adds to the first. |
-| `ui/nsdraw.cpp:284` | Used by a member: their armor counts 20, 25 or 30 points better in quality and 1, 2 or 2 levels thicker (grade 1, 2, 3) against every blow and shot, for about a day (19 to 21 hours). A second dose while one is active keeps the stronger. |
-| `ui/nsdraw.cpp:285` | Used by a member: +1, +2 or +3 (grade 1, 2, 3) to their armor against every hit, blow or shot, permanently; doses add up. |
+| `ui/nsdraw.cpp:283` | Used by a member: +14, +22 or +30 (grade 1, 2, 3) to {Bows}, {Thrown Weapons} and {Missile Devices} (up to 99), for about a day (19 to 21 hours). A second dose adds to the first. |
+| `ui/nsdraw.cpp:284` | Used by a member: {*Armor} their armor counts 20, 25 or 30 points better in quality and 1, 2 or 2 levels thicker (grade 1, 2, 3) against every blow and shot, for about a day (19 to 21 hours). A second dose while one is active keeps the stronger. |
+| `ui/nsdraw.cpp:285` | Used by a member: {*Armor} +1, +2 or +3 (grade 1, 2, 3) to their armor against every hit, blow or shot, permanently; doses add up. |
 | `ui/nsdraw.cpp:286` | Drinking it yields just one florin: it is meant for cards, where an encounter asks for it (to purify, or to make gold). |
 | `ui/nsdraw.cpp:289` | 9-14, 15-21 or 22-29 |
 | `ui/nsdraw.cpp:289` | 6-11, 8-13 or 10-15 |
@@ -1593,9 +1592,9 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/nsdraw.cpp:293` | When it wears off, what it added is lost. |
 | `ui/nsdraw.cpp:294` |  A second dose while the first is active adds only what goes beyond it. |
 | `ui/nsdraw.cpp:296` | Drunk: permanently heals 50, 70 or 90% of the {Strength} lost to wounds (grade 1, 2, 3), and raises {Endurance} by 9-14, 15-21 or 22-29 for about 30 hours. |
-| `ui/nsdraw.cpp:298` | Drunk: protection against fire for about a day (19 to 21 hours): Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3). A second dose keeps the stronger. |
-| `ui/nsdraw.cpp:299` | Drunk: permanent protection against fire: Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3). |
-| `ui/nsdraw.cpp:299` |  It also adds 16 to the armor permanently. |
+| `ui/nsdraw.cpp:298` | Drunk: {*Fire} protection against fire for about a day (19 to 21 hours): Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3). A second dose keeps the stronger. |
+| `ui/nsdraw.cpp:299` | Drunk: {*Fire} permanent protection against fire: Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3). |
+| `ui/nsdraw.cpp:299` |  It also adds {*Armor} 16 to the armor permanently. |
 | `ui/nsdraw.cpp:315` |  when equipped |
 | `ui/nsdraw.cpp:340` | a light load: no hindrance |
 | `ui/nsdraw.cpp:340` | a normal load: blows hand to hand a fifth slower |
@@ -1864,7 +1863,20 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/report.cpp:225` | Make a report and open the form |
 | `ui/report.cpp:230` | Show the zip |
 | `ui/report.cpp:232` | Open the form again |
-| `ui/richtext.cpp:169` | Missile Devices |
+| `ui/richtext.cpp:23` | Armor Quality |
+| `ui/richtext.cpp:23` | Missile Armor |
+| `ui/richtext.cpp:23` | Weapon Quality |
+| `ui/richtext.cpp:23` | Woods Travel |
+| `ui/richtext.cpp:24` | Fire protection |
+| `ui/richtext.cpp:24` | Armor quality |
+| `ui/richtext.cpp:24` | Armor against missiles |
+| `ui/richtext.cpp:24` | Weapon quality |
+| `ui/richtext.cpp:25` | Faster travel |
+| `ui/richtext.cpp:25` | Faster travel in woods |
+| `ui/richtext.cpp:25` | No death from wounds |
+| `ui/richtext.cpp:25` | A companion's stay |
+| `ui/richtext.cpp:26` | a name for each EI_* |
+| `ui/richtext.cpp:198` | Missile Devices |
 | `ui/rosterview.cpp:33` |  Add to the Party |
 | `ui/rosterview.cpp:67` | Who travels on |
 | `ui/rosterview.cpp:68` | Up to four travel together. Those who stay behind are kept here and can join again; new characters can join too. |
@@ -2195,118 +2207,120 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/sheetview.cpp:585` | The party's pack |
 | `ui/sheetview.cpp:604` | Click to show them. |
 | `ui/sheetview.cpp:604` | Click to fold them away. |
-| `ui/sheetview.cpp:660` | %s has {Virtue:%d}, less than the {Virtue:%d} this relic asks: %s |
-| `ui/sheetview.cpp:661` | it cannot be wielded, and does nothing for their prayers. |
-| `ui/sheetview.cpp:661` | it does nothing for their prayers. |
-| `ui/sheetview.cpp:681` | Wielding it asks {Virtue:%d}. |
-| `ui/sheetview.cpp:692` | Kept from selling and dropping (Sell spare gear skips it). Click to stop keeping it. |
-| `ui/sheetview.cpp:693` | Kept from selling and dropping (Sell spare gear skips it). Click to mark it to sell instead. |
-| `ui/sheetview.cpp:694` | Marked to sell: Sell spare gear in a shop sells it with the spare weapons and armor. Click to clear the mark. |
-| `ui/sheetview.cpp:695` | Keep it: Darklands+ will not sell it (one by one or with Sell spare gear) or drop it until you click again. |
-| `ui/sheetview.cpp:728` | ; hold Shift for one) |
-| `ui/sheetview.cpp:729` | : the party's pack is everyone's already |
-| `ui/sheetview.cpp:730` | : drop it on a member at the left (hold Shift: just one) |
-| `ui/sheetview.cpp:730` | : drop it on a member at the left |
-| `ui/sheetview.cpp:798` | : Virtue too low for this saint |
+| `ui/sheetview.cpp:659` | %s has {Virtue:%d}, less than the {Virtue:%d} this relic asks: %s |
+| `ui/sheetview.cpp:660` | it cannot be wielded, and does nothing for their prayers. |
+| `ui/sheetview.cpp:660` | it does nothing for their prayers. |
+| `ui/sheetview.cpp:680` | Wielding it asks {Virtue:%d}. |
+| `ui/sheetview.cpp:691` | Kept from selling and dropping (Sell spare gear skips it). Click to stop keeping it. |
+| `ui/sheetview.cpp:692` | Kept from selling and dropping (Sell spare gear skips it). Click to mark it to sell instead. |
+| `ui/sheetview.cpp:693` | Marked to sell: Sell spare gear in a shop sells it with the spare weapons and armor. Click to clear the mark. |
+| `ui/sheetview.cpp:694` | Keep it: Darklands+ will not sell it (one by one or with Sell spare gear) or drop it until you click again. |
+| `ui/sheetview.cpp:727` | ; hold Shift for one) |
+| `ui/sheetview.cpp:728` | : the party's pack is everyone's already |
+| `ui/sheetview.cpp:729` | : drop it on a member at the left (hold Shift: just one) |
+| `ui/sheetview.cpp:729` | : drop it on a member at the left |
+| `ui/sheetview.cpp:797` | : Virtue too low for this saint |
 | `ui/sheetview.cpp:821` | half its maximum |
 | `ui/sheetview.cpp:825` | half its maximum |
-| `ui/sheetview.cpp:835` | faster travel |
-| `ui/sheetview.cpp:835` | ire protection |
-| `ui/sheetview.cpp:835` | better armor |
-| `ui/sheetview.cpp:836` | better in quality |
-| `ui/sheetview.cpp:836` | better weapons |
-| `ui/sheetview.cpp:836` | walks on water |
-| `ui/sheetview.cpp:837` | a long sword |
-| `ui/sheetview.cpp:837` | Costs a point |
-| `ui/sheetview.cpp:837` | costs Strength, Virtue |
-| `ui/sheetview.cpp:837` | musical instrument |
-| `ui/sheetview.cpp:837` | with music: the town's opinion |
-| `ui/sheetview.cpp:838` | nearest town |
-| `ui/sheetview.cpp:838` | carried to a town |
-| `ui/sheetview.cpp:838` | a little money |
-| `ui/sheetview.cpp:838` | teaches a saint |
-| `ui/sheetview.cpp:839` | Virtue is raised |
-| `ui/sheetview.cpp:839` | Virtue 20 at least, a quarter of the money |
-| `ui/sheetview.cpp:839` | No help of its own |
-| `ui/sheetview.cpp:839` | encounters only |
-| `ui/sheetview.cpp:839` | the bankers' favor |
-| `ui/sheetview.cpp:840` | death from wounds |
-| `ui/sheetview.cpp:840` | no death from wounds |
-| `ui/sheetview.cpp:840` | loses a tenth |
-| `ui/sheetview.cpp:840` | may cost money |
-| `ui/sheetview.cpp:840` | loses 3 to 8 |
-| `ui/sheetview.cpp:840` | may cost Endurance |
-| `ui/sheetview.cpp:841` | costs something |
-| `ui/sheetview.cpp:857` | (all\|half the\|[0-9]+%\|[0-9]+ to [0-9]+)( of)?( lost)? (Endurance\|Strength)( and (Endurance\|Strength))? |
-| `ui/sheetview.cpp:858` | ^(.*?)\\s*(\\+[0-9]+( to [0-9]+)?\|lowered by ([0-9]+ to [0-9]+\|half its maximum))(.*)$ |
-| `ui/sheetview.cpp:859` | by ([0-9]+ to [0-9]+) |
-| `ui/sheetview.cpp:872` | (Endurance\|Strength)( and (Endurance\|Strength))? below [0-9]+ (is\|are) raised to ([0-9]+) |
-| `ui/sheetview.cpp:877` | ^Costs ([0-9]+ to [0-9]+) (Endurance\|Strength) |
-| `ui/sheetview.cpp:893` | Every member's  |
-| `ui/sheetview.cpp:898` | Streetwise and Woodwise each +1 to 4 |
-| `ui/sheetview.cpp:903` | worn body and leg armor |
-| `ui/sheetview.cpp:903` | it gives the one prayed for armor |
-| `ui/sheetview.cpp:917` | weapons in hand |
-| `ui/sheetview.cpp:918` | weapon skill |
-| `ui/sheetview.cpp:936` | {Charisma} +6 to 11 |
-| `ui/sheetview.cpp:975` | \\}(, and \|, \| and )\\{ |
-| `ui/sheetview.cpp:975` | ^((?:\\{[^{}:]+\\})+) (\\+[0-9]+(?: to [0-9]+)?)$ |
-| `ui/sheetview.cpp:1167` | Known by the party |
-| `ui/sheetview.cpp:1184` | Every saint in the game |
-| `ui/sheetview.cpp:1198` | Or what it raises: |
-| `ui/sheetview.cpp:1198` | Or what it raises: |
-| `ui/sheetview.cpp:1212` | %s: the %d saint%s whose help %s it, the most first%s |
-| `ui/sheetview.cpp:1212` | The town's opinion of the party (its reputation) |
-| `ui/sheetview.cpp:1213` | raises or heals |
-| `ui/sheetview.cpp:1213` |  (click again for all) |
-| `ui/sheetview.cpp:1239` | No saint helps with that. |
-| `ui/sheetview.cpp:1239` | Nobody in the party knows a saint that helps with that. (Every saint in the game shows the others too.) |
-| `ui/sheetview.cpp:1278` | This saint asks a {Virtue} of %d of the one who prays%s. Each member's {Virtue}: %s |
-| `ui/sheetview.cpp:1278` | , more than anyone in the party has |
-| `ui/sheetview.cpp:1304` | No library the party has been to teaches this saint. |
-| `ui/sheetview.cpp:1306` | Taught in the library of  |
-| `ui/sheetview.cpp:1329` | Nobody in the party knows this saint. |
-| `ui/sheetview.cpp:1333` | Asks a {Virtue} of %d. |
-| `ui/sheetview.cpp:1333` | Asks a {Virtue} of %d: too low for %s to call on this saint. |
-| `ui/sheetview.cpp:1348` | {Virtue} too low |
-| `ui/sheetview.cpp:1348` | This saint asks a {Virtue} of %d: no prayer is heard below it. |
-| `ui/sheetview.cpp:1350` | {Divine Favor:%d} needed for a 99%% chance |
-| `ui/sheetview.cpp:1351` | The least Divine Favor that gives the best chance of being heard (of the %d they have): more is spent for nothing. The prayer screen sets the favor. |
-| `ui/sheetview.cpp:1354` | All their Divine Favor gives this chance; a 99%% chance takes {Divine Favor:%d}. The prayer screen sets the favor. |
-| `ui/sheetview.cpp:1355` | All their Divine Favor gives this chance. The prayer screen sets the favor. |
-| `ui/sheetview.cpp:1357` | {Divine Favor:%d} needed at least, has %d |
-| `ui/sheetview.cpp:1358` | This saint hears no prayer of less than %d Divine Favor. |
-| `ui/sheetview.cpp:1362` |  With the %s, it costs them {Divine Favor:%d} less (counted here). |
-| `ui/sheetview.cpp:1367` | Call on this saint now: the prayer screen, where you choose how much Divine Favor to spend. |
-| `ui/sheetview.cpp:1374` | Differs from the description:  |
-| `ui/sheetview.cpp:1412` | The party has none. |
-| `ui/sheetview.cpp:1413` | The party has %d. |
-| `ui/sheetview.cpp:1414` | The party has %d: %s |
-| `ui/sheetview.cpp:1416` | Where to buy: %s |
-| `ui/sheetview.cpp:1440` | Every formula in the game |
-| `ui/sheetview.cpp:1454` | Nobody in the party knows a formula. Every formula in the game shows them all, their ingredients and where they are sold. |
-| `ui/sheetview.cpp:1496` | The party's ingredients |
-| `ui/sheetview.cpp:1526` | Mystic number %d, %s. |
-| `ui/sheetview.cpp:1526` | risk unknown |
-| `ui/sheetview.cpp:1529` | The mystic number: the higher, the harder the formula is to brew (set against the alchemist's {Alchemy} and {Intelligence}). The risk: how badly a failed brew can go wrong. |
-| `ui/sheetview.cpp:1534` | Ingredients: the party has / needed |
-| `ui/sheetview.cpp:1545` | Enough ingredients to make %d potion%s. |
-| `ui/sheetview.cpp:1546` | The party lacks an ingredient: brewing must wait. |
-| `ui/sheetview.cpp:1546` | The party lacks an ingredient. |
-| `ui/sheetview.cpp:1548` | Chance of brewing one batch |
-| `ui/sheetview.cpp:1558` | Nobody in the party knows it. |
-| `ui/sheetview.cpp:1561` | No alchemist sells it: it is traded for or found. |
-| `ui/sheetview.cpp:1562` | No alchemist the party has been to sells it. |
-| `ui/sheetview.cpp:1567` | Sold by the alchemist of  |
-| `ui/skillicons.cpp:455` | Missile Device |
-| `ui/skillicons.cpp:455` | Missile Weapons |
-| `ui/skillicons.cpp:456` | Edged Weapon |
-| `ui/skillicons.cpp:456` | Impact Weapon |
-| `ui/skillicons.cpp:456` | Thrown Weapon |
-| `ui/skillicons.cpp:590` | Frames and clock |
-| `ui/skillicons.cpp:594` | Cards and towns |
-| `ui/skillicons.cpp:599` | The party and its items |
-| `ui/skillicons.cpp:615` | Fixes for bugs of the original |
+| `ui/sheetview.cpp:839` | does nothing |
+| `ui/sheetview.cpp:839` | No invulnerability from fire protection |
+| `ui/sheetview.cpp:841` | fire protection |
+| `ui/sheetview.cpp:842` | death from wounds |
+| `ui/sheetview.cpp:860` | ([0-9]+) points better |
+| `ui/sheetview.cpp:867` | does nothing |
+| `ui/sheetview.cpp:867` | does nothing |
+| `ui/sheetview.cpp:867` | walks on water |
+| `ui/sheetview.cpp:868` | a long sword |
+| `ui/sheetview.cpp:868` | Costs a point |
+| `ui/sheetview.cpp:868` | costs Strength, Virtue |
+| `ui/sheetview.cpp:868` | musical instrument |
+| `ui/sheetview.cpp:868` | with music: the town's opinion |
+| `ui/sheetview.cpp:869` | nearest town |
+| `ui/sheetview.cpp:869` | carried to a town |
+| `ui/sheetview.cpp:869` | a little money |
+| `ui/sheetview.cpp:869` | teaches a saint |
+| `ui/sheetview.cpp:870` | Virtue is raised |
+| `ui/sheetview.cpp:870` | Virtue 20 at least, a quarter of the money |
+| `ui/sheetview.cpp:870` | No help of its own |
+| `ui/sheetview.cpp:870` | encounters only |
+| `ui/sheetview.cpp:870` | the bankers' favor |
+| `ui/sheetview.cpp:871` | loses a tenth |
+| `ui/sheetview.cpp:871` | may cost money |
+| `ui/sheetview.cpp:871` | loses 3 to 8 |
+| `ui/sheetview.cpp:871` | may cost Endurance |
+| `ui/sheetview.cpp:872` | costs something |
+| `ui/sheetview.cpp:888` | (all\|half the\|[0-9]+%\|[0-9]+ to [0-9]+)( of)?( lost)? (Endurance\|Strength)( and (Endurance\|Strength))? |
+| `ui/sheetview.cpp:889` | ^(.*?)\\s*(\\+[0-9]+( to [0-9]+)?\|lowered by ([0-9]+ to [0-9]+\|half its maximum))(.*)$ |
+| `ui/sheetview.cpp:890` | by ([0-9]+ to [0-9]+) |
+| `ui/sheetview.cpp:903` | (Endurance\|Strength)( and (Endurance\|Strength))? below [0-9]+ (is\|are) raised to ([0-9]+) |
+| `ui/sheetview.cpp:908` | ^Costs ([0-9]+ to [0-9]+) (Endurance\|Strength) |
+| `ui/sheetview.cpp:924` | Every member's  |
+| `ui/sheetview.cpp:929` | Streetwise and Woodwise each +1 to 4 |
+| `ui/sheetview.cpp:934` | worn body and leg armor |
+| `ui/sheetview.cpp:934` | it gives the one prayed for armor |
+| `ui/sheetview.cpp:953` | weapons in hand |
+| `ui/sheetview.cpp:954` | weapon skill |
+| `ui/sheetview.cpp:977` | {Charisma} +6 to 11 |
+| `ui/sheetview.cpp:1021` | \\}(, and \|, \| and )\\{ |
+| `ui/sheetview.cpp:1021` | ^((?:\\{[^{}:]+\\})+) (\\+[0-9]+(?: to [0-9]+)?)$ |
+| `ui/sheetview.cpp:1218` | Known by the party |
+| `ui/sheetview.cpp:1235` | Every saint in the game |
+| `ui/sheetview.cpp:1249` | Or what it raises: |
+| `ui/sheetview.cpp:1249` | Or what it raises: |
+| `ui/sheetview.cpp:1263` | %s: the %d saint%s whose help %s it, the most first%s |
+| `ui/sheetview.cpp:1263` | The town's opinion of the party (its reputation) |
+| `ui/sheetview.cpp:1264` | raises or heals |
+| `ui/sheetview.cpp:1264` |  (click again for all) |
+| `ui/sheetview.cpp:1290` | No saint helps with that. |
+| `ui/sheetview.cpp:1290` | Nobody in the party knows a saint that helps with that. (Every saint in the game shows the others too.) |
+| `ui/sheetview.cpp:1330` | This saint asks a {Virtue} of %d of the one who prays%s. Each member's {Virtue}: %s |
+| `ui/sheetview.cpp:1331` | , more than anyone who knows it has |
+| `ui/sheetview.cpp:1331` | , more than anyone in the party has |
+| `ui/sheetview.cpp:1357` | No library the party has been to teaches this saint. |
+| `ui/sheetview.cpp:1359` | Taught in the library of  |
+| `ui/sheetview.cpp:1382` | Nobody in the party knows this saint. |
+| `ui/sheetview.cpp:1391` | Asks a {%s} of %d%s. |
+| `ui/sheetview.cpp:1391` | Asks a {%s} of %d: too low for %s to call on this saint. |
+| `ui/sheetview.cpp:1392` | , more than anyone in the party has |
+| `ui/sheetview.cpp:1407` | {~Virtue:%d} too low (it asks %d) |
+| `ui/sheetview.cpp:1407` | This saint asks a {Virtue} of %d: no prayer is heard below it. |
+| `ui/sheetview.cpp:1409` | {Divine Favor:%d} needed for a 99%% chance |
+| `ui/sheetview.cpp:1410` | The least Divine Favor that gives the best chance of being heard (of the %d they have): more is spent for nothing. The prayer screen sets the favor. |
+| `ui/sheetview.cpp:1413` | All their Divine Favor gives this chance; a 99%% chance takes {Divine Favor:%d}. The prayer screen sets the favor. |
+| `ui/sheetview.cpp:1414` | All their Divine Favor gives this chance. The prayer screen sets the favor. |
+| `ui/sheetview.cpp:1416` | {Divine Favor:%d} needed at least, has %d |
+| `ui/sheetview.cpp:1417` | This saint hears no prayer of less than %d Divine Favor. |
+| `ui/sheetview.cpp:1421` |  With the %s, it costs them {Divine Favor:%d} less (counted here). |
+| `ui/sheetview.cpp:1426` | Call on this saint now: the prayer screen, where you choose how much Divine Favor to spend. |
+| `ui/sheetview.cpp:1433` | Differs from the description:  |
+| `ui/sheetview.cpp:1471` | The party has none. |
+| `ui/sheetview.cpp:1472` | The party has %d. |
+| `ui/sheetview.cpp:1473` | The party has %d: %s |
+| `ui/sheetview.cpp:1475` | Where to buy: %s |
+| `ui/sheetview.cpp:1499` | Every formula in the game |
+| `ui/sheetview.cpp:1513` | Nobody in the party knows a formula. Every formula in the game shows them all, their ingredients and where they are sold. |
+| `ui/sheetview.cpp:1555` | The party's ingredients |
+| `ui/sheetview.cpp:1585` | Mystic number %d, %s. |
+| `ui/sheetview.cpp:1585` | risk unknown |
+| `ui/sheetview.cpp:1588` | The mystic number: the higher, the harder the formula is to brew (set against the alchemist's {Alchemy} and {Intelligence}). The risk: how badly a failed brew can go wrong. |
+| `ui/sheetview.cpp:1593` | Ingredients: the party has / needed |
+| `ui/sheetview.cpp:1604` | Enough ingredients to make %d potion%s. |
+| `ui/sheetview.cpp:1605` | The party lacks an ingredient: brewing must wait. |
+| `ui/sheetview.cpp:1605` | The party lacks an ingredient. |
+| `ui/sheetview.cpp:1607` | Chance of brewing one batch |
+| `ui/sheetview.cpp:1617` | Nobody in the party knows it. |
+| `ui/sheetview.cpp:1620` | No alchemist sells it: it is traded for or found. |
+| `ui/sheetview.cpp:1621` | No alchemist the party has been to sells it. |
+| `ui/sheetview.cpp:1626` | Sold by the alchemist of  |
+| `ui/skillicons.cpp:460` | Missile Device |
+| `ui/skillicons.cpp:460` | Missile Weapons |
+| `ui/skillicons.cpp:461` | Edged Weapon |
+| `ui/skillicons.cpp:461` | Impact Weapon |
+| `ui/skillicons.cpp:461` | Thrown Weapon |
+| `ui/skillicons.cpp:596` | Frames and clock |
+| `ui/skillicons.cpp:600` | Cards and towns |
+| `ui/skillicons.cpp:605` | The party and its items |
+| `ui/skillicons.cpp:621` | Fixes for bugs of the original |
 | `ui/teachersui.cpp:47` | Missile Devices |
 | `ui/teachersui.cpp:48` | Speak Common |
 | `ui/teachersui.cpp:48` | Read & Write |

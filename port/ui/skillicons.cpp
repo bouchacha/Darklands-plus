@@ -442,6 +442,11 @@ void ui_key_icon(ImDrawList *dl, ImVec2 c, float s, int key)
     else if (key < UI_KEY_AGE) ui_standing_icon(dl, c, s, key - UI_KEY_REP);
     else if (key == UI_KEY_AGE) ui_age_icon(dl, c, s);
 }
+void ui_key_icon_struck(ImDrawList *dl, ImVec2 c, float s, int key)
+{
+    ui_key_icon(dl, c, s, key);
+    dl->AddLine(ImVec2(c.x - s * 0.75f, c.y + s * 0.85f), ImVec2(c.x + s * 0.75f, c.y - s * 0.85f), IM_COL32(176, 28, 18, 255), fmaxf(1.2f, s * 0.18f));
+}
 const char *ui_key_name(int key)
 {
     return key >= 0 && key < UI_KEY_SKILL ? gm_attr_name(key) : key < UI_KEY_REP ? gm_skill_name(key - UI_KEY_SKILL) : key == UI_KEY_REP ? "Reputation" : key == UI_KEY_FAME ? "Fame" : key == UI_KEY_AGE ? "Age" : "?";
@@ -461,7 +466,8 @@ float ui_shield_value(ImDrawList *dl, ImVec2 left_mid, float s, int key, const c
 {
     float sw = UI_SHIELD_W * s;
     extern int ui_icon_disc; int disc = ui_icon_disc; ui_icon_disc = 0;
-    ui_key_icon(dl, ImVec2(left_mid.x + sw * 0.5f, left_mid.y), s, key);
+    if (key & UI_KEY_STRUCK) ui_key_icon_struck(dl, ImVec2(left_mid.x + sw * 0.5f, left_mid.y), s, key & ~UI_KEY_STRUCK);
+    else ui_key_icon(dl, ImVec2(left_mid.x + sw * 0.5f, left_mid.y), s, key);
     ui_icon_disc = disc;
     if (!value || !*value) return sw;
     float gap = s * 0.2f;

@@ -274,15 +274,15 @@ std::string ns_potion_effect(int id)
     case 102: return "Thrown: it bursts with great force: damage 4, 6 or 8 (grade 1, 2, 3) plus up to 8 more at random, penetration 6, 7 or 8 on the target and less around it; it also wears the armor down by a quarter of the damage.";
     case 103: return "Thrown: burning pitch that no armor stops: damage 4, 6 or 8 (grade 1, 2, 3) plus up to 6 more at random, a quarter of that further off, minus a tenth of the armor's quality (and of Firewall's protection); it also wears the armor down.";
     case 104: return "Thrown: a pool of sticky sludge (up to 4 by 4 paces) that slows whoever crosses it to 1/2, 3/8 or 1/4 of their pace (grade 1, 2, 3), for a long while.";
-    case 105: if (fix_is_on("oilweapons")) return std::string("Used (P in the inventory) by a member: +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land with any weapon except an impact weapon or a flail. Damage only, not the chance to hit;") + day;
-              return "Used (P in the inventory) by a member: +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land, with any weapon: bows, guns, impact weapons and fists too. Damage only, not the chance to hit;" + day;
-    case 106: if (fix_is_on("oilweapons")) return "Used by a member: +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land with a blade or a polearm, " + std::string(fixed ? "up to 15 in all" : "past 15 the penetration starts again from 0") + ";" + day;
-              return "Used by a member: +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land, with any weapon, " + std::string(fixed ? "up to 15 in all" : "past 15 the penetration starts again from 0 (a bow's 6 + 10 hits as 0)") + ";" + day;
-    case 107: if (fix_is_on("greatpower")) return std::string("Used by a member: the weapon in hand counts as 14, 22 or 30 points higher in quality (grade 1, 2, 3; up to 99), ") + (fix_is_on("oilweapons") ? "if it is an impact weapon, a flail or a handgun" : "including bows, guns and fists") + ", for about a day (19 to 21 hours). Each 10 points of quality add one step of damage. A second dose adds to the first.";
-              return "Used by a member, on every hit they land, with any weapon: grade 1 +14 penetration; grade 2 +1 damage and +6 penetration; grade 3 +1 damage and +14 penetration. " + std::string(fixed ? "Penetration counts up to 15 in all" : "Penetration past 15 starts again from 0, so grades 1 and 3 lower a bow's penetration") + ";" + day;
-    case 108: return "Used by a member: +14, +22 or +30 (grade 1, 2, 3) to Bows, Thrown Weapons and Missile Devices (up to 99), for about a day (19 to 21 hours). A second dose adds to the first.";
-    case 109: if (fix_is_on("armorday")) return "Used by a member: their armor counts 20, 25 or 30 points better in quality and 1, 2 or 2 levels thicker (grade 1, 2, 3) against every blow and shot, for about a day (19 to 21 hours). A second dose while one is active keeps the stronger.";
-              return "Used by a member: +1, +2 or +3 (grade 1, 2, 3) to their armor against every hit, blow or shot, permanently; doses add up.";
+    case 105: if (fix_is_on("oilweapons")) return std::string("Used (P in the inventory) by a member: {*Damage} +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land with any weapon except an impact weapon or a flail. Damage only, not the chance to hit;") + day;
+              return "Used (P in the inventory) by a member: {*Damage} +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land, with any weapon: bows, guns, impact weapons and fists too. Damage only, not the chance to hit;" + day;
+    case 106: if (fix_is_on("oilweapons")) return "Used by a member: {*Penetration} +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land with a blade or a polearm, " + std::string(fixed ? "up to 15 in all" : "past 15 the penetration starts again from 0") + ";" + day;
+              return "Used by a member: {*Penetration} +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land, with any weapon, " + std::string(fixed ? "up to 15 in all" : "past 15 the penetration starts again from 0 (a bow's 6 + 10 hits as 0)") + ";" + day;
+    case 107: if (fix_is_on("greatpower")) return std::string("Used by a member: {*Weapon Quality} the weapon in hand counts as 14, 22 or 30 points higher in quality (grade 1, 2, 3; up to 99), ") + (fix_is_on("oilweapons") ? "if it is an impact weapon, a flail or a handgun" : "including bows, guns and fists") + ", for about a day (19 to 21 hours). Each 10 points of quality add one step of damage. A second dose adds to the first.";
+              return "Used by a member, on every hit they land, with any weapon: grade 1 {*Penetration} +14 penetration; grade 2 {*Damage} +1 damage and {*Penetration} +6 penetration; grade 3 {*Damage} +1 damage and {*Penetration} +14 penetration. " + std::string(fixed ? "Penetration counts up to 15 in all" : "Penetration past 15 starts again from 0, so grades 1 and 3 lower a bow's penetration") + ";" + day;
+    case 108: return "Used by a member: +14, +22 or +30 (grade 1, 2, 3) to {Bows}, {Thrown Weapons} and {Missile Devices} (up to 99), for about a day (19 to 21 hours). A second dose adds to the first.";
+    case 109: if (fix_is_on("armorday")) return "Used by a member: {*Armor} their armor counts 20, 25 or 30 points better in quality and 1, 2 or 2 levels thicker (grade 1, 2, 3) against every blow and shot, for about a day (19 to 21 hours). A second dose while one is active keeps the stronger.";
+              return "Used by a member: {*Armor} +1, +2 or +3 (grade 1, 2, 3) to their armor against every hit, blow or shot, permanently; doses add up.";
     case 110: return "Drinking it yields just one florin: it is meant for cards, where an encounter asks for it (to purify, or to make gold).";
     case 111: case 112: case 113: case 114: {
         static const char *const ATT[4] = { "{Perception}", "{Endurance}", "{Strength}", "{Agility}" };
@@ -295,8 +295,8 @@ std::string ns_potion_effect(int id)
     }
     case 115: return "Drunk: permanently heals 50, 70 or 90% of the {Strength} lost to wounds (grade 1, 2, 3), and raises {Endurance} by 9-14, 15-21 or 22-29 for about 30 hours.";
     case 116: {
-        if (fix_is_on("armorday")) return "Drunk: protection against fire for about a day (19 to 21 hours): Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3). A second dose keeps the stronger.";
-        return std::string("Drunk: permanent protection against fire: Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3).") + (fix_is_on("fireward") ? "" : " It also adds 16 to the armor permanently."); }
+        if (fix_is_on("armorday")) return "Drunk: {*Fire} protection against fire for about a day (19 to 21 hours): Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3). A second dose keeps the stronger.";
+        return std::string("Drunk: {*Fire} permanent protection against fire: Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3).") + (fix_is_on("fireward") ? "" : " It also adds {*Armor} 16 to the armor permanently."); }
     }
     return "";
 }

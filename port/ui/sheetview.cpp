@@ -653,8 +653,7 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
             float ix = qend + 3.6f;
             ImVec2 c = NsDraw::w(ix, y + ROWH * 0.5f);
             float is = 3.0f * P.k;
-            ui_key_icon(P.dl, c, is, UI_KEY_SKILL + SKILL_VIRTUE);
-            P.dl->AddLine(ImVec2(c.x - is * 0.75f, c.y + is * 0.85f), ImVec2(c.x + is * 0.75f, c.y - is * 0.85f), IM_COL32(176, 28, 18, 255), fmaxf(1.2f, 0.55f * P.k));
+            ui_key_icon_struck(P.dl, c, is, UI_KEY_SKILL + SKILL_VIRTUE);
             if (P.over(ix - 2.6f, y, ix + 2.6f, y + ROWH)) {
                 char t[260]; int v = relic_member_virtue(s.who);
                 snprintf(t, sizeof t, "%s has {Virtue:%d}, less than the {Virtue:%d} this relic asks: %s", ns_gtext(s.names[s.who]).c_str(), v, d->relic_virtue,
@@ -817,6 +816,7 @@ struct SaintChip {
     int kind, key; std::string val; bool bad; std::string part;
     bool raw = false;                                         /* words the parse did not know (usaintchips) */
     float mag = 0; int tier = 0;                              /* how much (chip_mag); 1..3 against the other saints */
+    int icon = -1;                                            /* words for what is at work, as its roundel (EI_*: the margin's, the potions'), val short */
 };
 static std::string span_of(const std::string &t)            /* "6 to 11" -> "6–11"; "half its maximum" -> "half" */
 {
@@ -831,13 +831,44 @@ static int saint_key_of(const std::string &name)             /* an attribute (0.
     for (int k = 0; k < 19; k++) if (name == SAINT_SKILL_WORD[k]) return 7 + k;
     return -1;
 }
+/* what is at work that a saint's sentence names (lower case), as roundels (ui/effects.h EI_*, as the margin's "Blessings and potions"
+   and the potions' accounts show it): up to two (the weapon and the armor); how many */
+static int saint_effect_icons(const std::string &low, int ic[2])
+{
+    int n = 0;
+    if (low.find("does nothing") != std::string::npos) return 0;   /* (Fire protection with the fix "No invulnerability from fire protection") */
+    if (low.find("travels") != std::string::npos) ic[n++] = low.find("woods") != std::string::npos ? EI_TRAVEL_WOODS : EI_TRAVEL;
+    else if (low.find("fire protection") != std::string::npos) ic[n++] = EI_FIRE;
+    else if (low.find("death from wounds") != std::string::npos) ic[n++] = EI_NO_DEATH;
+    else if (low.find("quality") != std::string::npos) {
+        if (low.find("weapon") != std::string::npos || low.find("blades") != std::string::npos) ic[n++] = EI_WEAPON_Q;
+        if (low.find("armor") != std::string::npos) ic[n++] = EI_ARMOR_Q;
+    } else if (low.find("armor +") != std::string::npos || (low.find("armor") != std::string::npos && low.find("thicker") != std::string::npos))
+        ic[n++] = low.find("missiles") != std::string::npos ? EI_MISSILE_ARMOR : EI_ARMOR;
+    return n;
+}
+/* the roundel's value, short as the margin has it: "x2" (travel), "50/90" (fire), "+10q" (quality); "" none */
+static std::string saint_effect_value(int ei, const std::string &st)
+{
+    std::smatch m;
+    if (ei == EI_TRAVEL || ei == EI_TRAVEL_WOODS) return st.find("twice") != std::string::npos ? "x2" : st.find("half again") != std::string::npos ? "x1.5" : "";
+    if (ei == EI_FIRE) {
+        std::string v; static const std::regex num("[0-9]+");
+        for (std::sregex_iterator it(st.begin(), st.end(), num), end; it != end; ++it) v += (v.empty() ? "" : "/") + it->str();
+        return v;
+    }
+    static const std::regex better("([0-9]+) points better"), plus("\\+([0-9]+)");
+    if ((ei == EI_ARMOR_Q || ei == EI_WEAPON_Q) && std::regex_search(st, m, better)) return "+" + m[1].str() + "q";
+    if ((ei == EI_ARMOR_Q || ei == EI_ARMOR || ei == EI_MISSILE_ARMOR) && std::regex_search(st, m, plus)) return "+" + m[1].str() + (ei == EI_ARMOR_Q ? "q" : "");
+    if (ei == EI_ARMOR || ei == EI_MISSILE_ARMOR) return st.find("one level") != std::string::npos ? "+1" : st.find("two levels") != std::string::npos ? "+2" : "";
+    return "";
+}
 static const struct { const char *has, *say; bool bad; } SAINT_WORDS[] = {
-    { "travels", "faster travel", false }, { "ire protection", "fire ward", false }, { "armor", "better armor", false },
-    { "better in quality", "better weapons", false }, { "cross water", "walks on water", false }, { "ambush", "no ambush", false },
+    { "does nothing", "does nothing", false }, { "cross water", "walks on water", false }, { "ambush", "no ambush", false },
     { "long sword", "a long sword", false }, { "Costs a point", "costs Strength, Virtue", true }, { "musical instrument", "with music: the town's opinion", false },
     { "nearest town", "carried to a town", false }, { "groschen", "a little money", false }, { "Teaches", "teaches a saint", false },
     { "Virtue is raised", "Virtue 20 at least, a quarter of the money", false }, { "No help of its own", "encounters only", false }, { "Fugger", "the bankers' favor", false },
-    { "death from wounds", "no death from wounds", false }, { "loses a tenth", "may cost money", true }, { "loses 3 to 8", "may cost Endurance", true },
+    { "loses a tenth", "may cost money", true }, { "loses 3 to 8", "may cost Endurance", true },
     { "Costs", "costs something", true }
 };
 static void saint_chips_parse(const std::string &does, std::vector<SaintChip> &out)
@@ -902,7 +933,12 @@ static void saint_chips_parse(const std::string &does, std::vector<SaintChip> &o
                 /* the names: "A and B", "every weapon skill", "the skills of the weapons in hand"; the armor (one chip
                    whatever its words: "worn body and leg armor", "it gives the one prayed for armor") */
                 std::vector<std::string> ns = pending;
-                if (lower(names).find("armor") != std::string::npos) { out.push_back({ CH_WORDS, -1, "armor " + val, down, pl }); names.clear(); }
+                if (lower(names).find("armor") != std::string::npos) {   /* (its roundel: armor, or its quality) */
+                    SaintChip c{ CH_WORDS, -1, "armor " + val, down, pl };
+                    c.icon = m[5].str().rfind(" quality", 0) == 0 ? EI_ARMOR_Q : EI_ARMOR;
+                    c.val = val + (c.icon == EI_ARMOR_Q ? "q" : "");
+                    out.push_back(c); names.clear();
+                }
                 for (size_t b = 0; b < names.size(); ) {
                     size_t f = names.find(" and ", b);
                     std::string n = names.substr(b, f == std::string::npos ? std::string::npos : f - b);
@@ -924,6 +960,11 @@ static void saint_chips_parse(const std::string &does, std::vector<SaintChip> &o
             if (e == std::string::npos) break;
             a = e + 1;
         }
+        int ic[2], nic = used ? 0 : saint_effect_icons(low, ic);
+        for (int i = 0; i < nic; i++) {                        /* what is at work: its roundel */
+            SaintChip c{ CH_WORDS, -1, saint_effect_value(ic[i], st), false, st };
+            c.icon = ic[i]; out.push_back(c); used = true;
+        }
         if (!used) {                                           /* the rest: a few words */
             const char *say = nullptr; bool bad = false;
             for (const auto &w : SAINT_WORDS) if (low.find(lower(w.has)) != std::string::npos) { say = w.say; bad = w.bad; break; }
@@ -940,14 +981,17 @@ static const std::vector<SaintChip> &saint_chips(int s);
 std::string saint_effects_text(int s)
 {
     std::string does = saint_info_does(s);
-    std::vector<std::string> lines;
+    std::vector<std::string> lines, fx;                         /* (fx: a sentence's roundels, before its first line) */
     for (size_t a = 0; a < does.size(); ) {                     /* the sentences ("St. Cosmas": no end) */
         size_t e = does.find(". ", a);
         while (e != std::string::npos && e >= 2 && does.compare(e - 2, 2, "St") == 0) e = does.find(". ", e + 2);
         std::string st = does.substr(a, e == std::string::npos ? std::string::npos : e - a);
         while (!st.empty() && (st.back() == '.' || st.back() == ' ')) st.pop_back();
-        /* the clauses (", " and "; "), names alone held for the clause that gives their value */
-        std::string pend;
+        /* the clauses (", " and "; "), names alone held for the clause that gives their value; what is at work its roundel first
+           (the chips', the margin's) */
+        std::string pend, round;
+        { int ic[2], nic = saint_effect_icons(lower(st), ic); for (int i = 0; i < nic; i++) round += rich_effect(ic[i]) + " "; }
+        size_t first = lines.size();
         for (size_t b = 0; b <= st.size(); ) {
             size_t f = st.find_first_of(",;", b);
             std::string part = st.substr(b, f == std::string::npos ? std::string::npos : f - b);
@@ -959,6 +1003,8 @@ std::string saint_effects_text(int s)
             b = f + 1;
         }
         if (!pend.empty()) lines.push_back(pend);
+        fx.resize(lines.size());
+        if (lines.size() > first) fx[first] = round;
         if (e == std::string::npos) break;
         a = e + 2;
     }
@@ -978,6 +1024,7 @@ std::string saint_effects_text(int s)
         std::string &l = lines[li];
         std::string r = std::regex_replace(rich_auto(l.c_str()), sep, "}{");
         if (!r.empty()) r[0] = (char)toupper((unsigned char)r[0]);
+        r = fx[li] + r;
         std::smatch m;
         if (std::regex_match(r, m, pure)) {                       /* a value given before: these names join that line */
             bool joined = false;
@@ -1058,7 +1105,7 @@ static void saint_chips_update(void)
             c.tier = at < 1.0f / 3 ? 1 : at < 2.0f / 3 ? 2 : 3;
         }
         std::stable_sort(v.begin(), v.end(), [](const SaintChip &a, const SaintChip &b) {   /* the most first, then the costs, the words last */
-            int ga = a.kind == CH_WORDS ? 2 : a.mag < 0, gb = b.kind == CH_WORDS ? 2 : b.mag < 0;
+            int ga = a.kind == CH_WORDS && a.icon < 0 ? 2 : a.mag < 0, gb = b.kind == CH_WORDS && b.icon < 0 ? 2 : b.mag < 0;
             if (ga != gb) return ga < gb;
             if (a.tier != b.tier) return a.tier > b.tier;
             return fabsf(a.mag) > fabsf(b.mag);
@@ -1130,9 +1177,9 @@ static std::string saint_chips_draw(NsDraw &P, int s, float x, float x1, float y
        the one before; how much as chevronels on the shield (ui_icon_rank); the words only where there is no shield */
     const float ix = is * P.k / P.kx, sw = UI_SHIELD_W * ix, cw = ix * 0.7f, fw = UI_SHIELD_W * ix * 0.85f;
     for (const SaintChip &c : saint_chips(s)) {
-        bool words = c.kind == CH_WORDS, fan = c.kind == CH_WEAPONS || c.kind == CH_INHAND;
-        float w = words ? chip_text(P, fs, 0, 0, 0, c.val, false) : 0;
-        float iw = fan ? fw + ix * 0.7f : c.kind == CH_HEAL ? cw + sw : words ? 0 : sw;
+        bool round = c.icon >= 0, words = c.kind == CH_WORDS && !round, fan = c.kind == CH_WEAPONS || c.kind == CH_INHAND;
+        float w = words ? chip_text(P, fs, 0, 0, 0, c.val, false) : round && !c.val.empty() ? chip_text(P, fs, 0, 0, 0, c.val, false) + 0.5f : 0;
+        float iw = fan ? fw + ix * 0.7f : c.kind == CH_HEAL ? cw + sw : round ? ix * 1.3f : words ? 0 : sw;
         if (x + iw + w > x1) { P.text(P.fo, fs, x, y - 2.1f, ink, "..."); break; }
         float x0 = x;
         int rank = c.tier < 1 ? 1 : c.tier; if (c.mag < 0) rank = -rank;
@@ -1149,6 +1196,10 @@ static std::string saint_chips_draw(NsDraw &P, int s, float x, float x1, float y
             ui_skill_icon(P.dl, NsDraw::w(x + fw * 0.5f, y), is * 0.85f * P.k, SKILL_BOW);
             ui_skill_icon(P.dl, NsDraw::w(x + fw * 0.5f + ix * 0.35f, y), is * 0.85f * P.k, SKILL_IMPACT);
             ui_icon_rank = rank; ui_skill_icon(P.dl, NsDraw::w(x + fw * 0.5f + ix * 0.7f, y), is * 0.85f * P.k, SKILL_EDGED);
+        }
+        else if (round) {                                         /* a roundel, its value after it */
+            ui_effect_icon(P.dl, NsDraw::w(x + ix * 0.65f, y), is * 0.95f * P.k, c.icon, 0);
+            if (!c.val.empty()) chip_text(P, fs, x + ix * 1.3f + 0.5f, y - 2.1f, ink, c.val, true);
         }
         ui_icon_rank = 0;
         ui_icon_disc = 1;
@@ -1268,14 +1319,16 @@ static void saints(NsDraw &P, const SheetModel &s)
         float vw = vmin > 0 ? P.shield_value_width(VIS, vtxt, VGS) + 1.5f : 0;
         float nx1 = fminf(LX0 + 2.5f + P.width(f, 5.4f, gamedata.saints[t].name), ix - 1 - vw);
         P.text(f, 5.4f, LX0 + 2.5f, ry + 0.9f, knowers && !any_can ? IM_COL32(110, 116, 128, 255) : ink, gamedata.saints[t].name, -1, nx1);
-        if (vmin > 0) {                                           /* the Virtue it asks, after the name: greyed when no member has it */
+        if (vmin > 0) {                                           /* the Virtue it asks, after the name: struck through when too much (as a relic's) */
             bool met = false; std::string who;
             for (int m = 0; m < 5; m++) if (s.present[m]) { met |= s.pskill[m][9] >= vmin; who += (who.empty() ? "" : "  ") + rich_member(m, std::to_string(s.pskill[m][9])); }
+            bool struck = knowers ? !any_can : !met;              /* (nobody who knows it has the Virtue; nobody at all, for a saint nobody knows) */
             int v0 = P.dl->VtxBuffer.Size;
-            float bx = nx1 + 1.5f, bw = P.shield_value(bx, ry + 0.9f + 3.3f, VIS, UI_KEY_SKILL + SKILL_VIRTUE, vtxt, VGS, soft);
-            ui_dim_since(P.dl, v0, met ? 0.62f : 0.3f);
+            float bx = nx1 + 1.5f, bw = P.shield_value(bx, ry + 0.9f + 3.3f, VIS, UI_KEY_SKILL + SKILL_VIRTUE | (struck ? UI_KEY_STRUCK : 0), vtxt, VGS, soft);
+            ui_dim_since(P.dl, v0, struck ? 0.85f : 0.62f);
             if (P.over(bx, ry, bx + bw, ry + NH)) {
-                char b[240]; snprintf(b, sizeof b, "This saint asks a {Virtue} of %d of the one who prays%s.\nEach member's {Virtue}: %s", vmin, met ? "" : ", more than anyone in the party has", who.c_str());
+                char b[240]; snprintf(b, sizeof b, "This saint asks a {Virtue} of %d of the one who prays%s.\nEach member's {Virtue}: %s", vmin,
+                                      !struck ? "" : knowers ? ", more than anyone who knows it has" : ", more than anyone in the party has", who.c_str());
                 chip_tip = b;
             }
         }
@@ -1328,9 +1381,15 @@ static void saints(NsDraw &P, const SheetModel &s)
     ty += P.para(f, NsDraw::FS_HEAD, tx, ty, tw, ink, gamedata.saints[t].name) + 1.5f;
     ty += P.para(fo, NsDraw::FS_SMALL, tx, ty, tw, who.empty() ? NsDraw::RED : soft, who.empty() ? "Nobody in the party knows this saint." : "Known by " + who) + 1;
     if (t < s.nsaints && s.saint_vmin[t] > 0) {                /* the Virtue it asks; who lacks it (Virtue rises slowly: nothing restores it) */
-        std::string low;
-        for (int m = 0; m < 5; m++) if (s.present[m] && s.saint[m][t] && s.pskill[m][9] < s.saint_vmin[t]) low += (low.empty() ? "" : " ") + rich_member(m, std::to_string(s.pskill[m][9]));
-        char b[200]; snprintf(b, sizeof b, low.empty() ? "Asks a {Virtue} of %d." : "Asks a {Virtue} of %d: too low for %s to call on this saint.", s.saint_vmin[t], low.c_str());
+        std::string low; bool met = false, can = false, knows = false;
+        for (int m = 0; m < 5; m++) if (s.present[m]) {
+            bool ok = s.pskill[m][9] >= s.saint_vmin[t];
+            met |= ok;
+            if (s.saint[m][t]) { knows = true; can |= ok; if (!ok) low += (low.empty() ? "" : " ") + rich_member(m, std::to_string(s.pskill[m][9])); }
+        }
+        const char *v = (knows ? !can : !met) ? "~Virtue" : "Virtue";   /* (struck through, as in the list, when too much for all who could pray) */
+        char b[200]; snprintf(b, sizeof b, low.empty() ? "Asks a {%s} of %d%s." : "Asks a {%s} of %d: too low for %s to call on this saint.", v, s.saint_vmin[t],
+                              low.empty() ? (knows || met ? "" : ", more than anyone in the party has") : low.c_str());
         ty += P.para(fo, 4.4f, tx, ty, tw, low.empty() ? soft : IM_COL32(90, 98, 112, 255), b) + 1;
     }
     if (!where.empty()) ty += P.para(fo, 4.4f, tx, ty, tw, soft, where) + 1.5f;
@@ -1345,7 +1404,7 @@ static void saints(NsDraw &P, const SheetModel &s)
             bool vlow = t < s.nsaints && s.pskill[m][9] < s.saint_vmin[t];
             b[0] = tip[0] = 0;
             if (!asked) ;
-            else if (vlow) { snprintf(b, sizeof b, "{Virtue} too low"); snprintf(tip, sizeof tip, "This saint asks a {Virtue} of %d: no prayer is heard below it.", s.saint_vmin[t]); }
+            else if (vlow) { snprintf(b, sizeof b, "{~Virtue:%d} too low (it asks %d)", s.pskill[m][9], s.saint_vmin[t]); snprintf(tip, sizeof tip, "This saint asks a {Virtue} of %d: no prayer is heard below it.", s.saint_vmin[t]); }
             else if (s.pray_best[m] >= 99) {
                 snprintf(b, sizeof b, "{Divine Favor:%d} needed for a 99%% chance", s.pray_df[m]);
                 snprintf(tip, sizeof tip, "The least Divine Favor that gives the best chance of being heard (of the %d they have): more is spent for nothing. The prayer screen sets the favor.", s.pray_have[m]);

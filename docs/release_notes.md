@@ -10,7 +10,6 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 
 - **80 more new encounters**, 160 in all: 40 more in the wild, 22 in the towns' streets, 10 at camp and 8 on the river boats. All 160 were checked for balance and tone.
 - **Doors:** out of a fight, clicking a shut door walks the party to it and opens it.
-- **Relics as the manual has them:** a relic takes Divine Favor off every prayer of its bearer, to any saint, when the bearer has the Virtue it asks (of several relics the best counts; no prayer drops below 5). A weapon relic counts while wielded, and only a member with its Virtue can equip it; any other relic counts for the member carrying it and is listed under its own Relics heading on the character sheet. A crossed-out Virtue shield marks a relic its bearer lacks the Virtue for. Relics take no lasting harm. At a cathedral you choose which relic to give, and the box says what giving does. Switch: F12 > Settings > The party and its items.
 - **Weapon relics can be equipped** from the character sheet (St. George's Greatsword and eight more), and a relic's quality is shown unless it is 25 or 99.
 - **What came of it** on the game's own cards too: under the text that follows a choice, what that text does not tell (a skill or attribute changed, things, money, fame, a town's opinion). Part of the card helpers (F12 > Settings > Cards and towns).
 - **Level map (Tab)** shows every room the party has entered, walls on each side of the floor, and the openings not yet explored.
@@ -18,11 +17,17 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 
 **Changed**
 
-- **Saints page:** each member's line gives the Divine Favor a 99% chance takes, or the best chance their favor gives now, or the least favor the saint hears; a saint's effects are listed largest first, as in the list.
+- **Saints page:** each member's line gives the Divine Favor a 99% chance takes, or the best chance their favor gives now, or the least favor the saint hears; a saint's effects are listed largest first, as in the list. A crossed-out Virtue shield marks a saint that asks more Virtue than those who know it have. Fire protection, faster travel, armor and weapon quality and "no death from wounds" are shown with the same round pictures as the margin's Blessings and potions, here and in the potions' descriptions.
+- **New encounters never replace a unique one:** the witch's sod hut, the hermit, the travelling alchemist, the merchant caravan, the knight riding to a tournament and the cave in the pass come up as often as without the mod.
+- **The Huntsman's Horn:** the New encounters' night ride was called The Wild Hunt, like the game's own quest.
 
 **Fixed**
 
-- Loading a save while a card from a castle, mine or dungeon was showing (the riddle of the dwarves' iron door) usually crashed the game.
+- Loading a save during play could crash the game: at once while a card from a castle, mine or dungeon was showing (the riddle of the dwarves' iron door), or a little later, often in the next battle.
+- **Relics now do what the manual says** (a borderline fix: the manual promises it and the game never did it, so how it works is our good-faith reading of the manual's two sentences, which speak of prayers to the relic's own saint and give no numbers): a relic takes Divine Favor off every prayer of its bearer, to any saint, when the bearer has the Virtue it asks, by the two numbers DARKLAND.LST keeps for each relic and nothing read (of several relics the best counts; no prayer drops below 5). A weapon relic counts while wielded, and only a member with its Virtue can equip it; any other relic counts for the member carrying it and is listed under its own Relics heading on the character sheet. A crossed-out Virtue shield marks a relic its bearer lacks the Virtue for. Relics take no lasting harm. At a cathedral you choose which relic to give, and the box says what giving does. Switch: F12 > Settings > The party and its items.
+- Once no robber knight's castle was left, a town or village asked the party to kill a robber knight in the town itself, who could never be found (original bug, GitHub issue 5). A new knight now moves into the nearest burnt-out keep, and tasks already given go there.
+- The window telling of a permanent loss hid the pointer; Enter or Space now close it too.
+- Hiding from a dragon was checked against the leader's Charisma and Speak Latin, a pair nothing else uses (original bug). It now takes the party's Stealth and Woodwise, our best guess at what was meant.
 - Some of 1.4's encounters punished a fight forced on the party as hard as one it chose (the flagellants: Divine Favor -20), and fleeing the lost child's wolves could lose a member for good without warning.
 - On the level map, a click beside a wall could walk the party to the far side of it.
 - The level map could forget rooms the party had seen, after a save was loaded or the place was entered again.

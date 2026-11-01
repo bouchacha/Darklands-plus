@@ -177,14 +177,19 @@ def main():
     known = set(re.findall(r'"([^"]+)"', gm[gm.index('const char *gm_attr_name'):gm.index('/* the months')]))
     known |= {'Latin', 'Reputation', 'Fame', 'Age', 'Missile Device', 'Missile Weapons', 'Edged Weapon', 'Impact Weapon', 'Flail', 'Polearm', 'Thrown Weapon', 'Bow'}
     known |= set(re.findall(r'"([^"]+)"', gm[gm.index('const char *gm_skill_short'):][:400]))
+    rt = rd('port/ui/richtext.cpp')
+    effects = set(re.findall(r'"([^"]+)"', rt[rt.index('EFFECT_NAME[] = {'):].split('};')[0]))
     for d in ('port/ui', 'port/mods'):
         for f in sorted(os.listdir(os.path.join(TOP, d))):
             if not f.endswith(('.c', '.cpp')): continue
             for i, line in enumerate(rd(os.path.join(d, f)).splitlines()):
                 for lit in re.findall(r'"((?:[^"\\]|\\.)*)"', line):
-                    for m in re.finditer(r'\{([A-Z][a-z][A-Za-z &]*)(?::[^{}]*)?\}', lit):   # (not a controller button's {A}, {LSTICK})
+                    for m in re.finditer(r'\{~?([A-Z][a-z][A-Za-z &]*)(?::[^{}]*)?\}', lit):   # (not a controller button's {A}, {LSTICK}; ~ struck)
                         if m.group(1) not in known:
                             bad.append('%s/%s:%d: "{%s}" - no attribute or skill of that name for its shield (ui/richtext.h)' % (d, f, i + 1, m.group(1)))
+                    for m in re.finditer(r'\{\*([^{}:]*)(?::[^{}]*)?\}', lit):          # a roundel ({*Fire}): EFFECT_NAME in ui/richtext.cpp
+                        if m.group(1) not in effects:
+                            bad.append('%s/%s:%d: "{*%s}" - no roundel of that name (EFFECT_NAME, ui/richtext.cpp)' % (d, f, i + 1, m.group(1)))
 
     for b_ in bad: print('  ' + b_)
     print('docs: %s (%d fixes, %d saints, %d texts)' % ('as the code' if not bad else '%d mismatches' % len(bad), n_fix, n_saints, len(texts)))
