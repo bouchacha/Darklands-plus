@@ -1844,9 +1844,8 @@ static int best_quality_of(int m, u32 flags)
     int best = 0, n = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
     for (int i = 0; i < n && i < 64; i++) {
         u16 code = rw(G_FAR2E38, G_ITEM(m, i)) & 0xfff;
-        u32 d = g_itemdef(code);
-        if (!d) continue;
-        u32 f = (u32)rw((u16)(d >> 16), (u16)((u16)d + 0x20)) | (u32)rw((u16)(d >> 16), (u16)((u16)d + 0x22)) << 16;
+        unsigned long cats; if (!gm_itemdef_cats(code, &cats)) continue;
+        u32 f = (u32)cats;
         int q = rb(G_FAR2E38, (u16)(G_ITEM(m, i) + 3));
         if (f == flags && q > best) best = q;
     }
@@ -2294,8 +2293,7 @@ static void teach_saint_hook(void)
 /* room for one of (id, quality) with member m, or (fullpack passes it on) with anyone */
 static int room_anywhere(int m, int id, int q)
 {
-    u32 d = g_itemdef(id & 0xfff);
-    u8 type = d ? rb((u16)(d >> 16), (u16)((u16)d + 0x1e)) : 0;
+    int t0 = gm_itemdef_type(id); u8 type = t0 < 0 ? 0 : (u8)t0;
     int size = (s16)g_rw(G_PARTY_SIZE);
     for (int k = 0; k < 5 && k < size; k++) {
         if (k != m && (!fix_on("fullpack") || !g_rb(G_MEMBER(k)))) continue;

@@ -14,7 +14,7 @@
  *    page, the cards' saint options, the margins) sees it, and the favor taken is what is spent.
  *  - A weapon relic is readied (item_ready, s031 18e7:11b2: the sheets, the game's own too) only by
  *    a member with the Virtue it asks.
- *  - Relics take no lasting harm: the corroding water of a dragon's cursed land ($Drago01) lowers
+ *  - Relics are immune from any quality degradation: the corroding water of a dragon's cursed land ($Drago01) lowers
  *    each weapon's quality, a weapon relic's too; acid and fire wear armour in a battle (s019
  *    1ef8:0968). A relic below its own quality (DARKLAND.LST +0x26) is made whole again (with the
  *    member's record of it in hand), and battle wear passes a relic by.
@@ -69,7 +69,7 @@ static const unsigned char SAINT_LEAST[NSAINT] = {
     15, 20, 25, 15, 20, 10 };
 #define FLOOR_FAVOR 5                         /* (the least favor any saint asks: no relic takes a prayer lower) */
 
-static int def_word(int code, int off) { u32 d = g_itemdef(code); return d ? (s16)rw((u16)(d >> 16), (u16)((u16)d + off)) : 0; }
+static int def_word(int code, int off) { int v = gm_itemdef_u16(code, off); return v < 0 ? 0 : (s16)v; }   /* (DARKLAND.LST's: gamemodel.h) */
 int relic_is(int code)
 {
     if (code < RELIC_FIRST || code > RELIC_LAST) return 0;
@@ -78,7 +78,7 @@ int relic_is(int code)
 int relic_is_weapon(int code) { int t = def_word(code, 0x1e); return relic_is(code) && t >= 0 && t <= 62; }   /* (its item type a weapon's) */
 int relic_virtue(int code) { return relic_is(code) ? def_word(code, 0x28) : 0; }
 int relic_favor(int code) { return relic_is(code) ? def_word(code, 0x2a) : 0; }
-static int relic_quality(int code) { u32 d = g_itemdef(code); return d ? rb((u16)(d >> 16), (u16)((u16)d + 0x26)) : 0; }
+static int relic_quality(int code) { int q = gm_itemdef_u8(code, 0x26); return q < 0 ? 0 : q; }
 static int virtue_of(int m) { return (s8)g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + 9)); }
 int relic_member_virtue(int m) { return m >= 0 && m < 5 ? virtue_of(m) : 0; }
 int relic_bearer_ok(int m, int code) { return relic_is(code) && m >= 0 && m < 5 && virtue_of(m) >= relic_virtue(code); }
@@ -136,7 +136,7 @@ static void ready_hook(void)                  /* item_ready (who, idx), s031 18e
     hook_call_original();
 }
 
-/* ---------------------------------------------------------------- no lasting harm */
+/* ---------------------------------------------------------------- immune from quality degradation */
 static const u8 USE_T[5] = { 0x3d, 0x0e, 0x37, 0x38, 0x48 }, USE_Q[5] = { 0x44, 0x46, 0x3b, 0x3c, 0x47 };   /* (the member's things in use: type, quality; gamemodel.c) */
 void relics_frame(void)
 {

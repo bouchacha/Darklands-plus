@@ -187,8 +187,7 @@ int gm_room_for(int m, int id, int qual)
 {
     int n = gm_item_count(m);
     if (n < 64) return 1;
-    u32 d = g_itemdef(id & 0xfff);
-    int type = d ? rb((u16)(d >> 16), (u16)((u16)d + 0x1e)) : -1;
+    int type = gm_itemdef_type(id);
     for (int j = 0; j < n; j++) {
         u16 o = G_ITEM(m, j);
         if (rw(G_FAR2E38, o) == (u16)id && rb(G_FAR2E38, (u16)(o + 2)) == type && rb(G_FAR2E38, (u16)(o + 3)) == qual && rb(G_FAR2E38, (u16)(o + 4)) < 0xff) return 1;
@@ -196,10 +195,23 @@ int gm_room_for(int m, int id, int qual)
     return 0;
 }
 
+/* item id's definition, byte or word at off (the type +0x1e, the shop categories +0x20/+0x22, the weight +0x25, the
+   quality +0x26 ...): DARKLAND.LST's (ui/gamedata.cpp), not the game's copy in memory, which a battle or a dungeon
+   overwrites (its pointers then lead to other data: every thing came out an ingredient, mods/loot.c); the game's
+   copy only if the list could not be read. -1 unknown */
+int gamedata_item_raw(int id, int off, int size);
 static u32 itemdef(int id) { return g_itemdef(id & 0xfff); }
+static int mem_def(int id, int off, int size)
+{
+    if (g_rb(GV_in_battle) == 1) return -1;                /* (not in memory there) */
+    u32 d = itemdef(id); if (!d) return -1;
+    return size == 2 ? rw((u16)(d >> 16), (u16)((u16)d + off)) : rb((u16)(d >> 16), (u16)((u16)d + off));
+}
+int gm_itemdef_u8(int id, int off) { int v = gamedata_item_raw(id & 0xfff, off, 1); return v >= 0 ? v : mem_def(id, off, 1); }
+int gm_itemdef_u16(int id, int off) { int v = gamedata_item_raw(id & 0xfff, off, 2); return v >= 0 ? v : mem_def(id, off, 2); }
 int gamedata_item_name(int id, char *out, int n);   /* (ui/gamedata.cpp: the name as the lists show it) */
 void gm_itemdef_name(int id, char *out, int n) { u32 d = itemdef(id); if (d && gamedata_item_name(id & 0xfff, out, n)) return; if (!d) { out[0] = 0; return; } g_str((u16)(d >> 16), (u16)d, out, n); }
-int gm_itemdef_type(int id) { u32 d = itemdef(id); return d ? rb((u16)(d >> 16), (u16)((u16)d + 0x1e)) : -1; }
+int gm_itemdef_type(int id) { return gm_itemdef_u8(id, 0x1e); }
 /* member m's missile weapon looses thing id: the arrows of its bow, the quarrels of its crossbow, the
    balls of its gun (far 20a5:7822[weapon]), or the thrown weapon itself */
 int gm_member_uses(int m, int id)
@@ -209,12 +221,13 @@ int gm_member_uses(int m, int id)
     if (e.missile < 0 || e.missile > 0x3f || t < 0) return 0;
     return e.missile == t || rb(G_FAR20A5, (u16)(0x7822 + e.missile)) == t;
 }
-int gm_itemdef_weight(int id) { u32 d = itemdef(id); return d ? rb((u16)(d >> 16), (u16)((u16)d + 0x25)) : 0; }
-int gm_itemdef_no_trade(int id) { u32 d = itemdef(id); return d ? (rb((u16)(d >> 16), (u16)((u16)d + 0x24)) & 0x80) != 0 : 1; }
+int gm_itemdef_weight(int id) { int w = gm_itemdef_u8(id, 0x25); return w < 0 ? 0 : w; }
+int gm_itemdef_no_trade(int id) { int f = gm_itemdef_u8(id, 0x24); return f < 0 ? 1 : (f & 0x80) != 0; }
 int gm_itemdef_cats(int id, unsigned long *cats)
 {
-    u32 d = itemdef(id); if (!d) return 0;
-    *cats = (unsigned long)rw((u16)(d >> 16), (u16)((u16)d + 0x20)) | ((unsigned long)rw((u16)(d >> 16), (u16)((u16)d + 0x22)) << 16);
+    int a = gm_itemdef_u16(id, 0x20), b = gm_itemdef_u16(id, 0x22);
+    if (a < 0 || b < 0) return 0;
+    *cats = (unsigned long)a | ((unsigned long)b << 16);
     return 1;
 }
 

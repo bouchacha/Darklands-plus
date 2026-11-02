@@ -14,6 +14,7 @@ struct ItemDef {
     int type = 0, flags = 0, flags2 = 0, weight = 0, quality = 0, value = 0;
     int flags5 = 0, rarity = 0;      // flag byte +0x24 (0x80: not sold in shops), rarity 0..12
     int relic_virtue = 0, relic_df = 0;   // a relic's: +0x28 the Virtue its bearer needs, +0x2a the Divine Favor it takes off a prayer (mods/relics.c)
+    unsigned char raw[46] = {};      // the record as DARKLAND.LST has it (gamedata_item_raw: the mods read it here, not in the game's memory)
     unsigned cats() const { return (unsigned)flags | ((unsigned)flags2 << 16); }
     ItemKind kind = K_OTHER;
     bool mineral = false;

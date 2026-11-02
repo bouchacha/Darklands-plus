@@ -1,6 +1,6 @@
 /* relics.h - relics as the manual has them (mods/relics.c): a relic's bearer with the Virtue it asks
  * pays less Divine Favor for any prayer, a weapon relic is wielded only with that Virtue, relics take
- * no lasting harm, and a cathedral asks which one is given. */
+ * immune from any quality degradation, and a cathedral asks which one is given. */
 #ifndef DL_RELICS_H
 #define DL_RELICS_H
 #ifdef __cplusplus

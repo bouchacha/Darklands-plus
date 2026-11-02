@@ -108,7 +108,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:154` | Endless thrown weapons |
 | `mods/options.c:154` | javelins, throwing axes, throwing knives and darts never run out either (one is enough to throw). When off, with the shared pack they are each member's own, listed with them like potions. |
 | `mods/options.c:155` | Relics as the manual has them |
-| `mods/options.c:155` | a relic takes Divine Favor off every prayer of its bearer, to any saint, when the bearer has the Virtue it asks (of several, the best; no prayer below 5), as the manual promised and the game never did: a borderline fix, our good-faith reading of the manual, which speaks only of prayers to the relic's own saint and gives no numbers; the two numbers are DARKLAND.LST's, which nothing read. A weapon relic counts while wielded, and only a member with its Virtue wields it; another relic counts for the member carrying it. Relics take no lasting harm (corroding water, acid, fire), and a cathedral given one of the party's relics asks which, saying what giving does. |
+| `mods/options.c:155` | a relic takes Divine Favor off every prayer of its bearer, to any saint, when the bearer has the Virtue it asks (of several, the best; no prayer below 5), as the manual promised and the game never did: a borderline fix, our good-faith reading of the manual, which speaks only of prayers to the relic's own saint and gives no numbers; the two numbers are DARKLAND.LST's, which nothing read. A weapon relic counts while wielded, and only a member with its Virtue wields it; another relic counts for the member carrying it. Relics are immune from any quality degradation (corroding water, acid, fire, battle wear), and a cathedral given one of the party's relics asks which, saying what giving does. |
 | `mods/options.c:156` | Aging during play |
 | `mods/options.c:156` | characters go on aging during play (Darklands+ only; the original ages them only during character creation): from thirty on, a little each month, more with age (by seventy, a total loss of 25 Endurance, 21 Strength and Agility each, 10 Perception and Charisma each, and 5 Intelligence). |
 | `mods/options.c:157` | Warn about permanent losses |
@@ -563,11 +563,11 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:1139` | The store room is full: it keeps 100 kinds of items. |
 | `mods/fixes.c:1309` | abandon the horses |
 | `mods/fixes.c:1691` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
-| `mods/fixes.c:1950` | claim friendship |
-| `mods/fixes.c:2254` | You need a missile weapon |
-| `mods/fixes.c:2320` | Not bought: nobody in the party has room for another kind of item. |
-| `mods/fixes.c:2338` | Nobody in the party has room for another kind of item. |
-| `mods/fixes.c:2687` | a hook (or { -2 }) for each fix, in the same order |
+| `mods/fixes.c:1949` | claim friendship |
+| `mods/fixes.c:2253` | You need a missile weapon |
+| `mods/fixes.c:2318` | Not bought: nobody in the party has room for another kind of item. |
+| `mods/fixes.c:2336` | Nobody in the party has room for another kind of item. |
+| `mods/fixes.c:2685` | a hook (or { -2 }) for each fix, in the same order |
 
 ## The interface (ui/)
 
@@ -1012,98 +1012,98 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/gamedata.cpp:107` | Alchemical ingredients |
 | `ui/gamedata.cpp:112` | Missile weapon |
 | `ui/gamedata.cpp:113` | Alchemical ingredient |
-| `ui/gamedata.cpp:201` | Rufinus of G |
-| `ui/gamedata.cpp:202` | Leonard of M |
-| `ui/gamedata.cpp:202` | Nicolaus of A |
-| `ui/gamedata.cpp:204` | Studded Lthr |
-| `ui/gamedata.cpp:204` | Studded Leather |
-| `ui/gamedata.cpp:205` | East. Black Bean |
-| `ui/gamedata.cpp:205` | Eastern Black Bean |
-| `ui/gamedata.cpp:205` | Phleqmatic Base |
-| `ui/gamedata.cpp:205` | Phlegmatic Base |
-| `ui/gamedata.cpp:205` | Melanc. Base |
-| `ui/gamedata.cpp:205` | Melancholic Base |
-| `ui/gamedata.cpp:206` | Essence o'Grace |
-| `ui/gamedata.cpp:206` | Essence of Grace |
-| `ui/gamedata.cpp:206` | Birth Confess. |
-| `ui/gamedata.cpp:206` | Birth Confession |
-| `ui/gamedata.cpp:206` | Illum. Gospel |
-| `ui/gamedata.cpp:206` | Illuminated Gospel |
-| `ui/gamedata.cpp:207` | S.Mary's Tears |
-| `ui/gamedata.cpp:207` | St. Mary's Tears |
-| `ui/gamedata.cpp:207` | S.Arnulf GreatSwrd |
-| `ui/gamedata.cpp:207` | St. Arnulf's Greatsword |
-| `ui/gamedata.cpp:207` | S.Catherine Pain |
-| `ui/gamedata.cpp:207` | St. Catherine's Pain |
-| `ui/gamedata.cpp:208` | S.Olaf Battleaxe |
-| `ui/gamedata.cpp:208` | St. Olaf's Battleaxe |
-| `ui/gamedata.cpp:208` | S.George GreatSwrd |
-| `ui/gamedata.cpp:208` | St. George's Greatsword |
-| `ui/gamedata.cpp:208` | S.Dunstan Hammer |
-| `ui/gamedata.cpp:208` | St. Dunstan's Hammer |
-| `ui/gamedata.cpp:209` | Spar of S.Erasmus |
-| `ui/gamedata.cpp:209` | Spar of St. Erasmus |
-| `ui/gamedata.cpp:209` | Staff of S.Patrick |
-| `ui/gamedata.cpp:209` | Staff of St. Patrick |
-| `ui/gamedata.cpp:209` | S.Hubert's Bow |
-| `ui/gamedata.cpp:209` | St. Hubert's Bow |
-| `ui/gamedata.cpp:210` | S.Edward's Ring |
-| `ui/gamedata.cpp:210` | St. Edward's Ring |
-| `ui/gamedata.cpp:210` | S.Emygdius Finger |
-| `ui/gamedata.cpp:210` | St. Emygdius' Finger |
-| `ui/gamedata.cpp:210` | S.Gabriel's Horn |
-| `ui/gamedata.cpp:210` | St. Gabriel's Horn |
-| `ui/gamedata.cpp:211` | S.Ita's Needle |
-| `ui/gamedata.cpp:211` | St. Ita's Needle |
-| `ui/gamedata.cpp:211` | S.Kessog Medallion |
-| `ui/gamedata.cpp:211` | St. Kessog's Medallion |
-| `ui/gamedata.cpp:211` | S.Odo's Testament |
-| `ui/gamedata.cpp:211` | St. Odo's Testament |
-| `ui/gamedata.cpp:212` | S.Odilia's Oil |
-| `ui/gamedata.cpp:212` | St. Odilia's Oil |
-| `ui/gamedata.cpp:212` | S.Raphael's Water |
-| `ui/gamedata.cpp:212` | St. Raphael's Water |
-| `ui/gamedata.cpp:212` | S.Swithbert's Foot |
-| `ui/gamedata.cpp:212` | St. Swithbert's Foot |
-| `ui/gamedata.cpp:213` | S.Willehad's Shoe |
-| `ui/gamedata.cpp:213` | St. Willehad's Shoe |
-| `ui/gamedata.cpp:213` | S.Thealeaus' Spoon |
-| `ui/gamedata.cpp:213` | St. Thealeaus' Spoon |
-| `ui/gamedata.cpp:216` | St.Christina, Astonish. |
-| `ui/gamedata.cpp:216` | St. Christina the Astonishing |
-| `ui/gamedata.cpp:216` | St.Gertrude o'Nivelles |
-| `ui/gamedata.cpp:216` | St. Gertrude of Nivelles |
-| `ui/gamedata.cpp:217` | St.Gregory Thaumaturg. |
-| `ui/gamedata.cpp:217` | St. Gregory Thaumaturgus |
-| `ui/gamedata.cpp:217` | St. Thalelaeus the Merciful |
-| `ui/gamedata.cpp:218` | St.Victor o'Marseilles |
-| `ui/gamedata.cpp:218` | St. Victor of Marseilles |
-| `ui/gamedata.cpp:218` | St.Edward, Confessor |
-| `ui/gamedata.cpp:218` | St. Edward the Confessor |
-| `ui/gamedata.cpp:219` | St.Julian, Hospitaler |
-| `ui/gamedata.cpp:219` | St. Julian the Hospitaller |
-| `ui/gamedata.cpp:222` | Gerard of Cremona's |
-| `ui/gamedata.cpp:222` | Gerard of C's |
-| `ui/gamedata.cpp:222` | Gerard of Cremona's |
-| `ui/gamedata.cpp:222` | Petrus Bonus' |
-| `ui/gamedata.cpp:223` | Nicolas Flammel's |
-| `ui/gamedata.cpp:223` | Raimundus Ls' |
-| `ui/gamedata.cpp:223` | Raimundus Lullus' |
-| `ui/gamedata.cpp:224` | Raimundus L's |
+| `ui/gamedata.cpp:202` | Rufinus of G |
+| `ui/gamedata.cpp:203` | Leonard of M |
+| `ui/gamedata.cpp:203` | Nicolaus of A |
+| `ui/gamedata.cpp:205` | Studded Lthr |
+| `ui/gamedata.cpp:205` | Studded Leather |
+| `ui/gamedata.cpp:206` | East. Black Bean |
+| `ui/gamedata.cpp:206` | Eastern Black Bean |
+| `ui/gamedata.cpp:206` | Phleqmatic Base |
+| `ui/gamedata.cpp:206` | Phlegmatic Base |
+| `ui/gamedata.cpp:206` | Melanc. Base |
+| `ui/gamedata.cpp:206` | Melancholic Base |
+| `ui/gamedata.cpp:207` | Essence o'Grace |
+| `ui/gamedata.cpp:207` | Essence of Grace |
+| `ui/gamedata.cpp:207` | Birth Confess. |
+| `ui/gamedata.cpp:207` | Birth Confession |
+| `ui/gamedata.cpp:207` | Illum. Gospel |
+| `ui/gamedata.cpp:207` | Illuminated Gospel |
+| `ui/gamedata.cpp:208` | S.Mary's Tears |
+| `ui/gamedata.cpp:208` | St. Mary's Tears |
+| `ui/gamedata.cpp:208` | S.Arnulf GreatSwrd |
+| `ui/gamedata.cpp:208` | St. Arnulf's Greatsword |
+| `ui/gamedata.cpp:208` | S.Catherine Pain |
+| `ui/gamedata.cpp:208` | St. Catherine's Pain |
+| `ui/gamedata.cpp:209` | S.Olaf Battleaxe |
+| `ui/gamedata.cpp:209` | St. Olaf's Battleaxe |
+| `ui/gamedata.cpp:209` | S.George GreatSwrd |
+| `ui/gamedata.cpp:209` | St. George's Greatsword |
+| `ui/gamedata.cpp:209` | S.Dunstan Hammer |
+| `ui/gamedata.cpp:209` | St. Dunstan's Hammer |
+| `ui/gamedata.cpp:210` | Spar of S.Erasmus |
+| `ui/gamedata.cpp:210` | Spar of St. Erasmus |
+| `ui/gamedata.cpp:210` | Staff of S.Patrick |
+| `ui/gamedata.cpp:210` | Staff of St. Patrick |
+| `ui/gamedata.cpp:210` | S.Hubert's Bow |
+| `ui/gamedata.cpp:210` | St. Hubert's Bow |
+| `ui/gamedata.cpp:211` | S.Edward's Ring |
+| `ui/gamedata.cpp:211` | St. Edward's Ring |
+| `ui/gamedata.cpp:211` | S.Emygdius Finger |
+| `ui/gamedata.cpp:211` | St. Emygdius' Finger |
+| `ui/gamedata.cpp:211` | S.Gabriel's Horn |
+| `ui/gamedata.cpp:211` | St. Gabriel's Horn |
+| `ui/gamedata.cpp:212` | S.Ita's Needle |
+| `ui/gamedata.cpp:212` | St. Ita's Needle |
+| `ui/gamedata.cpp:212` | S.Kessog Medallion |
+| `ui/gamedata.cpp:212` | St. Kessog's Medallion |
+| `ui/gamedata.cpp:212` | S.Odo's Testament |
+| `ui/gamedata.cpp:212` | St. Odo's Testament |
+| `ui/gamedata.cpp:213` | S.Odilia's Oil |
+| `ui/gamedata.cpp:213` | St. Odilia's Oil |
+| `ui/gamedata.cpp:213` | S.Raphael's Water |
+| `ui/gamedata.cpp:213` | St. Raphael's Water |
+| `ui/gamedata.cpp:213` | S.Swithbert's Foot |
+| `ui/gamedata.cpp:213` | St. Swithbert's Foot |
+| `ui/gamedata.cpp:214` | S.Willehad's Shoe |
+| `ui/gamedata.cpp:214` | St. Willehad's Shoe |
+| `ui/gamedata.cpp:214` | S.Thealeaus' Spoon |
+| `ui/gamedata.cpp:214` | St. Thealeaus' Spoon |
+| `ui/gamedata.cpp:217` | St.Christina, Astonish. |
+| `ui/gamedata.cpp:217` | St. Christina the Astonishing |
+| `ui/gamedata.cpp:217` | St.Gertrude o'Nivelles |
+| `ui/gamedata.cpp:217` | St. Gertrude of Nivelles |
+| `ui/gamedata.cpp:218` | St.Gregory Thaumaturg. |
+| `ui/gamedata.cpp:218` | St. Gregory Thaumaturgus |
+| `ui/gamedata.cpp:218` | St. Thalelaeus the Merciful |
+| `ui/gamedata.cpp:219` | St.Victor o'Marseilles |
+| `ui/gamedata.cpp:219` | St. Victor of Marseilles |
+| `ui/gamedata.cpp:219` | St.Edward, Confessor |
+| `ui/gamedata.cpp:219` | St. Edward the Confessor |
+| `ui/gamedata.cpp:220` | St.Julian, Hospitaler |
+| `ui/gamedata.cpp:220` | St. Julian the Hospitaller |
+| `ui/gamedata.cpp:223` | Gerard of Cremona's |
+| `ui/gamedata.cpp:223` | Gerard of C's |
+| `ui/gamedata.cpp:223` | Gerard of Cremona's |
+| `ui/gamedata.cpp:223` | Petrus Bonus' |
+| `ui/gamedata.cpp:224` | Nicolas Flammel's |
+| `ui/gamedata.cpp:224` | Raimundus Ls' |
 | `ui/gamedata.cpp:224` | Raimundus Lullus' |
-| `ui/gamedata.cpp:224` | Arnald of V's |
-| `ui/gamedata.cpp:224` | Arnald of Villanova's |
-| `ui/gamedata.cpp:224` | Albertus Ms' |
-| `ui/gamedata.cpp:224` | Albertus Magnus' |
-| `ui/gamedata.cpp:225` | Albertus M's |
+| `ui/gamedata.cpp:225` | Raimundus L's |
+| `ui/gamedata.cpp:225` | Raimundus Lullus' |
+| `ui/gamedata.cpp:225` | Arnald of V's |
+| `ui/gamedata.cpp:225` | Arnald of Villanova's |
+| `ui/gamedata.cpp:225` | Albertus Ms' |
 | `ui/gamedata.cpp:225` | Albertus Magnus' |
-| `ui/gamedata.cpp:225` | Rob de Ketene's |
-| `ui/gamedata.cpp:225` | John of Rupescissa's |
-| `ui/gamedata.cpp:226` | John Rupesc.'s |
+| `ui/gamedata.cpp:226` | Albertus M's |
+| `ui/gamedata.cpp:226` | Albertus Magnus' |
+| `ui/gamedata.cpp:226` | Rob de Ketene's |
 | `ui/gamedata.cpp:226` | John of Rupescissa's |
-| `ui/gamedata.cpp:226` | Michael Scot's |
-| `ui/gamedata.cpp:227` | Essence o'Grace |
-| `ui/gamedata.cpp:227` | Essence of Grace |
+| `ui/gamedata.cpp:227` | John Rupesc.'s |
+| `ui/gamedata.cpp:227` | John of Rupescissa's |
+| `ui/gamedata.cpp:227` | Michael Scot's |
+| `ui/gamedata.cpp:228` | Essence o'Grace |
+| `ui/gamedata.cpp:228` | Essence of Grace |
 | `ui/guide.cpp:31` | The party: Endurance, ... |
 | `ui/guide.cpp:39` | Darklands has no tutorial: this page sums up how it works, with the advice players have long given one another. F11 (a Darklands+ addition) lists the keys and clicks of the current screen at any time; a right-click opens the game's menus. |
 | `ui/guide.cpp:42` | Lines in this color depend on something Darklands+ adds (most can be switched off in F12 > Settings). |
@@ -1244,7 +1244,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/inventory.cpp:551` |  - too little to wield it |
 | `ui/inventory.cpp:551` |  - too little |
 | `ui/inventory.cpp:553` | Off: Relics as the manual has them (F12 > Settings > The party and its items). |
-| `ui/inventory.cpp:554` | It takes no lasting harm. |
+| `ui/inventory.cpp:554` | This blessed item is immune from any quality degradation. |
 | `ui/inventory.cpp:565` | Damage %d, penetration %d |
 | `ui/inventory.cpp:566` | Time for a blow %d |
 | `ui/inventory.cpp:567` | Time to %s %d |
@@ -2380,15 +2380,17 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/titleview.cpp:107` | Darklands+ %s (build %s) |
 | `ui/titleview.cpp:107` | Darklands+ build %s%s |
 | `ui/townicons.cpp:229` | von der Lilie |
-| `ui/travel.cpp:90` | Stop to camp at 20:00: off. |
-| `ui/travel.cpp:91` | At 20:00 the party stops and makes camp when someone is short of {Endurance}, {Strength} or {Divine Favor}. |
-| `ui/travel.cpp:92` | At 20:00 the party stops and makes camp every night (to brew potions on the road, say). |
-| `ui/travel.cpp:93` | Click: stop at 20:00 when someone needs rest. |
-| `ui/travel.cpp:93` | Click: stop at 20:00 every night. |
-| `ui/travel.cpp:97` | A day in camp or at an inn lasts until 5:00: from 20:00 that is a night of 9 hours, from 21:00 it is 5:00 the day after (32 hours). |
-| `ui/travel.cpp:108` | Stop to camp at 20:00: off |
-| `ui/travel.cpp:108` | Stop to camp at 20:00: when someone needs rest |
-| `ui/travel.cpp:108` | Stop to camp at 20:00: every night |
+| `ui/travel.cpp:111` | Keep the campfire shown. |
+| `ui/travel.cpp:111` | Hide the campfire under the clock (point at the clock to see it again). |
+| `ui/travel.cpp:114` | Stop to camp at 20:00: off. |
+| `ui/travel.cpp:115` | At 20:00 the party stops and makes camp when someone is short of {Endurance}, {Strength} or {Divine Favor}. |
+| `ui/travel.cpp:116` | At 20:00 the party stops and makes camp every night (to brew potions on the road, say). |
+| `ui/travel.cpp:117` | Click: stop at 20:00 when someone needs rest. |
+| `ui/travel.cpp:117` | Click: stop at 20:00 every night. |
+| `ui/travel.cpp:121` | A day in camp or at an inn lasts until 5:00: from 20:00 that is a night of 9 hours, from 21:00 it is 5:00 the day after (32 hours). |
+| `ui/travel.cpp:139` | Stop to camp at 20:00: off |
+| `ui/travel.cpp:139` | Stop to camp at 20:00: when someone needs rest |
+| `ui/travel.cpp:139` | Stop to camp at 20:00: every night |
 | `ui/ui.cpp:85` |              |
 | `ui/ui.cpp:98` | EB Garamond (book face) |
 | `ui/ui.cpp:98` | Alegreya (calligraphic) |
@@ -2769,70 +2771,70 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/cutcards.c:131` | ...\x1dvisit the Heilig-Geist-Spital, where injuries and the ill are tended. |
 | `mods/datamods.c:366` | # right edge). Bytes the game uses for layout are written \\xx (hex): \\14 new paragraph, \\15 an option, # \\1d after the option's "...", \\16 an option opening the saints, \\10 the potions, \\06 a battle, # \\01 ... \\13 a part shown or hidden by the game. { is o-umlaut, \| u-umlaut, \\1f a-umlaut. # Put the edited file into mods/<your mod>/MSGFILES/ (keep the name); lines starting with # are ignored.  |
 | `mods/datamods.c:403` | Describe your mod here (these lines show in F12 > Mods).  Put files into this folder laid out like the game folder; while the mod is on, the game reads them instead of its own: DARKLAND.LST, DARKLAND.ENM, PICS/NAME.PIC, a folder MSGFILES/ with single card files (.MSG, or .TXT as written by "Export the card texts"), art/ and sounds/ as in the game folder, music/ with recordings named by the piece's number (10.ogg, "11 market.ogg"; see F12 > Settings > Sound).  |
-| `mods/encounters.c:499` | A new encounter stopped because of a mistake in its file (see darklands_port.log); the party is back in the overland view. |
-| `mods/encounters.c:549` | '%s' expected |
-| `mods/encounters.c:609` | %s: %s out of range |
-| `mods/encounters.c:609` | an attribute |
-| `mods/encounters.c:670` | %s takes %d argument%s |
-| `mods/encounters.c:706` | %s: who, then an item (0 to 199) |
-| `mods/encounters.c:714` | wounds: an attribute |
-| `mods/encounters.c:721` | unknown function %s |
-| `mods/encounters.c:740` | unknown name %s |
-| `mods/encounters.c:743` | a value expected |
-| `mods/encounters.c:749` | nested too deeply |
-| `mods/encounters.c:807` | unexpected "%s" |
-| `mods/encounters.c:821` | %s takes %d to %d values |
-| `mods/encounters.c:832` | nested too deeply |
-| `mods/encounters.c:845` | no section [%s] |
-| `mods/encounters.c:873` | %s: %s expected |
-| `mods/encounters.c:879` | an action expected |
-| `mods/encounters.c:898` | 'then' or 'goto' expected |
-| `mods/encounters.c:908` | card: one of the game's cards, 1 to 0x16d |
-| `mods/encounters.c:925` | unknown variable %s |
-| `mods/encounters.c:931` | picture names have at most 8 letters |
-| `mods/encounters.c:940` | options are numbered 0 to 9 |
-| `mods/encounters.c:946` | battle: a battlefield, then enemy, quality, count for each group |
-| `mods/encounters.c:951` | battle: a wilderness battlefield (Wilds, Surrounded, Clearing, Cave, or 0x2e-0x55, 0x61-0x63, 0x6f-0x79), or in a town's streets MainStreet, SideStreet |
-| `mods/encounters.c:953` | battle: MainStreet and SideStreet only in a town (where street) |
-| `mods/encounters.c:980` | %s: who, then a %s |
-| `mods/encounters.c:980` | skill (0 to 18) |
-| `mods/encounters.c:980` | attribute (0 to 6) |
-| `mods/encounters.c:1002` | unknown action %s |
-| `mods/encounters.c:1006` | text %ld: %s has blocks 0 to %d |
-| `mods/encounters.c:1007` | text %ld: a card holds blocks 0 to 24 |
-| `mods/encounters.c:1060` | ';' expected |
-| `mods/encounters.c:1070` | unexpected "%s" |
-| `mods/encounters.c:1202` | where: wild, boat, street or camp |
-| `mods/encounters.c:1208` | unknown setting %s |
-| `mods/encounters.c:1214` | option: a number 0 to 9 |
-| `mods/encounters.c:1216` | option %d twice |
-| `mods/encounters.c:1219` | option %d: potion or saint |
-| `mods/encounters.c:1232` | at most 4 potions |
-| `mods/encounters.c:1234` | potion CODE, CHANCE |
-| `mods/encounters.c:1256` | unknown key %s |
-| `mods/encounters.c:1258` | no card (the MSGFILES text) given |
-| `mods/encounters.c:1259` | no picture given |
-| `mods/encounters.c:1260` | no [section] |
-| `mods/encounters.c:1336` | %s has %d text blocks: the game holds 25 |
-| `mods/encounters.c:1337` | %s is too long: %ld bytes as the game loads it, under 6000 fit |
-| `mods/encounters.c:1338` | %s has a block with %d option lines: at most %d |
-| `mods/encounters.c:1350` | [%s] has options but no block |
-| `mods/encounters.c:1353` | [%s] option %d: block %d of %s has %d option line%s |
-| `mods/encounters.c:1356` | [%s] option %d: %s |
-| `mods/encounters.c:1356` | its line (\\16) opens the saints: write option N saint |
-| `mods/encounters.c:1356` | a saint option needs a \\16 line |
-| `mods/encounters.c:1357` | [%s] option %d: %s |
-| `mods/encounters.c:1357` | its line (\\10) opens the potions: write option N potion |
-| `mods/encounters.c:1357` | a potion option needs a \\10 line |
-| `mods/encounters.c:1366` | [%s] option %d is a saint option, but there are no saints |
-| `mods/encounters.c:1367` | [%s] option %d is a potion option, but there are no items |
-| `mods/encounters.c:1369` | [%s] has a block but no options |
-| `mods/encounters.c:1371` | [%s] saints: numbers 0 to 135 (DARKLAND.LST), or -1 |
-| `mods/encounters.c:1372` | [%s] items: numbers 0 to 199 (DARKLAND.LST), or -1 |
-| `mods/encounters.c:1374` | [%s] block %d: the game holds 25 blocks (0 to 24) |
-| `mods/encounters.c:1421` | (Darklands+ %s) |
-| `mods/encounters.c:1447` | New encounters: %d file%s with errors left out (see darklands_port.log). |
-| `mods/encounters.c:1875` | on the screen |
+| `mods/encounters.c:504` | A new encounter stopped because of a mistake in its file (see darklands_port.log); the party is back in the overland view. |
+| `mods/encounters.c:554` | '%s' expected |
+| `mods/encounters.c:614` | %s: %s out of range |
+| `mods/encounters.c:614` | an attribute |
+| `mods/encounters.c:675` | %s takes %d argument%s |
+| `mods/encounters.c:711` | %s: who, then an item (0 to 199) |
+| `mods/encounters.c:719` | wounds: an attribute |
+| `mods/encounters.c:726` | unknown function %s |
+| `mods/encounters.c:745` | unknown name %s |
+| `mods/encounters.c:748` | a value expected |
+| `mods/encounters.c:754` | nested too deeply |
+| `mods/encounters.c:812` | unexpected "%s" |
+| `mods/encounters.c:826` | %s takes %d to %d values |
+| `mods/encounters.c:837` | nested too deeply |
+| `mods/encounters.c:850` | no section [%s] |
+| `mods/encounters.c:878` | %s: %s expected |
+| `mods/encounters.c:884` | an action expected |
+| `mods/encounters.c:903` | 'then' or 'goto' expected |
+| `mods/encounters.c:913` | card: one of the game's cards, 1 to 0x16d |
+| `mods/encounters.c:930` | unknown variable %s |
+| `mods/encounters.c:936` | picture names have at most 8 letters |
+| `mods/encounters.c:945` | options are numbered 0 to 9 |
+| `mods/encounters.c:951` | battle: a battlefield, then enemy, quality, count for each group |
+| `mods/encounters.c:956` | battle: a wilderness battlefield (Wilds, Surrounded, Clearing, Cave, or 0x2e-0x55, 0x61-0x63, 0x6f-0x79), or in a town's streets MainStreet, SideStreet |
+| `mods/encounters.c:958` | battle: MainStreet and SideStreet only in a town (where street) |
+| `mods/encounters.c:985` | %s: who, then a %s |
+| `mods/encounters.c:985` | skill (0 to 18) |
+| `mods/encounters.c:985` | attribute (0 to 6) |
+| `mods/encounters.c:1007` | unknown action %s |
+| `mods/encounters.c:1011` | text %ld: %s has blocks 0 to %d |
+| `mods/encounters.c:1012` | text %ld: a card holds blocks 0 to 24 |
+| `mods/encounters.c:1065` | ';' expected |
+| `mods/encounters.c:1075` | unexpected "%s" |
+| `mods/encounters.c:1207` | where: wild, boat, street or camp |
+| `mods/encounters.c:1213` | unknown setting %s |
+| `mods/encounters.c:1219` | option: a number 0 to 9 |
+| `mods/encounters.c:1221` | option %d twice |
+| `mods/encounters.c:1224` | option %d: potion or saint |
+| `mods/encounters.c:1237` | at most 4 potions |
+| `mods/encounters.c:1239` | potion CODE, CHANCE |
+| `mods/encounters.c:1261` | unknown key %s |
+| `mods/encounters.c:1263` | no card (the MSGFILES text) given |
+| `mods/encounters.c:1264` | no picture given |
+| `mods/encounters.c:1265` | no [section] |
+| `mods/encounters.c:1341` | %s has %d text blocks: the game holds 25 |
+| `mods/encounters.c:1342` | %s is too long: %ld bytes as the game loads it, under 6000 fit |
+| `mods/encounters.c:1343` | %s has a block with %d option lines: at most %d |
+| `mods/encounters.c:1355` | [%s] has options but no block |
+| `mods/encounters.c:1358` | [%s] option %d: block %d of %s has %d option line%s |
+| `mods/encounters.c:1361` | [%s] option %d: %s |
+| `mods/encounters.c:1361` | its line (\\16) opens the saints: write option N saint |
+| `mods/encounters.c:1361` | a saint option needs a \\16 line |
+| `mods/encounters.c:1362` | [%s] option %d: %s |
+| `mods/encounters.c:1362` | its line (\\10) opens the potions: write option N potion |
+| `mods/encounters.c:1362` | a potion option needs a \\10 line |
+| `mods/encounters.c:1371` | [%s] option %d is a saint option, but there are no saints |
+| `mods/encounters.c:1372` | [%s] option %d is a potion option, but there are no items |
+| `mods/encounters.c:1374` | [%s] has a block but no options |
+| `mods/encounters.c:1376` | [%s] saints: numbers 0 to 135 (DARKLAND.LST), or -1 |
+| `mods/encounters.c:1377` | [%s] items: numbers 0 to 199 (DARKLAND.LST), or -1 |
+| `mods/encounters.c:1379` | [%s] block %d: the game holds 25 blocks (0 to 24) |
+| `mods/encounters.c:1426` | (Darklands+ %s) |
+| `mods/encounters.c:1452` | New encounters: %d file%s with errors left out (see darklands_port.log). |
+| `mods/encounters.c:1880` | on the screen |
 | `mods/fixgroups.c:10` | Crashes, freezes, items or progress lost, saved games spoiled, quests that can never be finished. Nobody wants these. |
 | `mods/fixgroups.c:11` | Plain mistakes |
 | `mods/fixgroups.c:11` | Something the game sets out to do and gets wrong: the wrong member, the wrong town, a check on the wrong option, a number lost on the way. |
@@ -2842,34 +2844,35 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixgroups.c:13` | Bugs players have long used to their advantage (invulnerability from fire protection, confession's clock turned back, the same bounty again and again). Leave these off to keep the old tricks. |
 | `mods/fixgroups.c:14` | Left over from 1992 |
 | `mods/fixgroups.c:14` | Not bugs, but nobody misses them: the question from the printed manual before the party first sets out. |
-| `mods/gamemodel.c:359` | Divine Favor |
-| `mods/gamemodel.c:364` | Edged Weapons |
-| `mods/gamemodel.c:364` | Impact Weapons |
-| `mods/gamemodel.c:364` | Thrown Weapons |
-| `mods/gamemodel.c:364` | Missile Devices |
-| `mods/gamemodel.c:365` | Speak Common |
-| `mods/gamemodel.c:365` | Read & Write |
-| `mods/gamemodel.c:384` | Missile Devices |
+| `mods/gamemodel.c:372` | Divine Favor |
+| `mods/gamemodel.c:377` | Edged Weapons |
+| `mods/gamemodel.c:377` | Impact Weapons |
+| `mods/gamemodel.c:377` | Thrown Weapons |
+| `mods/gamemodel.c:377` | Missile Devices |
+| `mods/gamemodel.c:378` | Speak Common |
+| `mods/gamemodel.c:378` | Read & Write |
+| `mods/gamemodel.c:397` | Missile Devices |
 | `mods/hdart.c:779` | Create a New World |
 | `mods/hdart.c:780` | The Story Continues |
 | `mods/hdart.c:992` | %d pictures written to %s%s |
 | `mods/hdart.c:992` |  (some could not be written) |
 | `mods/hdtext.c:457` | cursor: shown %d page %d save %d,%d %dx%d at %d,%d |
 | `mods/keep.c:46` | # formulae first or last in the alchemy screen's list (formula f first\|last)  |
-| `mods/levelwalk.c:55` | only works when you pick a tile that isn't next to a wall |
-| `mods/levelwalk.c:122` | The party could not get into the doorway. |
-| `mods/levelwalk.c:130` | The party could get no nearer to the place chosen on the level map. |
-| `mods/levelwalk.c:168` | The party cannot get there from where it stands. |
-| `mods/levelwalk.c:176` |  in single file (press G to move as a group again) |
-| `mods/levelwalk.c:179` | The party goes in single file (press G to move as a group again). |
-| `mods/levelwalk.c:182` | The party walks there%s. |
-| `mods/levelwalk.c:183` | The party will walk there%s: Space resumes the battle. |
-| `mods/levelwalk.c:184` | The party walks there%s. |
-| `mods/levelwalk.c:255` | There are no stairs on this floor that the party has found. |
-| `mods/levelwalk.c:268` | The party walks to the stairs and takes them. |
-| `mods/levelwalk.c:268` | The party walks to the stairs. |
-| `mods/levelwalk.c:423` | The party walks to the door to close it. |
-| `mods/levelwalk.c:423` | The party walks to the door to open it. |
+| `mods/levelwalk.c:58` | only works when you pick a tile that isn't next to a wall |
+| `mods/levelwalk.c:125` | The party could not get into the doorway. |
+| `mods/levelwalk.c:133` | The party could get no nearer to the place chosen on the level map. |
+| `mods/levelwalk.c:171` | The party cannot get there from where it stands. |
+| `mods/levelwalk.c:179` |  in single file (press G to move as a group again) |
+| `mods/levelwalk.c:179` |  (the others as they fight) |
+| `mods/levelwalk.c:182` | The party goes in single file (press G to move as a group again). |
+| `mods/levelwalk.c:185` | The party walks there%s. |
+| `mods/levelwalk.c:186` | The party will walk there%s: Space resumes the battle. |
+| `mods/levelwalk.c:187` | The party walks there%s. |
+| `mods/levelwalk.c:258` | There are no stairs on this floor that the party has found. |
+| `mods/levelwalk.c:271` | The party walks to the stairs and takes them. |
+| `mods/levelwalk.c:271` | The party walks to the stairs. |
+| `mods/levelwalk.c:426` | The party walks to the door to close it. |
+| `mods/levelwalk.c:426` | The party walks to the door to open it. |
 | `mods/lodgeview.c:140` | Castle Guard |
 | `mods/lodgeview.c:143` | Castle Servant |
 | `mods/lodgeview.c:144` | Castle Steward |
@@ -2907,10 +2910,10 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/loot.c:90` | Shared out all %d. |
 | `mods/loot.c:90` | Took all %d. |
 | `mods/loot.c:201` | Thrown weapons picked up after the battle (Darklands+):  |
-| `mods/loot.c:374` | Point at one of the merchant's goods first (the upper list). |
-| `mods/loot.c:382` | Bought none: not enough money, or no room. |
-| `mods/loot.c:384` | Point at one of your own items first (the lower list). |
-| `mods/loot.c:400` | This merchant does not buy that. |
+| `mods/loot.c:423` | Point at one of the merchant's goods first (the upper list). |
+| `mods/loot.c:431` | Bought none: not enough money, or no room. |
+| `mods/loot.c:433` | Point at one of your own items first (the lower list). |
+| `mods/loot.c:449` | This merchant does not buy that. |
 | `mods/lootview.c:120` | %d %s to %s (to give it to another member, drag it from the character sheet onto them in the party panel). |
 | `mods/lootview.c:121` | %d %s into the party's pack. |
 | `mods/lootview.c:122` | No room: every member already carries 64 kinds of items. |

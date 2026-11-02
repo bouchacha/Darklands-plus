@@ -128,6 +128,7 @@ void gamedata_load(const char *dir)
             d.weight = r[37]; d.quality = r[38]; d.value = w16(r + 44);
             d.flags5 = r[36]; d.rarity = r[39];
             d.relic_virtue = w16(r + 40); d.relic_df = w16(r + 42);
+            memcpy(d.raw, r, sizeof d.raw);
             d.mineral = (d.flags2 & 0x1000) != 0;
             d.kind = classify(d);
             gamedata.items.push_back(d);
@@ -287,6 +288,15 @@ std::string loc_display_name(int loc)
     return game_text(b, sizeof b);
 }
 
+/* (for C: a byte (size 1) or a word (size 2) of item id's record in DARKLAND.LST, a mod's if one replaces it; -1 if
+   unknown. The game's own copy is not in memory in a battle or a dungeon: what its pointers then point at is other
+   data, which made every thing an ingredient (mods/loot.c) - so the mods read the item list here) */
+extern "C" int gamedata_item_raw(int id, int off, int size)
+{
+    if (id < 0 || id >= (int)gamedata.items.size() || off < 0 || off + size > 46) return -1;
+    const unsigned char *r = gamedata.items[id].raw;
+    return size == 2 ? r[off] | r[off + 1] << 8 : r[off];
+}
 /* (for C: a thing's name as shown, "St. Dunstan's Hammer" for the game's "S.Dunstan Hammer"; 0 if unknown) */
 extern "C" int gamedata_item_name(int id, char *out, int n)
 {

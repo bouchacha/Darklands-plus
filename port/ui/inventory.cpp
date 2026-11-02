@@ -551,7 +551,7 @@ void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's qual
                             v >= d->relic_virtue ? "" : weapon ? " - too little to wield it" : " - too little");
         }
         if (!relics_on()) ui_rich_textf_dim("Off: Relics as the manual has them (F12 > Settings > The party and its items).");
-        else ui_rich_textf_dim("It takes no lasting harm.");
+        else ui_rich_textf_dim("This blessed item is immune from any quality degradation.");
     }
     if (d && d->type >= 0 && d->type <= 33 && (d->kind == K_WEAPON || d->kind == K_MISSILE || d->kind == K_RELIC)) {
         /* the combat tables (far 20a5, 63 weapon types; s014 weapon_ready): skill used, blow

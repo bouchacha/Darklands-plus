@@ -123,6 +123,8 @@ const char *gm_skill_short(int k);                /* the same, "Edged", "Impact"
 
 /* item definitions (DARKLAND.LST, as the game holds it) */
 void gm_itemdef_name(int id, char *out, int n);   /* game charset */
+int gm_itemdef_u8(int id, int off);               /* a byte of its DARKLAND.LST record (never the game's copy in a battle); -1 unknown */
+int gm_itemdef_u16(int id, int off);              /* a word of it */
 int gm_itemdef_type(int id);                       /* its type (+0x1e): a weapon's number, 0x40-0x42 arrows, quarrels, balls ... */
 int gm_member_uses(int m, int id);                /* m's missile weapon looses it (its ammunition, or the thrown weapon itself) */
 int gm_itemdef_weight(int id);

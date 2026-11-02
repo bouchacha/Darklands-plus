@@ -1,9 +1,12 @@
 /* levelwalk.c - a click on the level map (Tab, ui/levelmap.cpp) walks the party there.
  * Always with the map (but in the original game); the party also takes the stairs together.
  *
- * The party is put to Travel Single File (Q, as the key does: s016 1ef8:0cdc) and its leader is
- * given the walk a click on the floor gives in that mode (combat_mouse, s014 19cd:0006): the
- * leader's destination, path_find and path_give, the action "walk", the others following.
+ * Out of a fight the party is put to Travel Single File (Q, as the key does: s016 1ef8:0cdc) and its
+ * leader is given the walk a click on the floor gives in that mode (combat_mouse, s014 19cd:0006):
+ * the leader's destination, path_find and path_give, the action "walk", the others following.
+ * In a fight the leader alone is given it: there the party travels individually, as the game makes
+ * it (s014 0e76:03f2 puts the travel mode back to 0 in a fight; Q is not taken there, 1ef8:0666), and
+ * the others go on as their ways have them (mods/ways.c).
  * As a group (G) the four places of the formation must all be free and reachable round the
  * spot, which by a wall or in a passage they often are not, and the members stood still or
  * blocked each other half way. The order is given directly rather than as a click on the
@@ -157,8 +160,8 @@ static void input_hook(void)                 /* s014 0e76:3166 combat_input () *
     int door = door_pending >= 0 && tx == door_wx && ty == door_wy ? door_pending : -1;   /* (another walk asked since: no door) */
     door_pending = -1;
     if ((s8)g_rb(GV_floor_shown) != tfl) { hook_call_original(); return; }
-    int was_mode = g_rb(GV_move_mode);
-    if (was_mode != 2) { ns_call(16, 0x1ef8, 0x0cdc, 0); if (ns_unwinding) return; }
+    int fight = g_rb(GV_real_combat) == 1, was_mode = g_rb(GV_move_mode);
+    if (was_mode != 2 && !fight) { ns_call(16, 0x1ef8, 0x0cdc, 0); if (ns_unwinding) return; }   /* (single file, out of a fight only) */
     int lead = (s8)g_rb(GV_marching_order);
     if (lead < 0 || lead > 4 || g_rb(CBF(lead, CB_STATUS)) != 1) { hook_call_original(); return; }
     int mx, my;
@@ -173,10 +176,10 @@ static void input_hook(void)                 /* s014 0e76:3166 combat_input () *
     if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: map %d,%d -> %d,%d for %d (move mode %d, was %d; paused %d)\n", tx, ty, mx, my, lead, g_rb(GV_move_mode), was_mode, g_rb(GV_ai_paused));
     /* (word that the click was taken: the map closes on it, and the party is seen to go. Out of a fight the
        battle paused goes on at once, as for the stairs; in a fight it waits for Space) */
-    const char *file = was_mode != 2 ? " in single file (press G to move as a group again)" : "";
+    const char *file = was_mode != 2 && !fight ? " in single file (press G to move as a group again)" : fight ? " (the others as they fight)" : "";
     char m[200];
     if (door_pending >= 0) {                                       /* (a door clicked: told so at the click) */
-        if (was_mode != 2) ui_notice("The party goes in single file (press G to move as a group again).");
+        if (was_mode != 2 && !fight) ui_notice("The party goes in single file (press G to move as a group again).");
         hook_call_original(); return;
     }
     if (g_rb(GV_ai_paused) == 1 && !g_rb(GV_real_combat)) { extern void bios_kbd_inject(u16); bios_kbd_inject(0x3920); snprintf(m, sizeof m, "The party walks there%s.", file); }

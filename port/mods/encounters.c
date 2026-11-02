@@ -308,6 +308,7 @@ static void enc_leave(void)
 #define SNAP_ITEMS 300
 typedef struct {
     int st[5], cur[5][7], max[5][7], skill[5][19];
+    int boost[5][7], sboost[5][19];                  /* (a saint's or a potion's help running: gm_temp_boost) */
     char name[5][24];
     long money; int fame, rep[0x5c];
     int nit, it_id[SNAP_ITEMS], it_n[SNAP_ITEMS];
@@ -327,8 +328,8 @@ static void snap_take(Snap *s)
         s->st[m] = gm_member_present(m) ? gm_member_status(m) : 0;
         if (!s->st[m]) continue;
         gm_member_name(m, s->name[m], sizeof s->name[m]);
-        for (int k = 0; k < 7; k++) { gm_member_attr(m, k, &s->cur[m][k], &s->max[m][k]); s->cur[m][k] -= gm_temp_boost(0x48, m, k); }
-        for (int k = 0; k < 19; k++) s->skill[m][k] = gm_member_skill(m, k) - gm_temp_boost(0x49, m, k);   /* (a saint's or a potion's help for a while: not what came of it) */
+        for (int k = 0; k < 7; k++) { gm_member_attr(m, k, &s->cur[m][k], &s->max[m][k]); s->boost[m][k] = gm_temp_boost(0x48, m, k); s->cur[m][k] -= s->boost[m][k]; }
+        for (int k = 0; k < 19; k++) { s->sboost[m][k] = gm_temp_boost(0x49, m, k); s->skill[m][k] = gm_member_skill(m, k) - s->sboost[m][k]; }   /* (a saint's or a potion's help for a while: not what came of it) */
         GmItem g;
         for (int i = 0; i < gm_item_count(m); i++) if (gm_item(m, i, &g) && g.id > 0) snap_item(s, g.id, g.count > 0 ? g.count : 1);
     }
@@ -356,11 +357,15 @@ static void outcome_since(const Snap *a)
         if (!a->st[m]) continue;
         memcpy(outc_names[m], a->name[m], sizeof outc_names[m]);
         if (!b.st[m] || (b.st[m] == 3 && a->st[m] != 3)) { out_add(EO_LOST, m, 0, 1); continue; }
+        /* (an attribute or skill whose help for a while began or ended meanwhile is left out: what it gave is not
+           all there in the value - a boost to Endurance above what wounds left, one capped at 99 - so the value less
+           the help moved by itself, and showed as the card's: Endurance +63 as boosts wore off, 1.4.5-RC5) */
         for (int k = 0; k < 7; k++) {
+            if (b.boost[m][k] != a->boost[m][k]) continue;
             if (b.cur[m][k] != a->cur[m][k]) out_add(EO_ATTR, m, k, b.cur[m][k] - a->cur[m][k]);
             else if (b.max[m][k] != a->max[m][k]) out_add(EO_ATTRMAX, m, k, b.max[m][k] - a->max[m][k]);
         }
-        for (int k = 0; k < 19; k++) out_add(EO_SKILL, m, k, b.skill[m][k] - a->skill[m][k]);
+        for (int k = 0; k < 19; k++) if (b.sboost[m][k] == a->sboost[m][k]) out_add(EO_SKILL, m, k, b.skill[m][k] - a->skill[m][k]);
     }
     for (int i = 0; i < b.nit; i++) {                 /* things the party has more or fewer of (whoever carries them) */
         int was = 0; for (int j = 0; j < a->nit; j++) if (a->it_id[j] == b.it_id[i]) was = a->it_n[j];

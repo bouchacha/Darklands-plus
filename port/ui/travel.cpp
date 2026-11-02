@@ -53,18 +53,31 @@ extern "C" void travel_overlay(void)
 
 /* the campfire under the clock (the sky box at the banner's right end, 289..320 x 0..16): travel.camp_at_8, which
    mods/travel.c reads - unlit: off; lit with a small heart: at 20:00 when someone needs rest; lit: at 20:00 every
-   night. A click (overlay_click: travel_camp_click) takes the next; what each does under the pointer */
-static ImVec2 camp_a, camp_b; static int camp_frame = -10;
-static const float CX0 = 296.5f, CY0 = 17.0f, CX1 = 312.5f, CY1 = 28.5f;
+   night. A click (overlay_click: travel_camp_click) takes the next; what each does under the pointer. The small
+   arrow at its right hides it (map.camp_button_hidden, his ask): it slides up under the clock, and comes down while
+   the pointer is on the clock (or on it); its arrow then keeps it shown again */
+static ImVec2 camp_a, camp_b, hide_a, hide_b; static int camp_frame = -10;
+static const float CX0 = 296.5f, CY0 = 17.0f, CX1 = 312.5f, CY1 = 28.5f, HX0 = 313.2f, HX1 = 317.6f;
+static float camp_up;                                          /* 0 down (shown) .. 1 up under the clock */
 extern "C" void travel_camp_button(void)
 {
-    if (game_mode() != GM_MAP || ns_showing() || !travel_map_live() || config_get_int("original", 0)) return;
-    int mode = config_get_int("travel.camp_at_8", 0);
+    if (game_mode() != GM_MAP || ns_showing() || !travel_map_live() || config_get_int("original", 0)) { camp_frame = -10; return; }
+    int mode = config_get_int("travel.camp_at_8", 0), hidden = config_get_int("map.camp_button_hidden", 0);
     ImDrawList *dl = ImGui::GetForegroundDrawList();
-    ImVec2 a, b; plat_game_to_win(CX0, CY0, &a.x, &a.y); plat_game_to_win(CX1, CY1, &b.x, &b.y);
     ImVec2 mp = ImGui::GetIO().MousePos;
-    bool hot = mp.x >= a.x && mp.x < b.x && mp.y >= a.y && mp.y < b.y;
+    auto in = [&](ImVec2 p0, ImVec2 p1) { return mp.x >= p0.x && mp.x < p1.x && mp.y >= p0.y && mp.y < p1.y; };
+    ImVec2 s0, s1; plat_game_to_win(289, 0, &s0.x, &s0.y); plat_game_to_win(320, 16, &s1.x, &s1.y);
+    bool over = in(s0, s1) || (camp_up < 0.99f && (in(camp_a, camp_b) || in(hide_a, hide_b)));   /* (the clock, or the campfire while out) */
+    float want = hidden && !over ? 1.0f : 0.0f, dt = ImGui::GetIO().DeltaTime;
+    camp_up += (want - camp_up) * fminf(1.0f, dt * 12.0f);
+    if (fabsf(camp_up - want) < 0.01f) camp_up = want;
+    if (camp_up >= 0.999f) { camp_frame = -10; return; }       /* (up under the clock: nothing to click) */
+    float dy = -(CY1 - 16.0f) * camp_up;
+    ImVec2 a, b; plat_game_to_win(CX0, CY0 + dy, &a.x, &a.y); plat_game_to_win(CX1, CY1 + dy, &b.x, &b.y);
+    ImVec2 ha, hb; plat_game_to_win(HX0, CY0 + dy, &ha.x, &ha.y); plat_game_to_win(HX1, CY0 + 4.6f + dy, &hb.x, &hb.y);
+    bool hot = in(a, b), hhot = in(ha, hb);
     float h = b.y - a.y, r = h * 0.22f;
+    dl->PushClipRect(ImVec2(a.x - h, s1.y), ImVec2(hb.x + h, b.y + h), true);   /* (under the clock's lower edge only: it slides in behind it) */
     dl->AddRectFilled(ImVec2(a.x + 1.5f, a.y + 1.5f), ImVec2(b.x + 1.5f, b.y + 1.5f), IM_COL32(10, 6, 2, 110), r);
     dl->AddRectFilled(a, b, hot ? IM_COL32(64, 42, 22, 235) : IM_COL32(40, 26, 14, 215), r);
     dl->AddRect(a, b, hot ? IM_COL32(240, 202, 96, 255) : IM_COL32(190, 150, 64, 230), r, 0, fmaxf(1.0f, h * 0.07f));
@@ -84,8 +97,19 @@ extern "C" void travel_camp_button(void)
         dl->AddCircleFilled(ImVec2(p.x + k * 0.5f, p.y - k * 0.3f), k * 0.62f, IM_COL32(200, 40, 34, 255), 12);
         dl->AddTriangleFilled(ImVec2(p.x - k * 1.08f, p.y - k * 0.1f), ImVec2(p.x + k * 1.08f, p.y - k * 0.1f), ImVec2(p.x, p.y + k * 1.1f), IM_COL32(200, 40, 34, 255));
     }
-    camp_a = a; camp_b = b; camp_frame = ImGui::GetFrameCount();
-    if (hot) {
+    {   /* the arrow: up to hide it, down (while hidden and out) to keep it shown */
+        float hr = (hb.y - ha.y) * 0.25f;
+        dl->AddRectFilled(ha, hb, hhot ? IM_COL32(64, 42, 22, 235) : IM_COL32(40, 26, 14, 200), hr);
+        dl->AddRect(ha, hb, hhot ? IM_COL32(240, 202, 96, 255) : IM_COL32(190, 150, 64, 200), hr, 0, fmaxf(1.0f, h * 0.05f));
+        ImVec2 m((ha.x + hb.x) * 0.5f, (ha.y + hb.y) * 0.5f); float k = (hb.x - ha.x) * 0.26f;
+        ImU32 ac = IM_COL32(236, 206, 120, 255);
+        if (!hidden) dl->AddTriangleFilled(ImVec2(m.x - k, m.y + k * 0.6f), ImVec2(m.x + k, m.y + k * 0.6f), ImVec2(m.x, m.y - k * 0.7f), ac);
+        else dl->AddTriangleFilled(ImVec2(m.x - k, m.y - k * 0.6f), ImVec2(m.x + k, m.y - k * 0.6f), ImVec2(m.x, m.y + k * 0.7f), ac);
+    }
+    dl->PopClipRect();
+    camp_a = a; camp_b = b; hide_a = ha; hide_b = hb; camp_frame = ImGui::GetFrameCount();
+    if (hhot) ImGui::SetTooltip("%s", hidden ? "Keep the campfire shown." : "Hide the campfire under the clock (point at the clock to see it again).");
+    else if (hot) {
         static const char *const SAY[3] = {
             "Stop to camp at 20:00: off.",
             "At 20:00 the party stops and makes camp when someone is short of {Endurance}, {Strength} or {Divine Favor}.",
@@ -102,7 +126,14 @@ extern "C" void travel_camp_button(void)
 }
 extern "C" int travel_camp_click(int x, int y)
 {
-    if (ImGui::GetFrameCount() - camp_frame > 2 || x < camp_a.x || x >= camp_b.x || y < camp_a.y || y >= camp_b.y) return 0;
+    if (ImGui::GetFrameCount() - camp_frame > 2) return 0;
+    if (x >= hide_a.x && x < hide_b.x && y >= hide_a.y && y < hide_b.y) {
+        int hidden = !config_get_int("map.camp_button_hidden", 0);
+        config_set_int("map.camp_button_hidden", hidden);
+        fprintf(stderr, "travel: the campfire %s\n", hidden ? "hidden under the clock" : "kept shown");
+        return 1;
+    }
+    if (x < camp_a.x || x >= camp_b.x || y < camp_a.y || y >= camp_b.y) return 0;
     int mode = (config_get_int("travel.camp_at_8", 0) + 1) % 3;
     config_set_int("travel.camp_at_8", mode);
     static const char *const SAY[3] = { "Stop to camp at 20:00: off", "Stop to camp at 20:00: when someone needs rest", "Stop to camp at 20:00: every night" };
