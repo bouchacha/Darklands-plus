@@ -288,7 +288,8 @@ covered and found, and what it could not check.
   blows, armor's effect on a blow) and some twenty vague ones fixed, each checked against the code or the
   decompilation. Left: the "Many / Some / A few encounters" tiers (not checked), "about a day" for the saints'
   help (durations not checked), and the cathedral donation's Virtue (margins.cpp says "maybe", citynav.cpp
-  does not; the donation's code, s056 1abb:0212, is not decompiled). Open: a battle save made while the party
-  walked loads with the members marked as walking (cbt_moving 1, order 0) yet standing still (his dksaveb4);
-  the ways leave a walking member alone, so after such a load nobody fights on their own until given an
-  order. Not traced yet (cbt_step returns while D_ca30 is -1, which the battle's start sets).
+  does not; the donation's code, s056 1abb:0212, is not decompiled). Then traced and fixed: a battle save made
+  while the party walked loads with the members marked as walking (cbt_moving 1) and no order (his dksaveb4):
+  the battle's start clears the orders but not that flag, and cbt_step walks only on an order with the walk
+  bit, so they stood for good, while the ways left them alone as members walking. The ways' tick now sets
+  such a member standing (order 0 and walking can only be this).

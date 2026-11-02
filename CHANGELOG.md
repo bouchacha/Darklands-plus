@@ -7,6 +7,7 @@ What changed since 1.4.5.
 **Fixed**
 
 - In a fight that began while the party walked in single file (a walk chosen on the level map puts it in single file), our way of fighting sent the followers at the enemy and the game put them back in the line, over and over, the whole fight; both reports of figures drawn wrong in a fight came from such fights. A follower in single file is now left to the game until real combat breaks the line; the leader still fights in its way.
+- A battle saved while the party walked loaded with the members marked as walking but going nowhere, and none of them fought on their own until given an order (the game clears the orders when a battle loads, but not the walking).
 - Wrong texts: under a heavy load blows hand to hand come at the usual pace, not slower (the original's oversight); armor that a weapon does not pierce halves or cuts to an eighth the weapon's extra damage, not the whole blow; the alchemy risk fix's description now says that only half the failed batches end in a mishap.
 
 **Changed**

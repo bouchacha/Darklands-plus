@@ -592,6 +592,14 @@ static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchange
     { extern int arena_log_every; void arena_tick(void); if (arena_log_every) arena_tick(); }   /* (the test arena's log: runtime/testcmds.c) */
     keep_kinds();
     if (!combat_improved()) return;
+    /* a member marked as walking with no order: the battle's start (a battle save loaded too) clears the orders but
+       not cbt_moving, so one saved half way through a walk came back marked walking, order 0, and stood for good
+       (cbt_step walks only on an order with the walk bit) while the ways let it be as one walking (his dksaveb4) */
+    for (int i = 0; i < 5; i++)
+        if (g_rb(CBF(i, CB_STATUS)) == 1 && g_rw(CBF(i, CB_ORDER)) == 0 && g_rb((u16)(GV_cbt_moving + i))) {
+            g_wb((u16)(GV_cbt_moving + i), 0);
+            fprintf(stderr, "orders: member %d was marked walking with no order (a battle saved half way through a walk): stands\n", i);
+        }
     note_lines();
     retarget_shooters();
     if (ns_unwinding) return;
