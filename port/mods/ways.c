@@ -47,7 +47,17 @@ static int st(int i)                            /* the way member i fights now *
     if (s0 == ST_SKIRMISHER && committed[i]) return ST_FOOTMAN;
     return s0;
 }
-static int automated(int i) { return combat_improved() && st(i) != ST_OFF; }
+/* a member that follows the one before it in single file (move_mode 2, not the leader): the game moves it -
+   each time the leader takes a step it gives every follower the one before it as its target and a path there
+   (s014 0e76, the leader's tick), until the enemy sees the party and real combat drops the line (move_mode 0).
+   Ours to move only then: sent at a foe before that, it was given back its place in the line at once, and
+   the two went on every tick for the whole fight (his log in the Moresnet mine, 1.4.5: "member 1's foe 0
+   fell", "member 3's foe 2 fell", over and over; both his reports of figures drawn wrong came from such fights) */
+static int in_line(int i)
+{
+    return g_rb(GV_move_mode) == 2 && !g_rb(GV_real_combat) && i != (s8)g_rb(GV_marching_order);
+}
+static int automated(int i) { return combat_improved() && st(i) != ST_OFF && !in_line(i); }
 /* a member who shoots while it can: an Archer, a Skirmisher before the enemies are close */
 static int shooter(int i) { int s0 = st(i); return s0 == ST_ARCHER || s0 == ST_SKIRMISHER; }
 /* 1 shoot, 0 melee, -1 no missile weapon in hand: what a click on an enemy makes member m do

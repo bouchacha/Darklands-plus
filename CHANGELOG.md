@@ -1,5 +1,13 @@
 # Darklands+ changelog
 
+## Next
+
+What changed since 1.4.5.
+
+**Fixed**
+
+- In a fight that began while the party walked in single file (a walk chosen on the level map puts it in single file), our way of fighting sent the followers at the enemy and the game put them back in the line, over and over, the whole fight; both reports of figures drawn wrong in a fight came from such fights. A follower in single file is now left to the game until real combat breaks the line; the leader still fights in its way.
+
 ## 1.4.5
 
 What changed since 1.4.
