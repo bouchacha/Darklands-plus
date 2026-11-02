@@ -14,6 +14,7 @@ What changed since 1.4.5.
 
 **Changed**
 
+- A ladder that leads nowhere says so (GitHub issue 9: the one past the door in the dwarf king's mine; the mine's builder makes it a dead end that brings the party back where it stands). The way on is the floor just past it: the iron door's riddle, then the king.
 - The load's tooltip on the character sheet: one short text instead of two that said the same twice.
 - Learning a saint (a library, a teacher): each saint shows the Virtue it asks of the one who prays, greyed for a member whose Virtue is lower.
 - Texts that left a rule vague now state it: the camp's risk after breaking camp (12 to 60 hours), how guards slow it, the shops' prices below 0 reputation, the cities at war, a teacher's refusal, the cathedral's relic gift, the chance of a trader's job, and nine fix titles, which now say what changed (seven said only "properly", "correctly" or "the right ...").

@@ -205,6 +205,10 @@ static void take_exit_hook(void)           /* take_exit (n, who) */
     int n = (s16)rw(SS, (u16)(SP + 4)), who = (s16)rw(SS, (u16)(SP + 6));
     int from = (s8)g_rb((u16)(GV_cbt_floor + (who >= 0 && who < 13 ? who : 0)));
     int explore = !g_rb(GV_real_combat) && who >= 0 && who < 5 && !following && !config_get_int("original", 0);
+    /* a dead end: the mine's builder (s009 1432:2c98) gives a passage to a section it does not build an exit to its
+       own level, its arrival beside itself (the ladder past the door to the dwarf king's, GitHub issue 9): said so */
+    if (explore && n >= 0 && n < 6 && (s8)rb(G_FAR20A5, (u16)(FLR_STAIRS + 14 * n + 6)) == from && from == (s8)g_rb(GV_floor_shown))
+        ui_notice("This ladder leads nowhere: it brings the party back to where it stands.");
     hook_call_original();
     if (ns_unwinding || !explore) return;
     following = 1;

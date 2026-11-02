@@ -2877,11 +2877,12 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/levelwalk.c:185` | The party walks there%s. |
 | `mods/levelwalk.c:186` | The party will walk there%s: Space resumes the battle. |
 | `mods/levelwalk.c:187` | The party walks there%s. |
-| `mods/levelwalk.c:258` | There are no stairs on this floor that the party has found. |
-| `mods/levelwalk.c:271` | The party walks to the stairs and takes them. |
-| `mods/levelwalk.c:271` | The party walks to the stairs. |
-| `mods/levelwalk.c:426` | The party walks to the door to close it. |
-| `mods/levelwalk.c:426` | The party walks to the door to open it. |
+| `mods/levelwalk.c:211` | This ladder leads nowhere: it brings the party back to where it stands. |
+| `mods/levelwalk.c:262` | There are no stairs on this floor that the party has found. |
+| `mods/levelwalk.c:275` | The party walks to the stairs and takes them. |
+| `mods/levelwalk.c:275` | The party walks to the stairs. |
+| `mods/levelwalk.c:430` | The party walks to the door to close it. |
+| `mods/levelwalk.c:430` | The party walks to the door to open it. |
 | `mods/lodgeview.c:140` | Castle Guard |
 | `mods/lodgeview.c:143` | Castle Servant |
 | `mods/lodgeview.c:144` | Castle Steward |
