@@ -1385,8 +1385,9 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/lodgeview.cpp:287` | The lord's men: %d%% before the next day, %d%% the day after |
 | `ui/lodgeview.cpp:303` | learned all (%d) |
 | `ui/lodgeview.cpp:304` | now %d, to %d  \xc2\xb7  %d%%  \xc2\xb7  %s  \xc2\xb7  %d day%s |
-| `ui/lodgeview.cpp:317` | The lord's men may find the party living off his land, more likely each day. With %s on guard the day after is %d%% (%d%% unguarded). After the camp is broken, the risk built up stays for 12 to 60 hours: camping again within that time goes on from it. |
-| `ui/lodgeview.cpp:319` | The lord's men may find the party living off his land, more likely each day; members on guard slow it. After the camp is broken, the risk built up stays for 12 to 60 hours: camping again within that time goes on from it. |
+| `ui/lodgeview.cpp:317` | The lord's men may find the party living off his land, more likely each day. With %s on guard the day after is %d%% (%d%% unguarded). |
+| `ui/lodgeview.cpp:319` | The lord's men may find the party living off his land, more likely each day; members on guard slow it. |
+| `ui/lodgeview.cpp:320` |  After the camp is broken, the risk built up stays for 12 to 60 hours: camping again within that time goes on from it. |
 | `ui/lodgeview.cpp:322` |  At an inn a failed batch can blow up; in a camp in the wild it cannot. |
 | `ui/lodgeview.cpp:330` | The teacher of {%s} knows %d; %s has %d already: nothing more to learn here. |
 | `ui/lodgeview.cpp:332` | Teacher of {%s} (skill %d), %d more day%s hired. Each day: %d%% chance of +1 (about one point in %d day%s)%s. %s has %d.%s |

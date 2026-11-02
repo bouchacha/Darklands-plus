@@ -73,7 +73,7 @@ int orders_member_mode(int m)
 /* the way member m fights, for the party panel (ui/partypanel.cpp) */
 int orders_member_style(int m) { return m >= 0 && m < 5 ? style_of(m) : ST_OFF; }
 /* a member may walk on its own (step aside for a line, go to help): not on Manual */
-int orders_may_move(int i) { return st(i) != ST_OFF; }
+int orders_may_move(int i) { return st(i) != ST_OFF && !in_line(i); }   /* (a follower in single file: the game keeps it in the line) */
 
 /* the melee attack member i opens with against foe t: Vulnerable (0x0a: 1d4 more penetration, fewer
    and less guarded blows: s014 18bf hit_damage, attack_rate) when the default weapon's penetration

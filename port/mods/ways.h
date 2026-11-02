@@ -6,7 +6,7 @@
 #define MISSILE    0x80                         /* Use Missile */
 int orders_member_mode(int m);                  /* 1 a click on an enemy shoots, 0 fights hand to hand, -1 no missile weapon */
 int orders_member_style(int m);  /* the way member m fights (styles.h ST_*) */
-int orders_may_move(int i);                     /* member i may walk on its own (step aside for a line) */
+int orders_may_move(int i);                     /* member i may walk on its own (step aside for a line): not Manual, not a follower in single file */
 int ways_melee_kind(int i, int t);              /* Std Attack, or Vulnerable where only that gets through t's armor */
 int ways_near_foe(int i, int m);                /* foe m within a few paces of member i */
 int ways_line_clear(int i, int j);              /* a clear line of fire from i to j, where i stands */

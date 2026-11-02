@@ -278,3 +278,17 @@ covered and found, and what it could not check.
   events.tmp in a battle (that is where the game keeps them then), pack.c keeping both loads around the game's
   own equip_weight (the game's code reads its definitions there), and the repair of old battle saves' trigger
   routines (data, not a path).
+- 2026-11-01 (night, after 1.4.5): a structural pass and a look round after the single-file fix and the words
+  sweep. One rule now says who moves a member: a follower in single file is the game's until real combat breaks
+  the line (ways.c in_line; the game gives each follower the one before it at every step of the leader). The
+  ways' automation and the step aside for a line (orders_may_move, read by battlerules.c) both ask it, so no
+  module of ours fights the game's single-file step over a member (his Moresnet log: "member 1's foe 0 fell"
+  every moment of a fight). The camp's after-camp risk is said once in lodgeview.cpp. Words: docs/COPY.md read
+  through by a second reader for lines that leave a rule vague or state it wrongly; two wrong (a heavy load's
+  blows, armor's effect on a blow) and some twenty vague ones fixed, each checked against the code or the
+  decompilation. Left: the "Many / Some / A few encounters" tiers (not checked), "about a day" for the saints'
+  help (durations not checked), and the cathedral donation's Virtue (margins.cpp says "maybe", citynav.cpp
+  does not; the donation's code, s056 1abb:0212, is not decompiled). Open: a battle save made while the party
+  walked loads with the members marked as walking (cbt_moving 1, order 0) yet standing still (his dksaveb4);
+  the ways leave a walking member alone, so after such a load nobody fights on their own until given an
+  order. Not traced yet (cbt_step returns while D_ca30 is -1, which the battle's start sets).

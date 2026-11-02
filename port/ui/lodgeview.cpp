@@ -314,10 +314,10 @@ extern "C" void lodgeview_draw(void)
         if (hover_act == 200) {
             char b[400];
             int g = 0; for (int i = 0; i < 5; i++) g += m.m[i].present && m.m[i].act == 5;
-            if (g) snprintf(b, sizeof b, "The lord's men may find the party living off his land, more likely each day. With %s on guard the day after is %d%% (%d%% unguarded). After the camp is broken, the risk built up stays for 12 to 60 hours: camping again within that time goes on from it.",
+            if (g) snprintf(b, sizeof b, "The lord's men may find the party living off his land, more likely each day. With %s on guard the day after is %d%% (%d%% unguarded).",
                             g == 1 ? "this one" : "these", m.risk_next_pct, m.risk_next_unguarded_pct);
-            else snprintf(b, sizeof b, "The lord's men may find the party living off his land, more likely each day; members on guard slow it. After the camp is broken, the risk built up stays for 12 to 60 hours: camping again within that time goes on from it.");
-            about = b;
+            else snprintf(b, sizeof b, "The lord's men may find the party living off his land, more likely each day; members on guard slow it.");
+            about = std::string(b) + " After the camp is broken, the risk built up stays for 12 to 60 hours: camping again within that time goes on from it.";
         } else if (hover_act >= 0 && hover_act < 7) about = std::string(WHAT[hover_act]) + (p.can[hover_act] && !(hover_act == 0 && p.end >= p.end_max && p.can[4]) ? "" : std::string(" ") + WHY[hover_act]);
         if (hover_act == 3 && !camp) about += " At an inn a failed batch can blow up; in a camp in the wild it cannot.";
         else if (hover_act >= 100 && hover_act < 200) {

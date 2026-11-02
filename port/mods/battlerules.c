@@ -42,7 +42,7 @@
 #include "../runtime/config.h"
 #include "nscreen.h"
 #include "battlerules.h"
-int orders_may_move(int i);                     /* (mods/ways.c: a Manual member only when sent to shoot) */
+int orders_may_move(int i);                     /* (mods/ways.c: not a Manual member, nor a follower in single file) */
 
 
 /* battle.improved: the rules of a fight in one switch (the shooters' ways, the next foe, the kinds of attack kept) */
