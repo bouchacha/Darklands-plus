@@ -160,6 +160,7 @@ the files where each switch's key is read.
 | `assist.infinite_thrown` | Endless thrown weapons | plus | ammo.c |
 | `rules.relics` | Relics as the manual has them | plus | relics.c |
 | `rules.aging` | Aging during play | plus | aging.c |
+| `rules.hirelings_stay` | Companions stay | experiment | hirelings.c |
 | `assist.loss_alerts` | Warn about permanent losses | show | losses.c |
 | `assist.more_jobs` | More day jobs | ease | lodgeview.c |
 | **Battles** | | | |

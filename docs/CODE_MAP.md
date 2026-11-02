@@ -53,7 +53,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/battleend.c` | 102 | the end of a battle said in words (battle.end_words, on by default; F12 > Settings > Battles). |
 | `mods/battlerules.c` | 420 | rules of the battles, switches (F12 > Settings > Battles). |
 | `mods/battlescroll.c` | 163 | scrolling the battle map at a pace a person can follow. |
-| `mods/builtin.c` | 191 | the built-in mods. The same changes as the source mods in mods/ (built into a DOS executable there), done here as run-time hooks on the recompiled game. |
+| `mods/builtin.c` | 192 | the built-in mods. The same changes as the source mods in mods/ (built into a DOS executable there), done here as run-time hooks on the recompiled game. |
 | `mods/cacheview.c` | 288 | the store room as a native screen (nscreen.h; the view is ui/cacheview.cpp). |
 | `mods/cardview.c` | 619 | the card screen drawn by Darklands+ itself. |
 | `mods/choose.c` | 48 | a box asking which of the party's things (ui/choose.cpp draws it): the native screens' frame (mods/nscreen.h), a line clicked or its number pressed picks it, Esc or the way out's button picks none. |
@@ -68,6 +68,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/gamemodel.c` | 399 | the game's state by name (gamemodel.h says what each function reads): where the party, the members, their things and their equipment are kept, and the shared pack's listing and "whom it goes to" (gm_pack_rows, gm_pack_target) for the sheet, the shop, the loot and the store room. |
 | `mods/hdart.c` | 1058 | replacement art. A picture file PICS\NAME.PIC can be replaced by art\NAME.png of any size (true colour, with transparency); it is drawn at window resolution wherever the game shows that picture, with the game's own pixel |
 | `mods/hdtext.c` | 772 | crisp text. Darklands draws its text with small bitmap fonts (FONTS.FNT; the card font is a 7-pixel blackletter) that players find hard to read once scaled up. Here every string the game draws on the visible page is note |
+| `mods/hirelings.c` | 55 | Companions stay (rules.hirelings_stay: experimental, off in every preset). |
 | `mods/infoview.c` | 125 | the party information screen as a native page (display.native_info; the view is ui/infoview.cpp). |
 | `mods/keep.c` | 78 | the player's marks, for each game (party seed) in darklands_keep_<seed>.txt beside the journal (dlp_data_dir): - things marked "keep": never sold (one by one, Sell spare gear) or dropped by the screens of Darklands+, until unmarked; or "sell": sold with Sell spare gear though they are no weapon, armor or shield (the potions the player never wants). |
 | `mods/levelwalk.c` | 439 | a click on the level map (Tab, ui/levelmap.cpp) walks the party there. |
@@ -85,8 +86,8 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/nscreen.c` | 235 | the frame for native screens (see nscreen.h). |
 | `mods/offices.c` | 102 | whether a town's task givers have work now, or when again (offices.h). |
 | `mods/opening.c` | 117 | the opening (the MicroProse logo, the animations, the music and the digitized speech), F12 > Settings > "At start": the whole opening (the default), its last scene alone (the lady of the Darklands and her welcome), or nothing. |
-| `mods/options.c` | 492 | the table of Darklands+'s switches and the presets (options.h). |
-| `mods/optwhy.c` | 161 | why each switch exists, one line each: beside what it does (the table's description, mods/options.c), the reason for it, for whoever carries a feature into another engine (the list docs/SWITCHES.md is made from both: DL_DUMP_SWITCHES, runtime/main.c). |
+| `mods/options.c` | 494 | the table of Darklands+'s switches and the presets (options.h). |
+| `mods/optwhy.c` | 162 | why each switch exists, one line each: beside what it does (the table's description, mods/options.c), the reason for it, for whoever carries a feature into another engine (the list docs/SWITCHES.md is made from both: DL_DUMP_SWITCHES, runtime/main.c). |
 | `mods/orders.c` | 424 | in a battle, a member who is not yet fighting can be sent at an enemy with a click on it (F12 > Settings; the Full Original preset leaves the game's way). |
 | `mods/pack.c` | 355 | the shared pack's housekeeping (inventory.shared, mods/sheetview.c): the party's spare things are one pack in Darklands+'s screens, but the game still keeps each thing with a member, and in a battle a bow, a crossbow or a gun shoots only what its bearer carries (can_fire, s014 18bf:0c02: the ammunition of the weapon's kind, far 20a5:7822[type]). |
 | `mods/pathfix.c` | 829 | better pathfinding in battles and dungeons. |

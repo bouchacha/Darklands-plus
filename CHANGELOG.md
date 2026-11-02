@@ -4,6 +4,10 @@
 
 What changed since 1.4.5.
 
+**Added**
+
+- **Companions stay** (experimental, off; F12 > Settings > The party and its items): a companion taken on through a card, such as a village's Schulz (90 days) or the Hanse's man (360), stays for good, as a knight does.
+
 **Fixed**
 
 - **"EVENT Failure" at every turn** (GitHub issue 8): at a robber knight's tower, each challenge, sneak or other try left a new note that the castle is on its guard, 270 days long, beside the last; enough tries filled the game's 300 notes. Now a new one replaces the last, and a saved game's extra copies are dropped as it loads (fix *A castle on its guard is one note, not hundreds*).

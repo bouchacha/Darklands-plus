@@ -65,6 +65,7 @@ static const struct { const char *key, *why; } WHY[] = {
     { "assist.infinite_ammo", "Counting arrows is bookkeeping, not play; enemies still run out." },
     { "assist.infinite_thrown", "The same for thrown weapons." },
     { "rules.aging", "Creation ages characters but play does not, so starting with older characters cost nothing later; this keeps age a cost." },
+    { "rules.hirelings_stay", "A player asked to keep a companion for the whole game instead of taking one on again each time the agreed days run out; a cheat, so experimental and off." },
     { "assist.loss_alerts", "Permanent losses happen silently in the original." },
     { "assist.more_jobs", "Jobs written into the game's tables and never offered." },
     /* battles */

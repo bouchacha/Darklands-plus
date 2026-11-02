@@ -147,6 +147,7 @@ void mods_init(void)
     { void musicpack_init(void); musicpack_init(); }
     { void looks_init(void); looks_init(); }
     fixes_init();
+    { void hirelings_init(void); hirelings_init(); }
     { void aging_init(void); aging_init(); void losses_init(void); losses_init(); }
     saves_init();
     assist_init();
