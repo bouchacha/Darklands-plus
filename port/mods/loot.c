@@ -22,6 +22,7 @@
 #include "barterview.h"
 #include "lootview.h"
 #include "gamemodel.h"
+#include "saves.h"
 #include "keep.h"
 #include "nscreen.h"
 
@@ -382,10 +383,10 @@ static void ingr_repair_in_use(void)
     }
 }
 static void ingr_now(int a, int b, int c, int d) { (void)a; (void)b; (void)c; (void)d; ingr_members(g_rb(GV_in_battle) != 1); }
-static void ingr_loaded_hook(void)         /* the save is read (s037 1c7d:0d24) */
+static void ingr_after_load(void)          /* a game loaded (saves_on_loaded; the load then unwinds the game: the stacks joined at
+                                               the next round of a game screen, ns_defer, out of a battle or a dungeon; in one, at the
+                                               next load or loot screen out of it) */
 {
-    hook_call_original();                   /* (the load then unwinds the game: the stacks joined at the next round of a game screen,
-                                               ns_defer, out of a battle or a dungeon; in one, at the next load or loot screen out of it) */
     ingr_repair_in_use();                   /* (what 1.4 to 1.4.5-RC5 did to the saves) */
     ingr_members(0);                        /* (the qualities at once: memory only) */
     if (loot_ingredients_one) ns_defer(ingr_now, 0, 0, 0, 0);
@@ -491,7 +492,7 @@ void loot_init(void)
     loot_ingredients_one = config_get_int("rules.ingredients_one_quality", 1);
     hook_install(GF_add_item_rec_impl, ingr_add_hook);
     hook_install(GF_cache_first_draw, ingr_store_hook);
-    hook_install(37, 0x1c7d, 0x0d24, ingr_loaded_hook);
+    saves_on_loaded(ingr_after_load);
     hook_install(GF_barter_key, barter_key_hook);
     hook_install(GF_barter_screen, barter_hook);
     barterview_init();

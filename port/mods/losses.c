@@ -17,6 +17,7 @@
 #include "../runtime/config.h"
 #include "../runtime/dispatch.h"
 #include "gamemodel.h"
+#include "saves.h"
 
 #include "../ui/alerts.h"
 void ui_text_utf8(const char *game, char *out, int n);
@@ -56,12 +57,11 @@ static void battle_hook(void)
     for (int m = 0; m < 5; m++) take(m);
 }
 void losses_battle_frame(void);
+static int grace;
+static void after_load(void) { grace = 300; in_battle = 0; }   /* a game loaded (saves_on_loaded): a battle left by it never returned */
 void losses_frame(void)
 {
     losses_battle_frame();
-    extern unsigned dos_save_read_ms;
-    static unsigned last_read; static int grace;
-    if (dos_save_read_ms != last_read) { last_read = dos_save_read_ms; grace = 300; in_battle = 0; }   /* (a game loaded: a battle left by it never returned) */
     if (grace > 0) grace--;
     int seed = (s16)g_rw(G_PARTY_SEED);
     int gm = game_mode();
@@ -132,4 +132,4 @@ void losses_battle_frame(void)
     worn_len = 0; worn[0] = 0;
 }
 
-void losses_init(void) { hook_install(19, 0x1ef8, 0x0968, wear_hook); hook_install(GF_combat_main, battle_hook); }   /* (run_battle has hooks enough: combat_main is the battle itself) */
+void losses_init(void) { hook_install(19, 0x1ef8, 0x0968, wear_hook); hook_install(GF_combat_main, battle_hook); saves_on_loaded(after_load); }   /* (run_battle has hooks enough: combat_main is the battle itself) */

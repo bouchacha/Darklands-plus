@@ -25,6 +25,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "nscreen.h"
+#include "saves.h"
 #include "../runtime/hle.h"
 
 #define CBT(i) ((u16)(0x9c55 + (i) * 0x80))
@@ -137,14 +138,13 @@ static void goal_check(void)
     if (!walk_to(lead, levelwalk_goal_x, levelwalk_goal_y, &gx, &gy)) { if (!ns_unwinding) goal_drop(); return; }
     if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: leg %d from %d,%d to %d,%d\n", goal_legs, x, y, gx, gy);
 }
+static void after_load(void)                 /* a game loaded (saves_on_loaded): a walk, stairs or door asked for before it are not its */
+{
+    goal_drop(); stairs_pending = -1; levelwalk_x = levelwalk_y = levelwalk_floor = -1;
+    if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: a game loaded, walks forgotten\n");
+}
 static void input_hook(void)                 /* s014 0e76:3166 combat_input () */
 {
-    extern unsigned dos_save_read_ms; static unsigned last_read;
-    if (dos_save_read_ms != last_read) {         /* (a game loaded: a walk, stairs or door asked for before it are not its) */
-        last_read = dos_save_read_ms;
-        goal_drop(); stairs_pending = -1; levelwalk_x = levelwalk_y = levelwalk_floor = -1;
-        if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: a game loaded, walks forgotten\n");
-    }
     if (stairs_pending >= 0 && levelwalk_x < 0) { stairs_arrive(); if (ns_unwinding) return; }
     if (levelwalk_x < 0) { goal_check(); if (ns_unwinding) return; hook_call_original(); return; }
     /* (a battle's start - a save loaded too - chooses its leader and pauses for orders once the leader is on the
@@ -428,6 +428,7 @@ int levelwalk_door_click(void)
 }
 void levelwalk_init(void)
 {
+    saves_on_loaded(after_load);
     hook_install(14, 0x0e76, 0x3166, input_hook);
     hook_install(GF_take_exit, take_exit_hook);
     hook_install(GF_combat_keys, keys_hook);

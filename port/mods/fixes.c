@@ -230,6 +230,7 @@
 #include "fixes.h"
 #include "nscreen.h"
 #include "gamemodel.h"
+#include "saves.h"
 #include "teachers.h"
 #include "sainttexts.h"
 
@@ -589,21 +590,21 @@ static void col_read(u8 cur[5][28])
         for (int i = 0; i < 4; i++) cur[m][24 + i] = g_rb((u16)(GV_member_shield + m * 4 + i));
     }
 }
+static int col_grace;
+static void colours_after_load(void) { col_grace = 300; }   /* a game loaded (saves_on_loaded) */
 static void colours_frame(void)
 {
     if (!fix_on("colors")) { col_have = 0; return; }
     u8 cur[5][28]; col_read(cur);
-    extern unsigned dos_save_read_ms; u32 plat_ticks_ms(void);
-    /* a game was loaded (quick load, autosave, the save browser, Alt-L, Quickstart): its colours
-       come in over the next moments; counted in frames as well as time (a first start of the MT-32
+    u32 plat_ticks_ms(void);
+    /* a game was loaded (saves_on_loaded: quick load, autosave, the save browser, Alt-L, Quickstart): its
+       colours come in over the next moments; counted in frames as well as time (a first start of the MT-32
        or a slow disk held the frames for longer than the time: the stale colours went back) */
-    static unsigned last_read; static int grace;
-    if (dos_save_read_ms != last_read) { last_read = dos_save_read_ms; grace = 300; }
     static int prev_mode = -1;                                   /* (the game proper just began: Quickstart, a new game) */
-    if (prev_mode == GM_OTHER && game_mode() != GM_OTHER && grace < 300) grace = 300;
+    if (prev_mode == GM_OTHER && game_mode() != GM_OTHER && col_grace < 300) col_grace = 300;
     prev_mode = game_mode();
-    if (grace > 0) grace--;
-    int loading = grace > 0 || (dos_save_read_ms && plat_ticks_ms() - dos_save_read_ms < 4000);
+    if (col_grace > 0) col_grace--;
+    int loading = col_grace > 0 || (saves_loaded_ms && plat_ticks_ms() - saves_loaded_ms < 4000);
     if (!col_have || loading || game_mode() == GM_OTHER || ovl_loaded[37] || ovl_loaded[38] || ui_is_open()) { memcpy(col_good, cur, sizeof cur); col_have = 1; return; }
     if (!memcmp(cur, col_good, sizeof cur)) return;
     int size = (s16)g_rw(G_PARTY_SIZE), moved = 1;
@@ -2743,6 +2744,7 @@ static void copy_check_hook(void)
 
 void fixes_init(void)
 {
+    saves_on_loaded(colours_after_load);
     if (getenv("DL_CHECK_COPY")) hook_install(-1, 0x06a1, 0x2eb4, copy_check_hook);
     hook_install(GF_cards_shutdown, cards_down_hook);   /* (the potions kept over a battle: they ask any_potion_fix) */
     hook_install(GF_cards_startup, cards_up_hook);

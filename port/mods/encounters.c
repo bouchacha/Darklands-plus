@@ -39,6 +39,7 @@
 #include "datamods.h"
 #include "travel.h"
 #include "encounters.h"
+#include "saves.h"
 #include "gamemodel.h"
 #include "nscreen.h"
 
@@ -1902,6 +1903,7 @@ static void mainloop_hook(void)
 
 void encounters_init(void)
 {
+    saves_on_loaded(encounters_after_load);
     hook_install(GF_overland_loop, overland_hook);
     hook_install(36, 0x1462, 0x0082, camp_hook);   /* (after lodgeview's: it wraps the stay) */
     hook_install(-1, 0x03a1, 0x000a, mainloop_hook);

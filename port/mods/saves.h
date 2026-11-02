@@ -28,6 +28,11 @@ int saves_read(const char *file, SaveInfo *si);
 int saves_delete(const char *file);               /* not the one loaded; 0 if refused */
 int saves_ironman(void);                          /* the running game is an Ironman game (one save, kept by the game) */
 void saves_cur_name(char *out, size_t n);         /* the save last written or loaded, as the listings name it */
+/* a game loaded (the save read, s037 1c7d:0d24, after the game's own reading; any way: the menu, the start screen, a
+   quick load, a load inside a card or a battle): what a module keeps of the game before is dropped in the function it
+   gives here (at its init), called in the order given. The one place that says a game was loaded */
+void saves_on_loaded(void (*fn)(void));
+extern unsigned saves_loaded_ms;                 /* when (plat_ticks_ms) the last game was loaded, 0 none yet */
 #ifdef __cplusplus
 }
 #endif

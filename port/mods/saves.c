@@ -328,7 +328,10 @@ static void loadscreen_hook(void)
     hook_return_far(0);
 }
 
-static void loaded_hook(void)              /* the save is read (s037 1c7d:0d24) */
+static void (*on_loaded[16])(void); static int non_loaded;
+unsigned saves_loaded_ms;
+void saves_on_loaded(void (*fn)(void)) { if (non_loaded < 16) on_loaded[non_loaded++] = fn; }
+static void loaded_hook(void)              /* the save is read (s037 1c7d:0d24): always installed, saves_on or not */
 {
     if (getenv("DL_SAVES_LOG")) {
         char f[16]; g_str(rw(SS, (u16)(SP + 6)), rw(SS, (u16)(SP + 4)), f, sizeof f);
@@ -345,10 +348,10 @@ static void loaded_hook(void)              /* the save is read (s037 1c7d:0d24) 
     }
     load_stage = 0;
     loaded_t = plat_ticks_ms();
+    saves_loaded_ms = loaded_t | 1;
     auto_due[0] = 0;
-    { void travel_stop(void); void encounters_after_load(void);   /* (what was under way is the old game's: a journey went on */
-      travel_stop(); encounters_after_load(); }                   /*  on the loaded map, 1.4-RC2) */
     loaded_since_title = 1; iron_check = 1;          /* (an Ironman game's save, or not: saves_frame) */
+    for (int i = 0; i < non_loaded; i++) on_loaded[i]();   /* (what each module kept of the old game: saves_on_loaded) */
 }
 
 /* the game's own Save and Load (the menu, Alt-S, Alt-L) as native dialogs (mods/savesview.c) */
@@ -553,7 +556,7 @@ int saves_key(int sym, int ctrl)
 
 static struct { int sect; unsigned seg, off; void (*fn)(void); } HK[] = {
     { 37, 0x1462, 0x43e6, textinput_hook }, { -1, 0x0000, 0x0000, menubar_hook }, { -1, 0x0000, 0x2522, askyesno_hook },
-    { 37, 0x1c7d, 0x06e6, loadlist_hook }, { 37, 0x1c7d, 0x0d24, loaded_hook }, { 37, 0x1c7d, 0x0002, loadscreen_hook }, { 29, 0x0e76, 0x2278, battle_hook } };
+    { 37, 0x1c7d, 0x06e6, loadlist_hook }, { 37, 0x1c7d, 0x0002, loadscreen_hook }, { 29, 0x0e76, 0x2278, battle_hook } };
 
 static void hooks_set(int on)
 {
@@ -621,6 +624,7 @@ static void bsv_level_hook(void)
 void saves_init(void)
 {
     hook_install(3, 0x1016, 0x0d07, bsv_level_hook);
+    hook_install(37, 0x1c7d, 0x0d24, loaded_hook);   /* (always: saves_on_loaded) */
     saves_restart = config_get_int("saves.restart_on_end", 1);
     hook_install(GF_quit_to_dos, quit_hook);
     hook_install(GF_save_game, save_hook);

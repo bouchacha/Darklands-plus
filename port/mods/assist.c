@@ -18,6 +18,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "assist.h"
+#include "saves.h"
 #include "nscreen.h"
 #include "cardview.h"
 #include <stdio.h>
@@ -62,10 +63,9 @@ int assist_best_at_attr(int k)
     return best >= 0 ? best : cur;
 }
 int assist_bargainer(void) { return assist_best_leader && !config_get_int("original", 0) ? assist_best_at_attr(5) : (s8)g_rb(G_LEADER); }
+static void leader_after_load(void) { saved_leader = stand_in = -1; }   /* a game loaded (saves_on_loaded): its leader is its own */
 void assist_leader_restore(void)
 {
-    extern unsigned dos_save_read_ms; static unsigned last_read;
-    if (dos_save_read_ms != last_read) { last_read = dos_save_read_ms; saved_leader = stand_in = -1; return; }   /* (a game loaded since: its leader is its own) */
     if (saved_leader < 0) return;
     if (stand_in >= 0 && (s8)g_rb(G_LEADER) != stand_in) {                  /* (the leader changed since: by the player or the game) */
         if (getenv("DL_ASSIST_LOG")) fprintf(stderr, "assist: the leader was changed to %d meanwhile: kept\n", (s8)g_rb(G_LEADER));
@@ -508,6 +508,7 @@ static void gate_walk_hook(void)
 
 void assist_init(void)
 {
+    saves_on_loaded(leader_after_load);
     hook_install(58, 0x191a, 0x0470, gate_walk_hook);
     assist_card_help = config_get_int("assist.card_help", 1);
     assist_card_keys = config_get_int("assist.card_keys", 1);

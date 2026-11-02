@@ -25,6 +25,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "travel.h"
+#include "saves.h"
 #include "encounters.h"
 #include "sainttexts.h"
 #include "fixes.h"
@@ -585,6 +586,7 @@ static void clamp_hook(void)                          /* clamp_range (lo, hi, v)
 
 void travel_init(void)
 {
+    saves_on_loaded(travel_stop);                    /* (a journey of the game before does not go on in the one loaded, 1.4-RC2) */
     travel_set(config_get_int("travel.auto", 1), config_get_int("travel.fast", 1));
     hook_install(30, 0x1462, 0x2d44, encounter_weight_hook);
     hook_install(39, 0x1462, 0x0000, watch_chance_hook);
