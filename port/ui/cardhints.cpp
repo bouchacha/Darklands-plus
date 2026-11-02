@@ -15,8 +15,8 @@ static const CardHint HINTS[] = {
 /* the same options with a fix on (mods/fixes.c: "cardopts" unless named): as the cards were meant to be */
 struct FixedHint { const char *fix; const char *card; int opt; const char *why; };
 static const FixedHint FIXED[] = {
-    { "university", "$UNIVE00", 0, "Not for about a week after a fruitless search here for the religious library." },
-    { "university", "$UNIVE00", 1, "Not for about a week after a fruitless search here for alchemical formulae." },
+    { "university", "$UNIVE00", 0, "Not for a week after a fruitless search here for the religious library." },
+    { "university", "$UNIVE00", 1, "Not for a week after a fruitless search here for alchemical formulae." },
     { "cardopts", "$SELEC01", 1, "Not for about three weeks after a sewer grate in this town defeated you." },
     { "cardopts", "$SELEC01", 2, "Needs the bribe in your purse; not for two days after a guard recognized you, nor for a day after guards spotted you sneaking at the wall." },
     { "cardopts", "$REVOL14", 4, "Needs a rope, and not after you have waited a day and come back to the walls." },

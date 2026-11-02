@@ -165,8 +165,8 @@ extern "C" const char *ui_load_effect(int band)
     switch (band) {
     case 0: return "Light load (up to half of {Endurance} + {Strength}): no hindrance at all. Only what is equipped counts (weapons, armor, shield); items merely carried weigh nothing.";
     case 1: return "Normal load (up to {Endurance} + {Strength}): blows hand to hand come about a fifth slower, and past 5/8 of it the {Agility} used to dodge falls to two thirds.";
-    case 2: return "Heavy load (up to half as much again): the {Agility} used to dodge falls to two thirds, and to a third past 1 1/4 times {Endurance} + {Strength}. Blows are no slower than with a normal load (an oversight in the original game).";
-    default: return "Overloaded (more than 1 1/2 times {Endurance} + {Strength}): blows hand to hand come about two thirds slower, and the {Agility} used to dodge falls to a third, then to nothing past about twice {Endurance} + {Strength}.";
+    case 2: return "Heavy load (up to half as much again): the {Agility} used to dodge falls to two thirds, and to a third past 1 1/4 times {Endurance} + {Strength}. Blows hand to hand come at the usual pace, as with a light load (an oversight in the original game).";
+    default: return "Overloaded (more than 1 1/2 times {Endurance} + {Strength}): blows hand to hand come about two thirds slower, and the {Agility} used to dodge falls to a third, then to nothing past 1 7/8 times {Endurance} + {Strength}.";
     }
 }
 

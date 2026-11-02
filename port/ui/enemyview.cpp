@@ -102,7 +102,7 @@ extern "C" void enemyview_draw(void)
             for (int p = 0; p < size; p++) {
                 if (!gm_member_present(p) || gm_member_status(p) != 1) continue;
                 /* the member's name, then each weapon in hand as its picture and what it does in its colour:
-                   green pierces, amber half damage, red mostly deflected (wrapped by the weapon where it runs long;
+                   green pierces, amber its extra damage halved, red cut to an eighth (wrapped by the weapon where it runs long;
                    the weapon's name under the pointer) */
                 struct Seg { int id; std::string word; ImU32 col; };
                 std::vector<Seg> seg;
@@ -110,7 +110,7 @@ extern "C" void enemyview_draw(void)
                     int mw = (s8)g_rb((u16)(G_MEMBER(p) + (k ? 0x0e : 0x3d)));
                     if (mw < 0 || mw > 62) continue;
                     int pen = rb(G_FAR20A5, (u16)(0x76a8 + mw)) & 15, r = pen > h ? 0 : pen == h ? 1 : 2;
-                    seg.push_back({ type_id(mw, K_WEAPON, K_MISSILE), r == 0 ? "pierces" : r == 1 ? "half damage" : "mostly deflected",
+                    seg.push_back({ type_id(mw, K_WEAPON, K_MISSILE), r == 0 ? "pierces" : r == 1 ? "extra damage halved" : "extra damage to an eighth",
                                     r == 0 ? IM_COL32(40, 96, 34, 255) : r == 1 ? IM_COL32(176, 124, 0, 255) : NsDraw::RED });
                 }
                 if (seg.empty() || ly >= y + ch - 4) continue;

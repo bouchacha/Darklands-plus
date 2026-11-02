@@ -338,7 +338,7 @@ float ns_item_strip(NsDraw &P, float y0, const NsStripThing &t)
             int cap = e + st, cur = gm_member_load(m);
             auto band = [&](int l) { return 2 * l <= cap ? 0 : l <= cap ? 1 : 2 * l <= 3 * cap ? 2 : 3; };
             static const char *BAND[4] = { "a light load: no hindrance", "a normal load: blows hand to hand a fifth slower",
-                                           "a heavy load: blows a fifth slower, dodging hampered", "overloaded: blows two thirds slower, little or no dodging" };
+                                           "a heavy load: blows at the usual pace, dodging hampered", "overloaded: blows two thirds slower, little or no dodging" };
             int b0 = band(cur), b1 = band(after);
             char line[200];
             snprintf(line, sizeof line, "Worn by %s: load %d \xc2\xbb %d of %d, %s%s", rich_member(m).c_str(), cur, after, cap, BAND[b1],

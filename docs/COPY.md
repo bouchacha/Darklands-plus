@@ -93,7 +93,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:145` | Map at the docks |
 | `mods/options.c:145` | beside the docks' list of boats, a small map of the towns they go to and the way each takes along the rivers and coasts; a click on a town takes that boat. |
 | `mods/options.c:146` | What came of it |
-| `mods/options.c:146` | under the text that follows a choice on a card, what came of it that the text does not tell: a member's skill or attribute changed, things, money, fame, a town's opinion. |
+| `mods/options.c:146` | under the text that follows a choice on a card, what came of it that the text does not tell: a member's skill or attribute changed, items gained or lost, money, fame, a town's opinion, the time it took. |
 | `mods/options.c:147` | Note each town's shops and wares |
 | `mods/options.c:147` | each town's shops, their wares, qualities and prices, noted on arrival (shown on the world map, M). Switched in F12 > Journal. |
 | `mods/options.c:148` | every text the cards show, word for word, with the date, the place and the choice made, so a clue read weeks ago can be found again (F12 > Journal > Chronicle, where it is switched). |
@@ -139,7 +139,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:171` | Then select the next member without orders |
 | `mods/options.c:171` | while the battle is paused, giving an order selects the next member on screen who has no order, so at the start of a battle each order is a single click on an enemy. Space resumes the battle. |
 | `mods/options.c:172` | Order buttons over the field |
-| `mods/options.c:172` | while a member is selected, their orders appear as buttons in a strip at the foot of the battlefield, grouped by what they do (attacks, moving, the things at hand, potions and items, the battle), so no right-click menu is needed. Fast forward and Resume stand at the top of the right margin (in the strip when the window has no right margin). |
+| `mods/options.c:172` | while a member is selected, their orders appear as buttons in a strip at the foot of the battlefield, each in the same place for every member (attacks, moving, the battle, then a door, stairs or chest beside the member), with the potions and items to throw or use in a grid just above, so no right-click menu is needed. Fast forward and Resume stand at the top of the right margin (in the strip when the window has no right margin). |
 | `mods/options.c:173` | Order buttons as pictures |
 | `mods/options.c:173` | each order button is its picture alone (a sword for a standard attack, a shield for Parry, footprints for Walk towards, a potion as its flask with how many), the member's head at the strip's start; the order's name and what it does under the pointer. When off: each button with its name beside the picture. |
 | `mods/options.c:174` | Show the line of a shot |
@@ -284,7 +284,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:259` | Town hospice |
 | `mods/options.c:259` | a town's hospice by day, written but never made playable: give alms, work a day beside the nuns (Healing), have the party's wounds tended for a fee, or beg to be tended for nothing. The church district leads there, and Go to (G) lists it. |
 | `mods/options.c:260` | Cities at war |
-| `mods/options.c:260` | coded and never switched on. Now and then a city prepares for war for a few weeks, and some then stand a siege: prices rise, the news tells of it, Soldiers' Road and its market open, the docks are guarded or barricaded, and the gate turns travelers away (talk, bluff, sneak, a farmer's hay cart, or the walls, where patrols take you for spies). A save made during a war carries the war on if loaded in the original game. |
+| `mods/options.c:260` | coded and never switched on. In each quarter of the year, one city in twelve prepares for war for two to four weeks, and half of those then stand a siege of one to three weeks: prices rise, the news tells of it, Soldiers' Road and its market open, the docks are guarded or barricaded, and the gate turns travelers away (talk, bluff, sneak, a farmer's hay cart, or the walls, where patrols take you for spies). A save made during a war carries the war on if loaded in the original game. |
 | `mods/options.c:261` | City politics |
 | `mods/options.c:261` | the campaign written and never switched on. Now and then a city has a season of unrest: rumors in the news and the guild quarters lead to the rebels' leader or the government's man, the party takes a side, posts handbills, sways the guilds, and a war council sets the day of a march on the town hall or of the arrests. |
 | `mods/options.c:262` | Black Cloud in battle |
@@ -440,7 +440,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:248` | Brewing uses up all the ingredients |
 | `mods/fixes.c:249` | The original took only part of them when an ingredient was spread over several stacks; now it takes them all. |
 | `mods/fixes.c:250` | No more items lost to a member with no room |
-| `mods/fixes.c:251` | A member carries at most 64 kinds of items; in the original, what the game gave to a member who already had 64 simply vanished (quest items too). It now goes to someone with room. Buying when nobody had room took the money for nothing, and taking an item from a store room for a member with no room lost it: both are now refused. |
+| `mods/fixes.c:251` | A member carries at most 64 kinds of items; in the original, what the game gave to a member who already had 64 simply vanished (quest items too). It now goes to a member who already carries one, else to the one carrying the fewest kinds (with no room anywhere, it is still lost). Buying when nobody had room took the money for nothing, and taking an item from a store room for a member with no room lost it: both are now refused. |
 | `mods/fixes.c:252` | Saving and loading stay possible after the inn |
 | `mods/fixes.c:253` | Leaving the inn's lodging screen in some ways (e.g. a click on an empty party slot) left Save and Load disabled until a character sheet was opened. They are now enabled again on leaving. |
 | `mods/fixes.c:254` | Members keep their colors (the "neon hair" bug) |
@@ -448,7 +448,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:256` | Skip the manual check |
 | `mods/fixes.c:257` | The game no longer asks for an alchemical symbol from the printed manual when the party first sets out. |
 | `mods/fixes.c:258` | Weapon potions wear off and don't ruin weapons |
-| `mods/fixes.c:259` | Deadly Blade, Strongedge and Great Power never wore off, and their bonuses piled up past what the game can hold: after a few potions (or one Great Power), weapons, especially bows, hit for almost nothing. They now wear off after about a day, and several at once add up without going past that limit. |
+| `mods/fixes.c:259` | Deadly Blade, Strongedge and Great Power never wore off, and their bonuses piled up past what the game can hold: after a few potions (or one Great Power), weapons, especially bows, hit for almost nothing. They now wear off after about a day (19 to 21 hours), and several at once add up, each bonus stopping at 15. |
 | `mods/fixes.c:260` | No jump at the foot of the travel map |
 | `mods/fixes.c:261` | Where the travel map's view reaches the last rows of the land (Basel, Zurich, Konstanz), the party marker was moved a fifth too far when the view scrolled, and the party jumped two to four rows north: it could land beside a village and walk into it. And the land under the party was read from rows a little off until the view scrolled again: water that was not there could stop a journey. The party now stays where it was, on the land that is there. |
 | `mods/fixes.c:262` | No quest destinations off the edge of the land |
@@ -471,8 +471,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:279` | Asking a cathedral about its patron saint was meant to teach the leader the saint, and St. Cosmas and St. Damian each teach the other; but the game gave it to no member: nobody learned the saint, and the fifth member was marked as knowing a formula instead. Now the saint is learned. |
 | `mods/fixes.c:280` | Debt notes are where the merchant says |
 | `mods/fixes.c:281` | A merchant who sends the party for debt notes names who holds them (the Medici or the Fugger), but the game hid them in another office above the marketplace, so breaking into the named one found nothing. They are now in the office named. |
-| `mods/fixes.c:282` | The risk levels of alchemy formulae work the right way around |
-| `mods/fixes.c:283` | Each formula is marked low, medium or high risk, and the risk decides how badly a failed batch at an inn, a village or a hideout goes: an explosion (the party hurt, damages to pay, no room at the inn for four months) or only a stink (one month). The game had it backwards: a failed low-risk formula exploded three times in four, a failed high-risk one only half the time. Now a failure explodes one time in four at low risk, one in three at medium risk and one in two at high risk. |
+| `mods/fixes.c:282` | Riskier alchemy formulae explode more often, not less |
+| `mods/fixes.c:283` | Each formula is marked low, medium or high risk. Half the batches that fail at an inn, a village or a hideout end in a mishap, and the risk decides which: an explosion (the party hurt, damages to pay, no room at the inn for four months) or only a stink (one month). The game had it backwards: three mishaps in four exploded at low risk, one in two at high risk. Now one in four explodes at low risk, one in three at medium risk and one in two at high risk. |
 | `mods/fixes.c:284` | Quests from a cathedral are the bishop's, not the merchants' |
 | `mods/fixes.c:285` | A cathedral's canon gave out quests as if for the town's merchants: the merchants paid for them (and gave no more quests of their own while one was open), the canon gave a new one at every visit, and the bishop's relic for a finished quest could be taken again and again. Now the quest counts as the bishop's, and his relic is the reward, given once. |
 | `mods/fixes.c:286` | No quests to a purged pagan altar |
@@ -482,7 +482,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:290` | The lord pays for his quests |
 | `mods/fixes.c:291` | In a town without a council, the lord of the fortress gives robber knights to hunt, but the game pays such a quest's reward only at a council's hall, so in such a town it could never be collected. The lord now pays it at an audience, as a council does. |
 | `mods/fixes.c:292` | Armor and fire protection from potions and saints last a day; Hardarmor works as the manual says |
-| `mods/fixes.c:293` | Hardarmor (+1 to +3 armor), St. Dunstan's (+1) and St. Patrick's (+2) blessings, St. Crispin's (+10 to the quality of everyone's armor) and the protection against fire of Firewall and St. Polycarp never wore off, and each new one added to the last. They now last about a day, as the manual says, and what piled up this way in a saved game goes back to normal. St. Charity, St. Erasmus and St. Pantaleon (and St. Polycarp) gave their protection against fire as armor instead: +32 or +48 armor for good (or nothing, with the fix "No invulnerability from fire protection" on); now the member gets fire protection 90 for a day, the same as St. Polycarp's. Hardarmor also does what the manual says: armor 20, 25 or 30 points better in quality and one or two levels thicker (the game gave 1 to 3 levels and no quality); a second used while one is still working keeps the stronger of the two. |
+| `mods/fixes.c:293` | Hardarmor (+1 to +3 armor), St. Dunstan's (+1) and St. Patrick's (+2) blessings, St. Crispin's (+10 to the quality of everyone's armor) and the protection against fire of Firewall and St. Polycarp never wore off, and each new one added to the last. They now last about a day, as the manual says, and what piled up this way in a saved game is dropped: only the ones still running count. St. Charity, St. Erasmus and St. Pantaleon (and St. Polycarp) gave their protection against fire as armor instead: +32 or +48 armor for good (or nothing, with the fix "No invulnerability from fire protection" on); now the member gets fire protection 90 for a day, the same as St. Polycarp's. Hardarmor also does what the manual says: armor 20, 25 or 30 points better in quality and one or two levels thicker (the game gave 1 to 3 levels and no quality); a second used while one is still working keeps the stronger of the two. |
 | `mods/fixes.c:294` | Great Power raises the weapon's quality |
 | `mods/fixes.c:295` | According to the manual, Great Power raises the quality of the weapon by 14, 22 or 30 (up to 99), and quality is what makes blows hit harder. The original added those points to the member's damage and penetration bonuses instead: +14 penetration, or +1 damage and +6 penetration, or +1 damage and +14 penetration. Now it raises the quality of the weapon in hand (bows and guns too), for about a day. |
 | `mods/fixes.c:296` | Saved games keep the party's standing with the Fugger, the Medici and the Hanse |
@@ -493,11 +493,11 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:301` | Healing (Essence o'Grace, or a saint's) brings a wounded attribute part of the way back to its maximum, but the game also brought an attribute above its maximum part of the way down to it: a member whose Strength or Endurance stood above the maximum (Ironarm, New-wind, a saint) lost most of that boost to the potion meant to heal them. Healing now only raises an attribute, never lowers it. |
 | `mods/fixes.c:302` | Teachers teach only up to their own ability |
 | `mods/fixes.c:303` | The game's texts say a teacher cannot take a skill beyond the teacher's own ability (a line the game never shows), and the physician turns away a party that knows more than he does; yet a teacher of any ability took a skill to 99. Lessons now stop at the teacher's ability: a member who has reached it rests instead. |
-| `mods/fixes.c:304` | Each weapon oil works with the weapons the manual names |
+| `mods/fixes.c:304` | Each weapon oil works only with the weapons the manual names |
 | `mods/fixes.c:305` | Deadly Blade works with every weapon but impact weapons and flails, Strongedge with blades and polearms, and Great Power with impact weapons, flails and handguns, as the manual and the potions' own labels say. The game gave every oil to whatever weapon the member struck with, bows and fists too. |
 | `mods/fixes.c:306` | The two St. Pauls do what their texts say |
 | `mods/fixes.c:307` | St. Paul the Apostle gave what the texts give St. Paul the Simple (all lost Strength and Endurance healed, half the Intelligence lost for a day, and his requirements: Virtue 70), and Paul the Simple gave a copy of St. Thomas Aquinas's help. The Apostle's own help (Speak Common, Latin, Read & Write, Charisma, Endurance, a little Strength healed; Virtue 19, as the manual says) was in the game's code but never used. Now each does what its text says. |
-| `mods/fixes.c:308` | A saint's reputation bonus goes to the right town |
+| `mods/fixes.c:308` | St. Nepomuk's and St. Cecilia's reputation bonuses go to a real town |
 | `mods/fixes.c:309` | Called on in Prag, St. John Nepomuk raised the reputation of some unrelated place (or of no real place) instead of Prag's; St. Cecilia, called on away from any town (in the overland view), raised the reputation of no real place at all. Now Nepomuk's bonus goes to Prag and Cecilia's to the nearest town, as with the other saints. |
 | `mods/fixes.c:310` | Saints do what their texts say |
 | `mods/fixes.c:311` | For 43 saints, the help the game gives falls short of or strays from the saint's own description: St. Christopher, St. Drogo and St. Wilfrid never sped the party's travel (now faster travel for a week: fewer days on the road), nor St. Eustace through woods; St. Nicholas and St. Theodore gave Flails instead of Riding; St. Charity, St. Erasmus and St. Pantaleon gave the party no protection against fire; St. Lutgardis's ecstasies gave Endurance instead of costing it; St. George, St. Michael, St. Longinius, St. Maurice and St. Eligius never improved a weapon or armor; St. Crispin improved metal armor, St. Dunstan none; reputation went to the wrong lands or none ... Now each does what its text says (the new character sheet and the new prayer screen describe each one). The armor and fire saints need the fix "Armor and fire protection from potions and saints last a day". |
@@ -515,13 +515,13 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:323` | Asking a university about alchemical formulae and failing marked the question about saints as asked instead: asking about saints was refused for a week, and the formulae could be asked about again at once. It now marks the question about formulae. |
 | `mods/fixes.c:324` | An item given to the whole party is given once |
 | `mods/fixes.c:325` | Where a card gives every member something (out of a dungeon, from footpads), each member who had one already got it twice: added to his stack, and again as a new stack. Now each gets it once. |
-| `mods/fixes.c:326` | A mount's quality helps when fleeing on horseback |
+| `mods/fixes.c:326` | Fleeing on horseback counts the poorest rider's mount |
 | `mods/fixes.c:327` | Fleeing the Wild Hunt or a wolf pack on horseback adds the quality of the poorest rider's mount to the chance, but the game looked in the wrong place for the mounts and so added nothing. It now finds the mounts. |
-| `mods/fixes.c:328` | A church tithe blesses the right member |
+| `mods/fixes.c:328` | A church tithe blesses the member best at Religion |
 | `mods/fixes.c:329` | When the party gave a tenth in a town church, the Divine Favor meant first for the member best at Religion went to no member at all (the game took the skill's value for a member's number); and sneaking into a guild leader's house at night showed a garbled name instead of the member with the lowest Agility. Both now use the right member. |
 | `mods/fixes.c:330` | Small mistakes in single cards |
 | `mods/fixes.c:331` | Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said "Please accept this florin" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both its options were switched off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armor, and clearing the spider warehouse, healed the party, though their texts say it is hurt; and the warehouse's owner had no name of his own ("I am . Are ye hardy adventurers?"). When the party was paid for a robber knight, the Hanse's guide or the village's Schulz who had come along was said to leave by the toss of a coin (or even when he had never come), and then stayed on. A second fight with a town's gate guards cost no standing (the card kept the standing it had found on arrival), the docks said "You need a missile weapon" to a party short of the fare, trouble on the way to a town's grove at night led to the grove's night card even after day had come, and sneaking into a guild's quarters made the whole party practice once for each member. Each now does what its text says. |
-| `mods/fixes.c:332` | Climbing a city wall at night uses the right chances |
+| `mods/fixes.c:332` | Climbing a city wall at night uses the climbers' own chances |
 | `mods/fixes.c:333` | Along a city's walls at night, the best climber's chance with a rope was a number left over from the last failed climb by everyone (0 the first time: he always fell), and the chance of everyone climbing without one compared each member with that number instead of taking the weakest (certain the first time). The first member was never chosen as the climber. Now the climber is the best of all, his chance is his own, and the chance of everyone climbing is the weakest member's. |
 | `mods/fixes.c:334` | A guard skilled with impact weapons keeps the camp safer |
 | `mods/fixes.c:335` | Each member on guard at camp lowers the risk of an attack, by one point more when skilled (30 or more) with a weapon; but the game forgot to count impact weapons (clubs, maces and hammers). Now they count too. |
@@ -537,7 +537,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:345` | Three cards look for the member best at two attributes added together (a passage in a dungeon, one in a town, one in the countryside): the game took the first attribute twice instead, from whichever member it compared last. Now each member's two attributes are added and the best sum counts. |
 | `mods/fixes.c:346` | No loot lost past 255 of a kind |
 | `mods/fixes.c:347` | Piles of loot gathered after a battle add up identical items in a count that holds at most 255: past that, the rest was lost (after a battle with many arrows or bolts). Now what does not fit goes into another row. |
-| `mods/fixes.c:348` | Castle corridor decorations in the right place |
+| `mods/fixes.c:348` | Castle corridor decorations stay on their passage |
 | `mods/fixes.c:349` | When laying out a castle, the game picks a spot along each passage's wall to decorate, counted from the passage's far end instead of its start: all but one possible roll put the spot past the passage's end, in another room. Now the spot is on the passage. |
 | `mods/fixes.c:350` | A hireling killed in battle doesn't later send away his replacement |
 | `mods/fixes.c:351` | When a hireling died in a battle, the end of his contract and his "has left" notice were not cancelled: later they could send away whoever had taken his place in the party. Now they are cancelled after the battle. |
@@ -684,7 +684,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/battleoverlay.cpp:437` | %s (hardness %d) |
 | `ui/battleoverlay.cpp:438` | Natural armor, hardness %d (as %s) |
 | `ui/battleoverlay.cpp:439` | No armor (hardness 0) |
-| `ui/battleoverlay.cpp:453` | mostly deflected |
+| `ui/battleoverlay.cpp:453` | extra damage halved |
+| `ui/battleoverlay.cpp:453` | extra damage to an eighth |
 | `ui/battleoverlay.cpp:482` | \xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z) |
 | `ui/battleoverlay.cpp:485` | >> fast forward  (Z) |
 | `ui/bestiary.cpp:38` | Could not read DARKLAND.ENM. |
@@ -722,8 +723,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/cacheview.cpp:84` | Nothing stored here. |
 | `ui/cacheview.cpp:140` | Point at an item to see it here; F11 shows what you can do. |
 | `ui/cacheview.cpp:141` | Point at an item to see it here. Click a name above the right list (or press C) for another member. |
-| `ui/cardhints.cpp:18` | Not for about a week after a fruitless search here for the religious library. |
-| `ui/cardhints.cpp:19` | Not for about a week after a fruitless search here for alchemical formulae. |
+| `ui/cardhints.cpp:18` | Not for a week after a fruitless search here for the religious library. |
+| `ui/cardhints.cpp:19` | Not for a week after a fruitless search here for alchemical formulae. |
 | `ui/cardhints.cpp:20` | Not for about three weeks after a sewer grate in this town defeated you. |
 | `ui/cardhints.cpp:21` | Needs the bribe in your purse; not for two days after a guard recognized you, nor for a day after guards spotted you sneaking at the wall. |
 | `ui/cardhints.cpp:22` | Needs a rope, and not after you have waited a day and come back to the walls. |
@@ -803,7 +804,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/citynav.cpp:204` | Hanseatic League |
 | `ui/citynav.cpp:204` | The offices of the league of northern merchant towns: quests for pay. Asked politely, they judge the party by its standing with the Hanse; asked boldly, by its reputation here and its fame. Collecting a reward politely also raises that standing. |
 | `ui/citynav.cpp:205` | The Fuggers' Leihhaus: a wide choice of everyday goods, and money for almost anything you sell. |
-| `ui/citynav.cpp:206` | Mass (a little Divine Favor for everyone); a donation of a third of the purse (the leader's Divine Favor); the patron saint's story; an errand for the canon (a relic); sanctuary. |
+| `ui/citynav.cpp:206` | Mass (Divine Favor for everyone, more with Religion and Latin); a donation of a third of the purse (the leader's Divine Favor); the patron saint's story; an errand for the canon (a relic); sanctuary. |
 | `ui/citynav.cpp:207` | Mass at set hours (Divine Favor for everyone, more with Religion and Latin); confession (the leader's Divine Favor, a few hours); a tithe of a tenth of the purse (everyone's Divine Favor filled); sanctuary when the town is against you. |
 | `ui/citynav.cpp:208` | The monks' library (Religion, Latin) and prayers for Divine Favor. |
 | `ui/citynav.cpp:209` | New saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone. The staff expect Latin and a sharp mind. |
@@ -995,7 +996,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/enemyview.cpp:93` |  (enchanted) |
 | `ui/enemyview.cpp:96` | Natural armor |
 | `ui/enemyview.cpp:97` | Natural weapons |
-| `ui/enemyview.cpp:113` | mostly deflected |
+| `ui/enemyview.cpp:113` | extra damage halved |
+| `ui/enemyview.cpp:113` | extra damage to an eighth |
 | `ui/figures.cpp:32` | two-handed sword |
 | `ui/figures.cpp:33` | great hammer |
 | `ui/figures.cpp:34` | potion throw |
@@ -1163,7 +1165,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/guide.cpp:120` | +In such a shop, the Formulae button lists the party's formulae; +1 or +5 beside one buys the ingredients for one or five more batches. |
 | `ui/guide.cpp:121` | A batch's chance of success: 100 + the Philosopher's Stone's quality + Intelligence + Alchemy - the formula's mystic number. The 100 is less when more batches are made at once: 50 for four or five, 33 for six or seven, and so on. The party has one Philosopher's Stone at most (Party Info, F6, shows its quality). Brewing takes a day of alchemy at an inn or in camp. |
 | `ui/guide.cpp:122` | A failed batch at an inn, in a village or a hideout ends in a mishap one time in two: an explosion (the party hurt, damages to pay, no room at that inn for four months) or a stink (no room for a month). Which of the two it is goes by the formula's risk (low, medium, high), but backwards: an explosion three times in four at low risk, two in three at medium, one in two at high. In a camp in the wilds a failure only costs the ingredients: brew there when the chance is poor. |
-| `ui/guide.cpp:123` | +The fix "The risk levels of alchemy formulae work the right way around" (F12 > Settings > Fixes) makes it one time in four at low risk, one in three at medium and one in two at high. |
+| `ui/guide.cpp:123` | +The fix "Riskier alchemy formulae explode more often, not less" (F12 > Settings > Fixes) makes it one time in four at low risk, one in three at medium and one in two at high. |
 | `ui/guide.cpp:124` | A potion is as good as the formula it was brewed with: each potion has three formulae, of grade 1, 2 and 3. |
 | `ui/guide.cpp:125` | +The marks on a flask (one, two or three) show its grade (their look: F12 > Settings > Frames and clock), and the Formulae page lists every formula the party knows: who knows it, its ingredients against those carried, the batches they make and each alchemist's chance. |
 | `ui/guide.cpp:128` | Saints are learned in a library (a town's monastery or university, or a monastery in the country) and called upon with Divine Favor, in a card's options or from the menu. Each saint helps with something different; the chance goes by the caller's Virtue and the Divine Favor spent, against what that saint asks for. |
@@ -1262,8 +1264,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/inventory.cpp:606` | Covers the vitals (body and arms) |
 | `ui/inventory.cpp:606` | Covers the legs |
 | `ui/inventory.cpp:608` | Hardness %d of 5 (%s) |
-| `ui/inventory.cpp:615` | Deflects most of the blow (penetration below %d): |
-| `ui/inventory.cpp:615` | Halves the blow (penetration %d): |
+| `ui/inventory.cpp:615` | Cuts the weapon's extra damage to an eighth (penetration below %d): |
+| `ui/inventory.cpp:615` | Halves the weapon's extra damage (penetration %d): |
 | `ui/inventory.cpp:615` | Pierced (penetration above %d): |
 | `ui/inventory.cpp:625` | A blow that pierces also wounds {Strength}; a good hit gets through more easily. |
 | `ui/inventory.cpp:626` | Quality: every 10 points take 1 off each blow's damage. |
@@ -1372,19 +1374,19 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/lodgeview.cpp:251` | Only when camping in the wild. |
 | `ui/lodgeview.cpp:251` | No teachers retained in this town. |
 | `ui/lodgeview.cpp:252` | Rest: {Endurance} comes back to full. Nothing else is gained. |
-| `ui/lodgeview.cpp:252` | Rest and care: {Strength} comes back; the better the party's {Healing}, the more ({Endurance} too). |
+| `ui/lodgeview.cpp:252` | Rest and care: {Strength} comes back, the more the better the party's {Healing}; {Endurance} comes back too. |
 | `ui/lodgeview.cpp:253` | Prayer: {Divine Favor} comes back; the better {Religion} and {Virtue}, the more. {Endurance} does not come back that day. |
 | `ui/lodgeview.cpp:253` | Make potions from a known formula (the ingredients are used up). {Endurance} does not come back that day. |
 | `ui/lodgeview.cpp:254` | Work in the town: the job that pays this member best, by their attributes and skills (wounds lower the pay; a bad name in the town too). {Endurance} does not come back that day. |
-| `ui/lodgeview.cpp:255` | Keep watch: the risk that the lord's men find the party living off his land grows more slowly each day. {Woodwise} helps most, then {Stealth}, then a weapon skill of 30 or more. |
+| `ui/lodgeview.cpp:255` | Keep watch: the risk that the lord's men find the party living off his land grows each day by the place's own amount, less for each member on guard: 1 for {Woodwise} (2 from 30, 3 from 70), 1 for {Stealth} from 30 (2 from 70), 1 for a weapon skill of 30 or more. |
 | `ui/lodgeview.cpp:255` | Lessons from a teacher hired in this town, for a fee each day. {Endurance} does not come back that day. |
 | `ui/lodgeview.cpp:281` | none retained |
 | `ui/lodgeview.cpp:286` | No risk here: the lord's men will not come. |
 | `ui/lodgeview.cpp:287` | The lord's men: %d%% before the next day, %d%% the day after |
 | `ui/lodgeview.cpp:303` | learned all (%d) |
 | `ui/lodgeview.cpp:304` | now %d, to %d  \xc2\xb7  %d%%  \xc2\xb7  %s  \xc2\xb7  %d day%s |
-| `ui/lodgeview.cpp:317` | The lord's men may find the party living off his land, more likely each day. With %s on guard the day after is %d%% (%d%% unguarded). Camp broken, the risk stays half a day to two and a half. |
-| `ui/lodgeview.cpp:319` | The lord's men may find the party living off his land, more likely each day; members on guard slow it. Camp broken, the risk stays half a day to two and a half. |
+| `ui/lodgeview.cpp:317` | The lord's men may find the party living off his land, more likely each day. With %s on guard the day after is %d%% (%d%% unguarded). After the camp is broken, the risk built up stays for 12 to 60 hours: camping again within that time goes on from it. |
+| `ui/lodgeview.cpp:319` | The lord's men may find the party living off his land, more likely each day; members on guard slow it. After the camp is broken, the risk built up stays for 12 to 60 hours: camping again within that time goes on from it. |
 | `ui/lodgeview.cpp:322` |  At an inn a failed batch can blow up; in a camp in the wild it cannot. |
 | `ui/lodgeview.cpp:330` | The teacher of {%s} knows %d; %s has %d already: nothing more to learn here. |
 | `ui/lodgeview.cpp:332` | Teacher of {%s} (skill %d), %d more day%s hired. Each day: %d%% chance of +1 (about one point in %d day%s)%s. %s has %d.%s |
@@ -1462,7 +1464,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/margins.cpp:705` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
 | `ui/margins.cpp:714` | Reputation %d |
 | `ui/margins.cpp:732` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
-| `ui/margins.cpp:732` | Below 0 its shops ask more and pay less (up to 9% from about -20 down). |
+| `ui/margins.cpp:732` | Below 0 its shops ask more and pay less: 1% for every 2 points below 0, up to 9%. |
 | `ui/margins.cpp:736` |   Changes seen since this game was loaded: |
 | `ui/margins.cpp:739` | the overland view |
 | `ui/margins.cpp:739` | , after choosing " |
@@ -1640,7 +1642,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/nsdraw.cpp:315` |  when equipped |
 | `ui/nsdraw.cpp:340` | a light load: no hindrance |
 | `ui/nsdraw.cpp:340` | a normal load: blows hand to hand a fifth slower |
-| `ui/nsdraw.cpp:341` | a heavy load: blows a fifth slower, dodging hampered |
+| `ui/nsdraw.cpp:341` | a heavy load: blows at the usual pace, dodging hampered |
 | `ui/nsdraw.cpp:341` | overloaded: blows two thirds slower, little or no dodging |
 | `ui/nsdraw.cpp:344` | Worn by %s: load %d \xc2\xbb %d of %d, %s%s |
 | `ui/nsdraw.cpp:408` | Load %d \xc2\xbb %d of %d |
@@ -2211,8 +2213,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/settings_setup.cpp:421` | Several versions of one sound (parry1.wav, parry2.wav ...) are played in turn at random. |
 | `ui/sheetview.cpp:166` | Light load (up to half of {Endurance} + {Strength}): no hindrance at all. Only what is equipped counts (weapons, armor, shield); items merely carried weigh nothing. |
 | `ui/sheetview.cpp:167` | Normal load (up to {Endurance} + {Strength}): blows hand to hand come about a fifth slower, and past 5/8 of it the {Agility} used to dodge falls to two thirds. |
-| `ui/sheetview.cpp:168` | Heavy load (up to half as much again): the {Agility} used to dodge falls to two thirds, and to a third past 1 1/4 times {Endurance} + {Strength}. Blows are no slower than with a normal load (an oversight in the original game). |
-| `ui/sheetview.cpp:169` | Overloaded (more than 1 1/2 times {Endurance} + {Strength}): blows hand to hand come about two thirds slower, and the {Agility} used to dodge falls to a third, then to nothing past about twice {Endurance} + {Strength}. |
+| `ui/sheetview.cpp:168` | Heavy load (up to half as much again): the {Agility} used to dodge falls to two thirds, and to a third past 1 1/4 times {Endurance} + {Strength}. Blows hand to hand come at the usual pace, as with a light load (an oversight in the original game). |
+| `ui/sheetview.cpp:169` | Overloaded (more than 1 1/2 times {Endurance} + {Strength}): blows hand to hand come about two thirds slower, and the {Agility} used to dodge falls to a third, then to nothing past 1 7/8 times {Endurance} + {Strength}. |
 | `ui/sheetview.cpp:224` | ; leaves the party in %s |
 | `ui/sheetview.cpp:244` | Darklands+ ("The best member speaks for the party", F12 > Settings > Cards and towns): on cards, each test is made by the member best at it, and shops set prices by the best bargainer, whoever leads. The leader is still the one meant by "the leader" on a card (a mine's traps, a church's favor, an item handed over), and in battles and dungeons (when not paused) deals with doors, chests, locks and traps and leads the group's movement. |
 | `ui/sheetview.cpp:247` | The leader speaks and acts for the party on the cards and bargains in the shops. |
@@ -2507,7 +2509,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui_windows.cpp:296` | then click an enemy (attack) or a spot (walk there): that click gives the order |
 | `ui/ui_windows.cpp:297` | select a member; Esc: cancel the order being given |
 | `ui/ui_windows.cpp:300` | The buttons at the foot of the field |
-| `ui/ui_windows.cpp:300` | the selected member's orders, each in the same place for everyone, its key on it (an order not open to them dimmed); their potions and things to use just above. For a member already fighting, an attack is given against that enemy at once. Fast forward and Resume stand at the top of the right margin |
+| `ui/ui_windows.cpp:300` | the selected member's orders, each in the same place for everyone, its key on it (an order not open to them dimmed); their potions and items to throw or use in a grid just above. For a member already fighting, an attack is given against that enemy at once. Fast forward and Resume stand at the top of the right margin |
 | `ui/ui_windows.cpp:302` | Click a member |
 | `ui/ui_windows.cpp:302` | then click an enemy, a spot or a menu choice; Enter gives the order |
 | `ui/ui_windows.cpp:303` | Ctrl+click a member |
@@ -2980,7 +2982,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/offices.c:91` | Each request for an audience with the council has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's {Charisma} and {Speak Common}). An audience brings a robber knight to hunt or an item to fetch, half and half. After a request the chance is 1%% for a week. |
 | `mods/offices.c:92` | Each request for an audience with the lord has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's {Charisma} and {Speak Common}). An audience brings a robber knight to hunt. After a request the chance is 1%% for a week. |
 | `mods/offices.c:95` | No quests for three days: at your last visit none came, one was turned down, or a reward was paid. |
-| `mods/offices.c:97` | The offer comes after shopping: as the party leaves the stalls, about one time in seven a trader takes it aside with a purse and a job (mostly an item to fetch, sometimes a robber knight to hunt). If none comes, there is no other offer for three days. |
+| `mods/offices.c:97` | The offer comes after shopping: as the party leaves the stalls, 14 times in 100 a trader takes it aside with a purse and a job (mostly an item to fetch, sometimes a robber knight to hunt). If none comes, there is no other offer for three days. |
 | `mods/orders.c:194` | Click: throw here |
 | `mods/orders.c:194` | Click: flee here |
 | `mods/orders.c:195` | No clear throw |
@@ -3014,7 +3016,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/relics.c:189` | donate one of your relics |
 | `mods/relics.c:204` | %sprayers cost {Divine Favor:%d} less, with {Virtue:%d}%s |
 | `mods/relics.c:211` | Which relic do you lay on the altar? |
-| `mods/relics.c:212` | The relic stays with the cathedral. The town's opinion of you rises by 30 (the stronger its opinion already, for or against, the less likely), every member's {Divine Favor} is restored in full, and three hours pass. |
+| `mods/relics.c:212` | The relic stays with the cathedral. With a chance of 100 less the town's present opinion of you (for or against), that opinion rises by 30; every member's {Divine Favor} is restored in full, and three hours pass. |
 | `mods/relics.c:214` | Keep them all |
 | `mods/rosterview.c:97` | allow ... to retire |
 | `mods/rosterview.c:196` | %s joined the party at another inn, so cannot be left at this one. To part with them: Done, then "allow %s to retire". |
@@ -3327,7 +3329,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/sheetview.c:398` | %s drinks the %s. |
 | `mods/styles.c:18` | Skirmisher, hand to hand |
 | `mods/styles.c:20` | As in the original game: they wait for your orders. |
-| `mods/styles.c:21` | Shoots all fight, each archer at a different enemy; fights hand to hand only when reached, then shoots again. |
+| `mods/styles.c:21` | Shoots throughout the fight, each archer at a different enemy; fights hand to hand only when reached, then shoots again. |
 | `mods/styles.c:22` | Shoots while the enemy approaches (if they have a missile weapon); once the enemy is close, fights hand to hand to the end of the fight. |
 | `mods/styles.c:23` | Fights hand to hand to the end of the fight. |
 | `mods/styles.c:24` | Goes straight for the enemy, their archers first. |
@@ -3349,7 +3351,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/teachers.c:122` | The guild would receive the party now, in the daytime. |
 | `mods/teachers.c:122` | The guild would not receive the party yet (it needs more fame, reputation here or {Charisma}). |
 | `mods/teachers.c:130` | In the daytime, go to the university and choose "a teacher you can hire". |
-| `mods/teachers.c:131` | They may say no (it depends on {Perception}, {Intelligence}, {Latin}, the party's best {Alchemy} and fame). A refusal shuts their door for a week and lowers the party's reputation here a little. |
+| `mods/teachers.c:131` | They may say no (it depends on {Perception}, {Intelligence}, {Latin}, the party's best {Alchemy} and fame). A refusal takes two hours, shuts their door for a week and may lower the party's reputation here by 1. |
 | `mods/teachers.c:138` | Go to the monastery and choose "inquire about tutoring in various disciplines". |
 | `mods/teachers.c:139` | Only for a party of good name ({Virtue}, {Charisma}, reputation here), and only while no other teacher is hired in the town. After a refusal, wait two days. |
 | `mods/teachers.c:146` | In the daytime, go to the physician and choose "beg him to allow you to be his students". |

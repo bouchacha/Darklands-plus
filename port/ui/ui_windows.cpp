@@ -297,7 +297,7 @@ void help_window(void)
                 row("1 to 5", "select a member; Esc: cancel the order being given");
                 if (config_get_int("battle.panel_select", 1)) row("A member's box at the left", "in a fight, click: select them (double-click: and move the view to them); right-click: their sheet. Walking a castle, mine or dungeon with no enemy engaged, click: their sheet");
                 if (config_get_int("battle.volley_toggle", 1) && config_get_int("battle.improved", 1)) row("The picture at a box's lower left", "that member's way of fighting, what they do until you give them an order: click it to choose another");
-                row("The buttons at the foot of the field", "the selected member's orders, each in the same place for everyone, its key on it (an order not open to them dimmed); their potions and things to use just above. For a member already fighting, an attack is given against that enemy at once. Fast forward and Resume stand at the top of the right margin");
+                row("The buttons at the foot of the field", "the selected member's orders, each in the same place for everyone, its key on it (an order not open to them dimmed); their potions and items to throw or use in a grid just above. For a member already fighting, an attack is given against that enemy at once. Fast forward and Resume stand at the top of the right margin");
             } else
                 row("Click a member", "then click an enemy, a spot or a menu choice; Enter gives the order");
             row("Ctrl+click a member", "make that member the active one: the view follows them (scrolling at an edge stops it)");

@@ -203,7 +203,7 @@ static const DestInfo DEST[D_N] = {
     { "Medici bank", "The Medici representative: bank notes, as at the Fugger bank.", 1, -1, -1, TI_MEDICI },
     { "Hanseatic League", "The offices of the league of northern merchant towns: quests for pay. Asked politely, they judge the party by its standing with the Hanse; asked boldly, by its reputation here and its fame. Collecting a reward politely also raises that standing.", 1, -1, -1, TI_HANSE },
     { "Pawnshop", "The Fuggers' Leihhaus: a wide choice of everyday goods, and money for almost anything you sell.", 0, 9, -1, TI_PAWN },
-    { "Cathedral", "Mass (a little Divine Favor for everyone); a donation of a third of the purse (the leader's Divine Favor); the patron saint's story; an errand for the canon (a relic); sanctuary.", 2, 4, -1, TI_CATHEDRAL },
+    { "Cathedral", "Mass (Divine Favor for everyone, more with Religion and Latin); a donation of a third of the purse (the leader's Divine Favor); the patron saint's story; an errand for the canon (a relic); sanctuary.", 2, 4, -1, TI_CATHEDRAL },
     { "Church", "Mass at set hours (Divine Favor for everyone, more with Religion and Latin); confession (the leader's Divine Favor, a few hours); a tithe of a tenth of the purse (everyone's Divine Favor filled); sanctuary when the town is against you.", 2, -1, -1, TI_CHURCH },
     { "Monastery", "The monks' library (Religion, Latin) and prayers for Divine Favor.", 2, 7, -1, TI_MONASTERY },
     { "University", "New saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone. The staff expect Latin and a sharp mind.", 3, 8, -1, TI_UNIVERSITY },

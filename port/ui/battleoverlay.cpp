@@ -442,7 +442,7 @@ void ui_draw_battle_info(void)
                     u16 mb = (u16)(0x9c55 + m * 0x80);
                     if (g_rb((u16)(mb + CB_STATUS)) != 1) continue;
                     /* the member's head, then each weapon in hand as its picture, then what it does in its colour: green pierces, amber
-                       half damage, red mostly deflected */
+                       its extra damage halved, red cut to an eighth */
                     struct Seg { int id; const char *word; ImVec4 col; };
                     std::vector<Seg> seg;
                     for (int k = 0; k < 2; k++) {
@@ -450,7 +450,7 @@ void ui_draw_battle_info(void)
                         int id = wid(mw);
                         if (id < 0) continue;
                         int pen = rb(G_FAR20A5, (u16)(0x76a8 + mw)) & 15, r = pen > h ? 0 : pen == h ? 1 : 2;
-                        seg.push_back({ id, r == 0 ? "pierces" : r == 1 ? "half damage" : "mostly deflected",
+                        seg.push_back({ id, r == 0 ? "pierces" : r == 1 ? "extra damage halved" : "extra damage to an eighth",
                                         r == 0 ? ImVec4(0.18f, 0.40f, 0.16f, 1) : r == 1 ? ImVec4(0.69f, 0.49f, 0.0f, 1) : ImVec4(0.62f, 0.20f, 0.12f, 1) });
                     }
                     if (seg.empty()) continue;

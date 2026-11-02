@@ -209,8 +209,8 @@ static void gift_hook(void)                   /* s056 19c4:0c6e: "donate one of 
     }
     if (!n) { hook_call_original(); return; }                /* (none: the game's own words for it) */
     int c = choose_run("Which relic do you lay on the altar?",
-                       "The relic stays with the cathedral. The town's opinion of you rises by 30 (the stronger its opinion already, "
-                       "for or against, the less likely), every member's {Divine Favor} is restored in full, and three hours pass.",
+                       "The relic stays with the cathedral. With a chance of 100 less the town's present opinion of you (for or against), "
+                       "that opinion rises by 30; every member's {Divine Favor} is restored in full, and three hours pass.",
                        rows, n, "Keep them all");
     if (ns_unwinding) return;
     if (c < 0) {                                             /* none: back to the cathedral's own menu */

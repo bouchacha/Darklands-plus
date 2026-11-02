@@ -294,7 +294,7 @@ the files where each switch's key is read.
 | `fix.cardopts` | Card options no longer grayed out by mistake | fix | fixes.c, war.c, cardhints.cpp, citynav.cpp, margins.cpp |
 | `fix.patronsaint` | Saints taught by a cathedral, or by St. Cosmas or St. Damian, are learned | fix | fixes.c |
 | `fix.debtnote` | Debt notes are where the merchant says | fix | fixes.c, quests.cpp |
-| `fix.alchrisk` | The risk levels of alchemy formulae work the right way around | fix | fixes.c |
+| `fix.alchrisk` | Riskier alchemy formulae explode more often, not less | fix | fixes.c |
 | `fix.bishop` | Quests from a cathedral are the bishop's, not the merchants' | fix | fixes.c |
 | `fix.altar` | No quests to a purged pagan altar | fix | fixes.c |
 | `fix.tomb` | The item taken from a tomb goes to the winner of the fight | fix | fixes.c, worldmap_draw.cpp |
@@ -305,9 +305,9 @@ the files where each switch's key is read.
 | `fix.battlesaints` | A saint's help called in a battle wears off | fix | fixes.c |
 | `fix.healboost` | Healing no longer takes a boost away | fix | fixes.c |
 | `fix.teachcap` | Teachers teach only up to their own ability | fix | fixes.c, teachers.c, teachers.h, citynav.cpp, lodgeview.cpp, margins.cpp, teachersui.cpp |
-| `fix.oilweapons` | Each weapon oil works with the weapons the manual names | fix | fixes.c, nsdraw.cpp |
+| `fix.oilweapons` | Each weapon oil works only with the weapons the manual names | fix | fixes.c, nsdraw.cpp |
 | `fix.pauls` | The two St. Pauls do what their texts say | fix | fixes.c, saintinfo.c, saintchips.cpp |
-| `fix.saintrep` | A saint's reputation bonus goes to the right town | fix | fixes.c, saintinfo.c, saintchips.cpp |
+| `fix.saintrep` | St. Nepomuk's and St. Cecilia's reputation bonuses go to a real town | fix | fixes.c, saintinfo.c, saintchips.cpp |
 | `fix.sainttexts` | Saints do what their texts say | fix | fixes.c, saintinfo.c, sainttexts.c, sainttexts.h, saintchips.cpp |
 | `fix.nightbowyer` | The bowyer sells bows at night too | fix | fixes.c |
 | `fix.confession` | Confession always takes at least an hour | fix | fixes.c |
@@ -316,10 +316,10 @@ the files where each switch's key is read.
 | `fix.castlefreeze` | No freeze when placing the party in a castle | fix | fixes.c |
 | `fix.university` | A failed search for formulae at a university shuts that search, not the saints' | fix | fixes.c, cardhints.cpp, citynav.cpp |
 | `fix.partyitems` | An item given to the whole party is given once | fix | fixes.c |
-| `fix.itemflags` | A mount's quality helps when fleeing on horseback | fix | fixes.c |
-| `fix.membervalue` | A church tithe blesses the right member | fix | fixes.c |
+| `fix.itemflags` | Fleeing on horseback counts the poorest rider's mount | fix | fixes.c |
+| `fix.membervalue` | A church tithe blesses the member best at Religion | fix | fixes.c |
 | `fix.cardslips` | Small mistakes in single cards | fix | fixes.c |
-| `fix.nightwall` | Climbing a city wall at night uses the right chances | fix | fixes.c |
+| `fix.nightwall` | Climbing a city wall at night uses the climbers' own chances | fix | fixes.c |
 | `fix.campguard` | A guard skilled with impact weapons keeps the camp safer | fix | fixes.c, lodgeview.c |
 | `fix.enemygroups` | No group of enemies goes missing from a battle | fix | fixes.c |
 | `fix.cityalert` | A town on alert remembers the trouble | fix | fixes.c, quests.cpp |
@@ -327,7 +327,7 @@ the files where each switch's key is read.
 | `fix.cloudline` | Clouds stop only the shots that pass through them | fix | fixes.c |
 | `fix.attrsum` | Cards that test two attributes add both | fix | fixes.c |
 | `fix.lootcount` | No loot lost past 255 of a kind | fix | fixes.c |
-| `fix.corridors` | Castle corridor decorations in the right place | fix | fixes.c |
+| `fix.corridors` | Castle corridor decorations stay on their passage | fix | fixes.c |
 | `fix.battledead` | A hireling killed in battle doesn't later send away his replacement | fix | fixes.c |
 | `fix.createback` | Esc in character creation doesn't reopen a childhood already chosen | fix | fixes.c |
 | `fix.ruinkeep` | The burnt-out keep lets the party go after searching it | fix | fixes.c |

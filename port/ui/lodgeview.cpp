@@ -249,10 +249,10 @@ extern "C" void lodgeview_draw(void)
         P.text(f, NsDraw::FS_HEAD, RX0, TY - 1.5f, ink, b);
         static const char *ACT[7] = { "Regain {Endurance}", "Regain {Strength}", "Pray for {Divine Favor}", "Alchemy work", "Earn a little money", "Guard the camp", "Train or study" };
         static const char *WHY[7] = { "{Endurance} is full: earning money is the better day.", "Already at full {Strength}.", "{Divine Favor} is full.", "Knows no formula to make.", "Only at an inn in a town.", "Only when camping in the wild.", "No teachers retained in this town." };
-        static const char *WHAT[7] = { "Rest: {Endurance} comes back to full. Nothing else is gained.", "Rest and care: {Strength} comes back; the better the party's {Healing}, the more ({Endurance} too).",
+        static const char *WHAT[7] = { "Rest: {Endurance} comes back to full. Nothing else is gained.", "Rest and care: {Strength} comes back, the more the better the party's {Healing}; {Endurance} comes back too.",
             "Prayer: {Divine Favor} comes back; the better {Religion} and {Virtue}, the more. {Endurance} does not come back that day.", "Make potions from a known formula (the ingredients are used up). {Endurance} does not come back that day.",
             "Work in the town: the job that pays this member best, by their attributes and skills (wounds lower the pay; a bad name in the town too). {Endurance} does not come back that day.",
-            "Keep watch: the risk that the lord's men find the party living off his land grows more slowly each day. {Woodwise} helps most, then {Stealth}, then a weapon skill of 30 or more.", "Lessons from a teacher hired in this town, for a fee each day. {Endurance} does not come back that day." };
+            "Keep watch: the risk that the lord's men find the party living off his land grows each day by the place's own amount, less for each member on guard: 1 for {Woodwise} (2 from 30, 3 from 70), 1 for {Stealth} from 30 (2 from 70), 1 for a weapon skill of 30 or more.", "Lessons from a teacher hired in this town, for a fee each day. {Endurance} does not come back that day." };
         /* the teachers, one row a skill: the one who teaches it (the best, with the bestteacher fix) */
         int tl[LV_TEACHERS], ntl = 0;
         for (int t = 0; t < m.nteach; t++) {
@@ -314,9 +314,9 @@ extern "C" void lodgeview_draw(void)
         if (hover_act == 200) {
             char b[400];
             int g = 0; for (int i = 0; i < 5; i++) g += m.m[i].present && m.m[i].act == 5;
-            if (g) snprintf(b, sizeof b, "The lord's men may find the party living off his land, more likely each day. With %s on guard the day after is %d%% (%d%% unguarded). Camp broken, the risk stays half a day to two and a half.",
+            if (g) snprintf(b, sizeof b, "The lord's men may find the party living off his land, more likely each day. With %s on guard the day after is %d%% (%d%% unguarded). After the camp is broken, the risk built up stays for 12 to 60 hours: camping again within that time goes on from it.",
                             g == 1 ? "this one" : "these", m.risk_next_pct, m.risk_next_unguarded_pct);
-            else snprintf(b, sizeof b, "The lord's men may find the party living off his land, more likely each day; members on guard slow it. Camp broken, the risk stays half a day to two and a half.");
+            else snprintf(b, sizeof b, "The lord's men may find the party living off his land, more likely each day; members on guard slow it. After the camp is broken, the risk built up stays for 12 to 60 hours: camping again within that time goes on from it.");
             about = b;
         } else if (hover_act >= 0 && hover_act < 7) about = std::string(WHAT[hover_act]) + (p.can[hover_act] && !(hover_act == 0 && p.end >= p.end_max && p.can[4]) ? "" : std::string(" ") + WHY[hover_act]);
         if (hover_act == 3 && !camp) about += " At an inn a failed batch can blow up; in a camp in the wild it cannot.";

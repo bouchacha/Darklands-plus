@@ -18,7 +18,7 @@ const int STYLE_ORDER[STYLE_CHOICES] = { ST_SKIRMISHER, ST_ARCHER, ST_CHARGER, S
 static const char *NAMES[ST_N] = { "Manual", "Archer", "Skirmisher", "Skirmisher, hand to hand", "Charger" };
 static const char *BRIEF[ST_N] = {
     "As in the original game: they wait for your orders.",
-    "Shoots all fight, each archer at a different enemy; fights hand to hand only when reached, then shoots again.",
+    "Shoots throughout the fight, each archer at a different enemy; fights hand to hand only when reached, then shoots again.",
     "Shoots while the enemy approaches (if they have a missile weapon); once the enemy is close, fights hand to hand to the end of the fight.",
     "Fights hand to hand to the end of the fight.",
     "Goes straight for the enemy, their archers first.",

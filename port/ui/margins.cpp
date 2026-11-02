@@ -730,7 +730,7 @@ static void right_panel(int size)
                    two points, up to 9% (buy_price, sell_price s032; above 0 the game's integer
                    rounding leaves the prices as they are) */
                 std::string t = "The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it. "
-                                "Below 0 its shops ask more and pay less (up to 9% from about -20 down).";
+                                "Below 0 its shops ask more and pay less: 1% for every 2 points below 0, up to 9%.";
                 std::vector<RepChange> L; repwatch_list(cur, L);
                 if (!L.empty()) {
                     t += "\n\nChanges seen since this game was loaded:";

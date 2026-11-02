@@ -94,7 +94,7 @@ int office_status(int loc, int g, int hall, OfficeStatus *o)
     case 0: case 4: case 5: {
         if (lock) return shut(o, lock, "No quests for three days: at your last visit none came, one was turned down, or a reward was paid.");
         o->state = OFS_ASK; o->chance = 14;
-        snprintf(o->note, sizeof o->note, "The offer comes after shopping: as the party leaves the stalls, about one time in seven a trader takes it aside with a purse and a job "
+        snprintf(o->note, sizeof o->note, "The offer comes after shopping: as the party leaves the stalls, 14 times in 100 a trader takes it aside with a purse and a job "
                                           "(mostly an item to fetch, sometimes a robber knight to hunt). If none comes, there is no other offer for three days.");
         return 1; }
     }
