@@ -336,10 +336,8 @@ static void text_hook(void)
     ns_enter(NS_CARD);
     click_record(); flush_keys();
     btn_prev = g_rb(A_MOUSE_BTN) & 1;
-    int key = 0, to_game = 0;
+    int key = 0;
     for (;;) {
-        int saves_load_pending(void);
-        if (saves_load_pending()) { to_game = 1; break; }    /* (a load asked for: the game's own text screen takes it) */
         if (!common_step()) break;
         int mx, my;
         if (left_released(&mx, &my) && mx >= 0x3c) { key = 0x1c0d; break; }
@@ -355,7 +353,6 @@ static void text_hook(void)
     cardview.phase = 0;
     ns_leave();
     if (ns_unwinding) return;
-    if (to_game) { hook_call_original(); return; }
     if (key == 0x1000) ns_call(GF_quit_to_dos, 0);            /* quit_to_dos */
     click_record();
     flush_keys();
@@ -487,10 +484,8 @@ int cardview_menu(void)
     forced_opt = -1;
     ns_enter(NS_CARD);
     btn_prev = g_rb(A_MOUSE_BTN) & 1;
-    int sel = -1, to_game = 0;
+    int sel = -1;
     for (;;) {
-        int saves_load_pending(void);
-        if (saves_load_pending()) { to_game = 1; break; }    /* (a load asked for: the game's own menu takes it, see below) */
         if (!common_step()) break;
         layout_out();
         if (c->want_popup >= 0) { int j = c->want_popup; c->want_popup = -1; if (c->popup_piece == j) { c->popup_piece = -1; c->nentries = 0; } else build_popup(j); if (ns_unwinding) break; }
@@ -540,7 +535,6 @@ int cardview_menu(void)
     ns_leave();
     c->popup_piece = -1;
     if (ns_unwinding) return -1;
-    if (to_game) return -2;                                    /* (cardview_to_game) */
     g_ww(A_8DDE, 1);
     for (int j = 0; j < c->npieces; j++) if (c->piece[j].opt == sel && c->piece[j].line >= 0) g_wb(A_HILITE, (u8)c->piece[j].line);
     click_record();
@@ -556,7 +550,6 @@ int cardview_menu(void)
 }
 
 int cardview_unwinding(void) { return ns_unwinding; }
-int cardview_phase(void) { return cardview.phase; }     /* 1 a text, 2 a menu of the card screen of Darklands+ on show */
 
 /* (tests) what is on show: the pieces, their rows (game pixels) and the pop-up */
 void cardview_dump(void)

@@ -194,11 +194,6 @@ static void card_menu_hook(void)        /* s043 150b:1142 card_menu(win, win2) *
         int sel = cardview_menu();
         int cardview_unwinding(void);
         if (cardview_unwinding()) { cm_depth--; if (!cm_depth) card_chances.active = 0; return; }
-        if (sel == -2) {                                        /* (a load asked for: the game's own menu takes it, mods/cardview.c) */
-            hook_call_original();
-            cm_depth--; if (!cm_depth) card_chances.active = 0;
-            return;
-        }
         chronicle_choice(sel);
         leader_for_choice(sel);
         cm_depth--;
