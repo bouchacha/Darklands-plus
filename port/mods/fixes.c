@@ -367,6 +367,10 @@ Fix FIXES[] = {
       "A town's council, lord or merchants, or a village, ask the party to kill the robber knight of the castle nearest them. Once no robber knight's castle stood anywhere (every keep burnt out: the party killed the knights faster than new ones moved into the ruins, one every three months), the game named a knight in the town itself, who could never be found, and could name him again. Now a new knight moves into the burnt-out keep nearest the town first, as the game's own rule would have him do, and the task names him there; tasks already given for a town or a village go to that keep too.", 1 },
     { "dragonhide", "Hiding from a dragon takes Stealth and Woodwise",
       "When a dragon flies over (or crawls out of the earth), the chance to hide and follow it to its lair came from the leader's Charisma and Speak Latin, a pair no other check in the game uses, and nothing in the code says why: most likely a slip. A guess at what was meant, since the game does not say: the party's average Stealth (all of them must stay hidden) and its best Woodwise (to follow the beast), half of their sum.", 1 },
+    { "knightdead", "A robber knight killed stays dead",
+      "Every way of killing a robber knight burns his keep and sends the party on its way, but his tower's card could come round again before the party left the place, the knight alive in it: he could be killed again and again, a bounty each time (GitHub issue 7). Now, once his keep has burnt, the burnt-out keep is what the party finds there.", 1 },
+    { "alertonce", "A castle on its guard is one note, not hundreds",
+      "At a robber knight's tower, challenging him, sneaking up and other tries each leave word that the castle is on its guard for 270 days, a new note each time beside the last. Enough tries filled the game's table of 300 notes, and then nothing new could be noted: \"EVENT Failure\" at every turn (GitHub issue 8). Now a new note replaces the last, and a saved game's extra copies are dropped as it loads.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -2568,13 +2572,21 @@ static int rk_nearest(int x, int y, int icon)          /* (as nearest_loc_type_i
     }
     return best;
 }
+static int rk_fell_lately(int loc)                    /* the game's word that the knight of loc fell (kind 0x1c, type 1, tag 3: 100 days) */
+{
+    for (int k = 0; k < G_NEVENTS; k++) {
+        u32 f = g_event(k);
+        if (f && g_ev(f, G_EV_KIND) == 0x1c && g_ev(f, G_EV_TYPE0) == 1 && g_ev(f, G_EV_TAG) == 3 && g_ev(f, G_EV_LOC) == loc) return 1;
+    }
+    return 0;
+}
 static int rk_new_knight(int x, int y)                 /* the ruin nearest x, y a robber knight's castle again; -1 none */
 {
-    int best = -1, bd = 1 << 30;
+    int best = -1, bd = 1 << 30;                       /* (a keep whose knight fell within the last 100 days only when every ruin's did) */
     for (int j = 0; j < 414; j++) {
         u32 q = g_location(j);
         if (!q || (s16)rw((u16)(q >> 16), (u16)q) != 0x1a) continue;
-        int d = rk_dist(q, x, y);
+        int d = rk_dist(q, x, y) + (rk_fell_lately(j) ? 1 << 20 : 0);
         if (d < bd) { bd = d; best = j; }
     }
     if (best < 0) return -1;
@@ -2613,6 +2625,74 @@ static void rkcastle_frame(void)
         }
         fprintf(stderr, "fix rkcastle: the robber knight asked for in place %d now lives at %d\n", town, c);
     }
+}
+
+/* ---------------------------------------------------------------- knightdead
+ * The robber knight's tower ($Raubi03, s080 1929:0006, card 0x93) and the cards of sneaking up ($Raubi04,
+ * s081 1838:0000, 0x94) and of a saint's help ($Raubi05, s081 18bb:0004, 0x95) never ask whether the knight
+ * still lives. Each way of killing him burns the keep (the place's icon 0x1a, gone, its own card 0x157, the
+ * burnt-out keep) and sends the party on its way (0x0c), but the tower's card came round again before the
+ * party left the place, knight and all: "Sneak in, set on fire, kill knight in combat, repeat", a bounty
+ * each time (GitHub issue 7). Here those cards, at a keep already burnt, give way to the place's own card. */
+static void knightcard_hook(void)
+{
+    int loc = (s16)g_rw(G_CUR_LOC);
+    u32 r = loc >= 0 && loc < 414 ? g_location(loc) : 0;
+    if (!r || (s16)rw((u16)(r >> 16), (u16)r) != 0x1a) { hook_call_original(); return; }
+    int c = (s16)rw((u16)(r >> 16), (u16)((u16)r + 0x0c));
+    if (c <= 0) c = 0x0c;
+    g_ww(GV_next_card, (u16)c);
+    fprintf(stderr, "fix knightdead: the knight of %d fell and his keep burnt: its own card %#x\n", loc, c);
+    AX = (u16)c;
+    hook_return_far(0);
+}
+
+/* ---------------------------------------------------------------- alertonce
+ * At the robber knight's tower, challenging him, sneaking up and other tries each leave word that the castle
+ * is on its guard (event_here(0x26, 6480 hours): 270 days, "ask politely" greyed), a new event each time
+ * beside the last. Enough tries (the tower's card coming round again, knightdead) filled the game's 300
+ * events, and every new one then failed: "EVENT Failure" (event_slot_free, s029; GitHub issue 8). Here a new
+ * one replaces the place's last, and a saved game's copies, and those of the word that the knight fell (kind
+ * 0x1c type 1 tag 3, one a kill), are dropped as it loads, the one ending last kept. */
+static int alert_same(u32 e, int kind, int type0, int loc, int tag)
+{
+    return e && g_ev(e, G_EV_KIND) == kind && g_ev(e, G_EV_TYPE0) == type0 && g_ev(e, G_EV_OWNER) == -2 && g_ev(e, G_EV_LOC) == loc && g_ev(e, G_EV_TAG) == tag;
+}
+static void alertonce_hook(void)            /* event_here (kind, hours), s029 0e76:2930 */
+{
+    int kind = (s16)rw(SS, (u16)(SP + 4)), loc = (s16)g_rw(G_CUR_LOC);
+    if (kind == 0x26)
+        for (int i = 0; i < G_NEVENTS && !ns_unwinding; i++)
+            if (alert_same(g_event(i), 0x26, 0, loc, 0)) { ns_call(GF_event_free, 1, i); if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix alertonce: the guard at %d renewed (event %d)\n", loc, i); }
+    if (!ns_unwinding) hook_call_original();
+}
+static long ev_end_hours(u32 e)
+{
+    static const int DAYS[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+    int h = g_ev(e, G_EV_END), d = g_ev(e, G_EV_END + 2), mo = g_ev(e, G_EV_END + 4), y = g_ev(e, G_EV_END + 6);
+    long days = (long)y * 365;
+    for (int i = 0; i < mo && i < 12; i++) days += DAYS[i];
+    return (days + d) * 24 + h;
+}
+static void alertonce_after_load(void)      /* (saves_on_loaded) */
+{
+    if (!fix_on("alertonce")) return;
+    int freed = 0;
+    for (int i = 0; i < G_NEVENTS; i++) {
+        u32 e = g_event(i);
+        int kind = e ? g_ev(e, G_EV_KIND) : 0, type0 = e ? g_ev(e, G_EV_TYPE0) : 0, tag = e ? g_ev(e, G_EV_TAG) : 0;
+        if (!e || !((kind == 0x26 && type0 == 0 && tag == 0) || (kind == 0x1c && type0 == 1 && tag == 3)) || g_ev(e, G_EV_OWNER) != -2) continue;
+        int loc = g_ev(e, G_EV_LOC);
+        for (int k = i + 1; k < G_NEVENTS; k++) {
+            u32 f = g_event(k);
+            if (!alert_same(f, kind, type0, loc, tag)) continue;
+            int drop = ev_end_hours(f) > ev_end_hours(e) ? i : k;       /* (the one ending last stays) */
+            ns_call(GF_event_free, 1, drop); freed++;
+            if (ns_unwinding) return;
+            if (drop == i) break;
+        }
+    }
+    if (freed) fprintf(stderr, "fix alertonce: %d copies of a castle's guard or of a fallen knight dropped from the saved game\n", freed);
 }
 
 /* ---------------------------------------------------------------- dragonhide
@@ -2682,10 +2762,12 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 36, 0x1462, 0x1b80, campguard_hook }, { GF_groups_fixup, enemygroups_hook }, { GF_loc_hostile_impl, cityalert_hook },
     { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook },
     { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
-    { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook } };   /* (hitsound: mods/sfx.c) */
+    { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook },
+    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook } };   /* (hitsound: mods/sfx.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
+    { "knightdead", 81, 0x1838, 0x0000, knightcard_hook }, { "knightdead", 81, 0x18bb, 0x0004, knightcard_hook },
     { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook },
     { "teachers", 29, 0x0e76, 0x324c, teachers_next_hook }, { "armorwear", 19, 0x1ef8, 0x0914, wornout_hook },
     { "blessing", 29, 0x0e76, 0x448a, blessing_end_hook },
@@ -2744,7 +2826,7 @@ static void copy_check_hook(void)
 
 void fixes_init(void)
 {
-    saves_on_loaded(colours_after_load);
+    saves_on_loaded(colours_after_load); saves_on_loaded(alertonce_after_load);
     if (getenv("DL_CHECK_COPY")) hook_install(-1, 0x06a1, 0x2eb4, copy_check_hook);
     hook_install(GF_cards_shutdown, cards_down_hook);   /* (the potions kept over a battle: they ask any_potion_fix) */
     hook_install(GF_cards_startup, cards_up_hook);

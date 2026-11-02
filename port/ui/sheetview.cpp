@@ -269,24 +269,19 @@ static void header(NsDraw &P, const SheetModel &s)
 static std::string load_effects(const SheetModel &s)
 {
     int L = s.load, cap = s.attr[0] + s.attr[1], capm = s.attr_max[0] + s.attr_max[1], agl = s.attr[2], m = 5 * capm / 4;
-    auto part = [](int l, int c, int a, bool one) -> std::pair<int, const char *> {
-        if (l <= c / 2) return { a, "in full" };
-        if (l <= c) return { 2 * a / 3, "two thirds" };
-        if (l <= 3 * c / 2) return { a / 3, "a third" };
-        return { one ? 1 : 0, one ? "as 1" : "not at all" };
-    };
-    auto card = part(L, cap, agl, true), def = part(L, m, agl, false);
-    const char *swing = (L > capm / 2 && L <= capm) ? "a little slower (the attack rate falls)" : L > 3 * capm / 2 ? "much slower (the attack rate falls a lot)" : "at the usual pace";
-    char b[900];
+    auto part = [](int l, int c, int a, bool one) { return l <= c / 2 ? a : l <= c ? 2 * a / 3 : l <= 3 * c / 2 ? a / 3 : one ? 1 : 0; };
+    int card = part(L, cap, agl, true), dodge = part(L, m, agl, false);
+    int band = L <= cap / 2 ? 0 : L <= cap ? 1 : L <= 3 * cap / 2 ? 2 : 3;
+    const char *swing = (L > capm / 2 && L <= capm) ? "a little slower" : L > 3 * capm / 2 ? "much slower" : "at the usual pace";
+    char b[900], ag[300];
+    if (card == dodge) snprintf(ag, sizeof ag, "{Agility} counts as %d of %d, for dodging blows and for card tests (climbing, running, a trap).", card, agl);
+    else snprintf(ag, sizeof ag, "{Agility} counts as %d of %d for dodging blows, %d for card tests (climbing, running, a trap).", dodge, agl, card);
     snprintf(b, sizeof b,
-             "Load %d: the weight of what %s has equipped (weapons, armor, shield). Items carried but not equipped weigh nothing.\n"
-             "Compared with {Endurance} + {Strength} (%d now): light up to %d, normal up to %d, heavy up to %d, overloaded above that.\n\n"
-             "Now:\n"
-             "- Tests on cards that ask for {Agility} (climbing a wall, running, a trap): {Agility:%d} counts %s (%d).\n"
-             "- Fending off blows in melee: {Agility} counts %s (%d).\n"
-             "- Swinging in melee: %s.\n\n"
-             "Travel, walking in a battle, missiles and {Endurance} are not affected by the load.",
-             L, ns_gtext(s.names[s.who]).c_str(), cap, cap / 2, cap, 3 * cap / 2, agl, card.second, card.first, def.second, def.first, swing);
+             "%s: %d, against {Endurance} + {Strength} %d. Only what is equipped counts (weapons, armor, shield).\n"
+             "Light up to %d, normal up to %d, heavy up to %d, overloaded above.\n\n"
+             "Blows hand to hand come %s. %s\n\n"
+             "Travel, walking in a battle and shooting are not slowed by the load.",
+             LOAD[band], L, cap, cap / 2, cap, 3 * cap / 2, swing, ag);
     return b;
 }
 
@@ -306,7 +301,6 @@ static void doll(NsDraw &P, const SheetModel &s)
     int band = s.load_band < 0 ? 0 : s.load_band > 3 ? 3 : s.load_band;
     ImU32 c = band >= 3 ? NsDraw::RED : band == 2 ? IM_COL32(150, 80, 20, 255) : NsDraw::INK;
     P.text(P.fo, NsDraw::FS_SMALL, 63.5f, 192.3f, c, LOAD[band]);
-    if (P.over(62, 191, 198, 197.5f)) ns_tip(ui_load_effect(band), 26);
     char v[24]; snprintf(v, sizeof v, "%d of %d", s.load, s.capacity);
     P.text(P.fo, NsDraw::FS_SMALL, 0, 192.3f, NsDraw::INK_SOFT, v, 197);
     float f = s.capacity > 0 ? fminf(1.5f, (float)s.load / s.capacity) / 1.5f : 0;
@@ -314,9 +308,8 @@ static void doll(NsDraw &P, const SheetModel &s)
     P.rect(100, 194.6f, 100 + 60 * f, 196.4f, c, 0.6f);
     P.rect(100 + 60 / 3.0f, 194.2f, 100 + 60 / 3.0f + 0.4f, 196.8f, IM_COL32(120, 80, 36, 160));
     P.rect(100 + 120 / 3.0f, 194.2f, 100 + 120 / 3.0f + 0.4f, 196.8f, IM_COL32(120, 80, 36, 160));
-    if (P.over(62, 191.5f, 198, 198) && config_get_int("assist.shop_info", 1)) {   /* what the load does */
-        ns_tip(load_effects(s).c_str(), 25);
-    }
+    if (P.over(62, 191, 198, 198))                         /* what the load does: this member's now, else the band's */
+        ns_tip(config_get_int("assist.shop_info", 1) ? load_effects(s).c_str() : ui_load_effect(band), 25);
 }
 
 /* where the shown member stands in the party at attribute or skill idx: 1 the best (others lower),

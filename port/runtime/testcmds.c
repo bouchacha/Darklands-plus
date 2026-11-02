@@ -434,8 +434,10 @@ int testcmd_run(const char *cmd, const char *arg)
             int k = -1; sscanf(arg, "%d", &k);
             for (int i = 0; i < 300; i++) { u32 e = ev_far(i); if (!e) continue; u16 sg = (u16)(e >> 16), o = (u16)e;
                 if (k != -1 && (s16)rw(sg, (u16)(o + 0x22)) != k) continue;
-                fprintf(stderr, "event %d: kind %#x type0 %d owner %d loc %d value %d tag %d aux %d %d\n", i, (s16)rw(sg, (u16)(o + 0x22)), (s16)rw(sg, o), (s16)rw(sg, (u16)(o + 0x1a)),
-                        (s16)rw(sg, (u16)(o + 0x1c)), (s16)rw(sg, (u16)(o + 0x1e)), (s16)rw(sg, (u16)(o + 0x28)), (s16)rw(sg, (u16)(o + 0x2a)), (s16)rw(sg, (u16)(o + 0x2c))); }
+                fprintf(stderr, "event %d: kind %#x type0 %d owner %d loc %d value %d tag %d aux %d %d from %d:00 %d/%d/%d to %d:00 %d/%d/%d\n", i, (s16)rw(sg, (u16)(o + 0x22)), (s16)rw(sg, o), (s16)rw(sg, (u16)(o + 0x1a)),
+                        (s16)rw(sg, (u16)(o + 0x1c)), (s16)rw(sg, (u16)(o + 0x1e)), (s16)rw(sg, (u16)(o + 0x28)), (s16)rw(sg, (u16)(o + 0x2a)), (s16)rw(sg, (u16)(o + 0x2c)),
+                        (s16)rw(sg, (u16)(o + 0x0a)), (s16)rw(sg, (u16)(o + 0x0c)), (s16)rw(sg, (u16)(o + 0x0e)) + 1, (s16)rw(sg, (u16)(o + 0x10)),
+                        (s16)rw(sg, (u16)(o + 0x12)), (s16)rw(sg, (u16)(o + 0x14)), (s16)rw(sg, (u16)(o + 0x16)) + 1, (s16)rw(sg, (u16)(o + 0x18))); }
         }
         else if (!strcmp(cmd, "uoriginal")) { void ui_set_original_c(int); ui_set_original_c(atoi(arg)); }   /* test: the original game (the Full Original preset's "original") on (1) or off (0) */
         else if (!strcmp(cmd, "ualcrisk")) { int r = 0, n = 200; sscanf(arg, "%d,%d", &r, &n); alc_risk_test(r, n); }   /* test: n failed brews of risk r here: the accidents */

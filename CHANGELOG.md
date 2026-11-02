@@ -6,12 +6,16 @@ What changed since 1.4.5.
 
 **Fixed**
 
+- **"EVENT Failure" at every turn** (GitHub issue 8): at a robber knight's tower, each challenge, sneak or other try left a new note that the castle is on its guard, 270 days long, beside the last; enough tries filled the game's 300 notes. Now a new one replaces the last, and a saved game's extra copies are dropped as it loads (fix *A castle on its guard is one note, not hundreds*).
+- **A robber knight killed came back at once** (GitHub issues 6 and 7): his tower's card could come round again before the party left, the knight alive, a bounty each time (fix *A robber knight killed stays dead*); and with no knight's castle left, 1.4.5's new knight moved straight back into the keep just burnt. He now takes the nearest ruin whose knight did not fall within the last 100 days.
 - In a fight that began while the party walked in single file (a walk chosen on the level map puts it in single file), our way of fighting sent the followers at the enemy and the game put them back in the line, over and over, the whole fight; both reports of figures drawn wrong in a fight came from such fights. A follower in single file is now left to the game until real combat breaks the line; the leader still fights in its way.
 - A battle saved while the party walked loaded with the members marked as walking but going nowhere, and none of them fought on their own until given an order (the game clears the orders when a battle loads, but not the walking).
 - Wrong texts: under a heavy load blows hand to hand come at the usual pace, not slower (the original's oversight); armor that a weapon does not pierce halves or cuts to an eighth the weapon's extra damage, not the whole blow; the alchemy risk fix's description now says that only half the failed batches end in a mishap.
 
 **Changed**
 
+- The load's tooltip on the character sheet: one short text instead of two that said the same twice.
+- Learning a saint (a library, a teacher): each saint shows the Virtue it asks of the one who prays, greyed for a member whose Virtue is lower.
 - Texts that left a rule vague now state it: the camp's risk after breaking camp (12 to 60 hours), how guards slow it, the shops' prices below 0 reputation, the cities at war, a teacher's refusal, the cathedral's relic gift, the chance of a trader's job, and nine fix titles, which now say what changed (seven said only "properly", "correctly" or "the right ...").
 
 ## 1.4.5

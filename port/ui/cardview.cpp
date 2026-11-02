@@ -631,10 +631,10 @@ extern "C" void cardview_draw(void)
                                       en.code == 0x87 ? (c.popup_kind == 2 ? "at the easiest difficulty, the leader need not know the saint" : "at the easiest difficulty, the leader needs none") : nullptr;
                     if (knows_saint) why = "knows this saint already";
                     if (why) dl->AddText(fs, size * 0.78f, ImVec2(tx + f->CalcTextSizeA(size * 0.95f, FLT_MAX, 0, et.c_str()).x + 0.6f * size, ey + 0.12f * h), ink_soft, why);
-                    /* a saint to call on: the Virtue it asks of the one who prays, at the row's end - Virtue's shield and
-                       the number, greyed when this member's is below it (more Divine Favor does not help then), as on the
-                       Saints page and the prayer screen */
-                    if (c.popup_kind == 2 && !saint_learning && en.vmin > 0) {
+                    /* a saint to call on, or to learn: the Virtue it asks of the one who prays, at the row's end - Virtue's
+                       shield and the number, greyed when this member's is below it (more Divine Favor does not help then),
+                       as on the Saints page and the prayer screen */
+                    if (c.popup_kind == 2 && en.vmin > 0) {
                         char vb[16]; snprintf(vb, sizeof vb, "%d", en.vmin);
                         float vs = size * 0.82f, ish = size * 0.8f;
                         float vw = UI_SHIELD_W * ish + ish * 0.2f + fs->CalcTextSizeA(vs, FLT_MAX, 0, vb).x;
@@ -648,7 +648,8 @@ extern "C" void cardview_draw(void)
                             ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
                             ui_rich_textf("This saint asks a {Virtue} of %d of the one who prays.", en.vmin);
                             if (low) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
-                                       ui_rich_textf("%s: too low to call on this saint, however much {Divine Favor} is spent.", rich_member(en.member, std::to_string(en.virtue)).c_str());
+                                       ui_rich_textf(saint_learning ? "%s: too low to call on this saint until it rises, however much {Divine Favor} is spent."
+                                                                    : "%s: too low to call on this saint, however much {Divine Favor} is spent.", rich_member(en.member, std::to_string(en.virtue)).c_str());
                                        ImGui::PopStyleColor(); }
                             ImGui::PopTextWrapPos(); ImGui::EndTooltip();
                         }
