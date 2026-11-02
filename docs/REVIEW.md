@@ -265,3 +265,16 @@ covered and found, and what it could not check.
   play-through as each kind of reader and the sweeps of words and switches (the changelog and the new
   switch's texts were read; COPY.md regenerated, not read through); fixes.c (2,755 lines) and encounters.c
   (1,909) are past the mark but each is one subject (the fixes' table, the encounters' engine).
+- 2026-11-01 (evening, 1.4.5): standing order 4 over the loads in a battle, at his word ("several patchwork
+  solutions with saves corrupting when loaded from battle"). Three roots found and the patches over them taken
+  out. (1) The mods read item definitions from the game's copy in memory, which a battle or a dungeon overwrites:
+  Ingredients of one quality took nearly everything for an ingredient on such a load and set it to 25 (since
+  1.4), and relics_frame had been mending the relics, which hid it. The mods now read DARKLAND.LST through
+  gamedata (gm_itemdef_u8/u16); the gear in use is mended once from the members' own records of it. (2) The
+  riddle-load detour (a load inside the card screen handed to the game's own, 43d6aa2) went: its cause, a stale
+  ns_unwinding, is cleared in hook_run; 12 riddle loads, no crash. (3) Seven ways of noticing a load (three
+  hooks on the save's reading, one only while quick saves were on; four modules polling a time set whenever
+  any .SAV was opened, the Load list too) became one: saves_on_loaded. Left as they are: the events read from
+  events.tmp in a battle (that is where the game keeps them then), pack.c keeping both loads around the game's
+  own equip_weight (the game's code reads its definitions there), and the repair of old battle saves' trigger
+  routines (data, not a path).
