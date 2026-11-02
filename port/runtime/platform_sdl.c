@@ -489,6 +489,8 @@ void plat_present(const u8 *vga, const u8 *pal)
     layout();
     SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
     SDL_RenderClear(ren);
+    int crt_begin(SDL_Renderer *, SDL_Rect *); void crt_end(SDL_Renderer *, SDL_Rect *, SDL_Rect, const u32 *, int);
+    SDL_Rect crt_saved = dest; int crt_tgt = crt_begin(ren, &dest);   /* (the screen effect: runtime/crt.c) */
     art_draw();
     for (int t = 0; t < nt; t++) {
         SDL_SetTextureScaleMode(tiles[t], ui_settings.smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
@@ -501,6 +503,7 @@ void plat_present(const u8 *vga, const u8 *pal)
         SDL_RenderCopyF(ren, tiles[t], &tile_src[t], &d);
     }
     if (held ? sliding && slide_t() < 1 : slide_watch()) slide_draw();   /* (held: a slide under way goes on; a new one waits for the whole picture) */
+    crt_end(ren, &dest, crt_saved, frame, crt_tgt);
     uint64_t pt2 = ptime ? plat_ticks_us() : 0;
     ui_draw(ren);
     uint64_t pt3 = ptime ? plat_ticks_us() : 0;

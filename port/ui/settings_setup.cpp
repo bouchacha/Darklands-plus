@@ -141,6 +141,16 @@ void setup_screen(void)
               : cur == 1 ? "The stair-steps of diagonal edges rounded off, without blurring. On a computer without a proper graphics card, the game slows down with this."
                          : "Blurred a little, as an old monitor would.");
     }
+    {   /* a screen effect over the game's picture (runtime/crt.c): what an old monitor did to it */
+        static const char *CE[4] = { "None", "Scanlines", "CRT", "Curved CRT" };
+        int ce = config_get_int("display.crt", 0); if (ce < 0 || ce > 3) ce = 0;
+        ImGui::SetNextItemWidth(UIS(200));
+        if (ImGui::Combo("Screen effect", &ce, CE, 4)) { config_set_int("display.crt", ce); ui_dirty_config = 1; }
+        ui_hint(ce == 0 ? "The game's picture as it is."
+              : ce == 1 ? "Dark lines between the game's rows of pixels, as on a monitor of the time (from twice the game's size up)."
+              : ce == 2 ? "Scanlines, the red, green and blue columns of a monitor's mask (on a large window) and a faint glow round bright pixels."
+                        : "The CRT look on a screen bowed outwards, darker towards its corners.");
+    }
     { extern int ui_margins_on; bool mg = ui_margins_on != 0, click = false;   /* (a long line: the words wrapped beside the box, not one line wider than the page) */
       ImGui::PushID("margins");
       if (ImGui::Checkbox("##mg", &mg)) click = true;

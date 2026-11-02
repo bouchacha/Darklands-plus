@@ -6,6 +6,7 @@ What changed since 1.4.5.
 
 **Added**
 
+- **Screen effect** (F12 > Settings > Screen): scanlines, a CRT (scanlines, a monitor's red, green and blue mask on a large window, a faint glow) or a curved CRT over the game's picture; what Darklands+ draws over it stays sharp.
 - **Companions stay** (experimental, off; F12 > Settings > The party and its items): a companion taken on through a card, such as a village's Schulz (90 days) or the Hanse's man (360), stays for good, as a knight does.
 
 **Fixed**

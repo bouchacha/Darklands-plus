@@ -2160,67 +2160,71 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/settings_setup.cpp:140` | Every pixel a crisp square, as the game drew it. |
 | `ui/settings_setup.cpp:141` | The stair-steps of diagonal edges rounded off, without blurring. On a computer without a proper graphics card, the game slows down with this. |
 | `ui/settings_setup.cpp:142` | Blurred a little, as an old monitor would. |
-| `ui/settings_setup.cpp:148` | Side margins |
-| `ui/settings_setup.cpp:148` | on wide screens, the date, place, purse, quests, town and effects at the sides (in battles: the log and everyone's condition). |
-| `ui/settings_setup.cpp:157` | text size in the margins, tooltips and place names |
-| `ui/settings_setup.cpp:166` | automatic (the system's scale) |
-| `ui/settings_setup.cpp:175` | Full screen (Alt+Enter) |
-| `ui/settings_setup.cpp:180` | None: straight to the start screen |
-| `ui/settings_setup.cpp:180` | Only the last scene: the lady of the Darklands and her welcome |
-| `ui/settings_setup.cpp:180` | The whole intro |
-| `ui/settings_setup.cpp:183` | Shown each time the game starts (the very first start plays it whole). A key or a click skips ahead. |
-| `ui/settings_setup.cpp:203` | Preview: Battle Sounds |
-| `ui/settings_setup.cpp:204` | Preview: Music |
-| `ui/settings_setup.cpp:210` | Preview: Music |
-| `ui/settings_setup.cpp:216` | The game plays no music on the PC speaker, only the battle sounds. |
-| `ui/settings_setup.cpp:220` | Preview: Battle Sounds |
-| `ui/settings_setup.cpp:226` | A preview needs a game under way, outside a battle. |
-| `ui/settings_setup.cpp:238` | Roland MT-32 / CM-32L |
-| `ui/settings_setup.cpp:238` | Roland's synthesizer of 1987 (the CM-32L is its later twin), the one Darklands was written for. Music and battle sounds alike are notes played on it: the music as composed, the blows as near to steel as a synthesizer gets. |
-| `ui/settings_setup.cpp:246` | MT-32 ROMs not found (click to close) |
-| `ui/settings_setup.cpp:246` | MT-32 ROMs not found (click for how to get it working) |
-| `ui/settings_setup.cpp:246` | MT-32 ROMs not found (click for how to get it working) |
-| `ui/settings_setup.cpp:249` | MT-32 details |
-| `ui/settings_setup.cpp:253` | The MT-32 was a Roland synthesizer of 1987; Darklands' music and battle sounds were written for it (both are notes played on it), and every other choice here is a lesser version. Darklands+ has it built in (Munt's imitation of it) and only needs two files copied from a real one's memory (its ROM files), which belong to Roland and can't be included. If you have used Munt or DOSBox with an MT-32 you already have them. Until they are found, the Sound Blaster plays. |
-| `ui/settings_setup.cpp:256` | Where to find them... |
-| `ui/settings_setup.cpp:263` | Look again##mt32 |
-| `ui/settings_setup.cpp:264` | Darklands+ finds them by their contents, whatever their names: in that folder, in the game's folder and its "roms" folder, and where Munt and DOSBox keep them. |
-| `ui/settings_setup.cpp:273` | Both ROM pairs are here. They sound much the same; a few battle sounds come out differently on the CM-32L (Darklands was written for the MT-32). |
-| `ui/settings_setup.cpp:279` | The MT-32's display |
-| `ui/settings_setup.cpp:279` | its little screen at the top right, when the game puts a message on it. |
-| `ui/settings_setup.cpp:288` | midiMIDIThe music and battle sounds sent out of Darklands+ as MIDI: for a real MT-32 or CM-32L connected to the computer, or Munt (an MT-32 imitation) installed on its own. An ordinary synthesizer, such as the one built into Windows, plays the wrong instruments.midi |
-| `ui/settings_setup.cpp:293` | No MIDI outputs (connections to a synthesizer) on this computer. |
-| `ui/settings_setup.cpp:296` | the system's default |
-| `ui/settings_setup.cpp:303` | For history's sake |
-| `ui/settings_setup.cpp:308` | A change is heard from the next battle, or the next start. |
-| `ui/settings_setup.cpp:321` | Every piece of the game's music, played through the device chosen above. Click a piece to hear it. |
-| `ui/settings_setup.cpp:322` | Every piece of the game's music, played through the device chosen above: it needs a game under way, outside a battle. |
-| `ui/settings_setup.cpp:347` | finding its length (silent, a few seconds) |
-| `ui/settings_setup.cpp:348` | , then again |
-| `ui/settings_setup.cpp:349` | no piece playing |
-| `ui/settings_setup.cpp:358` | (a piece without a known place) |
-| `ui/settings_setup.cpp:375` | Custom sound packs |
-| `ui/settings_setup.cpp:376` | Recordings that replace the synthesizer's music or battle sounds. A battle sounds pack comes with Darklands+ as a mod (F12 > Mods); no music pack does. The previews above play them when ticked. |
-| `ui/settings_setup.cpp:379` | Music from a music pack (recordings in a "music" folder) |
-| `ui/settings_setup.cpp:385` | No music pack found: a mod's music folder, or %s%smusic, with a recording for each piece named by its number (10.ogg, "11 market.ogg"). |
-| `ui/settings_setup.cpp:387` | The game's music now: piece %d%s%s%s, %s (silent while Settings is open). |
-| `ui/settings_setup.cpp:387` | from the pack |
-| `ui/settings_setup.cpp:387` | by the synthesizer |
-| `ui/settings_setup.cpp:389` | A recording replaces a piece when its file name starts with the number (up to four for one number, played in turn: "27 a.ogg", "27 b.ogg" ...). Pieces that loop in the game loop in the pack; while a piece of the pack is on, the synthesizer is silent. |
-| `ui/settings_setup.cpp:395` |   %s and %d more, in turn |
-| `ui/settings_setup.cpp:397` | Look again##music |
-| `ui/settings_setup.cpp:403` | Ordinary hits make a sound |
-| `ui/settings_setup.cpp:405` | Battle sounds from a sound pack (the "sounds" folder) |
-| `ui/settings_setup.cpp:406` | A mod enabled in F12 > Mods gives %d battle sound%s: they play in place of the synthesizer's (switch the mod off there for the game's own). |
-| `ui/settings_setup.cpp:407` | %d sound%s in %s%ssounds%s; the game's own sounds for the rest. |
-| `ui/settings_setup.cpp:407` |  (played once this is ticked) |
-| `ui/settings_setup.cpp:408` | Recorded blows, parries and cries in place of the synthesizer's: a pack in %s%ssounds, or the "Battle sounds" mod (F12 > Mods). |
-| `ui/settings_setup.cpp:413` | Volume of the pack |
-| `ui/settings_setup.cpp:415` | Look again##sfx |
-| `ui/settings_setup.cpp:415` | %d sound%s found. |
-| `ui/settings_setup.cpp:419` | File names for a sound pack |
-| `ui/settings_setup.cpp:420` | %s.wav or .ogg: %s |
-| `ui/settings_setup.cpp:421` | Several versions of one sound (parry1.wav, parry2.wav ...) are played in turn at random. |
+| `ui/settings_setup.cpp:149` | The game's picture as it is. |
+| `ui/settings_setup.cpp:150` | Dark lines between the game's rows of pixels, as on a monitor of the time (from twice the game's size up). |
+| `ui/settings_setup.cpp:151` | Scanlines, the red, green and blue columns of a monitor's mask (on a large window) and a faint glow round bright pixels. |
+| `ui/settings_setup.cpp:152` | The CRT look on a screen bowed outwards, darker towards its corners. |
+| `ui/settings_setup.cpp:158` | Side margins |
+| `ui/settings_setup.cpp:158` | on wide screens, the date, place, purse, quests, town and effects at the sides (in battles: the log and everyone's condition). |
+| `ui/settings_setup.cpp:167` | text size in the margins, tooltips and place names |
+| `ui/settings_setup.cpp:176` | automatic (the system's scale) |
+| `ui/settings_setup.cpp:185` | Full screen (Alt+Enter) |
+| `ui/settings_setup.cpp:190` | None: straight to the start screen |
+| `ui/settings_setup.cpp:190` | Only the last scene: the lady of the Darklands and her welcome |
+| `ui/settings_setup.cpp:190` | The whole intro |
+| `ui/settings_setup.cpp:193` | Shown each time the game starts (the very first start plays it whole). A key or a click skips ahead. |
+| `ui/settings_setup.cpp:213` | Preview: Battle Sounds |
+| `ui/settings_setup.cpp:214` | Preview: Music |
+| `ui/settings_setup.cpp:220` | Preview: Music |
+| `ui/settings_setup.cpp:226` | The game plays no music on the PC speaker, only the battle sounds. |
+| `ui/settings_setup.cpp:230` | Preview: Battle Sounds |
+| `ui/settings_setup.cpp:236` | A preview needs a game under way, outside a battle. |
+| `ui/settings_setup.cpp:248` | Roland MT-32 / CM-32L |
+| `ui/settings_setup.cpp:248` | Roland's synthesizer of 1987 (the CM-32L is its later twin), the one Darklands was written for. Music and battle sounds alike are notes played on it: the music as composed, the blows as near to steel as a synthesizer gets. |
+| `ui/settings_setup.cpp:256` | MT-32 ROMs not found (click to close) |
+| `ui/settings_setup.cpp:256` | MT-32 ROMs not found (click for how to get it working) |
+| `ui/settings_setup.cpp:256` | MT-32 ROMs not found (click for how to get it working) |
+| `ui/settings_setup.cpp:259` | MT-32 details |
+| `ui/settings_setup.cpp:263` | The MT-32 was a Roland synthesizer of 1987; Darklands' music and battle sounds were written for it (both are notes played on it), and every other choice here is a lesser version. Darklands+ has it built in (Munt's imitation of it) and only needs two files copied from a real one's memory (its ROM files), which belong to Roland and can't be included. If you have used Munt or DOSBox with an MT-32 you already have them. Until they are found, the Sound Blaster plays. |
+| `ui/settings_setup.cpp:266` | Where to find them... |
+| `ui/settings_setup.cpp:273` | Look again##mt32 |
+| `ui/settings_setup.cpp:274` | Darklands+ finds them by their contents, whatever their names: in that folder, in the game's folder and its "roms" folder, and where Munt and DOSBox keep them. |
+| `ui/settings_setup.cpp:283` | Both ROM pairs are here. They sound much the same; a few battle sounds come out differently on the CM-32L (Darklands was written for the MT-32). |
+| `ui/settings_setup.cpp:289` | The MT-32's display |
+| `ui/settings_setup.cpp:289` | its little screen at the top right, when the game puts a message on it. |
+| `ui/settings_setup.cpp:298` | midiMIDIThe music and battle sounds sent out of Darklands+ as MIDI: for a real MT-32 or CM-32L connected to the computer, or Munt (an MT-32 imitation) installed on its own. An ordinary synthesizer, such as the one built into Windows, plays the wrong instruments.midi |
+| `ui/settings_setup.cpp:303` | No MIDI outputs (connections to a synthesizer) on this computer. |
+| `ui/settings_setup.cpp:306` | the system's default |
+| `ui/settings_setup.cpp:313` | For history's sake |
+| `ui/settings_setup.cpp:318` | A change is heard from the next battle, or the next start. |
+| `ui/settings_setup.cpp:331` | Every piece of the game's music, played through the device chosen above. Click a piece to hear it. |
+| `ui/settings_setup.cpp:332` | Every piece of the game's music, played through the device chosen above: it needs a game under way, outside a battle. |
+| `ui/settings_setup.cpp:357` | finding its length (silent, a few seconds) |
+| `ui/settings_setup.cpp:358` | , then again |
+| `ui/settings_setup.cpp:359` | no piece playing |
+| `ui/settings_setup.cpp:368` | (a piece without a known place) |
+| `ui/settings_setup.cpp:385` | Custom sound packs |
+| `ui/settings_setup.cpp:386` | Recordings that replace the synthesizer's music or battle sounds. A battle sounds pack comes with Darklands+ as a mod (F12 > Mods); no music pack does. The previews above play them when ticked. |
+| `ui/settings_setup.cpp:389` | Music from a music pack (recordings in a "music" folder) |
+| `ui/settings_setup.cpp:395` | No music pack found: a mod's music folder, or %s%smusic, with a recording for each piece named by its number (10.ogg, "11 market.ogg"). |
+| `ui/settings_setup.cpp:397` | The game's music now: piece %d%s%s%s, %s (silent while Settings is open). |
+| `ui/settings_setup.cpp:397` | from the pack |
+| `ui/settings_setup.cpp:397` | by the synthesizer |
+| `ui/settings_setup.cpp:399` | A recording replaces a piece when its file name starts with the number (up to four for one number, played in turn: "27 a.ogg", "27 b.ogg" ...). Pieces that loop in the game loop in the pack; while a piece of the pack is on, the synthesizer is silent. |
+| `ui/settings_setup.cpp:405` |   %s and %d more, in turn |
+| `ui/settings_setup.cpp:407` | Look again##music |
+| `ui/settings_setup.cpp:413` | Ordinary hits make a sound |
+| `ui/settings_setup.cpp:415` | Battle sounds from a sound pack (the "sounds" folder) |
+| `ui/settings_setup.cpp:416` | A mod enabled in F12 > Mods gives %d battle sound%s: they play in place of the synthesizer's (switch the mod off there for the game's own). |
+| `ui/settings_setup.cpp:417` | %d sound%s in %s%ssounds%s; the game's own sounds for the rest. |
+| `ui/settings_setup.cpp:417` |  (played once this is ticked) |
+| `ui/settings_setup.cpp:418` | Recorded blows, parries and cries in place of the synthesizer's: a pack in %s%ssounds, or the "Battle sounds" mod (F12 > Mods). |
+| `ui/settings_setup.cpp:423` | Volume of the pack |
+| `ui/settings_setup.cpp:425` | Look again##sfx |
+| `ui/settings_setup.cpp:425` | %d sound%s found. |
+| `ui/settings_setup.cpp:429` | File names for a sound pack |
+| `ui/settings_setup.cpp:430` | %s.wav or .ogg: %s |
+| `ui/settings_setup.cpp:431` | Several versions of one sound (parry1.wav, parry2.wav ...) are played in turn at random. |
 | `ui/sheetview.cpp:166` | Light load (up to half of {Endurance} + {Strength}): no hindrance at all. Only what is equipped counts (weapons, armor, shield); items merely carried weigh nothing. |
 | `ui/sheetview.cpp:167` | Normal load (up to {Endurance} + {Strength}): blows hand to hand come about a fifth slower, and past 5/8 of it the {Agility} used to dodge falls to two thirds. |
 | `ui/sheetview.cpp:168` | Heavy load (up to half as much again): the {Agility} used to dodge falls to two thirds, and to a third past 1 1/4 times {Endurance} + {Strength}. Blows hand to hand come at the usual pace, as with a light load (an oversight in the original game). |
