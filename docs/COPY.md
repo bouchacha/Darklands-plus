@@ -435,7 +435,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:243` | In the original, items named "(null)", which are not real items, and empty stacks could turn up among a member's items, where they could be neither used nor sold. They are no longer added. |
 | `mods/fixes.c:244` | Castle battles end when the knight dies |
 | `mods/fixes.c:245` | In a castle battle only the knight's death ends the fight, but the original did not save it: after saving and loading during the battle, the knight was dead yet leaving always counted as fleeing. His death now counts after loading too. |
-| `mods/fixes.c:246` | Robber-knight bounties from merchants pay out properly |
+| `mods/fixes.c:246` | A merchant's robber-knight bounty pays once, without garbled names |
 | `mods/fixes.c:247` | The original looked up the wrong quest giver, which garbled names, corrupted memory and let the reward be claimed again and again. It now finds the right one. |
 | `mods/fixes.c:248` | Brewing uses up all the ingredients |
 | `mods/fixes.c:249` | The original took only part of them when an ingredient was spread over several stacks; now it takes them all. |
@@ -531,7 +531,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:339` | After a fight with the guards at the gate (and for weeks after a rising) a town is on alert, during which a standing of -10 or worse is meant to make it hostile (the guards at the gate, the docks, the town hall) instead of only -75 or worse. The original's test for the alert was the wrong way around, so the alert never counted. Now it does. |
 | `mods/fixes.c:340` | The friars' day jobs are offered |
 | `mods/fixes.c:341` | Two of the day jobs a member can find from the inn, preaching friar and mendicant friar, are meant to be open except in towns of a certain kind (which no town is); a mistake in the test closed them everywhere. Now a member who qualifies can be offered them. |
-| `mods/fixes.c:342` | Shots through smoke clouds are tested correctly |
+| `mods/fixes.c:342` | Clouds stop only the shots that pass through them |
 | `mods/fixes.c:343` | Whether a shot passes through a cloud (Black Cloud, smoke) was judged wrongly: shots were stopped by clouds that were not in the way, or went through ones that were. Now each cloud on the field is tested against the shot's own line. |
 | `mods/fixes.c:344` | Cards that test two attributes add both |
 | `mods/fixes.c:345` | Three cards look for the member best at two attributes added together (a passage in a dungeon, one in a town, one in the countryside): the game took the first attribute twice instead, from whichever member it compared last. Now each member's two attributes are added and the best sum counts. |

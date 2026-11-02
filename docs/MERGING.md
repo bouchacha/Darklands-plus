@@ -276,7 +276,7 @@ the files where each switch's key is read.
 | `fix.fireward` | No invulnerability from fire protection | fix | fixes.c, saintinfo.c, nsdraw.cpp, saintchips.cpp |
 | `fix.nullitem` | No "(null)" or empty items | fix | fixes.c |
 | `fix.castle` | Castle battles end when the knight dies | fix | fixes.c, worldmap_draw.cpp |
-| `fix.bounty` | Robber-knight bounties from merchants pay out properly | fix | fixes.c |
+| `fix.bounty` | A merchant's robber-knight bounty pays once, without garbled names | fix | fixes.c |
 | `fix.alchemy` | Brewing uses up all the ingredients | fix | encounters.c, fixes.c, screenpics.cpp, sheetview.cpp |
 | `fix.fullpack` | No more items lost to a member with no room | fix | fixes.c |
 | `fix.innsave` | Saving and loading stay possible after the inn | fix | fixes.c |
@@ -324,7 +324,7 @@ the files where each switch's key is read.
 | `fix.enemygroups` | No group of enemies goes missing from a battle | fix | fixes.c |
 | `fix.cityalert` | A town on alert remembers the trouble | fix | fixes.c, quests.cpp |
 | `fix.dayjobs` | The friars' day jobs are offered | fix | fixes.c |
-| `fix.cloudline` | Shots through smoke clouds are tested correctly | fix | fixes.c |
+| `fix.cloudline` | Clouds stop only the shots that pass through them | fix | fixes.c |
 | `fix.attrsum` | Cards that test two attributes add both | fix | fixes.c |
 | `fix.lootcount` | No loot lost past 255 of a kind | fix | fixes.c |
 | `fix.corridors` | Castle corridor decorations in the right place | fix | fixes.c |
