@@ -302,4 +302,4 @@ covered and found, and what it could not check.
   before it, prev_screen) rather than the table, so mines already built, his save among them, are mended too.
   Also $MineB03 never set $NamedOneName ("It is  again"): cardslips. Not checked: whether a random mine level
   ever holds the disabled enemy group that $MineB00's "his minions charge forward" (-4) wakes; in his mine
-  there was none, so that card brought no fight there.
+  there was none (one group, not disabled), so that card would bring no fight there.
