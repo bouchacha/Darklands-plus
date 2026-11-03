@@ -7,7 +7,7 @@ break, in a window (native screens are drawn only there), on your own game files
 
 It starts the game, Quickstart, reads the opening cards, walks to the merchants with Go to
 (through the native cards), sells and buys on the native shop screen, opens a member's native
-sheet from it and back, leaves, fights a test battle and shares out its loot, and opens the alchemy screen. Each step is OK or FAILED by the
+sheet from it and back, leaves, fights a test battle and shares out its loot, opens the alchemy screen, prays (a relic's bearer), and more. Each step is OK or FAILED by the
 log; screenshots go to --out. Needs Xvfb (port/tools/nctl.py --x11). The game folder is
 copied, not changed.
 """
@@ -17,7 +17,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 TOP = os.path.abspath(os.path.join(HERE, '..', '..'))
 NCTL = [sys.executable, '-I', os.path.join(HERE, 'nctl.py')]
 NAME = 'relcheck'
-BAD = re.compile(r'ERROR: AddressSanitizer|runtime error:|FATAL|unmatched return|CRASH|hook: .*(hooked twice|too many)|nscreen: no game function')
+BAD = re.compile(r'ERROR: AddressSanitizer|runtime error:|FATAL|unmatched return|CRASH|hook: .*(hooked twice|too many|left the stack wrong)|nscreen: no game function')
 
 # test hits on every enemy, 30 rounds (an unlucky battle, a slow build)
 HITS = '; '.join('; '.join('ucmd uhit:1,%d,40,0' % c for c in range(5, 13)) + '; wait 1' for _ in range(30))
@@ -47,6 +47,8 @@ STEPS = [
     ('leave the store room', 'ucmd unspush:5; wait 3', [r'store room: closed']),
     ('calling on a saint (native)', 'ucmd usaint:0,0; wait 4; wshot 10_pray', [r'prayer: open']),
     ('not praying', 'ucmd unspush:4; wait 3', [r'prayer: not prayed']),
+    ("a prayer by a relic's bearer (Pray now)", 'ucmd uitem:0,150,99,1; ucmd uskill:0,9,40; wait 1; ucmd usaint:0,55; wait 4; ucmd unspush:5,99; wait 1; ucmd unspush:3,-1; wait 8; wshot 10b_prayed',
+     [r'prayer: prayed']),   # (St. George, whose least favor leaves the relic room to take some off; Virtue 40 to bear it. The relic's hook once wrote over the caller's saved BP: every such prayer crashed, 1.4.5 to 1.4.6-RC5)
     ('save (Alt+S, native page)', 'ucmd down:Left Alt; wait 0.3; key s; wait 0.3; ucmd up:Left Alt; wait 3; wshot 11_save; key Return; wait 4', [r'saves: the Save page', r'saves: the page closed \(chosen\)']),
     ('save over the last save (a click on it in the Save page)', 'ucmd down:Left Alt; wait 0.3; key s; wait 0.3; ucmd up:Left Alt; wait 3; at 150 52; click; wait 1; wshot 11b_saveover; at 265 9; click; wait 4', [r'saves: the Save page', r'in place of the old save']),
     ('the load list (Alt+L), cancelled', 'ucmd down:Left Alt; wait 0.3; key l; wait 0.3; ucmd up:Left Alt; wait 3; wshot 12_load; key Escape; wait 3', [r'saves: the Load page', r'saves: the page closed \(cancelled\)']),
@@ -85,6 +87,10 @@ def main():
     # (first what the texts say against the code: tools/check_docs.py)
     r = subprocess.run([sys.executable, '-I', os.path.join(HERE, 'check_docs.py')], capture_output=True, text=True)
     print('%-40s %s' % ('the texts say what the code does', 'OK' if r.returncode == 0 else 'FAILED'))
+    if r.returncode: print(r.stdout.rstrip()); failed += 1
+    # (no hook reads its arguments by SP after calling the game's function: tools/check_hooks.py)
+    r = subprocess.run([sys.executable, '-I', os.path.join(HERE, 'check_hooks.py')], capture_output=True, text=True)
+    print('%-40s %s' % ('hooks keep to their own arguments', 'OK' if r.returncode == 0 else 'FAILED'))
     if r.returncode: print(r.stdout.rstrip()); failed += 1
     # (the load segment wherever the loader would have added it: tools/reloc_check.py, from the game's
     # DARKLAND.EXE and the analysis, when both are at hand)

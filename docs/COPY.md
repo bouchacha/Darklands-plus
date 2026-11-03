@@ -3032,11 +3032,11 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/politics.c:389` | there are some interesting rumours flying around |
 | `mods/politics.c:468` | Plans in place |
 | `mods/politics.c:522` | the rebellion was put down |
-| `mods/relics.c:189` | donate one of your relics |
-| `mods/relics.c:204` | %sprayers cost {Divine Favor:%d} less, with {Virtue:%d}%s |
-| `mods/relics.c:211` | Which relic do you lay on the altar? |
-| `mods/relics.c:212` | The relic stays with the cathedral. With a chance of 100 less the town's present opinion of you (for or against), that opinion rises by 30; every member's {Divine Favor} is restored in full, and three hours pass. |
-| `mods/relics.c:214` | Keep them all |
+| `mods/relics.c:192` | donate one of your relics |
+| `mods/relics.c:207` | %sprayers cost {Divine Favor:%d} less, with {Virtue:%d}%s |
+| `mods/relics.c:214` | Which relic do you lay on the altar? |
+| `mods/relics.c:215` | The relic stays with the cathedral. With a chance of 100 less the town's present opinion of you (for or against), that opinion rises by 30; every member's {Divine Favor} is restored in full, and three hours pass. |
+| `mods/relics.c:217` | Keep them all |
 | `mods/rosterview.c:97` | allow ... to retire |
 | `mods/rosterview.c:196` | %s joined the party at another inn, so cannot be left at this one. To part with them: Done, then "allow %s to retire". |
 | `mods/rosterview.c:201` | Add someone to the party first. |

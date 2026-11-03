@@ -303,3 +303,13 @@ covered and found, and what it could not check.
   Also $MineB03 never set $NamedOneName ("It is  again"): cardslips. Not checked: whether a random mine level
   ever holds the disabled enemy group that $MineB00's "his minions charge forward" (-4) wakes; in his mine
   there was none (one group, not disabled), so that card would bring no fight there.
+- 2026-11-03 (1.4.6-RC6): every prayer by a relic's bearer crashed, since 1.4.5 (his dksavebe: "interp: opcode
+  df"). relics.c's saint hook wrote the favor back by SP after hook_call_original, when the call's return had
+  moved SP up 4: the word it hit was saint_finish's saved BP, so BP came back as the favor and saint_pray
+  returned through a frame that was not there. Why nothing caught it: release_check opened the prayer screen and backed out; the relic
+  tests asked a saint's chance from our own code (ns_call_ptr), where the stray word fell on scratch space; no
+  check ever prayed. Now: release_check prays (a relic's bearer, Pray now); tools/check_hooks.py, run by
+  release_check, lists any argument read or written by SP after the original (it finds the old line and no
+  other); hook_run logs a hook point that leaves SP below its entry or BP changed ("left the stack wrong",
+  release_check fails on it; the old relic code sets it off at the prayer screen's hook). Also: Pray now
+  passes -1, the leader to the game's routines, and sainttexts took -1 for nobody and gave the game's help.

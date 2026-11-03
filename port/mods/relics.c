@@ -111,10 +111,13 @@ static void saint_hook(void)                  /* a saint's function (who, favor,
     int d = k >= 0 ? relic_discount(who, k, 0) : 0;
     if (!d) { hook_call_original(); return; }
     if (what == 7) {                                         /* the chance: the favor spent counts that much more */
-        ww(SS, (u16)(SP + 6), (u16)(x + d));
+        u16 at = (u16)(SP + 6);                              /* (taken before: the call's return pops 4 bytes, and SP + 6 after it
+                                                                is the caller's saved BP - a prayer by a relic's bearer came back
+                                                                to saint_pray with BP the favor, and the game crashed) */
+        ww(SS, at, (u16)(x + d));
         hook_call_original();
         if (unw_active) return;
-        ww(SS, (u16)(SP + 6), (u16)x);
+        ww(SS, at, (u16)x);
     } else {                                                 /* the least favor: that much less */
         hook_call_original();
         if (unw_active) return;

@@ -339,6 +339,8 @@ static void saint_hook(void)                 /* a saint's function (who, x, what
 {
     int who = (s16)rw(SS, (u16)(SP + 4)), what = (s16)rw(SS, (u16)(SP + 8)), k = -1;
     for (int i = 0; i < NSAINTS; i++) if (by_hook[i] == hook_current) k = i;
+    if (who == -1) who = (s8)g_rb(G_LEADER);   /* ("Pray now": -1, the leader to the game's routines, raise_attr_temp and the rest;
+                                                   the help as the text went to nobody and the game's own came instead) */
     if (what != 8 || k < 0 || !present(who) || (SAINTS[k].arm && !fix_is_on("armorday"))) { hook_call_original(); return; }
     SAINTS[k].fn(who);
     if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix sainttexts: saint %d's help, as its text, for member %d\n", SAINTS[k].saint, who);

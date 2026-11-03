@@ -92,8 +92,21 @@ void hook_run(int idx)
        stack crept down 4 bytes a tick into the game's data, and the battle stopped ("interp: opcode d9 at
        6675:426f", build 1130). A hook is only ever entered with no unwinding under way: clear it here. */
     { extern int ns_unwinding; if (!unw_active) ns_unwinding = 0; }
+    u16 sp0 = SP, bp0 = BP;
     hook_table[idx]();
     hook_current = prev; hook_depth = pd;
+    /* what any game function leaves as it was, a hook too: it returns (SP above where it was entered: the
+       return address popped, a near or far one, and the arguments of a function that pops its own) and BP is
+       the caller's. Said once a hook point, in the log (release_check.py looks for it). */
+    if (!unw_active && ((u16)(SP - sp0) < 2 || (u16)(SP - sp0) > 0x40 || BP != bp0)) {
+        static unsigned char said[8192];
+        if (idx >= 0 && idx < (int)sizeof said * 8 && !(said[idx >> 3] & (1 << (idx & 7)))) {
+            said[idx >> 3] |= (u8)(1 << (idx & 7));
+            unsigned lin = 0; int sect = -9;
+            for (int i = 0; i < HOOK_COUNT; i++) if (HOOK_POINTS[i].idx == idx) { lin = HOOK_POINTS[i].lin; sect = HOOK_POINTS[i].sect; break; }
+            fprintf(stderr, "hook: the hook of s%d %05x left the stack wrong (SP %+d, BP %04x, was %04x)\n", sect, lin, (s16)(u16)(SP - sp0), BP, bp0);
+        }
+    }
 }
 
 /* the next hook of the chain, or the game's function */
