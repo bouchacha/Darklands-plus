@@ -341,6 +341,7 @@ the files where each switch's key is read.
 | `fix.dragonhide` | Hiding from a dragon takes Stealth and Woodwise | fix | fixes.c |
 | `fix.knightdead` | A robber knight killed stays dead | fix | fixes.c |
 | `fix.alertonce` | A castle on its guard is one note, not hundreds | fix | fixes.c |
+| `fix.kingdoor` | The dwarf king waits behind his own door | fix | fixes.c |
 
 The fixes (`fix.<id>`) are listed with their explanations in `port/mods/fixes.c`; the built-in
 rule changes (`mod.<id>`) in `port/mods/builtin.c`.

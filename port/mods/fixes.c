@@ -178,7 +178,9 @@
  *            Cavern of Fire and Hail crossed under armour (s130 190c:033e) and the spider
  *            warehouse (s134 1838:0550, 0692) add the Endurance and Strength their texts take; the
  *            warehouse's owner ($DPost00, s134 1838:0000) is $NamedOneName, which nothing sets
- *            (whoever was named last, or nothing: "I am . Are ye hardy adventurers?"); a robber
+ *            (whoever was named last, or nothing: "I am . Are ye hardy adventurers?"), and so is the
+ *            dwarf king met again with his red hat ($MineB03, s101 18bd:0000; only $MineB00 and B02
+ *            name him: name_to_slot (7, vec_219d (), 0)); a robber
  *            knight's bounty ($Raubi01, s080 1870:000c) tells by a coin toss whether the Hanse's
  *            guide leaves (text 6) or there was none (7), and says the village's Schulz "departs
  *            from your party" (text 1) whether or not he came along; neither is let go (he stayed
@@ -328,7 +330,7 @@ Fix FIXES[] = {
     { "membervalue", "A church tithe blesses the member best at Religion",
       "When the party gave a tenth in a town church, the Divine Favor meant first for the member best at Religion went to no member at all (the game took the skill's value for a member's number); and sneaking into a guild leader's house at night showed a garbled name instead of the member with the lowest Agility. Both now use the right member.", 1 },
     { "cardslips", "Small mistakes in single cards",
-      "Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said \"Please accept this florin\" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both its options were switched off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armor, and clearing the spider warehouse, healed the party, though their texts say it is hurt; and the warehouse's owner had no name of his own (\"I am . Are ye hardy adventurers?\"). When the party was paid for a robber knight, the Hanse's guide or the village's Schulz who had come along was said to leave by the toss of a coin (or even when he had never come), and then stayed on. A second fight with a town's gate guards cost no standing (the card kept the standing it had found on arrival), the docks said \"You need a missile weapon\" to a party short of the fare, trouble on the way to a town's grove at night led to the grove's night card even after day had come, and sneaking into a guild's quarters made the whole party practice once for each member. Each now does what its text says.", 1 },
+      "Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said \"Please accept this florin\" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both its options were switched off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armor, and clearing the spider warehouse, healed the party, though their texts say it is hurt; and the warehouse's owner had no name of his own (\"I am . Are ye hardy adventurers?\"), nor had the dwarf king when met again with his red hat (\"It is  again, king of the dwarfs\"). When the party was paid for a robber knight, the Hanse's guide or the village's Schulz who had come along was said to leave by the toss of a coin (or even when he had never come), and then stayed on. A second fight with a town's gate guards cost no standing (the card kept the standing it had found on arrival), the docks said \"You need a missile weapon\" to a party short of the fare, trouble on the way to a town's grove at night led to the grove's night card even after day had come, and sneaking into a guild's quarters made the whole party practice once for each member. Each now does what its text says.", 1 },
     { "nightwall", "Climbing a city wall at night uses the climbers' own chances",
       "Along a city's walls at night, the best climber's chance with a rope was a number left over from the last failed climb by everyone (0 the first time: he always fell), and the chance of everyone climbing without one compared each member with that number instead of taking the weakest (certain the first time). The first member was never chosen as the climber. Now the climber is the best of all, his chance is his own, and the chance of everyone climbing is the weakest member's.", 1 },
     { "campguard", "A guard skilled with impact weapons keeps the camp safer",
@@ -371,6 +373,8 @@ Fix FIXES[] = {
       "Every way of killing a robber knight burns his keep and sends the party on its way, but his tower's card could come round again before the party left the place, the knight alive in it: he could be killed again and again, a bounty each time (GitHub issue 7). Now, once his keep has burnt, the burnt-out keep is what the party finds there.", 1 },
     { "alertonce", "A castle on its guard is one note, not hundreds",
       "At a robber knight's tower, challenging him, sneaking up and other tries each leave word that the castle is on its guard for 270 days, a new note each time beside the last. Enough tries filled the game's table of 300 notes, and then nothing new could be noted: \"EVENT Failure\" at every turn (GitHub issue 8). Now a new note replaces the last, and a saved game's extra copies are dropped as it loads.", 1 },
+    { "kingdoor", "The dwarf king waits behind his own door",
+      "In the mine of the dwarf king with the red hat, the iron door to the king brings him \"again\", with his hat, once its riddle is solved; but 2 of its 12 riddles led instead to his \"go away\" card from another door. Brushing past him there opened onto nothing deeper and the king was gone, so his treasure could no longer be offered back to him (GitHub issue 9). Now every riddle of that door brings the king with his red hat.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -2003,6 +2007,17 @@ static void templar_hook(void)              /* $Witcd02, the writing desk read (
 }
 static void tatzel_hook(void) { slip_run(SLIP_TATZEL, 29, 0x0e76, 0x2474, slip_away_hook); }   /* $McGuf02's tatzelwurm (s106 19bc:03e8) */
 static void hurt_hook(void) { slip_run(SLIP_HURT, GF_add_attr, slip_attr_hook); }              /* the cavern (s130 190c:033e), the spiders (s134 1838:0550, 0692) */
+static void kingname_hook(void)             /* $MineB03 (s101 18bd:0000): "It is $NamedOneName again", never set there */
+{
+    for (int i = 0; i < G_NEVENTS; i++) {       /* the king's name as $MineB00 and B02 set it: name_to_slot (7, vec_219d (), 0), the f2e of the quest's kind-8 tag-12 event */
+        u32 e = g_event(i);
+        if (!e || g_ev(e, G_EV_KIND) != 8 || g_ev(e, G_EV_TAG) != 12) continue;
+        ns_call(GF_name_to_slot, 3, 7, g_ev(e, G_EV_ITEM), 0);
+        if (ns_unwinding) return;
+        break;
+    }
+    hook_call_original();
+}
 static void spider_man_hook(void)           /* $DPost00 (s134 1838:0000): the warehouse owner's $NamedOneName, never set */
 {
     ns_call(GF_random_name, 3, (s16)g_rw(GV_cur_loc) + 0x9c4, 0, 0);
@@ -2674,6 +2689,30 @@ static long ev_end_hours(u32 e)
     for (int i = 0; i < mo && i < 12; i++) days += DAYS[i];
     return (days + d) * 24 + h;
 }
+/* ---------------------------------------------------------------- kingdoor
+ * The mine of the dwarf king with the red hat (the quest's way 0, vec_2193 = s039 1462:16b4; its mine
+ * card $MineS00, s055 18c7:02b8, builds battlefield 0x0b) has three iron doors with a riddle each, drawn
+ * when the mine is built (s009 182c:1cb4 (0x0b, section)): section 3's from $MineT00..T11 (cards 0x5c,
+ * 0x71, 0xc5..0xce), section 10's from T12..T23 (0xcf..0xda), section 8's, the king's, from T24..T35
+ * (0xdb..0xe0 with 0xe0 twice, 0xe2, 0x153..0x156; checked by calling it). A riddle solved leads by its
+ * own number: T00..T11 to $MineB00 (0xe3, the dwarf's demands), T12..T25 to $MineB02 (0xe5, "You meet
+ * ... king of the troublesome dwarfs", go away), T26..T35 to $MineB03 (0xe6, "It is ... again", the red
+ * hat). So the king's door brought B02 for T24 and T25, 2 of its 12; brushing past him there (-3) opened
+ * it onto a passage the builder leaves without a section beyond (a ladder back to the same floor) and
+ * turned its trigger off, the king gone; B03 then came only from $MineB01's box when slamming it fails,
+ * never with the treasure taken (kind 0x1c tag 12 type 0xb), which its "offer the king his treasure
+ * back" needs (GitHub issue 9). Here B02 coming straight from T24 or T25 (prev_screen) gives way to B03.
+ * (The other ways' mines lead from those riddles to $MineH00 or $MineR07, never to B02.) */
+static void kingdoor_hook(void)             /* $MineB02, s101 189a:0002 */
+{
+    int prev = (s16)g_rw(GV_prev_screen);
+    if (prev != 0xdb && prev != 0xdc) { hook_call_original(); return; }
+    g_ww(GV_next_card, 0xe6);
+    fprintf(stderr, "fix kingdoor: the riddle %#x of the king's own door: the king again ($MineB03), not the first meeting\n", prev);
+    AX = 0xe6;
+    hook_return_far(0);
+}
+
 static void alertonce_after_load(void)      /* (saves_on_loaded) */
 {
     if (!fix_on("alertonce")) return;
@@ -2763,7 +2802,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook },
     { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
     { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook },
-    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook } };   /* (hitsound: mods/sfx.c) */
+    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook } };   /* (hitsound: mods/sfx.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
@@ -2784,7 +2823,7 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "cardslips", 77, 0x1996, 0x0378, schulz_hook }, { "cardslips", 118, 0x1a2b, 0x02ac, templar_hook },
     { "cardslips", 106, 0x19bc, 0x03e8, tatzel_hook }, { "cardslips", 130, 0x190c, 0x033e, hurt_hook },
     { "nightwall", 47, 0x1a44, 0x03e2, nightwall_rope_hook },
-    { "cardslips", 80, 0x1870, 0x000c, raubi_hook }, { "cardslips", 134, 0x1838, 0x0000, spider_man_hook }, { "cardslips", 134, 0x1838, 0x0550, hurt_hook }, { "cardslips", 134, 0x1838, 0x0692, hurt_hook },
+    { "cardslips", 80, 0x1870, 0x000c, raubi_hook }, { "cardslips", 134, 0x1838, 0x0000, spider_man_hook }, { "cardslips", 101, 0x18bd, 0x0000, kingname_hook }, { "cardslips", 134, 0x1838, 0x0550, hurt_hook }, { "cardslips", 134, 0x1838, 0x0692, hurt_hook },
     { "cardslips", 58, 0x191a, 0x01f4, gate_rep_hook }, { "cardslips", 58, 0x191a, 0x09ba, gate_rep_hook },
     { "cardslips", 51, 0x19f2, 0x0792, docks_hint_hook }, { "cardslips", 51, 0x19f2, 0x09a6, docks_hint_hook },
     { "cardslips", 51, 0x19f2, 0x0bba, docks_hint_hook }, { "cardslips", 51, 0x19f2, 0x0dd0, docks_hint_hook },
