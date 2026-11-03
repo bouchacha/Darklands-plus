@@ -293,3 +293,13 @@ covered and found, and what it could not check.
   the battle's start clears the orders but not that flag, and cbt_step walks only on an order with the walk
   bit, so they stood for good, while the ways left them alone as members walking. The ways' tick now sets
   such a member standing (order 0 and walking can only be this).
+- 2026-11-02 (night, 1.4.6-RC5): the dwarf king's door again (issue 9). The ladder notice of RC4 answered the
+  wrong question; the player's trouble was the card behind the riddle. Traced at run time: the door's trigger
+  (type 8, s014 19cd:24a8), its riddle card, the card's -3 and the wall removal on the battle's restart (s023
+  1ef8:0b6e) all run as in the original. The cause is the riddle table (s009 182c:1cb4), sampled by calling it:
+  battlefield 0x0b (the red-hat king's mine, $MineS00) section 8, the king's door, draws $MineT24..T35, and
+  T24/T25 lead to $MineB02, the "go away" card section 10 always brings. Fix kingdoor hooks B02 (the card
+  before it, prev_screen) rather than the table, so mines already built, his save among them, are mended too.
+  Also $MineB03 never set $NamedOneName ("It is  again"): cardslips. Not checked: whether a random mine level
+  ever holds the disabled enemy group that $MineB00's "his minions charge forward" (-4) wakes; in his mine
+  there was none, so that card brought no fight there.
