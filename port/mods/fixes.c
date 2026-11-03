@@ -374,7 +374,7 @@ Fix FIXES[] = {
     { "alertonce", "A castle on its guard is one note, not hundreds",
       "At a robber knight's tower, challenging him, sneaking up and other tries each leave word that the castle is on its guard for 270 days, a new note each time beside the last. Enough tries filled the game's table of 300 notes, and then nothing new could be noted: \"EVENT Failure\" at every turn (GitHub issue 8). Now a new note replaces the last, and a saved game's extra copies are dropped as it loads.", 1 },
     { "kingdoor", "The dwarf king waits behind his own door",
-      "In the mine of the dwarf king with the red hat, the iron door to the king brings him \"again\", with his hat, once its riddle is solved; but 2 of its 12 riddles led instead to his \"go away\" card from another door. Brushing past him there opened onto nothing deeper and the king was gone, so his treasure could no longer be offered back to him (GitHub issue 9). Now every riddle of that door brings the king with his red hat.", 1 },
+      "In the mine of the dwarf king with the red hat, the iron door to the king brings him \"again\", with his hat, once its riddle is solved; but 2 of its 12 riddles led instead to the card where he tells the party to go away, which another door of the mine always brings. Brushing past him there opened the door, but the king was gone for good, so his treasure could no longer be offered back to him (GitHub issue 9). Now every riddle of that door brings the king with his red hat.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
