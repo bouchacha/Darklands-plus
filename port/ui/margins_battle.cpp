@@ -421,6 +421,12 @@ void battle_panel(float width, float fs)
         if (!st) continue;
         int end = (s8)g_rb((u16)(b + 0x5d)), endm = (s8)g_rb((u16)(b + 0x64)), str = (s8)g_rb((u16)(b + 0x5e)), strm = (s8)g_rb((u16)(b + 0x65));
         const char *cond = st == 3 ? "dead" : st == 2 ? "unconscious" : st == 5 ? "fled" : "";
+        {   /* the member's head before the name (as the battle log has it) */
+            float hs = ImGui::GetTextLineHeight();
+            ImVec2 q = ImGui::GetCursorScreenPos(); ImGui::Dummy(ImVec2(hs / 1.2f, hs));
+            ui_member_head(ImGui::GetWindowDrawList(), i, q, hs, *cond ? IM_COL32(150, 150, 150, 255) : IM_COL32_WHITE);
+            ImGui::SameLine();
+        }
         if (*cond) ImGui::TextDisabled("%s - %s", member_name(i).c_str(), cond);
         else {
             ImGui::TextUnformatted(member_name(i).c_str());

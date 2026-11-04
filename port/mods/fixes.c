@@ -2329,7 +2329,7 @@ static void buy_room_hook(void)
     if (k == 0x1950 || k == 0x1970) {
         int i = (s16)g_rw(GV_barter_ware_cur) + (s16)g_rw(GV_barter_ware_top), m = (s16)g_rw(GV_barter_who);
         int id = i >= 0 && i < 100 ? (s16)g_rw((u16)(GV_barter_wares + 2 * i)) : -1;
-        if (id > 0 && m >= 0 && m < 5) {
+        if (id >= 0 && m >= 0 && m < 5) {                                  /* (item 0: the Hand Axe) */
             int q = ns_call(32, 0x1462, 0x0efa, 1, id);
             if (ns_unwinding) return;
             if (!room_anywhere(m, id, q)) {

@@ -43,7 +43,7 @@ static const struct { const char *key, *why; } WHY[] = {
     /* the party and its items */
     { "inventory.shared", "Moving spare items from member to member is busywork; with one pack for the party, each member's equipped items still count toward their load." },
     { "store.shared", "A store room per town made stored items as good as lost." },
-    { "assist.inn_earn", "A rested member relaxing gains nothing; earning was the better choice the player always had to make by hand." },
+    { "assist.inn_earn", "A rested member relaxing gains nothing; earning, or a watch in camp, was the better choice the player always had to make by hand." },
     { "assist.best_leader", "The original tests only the leader, so the player swaps leaders before each card by hand." },
     { "assist.chances", "The original shows a chance only while Shift is held, one option at a time." },
     { "assist.card_help", "Which saints and items a card accepts was known only from the Darklands Companion." },

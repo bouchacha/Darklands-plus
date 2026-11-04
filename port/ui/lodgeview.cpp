@@ -225,7 +225,7 @@ extern "C" void lodgeview_draw(void)
                 int fm = p.brew_f[k];
                 line += (k ? ", " : "") + std::to_string(p.brew_n[k]) + " " + (fm >= 0 && fm < (int)gamedata.formula_names.size() ? gamedata.formula_names[fm] : std::string("?"));
             }
-        } else if (act == 0) { line = "Relaxes"; more = p.end < p.end_max ? "back to full: {Endurance:" + std::to_string(p.end) + " of " + std::to_string(p.end_max) + "}" : p.can[4] ? "Already rested: earning would be better" : "Already rested"; if (p.end >= p.end_max && p.can[4]) mc = IM_COL32(150, 70, 20, 255); }
+        } else if (act == 0) { line = "Relaxes"; more = p.end < p.end_max ? "back to full: {Endurance:" + std::to_string(p.end) + " of " + std::to_string(p.end_max) + "}" : p.can[4] ? "Already rested: earning would be better" : p.can[5] ? "Already rested: a watch would be better" : "Already rested"; if (!p.can[0]) mc = IM_COL32(150, 70, 20, 255); }
         else if (act == 1) more = "{Strength:" + std::to_string(p.str) + " of " + std::to_string(p.str_max) + "}";
         else if (act == 5) { line = "Keeps watch"; more = "{Woodwise:" + std::to_string(gm_member_skill(i, 18)) + "}  {Stealth:" + std::to_string(gm_member_skill(i, 15)) + "}"; }
         else if (act == 2) more = "{Divine Favor:" + std::to_string(p.df) + " of " + std::to_string(p.df_max) + "}";
@@ -268,7 +268,6 @@ extern "C" void lodgeview_draw(void)
         float ay = LTOP;
         for (int a = 0; a < 7; a++) {
             bool can = p.can[a], cur = p.act == a;
-            if (a == 0 && p.end >= p.end_max && p.can[4]) can = false;   /* (rested, with work to be had: nothing to regain) */
             if (camp && (a == 4 || a == 6)) continue;                 /* (no work and no teachers in the wild; no guard at an inn) */
             if (!camp && a == 5) continue;
             float x0 = RX0, x1 = RX1;
@@ -318,7 +317,7 @@ extern "C" void lodgeview_draw(void)
                             g == 1 ? "this one" : "these", m.risk_next_pct, m.risk_next_unguarded_pct);
             else snprintf(b, sizeof b, "The lord's men may find the party living off his land, more likely each day; members on guard slow it.");
             about = std::string(b) + " After the camp is broken, the risk built up stays for 12 to 60 hours: camping again within that time goes on from it.";
-        } else if (hover_act >= 0 && hover_act < 7) about = std::string(WHAT[hover_act]) + (p.can[hover_act] && !(hover_act == 0 && p.end >= p.end_max && p.can[4]) ? "" : std::string(" ") + WHY[hover_act]);
+        } else if (hover_act >= 0 && hover_act < 7) about = std::string(WHAT[hover_act]) + (p.can[hover_act] ? "" : std::string(" ") + (hover_act == 0 && p.can[5] ? "{Endurance} is full: keeping watch is the better day." : WHY[hover_act]));
         if (hover_act == 3 && !camp) about += " At an inn a failed batch can blow up; in a camp in the wild it cannot.";
         else if (hover_act >= 100 && hover_act < 200) {
             const auto &T = m.t[hover_act - 100];

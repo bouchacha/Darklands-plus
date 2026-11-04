@@ -188,11 +188,39 @@ static void build_into(u16 mp, MenuModel *M, MvFn *fn)
 }
 static void build(u16 mp) { build_into(mp, &menu_model, fn); }
 
+/* the Game menu's entry (DS:9419: its title "Game", its state 1 (open), its items at DS:991e) is written
+   once, as the game starts (s000 0e76:083e), and by nothing in the game after it. In one game (1.4.6-RC6) it
+   was found overwritten all the same - its title another card's name ("MeetA01"), the menu greyed, for the
+   rest of that game; what wrote it is not known. Put back as the game set it, and the first time told in the
+   log with the card on screen, so that the next report shows where it happened. */
+static void game_menu_check(void)
+{
+    static u8 good[10]; static int have;
+    u8 now[10];
+    for (int k = 0; k < 10; k++) now[k] = g_rb((u16)(0x9419 + k));
+    u16 t = (u16)(now[0] | now[1] << 8), it = (u16)(now[8] | now[9] << 8);
+    if (!have) {
+        char nm[8];
+        if (t && it && now[6] == 1 && str_at(t, nm, sizeof nm) && !strcmp(nm, "Game")) { memcpy(good, now, 10); have = 1; }
+        return;
+    }
+    if (!memcmp(now, good, 10)) return;
+    static int told;
+    if (!told++) {
+        char nm[24] = "", cn[16] = "";
+        str_at(t, nm, sizeof nm);
+        g_str(G_DGROUP, GV_card_name, cn, sizeof cn);
+        fprintf(stderr, "menu: the Game menu was found overwritten (title %04x \"%s\", state %d, items %04x; card %s, mode %d): put back\n",
+                t, nm, now[6], it, cn, game_mode());
+    }
+    for (int k = 0; k < 10; k++) g_wb((u16)(0x9419 + k), good[k]);
+}
+
 /* the menus' entries for buttons elsewhere (the battle margin's orders): read now; a choice is
    carried out at the next round of the game's loop (menu_bar_run), if still allowed then */
 static MenuModel live; static MvFn live_fn[96];
 static int req_menu = -1, req_item, req_sub;
-const MenuModel *menuview_live(void) { build_into(0x9419, &live, live_fn); return &live; }
+const MenuModel *menuview_live(void) { game_menu_check(); build_into(0x9419, &live, live_fn); return &live; }
 void menuview_request(int m, int i, int s) { req_menu = m; req_item = i; req_sub = s; }
 static int run_request(void)
 {
@@ -330,6 +358,7 @@ static int run(u16 mp, int keyboard)
 static void bar_hook(void)                       /* menu_bar_run (menus, once) */
 {
     u16 mp = ARG(0); int once = (s16)ARG(1);
+    if (mp == 0x9419) game_menu_check();
     if (!mv_on || once || !ns_active()) { hook_call_original(); return; }
     int first = 0;
     if (ns_call(GF_key_pressed, 0)) {                   /* the hot keys (F10 starts the keyboard's way through the menus) */

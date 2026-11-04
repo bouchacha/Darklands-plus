@@ -231,6 +231,19 @@ static int g_invoke_saint(int w, int s)
 static void g_drop_away(void) { G(GF_party_drop_away, 0); }
 static void g_rejoin_away(void) { G(GF_party_rejoin_away, 0); }
 static void g_rep_adj(int loc, int a, int b) { G(GF_loc_reputation_adj, 3, loc, a, b); }
+/* "reputation A, B": the game's own change (loc_reputation_adj, s029 0e76:19d0: from A to one short of B,
+   up for B > 0, down for B < 0, kept within -99..99) but made every time. The game makes it only with a
+   chance of 100 less the town's present opinion (its sign dropped), so a text saying the town would hear
+   of it ("he will tell every market in Kuttenberg") often came with nothing in What came of it. */
+static void rep_change(int loc, int a, int b)
+{
+    u32 r = loc >= 0 && loc < 0x5c ? g_location(loc) : 0;
+    if (!r) { g_rep_adj(loc, a, b); return; }
+    u16 rs = (u16)(r >> 16), ro = (u16)((u16)r + 0x12);
+    int aa = abs(a), ab = abs(b), d = aa + (ab > aa ? G(GF_rand_mod, 1, ab - aa) : 0);
+    int v = (s16)rw(rs, ro) + (b > 0 ? d : -d);
+    ww(rs, ro, (u16)(v < -99 ? -99 : v > 99 ? 99 : v));
+}
 static void g_name_saint(int s) { G(GF_name_to_slot, 3, 1, s, 0); }
 static void g_load_city(int c) { G(GF_load_city, 1, c); }
 static int g_event_started(int k) { return G(GF_event_started, 1, k); }
@@ -332,7 +345,7 @@ static void snap_take(Snap *s)
         for (int k = 0; k < 7; k++) { gm_member_attr(m, k, &s->cur[m][k], &s->max[m][k]); s->boost[m][k] = gm_temp_boost(0x48, m, k); s->cur[m][k] -= s->boost[m][k]; }
         for (int k = 0; k < 19; k++) { s->sboost[m][k] = gm_temp_boost(0x49, m, k); s->skill[m][k] = gm_member_skill(m, k) - s->sboost[m][k]; }   /* (a saint's or a potion's help for a while: not what came of it) */
         GmItem g;
-        for (int i = 0; i < gm_item_count(m); i++) if (gm_item(m, i, &g) && g.id > 0) snap_item(s, g.id, g.count > 0 ? g.count : 1);
+        for (int i = 0; i < gm_item_count(m); i++) if (gm_item(m, i, &g)) snap_item(s, g.id, g.count > 0 ? g.count : 1);   /* (item 0 is the Hand Axe: a raftsman's gift never showed) */
     }
     s->money = money_get(G_MONEY);
     s->fame = (s16)g_rw(GV_party_fame);
@@ -1035,7 +1048,7 @@ static int exec_stmt(P *p)
     else if (!strcasecmp(w, "number1")) g_ww(V_NUMBER1, (u16)a[0]);
     else if (!strcasecmp(w, "number2")) g_ww(V_NUMBER2, (u16)a[0]);
     else if (!strcasecmp(w, "fame")) g_reward((int)a[0]);
-    else if (!strcasecmp(w, "reputation")) g_rep_adj(g_nearest_city(), (int)a[0], (int)a[1]);
+    else if (!strcasecmp(w, "reputation")) rep_change(g_nearest_city(), (int)a[0], (int)a[1]);
     else if (!strcasecmp(w, "additem")) { int m = resolve_who((int)a[0]); if (n > 2) g_add_item_q(m, (int)a[1], (int)a[2]); else g_add_item(m, (int)a[1]); g_ww(V_ITEM, (u16)a[1]); }
     else if (!strcasecmp(w, "takeitem")) g_take_item(resolve_who((int)a[0]), (int)a[1]);
     else if (!strcasecmp(w, "loseitems")) g_lose_items((int)a[0] == -1 ? leader() : (int)a[0]);
@@ -1759,19 +1772,31 @@ static int choose(int r, int t)
     int region = 0;
     for (int i = 0; i < (int)(sizeof REGION_CARDS / sizeof REGION_CARDS[0]); i++) if (REGION_CARDS[i] == r) region = 1;
     for (int i = 0; i < (int)(sizeof KEEP_CARDS / sizeof KEEP_CARDS[0]); i++) if (KEEP_CARDS[i] == r) region = 0;
+    /* one that is due (a night in camp brought it, or a test's uenc): mods/travel.c makes this step's encounter
+       certain for it, so whatever the game drew for that step gives way - also a unique card or, 6 times in 10
+       near a place, the place's own (2000, s030 1462:0c44) - and it is due no longer. (It once waited for a
+       step whose card was one a new encounter may replace: every step until then was a sure encounter, and
+       near a town nearly all the town's own, a journey to Graz turned into Graz again and again, 1.4.6-RC6.) */
+    int due_wild = force_next >= 0 && force_next < nenc && encs[force_next].ok && encs[force_next].where == WH_WILD;
+    if ((camp_pending || due_wild) && (travel_step_result == 1000 || travel_step_result == 2000)) {
+        int was_camp = camp_pending, c = -1;
+        camp_pending = 0;
+        if (!encounters_offered()) { force_next = -1; return r; }
+        install_cards();
+        aborting = 0;
+        if (was_camp) c = pick_where(WH_CAMP, 100, 1);
+        else { c = ENC_BASE + encs[force_next].slot; force_next = -1; }
+        if (aborting || c < 0) return r;
+        LOG("%s: %#x instead of card %#x (step %d)\n", was_camp ? "camp" : "forced", c, r, travel_step_result);
+        return c;
+    }
     if (travel_step_result != 1000 || !region) return r;
     if (!encounters_offered()) return r;
     install_cards();
     aborting = 0;
     long today = game_day();
     int pick = -1;
-    if (camp_pending) {                         /* a night in camp brought something: as the party sets out */
-        camp_pending = 0;
-        int c = pick_where(WH_CAMP, 100, 1);
-        if (c >= 0) { LOG("camp: %#x instead of card %#x\n", c, r); return c; }
-    }
-    if (force_next >= 0 && force_next < nenc && encs[force_next].ok && encs[force_next].where == WH_WILD) { pick = force_next; force_next = -1; }
-    else {
+    {
         int share = config_get_int("encounters.share", 100);
         if (share <= 0) return r;
         int T = table_size(t);

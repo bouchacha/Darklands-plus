@@ -73,6 +73,9 @@ static std::string name_of(int i)
 }
 
 std::string battlelog_name(int i) { return name_of(i); }     /* "Villager 2": as the log calls them */
+/* a combatant as a line of the log names them: a party member's head before the name (the margins
+   draw it, ui/richtext.h; the plain text of a line, as the log file has it, drops it again) */
+static std::string named(int i) { return i >= 0 && i < 5 ? rich_member(i) + " " + name_of(i) : name_of(i); }
 bool battlelog_met(int i) { return in_battle && i >= 0 && i < 13 && met[i]; }   /* (the margin lists the foes the log has named, out of sight too) */
 
 static void add(int kind, const std::string &t)
@@ -80,7 +83,11 @@ static void add(int kind, const std::string &t)
     lines.push_back({ plat_ticks_ms(), t, kind });
     if (lines.size() > 400) lines.erase(lines.begin(), lines.begin() + 100);
     static int lg = -1; if (lg < 0) lg = getenv("DL_BATTLE_LOG") != 0;
-    if (lg) fprintf(stderr, "battle: %s\n", rich_plain(t.c_str()).c_str());
+    if (lg) {
+        std::string p = t;                                 /* (a head before a name: the name says it already) */
+        for (size_t k; (k = p.find("{@")) != std::string::npos && k + 4 < p.size() && p[k + 3] == '}' && p[k + 4] == ' '; ) p.erase(k, 5);
+        fprintf(stderr, "battle: %s\n", rich_plain(p.c_str()).c_str());
+    }
 }
 
 static void start_battle(void)
@@ -113,7 +120,7 @@ extern "C" void battlelog_blow(int i, int t, int anim, int e0, int e1, int s0, i
 {
     if (!ui_battle_log || game_mode() != GM_BATTLE || i < 0 || i >= 13 || t < 0 || t >= 13 || i == t) return;
     if (!in_battle) start_battle();
-    std::string a = name_of(i), d = name_of(t);
+    std::string a = named(i), d = named(t);
     met[i] = met[t] = true;
     int kind = i < 5 ? 0 : 1;
     if (anim == 1 || anim == 2) {
@@ -165,7 +172,7 @@ static void launch_hook(void)               /* s018 1ef8:0000 missile_launch(who
         if (!in_battle) start_battle();
         int id = 95 + kind;
         std::string pn = id >= 95 && id <= 104 && id < (int)gamedata.items.size() ? game_text(gamedata.items[id].name.c_str(), gamedata.items[id].name.size()) : std::string("a potion");
-        add(who < 5 ? 0 : 1, name_of(who) + " throws " + pn + (tgt >= 0 && tgt < 13 && tgt != who ? " at " + name_of(tgt) : std::string()));
+        add(who < 5 ? 0 : 1, named(who) + " throws " + pn + (tgt >= 0 && tgt < 13 && tgt != who ? " at " + named(tgt) : std::string()));
         return;
     }
     if (unw_active || !ui_battle_log || type != 0 || who < 0 || who >= 13 || tgt < 0 || tgt >= 13 || who == tgt) return;
@@ -173,7 +180,7 @@ static void launch_hook(void)               /* s018 1ef8:0000 missile_launch(who
     if (n < 0 || n >= 17) return;
     u16 r = (u16)(0x944d + 0x1a * n);
     if (!in_battle) start_battle();
-    if (g_rb((u16)(r + 0x11)) == 1) add(who < 5 ? 0 : 1, name_of(who) + shot_word(who) + " misses " + name_of(tgt));
+    if (g_rb((u16)(r + 0x11)) == 1) add(who < 5 ? 0 : 1, named(who) + shot_word(who) + " misses " + named(tgt));
     else { shot_by[tgt] = who; shot_t[tgt] = plat_ticks_ms(); }
 }
 /* a message in a member's box at the left (s021 1ef8:01e2 (row, colour): "Edged changed from 30 to
@@ -193,7 +200,13 @@ static void sidemsg_hook(void)
            the gain rising over the member's head (battleoverlay.cpp) */
         size_t at = t.find(" changed from ");
         int x, y;
-        if (at != std::string::npos && sscanf(t.c_str() + at, " changed from %d to %d", &x, &y) == 2 && x != y) {
+        bool parsed = at != std::string::npos && sscanf(t.c_str() + at, " changed from %d to %d", &x, &y) == 2;
+        if (parsed && x == y) {                 /* (a practice at the top, 99: the game says "changed from 99 to 99"; nothing changed) */
+            fprintf(stderr, "side message (row %d): %s: not shown, nothing changed\n", row, rich_plain(t.c_str()).c_str());
+            hook_return_far(0);
+            return;
+        }
+        if (parsed) {
             std::string sk = t.substr(0, at);
             if (sk.size() > 5 && sk.compare(sk.size() - 5, 5, " Wpns") == 0) sk.erase(sk.size() - 5);   /* ("Edged Wpns": Edged) */
             int key = ui_key_of(sk.c_str(), (int)sk.size());
@@ -206,7 +219,7 @@ static void sidemsg_hook(void)
         }
     }
     partypanel_note(row, t.c_str(), colour != 12);
-    if (row >= 0 && row < 5) add(colour != 12 ? 4 : 2, name_of(row) + ": " + t);
+    if (row >= 0 && row < 5) add(colour != 12 ? 4 : 2, named(row) + ": " + t);
     else add(4, t);
     fprintf(stderr, "side message (row %d): %s\n", row, rich_plain(t.c_str()).c_str());
     hook_return_far(0);
@@ -244,19 +257,19 @@ extern "C" void battlelog_frame(void)
             if (de || ds) {
                 int by = shot_by[i] >= 0 ? shot_by[i] : shooter_at(i);
                 shot_by[i] = -1;
-                if (by >= 0) { met[by] = met[i] = true; add(i < 5 ? 2 : by < 5 ? 0 : 1, name_of(by) + shot_word(by) + (ds > 0 ? " wounds " : " hits ") + name_of(i) + " (" + cost(de, ds) + ")"); }
-                else { met[i] = true; add(i < 5 ? 2 : 4, name_of(i) + " is hurt (" + cost(de, ds) + ")"); }
+                if (by >= 0) { met[by] = met[i] = true; add(i < 5 ? 2 : by < 5 ? 0 : 1, named(by) + shot_word(by) + (ds > 0 ? " wounds " : " hits ") + named(i) + " (" + cost(de, ds) + ")"); }
+                else { met[i] = true; add(i < 5 ? 2 : 4, named(i) + " is hurt (" + cost(de, ds) + ")"); }
             }
         }
         if (st != known_st[i]) {
-            if (st == 3) add(i < 5 ? 3 : 4, name_of(i) + (i < 5 ? " is killed!" : " is killed"));
-            else if (st == 2) add(i < 5 ? 3 : 4, name_of(i) + " falls unconscious" + (i < 5 ? "!" : ""));
-            else if (st == 1 && known_st[i] == 2) add(4, name_of(i) + " wakes up");
-            else if (st == 5) add(i < 5 ? 3 : 4, name_of(i) + " leaves the field");
+            if (st == 3) add(i < 5 ? 3 : 4, named(i) + (i < 5 ? " is killed!" : " is killed"));
+            else if (st == 2) add(i < 5 ? 3 : 4, named(i) + " falls unconscious" + (i < 5 ? "!" : ""));
+            else if (st == 1 && known_st[i] == 2) add(4, named(i) + " wakes up");
+            else if (st == 5) add(i < 5 ? 3 : 4, named(i) + " leaves the field");
         }
         if (shot_by[i] >= 0 && plat_ticks_ms() - shot_t[i] > 2500) {      /* it struck, and nothing came through */
             int by = shot_by[i]; shot_by[i] = -1;
-            if (st == 1 && by < 13) add(by < 5 ? 0 : 1, name_of(by) + shot_word(by) + " hits " + name_of(i) + ", the armor holds");
+            if (st == 1 && by < 13) add(by < 5 ? 0 : 1, named(by) + shot_word(by) + " hits " + named(i) + ", the armor holds");
         }
         known_end[i] = e; known_str[i] = s; known_st[i] = st;
         if (st) last_st[i] = st;

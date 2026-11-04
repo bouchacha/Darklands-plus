@@ -278,6 +278,7 @@ std::vector<Place> places(void)
         u16 s = (u16)(r >> 16), o = (u16)r;
         int kind = (s16)rw(s, o), x = (s16)rw(s, (u16)(o + 4)), y = (s16)rw(s, (u16)(o + 6)), menu = (s16)rw(s, (u16)(o + 0x0c));
         if (k >= 92 && (menu == 0x62 || kind == 15)) continue;          // hidden on the game's map too
+        if (loc_is_twin(k)) continue;
         if (x < 0 || y < 0 || x >= worldmap.tiles_w || y >= worldmap.tiles_h) continue;
         Place p; p.loc = k; p.kind = k < 92 ? 0 : kind; p.x = x; p.y = y;
         p.name = loc_display_name(k);
@@ -526,6 +527,7 @@ extern "C" void travelmap_labels(void)
         u16 s = (u16)(r >> 16), o = (u16)r;
         int kind = (s16)rw(s, o), x = (s16)rw(s, (u16)(o + 4)), y = (s16)rw(s, (u16)(o + 6)), menu = (s16)rw(s, (u16)(o + 0x0c));
         if (k >= 92 && (menu == 0x62 || kind == 15)) continue;             /* not shown on the map */
+        if (loc_is_twin(k)) continue;
         float sx = (float)(16 * (x - vx) + ((y & 1) ? 7 : -1) + 65), sy = (float)(4 * (y - vr) - 6 + 21);
         if (sx < 66 || sx > 314 || sy < 18 || sy > 190) continue;
         std::string name = loc_display_name(k);

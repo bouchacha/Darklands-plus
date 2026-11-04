@@ -1,6 +1,7 @@
 // gamedata.cpp - see gamedata.h
 #include "gamedata.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <dirent.h>
@@ -274,6 +275,37 @@ std::string gamedata_spell_text(const std::string &t)
     for (size_t i = 0; i + 3 < r.size(); i++)                  /* "St.Jude" -> "St. Jude" */
         if (r.compare(i, 3, "St.") == 0 && r[i + 3] >= 'A' && r[i + 3] <= 'Z' && (i == 0 || !isalpha((unsigned char)r[i - 1]))) r.insert(i + 3, " ");
     return r;
+}
+
+/* a place the game's list holds twice: the same name and kind within a tile or so of an earlier one (DARKLAND.LOC
+   has two villages Putten two rows apart, 127 and 297): the maps mark and name only the first */
+extern "C" u32 plat_ticks_ms(void);
+static bool twin_of_earlier(int loc)
+{
+    u32 r = loc >= 92 ? g_location(loc) : 0;
+    if (!r) return false;
+    u16 s = (u16)(r >> 16), o = (u16)r;
+    int kind = (s16)rw(s, o), x = (s16)rw(s, (u16)(o + 4)), y = (s16)rw(s, (u16)(o + 6));
+    std::string n = loc_display_name(loc);
+    for (int k = 92; k < loc; k++) {
+        u32 q = g_location(k);
+        if (!q) continue;
+        u16 qs = (u16)(q >> 16), qo = (u16)q;
+        if ((s16)rw(qs, qo) != kind || abs((s16)rw(qs, (u16)(qo + 4)) - x) > 1 || abs((s16)rw(qs, (u16)(qo + 6)) - y) > 2) continue;
+        if (loc_display_name(k) == n) return true;
+    }
+    return false;
+}
+bool loc_is_twin(int loc)                 /* (asked for every place every frame: worked out every two seconds) */
+{
+    static std::vector<char> twin; static u32 at; static bool done;
+    u32 now = plat_ticks_ms();
+    if (!done || now - at > 2000) {
+        twin.assign(G_NLOC, 0);
+        for (int k = 92; k < G_NLOC; k++) twin[k] = twin_of_earlier(k);
+        at = now; done = true;
+    }
+    return loc >= 0 && loc < (int)twin.size() && twin[loc];
 }
 
 std::string loc_display_name(int loc)

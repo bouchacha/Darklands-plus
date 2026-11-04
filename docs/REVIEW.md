@@ -313,3 +313,23 @@ covered and found, and what it could not check.
   other); hook_run logs a hook point that leaves SP below its entry or BP changed ("left the stack wrong",
   release_check fails on it; the old relic code sets it off at the prayer screen's hook). Also: Pray now
   passes -1, the leader to the game's routines, and sainttexts took -1 for nobody and gave the game's help.
+- 2026-11-04 (1.4.6-RC7): a structural check of this batch, asked for: are these fixes, or quirks patched one by
+  one? Fixed where they arise: (a) auto-travel that stalled near Graz, or kept turning into Graz (his log: "last
+  step 1000", an encounter at every step). A night in camp's encounter made the next step's encounter certain
+  (the weight hook in travel.c). It then waited for a card it was allowed to replace, which a unique card or,
+  near a town, the town's own (step result 2000, s030 1462:0c44) never was, so every step stayed certain. Now
+  the step made certain is the encounter's own, and the flag goes with it. (b) Go to: the place table held
+  guesses (barracks, prison, town square, bowyers). Every hub card's option flags were read line by line, and
+  each rule now names its card; the Go to sweep has no failures. (c) Rested: one rule in the model (can[0],
+  lodgeview.c), which the view and the set-to-work after each day both read; the view had made the test
+  twice. (d) Twin places: one test (gamedata loc_is_twin) for both maps. (e) Item 0, the Hand Axe: two
+  "id > 0" tests (the What came of it snapshot, the room check when buying) took it for no item; a sweep found
+  no other. Withdrawn: a replan around the next tile after 40 steps without getting nearer, drafted for the
+  Graz stall before (a) was found. The stall came from the encounters, not the map, so a second guess at it is
+  not kept. Patches, said so: "changed from 99 to 99" is dropped at the side message hook (the game's practice
+  routine reports a change of nothing). The Game menu is put back if found overwritten. That one's cause is
+  not known: one report (a title "MeetA01", greyed). The game writes that entry only once, at start (s000
+  0e76:083e, no other write in the disassembly). The log now names the card on screen when it happens. Left
+  as it is, the largest piece of patchwork: Go to's table is still a hand-kept copy of what the hub cards
+  offer. The end state is to read the cards' own option conditions at run time (citynav already parses their
+  lines).

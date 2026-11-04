@@ -137,7 +137,7 @@ the files where each switch's key is read.
 | `display.native_mapmsg` | New overland view messages | show | mapmsg.c |
 | `display.native_saves` | New Save and Load screens | show | savesview.c |
 | **Cards and towns** | | | |
-| `assist.inn_earn` | At the inn, rested members earn money | ease | lodgeview.c |
+| `assist.inn_earn` | Rested members work or keep watch | ease | lodgeview.c |
 | `assist.card_helpers` | Chances and hints on the cards | show | a group of switches: options.c (BUNDLES), optpreview.cpp |
 | `assist.chances` | Chances of success | show | assist.c |
 | `assist.best_leader` | The best member speaks for the party | ease | assist.c, sheetview.cpp |
@@ -268,7 +268,7 @@ the files where each switch's key is read.
 | **Reconstructed Content** | | | |
 | `rules.fehde` | "Fehde!" ambush | experiment | cutcards.c |
 | `rules.hospice` | Town hospice | experiment | cutcards.c |
-| `rules.war` | Cities at war | experiment | war.c, settings.cpp |
+| `rules.war` | Cities at war | experiment | war.c, citynav.cpp, settings.cpp |
 | `rules.politics` | City politics | experiment | politics.c, quests.cpp, settings.cpp |
 | `battle.black_cloud` | Black Cloud in battle | experiment | battlerules.c, builtin.c, settings.cpp |
 | `assist.hall_of_fame` | Honor Roll of Glory (hall of fame) | experiment | builtin.c, halloffame.cpp, journal.cpp |

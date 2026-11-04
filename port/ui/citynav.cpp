@@ -189,7 +189,7 @@ static const DestInfo DEST[D_N] = {
     { "Foreign trader", "Pavilions of traders from distant lands: goods to buy and sell.", 0, -1, -1, TI_FOREIGN },
     { "Swordsmith", "Swordsmith's Lane: weapons, and the swordsmiths' guild.", 0, -1, 2, TI_SWORD },
     { "Armorer", "Armorer's Way: armor and shields, and the armorers' guild.", 0, -1, 3, TI_ARMOUR },
-    { "Bowyer", "The Square of Bowyers and Gunsmiths: bows, crossbows and guns, and their guild.", 0, -1, -2, TI_BOW },
+    { "Bowyer", "The Square of Bowyers and Gunsmiths: bows, crossbows and guns, and their guild.", 0, -1, 5, TI_BOW },
     { "Blacksmith", "The Street of the Blacksmiths: weapons, and the blacksmiths' guild.", 0, -1, 0, TI_SMITH },
     { "Soldiers' Road", "Shops and push-carts crowded with soldiers and camp followers, and the street's leaders.", 0, -1, -1, TI_SOLDIERS },
     { "Jeweller", "", 0, -1, 7, TI_FOREIGN },
@@ -209,10 +209,10 @@ static const DestInfo DEST[D_N] = {
     { "University", "New saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone. The staff expect Latin and a sharp mind.", 3, 8, -1, TI_UNIVERSITY },
     { "Hospice", "Nuns tend the sick: alms, a day's work beside them (Healing), wounds tended for a fee, or free of charge if they accept you. Open by day only.", 3, -1, -1, TI_PHYSICIAN },
     { "Inn", "Meals and a bed, news and rumors, the stables, a store room; stay to study or train.", 4, -1, -1, TI_INN },
-    { "Town square", "Notices, gossip and news.", 4, 1, -1, TI_SQUARE },
+    { "Town square", "Notices, gossip and news.", 4, -1, -1, TI_SQUARE },
     { "Town hall", "The city council: an audience with the lord, prisoners in the dungeons.", 1, 1, -1, TI_TOWNHALL },
-    { "Prison", "The city's prison.", 4, 1, -1, TI_PRISON },
-    { "Barracks", "The city guard's headquarters: people to join the party, weapons training.", 4, 1, -1, TI_BARRACKS },
+    { "Prison", "The city's prison.", 4, -1, -1, TI_PRISON },
+    { "Barracks", "The city guard's headquarters: people to join the party, weapons training.", 4, -1, -1, TI_BARRACKS },
     { "Fortress", "The lord's fortress: an audience with the lord, prisoners in the dungeons.", 1, 2, -1, TI_FORTRESS },
     { "Docks", "Boats to other towns, for a fee (each leaves on its own day).", 4, 11, -1, TI_DOCKS },
     { "Slums", "A dangerous slum: rumors, and a room for next to nothing.", 4, 6, -1, TI_SLUMS },
@@ -664,10 +664,15 @@ extern "C" void citynav_draw_cover(void)
 }
 
 /* ---------------------------------------------------------------- the list */
-/* Whether the city's cards offer a place, as the card scripts decide (s045..s050):
- * - a building bit of DARKLAND.CTY or a shop quality;
+/* Whether the city's cards offer a place, as the card scripts decide (s045..s050; each hub card's option
+ * flags were checked line by line against this, 2026-11-04):
+ * - a building bit of DARKLAND.CTY or a shop quality (the bowyer: +0x67 only, shopq[5]);
+ * - the town square: every town (the churches' line to it tests nothing; the streets' test bit 0);
+ * - the prison: only while someone of the party is held there (event 0x4d at the town, begun), both squares;
+ * - the barracks: never ($CityS00/01 switch its line off and only ever switch it off again: a cut place);
+ * - Soldiers' Road: never in 483.07 ($MilCr00 the same); with rules.war (mods/war.c opens it) while byte
+ *   +0x14 of the location record is 1 or 2;
  * - the Fugger, Medici and Hanse offices: bytes +0x15..+0x17 of the location record;
- * - Soldier's Road: byte +0x14 of the location record is 1 or 2 (rarely so);
  * - the physician and Astrologists' Lane: in small cities only some games have them
  *   (from the city's seed, the game's seed and, for the physician, the year);
  * - the hospital and Jewelers' Avenue are never offered (their options stay switched off),
@@ -678,8 +683,24 @@ extern "C" void citynav_draw_cover(void)
 static bool never(int d)
 {
     if (d == D_CLOTH) return !fix_is_on("cardopts");
+    if (d == D_BARRACKS) return true;
+    if (d == D_SOLDIERS) return !config_get_int("rules.war", 0) || config_get_int("original", 0);
     if (d == D_HOSPITAL) return !cutcards_hospice_on();          /* (by day: the restored hospice, mods/cutcards.c) */
     return d == D_JEWEL || d == D_HERBAL;   /* (the herbalists' road is only on $CivCr01, a card the game never loads) */
+}
+/* event_at (0x4d, town), s029 0e76:3878: an event of kind 0x4d (one of the party held in the prison) at the
+   town that has begun */
+static bool someone_held(int town)
+{
+    static const u16 NOW[4] = { G_CUR_HOUR, G_CUR_DAY, G_CUR_MONTH, G_CUR_YEAR };
+    for (int i = 0; i < G_NEVENTS; i++) {
+        u32 e = g_event(i);
+        if (!e || g_ev(e, G_EV_KIND) != 0x4d || g_ev(e, G_EV_LOC) != town) continue;
+        int begun = 1;
+        for (int k = 3; k >= 0; k--) { int a = g_ev(e, G_EV_START + 2 * k), n = (s16)g_rw(NOW[k]); if (a != n) { begun = a < n; break; } }
+        if (begun) return true;
+    }
+    return false;
 }
 static bool present_at(int d, int cur)
 {
@@ -688,7 +709,7 @@ static bool present_at(int d, int cur)
     const City &c = gamedata.cities[cur];
     if (DEST[d].building >= 0 && !(c.buildings >> DEST[d].building & 1)) return false;
     if (DEST[d].shop >= 0 && !c.shopq[DEST[d].shop]) return false;
-    if (DEST[d].shop == -2 && !c.shopq[4] && !c.shopq[5]) return false;
+    if (d == D_PRISON && !someone_held(cur)) return false;
     u32 lr = g_location(cur);
     if (lr) {
         u16 ls = (u16)(lr >> 16), lo = (u16)lr;
