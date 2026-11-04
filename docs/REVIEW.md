@@ -365,7 +365,9 @@ covered and found, and what it could not check.
   load, 285 of the 300 notes in use, the party on water, 12 map steps in a row each an encounter) and writes one
   "check:" line with the card, screen, place, tile and date; the first of a session also makes a report zip and
   tells the player (ui_check_noticed). A value must stay out of range two seconds (the opening has no party: the
-  first soak run caught the check firing at every start; a load passes through such frames), and the party is
+  first soak run caught the check firing at every start; a load passes through such frames; the second, a
+  quickload slower than five seconds taken for the date going back: no date is looked at while one of ours is
+  under way, saves_load_under_way), and the party is
   let stand on water while a saint's help makes water land (kind 0x4b). tools/soaktest.py plays for N minutes through nctl (cards' options at
   random, Go to and leaving towns, journeys to near towns, F12, the sheet, fights on auto) and fails on any
   "check:", FATAL, hook or encounter error, or a state that does not change for 15 actions; it replaces

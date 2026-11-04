@@ -22,6 +22,7 @@
 #include "checks.h"
 
 extern unsigned saves_loaded_ms;
+int saves_load_under_way(void);
 
 static unsigned char said[64];
 void check_fail(int kind, const char *fmt, ...)
@@ -96,10 +97,11 @@ static void notes(void)
 
 static void calendar(void)
 {
-    /* (a load reads the date before it says it has loaded: a step back is told only when no load followed
-       within five seconds) */
+    /* (a load reads the date before it says it has loaded: none is looked at while one of ours is under way,
+       and a step back is told only when no load followed within five seconds - the original's own Load) */
     static long last = -1, back_from, back_to; static unsigned load_seen; static u32 back_t, other_t;
     if (game_mode() == GM_OTHER) { other_t = plat_ticks_ms() | 1; last = -1; back_t = 0; return; }
+    if (saves_load_under_way()) { last = -1; back_t = 0; return; }       /* (a slow load: the soak test's, 2026-11-04) */
     if (other_t && plat_ticks_ms() - other_t < 30000) { last = -1; return; }   /* (a new game, the title: the start's own date settles) */
     long now = (long)(s16)g_rw(G_CUR_YEAR) * 100000L + (long)(s16)g_rw(G_CUR_MONTH) * 5000L + (long)(s16)g_rw(G_CUR_DAY) * 100L + (s16)g_rw(G_CUR_HOUR);
     if (load_seen != saves_loaded_ms) { load_seen = saves_loaded_ms; last = now; back_t = 0; return; }

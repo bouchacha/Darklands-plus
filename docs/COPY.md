@@ -2778,15 +2778,15 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/cardview.c:125` | You gather around the comfortable fire at the |
 | `mods/cardview.c:400` | \x81<name>\xff  |
 | `mods/cardview.c:476` | Buffer dealloc error |
-| `mods/checks.c:54` | the menu bar's title %d is now "%s" (memory written past a buffer?) |
-| `mods/checks.c:75` | the party's size is %d |
-| `mods/checks.c:81` | member %d has %d items |
-| `mods/checks.c:84` | the party's money is below 0 (%d %d %d) |
-| `mods/checks.c:86` | the current place is %d |
-| `mods/checks.c:94` | %d of the game's %d notes in use |
-| `mods/checks.c:107` | the date went backwards (%ld to %ld) without a load |
-| `mods/checks.c:120` | the party stands on water (terrain %d) |
-| `mods/checks.c:129` | 12 steps on the map in a row each brought an encounter (one held waiting?) |
+| `mods/checks.c:55` | the menu bar's title %d is now "%s" (memory written past a buffer?) |
+| `mods/checks.c:76` | the party's size is %d |
+| `mods/checks.c:82` | member %d has %d items |
+| `mods/checks.c:85` | the party's money is below 0 (%d %d %d) |
+| `mods/checks.c:87` | the current place is %d |
+| `mods/checks.c:95` | %d of the game's %d notes in use |
+| `mods/checks.c:109` | the date went backwards (%ld to %ld) without a load |
+| `mods/checks.c:122` | the party stands on water (terrain %d) |
+| `mods/checks.c:131` | 12 steps on the map in a row each brought an encounter (one held waiting?) |
 | `mods/cutcards.c:68` | name     The hospice  |
 | `mods/cutcards.c:68` | card     $CityH00  |
 | `mods/cutcards.c:68` | picture  XDAMONK  |
@@ -3345,23 +3345,23 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/saves.c:241` | The game does not allow saving on this screen: leave it first (saving works on a card, in the overland view or in a town). |
 | `mods/saves.c:259` | The game does not allow loading here. |
 | `mods/saves.c:268` | Difficulty is now set to ... |
-| `mods/saves.c:281` | Loading is irreversable. Proceed? |
-| `mods/saves.c:324` | That save could not be read. |
-| `mods/saves.c:343` | Loaded %s: a battle, paused (Space resumes it) |
-| `mods/saves.c:369` | Saved (an Ironman game keeps one save, saved over as you go) |
-| `mods/saves.c:385` | Saved: %s (%s), in place of the old save |
-| `mods/saves.c:386` | Saved: %s (%s) |
-| `mods/saves.c:409` | use your horses |
-| `mods/saves.c:429` | Autosave: battle |
-| `mods/saves.c:461` | Ironman %04x |
-| `mods/saves.c:463` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
-| `mods/saves.c:495` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:496` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:517` | Start or load a game first. |
-| `mods/saves.c:524` | Loading from here works once a game is running; until then, load from the start screen. |
-| `mods/saves.c:526` | Buffer dealloc error |
-| `mods/saves.c:528` | That save could not be read. |
-| `mods/saves.c:548` | No quicksave yet (Ctrl+S makes one). |
+| `mods/saves.c:282` | Loading is irreversable. Proceed? |
+| `mods/saves.c:325` | That save could not be read. |
+| `mods/saves.c:344` | Loaded %s: a battle, paused (Space resumes it) |
+| `mods/saves.c:370` | Saved (an Ironman game keeps one save, saved over as you go) |
+| `mods/saves.c:386` | Saved: %s (%s), in place of the old save |
+| `mods/saves.c:387` | Saved: %s (%s) |
+| `mods/saves.c:410` | use your horses |
+| `mods/saves.c:430` | Autosave: battle |
+| `mods/saves.c:462` | Ironman %04x |
+| `mods/saves.c:464` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
+| `mods/saves.c:496` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:497` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:518` | Start or load a game first. |
+| `mods/saves.c:525` | Loading from here works once a game is running; until then, load from the start screen. |
+| `mods/saves.c:527` | Buffer dealloc error |
+| `mods/saves.c:529` | That save could not be read. |
+| `mods/saves.c:549` | No quicksave yet (Ctrl+S makes one). |
 | `mods/savesview.c:51` | %.14s %d %.3s |
 | `mods/sfx.c:51` | an attack that misses |
 | `mods/sfx.c:51` | a parried or blocked blow |

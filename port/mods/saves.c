@@ -266,6 +266,7 @@ static void menubar_hook(void)             /* menu_bar_run(menu, once): with onc
 /* the cover over the game's load screen: while it opens and reads the save, and after, until that
    screen (s037) is gone and the place saved in has had a moment to be drawn (it showed for a few
    frames as the save was read: "Difficulty is now set to ...", the list) */
+int saves_load_under_way(void) { return load_stage == 2 || load_stage == 3; }   /* (the save being read: mods/checks.c) */
 int saves_loading_cover(void)
 {
     static u32 gone_t;
