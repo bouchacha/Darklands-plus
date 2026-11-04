@@ -342,6 +342,7 @@ the files where each switch's key is read.
 | `fix.knightdead` | A robber knight killed stays dead | fix | fixes.c |
 | `fix.alertonce` | A castle on its guard is one note, not hundreds | fix | fixes.c |
 | `fix.kingdoor` | The dwarf king waits behind his own door | fix | fixes.c |
+| `fix.prayfor` | Every prayer asks who it is for | fix | fixes.c, prayview.c |
 
 The fixes (`fix.<id>`) are listed with their explanations in `port/mods/fixes.c`; the built-in
 rule changes (`mod.<id>`) in `port/mods/builtin.c`.
