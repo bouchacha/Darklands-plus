@@ -2778,15 +2778,15 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/cardview.c:125` | You gather around the comfortable fire at the |
 | `mods/cardview.c:400` | \x81<name>\xff  |
 | `mods/cardview.c:476` | Buffer dealloc error |
-| `mods/checks.c:55` | the menu bar's title %d is now "%s" (memory written past a buffer?) |
-| `mods/checks.c:76` | the party's size is %d |
-| `mods/checks.c:82` | member %d has %d items |
-| `mods/checks.c:85` | the party's money is below 0 (%d %d %d) |
-| `mods/checks.c:87` | the current place is %d |
-| `mods/checks.c:95` | %d of the game's %d notes in use |
-| `mods/checks.c:109` | the date went backwards (%ld to %ld) without a load |
-| `mods/checks.c:122` | the party stands on water (terrain %d) |
-| `mods/checks.c:131` | 12 steps on the map in a row each brought an encounter (one held waiting?) |
+| `mods/checks.c:56` | the menu bar's title %d is now "%s" (memory written past a buffer?) |
+| `mods/checks.c:77` | the party's size is %d |
+| `mods/checks.c:83` | member %d has %d items |
+| `mods/checks.c:86` | the party's money is below 0 (%d %d %d) |
+| `mods/checks.c:88` | the current place is %d |
+| `mods/checks.c:96` | %d of the game's %d notes in use |
+| `mods/checks.c:114` | the date went backwards (%ld to %ld) without a load |
+| `mods/checks.c:127` | the party stands on water (terrain %d) |
+| `mods/checks.c:136` | 12 steps on the map in a row each brought an encounter (one held waiting?) |
 | `mods/cutcards.c:68` | name     The hospice  |
 | `mods/cutcards.c:68` | card     $CityH00  |
 | `mods/cutcards.c:68` | picture  XDAMONK  |

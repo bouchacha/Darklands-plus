@@ -11,6 +11,7 @@
  *  - values out of range: the place, the party's size, the money, the date going backwards
  *    without a load, the game's 300 notes nearly full ("EVENT Failure"). */
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 #include "../runtime/cpu.h"
@@ -97,14 +98,18 @@ static void notes(void)
 
 static void calendar(void)
 {
-    /* (a load reads the date before it says it has loaded: none is looked at while one of ours is under way,
-       and a step back is told only when no load followed within five seconds - the original's own Load) */
-    static long last = -1, back_from, back_to; static unsigned load_seen; static u32 back_t, other_t;
+    /* (a load reads the date before it says it has loaded: none is looked at while one of ours is under way nor
+       for five seconds after any load, and a step back is told only when no load followed within five seconds -
+       the original's own Load. The soak test caught a quickload taken for a step back twice, 2026-11-04.) */
+    static long last = -1, back_from, back_to; static unsigned load_seen; static u32 back_t, other_t, load_t;
     if (game_mode() == GM_OTHER) { other_t = plat_ticks_ms() | 1; last = -1; back_t = 0; return; }
-    if (saves_load_under_way()) { last = -1; back_t = 0; return; }       /* (a slow load: the soak test's, 2026-11-04) */
+    if (saves_load_under_way()) { last = -1; back_t = 0; return; }
     if (other_t && plat_ticks_ms() - other_t < 30000) { last = -1; return; }   /* (a new game, the title: the start's own date settles) */
     long now = (long)(s16)g_rw(G_CUR_YEAR) * 100000L + (long)(s16)g_rw(G_CUR_MONTH) * 5000L + (long)(s16)g_rw(G_CUR_DAY) * 100L + (s16)g_rw(G_CUR_HOUR);
-    if (load_seen != saves_loaded_ms) { load_seen = saves_loaded_ms; last = now; back_t = 0; return; }
+    { static int lg = -1; static long shown = -1; if (lg < 0) lg = getenv("DL_CHECKS_LOG") != 0;
+      if (lg && now != shown) { fprintf(stderr, "checks: date %ld (mode %d, load %u, loading %d)\n", now, game_mode(), saves_loaded_ms, saves_load_under_way()); shown = now; } }
+    if (load_seen != saves_loaded_ms) { load_seen = saves_loaded_ms; load_t = plat_ticks_ms() | 1; }
+    if (load_t && plat_ticks_ms() - load_t < 5000) { last = now; back_t = 0; return; }
     if (last >= 0 && now < last && !back_t) { back_t = plat_ticks_ms() | 1; back_from = last; back_to = now; }
     if (back_t && plat_ticks_ms() - back_t > 5000) { back_t = 0; check_fail(CK_TIME, "the date went backwards (%ld to %ld) without a load", back_from, back_to); }
     last = now;

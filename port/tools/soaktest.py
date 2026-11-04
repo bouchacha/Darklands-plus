@@ -253,7 +253,7 @@ def main():
         if 'datamod.New encounters' not in old:
             open(ini, 'a', encoding='utf-8').write('\ndatamod.New encounters = 1\n')
     subprocess.run(NCTL + ['stop', NAME], capture_output=True)
-    env = dict(os.environ, NCTL_SCREEN='1600x900', DL_TRAVEL_LOG='1', DL_ENC_LOG='1', DL_CITYNAV_LOG='1', DL_FIX_LOG='1')
+    env = dict(os.environ, NCTL_SCREEN='1600x900', DL_TRAVEL_LOG='1', DL_ENC_LOG='1', DL_CITYNAV_LOG='1', DL_FIX_LOG='1', DL_CHECKS_LOG='1')
     subprocess.run(NCTL + ['start', NAME, '--x11', '--exe', a.exe, '--game', game], env=env, capture_output=True, check=True)
     read_towns(game)
     s = Soak(a)
