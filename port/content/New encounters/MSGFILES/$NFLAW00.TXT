@@ -1,8 +1,8 @@
 # $NFLAW00: a hatchet's throw (New encounters)
 === card 0: 10 10 0 240 0 ===
-In a clearing the lord's forester, in green with a horn at his belt, has a widow by the arm. Her boy clutches a bundle of firewood and a little hatchet, and two under-keepers are untying the cow that was to carry it home.
+In a clearing the lord's forester has a widow by the arm. Her boy clutches a bundle of firewood and a little hatchet, and two under-keepers are untying the cow that was to carry it home.
 \14"Wood cut in my lord's forest," says the forester. "The forfeit is the hatchet and the cow, or $Money1."
-\14"It was cut on village ground!" cries the widow. "Our right runs a hatchet's throw beyond the hedge, every child knows it!" The village hedge shows through the trees, and the place where the boy was chopping, white with fresh chips, is a long throw from it. The forester grins. "Then throw, by the old custom. One throw from the hedge-post, and where the hatchet falls, there the right ends."
+\14"It was cut on village ground!" cries the widow. "Our right runs a hatchet's throw beyond the hedge, every child knows it!" The village hedge shows through the trees, a long throw from the fresh chips where the boy was chopping. The forester grins. "Then throw, by the old custom. One throw from the hedge-post, and where the hatchet falls, there the right ends."
 \14You...
 \14\15...\1dtake the hatchet and throw it for her.
 \15...\1dshow the forester that the wood is dead and fallen.

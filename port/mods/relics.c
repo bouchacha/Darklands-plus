@@ -60,13 +60,17 @@ static const u16 SAINT_OFF[NSAINT] = {
     0x5b82, 0x5cca, 0x5d6c, 0x5e5c, 0x5ede, 0x6008, 0x6122, 0x61aa, 0x627e, 0x6338, 0x642c, 0x64f4, 0x65ac,
     0x664a, 0x671e, 0x67f2, 0x68f4, 0x69ac, 0x6a4a, 0x6ae8, 0x78ca, 0x6bb8, 0x6ca6, 0x6d92, 0x6e62, 0x6f0c,
     0x7038, 0x710a, 0x71ce, 0x7288, 0x7342, 0x7432 };
-static const unsigned char SAINT_LEAST[NSAINT] = {
-    15, 20, 10, 15, 25, 15, 10, 5, 20, 20, 10, 15, 20, 20, 15, 10, 30, 10, 25, 15, 10, 50, 15, 30, 10, 15,
-    20, 15, 25, 25, 25, 10, 25, 20, 20, 30, 20, 20, 15, 30, 20, 20, 10, 20, 15, 15, 20, 30, 25, 30, 40, 25,
-    10, 30, 40, 40, 40, 35, 35, 15, 15, 25, 25, 30, 15, 30, 20, 15, 25, 50, 20, 10, 10, 12, 35, 10, 10, 40,
-    15, 35, 20, 40, 20, 25, 30, 50, 30, 40, 20, 35, 25, 25, 25, 25, 20, 30, 25, 35, 10, 25, 20, 30, 15, 25,
-    25, 27, 20, 40, 25, 25, 10, 40, 10, 10, 25, 40, 25, 15, 40, 20, 30, 40, 10, 25, 10, 15, 10, 30, 40, 35,
-    15, 20, 25, 15, 20, 10 };
+/* the least Divine Favor a saint asks, as its own function says (what 2: the "pauls" fix's swap included);
+   asked with the relics left out (asking) */
+static int asking;
+static int saint_least(int saint)
+{
+    u16 t = (u16)(LOADSEG + 0x290e), o = (u16)(0x2937 + 4 * saint);
+    asking = 1;
+    int v = ns_call_ptr(rw(t, (u16)(o + 2)), rw(t, o), 3, 0, 0, 2);
+    asking = 0;
+    return v;
+}
 #define FLOOR_FAVOR 5                         /* (the least favor any saint asks: no relic takes a prayer lower) */
 
 static int def_word(int code, int off) { int v = gm_itemdef_u16(code, off); return v < 0 ? 0 : (s16)v; }   /* (DARKLAND.LST's: gamemodel.h) */
@@ -87,7 +91,7 @@ int relic_discount(int who, int saint, int *code)
 {
     if (code) *code = 0;
     if (!relics_on() || who < 0 || who > 4 || saint < 0 || saint >= NSAINT || !gm_member_present(who)) return 0;
-    int best = 0, bc = 0, room = SAINT_LEAST[saint] - FLOOR_FAVOR;
+    int best = 0, bc = 0, room = -1;
     for (int i = 0; i < gm_item_count(who); i++) {
         GmItem g;
         if (!gm_item(who, i, &g) || !relic_bearer_ok(who, g.id)) continue;
@@ -95,6 +99,8 @@ int relic_discount(int who, int saint, int *code)
         int d = relic_favor(g.id);
         if (d > best) { best = d; bc = g.id; }
     }
+    if (best <= 0) return 0;
+    room = saint_least(saint) - FLOOR_FAVOR;
     if (best > room) best = room;
     if (best <= 0) return 0;
     if (code) *code = bc;
@@ -106,7 +112,7 @@ static int saint_hook_at[NSAINT];
 static void saint_hook(void)                  /* a saint's function (who, favor, what), s039 165c */
 {
     int who = (s16)rw(SS, (u16)(SP + 4)), x = (s16)rw(SS, (u16)(SP + 6)), what = (s16)rw(SS, (u16)(SP + 8)), k = -1;
-    if (what != 2 && what != 7) { hook_call_original(); return; }
+    if ((what != 2 && what != 7) || asking) { hook_call_original(); return; }
     for (int i = 0; i < NSAINT; i++) if (saint_hook_at[i] == hook_current) { k = i; break; }
     int d = k >= 0 ? relic_discount(who, k, 0) : 0;
     if (!d) { hook_call_original(); return; }

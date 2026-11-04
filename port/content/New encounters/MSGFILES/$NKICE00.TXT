@@ -1,8 +1,8 @@
 # $NKICE00: the swallows under the ice (New encounters)
 === card 0: 10 10 0 240 0 ===
-A hard frost came down in the night. At dawn the mere beside your camp lies white from shore to shore, the reeds along it furred with rime, and $ChosenOneName takes an axe to the edge to cut a hole for water.
-\14The kettle comes up out of the black water heavy. In it, besides the water, is a clump of small dark birds, wings folded, clinging to one another beak to tail, cold and stiff as stones. Swallows.
-\14The old fishers say that swallows do not fly away in autumn at all, but go down into the meres and sleep in the mud till spring. You have always laughed at them. $ChosenOneName remembers the rest of the tale: warm a sleeping swallow before its time and it wakes, and sings, and dies. And it is ill luck to kill a swallow.
+A hard frost came down in the night. At dawn the mere beside your camp lies white from shore to shore, and $ChosenOneName takes an axe to the edge to cut a hole for water.
+\14The kettle comes up heavy. In it is a clump of small dark birds, wings folded, clinging to one another beak to tail, stiff as stones. Swallows.
+\14The old fishers say that swallows do not fly away in autumn, but sleep in the mud of the meres till spring. You have always laughed at them. $ChosenOneName remembers the rest of the tale: warm a sleeping swallow before its time and it wakes, and sings, and dies. And it is ill luck to kill a swallow.
 \14You...
 \14\15...\1dwarm them at the fire, to see whether the tale is true.
 \15...\1dlower them gently back to the bottom, just as they lay.

@@ -1,7 +1,7 @@
 # $NMADD00: the adder king (New encounters)
 === card 0: 10 10 0 240 0 ===
 At noon, in a meadow at the edge of the marsh, the grass is moving. Adders, dozens of them, lie coiled on the warm stones around a little pool, and among them a great white serpent glides down to the water. On its head sits a crown of gold no bigger than a ring.
-\14At the water's edge the white serpent lays the crown carefully on a flat stone and slides into the pool to bathe.
+\14The white serpent lays the crown on a flat stone and slides into the pool to bathe.
 \14"The adder king," breathes $ChosenOneName. "Whoever has his crown will never want for gold, they say, but the serpents hunt him to the ends of the earth. Unless..." $He frowns, trying to remember what the old books of secrets say about a white cloth.
 \14You...
 \14\15...\1dsnatch the crown while the king bathes.

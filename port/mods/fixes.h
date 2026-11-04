@@ -11,6 +11,8 @@ void fixes_init(void);
 void fix_enable(int i, int on);
 void potion_bonus(int m, int *dmg, int *pen);
 int fix_is_on(const char *id);
+void fixes_clamp_party_items(void);
+void fixes_hardarmor_grade(int g, int *thick, int *qual);   /* a Hardarmor dose's armour by its grade (1..3) */         /* (every member's item count within bounds: after a robbery) */
 int fixes_running(int m, int type0);             /* the largest running kind 0x4a event of member m of that type (0 none), a battle's too */                  /* the fix is on (and the original game not asked for) */
 int fixes_cards_down(void);                       /* a battle (and its loot) has closed the cards: the event table holds only what the battle made */
 /* oilweapons: each weapon oil only with the weapons the manual names */

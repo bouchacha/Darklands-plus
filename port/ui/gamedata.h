@@ -71,6 +71,7 @@ static inline bool shop_open_ever(int k) { return k != 4 && k != 7 && k != 8; }
 
 extern GameData gamedata;
 void gamedata_load(const char *dir);
+void gamedata_follow_mods(const char *dir);   /* each frame: read again when the mods in use change */
 /* the names as shown, from the game's: in full where the game cut them short for its 20 letters
    ("Studded Lthr", "Illum. Gospel", "St.Gregory Thaumaturg.", "Raimundus Ls'"), and armour by where
    it is worn ("Chainmail (body)" for "V:Chainmail"); settings display.full_names and

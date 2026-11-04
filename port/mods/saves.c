@@ -329,6 +329,7 @@ static void loadscreen_hook(void)
 }
 
 static void (*on_loaded[16])(void); static int non_loaded;
+static char menu_card[16];                         /* (the card whose menu's switches are kept: note_menu_flags) */
 unsigned saves_loaded_ms;
 void saves_on_loaded(void (*fn)(void)) { if (non_loaded < 16) on_loaded[non_loaded++] = fn; }
 static void loaded_hook(void)              /* the save is read (s037 1c7d:0d24): always installed, saves_on or not */
@@ -351,6 +352,7 @@ static void loaded_hook(void)              /* the save is read (s037 1c7d:0d24):
     saves_loaded_ms = loaded_t | 1;
     auto_due[0] = 0;
     loaded_since_title = 1; iron_check = 1;          /* (an Ironman game's save, or not: saves_frame) */
+    menu_card[0] = 0;                                /* (the old game's card menu: note_menu_flags) */
     for (int i = 0; i < non_loaded; i++) on_loaded[i]();   /* (what each module kept of the old game: saves_on_loaded) */
 }
 
@@ -406,10 +408,13 @@ static void load_hook(void)                /* load_game () */
    were while the menu was up. A save before a battle is made after the option chosen has run,
    which may have used them for something else (the boars' "use your horses" switch was left on);
    loaded, the card's menu comes up again from the saved switches without its script, and offered
-   the horses to a party without any. The battle's autosave keeps the menu's switches instead */
-static char menu_card[16]; static u16 menu_flags[10];
+   the horses to a party without any. The battle's autosave keeps the menu's switches instead - those of
+   this visit to the card only: the cards left (the map, a town's streets, a battle), or a game loaded, they
+   are forgotten, so a later visit whose battle comes before its menu is saved with its own */
+static u16 menu_flags[10];
 static void note_menu_flags(void)
 {
+    if (game_mode() != GM_CARD) { menu_card[0] = 0; return; }
     if (!assist_in_card_menu()) return;
     g_str(G_DGROUP, GV_card_name, menu_card, sizeof menu_card);
     for (int k = 0; k < 10; k++) menu_flags[k] = g_rw((u16)(GV_opt_flag_0 + 2 * k));

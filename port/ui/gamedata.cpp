@@ -115,6 +115,22 @@ const char *kind_name_one(ItemKind k)
     return n[k];
 }
 
+/* the data read again when the mods in use change (F12 > Mods: a mod's DARKLAND.LST, .CTY, .SNT or .LOC
+   ticked or unticked during play), as the bestiary, Go to and the texts do */
+extern "C" int datamods_generation(void);
+void gamedata_follow_mods(const char *dir)
+{
+    static int gen = -1;
+    int g = datamods_generation();
+    if (g == gen) return;
+    bool again = gen != -1 && gamedata.loaded;
+    gen = g;
+    if (!again) return;
+    gamedata = GameData();
+    gamedata_load(dir);
+    fprintf(stderr, "gamedata: read again for the mods in use (%d items, %d saints, %d cities)\n", (int)gamedata.items.size(), (int)gamedata.saints.size(), (int)gamedata.cities.size());
+}
+
 void gamedata_load(const char *dir)
 {
     std::vector<unsigned char> lst = read_all(open_ci(dir, "DARKLAND.LST"));

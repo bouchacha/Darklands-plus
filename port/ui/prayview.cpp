@@ -35,7 +35,7 @@ extern "C" void prayview_draw(void)
     }
     float tw = 316 - tx, y = 4;
     std::string who = rich_member(p.who < 0 || p.who > 4 ? 0 : p.who);   /* (the one who prays: their head, ui/richtext.h) */
-    y += P.para(fo, NsDraw::FS_SMALL, tx, y, tw, soft, who + (p.party ? " calls on the saint for the whole party:" : " calls on the saint:")) + 0.5f;
+    y += P.para(fo, NsDraw::FS_SMALL, tx, y, tw, soft, who + (p.party && !p.choose ? " calls on the saint for the whole party:" : " calls on the saint:")) + 0.5f;
     {   /* the name, and after it the Virtue the saint asks (greyed when the one who prays has less) */
         std::string nm = known ? gamedata.saints[p.saint].name : "?", vt = std::to_string(p.vmin);
         const float VIS = 5.4f, VGS = NsDraw::FS_BODY;
@@ -128,8 +128,9 @@ extern "C" void prayview_draw(void)
         else {
             P.text(fo, NsDraw::FS_SMALL, x, yy, soft, "Pray for:");
             float px = x + P.width(fo, NsDraw::FS_SMALL, "Pray for:") + 3, py = yy - 1.5f;
-            for (int m = 0; m < 5; m++) {
-                if (!p.present[m]) continue;
+            for (int k = 0; k < 5; k++) {
+                int m = k == 0 ? p.who : k <= p.who ? k - 1 : k;     /* (the one who prays first) */
+                if (m < 0 || m > 4 || !p.present[m]) continue;
                 std::string nm = rich_member(m);              /* (a head a button: the name under the pointer) */
                 float w = P.width(fo, NsDraw::FS_SMALL, nm) + 6;
                 if (px + w > 316) { px = x; py += 10; }

@@ -20,6 +20,7 @@
 #include "fixes.h"
 #include "saintinfo.h"
 #include "sheetview.h"
+#include "encounters.h"
 
 /* does / unlike: the game's code; st_does / st_unlike: with the sainttexts fix (0: the same), st_arm:
    that needs armourday (else the game's help); cards: the encounters that call for the saint */
@@ -41,7 +42,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       0, 0, 0, 0 },   /* 4 St.Albert the Great */
     { "Intelligence +6 to 11, Latin and Read & Write +20 to 39.",
       "",
-      0, 0, 0, 5 },   /* 5 St.Alcuin */
+      0, 0, 0, 6 },   /* 5 St.Alcuin */
     { "May raise the reputation in the nearest town by 10 to 19. Charisma +6 to 11. A party with neither florins nor groschen gets 3 to 9 groschen.",
       "",
       0, 0, 0, 1 },   /* 6 St.Alexis */
@@ -77,7 +78,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       0, 0, 0, 1 },   /* 16 St.Catherine */
     { "Charisma and Perception +1 to 15, Speak Common +10 to 29.",
       "",
-      0, 0, 0, 12 },   /* 17 St.Catherine of Siena */
+      0, 0, 0, 13 },   /* 17 St.Catherine of Siena */
     { "Charisma +3 to 10. @INSTR, the reputation of the town the party is in (in the overland view: the nearest) may rise by 20 to 59.",
       "",
       0, 0, 0, 7 },   /* 18 St.Cecilia */
@@ -89,13 +90,13 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "Fire protection 50 for every member, 90 for the one prayed for. Heals 10% of lost Endurance.", "", 1, 3 },   /* 20 St.Charity */
     { "Agility +8 to 15, Charisma +1 to 10.",
       "",
-      0, 0, 0, 8 },   /* 21 St.Christina, Astonish. */
+      0, 0, 0, 10 },   /* 21 St.Christina, Astonish. */
     { "Streetwise +10 to 19, Woodwise +20 to 39, Riding +25 to 74, Bows +6 to 11.",
       "No faster travel, and no Strength or Endurance restored.",
       "The party travels half again as fast for a week (fewer days on the road). Heals 10% of lost Strength and 20% of lost Endurance. Streetwise +10 to 19, Woodwise +20 to 39, Riding +25 to 74, Bows +6 to 11.", "", 0, 1 },   /* 22 St.Christopher */
     { "Heals all lost Endurance and Strength.",
       "",
-      0, 0, 0, 3 },   /* 23 St.Clare */
+      0, 0, 0, 4 },   /* 23 St.Clare */
     { "Heals 25% of lost Endurance and 50% of lost Strength. Charisma +6 to 11, Healing +10 to 19.",
       "",
       0, 0, 0, 0 },   /* 24 St.Clotilda */
@@ -113,7 +114,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "Every member's leather and cloth armor counts 10 points better in quality.", "", 1, 0 },   /* 28 St.Crispin */
     { "Intelligence +5 to 9, Alchemy +5 to 9.",
       "",
-      0, 0, 0, 3 },   /* 29 St.Cyprian */
+      0, 0, 0, 4 },   /* 29 St.Cyprian */
     { "Heals all lost Endurance and 30% of lost Strength. Teaches St. Cosmas.",
       "",
       0, 0, 0, 0 },   /* 30 St.Damian */
@@ -131,7 +132,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       0, 0, 0, 4 },   /* 34 St.Devota */
     { "Agility +10 to 19, Woodwise and Stealth +10 to 19, Streetwise and Artifice +20 to 39.",
       "Only the one prayed for, not the entire party; no Charisma or Speak Common.",
-      "Every member's Stealth +10 to 19. Agility, Woodwise +10 to 19, Streetwise and Artifice +20 to 39, Charisma and Speak Common +6 to 11.", "", 0, 6 },   /* 35 St.Dismas */
+      "Every member's Stealth +10 to 19. Agility, Woodwise +10 to 19, Streetwise and Artifice +20 to 39, Charisma and Speak Common +6 to 11.", "", 0, 7 },   /* 35 St.Dismas */
     { "Intelligence +10 to 19, Speak Common and Latin +10 to 19, Read & Write +20 to 39.",
       "",
       0, 0, 0, 3 },   /* 36 St.Dominic */
@@ -185,10 +186,10 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "Endurance and Perception +6 to 11, Charisma +15 to 29, Speak Common +10 to 19, Virtue +25 to 49. One time in two the party loses a tenth of its money.", "", 0, 1 },   /* 52 St.Francis */
     { "Intelligence and Perception +10 to 29.",
       "",
-      0, 0, 0, 14 },   /* 53 St.Gabriel */
+      0, 0, 0, 15 },   /* 53 St.Gabriel */
     { "Heals 30% of lost Endurance and 20% of lost Strength. For a week no ambush takes the party by surprise (bandits and the like).",
       "",
-      0, 0, 0, 22 },   /* 54 St.Genevieve */
+      0, 0, 0, 23 },   /* 54 St.Genevieve */
     { "Strength +10 to 14, Agility +5 to 9, every weapon skill and Riding +25 to 49.",
       "",
       "The weapon and the armor of the one prayed for count 10 points better in quality. Strength +10 to 14, Agility +5 to 9, every weapon skill and Riding +25 to 49.", "", 1, 0 },   /* 55 St.George */
@@ -209,13 +210,13 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       0, 0, 0, 4 },   /* 60 St.Godehard */
     { "Heals 20% of lost Endurance. Speak Common +15 to 29, Artifice +10 to 19. For a week no ambush takes the party by surprise (bandits and the like).",
       "",
-      0, 0, 0, 30 },   /* 61 St.Godfrey */
+      0, 0, 0, 31 },   /* 61 St.Godfrey */
     { "May raise the reputation by 20 to 39 in Schleswig, Lübeck, Wismar, Rostock, Hamburg, Lüneburg or Bremen (nowhere else). Every weapon skill +15 to 29.",
       "",
       0, 0, 0, 0 },   /* 62 St.Gottschalk */
     { "Charisma +8 to 15, Alchemy and Speak Common +10 to 19, Artifice +20 to 39.",
       "",
-      0, 0, 0, 13 },   /* 63 St.Gregory Thaumaturg. */
+      0, 0, 0, 15 },   /* 63 St.Gregory Thaumaturg. */
     { "May raise the reputation by 30 to 49 in Frankfurt an der Oder, Breslau, Olmütz or Teschen (nowhere else). Healing +20 to 29.",
       "",
       "May raise the reputation by 30 to 49 in Frankfurt an der Oder, Breslau, Olmütz or Teschen (nowhere else). Heals 20% of lost Endurance and Strength. Healing +20 to 29.", "", 0, 6 },   /* 64 St.Hedwig */
@@ -230,10 +231,10 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       0, 0, 0, 10 },   /* 67 St.Herve */
     { "Perception +20 to 59.",
       "No reputation in its help.",
-      "Perception +20 to 59. By the Rhine (Basel to Xanten), may raise the reputation by 5 to 14.", "", 0, 10 },   /* 68 St.Hildegard */
+      "Perception +20 to 59. By the Rhine (Basel to Xanten), may raise the reputation by 5 to 14.", "", 0, 11 },   /* 68 St.Hildegard */
     { "Polearms, Thrown and Bows +15 to 29, Missile Devices +10 to 19, Stealth +25 to 49, Woodwise +40 to 79.",
       "",
-      0, 0, 0, 11 },   /* 69 St.Hubert */
+      0, 0, 0, 12 },   /* 69 St.Hubert */
     { "Charisma +15 to 29, every weapon skill and Speak Common +10 to 19, Riding +5 to 9.",
       "",
       0, 0, 0, 0 },   /* 70 St.Illtyd */
@@ -260,13 +261,13 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "Every skill +1 to 4, and 1 more for every 5 points of Virtue.", "", 0, 0 },   /* 77 St.John Climacus */
     { "@NEPOMUK Charisma +8 to 15, Intelligence +6 to 11, Speak Common +20 to 39, Streetwise +4 to 7.",
       "",
-      0, 0, 0, 6 },   /* 78 St.John Nepolmuchen */
+      0, 0, 0, 7 },   /* 78 St.John Nepolmuchen */
     { "Charisma +6 to 11, Artifice and Streetwise +30 to 59.",
       "",
       "Artifice and Streetwise +30 to 59; in a town, Charisma +6 to 11.", "", 0, 1 },   /* 79 St.Joseph */
     { "Endurance, Charisma, Strength, Perception, Agility and Intelligence +4 to 8, the skills of the weapons in hand +15 to 24, Alchemy, Religion, Speak Common, Latin, Read & Write, Healing, Stealth, Artifice, Woodwise and Streetwise +6 to 11.",
       "Not every skill: no Riding, and no weapon skill but those of the weapons in hand.",
-      "Endurance, Charisma, Strength, Perception, Agility and Intelligence +4 to 8, the skills of the weapons in hand +15 to 24, every other skill +6 to 11.", "", 0, 9 },   /* 80 St.Jude */
+      "Endurance, Charisma, Strength, Perception, Agility and Intelligence +4 to 8, the skills of the weapons in hand +15 to 24, every other skill +6 to 11.", "", 0, 11 },   /* 80 St.Jude */
     { "Woodwise +20 to 39, Riding +6 to 11. The party can cross water as if it were land.",
       "",
       0, 0, 0, 1 },   /* 81 St.Julian, Hospitaler */
@@ -350,7 +351,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       0, 0, 0, 7 },   /* 107 St.Perpetua */
     { "Charisma +8 to 15, Strength +12 to 19, Perception lowered by half its maximum, Speak Common, Latin and Healing +10 to 19, Edged +15 to 29.",
       "",
-      0, 0, 0, 5 },   /* 108 St.Peter */
+      0, 0, 0, 6 },   /* 108 St.Peter */
     { "May lower the reputation in the nearest town by 1 to 4. Intelligence and Perception +6 to 11, Alchemy and Riding +10 to 19, Stealth +40 to 79.",
       "",
       0, 0, 0, 0 },   /* 109 St.Peter of Atroa */
@@ -368,7 +369,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       0, 0, 0, 0 },   /* 113 St.Raymond Lull */
     { "Heals 30% of lost Endurance. Charisma lowered by 6 to 11, Alchemy +6 to 17, Artifice +35 to 69.",
       "",
-      0, 0, 0, 7 },   /* 114 St.Reinold */
+      0, 0, 0, 8 },   /* 114 St.Reinold */
     { "Heals 20% of lost Endurance and 20% of lost Strength. Healing +10 to 19, Artifice +8 to 15.",
       "",
       0, 0, 0, 2 },   /* 115 St.Roch */
@@ -489,7 +490,10 @@ const char *saint_info_unlike(int s)
     return st(s) ? INFO[s].st_unlike : INFO[s].unlike;
 }
 
-int saint_info_cards(int s) { return s >= 0 && s < SAINT_INFO_N ? INFO[s].cards : 0; }
+/* the game's own card scripts that call for the saint (the decompiled ones and the five read in the disassembly:
+   s044 $Chall00, s049 $Marke01, s079 $Execu01, s081 $Drago01, s106 $McGuf01), and the encounters of the mods
+   in use (mods/encounters.c) */
+int saint_info_cards(int s) { return s >= 0 && s < SAINT_INFO_N ? INFO[s].cards + encounters_asks_saint(s) : 0; }
 
 /* "" for a saint whose help holds nothing to wear off (healing, the reputation, money: St. Clare) */
 const char *saint_info_note(int s)

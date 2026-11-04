@@ -113,8 +113,8 @@ static std::vector<Eff> effects_table(int size, const std::vector<EvRec> &recs)
             char vb[24] = ""; int icon = EI_DAMAGE;
             if (item == 0x69) { snprintf(b, sizeof b, "%s: %+d damage", n.c_str(), t); snprintf(vb, sizeof vb, "%+d", t); }
             else if (item == 0x6a) { snprintf(b, sizeof b, "%s: %+d penetration", n.c_str(), t); snprintf(vb, sizeof vb, "%+d", t); icon = EI_PENETRATION; }
-            else if (item == 0x6d) { static const int T[4] = { 0, 1, 2, 2 }, Q[4] = { 0, 20, 25, 30 }; int g = t < 1 ? 1 : t > 3 ? 3 : t;
-                snprintf(b, sizeof b, "%s: armor %+d thickness, %+d quality", n.c_str(), T[g], Q[g]); snprintf(vb, sizeof vb, "%+d, %+dq", T[g], Q[g]); icon = EI_ARMOR; }
+            else if (item == 0x6d) { int th, q; fixes_hardarmor_grade(t < 1 ? 1 : t, &th, &q);   /* (the fix's own rule: mods/fixes.c) */
+                snprintf(b, sizeof b, "%s: armor %+d thickness, %+d quality", n.c_str(), th, q); snprintf(vb, sizeof vb, "%+d, %+dq", th, q); icon = EI_ARMOR; }
             else if (item == 0x74) { snprintf(b, sizeof b, "%s: fire protection %d", n.c_str(), t); snprintf(vb, sizeof vb, "%d", t); icon = EI_FIRE; }
             else if (fix_is_on("greatpower")) { snprintf(b, sizeof b, "%s: weapon quality %+d", n.c_str(), t); snprintf(vb, sizeof vb, "%+dq", t); icon = EI_WEAPON_Q; }
             else if (!(t >> 4)) { snprintf(b, sizeof b, "%s: %+d penetration", n.c_str(), t & 15); snprintf(vb, sizeof vb, "%+d", t & 15); icon = EI_PENETRATION; }

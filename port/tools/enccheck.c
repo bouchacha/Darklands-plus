@@ -5,6 +5,7 @@
  *   cc -O1 -I port/runtime -o build/enccheck port/tools/enccheck.c
  *   (with -g -fsanitize=address,undefined for fuzzing)
  *   ENC_MSG="mods/My mod/MSGFILES" build/enccheck "mods/My mod/ENCOUNTERS/"*.TXT
+ *   ENC_DIR="mods/My mod/ENCOUNTERS" ENC_MSG=... build/enccheck: the saints and things they ask for
  *
  * ENC_MSG: the mod's MSGFILES folder, so the scripts are checked against their card texts too. */
 #include "../mods/encounters.c"
@@ -22,8 +23,10 @@ void hook_remove(int s, unsigned a, unsigned b, void (*f)(void)) { (void)s; (voi
 int game_mode(void) { return 0; } int ns_screen; int dos_no_writes;
 u32 native_far_ptr(NativeFn f, int a) { (void)f; (void)a; return 0; }
 void ovl_enter(int n) { (void)n; } void ovl_save(OvlSet *o) { (void)o; } void ovl_restore(const OvlSet *o) { (void)o; }
-int datamods_dirs(const char *sub, char out[][1200], int max) { (void)max; const char *m = getenv("ENC_MSG"); if (!m || strcasecmp(sub, "MSGFILES")) return 0; snprintf(out[0], 1200, "%s", m); return 1; }
+int datamods_dirs(const char *sub, char out[][1200], int max) { (void)max; const char *m = getenv(strcasecmp(sub, "ENCOUNTERS") ? "ENC_MSG" : "ENC_DIR"); if (!m || (strcasecmp(sub, "MSGFILES") && strcasecmp(sub, "ENCOUNTERS"))) return 0; snprintf(out[0], 1200, "%s", m); return 1; }
 int datamods_generation(void) { return 0; }
+void saves_on_loaded(void (*fn)(void)) { (void)fn; }
+void fixes_clamp_party_items(void) {}
 int gm_member_present(int m) { (void)m; return 0; } int gm_member_status(int m) { (void)m; return 0; }
 void gm_member_name(int m, char *o, int n) { (void)m; if (n) o[0] = 0; }
 void gm_member_attr(int m, int k, int *c, int *x) { (void)m; (void)k; *c = *x = 0; } int gm_member_skill(int m, int k) { (void)m; (void)k; return 0; }
@@ -32,6 +35,13 @@ int cutcards_restored_on(void) { return 0; } int cutcards_scripts(const char **i
 int main(int argc, char **argv)
 {
     static u8 mem[0x110000]; M = mem;
+    if (getenv("ENC_DIR")) {                    /* ENC_DIR (and ENC_MSG): what the encounters of that folder ask for, as the game counts it */
+        printf("%d encounters\n", encounters_count());
+        printf("saints:"); for (int k = 0; k < 136; k++) if (encounters_asks_saint(k)) printf(" %d:%d", k, encounters_asks_saint(k));
+        printf("\nitems:"); for (int k = 0; k < 200; k++) if (encounters_asks_item(k)) printf(" %#x:%d", k, encounters_asks_item(k));
+        printf("\n");
+        return 0;
+    }
     for (int i = 1; i < argc; i++) {
         Enc e; load_file(&e, argv[i], "X");
         check(&e);

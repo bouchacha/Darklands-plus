@@ -264,7 +264,10 @@ out); `DL_ENC_LOG=1` logs every roll. The script is checked against its card tex
 mod's `MSGFILES/<CARD>.TXT`: each `block` and `text` must exist, each option must have its line
 in the block, and a `\16` line must be a `saint` option and a `\10` line a `potion` one. The
 game holds at most 25 text blocks of under 6000 bytes in all, with up to 10 option lines in a
-block. What can only be known while it runs is checked then: an item, saint, skill or member
+block, and each block may come to at most 899 characters with its `$variables` filled in (counted
+at their longest: a name 12, a place or building 32, a money text or `$Text1..4` 40, `$PlaceDesc`
+100). The game fills them in with no limit, and past 899 it wrote over its own menus; a longer
+block is reported, and in a mod's other card texts it is cut there. What can only be known while it runs is checked then: an item, saint, skill or member
 out of range, or sections that lead only to one another, end the encounter with a notice
 instead of upsetting the game. A battle holds at most 8 foes (a `Cave` one); groups beyond that
 are cut down, and qualities are kept within 0 to 9. For testing, the `uenc:N` step of `DL_CTL` /

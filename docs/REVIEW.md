@@ -316,8 +316,9 @@ covered and found, and what it could not check.
 - 2026-11-04 (1.4.6-RC7): a structural check of this batch, asked for: are these fixes, or quirks patched one by
   one? Fixed where they arise: (a) auto-travel that stalled near Graz, or kept turning into Graz (his log: "last
   step 1000", an encounter at every step). A night in camp's encounter made the next step's encounter certain
-  (the weight hook in travel.c). It then waited for a card it was allowed to replace, which a unique card or,
-  near a town, the town's own (step result 2000, s030 1462:0c44) never was, so every step stayed certain. Now
+  (the weight hook in travel.c). It then waited for a card it was allowed to replace, which a unique card, any card not in the
+  list, or a robber knight's keep's (step result 2000, s030 1462:0c44) never was, so every step stayed
+  certain. (Corrected the next day: 2000 comes only near the keeps, the one kind of place with a second card.) Now
   the step made certain is the encounter's own, and the flag goes with it. (b) Go to: the place table held
   guesses (barracks, prison, town square, bowyers). Every hub card's option flags were read line by line, and
   each rule now names its card; the Go to sweep has no failures. (c) Rested: one rule in the model (can[0],
@@ -333,3 +334,28 @@ covered and found, and what it could not check.
   as it is, the largest piece of patchwork: Go to's table is still a hand-kept copy of what the hub cards
   offer. The end state is to read the cards' own option conditions at run time (citynav already parses their
   lines).
+- 2026-11-04 (1.4.6-RC8): a deep sweep, asked for ("make every lasting fix you can think of"), by three audits
+  read against the code: state that can stick, writes outside what they mean to touch, and copies of the game's
+  own data. Found and fixed at the cause: the "MeetA01" menu was text_expand (s043 150b:06fe) filling a card's
+  text into msg_buf (DS:9085, 900 bytes) with no limit, and three of 1.4.5's encounters came out at 906 and more,
+  over the menu bar's variables and table (the Game title pointer took "ma" of "...and march.", 0x616d, which is
+  "$MeetA01"+1). Now: text_expand is hooked (cardview.c expand_guard_hook: the bytes after msg_buf kept and put
+  back, the text cut at 899); encounters.c check() rejects a block that can come out longer (each $variable at
+  its longest), and datamods.c cuts a mod's block past 899 (the raw copy on text_expand's stack, 900 bytes, has
+  the return address after it); five blocks shortened; the menu guard of RC7 removed. Prayers: saint_screen asks
+  who a prayer is for only when made from the sheet; a card's (saint_pray_party) and P passed -1, the leader to
+  the game's routines: fix prayfor (asked as the sheet's; -1 at saint_finish becomes the one who prays). State:
+  losses.c's battle counter went to -1 after a load in a battle (after_load set 0, the unwinding then took one):
+  no more "Lost for good" notices; travel.c kept the old game's camp at 20:00 and pending trip across a load;
+  saves.c kept a card menu's switches across visits. Copies: the saints' and potions' "how many encounters ask"
+  counted only the decompiled card scripts (five read in the disassembly now added) and none of the mods'
+  encounters (now counted from what is loaded: encounters_asks_saint/item); relics.c's table of each saint's
+  least favor gave way to asking the saint's function; Hardarmor's armour by grade is one function; the shops'
+  wares in the margin and the finder follow the barter masks; travel.c reads DARKLAND.MAP through the data mods,
+  and the UI's game data is read again when the mods change. Go to's list now follows what the hub cards on show
+  offer (and a walk that finds no way), logged as "goto: ...". Also: an encounter's `injure -1` is the leader
+  (the game's routine takes -2 but not -1), and its robberies keep item counts in bounds whatever the itemcount
+  fix's switch. Left: journal.cpp's stock forecast caps a city's size at 8 where the game reads a ninth row (only
+  a modded city of size 10+); the encounters' enemy names are ENM indexes as the game ships them (a mod that
+  reorders ENM would mislead); cardhints_data.h's 283 reasons, offices.c's rules and the place-type labels are
+  not checked against the cards.

@@ -411,10 +411,57 @@ static void trail_add(const char *fmt, ...)
 }
 #define LOG(...) trail_add(__VA_ARGS__)
 
+/* ---------------------------------------------------------------- what the cards themselves show
+ * Go to's list (present_at) says what a town's cards offer from the town's data, rule by rule, as read
+ * in the card scripts. The cards on show say it too, and they have the last word: by day, a hub card
+ * whose line leads straight to a place shows that the town has it, and a walk that finds no way to a
+ * listed place shows that it has not. Either is written in the log ("goto: ..."), and the list for that
+ * town follows it until a save is loaded. Places that come and go (the prison, Soldiers' Road, the
+ * hospice, the physician of small towns, a fix's Clothmakers' Street) are only logged. */
+static std::map<int, std::map<int, bool>> learned;                 /* town -> place -> there or not */
+static unsigned learned_load;
+static bool is_night(void);
+static bool learnable(int d) { return d != D_PRISON && d != D_SOLDIERS && d != D_HOSPITAL && d != D_PHYSICIAN && d != D_CLOTH && d != D_LEAVE; }
+extern "C" unsigned saves_loaded_ms;                             /* (mods/saves.c: when the last save was loaded) */
+static void learned_fresh(void)
+{
+    if (learned_load != saves_loaded_ms) { learned_load = saves_loaded_ms; learned.clear(); }
+}
+static bool present_rules(int d, int cur);
+static void learn(int town, int d, bool there, const char *how)
+{
+    learned_fresh();
+    auto &t = learned[town];
+    auto it = t.find(d);
+    if (it != t.end() && it->second == there) return;
+    bool listed = present_rules(d, town);
+    if (listed != there) {
+        char nm[24] = ""; u32 r = g_location(town);
+        if (r) g_str((u16)(r >> 16), (u16)((u16)r + 0x26), nm, sizeof nm);
+        fprintf(stderr, "goto: %s %s %s, which Go to's list %s (%s)%s\n", nm, there ? "has" : "has no", DEST[d].label,
+                listed ? "shows" : "leaves out", how, learnable(d) ? ": the list follows the cards" : "");
+    }
+    if (learnable(d)) t[d] = there;
+}
+/* a hub card's options on show (the lines the game laid out): the places they lead to straight away */
+static void observe_hub(int hub, const std::vector<std::string> &line, const std::string &card)
+{
+    if (is_night()) return;                                 /* (by night the stalls and offices are shut: not what the town has) */
+    int town = (s16)g_rw(G_CUR_LOC);
+    for (const std::string &t : line) {
+        int to = rule_for(hub, t);
+        if (to == 100 + H_SQUARE) to = D_SQUARE;
+        if (to < 0 || to >= D_N) continue;
+        learn(town, to, true, card.c_str());
+    }
+}
+
 static void stop(const char *why)
 {
     LOG("stop: %s\n", why ? why : "");
     bool failed = why && strcmp(why, "stopped.") && goal >= 0;
+    if (failed && !strcmp(why, "not found in this city.") && !is_night() && (visited & ((1u << H_MAIN) | (1u << H_SIDE))))   /* (the main or side streets passed: their ways were all tried) */
+        learn((s16)g_rw(G_CUR_LOC), goal, false, "a walk there found no way");
     if (failed && !logon) { fprintf(stderr, "Go to %s failed (%s). The walk:\n%s", DEST[goal].label, why, trail.c_str()); fflush(stderr); }
     if (goal >= 0 && why) { char m[160]; snprintf(m, sizeof m, "Go to %s: %s", DEST[goal].label, why); ui_notice(m); }
     goal = -1;
@@ -523,8 +570,30 @@ extern "C" void citynav_leave_town(void)
     leaving = 1; leaving_t = plat_ticks_ms();
 }
 
+/* each frame: a hub card's options on show, walking or not (observe_hub) */
+static void watch_hubs(void)
+{
+    static std::string seen_key;
+    if (!in_city() || !assist_in_card_menu() || g_rb(GV_card_box_shown)) { seen_key.clear(); return; }
+    std::string card = card_now();
+    int hub = hub_of(card);
+    if (hub == H_NONE) return;
+    int blk = (s16)g_rw(GV_shown_block), n = (s8)g_rb(GV_card_layout);
+    char kb[64]; snprintf(kb, sizeof kb, "%s/%d/%d/%d", card.c_str(), blk, n, (s16)g_rw(G_CUR_LOC));
+    if (seen_key == kb || n <= 0 || n > 20) return;
+    if (!cards_loaded) load_cards();
+    std::vector<std::string> blocks = card_blocks(card);
+    if (blk < 0 || blk >= (int)blocks.size()) return;
+    std::vector<std::string> opts = block_options(blocks[blk]);
+    std::vector<std::string> line(n);
+    for (int i = 0; i < n; i++) { int o = (s8)g_rb((u16)(GV_card_layout_opt + i)); line[i] = o >= 0 && o < (int)opts.size() ? opts[o] : ""; }
+    seen_key = kb;
+    observe_hub(hub, line, card);
+}
+
 extern "C" void citynav_tick(void)
 {
+    watch_hubs();
     hdtext_fast_fades = goal >= 0 || leaving;              /* the cards' fades at once while walking */
     if (leaving && goal < 0) { if (!cards_loaded) load_cards(); leaving_tick(); return; }
     if (goal < 0) return;
@@ -702,7 +771,16 @@ static bool someone_held(int town)
     }
     return false;
 }
+static bool present_rules(int d, int cur);
 static bool present_at(int d, int cur)
+{
+    learned_fresh();
+    auto t = learned.find(cur);
+    if (t != learned.end()) { auto it = t->second.find(d); if (it != t->second.end()) return it->second; }
+    return present_rules(d, cur);
+}
+/* as the rules read in the card scripts have it (the comment above never()) */
+static bool present_rules(int d, int cur)
 {
     if (never(d)) return false;
     if (cur < 0 || cur >= (int)gamedata.cities.size()) return true;

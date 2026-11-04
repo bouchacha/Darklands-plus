@@ -154,6 +154,7 @@ std::string ns_item_compare_party(int id, int q)
 
 extern "C" int fix_is_on(const char *id);
 #include "../mods/fixes.h"
+#include "../mods/encounters.h"
 std::string ns_potion_effect(int id);
 /* how much the encounters ask for a thing (a potion: the card scripts that list it among an
    option's potions, card_items, counted from the game's code) or a saint (mods/saintinfo.h):
@@ -162,8 +163,10 @@ ImU32 ns_tier_colour(int n) { return n >= 20 ? IM_COL32(34, 110, 30, 255) : n >=
 std::string ns_item_encounters(int id, ImU32 *col)
 {
     if (id < 95 || id > 116) return "";
-    static const unsigned char CARDS[22] = { 61, 42, 54, 5, 15, 2, 73, 41, 11, 7, 0, 1, 0, 0, 1, 6, 1, 1, 0, 0, 1, 6 };
-    int n = CARDS[id - 95];
+    /* the game's own card scripts (with the five read in the disassembly: s044 $Chall00, s049 $Marke01,
+       s081 $Drago01, ...), and the encounters of the mods in use */
+    static const unsigned char CARDS[22] = { 62, 44, 56, 5, 15, 4, 74, 41, 12, 8, 0, 1, 0, 0, 1, 6, 1, 1, 0, 0, 1, 6 };
+    int n = CARDS[id - 95] + encounters_asks_item(id);
     if (col) *col = ns_tier_colour(n);
     return n >= 20 ? "Many encounters let you use it." : n >= 5 ? "Some encounters let you use it." : n >= 1 ? "A few encounters let you use it." : "No encounter asks for it.";
 }
@@ -181,9 +184,15 @@ std::string ns_item_use(int id)
     switch (id) {
     case 0x3b: return "For climbing: over a town's walls at night, into a castle and the like, the best climber goes up first and lets it down for the others (without one, each climbs alone). One in the party is enough.";
     case 0x40: return "For picking locks: shops at night, doors, chests, a cell. One in the party is enough.";
-    case 0x41: case 0x42: return "St. Cecilia, the patron of music, raises the party's standing in a town greatly for a member who carries an instrument.";
-    case 0x39: case 0x3a: case 0x3c: case 0x3d: case 0x3e: case 0x3f:
-        return "Nothing in the game asks for one (no card, no saint): it is worth only what it sells for.";
+    case 0x41: case 0x42: {
+        int n = encounters_asks_item(id);
+        std::string t = "St. Cecilia, the patron of music, raises the party's standing in a town greatly for a member who carries an instrument.";
+        if (n) t += " " + std::to_string(n) + (n == 1 ? " of the new encounters asks" : " of the new encounters ask") + " for one too.";
+        return t; }
+    case 0x39: case 0x3a: case 0x3c: case 0x3d: case 0x3e: case 0x3f: {
+        int n = encounters_asks_item(id);                  /* (the mods' encounters: has(), takeitem) */
+        if (n) return std::to_string(n) + (n == 1 ? " of the new encounters asks" : " of the new encounters ask") + " for one; nothing in the game's own cards does.";
+        return "Nothing in the game asks for one (no card, no saint): it is worth only what it sells for."; }
     /* the quest things and trophies (read from the cards' scripts: add_item, count_items, take_item) */
     case 0x8c: case 0x8d: case 0x8e: case 0x8f: case 0x90: case 0x91:
         return "One of the Six Keys: the gate to the last chamber of the Baphomet's lair opens only for a party that carries all six. Keep it.";

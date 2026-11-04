@@ -587,8 +587,33 @@ static void dialog_ask(void) { dialog_hook_k(3); }
 static void dialog_msg(void) { dialog_hook_k(1); }
 static void dialog_box(void) { dialog_hook_k(2); }
 
+/* text_expand (idx, out), s043 150b:06fe: a card's text block, its $variables filled in, written to out -
+ * msg_buf, 900 bytes, for every caller - with no limit. A longer text (a mod's: 1.4.6-RC6's "The goose-foot
+ * track" came to 906 and more) went on over what follows msg_buf, the menu bar's variables and table
+ * (DS:9409..: the Game menu became "MeetA01", greyed, for the rest of the game). The bytes after the buffer
+ * are kept and put back, the text cut at 899, and the log says so once. (The block's raw copy on the stack,
+ * also 900 bytes, is kept in bounds where texts are loaded: encounters.c check(), datamods.c.) */
+#define MSGBUF_LEN 900
+#define MSGBUF_SPILL 0x300
+static void expand_guard_hook(void)
+{
+    u16 out = rw(SS, (u16)(SP + 6)), end = (u16)(out + MSGBUF_LEN);
+    if (out != A_MSG_BUF) { hook_call_original(); return; }
+    static u8 keep[MSGBUF_SPILL];
+    for (int k = 0; k < MSGBUF_SPILL; k++) keep[k] = g_rb((u16)(end + k));
+    int idx = (s16)rw(SS, (u16)(SP + 4));
+    hook_call_original();
+    int n = 0; while (n < MSGBUF_LEN + MSGBUF_SPILL && g_rb((u16)(out + n))) n++;
+    if (n < MSGBUF_LEN) return;
+    g_wb((u16)(out + MSGBUF_LEN - 1), 0);
+    for (int k = 0; k < MSGBUF_SPILL; k++) g_wb((u16)(end + k), keep[k]);
+    static int told;
+    if (!told++) { char cn[16]; g_str(G_DGROUP, GV_card_name, cn, sizeof cn); fprintf(stderr, "cards: %s's text block %d came to %s%d characters: cut at 899 (the game holds 900)\n", cn, idx, n >= MSGBUF_LEN + MSGBUF_SPILL ? "over " : "", n); }
+}
+
 static void hooks(void)
 {
+    hook_remove(GF_text_expand, expand_guard_hook); hook_install(GF_text_expand, expand_guard_hook);   /* (always: the game's own screens too) */
     hook_install(GF_ask_yes_no, dialog_ask);           /* ask_yes_no */
     hook_install(GF_show_message, dialog_msg);           /* show_message */
     hook_install(GF_message_box, dialog_box);            /* message_box */

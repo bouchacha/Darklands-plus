@@ -202,11 +202,20 @@ static unsigned char *read_all(const char *path, long *n)
     return b;
 }
 
-/* a card file as text (datamods_export_cards) back to the game's form */
-static unsigned char *card_text_to_msg(const unsigned char *t, long n, long *outn)
+/* a card file as text (datamods_export_cards) back to the game's form. A block longer than 899 characters
+   is cut there: the game copies a block onto its stack, 900 bytes, with no limit (text_expand, s043 150b:06fe;
+   past it, its return address) */
+#define BLOCK_MAX 899
+static void block_end(unsigned char *o, long *on, long bs, const char *name, int cards)
+{
+    if (*on > 0 && o[*on - 1] == '\n') (*on)--;
+    if (*on - bs > BLOCK_MAX) { fprintf(stderr, "datamods: %s, text block %d: %ld characters, cut at %d (the game holds %d)\n", name, cards - 1, *on - bs, BLOCK_MAX, BLOCK_MAX + 1); *on = bs + BLOCK_MAX; }
+    o[(*on)++] = 0;
+}
+static unsigned char *card_text_to_msg(const unsigned char *t, long n, long *outn, const char *name)
 {
     unsigned char *o = malloc((size_t)n + 16);
-    long on = 1, i = 0; int cards = 0;
+    long on = 1, i = 0, bs = 0; int cards = 0;
     o[0] = 0;
     int in_card = 0;
     while (i < n) {
@@ -214,12 +223,12 @@ static unsigned char *card_text_to_msg(const unsigned char *t, long n, long *out
         long l = e; if (l > i && t[l - 1] == '\r') l--;
         if (l > i && t[i] == '#') { i = e + 1; continue; }        /* a comment ('#' in the text itself is written \23) */
         if (l - i >= 8 && !memcmp(t + i, "=== card", 8)) {
-            if (in_card) { if (on > 0 && o[on - 1] == '\n') on--; o[on++] = 0; }   /* the text ended with the line before */
+            if (in_card) block_end(o, &on, bs, name, cards);         /* the text ended with the line before */
             int v[5] = { 0, 0, 0, 0, 0 }, k = 0;
             const unsigned char *p = memchr(t + i, ':', (size_t)(l - i));
             if (p) { p++; for (; k < 5 && p < t + l; k++) { while (p < t + l && *p == ' ') p++; v[k] = atoi((const char *)p); while (p < t + l && isdigit(*p)) p++; } }
             for (k = 0; k < 5; k++) o[on++] = (unsigned char)v[k];
-            in_card = 1; cards++;
+            in_card = 1; cards++; bs = on;
         } else if (in_card) {
             for (long k = i; k < l; k++) {
                 if (t[k] == '\\' && k + 1 < l && t[k + 1] == '\\') { o[on++] = '\\'; k++; }
@@ -230,7 +239,7 @@ static unsigned char *card_text_to_msg(const unsigned char *t, long n, long *out
         }
         i = e + 1;
     }
-    if (in_card) { if (on > 0 && o[on - 1] == '\n') on--; o[on++] = 0; }
+    if (in_card) block_end(o, &on, bs, name, cards);
     o[0] = (unsigned char)cards;
     *outn = on;
     return o;
@@ -278,7 +287,7 @@ static const char *merged_catalog(const char *base_path, const char *catname)
             if (!data) continue;
             size_t L = strlen(nm);
             if (L > 4 && !strcmp(nm + L - 4, ".TXT")) {               /* card text: to the game's form, as NAME.MSG */
-                if (!strcasecmp(catname, "MSGFILES")) { long on; unsigned char *m = card_text_to_msg(data, len, &on); free(data); data = m; len = on; strcpy(nm + L - 4, ".MSG"); }
+                if (!strcasecmp(catname, "MSGFILES")) { long on; unsigned char *m = card_text_to_msg(data, len, &on, nm); free(data); data = m; len = on; strcpy(nm + L - 4, ".MSG"); }
                 else { free(data); continue; }
             }
             if (strlen(nm) > 12) { free(data); continue; }

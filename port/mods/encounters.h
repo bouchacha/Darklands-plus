@@ -16,6 +16,8 @@ void encounters_force(int i);               /* test: the next wilderness encount
 int encounters_force_pending(void);
 int encounters_builtin(int i);              /* encounter i is Darklands+'s own (cut content restored), not a mod's */
 int encounters_card_of(const char *id);     /* the card number of a loaded encounter, or -1 */
+int encounters_asks_saint(int s);           /* how many loaded encounters call on saint s */
+int encounters_asks_item(int id);           /* how many ask for item id (a potion to use, a thing to have or give) */
 /* what came of an encounter's choice, while the text that tells of it is shown (else -1): rows of
    EO_ATTR / EO_ATTRMAX (member m, attribute k, change v), EO_SKILL (m, skill k, v), EO_ITEM (item k, count v),
    EO_MONEY (v pfennigs), EO_FAME (v), EO_REP (town k, v), EO_HOURS (v hours passed), EO_LOST (member m gone:

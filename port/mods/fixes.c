@@ -375,8 +375,36 @@ Fix FIXES[] = {
       "At a robber knight's tower, challenging him, sneaking up and other tries each leave word that the castle is on its guard for 270 days, a new note each time beside the last. Enough tries filled the game's table of 300 notes, and then nothing new could be noted: \"EVENT Failure\" at every turn (GitHub issue 8). Now a new note replaces the last, and a saved game's extra copies are dropped as it loads.", 1 },
     { "kingdoor", "The dwarf king waits behind his own door",
       "In the mine of the dwarf king with the red hat, the iron door to the king brings him \"again\", with his hat, once its riddle is solved; but 2 of its 12 riddles led instead to the card where he tells the party to go away, which another door of the mine always brings. Brushing past him there opened the door, but the king was gone for good, so his treasure could no longer be offered back to him (GitHub issue 9). Now every riddle of that door brings the king with his red hat.", 1 },
+    { "prayfor", "Every prayer asks who it is for",
+      "A prayer from the character sheet asks who it is for, but one a card calls for (calling on a saint in an encounter or in a town) did not: the game took it as a prayer for the whole party, and what the saint gives one person (a boost, healing) went to the party's leader, though another prayed and spent the Divine Favor. Praying with P, without choosing, did the same. Now every prayer asks who it is for, the one who prays first, and a prayer made without choosing helps the one who prays.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
+
+/* ---------------------------------------------------------------- prayfor
+ * saint_screen(who, saint, party) asks who a prayer is for (pray_choose) by the saint's flags (its
+ * handler, what 6): bit 0 for a prayer from the sheet, bit 1 for one a card makes for the party
+ * (saint_pray_party), which no saint but one has. Unasked, the target (pray_target) stays -1, and the
+ * game's routines give -1's help to the leader. Here a card's prayer is asked as the sheet's is (party
+ * passed as 0 to the game's own screen; mods/prayview.c asks the same of ours), and -1 left at
+ * saint_finish, which every prayer passes before its help, becomes the one who prays. */
+static void prayfor_screen_hook(void)          /* saint_screen (who, saint, party), s034 1462:022c */
+{
+    u16 at = (u16)(SP + 8);                     /* (taken before the call: its return moves SP) */
+    int party = (s16)rw(SS, at);
+    if (party) ww(SS, at, 0);
+    hook_call_original();
+    if (unw_active) return;
+    if (party) ww(SS, at, (u16)party);
+}
+static void prayfor_hook(void)                 /* saint_finish (who, saint), s034 1462:06e2 */
+{
+    int who = (s16)rw(SS, (u16)(SP + 4));
+    if ((s16)g_rw(GV_pray_target) == -1 && who >= 0 && who < 5) {
+        g_ww(GV_pray_target, (u16)who);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix prayfor: the help for member %d, who prays\n", who);
+    }
+    hook_call_original();
+}
 
 /* ---------------------------------------------------------------- blessing */
 #define ev_ptr g_event
@@ -677,6 +705,14 @@ static int clamp_items(int i)              /* combatant i's item count into 0..6
     g_wb(a, (u8)(n < 0 ? 0 : max));
     return 1;
 }
+/* the encounters' robberies (mods/encounters.c loseitems, keepitems): their own counts kept in bounds,
+   whether this fix is on or not - the game's loss routines leave -1 behind, and the crash it brings is
+   no part of the original a script of ours should bring back */
+void fixes_clamp_party_items(void)
+{
+    int size = (s16)g_rw(G_PARTY_SIZE);
+    for (int m = 0; m < size && m < 5; m++) clamp_items(m);
+}
 static void itemcount_frame(void)
 {
     int size = (s16)g_rw(G_PARTY_SIZE);
@@ -952,14 +988,19 @@ static void patrick_hook(void) { saint_armour(2); }
 /* Hardarmor by the manual: "Quality improves by 20 to 30 points, and thickness by one or two levels"
    (the game: thickness 1, 2 or 3, no quality). Grade 1, 2, 3: thickness 1, 2, 2 and quality 20,
    25, 30. A second while one runs keeps the stronger; a saint's armour adds to it. */
-static void hardarmor_give(int m, int *thick, int *qual)
+/* a Hardarmor dose's armour by its grade (1 to 3, from the potion's quality: the manual), for the hit and for
+   the margins' line (ui/effects.cpp) */
+void fixes_hardarmor_grade(int g, int *thick, int *qual)
 {
     static const int T[4] = { 0, 1, 2, 2 }, Q[4] = { 0, 20, 25, 30 };
-    int g = running_potions(m, 0x6d, 1);
     if (g < 0) g = 0; if (g > 3) g = 3;
-    *thick = T[g] + running_potions(m, 0x16d, 0);
+    *thick = T[g]; *qual = Q[g];
+}
+static void hardarmor_give(int m, int *thick, int *qual)
+{
+    fixes_hardarmor_grade(running_potions(m, 0x6d, 1), thick, qual);
+    *thick += running_potions(m, 0x16d, 0);
     if (*thick > 15) *thick = 15;
-    *qual = Q[g];
 }
 /* the quality: added to the target's armour (+0x4f body, +0x50 legs) for the hit alone - Hardarmor's
    everywhere, St. Crispin's on the armour worn (party +0x37 body, +0x38 legs: -1 none) */
@@ -2802,7 +2843,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook },
     { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
     { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook },
-    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook } };   /* (hitsound: mods/sfx.c) */
+    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { GF_saint_finish, prayfor_hook } };   /* (hitsound: mods/sfx.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
@@ -2815,6 +2856,7 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "armorday", GF_hit_damage, armour_hit_hook }, { "armorday", 39, 0x165c, 0x1868, crispin_hook },
     { "armorday", 39, 0x165c, 0x125a, charity_hook }, { "armorday", 39, 0x165c, 0x2628, erasmus_hook },
     { "armorday", 39, 0x165c, 0x5a84, pantaleon_hook }, { "armorday", 39, 0x165c, 0x6122, polycarp_hook },
+    { "prayfor", GF_saint_screen, prayfor_screen_hook },
     { "pauls", 39, 0x165c, 0x5d6c, paul_simple_hook }, { "saintrep", GF_loc_reputation_adj, repadj_hook },
     { "standings", 37, 0x1c7d, 0x0d24, standings_load_hook },
     { "membervalue", 71, 0x1838, 0x02a8, mv_wrap_hook }, { "membervalue", GF_party_max_skill, mv_query_hook },

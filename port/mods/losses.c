@@ -53,12 +53,12 @@ static void battle_hook(void)
 {
     in_battle++;
     hook_call_original();
-    in_battle--;
+    if (in_battle > 0) in_battle--;                   /* (a load in a battle: after_load set it to 0, then the unwinding came back through here) */
     for (int m = 0; m < 5; m++) take(m);
 }
 void losses_battle_frame(void);
 static int grace;
-static void after_load(void) { grace = 300; in_battle = 0; }   /* a game loaded (saves_on_loaded): a battle left by it never returned */
+static void after_load(void) { grace = 300; in_battle = 0; }   /* a game loaded (saves_on_loaded): the battle it was loaded from is over */
 void losses_frame(void)
 {
     losses_battle_frame();

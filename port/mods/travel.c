@@ -24,6 +24,8 @@
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
+#include "../runtime/hle.h"
+#include "datamods.h"
 #include "travel.h"
 #include "saves.h"
 #include "encounters.h"
@@ -58,13 +60,26 @@ static int minutes_base(int t)
     }
 }
 
+/* the map as the game reads it: a data mod's DARKLAND.MAP if one is on (dos_host_path_read), read again
+   when the mods change (of the same size: the plans' buffers are sized by it) */
+static int map_gen = -1;
+static void map_changed(void);
 static int load_map(void)
 {
-    if (terr) return 1;
-    char p[1200]; snprintf(p, sizeof p, "%s/DARKLAND.MAP", game_dir);
+    int gen = datamods_generation();
+    if (terr && gen == map_gen) return 1;
+    char p[1300]; dos_host_path_read("DARKLAND.MAP", p, sizeof p);
     FILE *f = fopen(p, "rb");
     if (!f) { snprintf(p, sizeof p, "%s/darkland.map", game_dir); f = fopen(p, "rb"); }
-    if (!f) return 0;
+    if (!f) return terr != 0;
+    if (terr) {                                       /* (the mods changed: the map again, if it is the same size) */
+        unsigned char h[4];
+        int same = fread(h, 1, 4, f) == 4 && (h[0] << 8 | h[1]) == mw && (h[2] << 8 | h[3]) == mh;
+        if (!same) { fclose(f); map_gen = gen; fprintf(stderr, "travel: the mods' map is not the size of the one in use: auto-travel keeps the old until the next start\n"); return 1; }
+        fseek(f, 0, SEEK_SET);
+        free(terr); terr = 0; map_changed();
+    }
+    map_gen = gen;
     fseek(f, 0, SEEK_END); long n = ftell(f); fseek(f, 0, SEEK_SET);
     unsigned char *d = malloc((size_t)n);
     if (!d || fread(d, 1, (size_t)n, f) != (size_t)n) { fclose(f); free(d); return 0; }
@@ -241,6 +256,7 @@ int travel_to_tile(int x, int y, int loc, const char *name)
 }
 
 void travel_stop(void) { travel.active = 0; }
+static void travel_after_load(void);
 
 /* a journey asked for from inside a town (the world map's "Leave and travel there"): set off as
    soon as the party is out on the travel map */
@@ -374,6 +390,9 @@ static void foot_fix(int e0, int c0, int y0)
  * in an encounter leaves it for the next step on the map at that hour. On auto-travel, a step that may take an hour or
  * more (hills, mountains: travel time per step, s030 1462:2ac8) is not begun at 19:00 lest it pass 20:00 by. */
 static long camp_done, camp_due = -1;
+/* a game loaded (saves_on_loaded): its journey, its camp at 20:00 and a trip waiting to start were the old
+   game's (a camp that night already made, a camp due, a journey to take up after it) */
+static void travel_after_load(void) { travel.active = 0; camp_done = 0; camp_due = -1; camp_resume = 0; pend_loc = -1; }
 static long today(void) { return (long)(s16)g_rw(GV_cur_year) * 400 + (s16)g_rw(GV_cur_month) * 32 + (s16)g_rw(GV_cur_day); }
 int travel_camp_needed(void)                /* a member short of Endurance, Strength or Divine Favor */
 {
@@ -586,7 +605,7 @@ static void clamp_hook(void)                          /* clamp_range (lo, hi, v)
 
 void travel_init(void)
 {
-    saves_on_loaded(travel_stop);                    /* (a journey of the game before does not go on in the one loaded, 1.4-RC2) */
+    saves_on_loaded(travel_after_load);                    /* (a journey of the game before does not go on in the one loaded, 1.4-RC2) */
     travel_set(config_get_int("travel.auto", 1), config_get_int("travel.fast", 1));
     hook_install(30, 0x1462, 0x2d44, encounter_weight_hook);
     hook_install(39, 0x1462, 0x0000, watch_chance_hook);
@@ -644,6 +663,7 @@ static int boat_water(int t) { return t == 1 || t == 2 || t == 3; }
    shallows between an island and the coast (both within 4 steps: the Wadden behind the Frisian
    islands, where only small boats went) */
 static unsigned char *shore_dist, *wadden;
+static void map_changed(void) { field_x = -1; free(shore_dist); free(wadden); shore_dist = wadden = 0; }   /* (the plans and the shores worked out anew from the new map) */
 static void dist_from(unsigned char *d, int *q, const int *is_src)
 {
     size_t n = (size_t)mw * mh; int h = 0, tl = 0;

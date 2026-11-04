@@ -569,16 +569,18 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:375` | At a robber knight's tower, challenging him, sneaking up and other tries each leave word that the castle is on its guard for 270 days, a new note each time beside the last. Enough tries filled the game's table of 300 notes, and then nothing new could be noted: "EVENT Failure" at every turn (GitHub issue 8). Now a new note replaces the last, and a saved game's extra copies are dropped as it loads. |
 | `mods/fixes.c:376` | The dwarf king waits behind his own door |
 | `mods/fixes.c:377` | In the mine of the dwarf king with the red hat, the iron door to the king brings him "again", with his hat, once its riddle is solved; but 2 of its 12 riddles led instead to the card where he tells the party to go away, which another door of the mine always brings. Brushing past him there opened the door, but the king was gone for good, so his treasure could no longer be offered back to him (GitHub issue 9). Now every riddle of that door brings the king with his red hat. |
-| `mods/fixes.c:1147` | The store room keeps at most 127 of one item. |
-| `mods/fixes.c:1148` | The store room is full: it keeps 100 kinds of items. |
-| `mods/fixes.c:1318` | abandon the horses |
-| `mods/fixes.c:1700` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
-| `mods/fixes.c:1958` | claim friendship |
-| `mods/fixes.c:2010` | It is $NamedOneName again |
-| `mods/fixes.c:2273` | You need a missile weapon |
-| `mods/fixes.c:2338` | Not bought: nobody in the party has room for another kind of item. |
-| `mods/fixes.c:2356` | Nobody in the party has room for another kind of item. |
-| `mods/fixes.c:2806` | a hook (or { -2 }) for each fix, in the same order |
+| `mods/fixes.c:378` | Every prayer asks who it is for |
+| `mods/fixes.c:379` | A prayer from the character sheet asks who it is for, but one a card calls for (calling on a saint in an encounter or in a town) did not: the game took it as a prayer for the whole party, and what the saint gives one person (a boost, healing) went to the party's leader, though another prayed and spent the Divine Favor. Praying with P, without choosing, did the same. Now every prayer asks who it is for, the one who prays first, and a prayer made without choosing helps the one who prays. |
+| `mods/fixes.c:1188` | The store room keeps at most 127 of one item. |
+| `mods/fixes.c:1189` | The store room is full: it keeps 100 kinds of items. |
+| `mods/fixes.c:1359` | abandon the horses |
+| `mods/fixes.c:1741` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
+| `mods/fixes.c:1999` | claim friendship |
+| `mods/fixes.c:2051` | It is $NamedOneName again |
+| `mods/fixes.c:2314` | You need a missile weapon |
+| `mods/fixes.c:2379` | Not bought: nobody in the party has room for another kind of item. |
+| `mods/fixes.c:2397` | Nobody in the party has room for another kind of item. |
+| `mods/fixes.c:2847` | a hook (or { -2 }) for each fix, in the same order |
 
 ## The interface (ui/)
 
@@ -857,68 +859,70 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/citynav.cpp:276` | other locations you remember |
 | `ui/citynav.cpp:277` | connecting to important districts |
 | `ui/citynav.cpp:277` | to be determined |
-| `ui/citynav.cpp:419` | Go to %s: %s |
-| `ui/citynav.cpp:467` | think better of it |
-| `ui/citynav.cpp:467` | apologizes for disturbing |
-| `ui/citynav.cpp:467` | not to get involved |
-| `ui/citynav.cpp:467` | come back in the morning |
-| `ui/citynav.cpp:486` | simply walk out |
-| `ui/citynav.cpp:494` | leave the city |
-| `ui/citynav.cpp:495` | out of the city |
-| `ui/citynav.cpp:517` | The gate: choose how to get out, and the journey begins in the overland view. |
-| `ui/citynav.cpp:535` | left the city. |
-| `ui/citynav.cpp:536` | too many steps; stopped. |
-| `ui/citynav.cpp:545` | something happened on the way. |
-| `ui/citynav.cpp:545` | leave this place first. |
-| `ui/citynav.cpp:553` | the way is blocked. |
-| `ui/citynav.cpp:559` | cannot find the way from this card. |
-| `ui/citynav.cpp:569` | leading merchant |
-| `ui/citynav.cpp:574` | something happened on the way. |
-| `ui/citynav.cpp:576` | something happened on the way. |
-| `ui/citynav.cpp:576` | leave this place first. |
-| `ui/citynav.cpp:586` | the marketplace by night: choose how to get past the guards to the offices upstairs (press G again there for the office). |
-| `ui/citynav.cpp:587` | the marketplace by night: its stalls are shut until 5:00. |
-| `ui/citynav.cpp:608` | not found in this city. |
-| `ui/citynav.cpp:618` | Going to: %s. Press any key or click to stop. |
-| `ui/citynav.cpp:648` | Walking to the city gate |
-| `ui/citynav.cpp:648` | Walking to: %s |
-| `ui/citynav.cpp:661` | Any key or click stops the walk. |
-| `ui/citynav.cpp:824` | leading merchant |
-| `ui/citynav.cpp:835` | avoiding them |
-| `ui/citynav.cpp:839` | request an audience |
-| `ui/citynav.cpp:883` | Point at a place to read about it here: what it offers, its quests, its teachers. |
-| `ui/citynav.cpp:894` | Click the tile and the party walks there. |
-| `ui/citynav.cpp:933` | Pick a place and the party walks there through the streets. Press any key or click to stop them. |
-| `ui/citynav.cpp:935` | Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out. |
-| `ui/citynav.cpp:963` | Closed until 5:00 |
-| `ui/citynav.cpp:963` | Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same. |
-| `ui/citynav.cpp:967` | Turned away until %d %s |
-| `ui/citynav.cpp:967` | The alchemists turned the party away; they will see you again from %d %s, %d:00. |
-| `ui/citynav.cpp:968` | Library shut until %d %s |
-| `ui/citynav.cpp:968` | The monks' library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:969` | Prayers again from %d %s |
-| `ui/citynav.cpp:969` | The party prayed with the monks; they may again from %d %s, %d:00. |
-| `ui/citynav.cpp:970` | Library shut until %d %s |
-| `ui/citynav.cpp:970` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:988` | Quest chance %d%% |
-| `ui/citynav.cpp:989` | A merchant may offer a quest after you have bought or sold something. |
-| `ui/citynav.cpp:990` | No quests until %d %s |
-| `ui/citynav.cpp:991` | On a quest for them |
-| `ui/citynav.cpp:992` | Your reward is waiting |
-| `ui/citynav.cpp:993` | No quests: reputation too low |
-| `ui/citynav.cpp:998` |  Until %d %s, %d:00. |
-| `ui/citynav.cpp:1006` | Your quest:  |
-| `ui/citynav.cpp:1006` | see the world map (M) |
-| `ui/citynav.cpp:1028` | Wares %dq, better than most |
-| `ui/citynav.cpp:1030` | Wares of %dq (most shops sell about 25q). |
-| `ui/citynav.cpp:1042` | What you learned |
-| `ui/citynav.cpp:1042` | The physician:  |
-| `ui/citynav.cpp:1048` | Philosopher's Stone %dq |
-| `ui/citynav.cpp:1048` | Stone %dq, no better |
-| `ui/citynav.cpp:1050` | A Philosopher's Stone of quality %d; the party's is %d. |
-| `ui/citynav.cpp:1050` | A Philosopher's Stone of quality %d; the party has none. |
-| `ui/citynav.cpp:1126` | A teacher to hire (faint: not available now) |
-| `ui/citynav.cpp:1127` | A quest of yours leads here |
+| `ui/citynav.cpp:442` | : the list follows the cards |
+| `ui/citynav.cpp:464` | a walk there found no way |
+| `ui/citynav.cpp:466` | Go to %s: %s |
+| `ui/citynav.cpp:514` | think better of it |
+| `ui/citynav.cpp:514` | apologizes for disturbing |
+| `ui/citynav.cpp:514` | not to get involved |
+| `ui/citynav.cpp:514` | come back in the morning |
+| `ui/citynav.cpp:533` | simply walk out |
+| `ui/citynav.cpp:541` | leave the city |
+| `ui/citynav.cpp:542` | out of the city |
+| `ui/citynav.cpp:564` | The gate: choose how to get out, and the journey begins in the overland view. |
+| `ui/citynav.cpp:604` | left the city. |
+| `ui/citynav.cpp:605` | too many steps; stopped. |
+| `ui/citynav.cpp:614` | something happened on the way. |
+| `ui/citynav.cpp:614` | leave this place first. |
+| `ui/citynav.cpp:622` | the way is blocked. |
+| `ui/citynav.cpp:628` | cannot find the way from this card. |
+| `ui/citynav.cpp:638` | leading merchant |
+| `ui/citynav.cpp:643` | something happened on the way. |
+| `ui/citynav.cpp:645` | something happened on the way. |
+| `ui/citynav.cpp:645` | leave this place first. |
+| `ui/citynav.cpp:655` | the marketplace by night: choose how to get past the guards to the offices upstairs (press G again there for the office). |
+| `ui/citynav.cpp:656` | the marketplace by night: its stalls are shut until 5:00. |
+| `ui/citynav.cpp:677` | not found in this city. |
+| `ui/citynav.cpp:687` | Going to: %s. Press any key or click to stop. |
+| `ui/citynav.cpp:717` | Walking to the city gate |
+| `ui/citynav.cpp:717` | Walking to: %s |
+| `ui/citynav.cpp:730` | Any key or click stops the walk. |
+| `ui/citynav.cpp:902` | leading merchant |
+| `ui/citynav.cpp:913` | avoiding them |
+| `ui/citynav.cpp:917` | request an audience |
+| `ui/citynav.cpp:961` | Point at a place to read about it here: what it offers, its quests, its teachers. |
+| `ui/citynav.cpp:972` | Click the tile and the party walks there. |
+| `ui/citynav.cpp:1011` | Pick a place and the party walks there through the streets. Press any key or click to stop them. |
+| `ui/citynav.cpp:1013` | Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out. |
+| `ui/citynav.cpp:1041` | Closed until 5:00 |
+| `ui/citynav.cpp:1041` | Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same. |
+| `ui/citynav.cpp:1045` | Turned away until %d %s |
+| `ui/citynav.cpp:1045` | The alchemists turned the party away; they will see you again from %d %s, %d:00. |
+| `ui/citynav.cpp:1046` | Library shut until %d %s |
+| `ui/citynav.cpp:1046` | The monks' library (where saints are learned) is shut to the party until %d %s, %d:00. |
+| `ui/citynav.cpp:1047` | Prayers again from %d %s |
+| `ui/citynav.cpp:1047` | The party prayed with the monks; they may again from %d %s, %d:00. |
+| `ui/citynav.cpp:1048` | Library shut until %d %s |
+| `ui/citynav.cpp:1048` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
+| `ui/citynav.cpp:1066` | Quest chance %d%% |
+| `ui/citynav.cpp:1067` | A merchant may offer a quest after you have bought or sold something. |
+| `ui/citynav.cpp:1068` | No quests until %d %s |
+| `ui/citynav.cpp:1069` | On a quest for them |
+| `ui/citynav.cpp:1070` | Your reward is waiting |
+| `ui/citynav.cpp:1071` | No quests: reputation too low |
+| `ui/citynav.cpp:1076` |  Until %d %s, %d:00. |
+| `ui/citynav.cpp:1084` | Your quest:  |
+| `ui/citynav.cpp:1084` | see the world map (M) |
+| `ui/citynav.cpp:1106` | Wares %dq, better than most |
+| `ui/citynav.cpp:1108` | Wares of %dq (most shops sell about 25q). |
+| `ui/citynav.cpp:1120` | What you learned |
+| `ui/citynav.cpp:1120` | The physician:  |
+| `ui/citynav.cpp:1126` | Philosopher's Stone %dq |
+| `ui/citynav.cpp:1126` | Stone %dq, no better |
+| `ui/citynav.cpp:1128` | A Philosopher's Stone of quality %d; the party's is %d. |
+| `ui/citynav.cpp:1128` | A Philosopher's Stone of quality %d; the party has none. |
+| `ui/citynav.cpp:1204` | A teacher to hire (faint: not available now) |
+| `ui/citynav.cpp:1205` | A quest of yours leads here |
 | `ui/createview.cpp:109` | A new character |
 | `ui/createview.cpp:110` | %s, called %s, age %d |
 | `ui/createview.cpp:111` | %s, called %s |
@@ -1027,98 +1031,98 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/gamedata.cpp:108` | Alchemical ingredients |
 | `ui/gamedata.cpp:113` | Missile weapon |
 | `ui/gamedata.cpp:114` | Alchemical ingredient |
-| `ui/gamedata.cpp:203` | Rufinus of G |
-| `ui/gamedata.cpp:204` | Leonard of M |
-| `ui/gamedata.cpp:204` | Nicolaus of A |
-| `ui/gamedata.cpp:206` | Studded Lthr |
-| `ui/gamedata.cpp:206` | Studded Leather |
-| `ui/gamedata.cpp:207` | East. Black Bean |
-| `ui/gamedata.cpp:207` | Eastern Black Bean |
-| `ui/gamedata.cpp:207` | Phleqmatic Base |
-| `ui/gamedata.cpp:207` | Phlegmatic Base |
-| `ui/gamedata.cpp:207` | Melanc. Base |
-| `ui/gamedata.cpp:207` | Melancholic Base |
-| `ui/gamedata.cpp:208` | Essence o'Grace |
-| `ui/gamedata.cpp:208` | Essence of Grace |
-| `ui/gamedata.cpp:208` | Birth Confess. |
-| `ui/gamedata.cpp:208` | Birth Confession |
-| `ui/gamedata.cpp:208` | Illum. Gospel |
-| `ui/gamedata.cpp:208` | Illuminated Gospel |
-| `ui/gamedata.cpp:209` | S.Mary's Tears |
-| `ui/gamedata.cpp:209` | St. Mary's Tears |
-| `ui/gamedata.cpp:209` | S.Arnulf GreatSwrd |
-| `ui/gamedata.cpp:209` | St. Arnulf's Greatsword |
-| `ui/gamedata.cpp:209` | S.Catherine Pain |
-| `ui/gamedata.cpp:209` | St. Catherine's Pain |
-| `ui/gamedata.cpp:210` | S.Olaf Battleaxe |
-| `ui/gamedata.cpp:210` | St. Olaf's Battleaxe |
-| `ui/gamedata.cpp:210` | S.George GreatSwrd |
-| `ui/gamedata.cpp:210` | St. George's Greatsword |
-| `ui/gamedata.cpp:210` | S.Dunstan Hammer |
-| `ui/gamedata.cpp:210` | St. Dunstan's Hammer |
-| `ui/gamedata.cpp:211` | Spar of S.Erasmus |
-| `ui/gamedata.cpp:211` | Spar of St. Erasmus |
-| `ui/gamedata.cpp:211` | Staff of S.Patrick |
-| `ui/gamedata.cpp:211` | Staff of St. Patrick |
-| `ui/gamedata.cpp:211` | S.Hubert's Bow |
-| `ui/gamedata.cpp:211` | St. Hubert's Bow |
-| `ui/gamedata.cpp:212` | S.Edward's Ring |
-| `ui/gamedata.cpp:212` | St. Edward's Ring |
-| `ui/gamedata.cpp:212` | S.Emygdius Finger |
-| `ui/gamedata.cpp:212` | St. Emygdius' Finger |
-| `ui/gamedata.cpp:212` | S.Gabriel's Horn |
-| `ui/gamedata.cpp:212` | St. Gabriel's Horn |
-| `ui/gamedata.cpp:213` | S.Ita's Needle |
-| `ui/gamedata.cpp:213` | St. Ita's Needle |
-| `ui/gamedata.cpp:213` | S.Kessog Medallion |
-| `ui/gamedata.cpp:213` | St. Kessog's Medallion |
-| `ui/gamedata.cpp:213` | S.Odo's Testament |
-| `ui/gamedata.cpp:213` | St. Odo's Testament |
-| `ui/gamedata.cpp:214` | S.Odilia's Oil |
-| `ui/gamedata.cpp:214` | St. Odilia's Oil |
-| `ui/gamedata.cpp:214` | S.Raphael's Water |
-| `ui/gamedata.cpp:214` | St. Raphael's Water |
-| `ui/gamedata.cpp:214` | S.Swithbert's Foot |
-| `ui/gamedata.cpp:214` | St. Swithbert's Foot |
-| `ui/gamedata.cpp:215` | S.Willehad's Shoe |
-| `ui/gamedata.cpp:215` | St. Willehad's Shoe |
-| `ui/gamedata.cpp:215` | S.Thealeaus' Spoon |
-| `ui/gamedata.cpp:215` | St. Thealeaus' Spoon |
-| `ui/gamedata.cpp:218` | St.Christina, Astonish. |
-| `ui/gamedata.cpp:218` | St. Christina the Astonishing |
-| `ui/gamedata.cpp:218` | St.Gertrude o'Nivelles |
-| `ui/gamedata.cpp:218` | St. Gertrude of Nivelles |
-| `ui/gamedata.cpp:219` | St.Gregory Thaumaturg. |
-| `ui/gamedata.cpp:219` | St. Gregory Thaumaturgus |
-| `ui/gamedata.cpp:219` | St. Thalelaeus the Merciful |
-| `ui/gamedata.cpp:220` | St.Victor o'Marseilles |
-| `ui/gamedata.cpp:220` | St. Victor of Marseilles |
-| `ui/gamedata.cpp:220` | St.Edward, Confessor |
-| `ui/gamedata.cpp:220` | St. Edward the Confessor |
-| `ui/gamedata.cpp:221` | St.Julian, Hospitaler |
-| `ui/gamedata.cpp:221` | St. Julian the Hospitaller |
-| `ui/gamedata.cpp:224` | Gerard of Cremona's |
-| `ui/gamedata.cpp:224` | Gerard of C's |
-| `ui/gamedata.cpp:224` | Gerard of Cremona's |
-| `ui/gamedata.cpp:224` | Petrus Bonus' |
-| `ui/gamedata.cpp:225` | Nicolas Flammel's |
-| `ui/gamedata.cpp:225` | Raimundus Ls' |
-| `ui/gamedata.cpp:225` | Raimundus Lullus' |
-| `ui/gamedata.cpp:226` | Raimundus L's |
-| `ui/gamedata.cpp:226` | Raimundus Lullus' |
-| `ui/gamedata.cpp:226` | Arnald of V's |
-| `ui/gamedata.cpp:226` | Arnald of Villanova's |
-| `ui/gamedata.cpp:226` | Albertus Ms' |
-| `ui/gamedata.cpp:226` | Albertus Magnus' |
-| `ui/gamedata.cpp:227` | Albertus M's |
-| `ui/gamedata.cpp:227` | Albertus Magnus' |
-| `ui/gamedata.cpp:227` | Rob de Ketene's |
-| `ui/gamedata.cpp:227` | John of Rupescissa's |
-| `ui/gamedata.cpp:228` | John Rupesc.'s |
-| `ui/gamedata.cpp:228` | John of Rupescissa's |
-| `ui/gamedata.cpp:228` | Michael Scot's |
-| `ui/gamedata.cpp:229` | Essence o'Grace |
-| `ui/gamedata.cpp:229` | Essence of Grace |
+| `ui/gamedata.cpp:219` | Rufinus of G |
+| `ui/gamedata.cpp:220` | Leonard of M |
+| `ui/gamedata.cpp:220` | Nicolaus of A |
+| `ui/gamedata.cpp:222` | Studded Lthr |
+| `ui/gamedata.cpp:222` | Studded Leather |
+| `ui/gamedata.cpp:223` | East. Black Bean |
+| `ui/gamedata.cpp:223` | Eastern Black Bean |
+| `ui/gamedata.cpp:223` | Phleqmatic Base |
+| `ui/gamedata.cpp:223` | Phlegmatic Base |
+| `ui/gamedata.cpp:223` | Melanc. Base |
+| `ui/gamedata.cpp:223` | Melancholic Base |
+| `ui/gamedata.cpp:224` | Essence o'Grace |
+| `ui/gamedata.cpp:224` | Essence of Grace |
+| `ui/gamedata.cpp:224` | Birth Confess. |
+| `ui/gamedata.cpp:224` | Birth Confession |
+| `ui/gamedata.cpp:224` | Illum. Gospel |
+| `ui/gamedata.cpp:224` | Illuminated Gospel |
+| `ui/gamedata.cpp:225` | S.Mary's Tears |
+| `ui/gamedata.cpp:225` | St. Mary's Tears |
+| `ui/gamedata.cpp:225` | S.Arnulf GreatSwrd |
+| `ui/gamedata.cpp:225` | St. Arnulf's Greatsword |
+| `ui/gamedata.cpp:225` | S.Catherine Pain |
+| `ui/gamedata.cpp:225` | St. Catherine's Pain |
+| `ui/gamedata.cpp:226` | S.Olaf Battleaxe |
+| `ui/gamedata.cpp:226` | St. Olaf's Battleaxe |
+| `ui/gamedata.cpp:226` | S.George GreatSwrd |
+| `ui/gamedata.cpp:226` | St. George's Greatsword |
+| `ui/gamedata.cpp:226` | S.Dunstan Hammer |
+| `ui/gamedata.cpp:226` | St. Dunstan's Hammer |
+| `ui/gamedata.cpp:227` | Spar of S.Erasmus |
+| `ui/gamedata.cpp:227` | Spar of St. Erasmus |
+| `ui/gamedata.cpp:227` | Staff of S.Patrick |
+| `ui/gamedata.cpp:227` | Staff of St. Patrick |
+| `ui/gamedata.cpp:227` | S.Hubert's Bow |
+| `ui/gamedata.cpp:227` | St. Hubert's Bow |
+| `ui/gamedata.cpp:228` | S.Edward's Ring |
+| `ui/gamedata.cpp:228` | St. Edward's Ring |
+| `ui/gamedata.cpp:228` | S.Emygdius Finger |
+| `ui/gamedata.cpp:228` | St. Emygdius' Finger |
+| `ui/gamedata.cpp:228` | S.Gabriel's Horn |
+| `ui/gamedata.cpp:228` | St. Gabriel's Horn |
+| `ui/gamedata.cpp:229` | S.Ita's Needle |
+| `ui/gamedata.cpp:229` | St. Ita's Needle |
+| `ui/gamedata.cpp:229` | S.Kessog Medallion |
+| `ui/gamedata.cpp:229` | St. Kessog's Medallion |
+| `ui/gamedata.cpp:229` | S.Odo's Testament |
+| `ui/gamedata.cpp:229` | St. Odo's Testament |
+| `ui/gamedata.cpp:230` | S.Odilia's Oil |
+| `ui/gamedata.cpp:230` | St. Odilia's Oil |
+| `ui/gamedata.cpp:230` | S.Raphael's Water |
+| `ui/gamedata.cpp:230` | St. Raphael's Water |
+| `ui/gamedata.cpp:230` | S.Swithbert's Foot |
+| `ui/gamedata.cpp:230` | St. Swithbert's Foot |
+| `ui/gamedata.cpp:231` | S.Willehad's Shoe |
+| `ui/gamedata.cpp:231` | St. Willehad's Shoe |
+| `ui/gamedata.cpp:231` | S.Thealeaus' Spoon |
+| `ui/gamedata.cpp:231` | St. Thealeaus' Spoon |
+| `ui/gamedata.cpp:234` | St.Christina, Astonish. |
+| `ui/gamedata.cpp:234` | St. Christina the Astonishing |
+| `ui/gamedata.cpp:234` | St.Gertrude o'Nivelles |
+| `ui/gamedata.cpp:234` | St. Gertrude of Nivelles |
+| `ui/gamedata.cpp:235` | St.Gregory Thaumaturg. |
+| `ui/gamedata.cpp:235` | St. Gregory Thaumaturgus |
+| `ui/gamedata.cpp:235` | St. Thalelaeus the Merciful |
+| `ui/gamedata.cpp:236` | St.Victor o'Marseilles |
+| `ui/gamedata.cpp:236` | St. Victor of Marseilles |
+| `ui/gamedata.cpp:236` | St.Edward, Confessor |
+| `ui/gamedata.cpp:236` | St. Edward the Confessor |
+| `ui/gamedata.cpp:237` | St.Julian, Hospitaler |
+| `ui/gamedata.cpp:237` | St. Julian the Hospitaller |
+| `ui/gamedata.cpp:240` | Gerard of Cremona's |
+| `ui/gamedata.cpp:240` | Gerard of C's |
+| `ui/gamedata.cpp:240` | Gerard of Cremona's |
+| `ui/gamedata.cpp:240` | Petrus Bonus' |
+| `ui/gamedata.cpp:241` | Nicolas Flammel's |
+| `ui/gamedata.cpp:241` | Raimundus Ls' |
+| `ui/gamedata.cpp:241` | Raimundus Lullus' |
+| `ui/gamedata.cpp:242` | Raimundus L's |
+| `ui/gamedata.cpp:242` | Raimundus Lullus' |
+| `ui/gamedata.cpp:242` | Arnald of V's |
+| `ui/gamedata.cpp:242` | Arnald of Villanova's |
+| `ui/gamedata.cpp:242` | Albertus Ms' |
+| `ui/gamedata.cpp:242` | Albertus Magnus' |
+| `ui/gamedata.cpp:243` | Albertus M's |
+| `ui/gamedata.cpp:243` | Albertus Magnus' |
+| `ui/gamedata.cpp:243` | Rob de Ketene's |
+| `ui/gamedata.cpp:243` | John of Rupescissa's |
+| `ui/gamedata.cpp:244` | John Rupesc.'s |
+| `ui/gamedata.cpp:244` | John of Rupescissa's |
+| `ui/gamedata.cpp:244` | Michael Scot's |
+| `ui/gamedata.cpp:245` | Essence o'Grace |
+| `ui/gamedata.cpp:245` | Essence of Grace |
 | `ui/guide.cpp:31` | The party: Endurance, ... |
 | `ui/guide.cpp:39` | Darklands has no tutorial: this page sums up how it works, with the advice players have long given one another. F11 (a Darklands+ addition) lists the keys and clicks of the current screen at any time; a right-click opens the game's menus. |
 | `ui/guide.cpp:42` | Lines in this color depend on something Darklands+ adds (most can be switched off in F12 > Settings). |
@@ -1442,75 +1446,76 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/margins.cpp:73` | Traveling, near  |
 | `ui/margins.cpp:194` | University: new saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone, teachers to hire (it expects {Latin} and a sharp mind). |
 | `ui/margins.cpp:195` | Cathedral: donations for {Divine Favor} (and maybe {Virtue}), an errand for the canon (a relic), the patron saint's story, sanctuary. |
-| `ui/margins.cpp:197` | armor and shields |
-| `ui/margins.cpp:197` | bows, crossbows and guns |
-| `ui/margins.cpp:198` | hammers, maces, flails and polearms (pikes, halberds, spears, staves) |
-| `ui/margins.cpp:199` | clothing and soft armor (padded, leather, studded leather, cuir bouilli) |
-| `ui/margins.cpp:265` | the party's best  |
-| `ui/margins.cpp:266` | nobody would learn |
-| `ui/margins.cpp:295` | Teachers here: a lesson a day at the inn, for a fee |
-| `ui/margins.cpp:296` | Under each, who would learn, and their skill now. |
-| `ui/margins.cpp:310` | Philosopher's Stone %dq |
-| `ui/margins.cpp:325` | A better Philosopher's Stone, for a price: |
-| `ui/margins.cpp:327` |  the alchemist's, quality %d; |
-| `ui/margins.cpp:328` |  the university's, quality %d; |
-| `ui/margins.cpp:330` |  The party's is %d%s. |
-| `ui/margins.cpp:330` |  The party has none. |
-| `ui/margins.cpp:330` | : nothing to gain here |
-| `ui/margins.cpp:370` | Notable shops |
-| `ui/margins.cpp:370` | Notable shops |
-| `ui/margins.cpp:372` | %s: %s of %dq (most shops sell about 25q). |
-| `ui/margins.cpp:377` | St.Edward, Confessor |
-| `ui/margins.cpp:385` | Saints taught here |
-| `ui/margins.cpp:402` |  (someone in the party knows this saint):  |
-| `ui/margins.cpp:402` |  (nobody in the party knows this saint):  |
-| `ui/margins.cpp:417` | Formulae sold here |
-| `ui/margins.cpp:436` | Someone in the party knows this formula. |
-| `ui/margins.cpp:436` | Nobody in the party knows this formula. |
-| `ui/margins.cpp:457` | Teachers to be hired |
-| `ui/margins.cpp:467` | %s: %s, up to %d |
-| `ui/margins.cpp:467` | %s: %s (their skill %d) |
-| `ui/margins.cpp:469` | A lesson a day at the inn, for a fee. Who would learn, and their skill now: |
-| `ui/margins.cpp:508` | Can't walk there |
-| `ui/margins.cpp:572` | Blessings and potions |
-| `ui/margins.cpp:647` | The first of these ends in  |
-| `ui/margins.cpp:647` | , the last in  |
-| `ui/margins.cpp:667` | Every member alike. |
-| `ui/margins.cpp:669` | Every member:  |
-| `ui/margins.cpp:705` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
-| `ui/margins.cpp:714` | Reputation %d |
-| `ui/margins.cpp:732` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
-| `ui/margins.cpp:732` | Below 0 its shops ask more and pay less: 1% for every 2 points below 0, up to 9%. |
-| `ui/margins.cpp:736` |   Changes seen since this game was loaded: |
-| `ui/margins.cpp:739` | the overland view |
-| `ui/margins.cpp:739` | , after choosing " |
-| `ui/margins.cpp:757` | The town counts as hostile: its gates and people turn the party away. |
-| `ui/margins.cpp:759` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
-| `ui/margins.cpp:770` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
-| `ui/margins.cpp:782` | Preparing for war |
-| `ui/margins.cpp:783` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
-| `ui/margins.cpp:785` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
-| `ui/margins.cpp:809` | The party has goods stored here (F12 > Journal > Stored). |
-| `ui/margins.cpp:814` | No blessings or potions at work. |
-| `ui/margins.cpp:823` | C: camp here |
-| `ui/margins.cpp:824` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
-| `ui/margins.cpp:828` | Go to a place here |
-| `ui/margins.cpp:828` | G: go to a place here |
-| `ui/margins.cpp:834` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
-| `ui/margins.cpp:883` | None taken on. |
-| `ui/margins.cpp:915` | Travel there |
-| `ui/margins.cpp:932` | ... %d more on the world map (M) |
-| `ui/margins.cpp:949` | Night in the streets |
-| `ui/margins.cpp:953` | almost always |
-| `ui/margins.cpp:954` | about %d time%s in 10 |
-| `ui/margins.cpp:955` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's {Stealth} and {Streetwise})%s. An inn is the safe place to wait for morning. |
-| `ui/margins.cpp:958` | , as set in F12 > Mods (Night encounters in the streets) |
-| `ui/margins.cpp:997` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
-| `ui/margins.cpp:997` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
-| `ui/margins.cpp:999` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
-| `ui/margins.cpp:999` | It is day (from 5:00 to 19:00). |
-| `ui/margins.cpp:1026` | %s in bank notes |
-| `ui/margins.cpp:1040` | F11: the keys and clicks of this screen. |
+| `ui/margins.cpp:199` | armor and shields |
+| `ui/margins.cpp:199` | bows, crossbows and guns |
+| `ui/margins.cpp:200` | weapons, armor and shields |
+| `ui/margins.cpp:200` | hammers, maces, flails and polearms (pikes, halberds, spears, staves) |
+| `ui/margins.cpp:201` | clothing and soft armor (padded, leather, studded leather, cuir bouilli) |
+| `ui/margins.cpp:267` | the party's best  |
+| `ui/margins.cpp:268` | nobody would learn |
+| `ui/margins.cpp:297` | Teachers here: a lesson a day at the inn, for a fee |
+| `ui/margins.cpp:298` | Under each, who would learn, and their skill now. |
+| `ui/margins.cpp:312` | Philosopher's Stone %dq |
+| `ui/margins.cpp:327` | A better Philosopher's Stone, for a price: |
+| `ui/margins.cpp:329` |  the alchemist's, quality %d; |
+| `ui/margins.cpp:330` |  the university's, quality %d; |
+| `ui/margins.cpp:332` |  The party's is %d%s. |
+| `ui/margins.cpp:332` |  The party has none. |
+| `ui/margins.cpp:332` | : nothing to gain here |
+| `ui/margins.cpp:372` | Notable shops |
+| `ui/margins.cpp:372` | Notable shops |
+| `ui/margins.cpp:374` | %s: %s of %dq (most shops sell about 25q). |
+| `ui/margins.cpp:379` | St.Edward, Confessor |
+| `ui/margins.cpp:387` | Saints taught here |
+| `ui/margins.cpp:404` |  (someone in the party knows this saint):  |
+| `ui/margins.cpp:404` |  (nobody in the party knows this saint):  |
+| `ui/margins.cpp:419` | Formulae sold here |
+| `ui/margins.cpp:438` | Someone in the party knows this formula. |
+| `ui/margins.cpp:438` | Nobody in the party knows this formula. |
+| `ui/margins.cpp:459` | Teachers to be hired |
+| `ui/margins.cpp:469` | %s: %s, up to %d |
+| `ui/margins.cpp:469` | %s: %s (their skill %d) |
+| `ui/margins.cpp:471` | A lesson a day at the inn, for a fee. Who would learn, and their skill now: |
+| `ui/margins.cpp:510` | Can't walk there |
+| `ui/margins.cpp:574` | Blessings and potions |
+| `ui/margins.cpp:649` | The first of these ends in  |
+| `ui/margins.cpp:649` | , the last in  |
+| `ui/margins.cpp:669` | Every member alike. |
+| `ui/margins.cpp:671` | Every member:  |
+| `ui/margins.cpp:707` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
+| `ui/margins.cpp:716` | Reputation %d |
+| `ui/margins.cpp:734` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
+| `ui/margins.cpp:734` | Below 0 its shops ask more and pay less: 1% for every 2 points below 0, up to 9%. |
+| `ui/margins.cpp:738` |   Changes seen since this game was loaded: |
+| `ui/margins.cpp:741` | the overland view |
+| `ui/margins.cpp:741` | , after choosing " |
+| `ui/margins.cpp:759` | The town counts as hostile: its gates and people turn the party away. |
+| `ui/margins.cpp:761` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
+| `ui/margins.cpp:772` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
+| `ui/margins.cpp:784` | Preparing for war |
+| `ui/margins.cpp:785` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
+| `ui/margins.cpp:787` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
+| `ui/margins.cpp:811` | The party has goods stored here (F12 > Journal > Stored). |
+| `ui/margins.cpp:816` | No blessings or potions at work. |
+| `ui/margins.cpp:825` | C: camp here |
+| `ui/margins.cpp:826` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
+| `ui/margins.cpp:830` | Go to a place here |
+| `ui/margins.cpp:830` | G: go to a place here |
+| `ui/margins.cpp:836` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
+| `ui/margins.cpp:885` | None taken on. |
+| `ui/margins.cpp:917` | Travel there |
+| `ui/margins.cpp:934` | ... %d more on the world map (M) |
+| `ui/margins.cpp:951` | Night in the streets |
+| `ui/margins.cpp:955` | almost always |
+| `ui/margins.cpp:956` | about %d time%s in 10 |
+| `ui/margins.cpp:957` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's {Stealth} and {Streetwise})%s. An inn is the safe place to wait for morning. |
+| `ui/margins.cpp:960` | , as set in F12 > Mods (Night encounters in the streets) |
+| `ui/margins.cpp:999` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
+| `ui/margins.cpp:999` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
+| `ui/margins.cpp:1001` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
+| `ui/margins.cpp:1001` | It is day (from 5:00 to 19:00). |
+| `ui/margins.cpp:1028` | %s in bank notes |
+| `ui/margins.cpp:1042` | F11: the keys and clicks of this screen. |
 | `ui/margins_battle.cpp:83` | The battle runs again (the key: Space). Any order being given is given first. |
 | `ui/margins_battle.cpp:84` | This member's order is given; the battle stays paused, to give others theirs (the key: Enter). |
 | `ui/margins_battle.cpp:85` | Every kind of enemy on the field: attributes, weapons, armor (the key: E). |
@@ -1591,81 +1596,87 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/nsdraw.cpp:134` | Everyone's shield is as good or better. |
 | `ui/nsdraw.cpp:149` |  Too heavy for  |
 | `ui/nsdraw.cpp:149` |  (it needs {Strength: |
-| `ui/nsdraw.cpp:168` | Many encounters let you use it. |
-| `ui/nsdraw.cpp:168` | Some encounters let you use it. |
-| `ui/nsdraw.cpp:168` | A few encounters let you use it. |
-| `ui/nsdraw.cpp:168` | No encounter asks for it. |
-| `ui/nsdraw.cpp:182` | For climbing: over a town's walls at night, into a castle and the like, the best climber goes up first and lets it down for the others (without one, each climbs alone). One in the party is enough. |
-| `ui/nsdraw.cpp:183` | For picking locks: shops at night, doors, chests, a cell. One in the party is enough. |
-| `ui/nsdraw.cpp:184` | St. Cecilia, the patron of music, raises the party's standing in a town greatly for a member who carries an instrument. |
-| `ui/nsdraw.cpp:186` | Nothing in the game asks for one (no card, no saint): it is worth only what it sells for. |
-| `ui/nsdraw.cpp:189` | One of the Six Keys: the gate to the last chamber of the Baphomet's lair opens only for a party that carries all six. Keep it. |
-| `ui/nsdraw.cpp:190` | A trophy: the boars' tusks, thought to be good-luck charms. Nothing in the game asks for them and no shop buys them. |
-| `ui/nsdraw.cpp:191` | A trophy. Nothing in the game asks for it. |
-| `ui/nsdraw.cpp:192` | A skeleton near a cemetery wants its bone back: give it this and it will talk with you. |
-| `ui/nsdraw.cpp:193` | The dragon's gold cup, taken back from the thief: brandish it before the dragon and it will not breathe fire on its treasure. |
-| `ui/nsdraw.cpp:195` | Wanted by whoever sent you to fetch it: bring it to them (the quests on the world map, M, say who and where). |
-| `ui/nsdraw.cpp:218` | No formula uses it. |
-| `ui/nsdraw.cpp:248` | ; the other two grades don't use it |
-| `ui/nsdraw.cpp:248` | ; the other grade doesn't use it |
-| `ui/nsdraw.cpp:251` | Dots: the grades (1 to 3) whose formula uses it, gold where the party knows it. Point at a potion for more. |
-| `ui/nsdraw.cpp:252` | Nobody in the party knows a formula with it. Dots: the grades (1 to 3) that use it; point at a potion for more. |
-| `ui/nsdraw.cpp:265` |  for about a day (19 to 21 hours). |
-| `ui/nsdraw.cpp:265` |  permanently, adding up with the next dose. |
-| `ui/nsdraw.cpp:267` | Thrown in a battle: a reeking cloud (up to 4 by 4 paces). Whoever it hits loses half their {Agility}, {Perception} and weapon skills and everyone else in the cloud a quarter, allies and enemies alike, while it lasts (longer at higher grades). |
-| `ui/nsdraw.cpp:268` | Thrown: blinding powder. The target loses a third of their {Agility}, {Perception} and weapon skills and is blinded (cannot shoot, throw or take orders well); those beside them lose a quarter. Lasts longer at higher grades. |
-| `ui/nsdraw.cpp:269` | Thrown: a cloud of black smoke. Shots through any cloud hit far less often (a fifth of the chance), and fighting from inside one costs 15 to hit. Lasts longer at higher grades. (The battle menu never offers it to the party: it is used on cards, and enemies throw it.) |
-| `ui/nsdraw.cpp:270` | Thrown: itching powder. Weapon skills fall by five times the armor worn on the body and limbs: the heavier the armor, the worse the itch. Lasts longer at higher grades. |
-| `ui/nsdraw.cpp:271` | Thrown: acid that eats the target's armor, lowering its quality by 4, 6 or 8 (grade 1, 2, 3) plus up to 8 more at random; armor eaten to nothing is destroyed, and where there is no armor (or damage is left over) it wounds the target. Also dissolves locks. |
-| `ui/nsdraw.cpp:272` | Thrown: a poison cloud (up to 2 by 2 paces) whose wounds no armor stops, worse for weaker targets; stronger at higher grades. |
-| `ui/nsdraw.cpp:273` | Thrown: a blinding flash. The target and every enemy of the thrower on that floor who faces it are blinded for a while (longer at higher grades); the thrower's allies are spared. |
-| `ui/nsdraw.cpp:274` | Thrown: it bursts with great force: damage 4, 6 or 8 (grade 1, 2, 3) plus up to 8 more at random, penetration 6, 7 or 8 on the target and less around it; it also wears the armor down by a quarter of the damage. |
-| `ui/nsdraw.cpp:275` | Thrown: burning pitch that no armor stops: damage 4, 6 or 8 (grade 1, 2, 3) plus up to 6 more at random, a quarter of that further off, minus a tenth of the armor's quality (and of Firewall's protection); it also wears the armor down. |
-| `ui/nsdraw.cpp:276` | Thrown: a pool of sticky sludge (up to 4 by 4 paces) that slows whoever crosses it to 1/2, 3/8 or 1/4 of their pace (grade 1, 2, 3), for a long while. |
-| `ui/nsdraw.cpp:277` | Used (P in the inventory) by a member: {*Damage} +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land with any weapon except an impact weapon or a flail. Damage only, not the chance to hit; |
-| `ui/nsdraw.cpp:278` | Used (P in the inventory) by a member: {*Damage} +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land, with any weapon: bows, guns, impact weapons and fists too. Damage only, not the chance to hit; |
-| `ui/nsdraw.cpp:279` | Used by a member: {*Penetration} +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land with a blade or a polearm,  |
-| `ui/nsdraw.cpp:279` | up to 15 in all |
-| `ui/nsdraw.cpp:279` | past 15 the penetration starts again from 0 |
-| `ui/nsdraw.cpp:280` | Used by a member: {*Penetration} +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land, with any weapon,  |
-| `ui/nsdraw.cpp:280` | up to 15 in all |
-| `ui/nsdraw.cpp:280` | past 15 the penetration starts again from 0 (a bow's 6 + 10 hits as 0) |
-| `ui/nsdraw.cpp:281` | Used by a member: {*Weapon Quality} the weapon in hand counts as 14, 22 or 30 points higher in quality (grade 1, 2, 3; up to 99),  |
-| `ui/nsdraw.cpp:281` | if it is an impact weapon, a flail or a handgun |
-| `ui/nsdraw.cpp:281` | including bows, guns and fists |
-| `ui/nsdraw.cpp:281` | , for about a day (19 to 21 hours). Each 10 points of quality add one step of damage. A second dose adds to the first. |
-| `ui/nsdraw.cpp:282` | Used by a member, on every hit they land, with any weapon: grade 1 {*Penetration} +14 penetration; grade 2 {*Damage} +1 damage and {*Penetration} +6 penetration; grade 3 {*Damage} +1 damage and {*Penetration} +14 penetration.  |
-| `ui/nsdraw.cpp:282` | Penetration counts up to 15 in all |
-| `ui/nsdraw.cpp:282` | Penetration past 15 starts again from 0, so grades 1 and 3 lower a bow's penetration |
-| `ui/nsdraw.cpp:283` | Used by a member: +14, +22 or +30 (grade 1, 2, 3) to {Bows}, {Thrown Weapons} and {Missile Devices} (up to 99), for about a day (19 to 21 hours). A second dose adds to the first. |
-| `ui/nsdraw.cpp:284` | Used by a member: {*Armor} their armor counts 20, 25 or 30 points better in quality and 1, 2 or 2 levels thicker (grade 1, 2, 3) against every blow and shot, for about a day (19 to 21 hours). A second dose while one is active keeps the stronger. |
-| `ui/nsdraw.cpp:285` | Used by a member: {*Armor} +1, +2 or +3 (grade 1, 2, 3) to their armor against every hit, blow or shot, permanently; doses add up. |
-| `ui/nsdraw.cpp:286` | Drinking it yields just one florin: it is meant for cards, where an encounter asks for it (to purify, or to make gold). |
-| `ui/nsdraw.cpp:289` | 9-14, 15-21 or 22-29 |
-| `ui/nsdraw.cpp:289` | 6-11, 8-13 or 10-15 |
-| `ui/nsdraw.cpp:289` | 6-11, 8-13 or 10-15 |
-| `ui/nsdraw.cpp:289` | 6-11, 8-15 or 10-17 |
-| `ui/nsdraw.cpp:291` |  (grade 1, 2, 3) for about a day: the current value rises, past the maximum if need be; the maximum itself does not change.  |
-| `ui/nsdraw.cpp:292` | On a wounded member it heals:  |
-| `ui/nsdraw.cpp:292` | when it wears off, only the part still above the maximum is lost, so the healing stays. |
-| `ui/nsdraw.cpp:292` | but when it wears off the whole amount is taken back, healed or not. |
-| `ui/nsdraw.cpp:293` | When it wears off, what it added is lost. |
-| `ui/nsdraw.cpp:294` |  A second dose while the first is active adds only what goes beyond it. |
-| `ui/nsdraw.cpp:296` | Drunk: permanently heals 50, 70 or 90% of the {Strength} lost to wounds (grade 1, 2, 3), and raises {Endurance} by 9-14, 15-21 or 22-29 for about 30 hours. |
-| `ui/nsdraw.cpp:298` | Drunk: {*Fire} protection against fire for about a day (19 to 21 hours): Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3). A second dose keeps the stronger. |
-| `ui/nsdraw.cpp:299` | Drunk: {*Fire} permanent protection against fire: Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3). |
-| `ui/nsdraw.cpp:299` |  It also adds {*Armor} 16 to the armor permanently. |
-| `ui/nsdraw.cpp:315` |  when equipped |
-| `ui/nsdraw.cpp:340` | a light load: no hindrance |
-| `ui/nsdraw.cpp:340` | a normal load: blows hand to hand a fifth slower |
-| `ui/nsdraw.cpp:341` | a heavy load: blows at the usual pace, dodging hampered |
-| `ui/nsdraw.cpp:341` | overloaded: blows two thirds slower, little or no dodging |
-| `ui/nsdraw.cpp:344` | Worn by %s: load %d \xc2\xbb %d of %d, %s%s |
-| `ui/nsdraw.cpp:408` | Load %d \xc2\xbb %d of %d |
-| `ui/nsdraw.cpp:409` | Load %d of %d |
-| `ui/nsdraw.cpp:465` | Spare equipment |
-| `ui/nsdraw.cpp:465` | Tools and other goods |
-| `ui/nsdraw.cpp:465` | Trophies and quest items |
+| `ui/nsdraw.cpp:171` | Many encounters let you use it. |
+| `ui/nsdraw.cpp:171` | Some encounters let you use it. |
+| `ui/nsdraw.cpp:171` | A few encounters let you use it. |
+| `ui/nsdraw.cpp:171` | No encounter asks for it. |
+| `ui/nsdraw.cpp:185` | For climbing: over a town's walls at night, into a castle and the like, the best climber goes up first and lets it down for the others (without one, each climbs alone). One in the party is enough. |
+| `ui/nsdraw.cpp:186` | For picking locks: shops at night, doors, chests, a cell. One in the party is enough. |
+| `ui/nsdraw.cpp:189` | St. Cecilia, the patron of music, raises the party's standing in a town greatly for a member who carries an instrument. |
+| `ui/nsdraw.cpp:190` |  of the new encounters asks |
+| `ui/nsdraw.cpp:190` |  of the new encounters ask |
+| `ui/nsdraw.cpp:190` |  for one too. |
+| `ui/nsdraw.cpp:194` |  of the new encounters asks |
+| `ui/nsdraw.cpp:194` |  of the new encounters ask |
+| `ui/nsdraw.cpp:194` |  for one; nothing in the game's own cards does. |
+| `ui/nsdraw.cpp:195` | Nothing in the game asks for one (no card, no saint): it is worth only what it sells for. |
+| `ui/nsdraw.cpp:198` | One of the Six Keys: the gate to the last chamber of the Baphomet's lair opens only for a party that carries all six. Keep it. |
+| `ui/nsdraw.cpp:199` | A trophy: the boars' tusks, thought to be good-luck charms. Nothing in the game asks for them and no shop buys them. |
+| `ui/nsdraw.cpp:200` | A trophy. Nothing in the game asks for it. |
+| `ui/nsdraw.cpp:201` | A skeleton near a cemetery wants its bone back: give it this and it will talk with you. |
+| `ui/nsdraw.cpp:202` | The dragon's gold cup, taken back from the thief: brandish it before the dragon and it will not breathe fire on its treasure. |
+| `ui/nsdraw.cpp:204` | Wanted by whoever sent you to fetch it: bring it to them (the quests on the world map, M, say who and where). |
+| `ui/nsdraw.cpp:227` | No formula uses it. |
+| `ui/nsdraw.cpp:257` | ; the other two grades don't use it |
+| `ui/nsdraw.cpp:257` | ; the other grade doesn't use it |
+| `ui/nsdraw.cpp:260` | Dots: the grades (1 to 3) whose formula uses it, gold where the party knows it. Point at a potion for more. |
+| `ui/nsdraw.cpp:261` | Nobody in the party knows a formula with it. Dots: the grades (1 to 3) that use it; point at a potion for more. |
+| `ui/nsdraw.cpp:274` |  for about a day (19 to 21 hours). |
+| `ui/nsdraw.cpp:274` |  permanently, adding up with the next dose. |
+| `ui/nsdraw.cpp:276` | Thrown in a battle: a reeking cloud (up to 4 by 4 paces). Whoever it hits loses half their {Agility}, {Perception} and weapon skills and everyone else in the cloud a quarter, allies and enemies alike, while it lasts (longer at higher grades). |
+| `ui/nsdraw.cpp:277` | Thrown: blinding powder. The target loses a third of their {Agility}, {Perception} and weapon skills and is blinded (cannot shoot, throw or take orders well); those beside them lose a quarter. Lasts longer at higher grades. |
+| `ui/nsdraw.cpp:278` | Thrown: a cloud of black smoke. Shots through any cloud hit far less often (a fifth of the chance), and fighting from inside one costs 15 to hit. Lasts longer at higher grades. (The battle menu never offers it to the party: it is used on cards, and enemies throw it.) |
+| `ui/nsdraw.cpp:279` | Thrown: itching powder. Weapon skills fall by five times the armor worn on the body and limbs: the heavier the armor, the worse the itch. Lasts longer at higher grades. |
+| `ui/nsdraw.cpp:280` | Thrown: acid that eats the target's armor, lowering its quality by 4, 6 or 8 (grade 1, 2, 3) plus up to 8 more at random; armor eaten to nothing is destroyed, and where there is no armor (or damage is left over) it wounds the target. Also dissolves locks. |
+| `ui/nsdraw.cpp:281` | Thrown: a poison cloud (up to 2 by 2 paces) whose wounds no armor stops, worse for weaker targets; stronger at higher grades. |
+| `ui/nsdraw.cpp:282` | Thrown: a blinding flash. The target and every enemy of the thrower on that floor who faces it are blinded for a while (longer at higher grades); the thrower's allies are spared. |
+| `ui/nsdraw.cpp:283` | Thrown: it bursts with great force: damage 4, 6 or 8 (grade 1, 2, 3) plus up to 8 more at random, penetration 6, 7 or 8 on the target and less around it; it also wears the armor down by a quarter of the damage. |
+| `ui/nsdraw.cpp:284` | Thrown: burning pitch that no armor stops: damage 4, 6 or 8 (grade 1, 2, 3) plus up to 6 more at random, a quarter of that further off, minus a tenth of the armor's quality (and of Firewall's protection); it also wears the armor down. |
+| `ui/nsdraw.cpp:285` | Thrown: a pool of sticky sludge (up to 4 by 4 paces) that slows whoever crosses it to 1/2, 3/8 or 1/4 of their pace (grade 1, 2, 3), for a long while. |
+| `ui/nsdraw.cpp:286` | Used (P in the inventory) by a member: {*Damage} +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land with any weapon except an impact weapon or a flail. Damage only, not the chance to hit; |
+| `ui/nsdraw.cpp:287` | Used (P in the inventory) by a member: {*Damage} +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land, with any weapon: bows, guns, impact weapons and fists too. Damage only, not the chance to hit; |
+| `ui/nsdraw.cpp:288` | Used by a member: {*Penetration} +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land with a blade or a polearm,  |
+| `ui/nsdraw.cpp:288` | up to 15 in all |
+| `ui/nsdraw.cpp:288` | past 15 the penetration starts again from 0 |
+| `ui/nsdraw.cpp:289` | Used by a member: {*Penetration} +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land, with any weapon,  |
+| `ui/nsdraw.cpp:289` | up to 15 in all |
+| `ui/nsdraw.cpp:289` | past 15 the penetration starts again from 0 (a bow's 6 + 10 hits as 0) |
+| `ui/nsdraw.cpp:290` | Used by a member: {*Weapon Quality} the weapon in hand counts as 14, 22 or 30 points higher in quality (grade 1, 2, 3; up to 99),  |
+| `ui/nsdraw.cpp:290` | if it is an impact weapon, a flail or a handgun |
+| `ui/nsdraw.cpp:290` | including bows, guns and fists |
+| `ui/nsdraw.cpp:290` | , for about a day (19 to 21 hours). Each 10 points of quality add one step of damage. A second dose adds to the first. |
+| `ui/nsdraw.cpp:291` | Used by a member, on every hit they land, with any weapon: grade 1 {*Penetration} +14 penetration; grade 2 {*Damage} +1 damage and {*Penetration} +6 penetration; grade 3 {*Damage} +1 damage and {*Penetration} +14 penetration.  |
+| `ui/nsdraw.cpp:291` | Penetration counts up to 15 in all |
+| `ui/nsdraw.cpp:291` | Penetration past 15 starts again from 0, so grades 1 and 3 lower a bow's penetration |
+| `ui/nsdraw.cpp:292` | Used by a member: +14, +22 or +30 (grade 1, 2, 3) to {Bows}, {Thrown Weapons} and {Missile Devices} (up to 99), for about a day (19 to 21 hours). A second dose adds to the first. |
+| `ui/nsdraw.cpp:293` | Used by a member: {*Armor} their armor counts 20, 25 or 30 points better in quality and 1, 2 or 2 levels thicker (grade 1, 2, 3) against every blow and shot, for about a day (19 to 21 hours). A second dose while one is active keeps the stronger. |
+| `ui/nsdraw.cpp:294` | Used by a member: {*Armor} +1, +2 or +3 (grade 1, 2, 3) to their armor against every hit, blow or shot, permanently; doses add up. |
+| `ui/nsdraw.cpp:295` | Drinking it yields just one florin: it is meant for cards, where an encounter asks for it (to purify, or to make gold). |
+| `ui/nsdraw.cpp:298` | 9-14, 15-21 or 22-29 |
+| `ui/nsdraw.cpp:298` | 6-11, 8-13 or 10-15 |
+| `ui/nsdraw.cpp:298` | 6-11, 8-13 or 10-15 |
+| `ui/nsdraw.cpp:298` | 6-11, 8-15 or 10-17 |
+| `ui/nsdraw.cpp:300` |  (grade 1, 2, 3) for about a day: the current value rises, past the maximum if need be; the maximum itself does not change.  |
+| `ui/nsdraw.cpp:301` | On a wounded member it heals:  |
+| `ui/nsdraw.cpp:301` | when it wears off, only the part still above the maximum is lost, so the healing stays. |
+| `ui/nsdraw.cpp:301` | but when it wears off the whole amount is taken back, healed or not. |
+| `ui/nsdraw.cpp:302` | When it wears off, what it added is lost. |
+| `ui/nsdraw.cpp:303` |  A second dose while the first is active adds only what goes beyond it. |
+| `ui/nsdraw.cpp:305` | Drunk: permanently heals 50, 70 or 90% of the {Strength} lost to wounds (grade 1, 2, 3), and raises {Endurance} by 9-14, 15-21 or 22-29 for about 30 hours. |
+| `ui/nsdraw.cpp:307` | Drunk: {*Fire} protection against fire for about a day (19 to 21 hours): Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3). A second dose keeps the stronger. |
+| `ui/nsdraw.cpp:308` | Drunk: {*Fire} permanent protection against fire: Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3). |
+| `ui/nsdraw.cpp:308` |  It also adds {*Armor} 16 to the armor permanently. |
+| `ui/nsdraw.cpp:324` |  when equipped |
+| `ui/nsdraw.cpp:349` | a light load: no hindrance |
+| `ui/nsdraw.cpp:349` | a normal load: blows hand to hand a fifth slower |
+| `ui/nsdraw.cpp:350` | a heavy load: blows at the usual pace, dodging hampered |
+| `ui/nsdraw.cpp:350` | overloaded: blows two thirds slower, little or no dodging |
+| `ui/nsdraw.cpp:353` | Worn by %s: load %d \xc2\xbb %d of %d, %s%s |
+| `ui/nsdraw.cpp:417` | Load %d \xc2\xbb %d of %d |
+| `ui/nsdraw.cpp:418` | Load %d of %d |
+| `ui/nsdraw.cpp:474` | Spare equipment |
+| `ui/nsdraw.cpp:474` | Tools and other goods |
+| `ui/nsdraw.cpp:474` | Trophies and quest items |
 | `ui/optpreview.cpp:43` | The gate is barred. You... |
 | `ui/optpreview.cpp:45` | ...climb the wall |
 | `ui/optpreview.cpp:46` | ...pray to a saint |
@@ -1813,10 +1824,10 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/prayview.cpp:116` | %s has {Divine Favor:%d}; %d will be left. |
 | `ui/prayview.cpp:119` | Chance the saint hears: %d%% |
 | `ui/prayview.cpp:122` | More {Divine Favor} gives a better chance (up to 99%); it is spent either way. |
-| `ui/prayview.cpp:142` | %s {Virtue:%d} is below the %d this saint asks: more {Divine Favor} will not help. |
-| `ui/prayview.cpp:143` | This saint asks at least {Divine Favor:%d}; %s has only %d. |
-| `ui/prayview.cpp:144` | This saint asks at least {Divine Favor:%d}: spend more. |
-| `ui/prayview.cpp:145` | No chance as it is: spend more {Divine Favor} (or the saint does not help here). |
+| `ui/prayview.cpp:143` | %s {Virtue:%d} is below the %d this saint asks: more {Divine Favor} will not help. |
+| `ui/prayview.cpp:144` | This saint asks at least {Divine Favor:%d}; %s has only %d. |
+| `ui/prayview.cpp:145` | This saint asks at least {Divine Favor:%d}: spend more. |
+| `ui/prayview.cpp:146` | No chance as it is: spend more {Divine Favor} (or the saint does not help here). |
 | `ui/professions.cpp:340` | Only for a man |
 | `ui/professions.cpp:345` | Not with this character's past |
 | `ui/professions.cpp:345` | , and not with this past |
@@ -2436,14 +2447,14 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui.cpp:420` | Items (for a mod) |
 | `ui/ui.cpp:472` | Darklands+: the potions and the alchemical ingredients |
 | `ui/ui.cpp:474` | Potions, grades 1, 2 and 3 (the gold dots on the neck) |
-| `ui/ui.cpp:586` | Reconstructed Content |
-| `ui/ui.cpp:590` | Reconstructed Content |
-| `ui/ui.cpp:612` |              |
-| `ui/ui.cpp:717` | an index past the vertices |
-| `ui/ui.cpp:717` | not a number |
-| `ui/ui.cpp:717` | far past the window |
-| `ui/ui.cpp:749` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
-| `ui/ui.cpp:755` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
+| `ui/ui.cpp:587` | Reconstructed Content |
+| `ui/ui.cpp:591` | Reconstructed Content |
+| `ui/ui.cpp:613` |              |
+| `ui/ui.cpp:718` | an index past the vertices |
+| `ui/ui.cpp:718` | not a number |
+| `ui/ui.cpp:718` | far past the window |
+| `ui/ui.cpp:750` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
+| `ui/ui.cpp:756` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
 | `ui/ui_windows.cpp:74` | Darklands+ is made by Yassine Meskhout. |
 | `ui/ui_windows.cpp:75` | Darklands (c) 1992 MicroProse. This is the original game, rebuilt to run directly on today's computers, with the game files of your own copy. F12 > Settings has the Full Original preset, the game as it played, and switches for most of what Darklands+ adds. |
 | `ui/ui_windows.cpp:78` | F11: the keys for the current screen.  F12: this window (the game waits while it is open).  Alt+Enter: full screen.  Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities). |
@@ -2632,6 +2643,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/worldmap.cpp:89` | an alchemist |
 | `ui/worldmap.cpp:90` | docks (boats) |
 | `ui/worldmap.cpp:91` | a swordsmith of 30q+ |
+| `ui/worldmap.cpp:91` | Weapons 30q+ |
 | `ui/worldmap.cpp:91` | an armorer of 30q+ |
 | `ui/worldmap.cpp:91` | a bowyer of 30q+ |
 | `ui/worldmap.cpp:92` | an artificer of 30q+ |
@@ -2792,73 +2804,74 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/cutcards.c:102` | do       set wage = 24 + skill(chosen, Healing); money1 wage; text 3; money1 240; gain wage  |
 | `mods/cutcards.c:102` |          practice chosen, Healing, 1, 40, 0; practice party, Healing, 1, 10, 0; hours 24; disable 1  |
 | `mods/cutcards.c:131` | ...\x1dvisit the Heilig-Geist-Spital, where injuries and the ill are tended. |
-| `mods/datamods.c:366` | # right edge). Bytes the game uses for layout are written \\xx (hex): \\14 new paragraph, \\15 an option, # \\1d after the option's "...", \\16 an option opening the saints, \\10 the potions, \\06 a battle, # \\01 ... \\13 a part shown or hidden by the game. { is o-umlaut, \| u-umlaut, \\1f a-umlaut. # Put the edited file into mods/<your mod>/MSGFILES/ (keep the name); lines starting with # are ignored.  |
-| `mods/datamods.c:403` | Describe your mod here (these lines show in F12 > Mods).  Put files into this folder laid out like the game folder; while the mod is on, the game reads them instead of its own: DARKLAND.LST, DARKLAND.ENM, PICS/NAME.PIC, a folder MSGFILES/ with single card files (.MSG, or .TXT as written by "Export the card texts"), art/ and sounds/ as in the game folder, music/ with recordings named by the piece's number (10.ogg, "11 market.ogg"; see F12 > Settings > Sound).  |
-| `mods/encounters.c:237` | he will tell every market in Kuttenberg |
-| `mods/encounters.c:518` | A new encounter stopped because of a mistake in its file (see darklands_port.log); the party is back in the overland view. |
-| `mods/encounters.c:568` | '%s' expected |
-| `mods/encounters.c:628` | %s: %s out of range |
-| `mods/encounters.c:628` | an attribute |
-| `mods/encounters.c:689` | %s takes %d argument%s |
-| `mods/encounters.c:725` | %s: who, then an item (0 to 199) |
-| `mods/encounters.c:733` | wounds: an attribute |
-| `mods/encounters.c:740` | unknown function %s |
-| `mods/encounters.c:759` | unknown name %s |
-| `mods/encounters.c:762` | a value expected |
-| `mods/encounters.c:768` | nested too deeply |
-| `mods/encounters.c:826` | unexpected "%s" |
-| `mods/encounters.c:840` | %s takes %d to %d values |
-| `mods/encounters.c:851` | nested too deeply |
-| `mods/encounters.c:864` | no section [%s] |
-| `mods/encounters.c:892` | %s: %s expected |
-| `mods/encounters.c:898` | an action expected |
-| `mods/encounters.c:917` | 'then' or 'goto' expected |
-| `mods/encounters.c:927` | card: one of the game's cards, 1 to 0x16d |
-| `mods/encounters.c:944` | unknown variable %s |
-| `mods/encounters.c:950` | picture names have at most 8 letters |
-| `mods/encounters.c:959` | options are numbered 0 to 9 |
-| `mods/encounters.c:965` | battle: a battlefield, then enemy, quality, count for each group |
-| `mods/encounters.c:970` | battle: a wilderness battlefield (Wilds, Surrounded, Clearing, Cave, or 0x2e-0x55, 0x61-0x63, 0x6f-0x79), or in a town's streets MainStreet, SideStreet |
-| `mods/encounters.c:972` | battle: MainStreet and SideStreet only in a town (where street) |
-| `mods/encounters.c:999` | %s: who, then a %s |
-| `mods/encounters.c:999` | skill (0 to 18) |
-| `mods/encounters.c:999` | attribute (0 to 6) |
-| `mods/encounters.c:1021` | unknown action %s |
-| `mods/encounters.c:1025` | text %ld: %s has blocks 0 to %d |
-| `mods/encounters.c:1026` | text %ld: a card holds blocks 0 to 24 |
-| `mods/encounters.c:1079` | ';' expected |
-| `mods/encounters.c:1089` | unexpected "%s" |
-| `mods/encounters.c:1221` | where: wild, boat, street or camp |
-| `mods/encounters.c:1227` | unknown setting %s |
-| `mods/encounters.c:1233` | option: a number 0 to 9 |
-| `mods/encounters.c:1235` | option %d twice |
-| `mods/encounters.c:1238` | option %d: potion or saint |
-| `mods/encounters.c:1251` | at most 4 potions |
-| `mods/encounters.c:1253` | potion CODE, CHANCE |
-| `mods/encounters.c:1275` | unknown key %s |
-| `mods/encounters.c:1277` | no card (the MSGFILES text) given |
-| `mods/encounters.c:1278` | no picture given |
-| `mods/encounters.c:1279` | no [section] |
-| `mods/encounters.c:1355` | %s has %d text blocks: the game holds 25 |
-| `mods/encounters.c:1356` | %s is too long: %ld bytes as the game loads it, under 6000 fit |
-| `mods/encounters.c:1357` | %s has a block with %d option lines: at most %d |
-| `mods/encounters.c:1369` | [%s] has options but no block |
-| `mods/encounters.c:1372` | [%s] option %d: block %d of %s has %d option line%s |
-| `mods/encounters.c:1375` | [%s] option %d: %s |
-| `mods/encounters.c:1375` | its line (\\16) opens the saints: write option N saint |
-| `mods/encounters.c:1375` | a saint option needs a \\16 line |
-| `mods/encounters.c:1376` | [%s] option %d: %s |
-| `mods/encounters.c:1376` | its line (\\10) opens the potions: write option N potion |
-| `mods/encounters.c:1376` | a potion option needs a \\10 line |
-| `mods/encounters.c:1385` | [%s] option %d is a saint option, but there are no saints |
-| `mods/encounters.c:1386` | [%s] option %d is a potion option, but there are no items |
-| `mods/encounters.c:1388` | [%s] has a block but no options |
-| `mods/encounters.c:1390` | [%s] saints: numbers 0 to 135 (DARKLAND.LST), or -1 |
-| `mods/encounters.c:1391` | [%s] items: numbers 0 to 199 (DARKLAND.LST), or -1 |
-| `mods/encounters.c:1393` | [%s] block %d: the game holds 25 blocks (0 to 24) |
-| `mods/encounters.c:1440` | (Darklands+ %s) |
-| `mods/encounters.c:1466` | New encounters: %d file%s with errors left out (see darklands_port.log). |
-| `mods/encounters.c:1906` | on the screen |
+| `mods/datamods.c:375` | # right edge). Bytes the game uses for layout are written \\xx (hex): \\14 new paragraph, \\15 an option, # \\1d after the option's "...", \\16 an option opening the saints, \\10 the potions, \\06 a battle, # \\01 ... \\13 a part shown or hidden by the game. { is o-umlaut, \| u-umlaut, \\1f a-umlaut. # Put the edited file into mods/<your mod>/MSGFILES/ (keep the name); lines starting with # are ignored.  |
+| `mods/datamods.c:412` | Describe your mod here (these lines show in F12 > Mods).  Put files into this folder laid out like the game folder; while the mod is on, the game reads them instead of its own: DARKLAND.LST, DARKLAND.ENM, PICS/NAME.PIC, a folder MSGFILES/ with single card files (.MSG, or .TXT as written by "Export the card texts"), art/ and sounds/ as in the game folder, music/ with recordings named by the piece's number (10.ogg, "11 market.ogg"; see F12 > Settings > Sound).  |
+| `mods/encounters.c:239` | he will tell every market in Kuttenberg |
+| `mods/encounters.c:520` | A new encounter stopped because of a mistake in its file (see darklands_port.log); the party is back in the overland view. |
+| `mods/encounters.c:570` | '%s' expected |
+| `mods/encounters.c:630` | %s: %s out of range |
+| `mods/encounters.c:630` | an attribute |
+| `mods/encounters.c:691` | %s takes %d argument%s |
+| `mods/encounters.c:727` | %s: who, then an item (0 to 199) |
+| `mods/encounters.c:735` | wounds: an attribute |
+| `mods/encounters.c:742` | unknown function %s |
+| `mods/encounters.c:761` | unknown name %s |
+| `mods/encounters.c:764` | a value expected |
+| `mods/encounters.c:770` | nested too deeply |
+| `mods/encounters.c:828` | unexpected "%s" |
+| `mods/encounters.c:842` | %s takes %d to %d values |
+| `mods/encounters.c:853` | nested too deeply |
+| `mods/encounters.c:866` | no section [%s] |
+| `mods/encounters.c:894` | %s: %s expected |
+| `mods/encounters.c:900` | an action expected |
+| `mods/encounters.c:919` | 'then' or 'goto' expected |
+| `mods/encounters.c:929` | card: one of the game's cards, 1 to 0x16d |
+| `mods/encounters.c:946` | unknown variable %s |
+| `mods/encounters.c:952` | picture names have at most 8 letters |
+| `mods/encounters.c:961` | options are numbered 0 to 9 |
+| `mods/encounters.c:967` | battle: a battlefield, then enemy, quality, count for each group |
+| `mods/encounters.c:972` | battle: a wilderness battlefield (Wilds, Surrounded, Clearing, Cave, or 0x2e-0x55, 0x61-0x63, 0x6f-0x79), or in a town's streets MainStreet, SideStreet |
+| `mods/encounters.c:974` | battle: MainStreet and SideStreet only in a town (where street) |
+| `mods/encounters.c:1001` | %s: who, then a %s |
+| `mods/encounters.c:1001` | skill (0 to 18) |
+| `mods/encounters.c:1001` | attribute (0 to 6) |
+| `mods/encounters.c:1023` | unknown action %s |
+| `mods/encounters.c:1027` | text %ld: %s has blocks 0 to %d |
+| `mods/encounters.c:1028` | text %ld: a card holds blocks 0 to 24 |
+| `mods/encounters.c:1081` | ';' expected |
+| `mods/encounters.c:1091` | unexpected "%s" |
+| `mods/encounters.c:1223` | where: wild, boat, street or camp |
+| `mods/encounters.c:1229` | unknown setting %s |
+| `mods/encounters.c:1235` | option: a number 0 to 9 |
+| `mods/encounters.c:1237` | option %d twice |
+| `mods/encounters.c:1240` | option %d: potion or saint |
+| `mods/encounters.c:1253` | at most 4 potions |
+| `mods/encounters.c:1255` | potion CODE, CHANCE |
+| `mods/encounters.c:1277` | unknown key %s |
+| `mods/encounters.c:1279` | no card (the MSGFILES text) given |
+| `mods/encounters.c:1280` | no picture given |
+| `mods/encounters.c:1281` | no [section] |
+| `mods/encounters.c:1384` | %s has %d text blocks: the game holds 25 |
+| `mods/encounters.c:1385` | %s is too long: %ld bytes as the game loads it, under 6000 fit |
+| `mods/encounters.c:1386` | %s has a block with %d option lines: at most %d |
+| `mods/encounters.c:1391` | %s block %d is too long: up to %d characters with its $variables filled in (%d as written), at most 899 fit |
+| `mods/encounters.c:1405` | [%s] has options but no block |
+| `mods/encounters.c:1408` | [%s] option %d: block %d of %s has %d option line%s |
+| `mods/encounters.c:1411` | [%s] option %d: %s |
+| `mods/encounters.c:1411` | its line (\\16) opens the saints: write option N saint |
+| `mods/encounters.c:1411` | a saint option needs a \\16 line |
+| `mods/encounters.c:1412` | [%s] option %d: %s |
+| `mods/encounters.c:1412` | its line (\\10) opens the potions: write option N potion |
+| `mods/encounters.c:1412` | a potion option needs a \\10 line |
+| `mods/encounters.c:1421` | [%s] option %d is a saint option, but there are no saints |
+| `mods/encounters.c:1422` | [%s] option %d is a potion option, but there are no items |
+| `mods/encounters.c:1424` | [%s] has a block but no options |
+| `mods/encounters.c:1426` | [%s] saints: numbers 0 to 135 (DARKLAND.LST), or -1 |
+| `mods/encounters.c:1427` | [%s] items: numbers 0 to 199 (DARKLAND.LST), or -1 |
+| `mods/encounters.c:1429` | [%s] block %d: the game holds 25 blocks (0 to 24) |
+| `mods/encounters.c:1476` | (Darklands+ %s) |
+| `mods/encounters.c:1502` | New encounters: %d file%s with errors left out (see darklands_port.log). |
+| `mods/encounters.c:1997` | on the screen |
 | `mods/fixgroups.c:10` | Crashes, freezes, items or progress lost, saved games spoiled, quests that can never be finished. Nobody wants these. |
 | `mods/fixgroups.c:11` | Plain mistakes |
 | `mods/fixgroups.c:11` | Something the game sets out to do and gets wrong: the wrong member, the wrong town, a check on the wrong option, a number lost on the way. |
@@ -3036,242 +3049,242 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/politics.c:389` | there are some interesting rumours flying around |
 | `mods/politics.c:468` | Plans in place |
 | `mods/politics.c:522` | the rebellion was put down |
-| `mods/relics.c:192` | donate one of your relics |
-| `mods/relics.c:207` | %sprayers cost {Divine Favor:%d} less, with {Virtue:%d}%s |
-| `mods/relics.c:214` | Which relic do you lay on the altar? |
-| `mods/relics.c:215` | The relic stays with the cathedral. With a chance of 100 less the town's present opinion of you (for or against), that opinion rises by 30; every member's {Divine Favor} is restored in full, and three hours pass. |
-| `mods/relics.c:217` | Keep them all |
+| `mods/relics.c:198` | donate one of your relics |
+| `mods/relics.c:213` | %sprayers cost {Divine Favor:%d} less, with {Virtue:%d}%s |
+| `mods/relics.c:220` | Which relic do you lay on the altar? |
+| `mods/relics.c:221` | The relic stays with the cathedral. With a chance of 100 less the town's present opinion of you (for or against), that opinion rises by 30; every member's {Divine Favor} is restored in full, and three hours pass. |
+| `mods/relics.c:223` | Keep them all |
 | `mods/rosterview.c:97` | allow ... to retire |
 | `mods/rosterview.c:196` | %s joined the party at another inn, so cannot be left at this one. To part with them: Done, then "allow %s to retire". |
 | `mods/rosterview.c:201` | Add someone to the party first. |
 | `mods/rosterview.c:202` | The party is full: up to four travel together. Drop someone first. |
 | `mods/rosterview.c:216` | The new character is in the list: add them to the party. |
-| `mods/saintinfo.c:27` | Endurance +8 to 15, Charisma +6 to 11, every weapon skill +15 to 29. |
-| `mods/saintinfo.c:29` | Heals 8 to 15 Endurance (up to its maximum). Charisma +6 to 11, every weapon skill +15 to 29. |
-| `mods/saintinfo.c:30` | Endurance +6 to 11 (a woman: +12 to 23), Charisma +6 to 11. |
-| `mods/saintinfo.c:32` | Heals 6 to 11 Endurance (a woman: 12 to 23; up to its maximum). Charisma +6 to 11. |
-| `mods/saintinfo.c:33` | Only if a woman is in the party: may raise the reputation in the nearest town by 10 to 19; Charisma +10 to 29. |
-| `mods/saintinfo.c:36` | Woodwise +25 to 29. |
-| `mods/saintinfo.c:39` | Intelligence +8 to 15, Perception +6 to 11, Alchemy +30 to 44, Latin and Read & Write +15 to 29. |
-| `mods/saintinfo.c:42` | Intelligence +6 to 11, Latin and Read & Write +20 to 39. |
-| `mods/saintinfo.c:45` | May raise the reputation in the nearest town by 10 to 19. Charisma +6 to 11. A party with neither florins nor groschen gets 3 to 9 groschen. |
-| `mods/saintinfo.c:48` | Endurance +6 to 11, Charisma +8 to 15. |
-| `mods/saintinfo.c:49` | No reputation in Scotland or Russia, which are not in the game. |
-| `mods/saintinfo.c:51` | Edged, Impact, Polearms, Thrown and Bows +15 to 29. |
-| `mods/saintinfo.c:54` | Endurance +4 to 9, Strength +5 to 10, Charisma +1 to 10, Speak Common and Latin +10 to 19, Read & Write +20 to 39. |
-| `mods/saintinfo.c:56` | Heals 4 to 9 Endurance (up to its maximum). Strength +5 to 10, Charisma +1 to 10, Speak Common and Latin +10 to 19, Read & Write +20 to 39. |
-| `mods/saintinfo.c:57` | Perception +6 to 11, Strength +4 to 7, Charisma +15 to 24, Speak Common +20 to 29, Impact and Latin +10 to 19. |
-| `mods/saintinfo.c:60` | Perception +6 to 11, Strength and Intelligence +4 to 7, every weapon skill +10 to 19, Streetwise and Latin +6 to 11, Read & Write and Riding +8 to 15. |
-| `mods/saintinfo.c:63` | Endurance +8 to 23, Strength +2 to 4. |
-| `mods/saintinfo.c:65` | Heals 30% of lost Endurance and 10% of lost Strength. |
-| `mods/saintinfo.c:66` | Artifice +15 to 29 for two hours at most; Missile Devices +20 to 39 for 5 to 7 hours. |
-| `mods/saintinfo.c:68` | Artifice +15 to 29 for two hours at most; Missile Devices +20 to 39 for 5 to 7 hours. In a battle, wounds cannot bring the one prayed for below 1 Strength: no death from wounds. |
-| `mods/saintinfo.c:69` | Intelligence +4 to 8, Perception +3 to 6. |
-| `mods/saintinfo.c:72` | Charisma +8 to 15, every weapon skill +10 to 19, Speak Common +8 to 15. |
-| `mods/saintinfo.c:75` | Charisma and Intelligence +8 to 15, Speak Common +40 to 99. |
-| `mods/saintinfo.c:78` | Charisma and Perception +1 to 15, Speak Common +10 to 29. |
-| `mods/saintinfo.c:81` | Charisma +3 to 10. @INSTR, the reputation of the town the party is in (in the overland view: the nearest) may rise by 20 to 59. |
-| `mods/saintinfo.c:84` | Perception and Intelligence +3 to 5, Strength +6 to 11, every weapon skill and Latin +6 to 11. |
-| `mods/saintinfo.c:87` | @FIRE1 May raise the reputation in the nearest town by 10 to 19. Charisma +6 to 11, Flails +15 to 29. |
-| `mods/saintinfo.c:88` | Flails and the reputation are not in the text. The fire protection is only for the one prayed for (the text promises it to everyone, and much more to one person), and no Endurance is healed. |
-| `mods/saintinfo.c:89` | Fire protection 50 for every member, 90 for the one prayed for. Heals 10% of lost Endurance. |
-| `mods/saintinfo.c:90` | Agility +8 to 15, Charisma +1 to 10. |
-| `mods/saintinfo.c:93` | Streetwise +10 to 19, Woodwise +20 to 39, Riding +25 to 74, Bows +6 to 11. |
-| `mods/saintinfo.c:94` | No faster travel, and no Strength or Endurance restored. |
-| `mods/saintinfo.c:95` | The party travels half again as fast for a week (fewer days on the road). Heals 10% of lost Strength and 20% of lost Endurance. Streetwise +10 to 19, Woodwise +20 to 39, Riding +25 to 74, Bows +6 to 11. |
-| `mods/saintinfo.c:96` | Heals all lost Endurance and Strength. |
-| `mods/saintinfo.c:99` | Heals 25% of lost Endurance and 50% of lost Strength. Charisma +6 to 11, Healing +10 to 19. |
-| `mods/saintinfo.c:102` | Charisma +8 to 15, Speak Common +30 to 89, Latin +6 to 11, Read & Write +10 to 19. |
-| `mods/saintinfo.c:105` | Endurance +8 to 15, Strength +6 to 13, Charisma +4 to 7, Perception lowered by 5 to 9, the skills of the weapons in hand +10 to 19. |
-| `mods/saintinfo.c:108` | Heals 10% of lost Endurance and 10% of lost Strength. Perception +4 to 7, Healing +40 to 79. Teaches St. Damian. |
-| `mods/saintinfo.c:112` | The text says non-metal armor; the game raises all armor. |
-| `mods/saintinfo.c:113` | Every member's leather and cloth armor counts 10 points better in quality. |
-| `mods/saintinfo.c:114` | Intelligence +5 to 9, Alchemy +5 to 9. |
-| `mods/saintinfo.c:117` | Heals all lost Endurance and 30% of lost Strength. Teaches St. Cosmas. |
-| `mods/saintinfo.c:120` | Intelligence +4 to 7, Charisma +1 to 6, Perception +6 to 11, the skills of the weapons in hand +8 to 15, Riding +6 to 11. |
-| `mods/saintinfo.c:123` | Heals all lost Strength. Charisma +15 to 44, Speak Common +25 to 49. |
-| `mods/saintinfo.c:124` | No reputation in Paris and France, which are not in the game. |
-| `mods/saintinfo.c:125` | Heals all lost Strength and 10% of lost Endurance. Charisma +15 to 44, Speak Common +25 to 49. |
+| `mods/saintinfo.c:28` | Endurance +8 to 15, Charisma +6 to 11, every weapon skill +15 to 29. |
+| `mods/saintinfo.c:30` | Heals 8 to 15 Endurance (up to its maximum). Charisma +6 to 11, every weapon skill +15 to 29. |
+| `mods/saintinfo.c:31` | Endurance +6 to 11 (a woman: +12 to 23), Charisma +6 to 11. |
+| `mods/saintinfo.c:33` | Heals 6 to 11 Endurance (a woman: 12 to 23; up to its maximum). Charisma +6 to 11. |
+| `mods/saintinfo.c:34` | Only if a woman is in the party: may raise the reputation in the nearest town by 10 to 19; Charisma +10 to 29. |
+| `mods/saintinfo.c:37` | Woodwise +25 to 29. |
+| `mods/saintinfo.c:40` | Intelligence +8 to 15, Perception +6 to 11, Alchemy +30 to 44, Latin and Read & Write +15 to 29. |
+| `mods/saintinfo.c:43` | Intelligence +6 to 11, Latin and Read & Write +20 to 39. |
+| `mods/saintinfo.c:46` | May raise the reputation in the nearest town by 10 to 19. Charisma +6 to 11. A party with neither florins nor groschen gets 3 to 9 groschen. |
+| `mods/saintinfo.c:49` | Endurance +6 to 11, Charisma +8 to 15. |
+| `mods/saintinfo.c:50` | No reputation in Scotland or Russia, which are not in the game. |
+| `mods/saintinfo.c:52` | Edged, Impact, Polearms, Thrown and Bows +15 to 29. |
+| `mods/saintinfo.c:55` | Endurance +4 to 9, Strength +5 to 10, Charisma +1 to 10, Speak Common and Latin +10 to 19, Read & Write +20 to 39. |
+| `mods/saintinfo.c:57` | Heals 4 to 9 Endurance (up to its maximum). Strength +5 to 10, Charisma +1 to 10, Speak Common and Latin +10 to 19, Read & Write +20 to 39. |
+| `mods/saintinfo.c:58` | Perception +6 to 11, Strength +4 to 7, Charisma +15 to 24, Speak Common +20 to 29, Impact and Latin +10 to 19. |
+| `mods/saintinfo.c:61` | Perception +6 to 11, Strength and Intelligence +4 to 7, every weapon skill +10 to 19, Streetwise and Latin +6 to 11, Read & Write and Riding +8 to 15. |
+| `mods/saintinfo.c:64` | Endurance +8 to 23, Strength +2 to 4. |
+| `mods/saintinfo.c:66` | Heals 30% of lost Endurance and 10% of lost Strength. |
+| `mods/saintinfo.c:67` | Artifice +15 to 29 for two hours at most; Missile Devices +20 to 39 for 5 to 7 hours. |
+| `mods/saintinfo.c:69` | Artifice +15 to 29 for two hours at most; Missile Devices +20 to 39 for 5 to 7 hours. In a battle, wounds cannot bring the one prayed for below 1 Strength: no death from wounds. |
+| `mods/saintinfo.c:70` | Intelligence +4 to 8, Perception +3 to 6. |
+| `mods/saintinfo.c:73` | Charisma +8 to 15, every weapon skill +10 to 19, Speak Common +8 to 15. |
+| `mods/saintinfo.c:76` | Charisma and Intelligence +8 to 15, Speak Common +40 to 99. |
+| `mods/saintinfo.c:79` | Charisma and Perception +1 to 15, Speak Common +10 to 29. |
+| `mods/saintinfo.c:82` | Charisma +3 to 10. @INSTR, the reputation of the town the party is in (in the overland view: the nearest) may rise by 20 to 59. |
+| `mods/saintinfo.c:85` | Perception and Intelligence +3 to 5, Strength +6 to 11, every weapon skill and Latin +6 to 11. |
+| `mods/saintinfo.c:88` | @FIRE1 May raise the reputation in the nearest town by 10 to 19. Charisma +6 to 11, Flails +15 to 29. |
+| `mods/saintinfo.c:89` | Flails and the reputation are not in the text. The fire protection is only for the one prayed for (the text promises it to everyone, and much more to one person), and no Endurance is healed. |
+| `mods/saintinfo.c:90` | Fire protection 50 for every member, 90 for the one prayed for. Heals 10% of lost Endurance. |
+| `mods/saintinfo.c:91` | Agility +8 to 15, Charisma +1 to 10. |
+| `mods/saintinfo.c:94` | Streetwise +10 to 19, Woodwise +20 to 39, Riding +25 to 74, Bows +6 to 11. |
+| `mods/saintinfo.c:95` | No faster travel, and no Strength or Endurance restored. |
+| `mods/saintinfo.c:96` | The party travels half again as fast for a week (fewer days on the road). Heals 10% of lost Strength and 20% of lost Endurance. Streetwise +10 to 19, Woodwise +20 to 39, Riding +25 to 74, Bows +6 to 11. |
+| `mods/saintinfo.c:97` | Heals all lost Endurance and Strength. |
+| `mods/saintinfo.c:100` | Heals 25% of lost Endurance and 50% of lost Strength. Charisma +6 to 11, Healing +10 to 19. |
+| `mods/saintinfo.c:103` | Charisma +8 to 15, Speak Common +30 to 89, Latin +6 to 11, Read & Write +10 to 19. |
+| `mods/saintinfo.c:106` | Endurance +8 to 15, Strength +6 to 13, Charisma +4 to 7, Perception lowered by 5 to 9, the skills of the weapons in hand +10 to 19. |
+| `mods/saintinfo.c:109` | Heals 10% of lost Endurance and 10% of lost Strength. Perception +4 to 7, Healing +40 to 79. Teaches St. Damian. |
+| `mods/saintinfo.c:113` | The text says non-metal armor; the game raises all armor. |
+| `mods/saintinfo.c:114` | Every member's leather and cloth armor counts 10 points better in quality. |
+| `mods/saintinfo.c:115` | Intelligence +5 to 9, Alchemy +5 to 9. |
+| `mods/saintinfo.c:118` | Heals all lost Endurance and 30% of lost Strength. Teaches St. Cosmas. |
+| `mods/saintinfo.c:121` | Intelligence +4 to 7, Charisma +1 to 6, Perception +6 to 11, the skills of the weapons in hand +8 to 15, Riding +6 to 11. |
+| `mods/saintinfo.c:124` | Heals all lost Strength. Charisma +15 to 44, Speak Common +25 to 49. |
 | `mods/saintinfo.c:125` | No reputation in Paris and France, which are not in the game. |
-| `mods/saintinfo.c:126` | Heals 30% of lost Endurance. Strength +5 to 14, the skills of the weapons in hand +20 to 59. |
-| `mods/saintinfo.c:129` | Heals all lost Endurance and 20% of lost Strength. Charisma +15 to 29. |
-| `mods/saintinfo.c:130` | No reputation in Corsica and Monaco, which are not in the game. |
-| `mods/saintinfo.c:132` | Agility +10 to 19, Woodwise and Stealth +10 to 19, Streetwise and Artifice +20 to 39. |
-| `mods/saintinfo.c:133` | Only the one prayed for, not the entire party; no Charisma or Speak Common. |
-| `mods/saintinfo.c:134` | Every member's Stealth +10 to 19. Agility, Woodwise +10 to 19, Streetwise and Artifice +20 to 39, Charisma and Speak Common +6 to 11. |
-| `mods/saintinfo.c:135` | Intelligence +10 to 19, Speak Common and Latin +10 to 19, Read & Write +20 to 39. |
-| `mods/saintinfo.c:138` | Charisma +10 to 19, Perception +6 to 11, Healing +10 to 19. A member with no edged weapon gets a long sword. |
-| `mods/saintinfo.c:141` | Perception +6 to 11, Healing +10 to 19, Woodwise +20 to 39. For a week no ambush takes the party by surprise (bandits and the like). |
-| `mods/saintinfo.c:142` | No faster travel; instead, a week safe from ambushes. |
-| `mods/saintinfo.c:143` | The party travels half again as fast for a week. Perception +6 to 11, Healing +10 to 19, Woodwise +20 to 39. |
-| `mods/saintinfo.c:144` | Perception +6 to 11, the skills of the weapons in hand +6 to 11, Artifice +25 to 74, Streetwise +6 to 11, Alchemy +5 to 14. @ARM1 |
-| `mods/saintinfo.c:145` | The text says the quality of all metal armor in the party; the game gives the one prayed for armor one level thicker. |
-| `mods/saintinfo.c:146` | Every member's metal armor (scale, mail, plate) counts 10 points better in quality. Perception +6 to 11, the skills of the weapons in hand +6 to 11, Artifice +25 to 74, Streetwise +6 to 11, Alchemy +5 to 14. |
-| `mods/saintinfo.c:147` | Heals 30% of lost Endurance. Agility +4 to 7, Stealth +15 to 29, Healing +10 to 19. |
-| `mods/saintinfo.c:150` | Endurance +4 to 7, Intelligence +6 to 11, Perception +8 to 15, Riding +8 to 15, every weapon skill +6 to 11. Every member's Virtue is raised to at least 20, for good, and the party loses a quarter of its money. |
-| `mods/saintinfo.c:151` | Endurance is raised past its maximum for a day, not healed; a rich party loses less than a quarter (the game counts only part of the purse). |
-| `mods/saintinfo.c:152` | Heals 4 to 7 Endurance (up to its maximum). Intelligence +6 to 11, Perception +8 to 15, Riding +8 to 15, every weapon skill +6 to 11. Every member's Virtue is raised to at least 20, for good, and the party loses a quarter of its money. |
-| `mods/saintinfo.c:153` | Artifice +25 to 74, Alchemy +8 to 15. |
-| `mods/saintinfo.c:155` | Blades, hammers and maces, polearms, crossbows and guns of the one prayed for count 10 points better in quality. Artifice +25 to 74, Alchemy +8 to 15. |
-| `mods/saintinfo.c:156` | Charisma +15 to 29, Speak Common +20 to 39. |
-| `mods/saintinfo.c:159` | Charisma +5 to 9, Riding and Woodwise +10 to 19, Speak Common +6 to 11. The party can cross water as if it were land. |
-| `mods/saintinfo.c:162` | @FIRE1 Agility and Perception +6 to 11. |
-| `mods/saintinfo.c:164` | Fire protection 50 for every member. Agility and Perception +6 to 11. |
-| `mods/saintinfo.c:165` | Strength +8 to 23, Charisma +4 to 7, the skills of the weapons in hand +15 to 24, Riding and Speak Common +6 to 11. |
-| `mods/saintinfo.c:166` | No reputation in Sweden, which is not in the game. |
-| `mods/saintinfo.c:168` | Riding +10 to 19, Woodwise +40 to 69, Edged, Thrown and Bows +6 to 11. |
-| `mods/saintinfo.c:169` | No faster travel through woods, and the weapon skills are only Edged, Thrown and Bows. |
-| `mods/saintinfo.c:170` | The party travels twice as fast through woods and forests for a week. Riding +10 to 19, Woodwise +40 to 69, Edged, Polearms, Thrown, Bows and Missile Devices +15 to 29. |
-| `mods/saintinfo.c:171` | Agility +8 to 15, Stealth +40 to 119, Woodwise +10 to 19. |
-| `mods/saintinfo.c:174` | Charisma +8 to 15, Perception +6 to 11, Latin +10 to 19. |
-| `mods/saintinfo.c:177` | Agility +8 to 15, Charisma +6 to 11, Streetwise +4 to 7, Speak Common and Read & Write +6 to 11. The party can cross water as if it were land. |
-| `mods/saintinfo.c:180` | May raise the reputation by 15 to 24 in Passau, Salzburg, Linz, Steyr, Wien or Graz (nowhere else). The skills of the weapons in hand +6 to 11, Riding +6 to 11. The party can cross water as if it were land. |
-| `mods/saintinfo.c:182` | May raise the reputation by 15 to 24 in Passau, Salzburg, Linz, Steyr, Wien, Graz, Posen or Bromberg (nowhere else). The skills of the weapons in hand +6 to 11, Riding +6 to 11. The party can cross water as if it were land. |
-| `mods/saintinfo.c:183` | Heals 30% of lost Endurance and 10% of lost Strength. Perception and Endurance +6 to 11, Charisma +15 to 29, Speak Common and Woodwise +4 to 7, Healing +10 to 19, Artifice +12 to 23. |
-| `mods/saintinfo.c:184` | No Virtue and no loss of money; instead Healing, Artifice and Woodwise. |
-| `mods/saintinfo.c:185` | Endurance and Perception +6 to 11, Charisma +15 to 29, Speak Common +10 to 19, Virtue +25 to 49. One time in two the party loses a tenth of its money. |
-| `mods/saintinfo.c:186` | Intelligence and Perception +10 to 29. |
-| `mods/saintinfo.c:189` | Heals 30% of lost Endurance and 20% of lost Strength. For a week no ambush takes the party by surprise (bandits and the like). |
-| `mods/saintinfo.c:192` | Strength +10 to 14, Agility +5 to 9, every weapon skill and Riding +25 to 49. |
-| `mods/saintinfo.c:194` | The weapon and the armor of the one prayed for count 10 points better in quality. Strength +10 to 14, Agility +5 to 9, every weapon skill and Riding +25 to 49. |
-| `mods/saintinfo.c:195` | Heals 30% of lost Endurance and 20% of lost Strength. The skills of the weapons in hand +15 to 24, Healing +20 to 39. |
-| `mods/saintinfo.c:196` | No Charisma, and only the skills of the weapons in hand, not all weapon skills. |
-| `mods/saintinfo.c:197` | Heals 30% of lost Endurance and 20% of lost Strength. Every weapon skill +15 to 24, Healing +20 to 39, Charisma +6 to 11. |
-| `mods/saintinfo.c:198` | Charisma +6 to 11, Riding +5 to 9, Woodwise, Latin and Read & Write +15 to 29. At the party's next step in the overland view it is carried to the nearest town. |
-| `mods/saintinfo.c:201` | Heals 40% of lost Endurance and 10% of lost Strength. Agility lowered by 4 to 7, the skills of the weapons in hand lowered by 15 to 24, Stealth +30 to 59, Woodwise +5 to 9, Streetwise +50 to 89. |
-| `mods/saintinfo.c:202` | Woodwise and Streetwise the other way around (the text: a little Streetwise, a tremendous Woodwise); no money. |
-| `mods/saintinfo.c:203` | Heals 40% of lost Endurance and 10% of lost Strength. Agility lowered by 4 to 7, the skills of the weapons in hand lowered by 15 to 24, Stealth +30 to 59, Woodwise +50 to 89, Streetwise +5 to 9. A party with neither florins nor groschen gets 3 to 9 groschen. |
-| `mods/saintinfo.c:204` | Intelligence +5 to 9, Perception +15 to 24, Alchemy +40 to 59, Artifice +10 to 19. Costs a point of Strength (a wound) and a point of Virtue, for good. |
-| `mods/saintinfo.c:207` | Heals 30% of lost Endurance. Latin +20 to 39, Read & Write +25 to 49. |
-| `mods/saintinfo.c:210` | Heals 20% of lost Endurance. Speak Common +15 to 29, Artifice +10 to 19. For a week no ambush takes the party by surprise (bandits and the like). |
-| `mods/saintinfo.c:213` | May raise the reputation by 20 to 39 in Schleswig, Lübeck, Wismar, Rostock, Hamburg, Lüneburg or Bremen (nowhere else). Every weapon skill +15 to 29. |
-| `mods/saintinfo.c:216` | Charisma +8 to 15, Alchemy and Speak Common +10 to 19, Artifice +20 to 39. |
-| `mods/saintinfo.c:219` | May raise the reputation by 30 to 49 in Frankfurt an der Oder, Breslau, Olmütz or Teschen (nowhere else). Healing +20 to 29. |
-| `mods/saintinfo.c:221` | May raise the reputation by 30 to 49 in Frankfurt an der Oder, Breslau, Olmütz or Teschen (nowhere else). Heals 20% of lost Endurance and Strength. Healing +20 to 29. |
-| `mods/saintinfo.c:222` | Intelligence +8 to 23, every weapon skill +10 to 19. |
-| `mods/saintinfo.c:223` | No reputation in its help. |
-| `mods/saintinfo.c:225` | Charisma +10 to 19, Strength +4 to 7. |
-| `mods/saintinfo.c:228` | Perception +15 to 29. |
-| `mods/saintinfo.c:231` | Perception +20 to 59. |
-| `mods/saintinfo.c:232` | No reputation in its help. |
-| `mods/saintinfo.c:233` | Perception +20 to 59. By the Rhine (Basel to Xanten), may raise the reputation by 5 to 14. |
-| `mods/saintinfo.c:234` | Polearms, Thrown and Bows +15 to 29, Missile Devices +10 to 19, Stealth +25 to 49, Woodwise +40 to 79. |
-| `mods/saintinfo.c:237` | Charisma +15 to 29, every weapon skill and Speak Common +10 to 19, Riding +5 to 9. |
-| `mods/saintinfo.c:240` | Charisma +8 to 15, Streetwise +10 to 19, Speak Common +5 to 9. |
-| `mods/saintinfo.c:241` | No reputation in Madrid and Spain, which are not in the game. |
-| `mods/saintinfo.c:243` | Heals 50% of lost Endurance and all lost Strength. Charisma +8 to 15, Healing +20 to 39. |
-| `mods/saintinfo.c:246` | Heals 20% of lost Endurance and 10% of lost Strength. Strength and Endurance +4 to 7, Charisma +3 to 5, Virtue +20 to 34. |
-| `mods/saintinfo.c:247` | No reputation in Spain, which is not in the game; no Intelligence lost. |
-| `mods/saintinfo.c:248` | Heals 20% of lost Endurance and 10% of lost Strength. Strength and Endurance +4 to 7, Charisma +3 to 5, Virtue +20 to 34, Intelligence lowered by 3 to 5. |
-| `mods/saintinfo.c:248` | No reputation in Spain, which is not in the game. |
-| `mods/saintinfo.c:249` | No help of its own: its powers work only where an encounter calls for it. |
-| `mods/saintinfo.c:252` | A woman: heals all lost Endurance and 20% of lost Strength, and Endurance +5 to 9, Strength +4 to 7. A man: heals 30% of lost Endurance and 10% of lost Strength. |
-| `mods/saintinfo.c:255` | Charisma +8 to 15, Perception lowered by 6 to 11, Speak Common and Latin +30 to 59. |
-| `mods/saintinfo.c:258` | Alchemy, Religion, Speak Common, Latin, Read & Write, Healing, Artifice, Stealth, Streetwise and Woodwise each +1 to 4, and 1 more for every 5 points of Virtue. |
-| `mods/saintinfo.c:259` | Not all skills: no weapon skills and no Riding. |
-| `mods/saintinfo.c:260` | Every skill +1 to 4, and 1 more for every 5 points of Virtue. |
-| `mods/saintinfo.c:261` | @NEPOMUK Charisma +8 to 15, Intelligence +6 to 11, Speak Common +20 to 39, Streetwise +4 to 7. |
-| `mods/saintinfo.c:264` | Charisma +6 to 11, Artifice and Streetwise +30 to 59. |
-| `mods/saintinfo.c:266` | Artifice and Streetwise +30 to 59; in a town, Charisma +6 to 11. |
-| `mods/saintinfo.c:267` | Endurance, Charisma, Strength, Perception, Agility and Intelligence +4 to 8, the skills of the weapons in hand +15 to 24, Alchemy, Religion, Speak Common, Latin, Read & Write, Healing, Stealth, Artifice, Woodwise and Streetwise +6 to 11. |
-| `mods/saintinfo.c:268` | Not every skill: no Riding, and no weapon skill but those of the weapons in hand. |
-| `mods/saintinfo.c:269` | Endurance, Charisma, Strength, Perception, Agility and Intelligence +4 to 8, the skills of the weapons in hand +15 to 24, every other skill +6 to 11. |
-| `mods/saintinfo.c:270` | Woodwise +20 to 39, Riding +6 to 11. The party can cross water as if it were land. |
-| `mods/saintinfo.c:273` | Heals 40% of lost Endurance and 20% of lost Strength. Charisma +6 to 11, Speak Common +15 to 29, Riding +4 to 7, Healing +10 to 19. |
-| `mods/saintinfo.c:276` | Strength +4 to 7, Agility +3 to 5, the skills of the weapons in hand +15 to 24, Speak Common +6 to 11, Riding +10 to 19. |
-| `mods/saintinfo.c:279` | Heals all lost Endurance. Charisma +12 to 19, Speak Common and Streetwise +10 to 19. |
-| `mods/saintinfo.c:282` | Heals 30% of lost Endurance and all lost Strength. |
-| `mods/saintinfo.c:285` | Every weapon skill +10 to 19. |
-| `mods/saintinfo.c:287` | The weapon of the one prayed for counts 10 points better in quality. Every weapon skill +10 to 19. |
-| `mods/saintinfo.c:288` | Heals all lost Endurance and Strength. Perception +6 to 11. |
-| `mods/saintinfo.c:291` | Heals 50% of lost Endurance and 30% of lost Strength. Healing +20 to 39. |
-| `mods/saintinfo.c:294` | Charisma +6 to 11, Perception +8 to 15, Endurance +5 to 9, Virtue +6 to 17. |
-| `mods/saintinfo.c:295` | Endurance is raised, not spent. |
-| `mods/saintinfo.c:296` | Costs 5 to 9 Endurance (not below 1). Charisma +6 to 11, Perception +8 to 15, Virtue +6 to 17. |
-| `mods/saintinfo.c:297` | A woman: heals all lost Endurance and half the lost Strength, and every attribute +3 to 6 and Alchemy, Religion, Speak Common, Latin, Read & Write, Healing, Artifice, Stealth, Streetwise and Woodwise +5 to 10. A man: heals 10% of lost Endurance and Strength. |
-| `mods/saintinfo.c:298` | No protection from flames. |
-| `mods/saintinfo.c:299` | Fire protection 90 for the one prayed for. A woman: heals all lost Endurance and half the lost Strength, and every attribute +3 to 6 and Alchemy, Religion, Speak Common, Latin, Read & Write, Healing, Artifice, Stealth, Streetwise and Woodwise +5 to 10. A man: heals 10% of lost Endurance and Strength. |
-| `mods/saintinfo.c:300` | Heals all lost Endurance and 40% of lost Strength. Healing +20 to 39, Speak Common +10 to 19. |
-| `mods/saintinfo.c:303` | Agility +12 to 23, Read & Write +15 to 29. |
-| `mods/saintinfo.c:306` | Heals 30% of lost Endurance and 30% of lost Strength. Charisma +8 to 15, Perception +12 to 19, Speak Common +25 to 49, Riding +20 to 39. |
-| `mods/saintinfo.c:308` | One who wears armor has 30% of lost Endurance and Strength healed. Charisma +8 to 15, Perception +12 to 19, Speak Common +25 to 49, Riding +20 to 39. |
-| `mods/saintinfo.c:309` | Intelligence +8 to 15, Latin +15 to 29, Read & Write +25 to 49. The party's standing with the Fugger and with the Medici rises by 20 to 39 each. |
-| `mods/saintinfo.c:312` | Edged +20 to 39, Alchemy +10 to 19. |
-| `mods/saintinfo.c:314` | An edged weapon of the one prayed for counts 10 points better in quality. Edged +20 to 39, Alchemy +10 to 19. |
-| `mods/saintinfo.c:315` | May raise the reputation in the nearest town by 20 to 39. Charisma +12 to 19, the skills of the weapons in hand +20, Healing +20 to 39. |
-| `mods/saintinfo.c:316` | In combat it raises the skills of the weapons in hand, not the quality of the weapons and armor. |
-| `mods/saintinfo.c:317` | Every member's weapon and armor count 10 points better in quality. May raise the reputation in the nearest town by 20 to 39. Charisma +12 to 19, the skills of the weapons in hand +20, Healing +20 to 39. |
-| `mods/saintinfo.c:318` | Charisma +10 to 19, Healing +20 to 39. The party can cross water as if it were land. |
-| `mods/saintinfo.c:321` | Every weapon skill +15 to 29, Stealth +20 to 39, Woodwise and Streetwise +10 to 19. |
-| `mods/saintinfo.c:324` | May raise the reputation in the nearest town by 10 to 19. Charisma +6 to 11, Endurance +4 to 8, Flails +15 to 29. |
-| `mods/saintinfo.c:325` | Flails and Endurance instead of Agility and Riding; the reputation anywhere, not only in his lands. |
-| `mods/saintinfo.c:326` | May raise the reputation in Nancy (Lorraine) by 10 to 19. Agility and Charisma +6 to 11, Riding +40 to 79. |
-| `mods/saintinfo.c:326` | No reputation in Russia, Greece, Sicily and Apulia, which are not in the game. |
-| `mods/saintinfo.c:327` | May raise the reputation by 15 to 24 in Strassburg or Basel (nowhere else). Perception +6 to 11. |
-| `mods/saintinfo.c:330` | Perception +10 to 19, Charisma +4 to 8, every weapon skill +8 to 22, Speak Common +8 to 15. |
-| `mods/saintinfo.c:333` | Heals 30% of lost Endurance. Every weapon skill +8 to 22. |
-| `mods/saintinfo.c:336` | @FIRE1 Heals 30% of lost Endurance and 30% of lost Strength. Charisma +6 to 11, Alchemy +10 to 19, Healing +15 to 29. The party can cross water as if it were land. |
-| `mods/saintinfo.c:337` | The fire protection is only for the one prayed for, not the party; the crossing of water is not in the text; nothing against animals. |
-| `mods/saintinfo.c:338` | Fire protection 50 for every member. One who wears armor has 30% of lost Endurance and Strength healed. Alchemy +10 to 19, Healing +15 to 29. |
-| `mods/saintinfo.c:338` | Nothing against animals. |
-| `mods/saintinfo.c:339` | Charisma +15 to 24, Strength +12 to 19, Edged, Impact, Polearms, Speak Common, Latin and Read & Write +15 to 29. @ARM2 |
-| `mods/saintinfo.c:340` | The armor is against every blow, not only missiles. |
-| `mods/saintinfo.c:341` | Armor two levels thicker against missiles. Charisma +15 to 24, Strength +12 to 19, Edged, Impact, Polearms, Speak Common, Latin and Read & Write +15 to 29. |
-| `mods/saintinfo.c:343` | No reputation in Greece and Malta, which are not in the game. |
-| `mods/saintinfo.c:348` | Charisma +15 to 29. |
-| `mods/saintinfo.c:351` | Charisma +8 to 15, Strength +12 to 19, Perception lowered by half its maximum, Speak Common, Latin and Healing +10 to 19, Edged +15 to 29. |
-| `mods/saintinfo.c:354` | May lower the reputation in the nearest town by 1 to 4. Intelligence and Perception +6 to 11, Alchemy and Riding +10 to 19, Stealth +40 to 79. |
-| `mods/saintinfo.c:360` | Heals all lost Endurance and Strength. Agility +8 to 15, Perception +6 to 11, Healing +50 to 139. |
-| `mods/saintinfo.c:363` | Intelligence +15 to 29, Read & Write +30 to 89. The party can cross water as if it were land. |
-| `mods/saintinfo.c:364` | No reputation with the Dominicans in its help. |
-| `mods/saintinfo.c:366` | Intelligence +12 to 19, Alchemy +20 to 39, Read & Write +30 to 59. Endurance and Strength below 9 are raised to 9. |
-| `mods/saintinfo.c:369` | Heals 30% of lost Endurance. Charisma lowered by 6 to 11, Alchemy +6 to 17, Artifice +35 to 69. |
-| `mods/saintinfo.c:372` | Heals 20% of lost Endurance and 20% of lost Strength. Healing +10 to 19, Artifice +8 to 15. |
-| `mods/saintinfo.c:375` | Heals all lost Endurance and Strength. Charisma +10 to 19. |
-| `mods/saintinfo.c:378` | Heals 10% of lost Endurance and 10% of lost Strength. Agility +12 to 19, Bows +20 to 39, Riding +10 to 19. |
-| `mods/saintinfo.c:380` | Heals 10% of lost Endurance and Strength. Agility +12 to 19, Bows +20 to 39, the other weapon skills +6 to 11, Riding +10 to 19. |
-| `mods/saintinfo.c:381` | Heals 20% of lost Endurance and 10% of lost Strength. Charisma +6 to 11, Speak Common +30 to 59, Latin +20 to 39. |
-| `mods/saintinfo.c:382` | No reputation in its help (Poland and Cracow: no such places in the game). |
-| `mods/saintinfo.c:383` | May raise the reputation by 10 to 19 in Posen or Bromberg (nowhere else). Heals 20% of lost Endurance and 10% of lost Strength. Charisma +6 to 11, Speak Common +30 to 59, Latin +20 to 39. |
-| `mods/saintinfo.c:383` | No reputation in Cracow, which is not in the game. |
-| `mods/saintinfo.c:384` | In Pressburg, may raise the reputation by 15 to 24. Charisma +6 to 11, Intelligence +8 to 15, the skills of the weapons in hand +15 to 24, Speak Common +6 to 11, Riding +10 to 19. |
-| `mods/saintinfo.c:387` | Heals 20% of lost Endurance and 10% of lost Strength. Charisma +10 to 19, Speak Common +25 to 49. |
-| `mods/saintinfo.c:390` | Heals 40% of lost Endurance and 20% of lost Strength. Charisma +6 to 11. |
-| `mods/saintinfo.c:393` | Heals 40% of lost Endurance and 20% of lost Strength. Healing +30 to 59. |
-| `mods/saintinfo.c:396` | Charisma +6 to 11, Endurance +4 to 8, the skills of the weapons in hand +15 to 24, Flails +15 to 29. |
-| `mods/saintinfo.c:397` | Flails instead of Riding. |
-| `mods/saintinfo.c:398` | Charisma +6 to 11, the skills of the weapons in hand +15 to 24, Riding +25 to 49. |
-| `mods/saintinfo.c:399` | Strength and Endurance +4 to 8, Speak Common and Woodwise +4 to 7, Healing +10 to 19, Artifice +12 to 23. |
-| `mods/saintinfo.c:402` | Intelligence +12 to 23, Speak Common and Latin +12 to 26, Read & Write +15 to 29, Healing +10 to 19. |
-| `mods/saintinfo.c:403` | No Religion and no reputation at monasteries and universities; instead Speak Common and Healing. |
-| `mods/saintinfo.c:404` | In a town with a monastery or a university, may raise its reputation by 10 to 19. Intelligence +12 to 23, Latin +12 to 26, Read & Write +15 to 29, Religion +25 to 49. |
-| `mods/saintinfo.c:405` | Heals 10% of lost Endurance and 10% of lost Strength. Charisma +10 to 19, Stealth, Healing and Speak Common +6 to 11. |
-| `mods/saintinfo.c:408` | Heals all lost Endurance and 20% of lost Strength. Charisma +8 to 15, the skills of the weapons in hand +15 to 24, Speak Common +10 to 19. |
-| `mods/saintinfo.c:411` | Charisma +10 to 19, Agility +12 to 23. At the party's next step in the overland view it is carried to the nearest town. |
-| `mods/saintinfo.c:412` | No Endurance lost. |
-| `mods/saintinfo.c:413` | Charisma +10 to 19, Agility +12 to 23. One time in two, the one prayed for loses 3 to 8 Endurance (not below 1). At the party's next step in the overland view it is carried to the nearest town. |
-| `mods/saintinfo.c:414` | May raise the reputation by 15 to 24 in St. Joachimsthal, Bürglitz, Prag, Kuttenberg, Olmütz or Brünn (nowhere else). Perception and Strength +6 to 11, Intelligence +8 to 13, the skills of the weapons in hand +8 to 15, Riding +8 to 15. |
-| `mods/saintinfo.c:415` | No reputation with nobles in its help. |
-| `mods/saintinfo.c:417` | Heals 20% of lost Endurance. Charisma +6 to 11, Artifice +6 to 11, Speak Common +20 to 39. For a week no ambush takes the party by surprise (bandits and the like). |
-| `mods/saintinfo.c:418` | No faster travel; instead, a week safe from ambushes. |
-| `mods/saintinfo.c:419` | The party travels twice as fast for a week. Heals 20% of lost Endurance. Charisma +6 to 11, Artifice +6 to 11, Speak Common +20 to 39. |
-| `mods/saintinfo.c:420` | Agility +8 to 15, Woodwise +8 to 15, Riding +10 to 19. For a week no ambush takes the party by surprise (bandits and the like). |
-| `mods/saintinfo.c:423` | Charisma +10 to 19, Woodwise +6 to 11, Speak Common +25 to 49. |
-| `mods/saintinfo.c:426` | Charisma +10 to 19, Woodwise +8 to 15, Speak Common +20 to 39. |
-| `mods/saintinfo.c:427` | No reputation in its help. |
-| `mods/saintinfo.c:428` | May raise the reputation by 10 to 19 in Groningen, Leer, Osnabrück, Zwolle, Deventer, Münster, Nymwegen or Elburg (nowhere else). Charisma +10 to 19, Woodwise +8 to 15, Speak Common +20 to 39. |
-| `mods/saintinfo.c:429` | Charisma +8 to 15, Intelligence +6 to 11, Woodwise and Riding +6 to 11, Speak Common +20 to 39. |
-| `mods/saintinfo.c:430` | No reputation in its help. |
-| `mods/saintinfo.c:432` | Heals 20% of lost Endurance and 5% of lost Strength. Perception +6 to 11, Streetwise +6 to 11. |
-| `mods/saintinfo.c:444` | Meant as protection against fire, but the game adds it to the armor instead, for good (with the fix "No invulnerability from fire protection" on, it does nothing). |
-| `mods/saintinfo.c:445` | Meant as protection against fire, it gives the one prayed for armor +32 in battle instead, for good. |
-| `mods/saintinfo.c:447` | Every member's worn body and leg armor +10 quality, for good, piling up with each prayer. |
-| `mods/saintinfo.c:451` | May raise the reputation by 10 to 19 in St. Joachimsthal, Bürglitz, Kuttenberg, Olmütz or Brünn (nowhere else); in Prag it goes to a place picked at random. |
-| `mods/saintinfo.c:455` | Every member: fire protection 90 for good (and an armor bonus, which the fix "No invulnerability from fire protection" cancels). |
-| `mods/saintinfo.c:456` | Every member: fire protection 90 for good, and armor +48 for good (meant as protection against fire). |
-| `mods/saintinfo.c:487` | This is the help the texts and the manual give St. Paul the Simple: the two Pauls are mixed up (the fix "The two St. Pauls do what their texts say" sets this right). |
-| `mods/saintinfo.c:488` | This is St. Thomas Aquinas's help: the two Pauls are mixed up (the fix "The two St. Pauls do what their texts say" sets this right). |
-| `mods/saintinfo.c:500` | A saint's help lasts about a day, unless said otherwise. |
+| `mods/saintinfo.c:126` | Heals all lost Strength and 10% of lost Endurance. Charisma +15 to 44, Speak Common +25 to 49. |
+| `mods/saintinfo.c:126` | No reputation in Paris and France, which are not in the game. |
+| `mods/saintinfo.c:127` | Heals 30% of lost Endurance. Strength +5 to 14, the skills of the weapons in hand +20 to 59. |
+| `mods/saintinfo.c:130` | Heals all lost Endurance and 20% of lost Strength. Charisma +15 to 29. |
+| `mods/saintinfo.c:131` | No reputation in Corsica and Monaco, which are not in the game. |
+| `mods/saintinfo.c:133` | Agility +10 to 19, Woodwise and Stealth +10 to 19, Streetwise and Artifice +20 to 39. |
+| `mods/saintinfo.c:134` | Only the one prayed for, not the entire party; no Charisma or Speak Common. |
+| `mods/saintinfo.c:135` | Every member's Stealth +10 to 19. Agility, Woodwise +10 to 19, Streetwise and Artifice +20 to 39, Charisma and Speak Common +6 to 11. |
+| `mods/saintinfo.c:136` | Intelligence +10 to 19, Speak Common and Latin +10 to 19, Read & Write +20 to 39. |
+| `mods/saintinfo.c:139` | Charisma +10 to 19, Perception +6 to 11, Healing +10 to 19. A member with no edged weapon gets a long sword. |
+| `mods/saintinfo.c:142` | Perception +6 to 11, Healing +10 to 19, Woodwise +20 to 39. For a week no ambush takes the party by surprise (bandits and the like). |
+| `mods/saintinfo.c:143` | No faster travel; instead, a week safe from ambushes. |
+| `mods/saintinfo.c:144` | The party travels half again as fast for a week. Perception +6 to 11, Healing +10 to 19, Woodwise +20 to 39. |
+| `mods/saintinfo.c:145` | Perception +6 to 11, the skills of the weapons in hand +6 to 11, Artifice +25 to 74, Streetwise +6 to 11, Alchemy +5 to 14. @ARM1 |
+| `mods/saintinfo.c:146` | The text says the quality of all metal armor in the party; the game gives the one prayed for armor one level thicker. |
+| `mods/saintinfo.c:147` | Every member's metal armor (scale, mail, plate) counts 10 points better in quality. Perception +6 to 11, the skills of the weapons in hand +6 to 11, Artifice +25 to 74, Streetwise +6 to 11, Alchemy +5 to 14. |
+| `mods/saintinfo.c:148` | Heals 30% of lost Endurance. Agility +4 to 7, Stealth +15 to 29, Healing +10 to 19. |
+| `mods/saintinfo.c:151` | Endurance +4 to 7, Intelligence +6 to 11, Perception +8 to 15, Riding +8 to 15, every weapon skill +6 to 11. Every member's Virtue is raised to at least 20, for good, and the party loses a quarter of its money. |
+| `mods/saintinfo.c:152` | Endurance is raised past its maximum for a day, not healed; a rich party loses less than a quarter (the game counts only part of the purse). |
+| `mods/saintinfo.c:153` | Heals 4 to 7 Endurance (up to its maximum). Intelligence +6 to 11, Perception +8 to 15, Riding +8 to 15, every weapon skill +6 to 11. Every member's Virtue is raised to at least 20, for good, and the party loses a quarter of its money. |
+| `mods/saintinfo.c:154` | Artifice +25 to 74, Alchemy +8 to 15. |
+| `mods/saintinfo.c:156` | Blades, hammers and maces, polearms, crossbows and guns of the one prayed for count 10 points better in quality. Artifice +25 to 74, Alchemy +8 to 15. |
+| `mods/saintinfo.c:157` | Charisma +15 to 29, Speak Common +20 to 39. |
+| `mods/saintinfo.c:160` | Charisma +5 to 9, Riding and Woodwise +10 to 19, Speak Common +6 to 11. The party can cross water as if it were land. |
+| `mods/saintinfo.c:163` | @FIRE1 Agility and Perception +6 to 11. |
+| `mods/saintinfo.c:165` | Fire protection 50 for every member. Agility and Perception +6 to 11. |
+| `mods/saintinfo.c:166` | Strength +8 to 23, Charisma +4 to 7, the skills of the weapons in hand +15 to 24, Riding and Speak Common +6 to 11. |
+| `mods/saintinfo.c:167` | No reputation in Sweden, which is not in the game. |
+| `mods/saintinfo.c:169` | Riding +10 to 19, Woodwise +40 to 69, Edged, Thrown and Bows +6 to 11. |
+| `mods/saintinfo.c:170` | No faster travel through woods, and the weapon skills are only Edged, Thrown and Bows. |
+| `mods/saintinfo.c:171` | The party travels twice as fast through woods and forests for a week. Riding +10 to 19, Woodwise +40 to 69, Edged, Polearms, Thrown, Bows and Missile Devices +15 to 29. |
+| `mods/saintinfo.c:172` | Agility +8 to 15, Stealth +40 to 119, Woodwise +10 to 19. |
+| `mods/saintinfo.c:175` | Charisma +8 to 15, Perception +6 to 11, Latin +10 to 19. |
+| `mods/saintinfo.c:178` | Agility +8 to 15, Charisma +6 to 11, Streetwise +4 to 7, Speak Common and Read & Write +6 to 11. The party can cross water as if it were land. |
+| `mods/saintinfo.c:181` | May raise the reputation by 15 to 24 in Passau, Salzburg, Linz, Steyr, Wien or Graz (nowhere else). The skills of the weapons in hand +6 to 11, Riding +6 to 11. The party can cross water as if it were land. |
+| `mods/saintinfo.c:183` | May raise the reputation by 15 to 24 in Passau, Salzburg, Linz, Steyr, Wien, Graz, Posen or Bromberg (nowhere else). The skills of the weapons in hand +6 to 11, Riding +6 to 11. The party can cross water as if it were land. |
+| `mods/saintinfo.c:184` | Heals 30% of lost Endurance and 10% of lost Strength. Perception and Endurance +6 to 11, Charisma +15 to 29, Speak Common and Woodwise +4 to 7, Healing +10 to 19, Artifice +12 to 23. |
+| `mods/saintinfo.c:185` | No Virtue and no loss of money; instead Healing, Artifice and Woodwise. |
+| `mods/saintinfo.c:186` | Endurance and Perception +6 to 11, Charisma +15 to 29, Speak Common +10 to 19, Virtue +25 to 49. One time in two the party loses a tenth of its money. |
+| `mods/saintinfo.c:187` | Intelligence and Perception +10 to 29. |
+| `mods/saintinfo.c:190` | Heals 30% of lost Endurance and 20% of lost Strength. For a week no ambush takes the party by surprise (bandits and the like). |
+| `mods/saintinfo.c:193` | Strength +10 to 14, Agility +5 to 9, every weapon skill and Riding +25 to 49. |
+| `mods/saintinfo.c:195` | The weapon and the armor of the one prayed for count 10 points better in quality. Strength +10 to 14, Agility +5 to 9, every weapon skill and Riding +25 to 49. |
+| `mods/saintinfo.c:196` | Heals 30% of lost Endurance and 20% of lost Strength. The skills of the weapons in hand +15 to 24, Healing +20 to 39. |
+| `mods/saintinfo.c:197` | No Charisma, and only the skills of the weapons in hand, not all weapon skills. |
+| `mods/saintinfo.c:198` | Heals 30% of lost Endurance and 20% of lost Strength. Every weapon skill +15 to 24, Healing +20 to 39, Charisma +6 to 11. |
+| `mods/saintinfo.c:199` | Charisma +6 to 11, Riding +5 to 9, Woodwise, Latin and Read & Write +15 to 29. At the party's next step in the overland view it is carried to the nearest town. |
+| `mods/saintinfo.c:202` | Heals 40% of lost Endurance and 10% of lost Strength. Agility lowered by 4 to 7, the skills of the weapons in hand lowered by 15 to 24, Stealth +30 to 59, Woodwise +5 to 9, Streetwise +50 to 89. |
+| `mods/saintinfo.c:203` | Woodwise and Streetwise the other way around (the text: a little Streetwise, a tremendous Woodwise); no money. |
+| `mods/saintinfo.c:204` | Heals 40% of lost Endurance and 10% of lost Strength. Agility lowered by 4 to 7, the skills of the weapons in hand lowered by 15 to 24, Stealth +30 to 59, Woodwise +50 to 89, Streetwise +5 to 9. A party with neither florins nor groschen gets 3 to 9 groschen. |
+| `mods/saintinfo.c:205` | Intelligence +5 to 9, Perception +15 to 24, Alchemy +40 to 59, Artifice +10 to 19. Costs a point of Strength (a wound) and a point of Virtue, for good. |
+| `mods/saintinfo.c:208` | Heals 30% of lost Endurance. Latin +20 to 39, Read & Write +25 to 49. |
+| `mods/saintinfo.c:211` | Heals 20% of lost Endurance. Speak Common +15 to 29, Artifice +10 to 19. For a week no ambush takes the party by surprise (bandits and the like). |
+| `mods/saintinfo.c:214` | May raise the reputation by 20 to 39 in Schleswig, Lübeck, Wismar, Rostock, Hamburg, Lüneburg or Bremen (nowhere else). Every weapon skill +15 to 29. |
+| `mods/saintinfo.c:217` | Charisma +8 to 15, Alchemy and Speak Common +10 to 19, Artifice +20 to 39. |
+| `mods/saintinfo.c:220` | May raise the reputation by 30 to 49 in Frankfurt an der Oder, Breslau, Olmütz or Teschen (nowhere else). Healing +20 to 29. |
+| `mods/saintinfo.c:222` | May raise the reputation by 30 to 49 in Frankfurt an der Oder, Breslau, Olmütz or Teschen (nowhere else). Heals 20% of lost Endurance and Strength. Healing +20 to 29. |
+| `mods/saintinfo.c:223` | Intelligence +8 to 23, every weapon skill +10 to 19. |
+| `mods/saintinfo.c:224` | No reputation in its help. |
+| `mods/saintinfo.c:226` | Charisma +10 to 19, Strength +4 to 7. |
+| `mods/saintinfo.c:229` | Perception +15 to 29. |
+| `mods/saintinfo.c:232` | Perception +20 to 59. |
+| `mods/saintinfo.c:233` | No reputation in its help. |
+| `mods/saintinfo.c:234` | Perception +20 to 59. By the Rhine (Basel to Xanten), may raise the reputation by 5 to 14. |
+| `mods/saintinfo.c:235` | Polearms, Thrown and Bows +15 to 29, Missile Devices +10 to 19, Stealth +25 to 49, Woodwise +40 to 79. |
+| `mods/saintinfo.c:238` | Charisma +15 to 29, every weapon skill and Speak Common +10 to 19, Riding +5 to 9. |
+| `mods/saintinfo.c:241` | Charisma +8 to 15, Streetwise +10 to 19, Speak Common +5 to 9. |
+| `mods/saintinfo.c:242` | No reputation in Madrid and Spain, which are not in the game. |
+| `mods/saintinfo.c:244` | Heals 50% of lost Endurance and all lost Strength. Charisma +8 to 15, Healing +20 to 39. |
+| `mods/saintinfo.c:247` | Heals 20% of lost Endurance and 10% of lost Strength. Strength and Endurance +4 to 7, Charisma +3 to 5, Virtue +20 to 34. |
+| `mods/saintinfo.c:248` | No reputation in Spain, which is not in the game; no Intelligence lost. |
+| `mods/saintinfo.c:249` | Heals 20% of lost Endurance and 10% of lost Strength. Strength and Endurance +4 to 7, Charisma +3 to 5, Virtue +20 to 34, Intelligence lowered by 3 to 5. |
+| `mods/saintinfo.c:249` | No reputation in Spain, which is not in the game. |
+| `mods/saintinfo.c:250` | No help of its own: its powers work only where an encounter calls for it. |
+| `mods/saintinfo.c:253` | A woman: heals all lost Endurance and 20% of lost Strength, and Endurance +5 to 9, Strength +4 to 7. A man: heals 30% of lost Endurance and 10% of lost Strength. |
+| `mods/saintinfo.c:256` | Charisma +8 to 15, Perception lowered by 6 to 11, Speak Common and Latin +30 to 59. |
+| `mods/saintinfo.c:259` | Alchemy, Religion, Speak Common, Latin, Read & Write, Healing, Artifice, Stealth, Streetwise and Woodwise each +1 to 4, and 1 more for every 5 points of Virtue. |
+| `mods/saintinfo.c:260` | Not all skills: no weapon skills and no Riding. |
+| `mods/saintinfo.c:261` | Every skill +1 to 4, and 1 more for every 5 points of Virtue. |
+| `mods/saintinfo.c:262` | @NEPOMUK Charisma +8 to 15, Intelligence +6 to 11, Speak Common +20 to 39, Streetwise +4 to 7. |
+| `mods/saintinfo.c:265` | Charisma +6 to 11, Artifice and Streetwise +30 to 59. |
+| `mods/saintinfo.c:267` | Artifice and Streetwise +30 to 59; in a town, Charisma +6 to 11. |
+| `mods/saintinfo.c:268` | Endurance, Charisma, Strength, Perception, Agility and Intelligence +4 to 8, the skills of the weapons in hand +15 to 24, Alchemy, Religion, Speak Common, Latin, Read & Write, Healing, Stealth, Artifice, Woodwise and Streetwise +6 to 11. |
+| `mods/saintinfo.c:269` | Not every skill: no Riding, and no weapon skill but those of the weapons in hand. |
+| `mods/saintinfo.c:270` | Endurance, Charisma, Strength, Perception, Agility and Intelligence +4 to 8, the skills of the weapons in hand +15 to 24, every other skill +6 to 11. |
+| `mods/saintinfo.c:271` | Woodwise +20 to 39, Riding +6 to 11. The party can cross water as if it were land. |
+| `mods/saintinfo.c:274` | Heals 40% of lost Endurance and 20% of lost Strength. Charisma +6 to 11, Speak Common +15 to 29, Riding +4 to 7, Healing +10 to 19. |
+| `mods/saintinfo.c:277` | Strength +4 to 7, Agility +3 to 5, the skills of the weapons in hand +15 to 24, Speak Common +6 to 11, Riding +10 to 19. |
+| `mods/saintinfo.c:280` | Heals all lost Endurance. Charisma +12 to 19, Speak Common and Streetwise +10 to 19. |
+| `mods/saintinfo.c:283` | Heals 30% of lost Endurance and all lost Strength. |
+| `mods/saintinfo.c:286` | Every weapon skill +10 to 19. |
+| `mods/saintinfo.c:288` | The weapon of the one prayed for counts 10 points better in quality. Every weapon skill +10 to 19. |
+| `mods/saintinfo.c:289` | Heals all lost Endurance and Strength. Perception +6 to 11. |
+| `mods/saintinfo.c:292` | Heals 50% of lost Endurance and 30% of lost Strength. Healing +20 to 39. |
+| `mods/saintinfo.c:295` | Charisma +6 to 11, Perception +8 to 15, Endurance +5 to 9, Virtue +6 to 17. |
+| `mods/saintinfo.c:296` | Endurance is raised, not spent. |
+| `mods/saintinfo.c:297` | Costs 5 to 9 Endurance (not below 1). Charisma +6 to 11, Perception +8 to 15, Virtue +6 to 17. |
+| `mods/saintinfo.c:298` | A woman: heals all lost Endurance and half the lost Strength, and every attribute +3 to 6 and Alchemy, Religion, Speak Common, Latin, Read & Write, Healing, Artifice, Stealth, Streetwise and Woodwise +5 to 10. A man: heals 10% of lost Endurance and Strength. |
+| `mods/saintinfo.c:299` | No protection from flames. |
+| `mods/saintinfo.c:300` | Fire protection 90 for the one prayed for. A woman: heals all lost Endurance and half the lost Strength, and every attribute +3 to 6 and Alchemy, Religion, Speak Common, Latin, Read & Write, Healing, Artifice, Stealth, Streetwise and Woodwise +5 to 10. A man: heals 10% of lost Endurance and Strength. |
+| `mods/saintinfo.c:301` | Heals all lost Endurance and 40% of lost Strength. Healing +20 to 39, Speak Common +10 to 19. |
+| `mods/saintinfo.c:304` | Agility +12 to 23, Read & Write +15 to 29. |
+| `mods/saintinfo.c:307` | Heals 30% of lost Endurance and 30% of lost Strength. Charisma +8 to 15, Perception +12 to 19, Speak Common +25 to 49, Riding +20 to 39. |
+| `mods/saintinfo.c:309` | One who wears armor has 30% of lost Endurance and Strength healed. Charisma +8 to 15, Perception +12 to 19, Speak Common +25 to 49, Riding +20 to 39. |
+| `mods/saintinfo.c:310` | Intelligence +8 to 15, Latin +15 to 29, Read & Write +25 to 49. The party's standing with the Fugger and with the Medici rises by 20 to 39 each. |
+| `mods/saintinfo.c:313` | Edged +20 to 39, Alchemy +10 to 19. |
+| `mods/saintinfo.c:315` | An edged weapon of the one prayed for counts 10 points better in quality. Edged +20 to 39, Alchemy +10 to 19. |
+| `mods/saintinfo.c:316` | May raise the reputation in the nearest town by 20 to 39. Charisma +12 to 19, the skills of the weapons in hand +20, Healing +20 to 39. |
+| `mods/saintinfo.c:317` | In combat it raises the skills of the weapons in hand, not the quality of the weapons and armor. |
+| `mods/saintinfo.c:318` | Every member's weapon and armor count 10 points better in quality. May raise the reputation in the nearest town by 20 to 39. Charisma +12 to 19, the skills of the weapons in hand +20, Healing +20 to 39. |
+| `mods/saintinfo.c:319` | Charisma +10 to 19, Healing +20 to 39. The party can cross water as if it were land. |
+| `mods/saintinfo.c:322` | Every weapon skill +15 to 29, Stealth +20 to 39, Woodwise and Streetwise +10 to 19. |
+| `mods/saintinfo.c:325` | May raise the reputation in the nearest town by 10 to 19. Charisma +6 to 11, Endurance +4 to 8, Flails +15 to 29. |
+| `mods/saintinfo.c:326` | Flails and Endurance instead of Agility and Riding; the reputation anywhere, not only in his lands. |
+| `mods/saintinfo.c:327` | May raise the reputation in Nancy (Lorraine) by 10 to 19. Agility and Charisma +6 to 11, Riding +40 to 79. |
+| `mods/saintinfo.c:327` | No reputation in Russia, Greece, Sicily and Apulia, which are not in the game. |
+| `mods/saintinfo.c:328` | May raise the reputation by 15 to 24 in Strassburg or Basel (nowhere else). Perception +6 to 11. |
+| `mods/saintinfo.c:331` | Perception +10 to 19, Charisma +4 to 8, every weapon skill +8 to 22, Speak Common +8 to 15. |
+| `mods/saintinfo.c:334` | Heals 30% of lost Endurance. Every weapon skill +8 to 22. |
+| `mods/saintinfo.c:337` | @FIRE1 Heals 30% of lost Endurance and 30% of lost Strength. Charisma +6 to 11, Alchemy +10 to 19, Healing +15 to 29. The party can cross water as if it were land. |
+| `mods/saintinfo.c:338` | The fire protection is only for the one prayed for, not the party; the crossing of water is not in the text; nothing against animals. |
+| `mods/saintinfo.c:339` | Fire protection 50 for every member. One who wears armor has 30% of lost Endurance and Strength healed. Alchemy +10 to 19, Healing +15 to 29. |
+| `mods/saintinfo.c:339` | Nothing against animals. |
+| `mods/saintinfo.c:340` | Charisma +15 to 24, Strength +12 to 19, Edged, Impact, Polearms, Speak Common, Latin and Read & Write +15 to 29. @ARM2 |
+| `mods/saintinfo.c:341` | The armor is against every blow, not only missiles. |
+| `mods/saintinfo.c:342` | Armor two levels thicker against missiles. Charisma +15 to 24, Strength +12 to 19, Edged, Impact, Polearms, Speak Common, Latin and Read & Write +15 to 29. |
+| `mods/saintinfo.c:344` | No reputation in Greece and Malta, which are not in the game. |
+| `mods/saintinfo.c:349` | Charisma +15 to 29. |
+| `mods/saintinfo.c:352` | Charisma +8 to 15, Strength +12 to 19, Perception lowered by half its maximum, Speak Common, Latin and Healing +10 to 19, Edged +15 to 29. |
+| `mods/saintinfo.c:355` | May lower the reputation in the nearest town by 1 to 4. Intelligence and Perception +6 to 11, Alchemy and Riding +10 to 19, Stealth +40 to 79. |
+| `mods/saintinfo.c:361` | Heals all lost Endurance and Strength. Agility +8 to 15, Perception +6 to 11, Healing +50 to 139. |
+| `mods/saintinfo.c:364` | Intelligence +15 to 29, Read & Write +30 to 89. The party can cross water as if it were land. |
+| `mods/saintinfo.c:365` | No reputation with the Dominicans in its help. |
+| `mods/saintinfo.c:367` | Intelligence +12 to 19, Alchemy +20 to 39, Read & Write +30 to 59. Endurance and Strength below 9 are raised to 9. |
+| `mods/saintinfo.c:370` | Heals 30% of lost Endurance. Charisma lowered by 6 to 11, Alchemy +6 to 17, Artifice +35 to 69. |
+| `mods/saintinfo.c:373` | Heals 20% of lost Endurance and 20% of lost Strength. Healing +10 to 19, Artifice +8 to 15. |
+| `mods/saintinfo.c:376` | Heals all lost Endurance and Strength. Charisma +10 to 19. |
+| `mods/saintinfo.c:379` | Heals 10% of lost Endurance and 10% of lost Strength. Agility +12 to 19, Bows +20 to 39, Riding +10 to 19. |
+| `mods/saintinfo.c:381` | Heals 10% of lost Endurance and Strength. Agility +12 to 19, Bows +20 to 39, the other weapon skills +6 to 11, Riding +10 to 19. |
+| `mods/saintinfo.c:382` | Heals 20% of lost Endurance and 10% of lost Strength. Charisma +6 to 11, Speak Common +30 to 59, Latin +20 to 39. |
+| `mods/saintinfo.c:383` | No reputation in its help (Poland and Cracow: no such places in the game). |
+| `mods/saintinfo.c:384` | May raise the reputation by 10 to 19 in Posen or Bromberg (nowhere else). Heals 20% of lost Endurance and 10% of lost Strength. Charisma +6 to 11, Speak Common +30 to 59, Latin +20 to 39. |
+| `mods/saintinfo.c:384` | No reputation in Cracow, which is not in the game. |
+| `mods/saintinfo.c:385` | In Pressburg, may raise the reputation by 15 to 24. Charisma +6 to 11, Intelligence +8 to 15, the skills of the weapons in hand +15 to 24, Speak Common +6 to 11, Riding +10 to 19. |
+| `mods/saintinfo.c:388` | Heals 20% of lost Endurance and 10% of lost Strength. Charisma +10 to 19, Speak Common +25 to 49. |
+| `mods/saintinfo.c:391` | Heals 40% of lost Endurance and 20% of lost Strength. Charisma +6 to 11. |
+| `mods/saintinfo.c:394` | Heals 40% of lost Endurance and 20% of lost Strength. Healing +30 to 59. |
+| `mods/saintinfo.c:397` | Charisma +6 to 11, Endurance +4 to 8, the skills of the weapons in hand +15 to 24, Flails +15 to 29. |
+| `mods/saintinfo.c:398` | Flails instead of Riding. |
+| `mods/saintinfo.c:399` | Charisma +6 to 11, the skills of the weapons in hand +15 to 24, Riding +25 to 49. |
+| `mods/saintinfo.c:400` | Strength and Endurance +4 to 8, Speak Common and Woodwise +4 to 7, Healing +10 to 19, Artifice +12 to 23. |
+| `mods/saintinfo.c:403` | Intelligence +12 to 23, Speak Common and Latin +12 to 26, Read & Write +15 to 29, Healing +10 to 19. |
+| `mods/saintinfo.c:404` | No Religion and no reputation at monasteries and universities; instead Speak Common and Healing. |
+| `mods/saintinfo.c:405` | In a town with a monastery or a university, may raise its reputation by 10 to 19. Intelligence +12 to 23, Latin +12 to 26, Read & Write +15 to 29, Religion +25 to 49. |
+| `mods/saintinfo.c:406` | Heals 10% of lost Endurance and 10% of lost Strength. Charisma +10 to 19, Stealth, Healing and Speak Common +6 to 11. |
+| `mods/saintinfo.c:409` | Heals all lost Endurance and 20% of lost Strength. Charisma +8 to 15, the skills of the weapons in hand +15 to 24, Speak Common +10 to 19. |
+| `mods/saintinfo.c:412` | Charisma +10 to 19, Agility +12 to 23. At the party's next step in the overland view it is carried to the nearest town. |
+| `mods/saintinfo.c:413` | No Endurance lost. |
+| `mods/saintinfo.c:414` | Charisma +10 to 19, Agility +12 to 23. One time in two, the one prayed for loses 3 to 8 Endurance (not below 1). At the party's next step in the overland view it is carried to the nearest town. |
+| `mods/saintinfo.c:415` | May raise the reputation by 15 to 24 in St. Joachimsthal, Bürglitz, Prag, Kuttenberg, Olmütz or Brünn (nowhere else). Perception and Strength +6 to 11, Intelligence +8 to 13, the skills of the weapons in hand +8 to 15, Riding +8 to 15. |
+| `mods/saintinfo.c:416` | No reputation with nobles in its help. |
+| `mods/saintinfo.c:418` | Heals 20% of lost Endurance. Charisma +6 to 11, Artifice +6 to 11, Speak Common +20 to 39. For a week no ambush takes the party by surprise (bandits and the like). |
+| `mods/saintinfo.c:419` | No faster travel; instead, a week safe from ambushes. |
+| `mods/saintinfo.c:420` | The party travels twice as fast for a week. Heals 20% of lost Endurance. Charisma +6 to 11, Artifice +6 to 11, Speak Common +20 to 39. |
+| `mods/saintinfo.c:421` | Agility +8 to 15, Woodwise +8 to 15, Riding +10 to 19. For a week no ambush takes the party by surprise (bandits and the like). |
+| `mods/saintinfo.c:424` | Charisma +10 to 19, Woodwise +6 to 11, Speak Common +25 to 49. |
+| `mods/saintinfo.c:427` | Charisma +10 to 19, Woodwise +8 to 15, Speak Common +20 to 39. |
+| `mods/saintinfo.c:428` | No reputation in its help. |
+| `mods/saintinfo.c:429` | May raise the reputation by 10 to 19 in Groningen, Leer, Osnabrück, Zwolle, Deventer, Münster, Nymwegen or Elburg (nowhere else). Charisma +10 to 19, Woodwise +8 to 15, Speak Common +20 to 39. |
+| `mods/saintinfo.c:430` | Charisma +8 to 15, Intelligence +6 to 11, Woodwise and Riding +6 to 11, Speak Common +20 to 39. |
+| `mods/saintinfo.c:431` | No reputation in its help. |
+| `mods/saintinfo.c:433` | Heals 20% of lost Endurance and 5% of lost Strength. Perception +6 to 11, Streetwise +6 to 11. |
+| `mods/saintinfo.c:445` | Meant as protection against fire, but the game adds it to the armor instead, for good (with the fix "No invulnerability from fire protection" on, it does nothing). |
+| `mods/saintinfo.c:446` | Meant as protection against fire, it gives the one prayed for armor +32 in battle instead, for good. |
+| `mods/saintinfo.c:448` | Every member's worn body and leg armor +10 quality, for good, piling up with each prayer. |
+| `mods/saintinfo.c:452` | May raise the reputation by 10 to 19 in St. Joachimsthal, Bürglitz, Kuttenberg, Olmütz or Brünn (nowhere else); in Prag it goes to a place picked at random. |
+| `mods/saintinfo.c:456` | Every member: fire protection 90 for good (and an armor bonus, which the fix "No invulnerability from fire protection" cancels). |
+| `mods/saintinfo.c:457` | Every member: fire protection 90 for good, and armor +48 for good (meant as protection against fire). |
+| `mods/saintinfo.c:488` | This is the help the texts and the manual give St. Paul the Simple: the two Pauls are mixed up (the fix "The two St. Pauls do what their texts say" sets this right). |
+| `mods/saintinfo.c:489` | This is St. Thomas Aquinas's help: the two Pauls are mixed up (the fix "The two St. Pauls do what their texts say" sets this right). |
+| `mods/saintinfo.c:504` | A saint's help lasts about a day, unless said otherwise. |
 | `mods/sainttexts.c:79` | Endurance (healing only) |
 | `mods/sainttexts.c:84` | Endurance (healing only) |
 | `mods/sainttexts.c:89` | Strength and Endurance (healing only) |
@@ -3292,21 +3305,21 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/saves.c:268` | Difficulty is now set to ... |
 | `mods/saves.c:281` | Loading is irreversable. Proceed? |
 | `mods/saves.c:324` | That save could not be read. |
-| `mods/saves.c:342` | Loaded %s: a battle, paused (Space resumes it) |
-| `mods/saves.c:367` | Saved (an Ironman game keeps one save, saved over as you go) |
-| `mods/saves.c:383` | Saved: %s (%s), in place of the old save |
-| `mods/saves.c:384` | Saved: %s (%s) |
-| `mods/saves.c:407` | use your horses |
-| `mods/saves.c:424` | Autosave: battle |
-| `mods/saves.c:456` | Ironman %04x |
-| `mods/saves.c:458` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
-| `mods/saves.c:490` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:491` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:512` | Start or load a game first. |
-| `mods/saves.c:519` | Loading from here works once a game is running; until then, load from the start screen. |
-| `mods/saves.c:521` | Buffer dealloc error |
-| `mods/saves.c:523` | That save could not be read. |
-| `mods/saves.c:543` | No quicksave yet (Ctrl+S makes one). |
+| `mods/saves.c:343` | Loaded %s: a battle, paused (Space resumes it) |
+| `mods/saves.c:369` | Saved (an Ironman game keeps one save, saved over as you go) |
+| `mods/saves.c:385` | Saved: %s (%s), in place of the old save |
+| `mods/saves.c:386` | Saved: %s (%s) |
+| `mods/saves.c:409` | use your horses |
+| `mods/saves.c:429` | Autosave: battle |
+| `mods/saves.c:461` | Ironman %04x |
+| `mods/saves.c:463` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
+| `mods/saves.c:495` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:496` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:517` | Start or load a game first. |
+| `mods/saves.c:524` | Loading from here works once a game is running; until then, load from the start screen. |
+| `mods/saves.c:526` | Buffer dealloc error |
+| `mods/saves.c:528` | That save could not be read. |
+| `mods/saves.c:548` | No quicksave yet (Ctrl+S makes one). |
 | `mods/savesview.c:51` | %.14s %d %.3s |
 | `mods/sfx.c:51` | an attack that misses |
 | `mods/sfx.c:51` | a parried or blocked blow |
@@ -3395,13 +3408,13 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/teachers.c:225` | Here: choose "inquire about special training". |
 | `mods/teachers.c:226` | They may say no (it depends on {Charisma}, reputation here and fame); they always agree if the guild owes the party a favor. |
 | `mods/teachers.c:229` | A bug in the original game: this guild's teacher teaches no skill at all. |
-| `mods/travel.c:256` | No way there from here. |
-| `mods/travel.c:282` | how far is it |
-| `mods/travel.c:401` | 20:00: the party makes camp (the campfire under the clock). A night in camp lasts until 5:00. |
-| `mods/travel.c:402` | The party makes camp before 20:00 (the campfire under the clock): the way ahead would take past it. |
-| `mods/travel.c:437` | a long step ahead |
-| `mods/travel.c:485` | Travel stopped: the party could not get any further this way. |
-| `mods/travel.c:615` | the marked place |
+| `mods/travel.c:272` | No way there from here. |
+| `mods/travel.c:298` | how far is it |
+| `mods/travel.c:420` | 20:00: the party makes camp (the campfire under the clock). A night in camp lasts until 5:00. |
+| `mods/travel.c:421` | The party makes camp before 20:00 (the campfire under the clock): the way ahead would take past it. |
+| `mods/travel.c:456` | a long step ahead |
+| `mods/travel.c:504` | Travel stopped: the party could not get any further this way. |
+| `mods/travel.c:634` | the marked place |
 | `mods/war.c:98` | pics\gate4.pic: No such file |
 | `mods/war.c:147` | ...hidden option |
 
