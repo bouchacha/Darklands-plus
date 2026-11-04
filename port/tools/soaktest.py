@@ -142,8 +142,8 @@ class Soak:
                 d = self.rng.choice(places)
                 self.do('ucmd ugoto:%d; wait 12' % d)
                 return
-        if r < 0.65:
-            self.do('ucmd utravel:%d; wait 20' % self.near_town(s))
+        if r < 0.65:                                        # (out of the gate and away, as the world map's "Leave and travel")
+            self.do('ucmd uleavetravel:%d; wait 30' % self.near_town(s))
             return
         self.card(s)
 

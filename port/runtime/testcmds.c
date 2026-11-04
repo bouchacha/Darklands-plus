@@ -533,6 +533,9 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "umap")) { void ui_toggle_map(void); ui_toggle_map(); }
         else if (!strcmp(cmd, "uterrain")) { void travel_test_terrain(int, int, int); int x = 0, y = 0, t = 24; sscanf(arg, "%d,%d,%d", &x, &y, &t); travel_test_terrain(x, y, t); }   /* test: tile x, y of the travel planner's map made terrain t (the game's own unchanged: a way it refuses) */
         else if (!strcmp(cmd, "utraveltile")) { int travel_to_tile(int, int, int, const char *); int x = 0, y = 0; sscanf(arg, "%d,%d", &x, &y); fprintf(stderr, "utraveltile %d,%d: %d\n", x, y, travel_to_tile(x, y, -1, "test tile")); }   /* test: auto-travel to map tile x, y (as a Ctrl+click) */
+        else if (!strcmp(cmd, "uleavetravel")) {       /* test: from a town's streets, the world map's "Leave and travel" to place loc */
+            void travel_after_leaving(int, const char *); void citynav_leave_town(void); int l = atoi(arg);
+            travel_after_leaving(l, "test"); citynav_leave_town(); fprintf(stderr, "uleavetravel %d\n", l); }
         else if (!strcmp(cmd, "utravel")) {             /* test: auto-travel to place loc (the world map's Travel there); the time as it sets off */
             int travel_to_loc(int, const char *), travel_minutes_loc(int, int *, int *); int l = atoi(arg);
             fprintf(stderr, "utravel %d: %d minutes planned, %d (day %d hour %d)\n", l, travel_minutes_loc(l, 0, 0), travel_to_loc(l, "test"), (s16)g_rw(G_CUR_DAY), (s16)g_rw(G_CUR_HOUR)); }
