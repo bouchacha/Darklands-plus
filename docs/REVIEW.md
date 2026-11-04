@@ -369,7 +369,8 @@ covered and found, and what it could not check.
   quickload taken for the date going back, twice: no date is looked at while a load of ours is asked for or
   under way, saves_load_under_way, nor for five seconds after any load; DL_CHECKS_LOG traces the dates), and the
   party is
-  let stand on water while a saint's help makes water land (kind 0x4b). tools/soaktest.py plays for N minutes through nctl (cards' options at
+  let stand on water while a saint's help makes water land (kind 0x4b); the party's checks wait for a party seen
+  since the title (the Windows build sat over two seconds on the start's cards with none). tools/soaktest.py plays for N minutes through nctl (cards' options at
   random, Go to and leaving towns, journeys to near towns, F12, the sheet, fights on auto) and fails on any
   "check:", FATAL, hook or encounter error, or a state that does not change for 15 actions; it replaces
   monkey.py (random cards, journeys and battles, no checks) and can start from a player's save (--load). release_check.py

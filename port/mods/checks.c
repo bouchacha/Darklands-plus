@@ -71,9 +71,13 @@ static int lasting(int kind, int bad)
 
 static void party(void)
 {
-    int mode = game_mode();
+    static int armed;                                         /* (a party seen since the title: the opening and the start's
+                                                                 cards have none - Windows took over two seconds there) */
+    int mode = game_mode(), size = (s16)g_rw(G_PARTY_SIZE), items = 0, im = -1;
+    if (mode == GM_OTHER) armed = 0;
     if (mode != GM_CARD && mode != GM_MAP && mode != GM_BATTLE) { lasting(CK_PARTY, 0); lasting(CK_ITEMS, 0); lasting(CK_MONEY, 0); lasting(CK_LOC, 0); return; }
-    int size = (s16)g_rw(G_PARTY_SIZE), items = 0, im = -1;
+    if (size >= 1 && size <= 5) armed = 1;
+    if (!armed) return;
     if (lasting(CK_PARTY, size < 1 || size > 5)) check_fail(CK_PARTY, "the party's size is %d", size);
     if (size < 1 || size > 5) return;
     for (int m = 0; m < size && im < 0; m++) {
