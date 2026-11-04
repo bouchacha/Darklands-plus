@@ -288,7 +288,13 @@ palette gives the colors). The portrait (`ExxSMALL.PIC`) and the little battle f
 
 `art/NAME.png` replaces the picture `PICS/NAME.PIC` (or a sprite of that name) at any resolution,
 drawn at window resolution; F12 > Mods, under "Replacement art (for artists)", can export all
-original pictures as templates and show the name of the picture under the mouse. `sounds/NAME.wav` (or `.ogg`, `NAME2.wav` ...
+original pictures as templates and show the name of the picture under the mouse. Draw at 4:3: the
+game's pixels are shown 1.2 times as tall as wide, so a 320 x 200 picture is 1600 x 1200 (5 x 6 to
+a pixel), and any other picture its width x 5 by its height x 6. On a card, the party's panel covers
+the picture's left fifth and the frame its edges: what shows is about x 66 to 312 and y 6 to 194 of
+320 x 200 (x 330 to 1560, y 36 to 1164 of 1600 x 1200). The export writes these specs as
+`art/original/README.txt`, with `card-guide-1600x1200.png`, a layer that marks what a card covers.
+PNG, JPG, BMP and TGA are read; files under `art/original` are never used. `sounds/NAME.wav` (or `.ogg`, `NAME2.wav` ...
 for variations) replaces a battle sound; the names are listed in F12 > Settings > Sound, under
 "Custom sound packs". Mods can carry both folders; a mod's files win over the game folder's.
 

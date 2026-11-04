@@ -2081,59 +2081,59 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/settings.cpp:79` | No replacement pictures yet (%s%sart). |
 | `ui/settings.cpp:81` | %d replacement pictures found. |
 | `ui/settings.cpp:83` | Export the original pictures |
-| `ui/settings.cpp:87` | For artists: a file art%sNAME.png (any size; transparency where the picture has color 0) replaces the game's picture NAME wherever it is shown, at the window's resolution. Export writes every original picture to art%soriginal as a template, in its own colors. Whatever the game draws over a picture (text, the mouse pointer, other pictures) stays on top. |
-| `ui/settings.cpp:91` | More crests: art%sSHIELDP.png, SHIELDQ.png ... up to SHIELDZ.png add crests after the game's fifteen (Heraldry, when making a party). A save with a member using one of these crests loads only in Darklands+. |
-| `ui/settings.cpp:105` | A mod is a folder in %smods with files laid out like the game folder: while the mod is ticked, the game reads the mod's files in place of the originals (the game folder is never changed). |
-| `ui/settings.cpp:107` | No mods found yet. |
-| `ui/settings.cpp:108` | Where two mods change the same file, the one lower in the list wins. Drag a mod by its handle (or use its arrows) to reorder. |
-| `ui/settings.cpp:162` | New encounters from mods: %d%s |
-| `ui/settings.cpp:163` | (%d file%s with errors left out: see darklands_port.log) |
-| `ui/settings.cpp:168` | At 100%%, each new encounter is as likely as any one of the original encounters for that terrain (or more, if its file gives it a weight). |
-| `ui/settings.cpp:174` | Look for mods again |
-| `ui/settings.cpp:179` | Make a new mod folder |
-| `ui/settings.cpp:181` | Made %s (with a mod.txt that explains what goes where). |
-| `ui/settings.cpp:181` | %s is there already. |
-| `ui/settings.cpp:181` | Could not make %s. |
-| `ui/settings.cpp:183` | Export the card texts |
-| `ui/settings.cpp:185` | %d card files written to %s as text. Copy the ones you change into your mod's MSGFILES folder. |
-| `ui/settings.cpp:186` | Could not read MSGFILES. |
-| `ui/settings.cpp:188` | every town and encounter text, editable, with its options |
-| `ui/settings.cpp:193` | Write every text shown to a file |
-| `ui/settings.cpp:193` | for a translation: mods |
-| `ui/settings.cpp:196` | A mod's text.txt replaces the texts built into the game's menus, one per line, e.g. Purchase an item => Kaufen (needs New text: F12 > Settings > Text). |
-| `ui/settings.cpp:198` | Mods are applied in the order of the list above: where two change the same file, the lower one wins. Single files inside MSGFILES and the .CAT catalogs can be replaced by a folder of that name holding just those files. Card texts and pictures change at once; the item list, saints, cities and the like change the next time the game starts. |
-| `ui/settings.cpp:203` | Replacement art (for artists) |
-| `ui/settings.cpp:207` | Built-in mods: easier play |
-| `ui/settings.cpp:208` | Off while playing the original game (Full Original): pick another preset to tick these. |
-| `ui/settings.cpp:209` | For the story more than the struggle. Each is its own switch; no preset turns them on, and Full Original and Purist turn them off. Some take effect only when the next new game starts (their note says so). |
-| `ui/settings.cpp:329` | Pictures of the new screens appear here as you meet them in your game: a card, a shop, the character sheet, the inn, alchemy. |
-| `ui/settings.cpp:336` | A picture of the world map appears here once you have opened it (M) in your game. |
-| `ui/settings.cpp:343` | A picture of the overland view, with the names and quest markers on it, appears here once the party has been out in the land. |
-| `ui/settings.cpp:383` |  (recommended) |
-| `ui/settings.cpp:391` | your own choices:  |
-| `ui/settings.cpp:404` |  and %d more |
-| `ui/settings.cpp:411` | your own choices from before you picked a preset, kept: click to restore them. |
-| `ui/settings.cpp:420` | Ironman, for your next new game |
-| `ui/settings.cpp:420` | one save, kept by the game itself: saved over on every card, on arriving at a place, before each battle and when you quit.  |
-| `ui/settings.cpp:420` | No loading back while that game runs, and when the party's journey ends, its save is deleted. Any preset. |
-| `ui/settings.cpp:423` | The game under way is an Ironman game. |
-| `ui/settings.cpp:428` | Saved games stay compatible with the original game both ways, whatever the preset. |
-| `ui/settings.cpp:431` | Darklands+ saves in the original game's format: its saves load in the original (on DOS too), and the original's saves load here; what Darklands+ records on top (what the party has learned of the witches' Sabbats, items marked Keep, sprites and colors) goes into separate files of its own. Switching presets or single switches at any time is safe. |
-| `ui/settings.cpp:435` | One exception: |
-| `ui/settings.cpp:437` | a save with a member using an enemy sprite or an added crest (Darklands+ offers both) loads only in Darklands+. |
-| `ui/settings.cpp:443` | The band around the windows |
-| `ui/settings.cpp:445` | The clock while hours pass |
-| `ui/settings.cpp:450` | Frames and clock |
-| `ui/settings.cpp:523` | Everything Darklands+ adds is off, and its switches are hidden: pick another preset to change single switches. |
-| `ui/settings.cpp:540` | The original game's bugs put right (%d of %d on). Each is its own switch, since what counts as a bug (and how to mend it) is open to argument; they are sorted from the plainly broken to the arguable. |
-| `ui/settings.cpp:579` | Reconstructed Content |
-| `ui/settings.cpp:582` | What MicroProse wrote or coded for Darklands and never switched on, put back by Darklands+. Nobody played it in 1992: expect rough edges. Every switch here is off unless you tick it, and every preset turns them off again. |
-| `ui/settings.cpp:584` | What each one was in the game's files, and what Darklands+ had to add or put right, is in docs/cut_content.md (and docs/cut_politics.md). |
-| `ui/settings.cpp:586` | Off while playing the original game (Full Original): pick another preset to tick these. |
-| `ui/settings.cpp:591` | Written, but never finished |
-| `ui/settings.cpp:591` | Finished, but never switched on |
-| `ui/settings.cpp:592` | The texts or pictures are in the game's files, but the game never shows them: Darklands+ supplies the missing pieces. |
-| `ui/settings.cpp:593` | Written and coded by MicroProse, only never turned on (or, for Black Cloud, left out of a menu): Darklands+ turns it on. |
+| `ui/settings.cpp:87` | For artists: a file art%sNAME.png (any size; transparency where the picture has color 0) replaces the game's picture NAME wherever it is shown, at the window's resolution. Draw it at 4:3 (1600 x 1200 for a 320 x 200 picture): the game's pixels are shown 1.2 times as tall as wide. Export writes every original picture to art%soriginal as a template, in its own colors, with README.txt (the sizes, and what a card's frame and the party's panel cover) and a guide to lay over a card's picture. Whatever the game draws over a picture (text, the mouse pointer, other pictures) stays on top. |
+| `ui/settings.cpp:93` | More crests: art%sSHIELDP.png, SHIELDQ.png ... up to SHIELDZ.png add crests after the game's fifteen (Heraldry, when making a party). A save with a member using one of these crests loads only in Darklands+. |
+| `ui/settings.cpp:107` | A mod is a folder in %smods with files laid out like the game folder: while the mod is ticked, the game reads the mod's files in place of the originals (the game folder is never changed). |
+| `ui/settings.cpp:109` | No mods found yet. |
+| `ui/settings.cpp:110` | Where two mods change the same file, the one lower in the list wins. Drag a mod by its handle (or use its arrows) to reorder. |
+| `ui/settings.cpp:164` | New encounters from mods: %d%s |
+| `ui/settings.cpp:165` | (%d file%s with errors left out: see darklands_port.log) |
+| `ui/settings.cpp:170` | At 100%%, each new encounter is as likely as any one of the original encounters for that terrain (or more, if its file gives it a weight). |
+| `ui/settings.cpp:176` | Look for mods again |
+| `ui/settings.cpp:181` | Make a new mod folder |
+| `ui/settings.cpp:183` | Made %s (with a mod.txt that explains what goes where). |
+| `ui/settings.cpp:183` | %s is there already. |
+| `ui/settings.cpp:183` | Could not make %s. |
+| `ui/settings.cpp:185` | Export the card texts |
+| `ui/settings.cpp:187` | %d card files written to %s as text. Copy the ones you change into your mod's MSGFILES folder. |
+| `ui/settings.cpp:188` | Could not read MSGFILES. |
+| `ui/settings.cpp:190` | every town and encounter text, editable, with its options |
+| `ui/settings.cpp:195` | Write every text shown to a file |
+| `ui/settings.cpp:195` | for a translation: mods |
+| `ui/settings.cpp:198` | A mod's text.txt replaces the texts built into the game's menus, one per line, e.g. Purchase an item => Kaufen (needs New text: F12 > Settings > Text). |
+| `ui/settings.cpp:200` | Mods are applied in the order of the list above: where two change the same file, the lower one wins. Single files inside MSGFILES and the .CAT catalogs can be replaced by a folder of that name holding just those files. Card texts and pictures change at once; the item list, saints, cities and the like change the next time the game starts. |
+| `ui/settings.cpp:205` | Replacement art (for artists) |
+| `ui/settings.cpp:209` | Built-in mods: easier play |
+| `ui/settings.cpp:210` | Off while playing the original game (Full Original): pick another preset to tick these. |
+| `ui/settings.cpp:211` | For the story more than the struggle. Each is its own switch; no preset turns them on, and Full Original and Purist turn them off. Some take effect only when the next new game starts (their note says so). |
+| `ui/settings.cpp:331` | Pictures of the new screens appear here as you meet them in your game: a card, a shop, the character sheet, the inn, alchemy. |
+| `ui/settings.cpp:338` | A picture of the world map appears here once you have opened it (M) in your game. |
+| `ui/settings.cpp:345` | A picture of the overland view, with the names and quest markers on it, appears here once the party has been out in the land. |
+| `ui/settings.cpp:385` |  (recommended) |
+| `ui/settings.cpp:393` | your own choices:  |
+| `ui/settings.cpp:406` |  and %d more |
+| `ui/settings.cpp:413` | your own choices from before you picked a preset, kept: click to restore them. |
+| `ui/settings.cpp:422` | Ironman, for your next new game |
+| `ui/settings.cpp:422` | one save, kept by the game itself: saved over on every card, on arriving at a place, before each battle and when you quit.  |
+| `ui/settings.cpp:422` | No loading back while that game runs, and when the party's journey ends, its save is deleted. Any preset. |
+| `ui/settings.cpp:425` | The game under way is an Ironman game. |
+| `ui/settings.cpp:430` | Saved games stay compatible with the original game both ways, whatever the preset. |
+| `ui/settings.cpp:433` | Darklands+ saves in the original game's format: its saves load in the original (on DOS too), and the original's saves load here; what Darklands+ records on top (what the party has learned of the witches' Sabbats, items marked Keep, sprites and colors) goes into separate files of its own. Switching presets or single switches at any time is safe. |
+| `ui/settings.cpp:437` | One exception: |
+| `ui/settings.cpp:439` | a save with a member using an enemy sprite or an added crest (Darklands+ offers both) loads only in Darklands+. |
+| `ui/settings.cpp:445` | The band around the windows |
+| `ui/settings.cpp:447` | The clock while hours pass |
+| `ui/settings.cpp:452` | Frames and clock |
+| `ui/settings.cpp:525` | Everything Darklands+ adds is off, and its switches are hidden: pick another preset to change single switches. |
+| `ui/settings.cpp:542` | The original game's bugs put right (%d of %d on). Each is its own switch, since what counts as a bug (and how to mend it) is open to argument; they are sorted from the plainly broken to the arguable. |
+| `ui/settings.cpp:581` | Reconstructed Content |
+| `ui/settings.cpp:584` | What MicroProse wrote or coded for Darklands and never switched on, put back by Darklands+. Nobody played it in 1992: expect rough edges. Every switch here is off unless you tick it, and every preset turns them off again. |
+| `ui/settings.cpp:586` | What each one was in the game's files, and what Darklands+ had to add or put right, is in docs/cut_content.md (and docs/cut_politics.md). |
+| `ui/settings.cpp:588` | Off while playing the original game (Full Original): pick another preset to tick these. |
+| `ui/settings.cpp:593` | Written, but never finished |
+| `ui/settings.cpp:593` | Finished, but never switched on |
+| `ui/settings.cpp:594` | The texts or pictures are in the game's files, but the game never shows them: Darklands+ supplies the missing pieces. |
+| `ui/settings.cpp:595` | Written and coded by MicroProse, only never turned on (or, for Black Cloud, left out of a menu): Darklands+ turns it on. |
 | `ui/settings_look.cpp:91` | A potion's grade, on its flask |
 | `ui/settings_look.cpp:93` | Chevrons on a badge |
 | `ui/settings_look.cpp:93` | Dots on a strip |
@@ -2891,8 +2891,38 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/gamemodel.c:397` | Missile Devices |
 | `mods/hdart.c:779` | Create a New World |
 | `mods/hdart.c:780` | The Story Continues |
-| `mods/hdart.c:992` | %d pictures written to %s%s |
-| `mods/hdart.c:992` |  (some could not be written) |
+| `mods/hdart.c:956` | Replacement art for Darklands+\r  |
+| `mods/hdart.c:956` | WHAT TO MAKE\r  |
+| `mods/hdart.c:956` | - One image per picture of the game, named as it: art\\NAME.png replaces the game's picture NAME.\r  |
+| `mods/hdart.c:956` |   PNG, JPG, BMP and TGA files are read (PNG and TGA keep transparency).\r  |
+| `mods/hdart.c:956` | - To find a picture's name: F12 > Mods > Replacement art (for artists) > "Show the name of the picture\r  |
+| `mods/hdart.c:956` |   under the mouse".\r  |
+| `mods/hdart.c:956` | - This folder (art\\original) holds every original picture as a PNG in the game's own colors, as a\r  |
+| `mods/hdart.c:956` |   template. Nothing in it is used as a replacement.\r  |
+| `mods/hdart.c:956` | SIZE AND SHAPE\r  |
+| `mods/hdart.c:956` | - Any size: your image is stretched over the place of the original picture and drawn at the window's\r  |
+| `mods/hdart.c:956` |   resolution.\r  |
+| `mods/hdart.c:956` | - Darklands was made for 4:3 screens, which showed each of its pixels 1.2 times as tall as it is wide,\r  |
+| `mods/hdart.c:956` |   and Darklands+ shows them that way. So draw at that shape: a picture of 320 x 200 (most of them)\r  |
+| `mods/hdart.c:956` |   becomes a 4:3 image, such as 1600 x 1200 (each original pixel 5 wide and 6 tall), 2400 x 1800 or\r  |
+| `mods/hdart.c:956` |   1280 x 960. Any other picture: its width times 5 by its height times 6, or the same proportions.\r  |
+| `mods/hdart.c:956` |   An image in the original's own proportions (320 x 200, 1600 x 1000) comes out 1.2 times too tall.\r  |
+| `mods/hdart.c:956` | - To trace over an original: resize it to 1600 x 1200 with the proportions unlocked.\r  |
+| `mods/hdart.c:956` | ON THE CARDS (the pictures behind the game's texts and choices)\r  |
+| `mods/hdart.c:956` | - The left fifth of the picture lies under the party's panel, and a frame covers its edges. What shows\r  |
+| `mods/hdart.c:956` |   is about x 66 to 312 and y 6 to 194 of the 320 x 200 picture: x 330 to 1560 and y 36 to 1164 of a\r  |
+| `mods/hdart.c:956` |   1600 x 1200 image. card-guide-1600x1200.png in this folder marks it: lay it over your image.\r  |
+| `mods/hdart.c:956` | - The card's text and its choices are written over the picture, which is dimmed while the choices\r  |
+| `mods/hdart.c:956` |   are up.\r  |
+| `mods/hdart.c:956` | TRANSPARENCY\r  |
+| `mods/hdart.c:956` | - Where the game draws a picture as a sprite (an item, a figure), its color 0 is transparent, as in\r  |
+| `mods/hdart.c:956` |   the templates here; the transparent parts of your PNG are transparent too.\r  |
+| `mods/hdart.c:956` | WHERE TO PUT THEM\r  |
+| `mods/hdart.c:956` | - In the art folder that holds this one (art\\NAME.png; subfolders of art are read too), or in a mod:\r  |
+| `mods/hdart.c:956` |   mods\\My art\\art\\NAME.png beside a mod.txt, turned on in F12 > Mods.\r  |
+| `mods/hdart.c:956` | - F12 > Mods > Replacement art > "Look again" picks up new files without a restart.\r  |
+| `mods/hdart.c:1055` | %d pictures written to %s, with README.txt (the sizes to draw at) and a guide for the cards%s |
+| `mods/hdart.c:1055` |  (some could not be written) |
 | `mods/hdtext.c:457` | cursor: shown %d page %d save %d,%d %dx%d at %d,%d |
 | `mods/keep.c:46` | # formulae first or last in the alchemy screen's list (formula f first\|last)  |
 | `mods/levelwalk.c:59` | only works when you pick a tile that isn't next to a wall |

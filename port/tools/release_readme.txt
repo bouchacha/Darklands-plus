@@ -100,6 +100,14 @@ Wild Hunt and more), 34 in the towns' streets, 18 on the river boats and 18 at c
 balanced against the game's own and coming up among them. Tick it in F12 > Mods; a small red
 seal marks a new encounter's card. F12 > Mods sets how often they come up.
 
+REPLACEMENT ART
+An image art\NAME.png replaces the game's picture NAME, at any size (F12 > Mods shows where the art
+folder is; a mod can carry one too). Draw it at 4:3, 1600 x 1200 for the full-screen pictures
+(320 x 200): the game's pixels are shown 1.2 times as tall as wide. F12 > Mods > "Export the
+original pictures" writes every original into art\original as a template, with README.txt (the
+sizes, and what a card's frame and the party's panel cover) and a guide to lay over a card's
+picture; "Show the name of the picture under the mouse" tells you which picture is which.
+
 MAKING MODS (in the Darklands folder)
   mods\My mod\mod.txt               first line: the name shown in F12 > Mods
   mods\My mod\DARKLAND.LST          any game file, replaced whole (items, saints, cities ...)

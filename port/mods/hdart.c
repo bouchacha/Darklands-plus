@@ -947,6 +947,65 @@ static int write_png(const char *path, int w, int h, const u8 *px, const u32 *pa
 
 static int find_pic(const char *key) { for (int i = 0; i < npics; i++) if (!strcmp(pics[i].name, key)) return i; return -1; }
 
+/* what an artist needs beside the originals: the specs (README.txt) and, for the cards, a guide to lay over a
+   1600 x 1200 image (card-guide-1600x1200.png): what the party's panel and the frame cover. A card's scene shows
+   at about x 66 to 312, y 6 to 194 of the 320 x 200 picture (the frame's inner edge, measured on screen), the
+   party's panel on its left fifth; a game pixel is shown 1.2 times as tall as wide (the 4:3 screen), so 5 x 6
+   pixels each on the guide */
+static const char ART_README[] =
+    "Replacement art for Darklands+\r\n"
+    "\r\n"
+    "WHAT TO MAKE\r\n"
+    "- One image per picture of the game, named as it: art\\NAME.png replaces the game's picture NAME.\r\n"
+    "  PNG, JPG, BMP and TGA files are read (PNG and TGA keep transparency).\r\n"
+    "- To find a picture's name: F12 > Mods > Replacement art (for artists) > \"Show the name of the picture\r\n"
+    "  under the mouse\".\r\n"
+    "- This folder (art\\original) holds every original picture as a PNG in the game's own colors, as a\r\n"
+    "  template. Nothing in it is used as a replacement.\r\n"
+    "\r\n"
+    "SIZE AND SHAPE\r\n"
+    "- Any size: your image is stretched over the place of the original picture and drawn at the window's\r\n"
+    "  resolution.\r\n"
+    "- Darklands was made for 4:3 screens, which showed each of its pixels 1.2 times as tall as it is wide,\r\n"
+    "  and Darklands+ shows them that way. So draw at that shape: a picture of 320 x 200 (most of them)\r\n"
+    "  becomes a 4:3 image, such as 1600 x 1200 (each original pixel 5 wide and 6 tall), 2400 x 1800 or\r\n"
+    "  1280 x 960. Any other picture: its width times 5 by its height times 6, or the same proportions.\r\n"
+    "  An image in the original's own proportions (320 x 200, 1600 x 1000) comes out 1.2 times too tall.\r\n"
+    "- To trace over an original: resize it to 1600 x 1200 with the proportions unlocked.\r\n"
+    "\r\n"
+    "ON THE CARDS (the pictures behind the game's texts and choices)\r\n"
+    "- The left fifth of the picture lies under the party's panel, and a frame covers its edges. What shows\r\n"
+    "  is about x 66 to 312 and y 6 to 194 of the 320 x 200 picture: x 330 to 1560 and y 36 to 1164 of a\r\n"
+    "  1600 x 1200 image. card-guide-1600x1200.png in this folder marks it: lay it over your image.\r\n"
+    "- The card's text and its choices are written over the picture, which is dimmed while the choices\r\n"
+    "  are up.\r\n"
+    "\r\n"
+    "TRANSPARENCY\r\n"
+    "- Where the game draws a picture as a sprite (an item, a figure), its color 0 is transparent, as in\r\n"
+    "  the templates here; the transparent parts of your PNG are transparent too.\r\n"
+    "\r\n"
+    "WHERE TO PUT THEM\r\n"
+    "- In the art folder that holds this one (art\\NAME.png; subfolders of art are read too), or in a mod:\r\n"
+    "  mods\\My art\\art\\NAME.png beside a mod.txt, turned on in F12 > Mods.\r\n"
+    "- F12 > Mods > Replacement art > \"Look again\" picks up new files without a restart.\r\n";
+static void write_card_guide(const char *path)
+{
+    enum { W = 1600, H = 1200, X0 = 330, X1 = 1560, Y0 = 36, Y1 = 1164, LINE = 4 };
+    u8 *rgba = calloc((size_t)W * H, 4);
+    if (!rgba) return;
+    for (int y = 0; y < H; y++)
+        for (int x = 0; x < W; x++) {
+            u8 *q = rgba + ((size_t)y * W + x) * 4;
+            int inside = x >= X0 && x < X1 && y >= Y0 && y < Y1;
+            int edge = !inside && x >= X0 - LINE && x < X1 + LINE && y >= Y0 - LINE && y < Y1 + LINE;
+            if (edge) { q[0] = 255; q[1] = 200; q[2] = 0; q[3] = 255; }                     /* (the edge of what shows) */
+            else if (!inside && x < X0 - LINE) { q[0] = 150; q[1] = 30; q[2] = 30; q[3] = 150; }   /* (the party's panel) */
+            else if (!inside) { q[0] = 30; q[1] = 30; q[2] = 30; q[3] = 150; }               /* (the frame) */
+        }
+    stbi_write_png(path, W, H, 4, rgba, W * 4);
+    free(rgba);
+}
+
 /* every picture of the game as PNG in art/original (for artists: same names, same colours,
  * colour 0 transparent where the game draws the picture as a sprite) */
 int hdart_export(char *msg, int msgn)
@@ -989,7 +1048,11 @@ int hdart_export(char *msg, int msgn)
         if (f) { fclose(f); continue; }
         if (write_png(p, pics[i].w, pics[i].h, pics[i].px, pics[i].ref, pics[i].sprite)) done++; else failed++;
     }
-    snprintf(msg, msgn, "%d pictures written to %s%s", done, dir, failed ? " (some could not be written)" : "");
+    snprintf(p, sizeof p, "%s/README.txt", dir);
+    { FILE *f = fopen(p, "wb"); if (f) { fputs(ART_README, f); fclose(f); } }
+    snprintf(p, sizeof p, "%s/card-guide-1600x1200.png", dir);
+    write_card_guide(p);
+    snprintf(msg, msgn, "%d pictures written to %s, with README.txt (the sizes to draw at) and a guide for the cards%s", done, dir, failed ? " (some could not be written)" : "");
     if (logon) fprintf(stderr, "art: export: %s\n", msg);
     return done;
 }

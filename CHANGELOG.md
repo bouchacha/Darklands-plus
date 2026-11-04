@@ -8,6 +8,7 @@ What changed since 1.4.5.
 
 - **Screen effect** (F12 > Settings > Screen): scanlines, a CRT (scanlines, a monitor's red, green and blue mask on a large window, a faint glow) or a curved CRT over the game's picture; what Darklands+ draws over it stays sharp.
 - **Companions stay** (experimental, off; F12 > Settings > The party and its items): a companion taken on through a card, such as a village's Schulz (90 days) or the Hanse's man (360), stays for good, as a knight does.
+- **Specs for replacement art:** F12 > Mods > "Export the original pictures" now also writes README.txt beside the originals (the size and shape to draw at, what a card's frame and the party's panel cover, where the files go) and a guide to lay over a card's picture; the same in the download's README.
 - **Heads in the battle log:** each party member's head before their name in the battle log (the left margin, the lines over the battlefield and F12 > Journal), and beside their bars in the right margin when the party panel is not shown.
 
 **Fixed**

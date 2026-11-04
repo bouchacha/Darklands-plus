@@ -85,9 +85,11 @@ static void replacement_art(void)
         bool sn = hdart_show_names;
         if (ImGui::Checkbox("Show the name of the picture under the mouse", &sn)) { hdart_show_names = sn; config_set_int("display.art_names", sn); ui_dirty_config = 1; }
         ui_hint("For artists: a file art%sNAME.png (any size; transparency where the picture has color 0) replaces the "
-             "game's picture NAME wherever it is shown, at the window's resolution. Export writes every original picture "
-             "to art%soriginal as a template, in its own colors. Whatever the game draws over a picture (text, the "
-             "mouse pointer, other pictures) stays on top.", PATH_SEP, PATH_SEP);
+             "game's picture NAME wherever it is shown, at the window's resolution. Draw it at 4:3 (1600 x 1200 for a "
+             "320 x 200 picture): the game's pixels are shown 1.2 times as tall as wide. Export writes every original "
+             "picture to art%soriginal as a template, in its own colors, with README.txt (the sizes, and what a card's "
+             "frame and the party's panel cover) and a guide to lay over a card's picture. Whatever the game draws over "
+             "a picture (text, the mouse pointer, other pictures) stays on top.", PATH_SEP, PATH_SEP);
         ui_hint("More crests: art%sSHIELDP.png, SHIELDQ.png ... up to SHIELDZ.png add crests after the game's fifteen "
              "(Heraldry, when making a party). A save with a member using one of these crests loads only in Darklands+.", PATH_SEP);
     }
