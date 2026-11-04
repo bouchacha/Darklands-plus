@@ -3348,20 +3348,20 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/saves.c:282` | Loading is irreversable. Proceed? |
 | `mods/saves.c:325` | That save could not be read. |
 | `mods/saves.c:344` | Loaded %s: a battle, paused (Space resumes it) |
-| `mods/saves.c:370` | Saved (an Ironman game keeps one save, saved over as you go) |
-| `mods/saves.c:386` | Saved: %s (%s), in place of the old save |
-| `mods/saves.c:387` | Saved: %s (%s) |
-| `mods/saves.c:410` | use your horses |
-| `mods/saves.c:430` | Autosave: battle |
-| `mods/saves.c:462` | Ironman %04x |
-| `mods/saves.c:464` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
-| `mods/saves.c:496` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:497` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:518` | Start or load a game first. |
-| `mods/saves.c:525` | Loading from here works once a game is running; until then, load from the start screen. |
-| `mods/saves.c:527` | Buffer dealloc error |
-| `mods/saves.c:529` | That save could not be read. |
-| `mods/saves.c:549` | No quicksave yet (Ctrl+S makes one). |
+| `mods/saves.c:386` | Saved (an Ironman game keeps one save, saved over as you go) |
+| `mods/saves.c:402` | Saved: %s (%s), in place of the old save |
+| `mods/saves.c:403` | Saved: %s (%s) |
+| `mods/saves.c:426` | use your horses |
+| `mods/saves.c:446` | Autosave: battle |
+| `mods/saves.c:478` | Ironman %04x |
+| `mods/saves.c:480` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
+| `mods/saves.c:512` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:513` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:534` | Start or load a game first. |
+| `mods/saves.c:541` | Loading from here works once a game is running; until then, load from the start screen. |
+| `mods/saves.c:543` | Buffer dealloc error |
+| `mods/saves.c:545` | That save could not be read. |
+| `mods/saves.c:565` | No quicksave yet (Ctrl+S makes one). |
 | `mods/savesview.c:51` | %.14s %d %.3s |
 | `mods/sfx.c:51` | an attack that misses |
 | `mods/sfx.c:51` | a parried or blocked blow |

@@ -381,6 +381,11 @@ covered and found, and what it could not check.
   game's own variables (DS:6ef6/6ef8), the gauntlet always (0, 0) (its fingertip is its top left pixel). The
   map's (5, 0) is the original's own slip: s030 takes a click at the mouse itself (1462:02e6, mouse less 0x41,
   0x15, the tiles' origin), so there too the fingertip stood 5 pixels left of the click.
+  The last soak run found a real one: a save made during a card's text (the soak's quicksave, during a failed
+  climb at a city's wall at night, $CityW01, whose loop shows its menu again) left the menu with no text and no
+  options. save_game (s037 1462:2a68, its "Saving Game" box) wrote over the start of the card's .msg text (DS:a895;
+  udsdump before and after) and msg_buf: saves.c's save_hook keeps both across every save (reproduced, then 3 of
+  3 such menus whole).
   Content: 33 new encounters asked for saints, potions or things no original card asks for; replaced by ones
   the original cards ask for. The original's counts are now in one place (saintinfo.c: saint_info_cards_game,
   potion_cards_game, item_unasked_game; nsdraw.cpp's copy of the potions' table went), and enccheck with ENC_DIR

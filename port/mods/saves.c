@@ -358,7 +358,23 @@ static void loaded_hook(void)              /* the save is read (s037 1c7d:0d24):
 }
 
 /* the game's own Save and Load (the menu, Alt-S, Alt-L) as native dialogs (mods/savesview.c) */
+/* The game's save writes over the start of the card's text (the card's .msg file, DS:a895: 32 bytes as the soak
+   test saw it) and the text on show (msg_buf). A card that shows its menu again after a save made meanwhile - a
+   quicksave during the text of a failed climb over a city's wall at night, $CityW01 - showed that menu without its
+   text and options, and the party stood there for good (soak test, 2026-11-04). Both are kept across every save. */
+#define CARD_FILE_N 6000
+static u8 keep_file[CARD_FILE_N], keep_msg[900];
+static void save_hook_run(void);
 static void save_hook(void)                /* save_game () */
+{
+    for (int i = 0; i < CARD_FILE_N; i++) keep_file[i] = g_rb((u16)(GV_msg_file + i));
+    for (int i = 0; i < (int)sizeof keep_msg; i++) keep_msg[i] = g_rb((u16)(GV_msg_buf + i));
+    save_hook_run();
+    if (unw_active) return;
+    for (int i = 0; i < CARD_FILE_N; i++) g_wb((u16)(GV_msg_file + i), keep_file[i]);
+    for (int i = 0; i < (int)sizeof keep_msg; i++) g_wb((u16)(GV_msg_buf + i), keep_msg[i]);
+}
+static void save_hook_run(void)
 {
     if (in_save) { hook_call_original(); return; }          /* (a quick- or autosave: do_save) */
     if (iron[0]) {                                          /* (an Ironman game: over its one save, no name to give) */
