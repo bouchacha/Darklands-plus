@@ -3452,12 +3452,12 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/teachers.c:229` | A bug in the original game: this guild's teacher teaches no skill at all. |
 | `mods/travel.c:273` | No way there from here. |
 | `mods/travel.c:299` | how far is it |
-| `mods/travel.c:421` | 20:00: the party makes camp (the campfire under the clock). A night in camp lasts until 5:00. |
-| `mods/travel.c:422` | The party makes camp before 20:00 (the campfire under the clock): the way ahead would take past it. |
-| `mods/travel.c:457` | a long step ahead |
-| `mods/travel.c:505` | Travel stopped: the party could not get any further this way. |
-| `mods/travel.c:564` | the river acted as a wall |
-| `mods/travel.c:642` | the marked place |
+| `mods/travel.c:422` | 20:00: the party makes camp (the campfire under the clock). A night in camp lasts until 5:00. |
+| `mods/travel.c:423` | The party makes camp before 20:00 (the campfire under the clock): the way ahead would take past it. |
+| `mods/travel.c:458` | a long step ahead |
+| `mods/travel.c:506` | Travel stopped: the party could not get any further this way. |
+| `mods/travel.c:565` | the river acted as a wall |
+| `mods/travel.c:649` | the marked place |
 | `mods/war.c:98` | pics\gate4.pic: No such file |
 | `mods/war.c:147` | ...hidden option |
 

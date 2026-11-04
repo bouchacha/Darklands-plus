@@ -62,7 +62,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/createview.c` | 199 | making a character as a native screen (display.native_create; the view is ui/createview.cpp). |
 | `mods/cutcards.c` | 185 | encounters MicroProse wrote and never used, put back (rules.fehde, rules.hospice: F12 > Reconstructed Content, experimental, off by default; the catalogue of what the game holds unused is docs/cut_content.md). |
 | `mods/datamods.c` | 424 | mod folders: game files replaced without touching the game's own. |
-| `mods/encounters.c` | 2044 | new encounters written as data. |
+| `mods/encounters.c` | 2045 | new encounters written as data. |
 | `mods/enemyview.c` | 129 | the battle's Enemy Info as a native page (display.native_enemyinfo; the view is ui/enemyview.cpp). |
 | `mods/fixes.c` | 2918 | fixes for bugs that are still in the last official version (483.07). |
 | `mods/fixgroups.c` | 35 | the fixes (fixes.c) sorted by kind, for the settings' list: from what the game plainly gets wrong to what is open to argument, as players have talked of them over the years (the GOG and Steam forums, the old Usenet posts and the patch notes MicroProse left). |
@@ -109,7 +109,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/styles.c` | 62 | each party member's way of fighting: what they do in a battle while the player gives them no order (Improved combat, mods/ways.c carries it out; an order of the player's is carried out, then they go back to their way). |
 | `mods/teachers.c` | 267 | the teachers a town can offer, and the card options that bring them (teachers.h). |
 | `mods/titleview.c` | 134 | the start screen as a native page (display.native_title; the view is ui/titleview.cpp). |
-| `mods/travel.c` | 785 | travelling on the overland map by itself, along roads and over bridges. |
+| `mods/travel.c` | 792 | travelling on the overland map by itself, along roads and over bridges. |
 | `mods/war.c` | 293 | cities preparing for war, and at war: coded by MicroProse and never switched on (rules.war, experimental, off in every preset; docs/cut_content.md, "Cities at war"). |
 | `mods/ways.c` | 663 | Improved combat (battle.improved): each party member fights in their way (mods/styles.c) between the player's orders, after each round of blows (melee_exchanges, s014 0e76:2a4a: melee_hook). |
 | `mods/worldmap.c` | 197 | the whole overland map in one picture (for the world map: M on the travel map or a card). |

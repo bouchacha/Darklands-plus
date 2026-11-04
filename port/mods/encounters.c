@@ -2007,9 +2007,10 @@ void encounters_force(int i)
     fprintf(stderr, "encounters: the next %s encounter is %s\n", WHERE_NAMES[encs[i].where], encs[i].id);
 }
 int encounters_force_pending(void) { return (force_next >= 0 && force_next < nenc && encs[force_next].where == WH_WILD) || camp_pending; }
-/* a step made an encounter for one that is due (mods/travel.c): choose() takes it when the game's card comes. A
-   step whose encounter brings no card (the game's tables leave some out: a summer's month, a terrain) goes
-   nowhere; after six of them in a row the encounter due is given up rather than hold the party in place */
+/* a step made an encounter for one that is due (mods/travel.c, one try per tile): choose() takes it when the
+   game's card comes. A step whose encounter brings no card (the game's tables leave some out: a summer's month,
+   a terrain, a place's events) goes nowhere; after six such tries the encounter due is given up */
+int encounters_forced_tries(void) { return forced_steps; }   /* (0: the encounter due not tried yet) */
 void encounters_forced_step(void)
 {
     if (++forced_steps < 6) return;

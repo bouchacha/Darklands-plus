@@ -393,7 +393,8 @@ static void foot_fix(int e0, int c0, int y0)
 static long camp_done, camp_due = -1;
 /* a game loaded (saves_on_loaded): its journey, its camp at 20:00 and a trip waiting to start were the old
    game's (a camp that night already made, a camp due, a journey to take up after it) */
-static void travel_after_load(void) { travel.active = 0; camp_done = 0; camp_due = -1; camp_resume = 0; pend_loc = -1; }
+static int forced_x = -1, forced_y = -1;      /* the tile the last step made certain was taken from (encounter_weight_hook) */
+static void travel_after_load(void) { travel.active = 0; camp_done = 0; camp_due = -1; camp_resume = 0; pend_loc = -1; forced_x = forced_y = -1; }
 static long today(void) { return (long)(s16)g_rw(GV_cur_year) * 400 + (s16)g_rw(GV_cur_month) * 32 + (s16)g_rw(GV_cur_day); }
 int travel_camp_needed(void)                /* a member short of Endurance, Strength or Divine Favor */
 {
@@ -562,8 +563,14 @@ static void encounter_weight_hook(void)
        only where the game has encounter cards: on a river (terrain 3; 1 and 2 are not stepped on) its step with
        an encounter brings none (s030 1462:02c0 draws no card there) and goes nowhere, and a party camped by the
        river NW of Graz could not step off it (1.4.6-RC6, "the river acted as a wall"). There the step is the
-       game's own, and the encounter comes at the next one on land. */
-    if (encounters_force_pending() && t > 3) { AX = 1000; encounters_forced_step(); return; }
+       game's own, and the encounter comes at the next one on land. Elsewhere too a step can bring no card (near a
+       place with some of its events, a summer's month in some terrains: the soak test, by a bridge): one such
+       step is made certain per tile, and the next from the same tile is the game's own, so the party walks on and
+       the encounter is tried again from the next tile (encounters.c gives it up after six tries). */
+    if (encounters_force_pending() && t > 3) {
+        int px = -1, py = -1; travel_party_tile(&px, &py);
+        if (!encounters_forced_tries() || px != forced_x || py != forced_y) { forced_x = px; forced_y = py; AX = 1000; encounters_forced_step(); return; }
+    }
     int pct = config_get_int("travel.encounters", 100);
     if (config_get_int("original", 0) || pct == 100) return;
     int w = (s16)AX;

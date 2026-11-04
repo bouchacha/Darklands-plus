@@ -15,6 +15,7 @@ int encounters_offered(void);               /* new encounters may come up now (s
 void encounters_force(int i);               /* test: the next wilderness encounter is new encounter i */
 int encounters_force_pending(void);
 void encounters_forced_step(void);          /* (mods/travel.c) a step made an encounter for the one due */
+int encounters_forced_tries(void);          /* how many steps were made so far for the one due (0: none yet) */
 int encounters_builtin(int i);              /* encounter i is Darklands+'s own (cut content restored), not a mod's */
 int encounters_card_of(const char *id);     /* the card number of a loaded encounter, or -1 */
 int encounters_asks_saint(int s);           /* how many loaded encounters call on saint s */

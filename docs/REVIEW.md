@@ -376,8 +376,9 @@ covered and found, and what it could not check.
   monkey.py (random cards, journeys and battles, no checks) and can start from a player's save (--load). release_check.py
   now fails on "check:", "cards: ... cut at" and "goto: ... not found". Found at the cause: the river trap
   near Graz was travel.c's weight hook making every step an encounter while one was due, on a river too, where
-  s030's card draw has none and the step goes nowhere; now only on land, and given up after six steps that
-  bring none. The pointer's hot spot was learnt from where the game's sprite stood while the mouse stood still;
+  s030's card draw has none and the step goes nowhere; now only on land, one try per tile (the final soak run
+  lost four steps by a bridge near a town, where the draw found no card: the next step from that tile is now the
+  game's own), given up after six tries. The pointer's hot spot was learnt from where the game's sprite stood while the mouse stood still;
   inside our own screens the game's sprite stands still too, so the map's (5, 0) stayed: now read from the
   game's own variables (DS:6ef6/6ef8), the gauntlet always (0, 0) (its fingertip is its top left pixel). The
   map's (5, 0) is the original's own slip: s030 takes a click at the mouse itself (1462:02e6, mouse less 0x41,
