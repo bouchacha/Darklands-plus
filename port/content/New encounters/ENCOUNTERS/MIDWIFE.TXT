@@ -27,7 +27,7 @@ option 2                                   # leave her for the watch
 
 [birth]
 block    6
-saints   0x5a, 0x1b, 0x1e, 0x67          # Margaret, Cosmas, Damian, Pantaleon
+saints   0x5a, 0x40, 0x6f, 0x67          # Margaret, Hedwig (a mother and a healer), Raphael, Pantaleon
 items    0x73, 0x70                      # Essence o'Grace, New-wind
 option 0                                   # be her hands (Healing; harder if you came late)
   who    bestskill(Healing)

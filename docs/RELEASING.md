@@ -32,6 +32,10 @@ Never commit anything from `build/`, game files, or a `darklands_game.dll`. `.gi
      and pointers on every screen, plus memory errors. A write past the end of a list may show
      nothing on Linux and wreck a screen on Windows (1.3-RC31's inn).
    - `python3 port/tools/gotosweep.py --game DIR --save SAVE`: Go to every place of a town.
+   - `python3 port/tools/soaktest.py --game DIR --minutes 45` (and with `--load SAVE`, a save a
+     player sent): plays at random, journeys, camps, the new encounters, fights, prayers, alchemy,
+     saves and loads, and reports anything `port/mods/checks.c` sees, a script's error, a failed Go
+     to or journey, or a screen that stops changing: "0 found".
    - Under Wine, the Windows program (`make -C port SPLIT=1 TARGET=win64`):
      `port/tools/nctl.py start NAME --x11 --exe build/port_win64_split/darklands.exe --game DIR`.
      Load a save, open the screens that have changed, and check that the log has no

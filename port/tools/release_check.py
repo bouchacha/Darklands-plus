@@ -17,7 +17,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 TOP = os.path.abspath(os.path.join(HERE, '..', '..'))
 NCTL = [sys.executable, '-I', os.path.join(HERE, 'nctl.py')]
 NAME = 'relcheck'
-BAD = re.compile(r'ERROR: AddressSanitizer|runtime error:|FATAL|unmatched return|CRASH|hook: .*(hooked twice|too many|left the stack wrong)|nscreen: no game function')
+BAD = re.compile(r'ERROR: AddressSanitizer|runtime error:|FATAL|unmatched return|CRASH|hook: .*(hooked twice|too many|left the stack wrong)|nscreen: no game function|^check: |^cards: .* cut at|^goto: ')
 
 # test hits on every enemy, 30 rounds (an unlucky battle, a slow build)
 HITS = '; '.join('; '.join('ucmd uhit:1,%d,40,0' % c for c in range(5, 13)) + '; wait 1' for _ in range(30))
@@ -92,6 +92,16 @@ def main():
     r = subprocess.run([sys.executable, '-I', os.path.join(HERE, 'check_hooks.py')], capture_output=True, text=True)
     print('%-40s %s' % ('hooks keep to their own arguments', 'OK' if r.returncode == 0 else 'FAILED'))
     if r.returncode: print(r.stdout.rstrip()); failed += 1
+    # (the new encounters load without errors and ask only for saints, potions and things the game's own cards
+    # ask for too: tools/enccheck.c, built here)
+    cont = os.path.join(HERE, '..', 'content', 'New encounters')
+    ecc = os.path.join(a.out, 'enccheck')
+    r = subprocess.run(['cc', '-O1', '-I', os.path.join(HERE, '..', 'runtime'), '-o', ecc, os.path.join(HERE, 'enccheck.c')], capture_output=True, text=True)
+    if r.returncode == 0:
+        r = subprocess.run([ecc], capture_output=True, text=True, env=dict(os.environ, ENC_DIR=os.path.join(cont, 'ENCOUNTERS'), ENC_MSG=os.path.join(cont, 'MSGFILES')))
+    ok = r.returncode == 0 and '(0 with errors)' in r.stdout + r.stderr
+    print('%-40s %s' % ("the new encounters' scripts and asks", 'OK' if ok else 'FAILED'))
+    if not ok: print((r.stdout + r.stderr).rstrip()[-2000:]); failed += 1
     # (the load segment wherever the loader would have added it: tools/reloc_check.py, from the game's
     # DARKLAND.EXE and the analysis, when both are at hand)
     exe = next((os.path.join(a.game, n) for n in os.listdir(a.game) if n.upper() == 'DARKLAND.EXE'), None)

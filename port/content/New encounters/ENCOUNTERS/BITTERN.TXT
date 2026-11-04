@@ -12,7 +12,7 @@ only     month >= 3 and month <= 6             # the bittern booms in spring
 do       money1 size * 24
 block    0
 chosen   spotter
-saints   0x60, 0x45, 0x63, 0x47          # Michael, Hubert, Nicholas, Isidore
+saints   0x79, 0x45, 0x63, 0x47          # Tarachus (who makes wild beasts flee), Hubert, Nicholas, Isidore
 option 0                                   # wade into the reeds and find it (Woodwise)
   who    spotter
   chance clamp(5, 90, skill(who, Woodwise) + attr(who, Per) / 3 - 10)

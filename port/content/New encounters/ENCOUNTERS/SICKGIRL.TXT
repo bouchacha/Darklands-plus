@@ -9,7 +9,7 @@ weight   1
 [start]
 block    0
 chosen   bestskill(Healing)
-saints   0x73, 0x75, 0x67, 0x1b          # Roch, Sebastian, Pantaleon, Cosmas
+saints   0x73, 0x75, 0x67, 0x36          # Roch, Sebastian, Pantaleon, Genevieve (of fevers)
 items    0x73, 0x70                      # Essence o'Grace, New-wind
 option 0                                   # tend her through the night (Healing)
   who    bestskill(Healing)

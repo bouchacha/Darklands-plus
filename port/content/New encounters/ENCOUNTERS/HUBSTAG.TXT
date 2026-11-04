@@ -9,7 +9,7 @@ weight   1
 [start]
 block    0
 chosen   bestskill2(Bows, Missile)
-saints   0x45, 0x2f, 0x3a, -1                  # Hubert and Eustace (who both saw this stag), Giles (friend of beasts)
+saints   0x45, 0x2f, 0x03, -1                  # Hubert and Eustace (who both saw this stag), Aidan (friend of beasts)
 option 0                                   # shoot it for the pot (Bows, Missile)
   who    bestskill2(Bows, Missile)
   need   has(party, 0x1a) or has(party, 0x1b) or has(party, 0x1c) or has(party, 0x1d) or has(party, 0x1e)

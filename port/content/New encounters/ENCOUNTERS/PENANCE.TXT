@@ -10,11 +10,10 @@ weight   1
 do       money1 60
 block    0
 chosen   bestattr(Agl)
-saints   0x23, 0x60, 0x5d                # Dismas, Michael, Martin of Tours
-option 0                                   # light it again from your own
-  need   has(party, 0x39) or has(party, 0x3a) or has(party, 0x3d)
+saints   0x23, 0x57, 0x5d                # Dismas, Lucy (whose name is light), Martin of Tours
+option 0                                   # run for a flame from the shrine lamp at the corner (Agility)
   who    bestattr(Agl)
-  chance clamp(10, 90, attr(who, Agl) + attr(who, Per) / 3 + 5)
+  chance clamp(10, 90, attr(who, Agl) + attr(who, Per) / 3 - 5)
   ok     chosen who; text 1; attr party, DF, 1; reputation 1, 2; goto door
   fail   chosen who; text 2; goto knives
 option 1                                   # answer the brothers from Scripture

@@ -11,7 +11,7 @@ vars     read                                  # 1: the Latin on the lid was rea
 [start]
 block    0
 chosen   worstattr(Int)                        # the one least likely to hold $his tongue
-saints   0x60, 0x09, -1, -1                    # Michael, Anthony (who fled the Devil's gold in the desert)
+saints   0x17, 0x09, -1, -1                    # Clare (who would own no gold), Anthony (who fled the Devil's gold in the desert)
 option 0                                   # dig in silence (the party's Stealth and the chatterbox's wits)
   who    party
   chance clamp(5, 85, minattr(Int) + avgskill(Stealth) / 2 + 10)

@@ -11,7 +11,7 @@ only     month >= 5 and month <= 9
 do       money1 120; money2 random(36) + 48
 block    0
 chosen   bestskill2(Missile, Bows)
-items    0x6c                            # Trueflight
+items    0x6f                            # Truesight
 option 0                                   # shoot for the popinjay
   who    bestskill2(Missile, Bows)
   chance clamp(5, 85, max(skill(who, Missile), skill(who, Bows)) + attr(who, Per) / 3 - 20)
@@ -20,8 +20,8 @@ option 0                                   # shoot for the popinjay
   fail   chosen who; text 1; hours 2
          if skill(who, Missile) >= skill(who, Bows) then practice who, Missile, 0, 10, 0 else practice who, Bows, 0, 10, 0
          exit
-option 1 potion                            # dress the shot with a potion first
-  potion 0x6c, clamp(0, 99, max(skill(who, Missile), skill(who, Bows)) + attr(who, Per) / 3 + q / 2 - 10)
+option 1 potion                            # sharpen your eye with a potion first (Truesight's Perception)
+  potion 0x6f, clamp(0, 99, max(skill(who, Missile), skill(who, Bows)) + attr(who, Per) / 3 + q / 3 - 15)
   ok     chosen who; goto king
   fail   chosen who; text 1; hours 2; exit
 option 2                                   # watch from the beer-bench

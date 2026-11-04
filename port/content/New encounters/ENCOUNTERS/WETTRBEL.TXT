@@ -11,7 +11,7 @@ only     month >= 6 and month <= 8
 [start]
 block    0
 chosen   bestattrsum(Str, End)
-saints   0x0d, 0x33, 0x01, 0x60          # Barbara, Florian, Agatha, Michael
+saints   0x0d, 0x33, 0x2d, 0x36          # Barbara, Florian, Erasmus (against lightning), Genevieve (against disaster)
 option 0                                   # run up and ring the bell (strength and endurance)
   who    bestattrsum(Str, End)
   chance clamp(10, 90, (attr(who, Str) + attr(who, End)) * 2 / 3 + 10)

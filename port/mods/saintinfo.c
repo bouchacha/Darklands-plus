@@ -494,6 +494,18 @@ const char *saint_info_unlike(int s)
    s044 $Chall00, s049 $Marke01, s079 $Execu01, s081 $Drago01, s106 $McGuf01), and the encounters of the mods
    in use (mods/encounters.c) */
 int saint_info_cards(int s) { return s >= 0 && s < SAINT_INFO_N ? INFO[s].cards + encounters_asks_saint(s) : 0; }
+int saint_info_cards_game(int s) { return s >= 0 && s < SAINT_INFO_N ? INFO[s].cards : 0; }
+/* the game's own card scripts (with the five read in the disassembly: s044 $Chall00, s049 $Marke01,
+   s081 $Drago01, ...): the potions an option offers (card_items), 95 Ironarm ... 116 */
+int potion_cards_game(int id)
+{
+    static const unsigned char CARDS[22] = { 62, 44, 56, 5, 15, 4, 74, 41, 12, 8, 0, 1, 0, 0, 1, 6, 1, 1, 0, 0, 1, 6 };
+    return id >= 95 && id <= 116 ? CARDS[id - 95] : 0;
+}
+/* of the general goods only rope and lockpicks are asked for by cards (count_items, s029 0e76:0c76), and an
+   instrument by St. Cecilia (the type flag 0x20000000, s039 165c:1024); the boars' tusks and the other
+   trophy by nothing (add_item, count_items, take_item in the cards' scripts) */
+int item_unasked_game(int id) { return id == 0x39 || id == 0x3a || (id >= 0x3c && id <= 0x3f) || id == 0x92 || id == 0x93; }
 
 /* "" for a saint whose help holds nothing to wear off (healing, the reputation, money: St. Clare) */
 const char *saint_info_note(int s)

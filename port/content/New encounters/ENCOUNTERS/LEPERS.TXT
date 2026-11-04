@@ -11,7 +11,7 @@ weight   1
 do       money1 size * 12
 block    0
 chosen   bestskill(Healing)
-saints   0x55, 0x3a, 0x5d, 0x73          # Lazarus, Giles, Martin of Tours, Roch
+saints   0x55, 0x51, 0x5d, 0x73          # Lazarus, Julian the Hospitaller (who gave his bed to a leper), Martin of Tours, Roch
 option 0                                   # alms
   need   money >= money1
   chance none

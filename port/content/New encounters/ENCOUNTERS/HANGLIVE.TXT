@@ -11,7 +11,7 @@ weight   1
 do       money1 min(money, size * 24)
 block    0
 chosen   bestskill(Thrown)
-saints   0x49, 0x23, 0x63, 0x60          # James, Dismas, Nicholas, Michael
+saints   0x63, 0x23, 0x50, 0x73          # Nicholas (who saved three innocents from the sword), Dismas, Jude (of hopeless cases), Roch (of prisoners)
 option 0                                   # cut the rope with a thrown blade (Thrown)
   who    bestskill(Thrown)
   chance clamp(5, 90, skill(who, Thrown) + attr(who, Per) / 3 - 15)

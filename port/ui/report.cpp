@@ -21,6 +21,7 @@
 #include <shellapi.h>
 #endif
 extern "C" {
+#include "../runtime/config.h"
 #include "../mods/saves.h"
 #include "../mods/options.h"
 unsigned char *stbi_zlib_compress(unsigned char *data, int data_len, int *out_len, int quality);   /* runtime/stb_impl.c */
@@ -232,6 +233,20 @@ void ui_report_section(void)
         if (ImGui::SmallButton("Open the form again")) SDL_OpenURL(form_url().c_str());
     }
     if (!made_note.empty()) ImGui::TextColored(ImVec4(0.6f, 0.15f, 0.1f, 1), "%s", made_note.c_str());
+    bool d = config_get_int("debug.detailed_log", 0) != 0;
+    if (ImGui::Checkbox("Detailed log, for testing (from the next start)", &d)) config_set_int("debug.detailed_log", d);
+    ImGui::TextDisabled("The log then tells of every journey, encounter, Go to walk and fix at work: what a report needs to show how a fault came about. It grows faster.");
+}
+
+/* something that must never happen was seen (mods/checks.c, its first of a session): a report made at once,
+   while the log still ends where it happened, and the player told */
+extern "C" void ui_notice_for(const char *msg, unsigned ms);
+extern "C" void ui_check_noticed(const char *what)
+{
+    if ((getenv("DL_CTL") || getenv("DL_SCRIPT")) && !getenv("DL_CHECK_REPORT")) return;   /* (tests: the log is the report; DL_CHECK_REPORT tests this) */
+    (void)what;                                                        /* (the log has it: the "check:" line) */
+    ui_notice_for(make_report() ? "Darklands+ noticed a fault and made a report (F12 > About > Report a problem). Please send it with what you were doing."
+                                : "Darklands+ noticed a fault: darklands_port.log in the game folder says what.", 20000);   /* (a notice holds 159 characters) */
 }
 
 /* test (ureport): the zip made, its path logged; nothing opened */

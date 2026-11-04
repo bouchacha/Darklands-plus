@@ -9,7 +9,7 @@ weight   1
 [start]
 block    0
 chosen   bestskill(Latin)
-saints   0x60, 0x63, 0x55                # Michael, Nicholas, Lazarus
+saints   0x39, 0x63, 0x55                # Gertrude of Nivelles (who shelters the souls of the dead), Nicholas, Lazarus
 option 0                                   # answer the drowned priest (Latin)
   who    bestskill(Latin)
   chance clamp(5, 90, skill(who, Latin) + skill(who, Religion) / 3 - 10)
@@ -18,9 +18,9 @@ option 0                                   # answer the drowned priest (Latin)
 option 1 saint
   ok     text 3; attr party, DF, 2; exit
   fail   text 4
-option 2                                   # lower a grappling hook for the bell
+option 2                                   # drag for the bell with your rope on the boat's anchor
   who    bestattr(Str)
-  need   has(party, 0x3f)
+  need   has(party, 0x3b)
   chance clamp(5, 75, attr(who, Str) + 15)
   ok     chosen who; money1 random(96) + 48; text 5; gain money1; attr party, DF, -3; exit
   fail   chosen who; text 6; injure who, 1, 1, 10; attr party, DF, -2; exit

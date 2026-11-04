@@ -10,8 +10,8 @@ weight   1
 [start]
 block    0
 chosen   slowest                           # the straggler at the back
-saints   0x16, 0x60, 0x39, 0x6f          # Christopher, Michael, Gertrude of Nivelles, Raphael
-items    0x71, 0x70                      # Ironarm, New-wind
+saints   0x16, 0x09, 0x39, 0x6f          # Christopher, Anthony (who banishes demons), Gertrude of Nivelles, Raphael
+items    0x73, 0x70                      # Essence o'Grace, New-wind
 option 0                                   # carry it on to the church (Str, End)
   who    chosen
   chance clamp(5, 90, attr(who, Str) + attr(who, End) - 15)
@@ -24,7 +24,7 @@ option 2 saint                             # pray for help with the burden
   ok     text 4; hours 1; attr party, DF, 2; exit
   fail   text 5
 option 3 potion                            # a draught for strength
-  potion 0x71, clamp(0, 99, 50 + q / 2)
+  potion 0x73, clamp(0, 99, 50 + q / 2)
   potion 0x70, clamp(0, 99, 30 + q / 2)
   ok     text 6; hours 1; exit
   fail   text 7

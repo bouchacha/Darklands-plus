@@ -1,7 +1,7 @@
 # $NRGIB00: the hanged man lives (New encounters)
 === card 0: 10 10 0 240 0 ===
 At a crossroads in the dark stands the gibbet of the high court, three posts and three beams. From one beam hangs a young man in a journeyman's jacket, and beneath him a woman kneels, praying aloud.
-\14Then you hear it: a thin, rattling breath. The hanged man's feet twitch. "They hanged him at noon," the woman sobs, "for a silver cup the innkeeper's daughter hid in his bundle, because he would not have her. I have prayed to St. James since noon, and the saint holds up his feet. He lives!"
+\14Then you hear it: a thin, rattling breath. The hanged man's feet twitch. "They hanged him at noon," the woman sobs, "for a silver cup the innkeeper's daughter hid in his bundle, because he would not have her. I have prayed to St. Nicholas since noon, who saved three innocent men from the sword, and the saint holds up his feet. He lives!"
 \14You...
 \14\15...\1dcut the rope with a thrown blade.
 \15...\1dclimb the gibbet and cut him down.
@@ -28,7 +28,7 @@ The young man lies in the grass, rope-burned and croaking, his mother weeping ov
 \15...\1dlead them away by field paths before dawn.
 \15...\1dleave him with his mother and go on.
 === card 9: 10 10 0 240 0 ===
-At dawn you bring him before the Vogt, the rope still round his neck. $ChosenTwoName speaks of St. James and the hanged pilgrim, of God's judgment above man's, and quotes the Fathers in Latin until the Vogt throws up his hands. The journeyman is pardoned, the innkeeper's daughter is sent for, and the tale of the strangers who argued a man off the gallows goes everywhere.
+At dawn you bring him before the Vogt, the rope still round his neck. $ChosenTwoName speaks of St. Nicholas and the three innocents he took from under the sword, of God's judgment above man's, and quotes the Fathers in Latin until the Vogt throws up his hands. The journeyman is pardoned, the innkeeper's daughter is sent for, and the tale of the strangers who argued a man off the gallows goes everywhere.
 === card 10: 10 10 0 240 0 ===
 At dawn you bring him before the Vogt, and $ChosenTwoName speaks of miracles. The Vogt hears the plea out, then sends for the hangman. "God's judgment I leave to God. The court's, I keep." This time the hangman does his work properly, and the Vogt has your names written down as meddlers.
 === card 11: 10 10 0 240 0 ===

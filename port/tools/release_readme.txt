@@ -123,8 +123,10 @@ MAKING MODS (in the Darklands folder)
 IF SOMETHING GOES WRONG
 Darklands+ writes darklands_port.log into the game folder. If the first start fails, the log says
 why; darklands_port_previous.log keeps the session before. Report problems on GitHub
-(github.com/bouchacha/Darklands-plus, Issues) with the log of the session where it happened and,
-if you can, a save from just before the problem. To redo the translation, delete
+(github.com/bouchacha/Darklands-plus, Issues): F12 > About > Report a problem makes a zip with the
+logs and your two newest saves, and opens the form. Darklands+ makes one by itself when it sees
+something that must never happen. For a fault that is hard to repeat, tick "Detailed log, for
+testing" there first. To redo the translation, delete
 darklands_game.dll. Some antivirus programs distrust files that a compiler has just made: if
 yours removes or blocks darklands_game.dll, allow that file (it is made from your own
 DARKLAND.EXE by the TinyCC in darklands_plus\tcc).

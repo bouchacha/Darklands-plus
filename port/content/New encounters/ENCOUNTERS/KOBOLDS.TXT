@@ -9,7 +9,7 @@ weight   2
 [start]
 do       money1 96 + lore * 12
 block    0
-saints   0x0d, 0x60, 0x80, -1            # Barbara, Michael, Vitus
+saints   0x0d, 0x0f, 0x80, -1            # Barbara, Boniface (against pagan beings), Vitus
 option 0                                   # keep watch at the mine mouth
   chance combat
   ok     goto deep

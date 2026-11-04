@@ -11,7 +11,7 @@ only     month == 12 or month <= 2
 [start]
 block    0
 chosen   bestskill(Healing)
-saints   0x39, 0x60, 0x55, -1            # Gertrude of Nivelles, Michael, Lazarus
+saints   0x39, 0x6f, 0x55, -1            # Gertrude of Nivelles, Raphael (who stood by Tobit, burier of the dead), Lazarus
 option 0                                   # look at the body (Healing)
   who    bestskill(Healing)
   chance clamp(10, 90, skill(who, Healing) + attr(who, Per) / 3 - 5)

@@ -10,7 +10,7 @@ only     month >= 11 or month <= 1
 
 [start]
 block    0
-saints   0x45, 0x2f, 0x60, 0x16          # Hubert, Eustace, Michael, Christopher
+saints   0x45, 0x2f, 0x83, 0x16          # Hubert, Eustace, Willehad (who outfaced the pagans), Christopher
 option 0                                   # hide in the undergrowth
   who    party
   chance clamp(5, 90, avgskill(Stealth) + avgagility * 2 / 3)

@@ -9,7 +9,7 @@ weight   1
 [start]
 block    0
 chosen   bestattrsum(Agl, End)
-saints   0x33, 0x01                      # Florian, Agatha
+saints   0x33, 0x6e                      # Florian, Polycarp (whom the flames would not burn)
 option 0                                   # join the bucket chain
   who    party
   chance clamp(10, 90, avgattr(Str) + avgattr(End) / 2 + 10)

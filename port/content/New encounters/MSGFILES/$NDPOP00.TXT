@@ -3,7 +3,7 @@
 A drummer in the colours of the crossbowmen's guild is beating his way down the street, and half the town is following him to the shooting ground under the walls. Today is the popinjay shoot. A painted wooden bird sits on a pole as tall as a church tower, and whoever brings it down is king of the shooters for a year.
 \14"Strangers are welcome!" calls the guild master, a broad man in a feathered hat. "It honours the town to have guests shoot. The guild will lend you a crossbow, or bring your own bow." You...
 \14\15...\1dshoot for the popinjay.
-\10...\1ddress your shot with a potion first.
+\10...\1dsharpen your eye with a potion first.
 \15...\1dwatch the shooting from the beer-bench.
 \15...\1dwalk on.
 === card 1: 10 10 0 240 0 ===

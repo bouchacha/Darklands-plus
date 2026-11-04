@@ -1,5 +1,5 @@
 /* testcmds.c - the test commands that look at or change the game's state, for the scripted
- * sessions (port/tools/nctl.py "ucmd NAME:ARGS", release_check.py, monkey.py): a battle at the next
+ * sessions (port/tools/nctl.py "ucmd NAME:ARGS", release_check.py, soaktest.py): a battle at the next
  * card, hits, items, saves, the native screens' actions, dumps of what the game holds ...
  * platform_sdl.c keeps those that act as the system would (keys, clicks, the wheel, a controller)
  * and hands every other step here. Not part of play: nothing calls these but a script. */
@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "cpu.h"
+#include "../mods/travel.h"
 #include "hle.h"
 #include "../ui/ui.h"
 #include "../mods/hdart.h"
@@ -380,6 +381,17 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "upoke")) {               /* debug: byte at link-time seg:off (+LOADSEG) */
             unsigned sg = 0, of = 0, v = 0; sscanf(arg, "%x,%x,%x", &sg, &of, &v);
             wb((u16)(LOADSEG + sg), (u16)of, (u8)v);
+        }
+        else if (!strcmp(cmd, "ustate")) {             /* test (tools/soaktest.py): where the game stands, in one line */
+            int game_mode(void), assist_in_card_menu(void); extern int ns_screen; void travel_party_tile(int *, int *);
+            int px = -1, py = -1; travel_party_tile(&px, &py);
+            char cn[16]; g_str(G_DGROUP, GV_card_name, cn, sizeof cn);
+            extern TravelState travel; int citynav_busy(void), encounters_card_active(void);
+            int cardview_test_options(int *, int), op[20], no = assist_in_card_menu() ? cardview_test_options(op, 20) : 0;
+            char os[80] = "-"; for (int k = 0, w = 0; k < no && w < 70; k++) w += snprintf(os + w, sizeof os - w, k ? ",%d" : "%d", op[k]);
+            fprintf(stderr, "state: mode %d screen %d card %s menu %d options %s place %d tile %d,%d day %d hour %d travel %d goto %d enc %d members %d\n",
+                    game_mode(), ns_screen, cn, assist_in_card_menu(), os, (s16)g_rw(G_CUR_LOC), px, py,
+                    (s16)g_rw(G_CUR_DAY), (s16)g_rw(G_CUR_HOUR), travel.active, citynav_busy(), encounters_card_active(), (s16)g_rw(G_PARTY_SIZE));
         }
         else if (!strcmp(cmd, "umode")) { int game_mode(void); fprintf(stderr, "mode %d\n", game_mode()); }   /* 1 card 2 map 3 screen 4 battle */
         else if (!strcmp(cmd, "ugroups")) {             /* test: the enemy groups of the place's levels, the combatants */

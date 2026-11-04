@@ -216,6 +216,18 @@ int main(int argc, char **argv)
     }
 
     config_load(dlp_data_dir);
+    if (config_get_int("debug.detailed_log", 0)) {   /* (F12 > About: the journeys, encounters, Go to's walks and the fixes at work, for a bug report) */
+        static const char *const LOGS[] = { "DL_TRAVEL_LOG", "DL_ENC_LOG", "DL_CITYNAV_LOG", "DL_FIX_LOG" };
+        for (unsigned k = 0; k < sizeof LOGS / sizeof *LOGS; k++) {
+            if (getenv(LOGS[k])) continue;
+#ifdef _WIN32
+            _putenv_s(LOGS[k], "1");
+#else
+            setenv(LOGS[k], "1", 0);
+#endif
+        }
+        fprintf(stderr, "a detailed log (F12 > About)\n");
+    }
     {   /* SAVES\DEFAULT holds the ready-made world Quickstart begins with: without it Quickstart
            makes a party with no figures, and the first battle stops the game ("pics\short.pic") */
         char dp[1200]; struct stat st;

@@ -10,7 +10,7 @@ only     mounted
 [start]
 block    0
 chosen   bestskill(Riding)
-saints   0x2a, 0x5d, 0x09, -1                  # Eligius (who shod the possessed horse), Martin of Tours (of horsemen), Anthony (of beasts)
+saints   0x63, 0x5d, 0x09, -1                  # Nicholas (whose horse the children leave hay for; the game's saint of Riding), Martin of Tours (of horsemen), Anthony (of beasts)
 option 0                                   # rub them down and comb the knots out patiently (Riding)
   who    bestskill(Riding)
   chance clamp(10, 90, skill(who, Riding) + attr(who, Cha) / 3 + 5)

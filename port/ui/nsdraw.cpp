@@ -155,6 +155,7 @@ std::string ns_item_compare_party(int id, int q)
 extern "C" int fix_is_on(const char *id);
 #include "../mods/fixes.h"
 #include "../mods/encounters.h"
+#include "../mods/saintinfo.h"
 std::string ns_potion_effect(int id);
 /* how much the encounters ask for a thing (a potion: the card scripts that list it among an
    option's potions, card_items, counted from the game's code) or a saint (mods/saintinfo.h):
@@ -163,18 +164,13 @@ ImU32 ns_tier_colour(int n) { return n >= 20 ? IM_COL32(34, 110, 30, 255) : n >=
 std::string ns_item_encounters(int id, ImU32 *col)
 {
     if (id < 95 || id > 116) return "";
-    /* the game's own card scripts (with the five read in the disassembly: s044 $Chall00, s049 $Marke01,
-       s081 $Drago01, ...), and the encounters of the mods in use */
-    static const unsigned char CARDS[22] = { 62, 44, 56, 5, 15, 4, 74, 41, 12, 8, 0, 1, 0, 0, 1, 6, 1, 1, 0, 0, 1, 6 };
-    int n = CARDS[id - 95] + encounters_asks_item(id);
+    int n = potion_cards_game(id) + encounters_asks_item(id);           /* (the game's own cards, and the encounters of the mods in use) */
     if (col) *col = ns_tier_colour(n);
     return n >= 20 ? "Many encounters let you use it." : n >= 5 ? "Some encounters let you use it." : n >= 1 ? "A few encounters let you use it." : "No encounter asks for it.";
 }
 /* what a thing is good for, where that is not plain from its kind (ingredients: the potions made
- * with it; the general goods: what in the game asks for them). Read from the game's code: of the
- * general goods only rope and lockpicks are asked for by cards (count_items, s029 0e76:0c76: the
- * party's, so one is enough), and an instrument by St. Cecilia (the type flag 0x20000000, s039
- * 165c:1024); nothing asks for a torch, candle, lantern, iron spike, grappling hook or clock. */
+ * with it; the general goods: what in the game asks for them, mods/saintinfo.h item_unasked_game;
+ * the cards count the party's, so one is enough) */
 std::string ns_item_use(int id)
 {
     const ItemDef *d = ns_itemdef(id);
@@ -189,10 +185,6 @@ std::string ns_item_use(int id)
         std::string t = "St. Cecilia, the patron of music, raises the party's standing in a town greatly for a member who carries an instrument.";
         if (n) t += " " + std::to_string(n) + (n == 1 ? " of the new encounters asks" : " of the new encounters ask") + " for one too.";
         return t; }
-    case 0x39: case 0x3a: case 0x3c: case 0x3d: case 0x3e: case 0x3f: {
-        int n = encounters_asks_item(id);                  /* (the mods' encounters: has(), takeitem) */
-        if (n) return std::to_string(n) + (n == 1 ? " of the new encounters asks" : " of the new encounters ask") + " for one; nothing in the game's own cards does.";
-        return "Nothing in the game asks for one (no card, no saint): it is worth only what it sells for."; }
     /* the quest things and trophies (read from the cards' scripts: add_item, count_items, take_item) */
     case 0x8c: case 0x8d: case 0x8e: case 0x8f: case 0x90: case 0x91:
         return "One of the Six Keys: the gate to the last chamber of the Baphomet's lair opens only for a party that carries all six. Keep it.";
@@ -200,6 +192,11 @@ std::string ns_item_use(int id)
     case 0x93: return "A trophy. Nothing in the game asks for it.";
     case 0x94: return "A skeleton near a cemetery wants its bone back: give it this and it will talk with you.";
     case 0x95: return "The dragon's gold cup, taken back from the thief: brandish it before the dragon and it will not breathe fire on its treasure.";
+    }
+    if (item_unasked_game(id)) {
+        int n = encounters_asks_item(id);                  /* (the mods' encounters: has(), takeitem) */
+        if (n) return std::to_string(n) + (n == 1 ? " of the new encounters asks" : " of the new encounters ask") + " for one; nothing in the game's own cards does.";
+        return "Nothing in the game asks for one (no card, no saint): it is worth only what it sells for.";
     }
     if (id >= 129 && id <= 139) return "Wanted by whoever sent you to fetch it: bring it to them (the quests on the world map, M, say who and where).";
     return "";

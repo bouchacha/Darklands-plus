@@ -144,6 +144,7 @@ static int nenc, nerr, loaded_gen = -1;
 static int by_slot[ENC_MAX];             /* card slot -> encounter, -1 */
 static int force_next = -1;
 static int camp_pending;                 /* a night in camp brought an encounter: at the first step on the map */
+static int forced_steps;                 /* steps made encounters for it that brought no card yet (encounters_forced_step) */
 static int pick_where(int where, int pct, int force);
 
 /* the encounter being run */
@@ -1816,7 +1817,7 @@ static int choose(int r, int t)
     int due_wild = force_next >= 0 && force_next < nenc && encs[force_next].ok && encs[force_next].where == WH_WILD;
     if ((camp_pending || due_wild) && (travel_step_result == 1000 || travel_step_result == 2000)) {
         int was_camp = camp_pending, c = -1;
-        camp_pending = 0;
+        camp_pending = 0; forced_steps = 0;
         if (!encounters_offered()) { force_next = -1; return r; }
         install_cards();
         aborting = 0;
@@ -1908,7 +1909,7 @@ static void camp_hook(void)                     /* s036 1462:0082 (mode): a stay
     if (nights <= 0 || share <= 0 || g_event_started(0x5f)) return;      /* (the lord's men came: that night's trouble) */
     int forced = force_next >= 0 && force_next < nenc && encs[force_next].where == WH_CAMP;   /* (test: uenc) */
     for (int i = 0; i < nights && !camp_pending; i++) if (forced || (long long)(rng() % 10000) < 12LL * share) camp_pending = 1;
-    if (camp_pending) LOG("camp: %d night(s): an encounter at the first step\n", nights);
+    if (camp_pending) { forced_steps = 0; LOG("camp: %d night(s): an encounter at the first step\n", nights); }
 }
 
 static void overland_hook(void)                 /* s030 1462:02c0 overland_loop(): the next card */
@@ -1997,7 +1998,7 @@ int encounters_in_street(void) { return rt.active && rt.where == WH_STREET; }
    by the unwinding: it stayed "on the screen", and Go to, the margins and the mods' reload took the town for
    the road); a night in camp's encounter and a voyage's are the old game's too */
 static int just_loaded;                  /* the card a save resumes on: not a street newly come into */
-void encounters_after_load(void) { memset(&rt, 0, sizeof rt); rt.pending = -1; rt.result = -1; aborting = 0; camp_pending = 0; boat_done = 0; outc_on = 0; just_loaded = 1; gsnap_ok = 0; }
+void encounters_after_load(void) { memset(&rt, 0, sizeof rt); rt.pending = -1; rt.result = -1; aborting = 0; camp_pending = 0; forced_steps = 0; boat_done = 0; outc_on = 0; just_loaded = 1; gsnap_ok = 0; }
 void encounters_force(int i)
 {
     reload();
@@ -2006,6 +2007,17 @@ void encounters_force(int i)
     fprintf(stderr, "encounters: the next %s encounter is %s\n", WHERE_NAMES[encs[i].where], encs[i].id);
 }
 int encounters_force_pending(void) { return (force_next >= 0 && force_next < nenc && encs[force_next].where == WH_WILD) || camp_pending; }
+/* a step made an encounter for one that is due (mods/travel.c): choose() takes it when the game's card comes. A
+   step whose encounter brings no card (the game's tables leave some out: a summer's month, a terrain) goes
+   nowhere; after six of them in a row the encounter due is given up rather than hold the party in place */
+void encounters_forced_step(void)
+{
+    if (++forced_steps < 6) return;
+    forced_steps = 0;
+    LOG("the encounter due came to no card in six steps: given up\n");
+    camp_pending = 0;
+    if (force_next >= 0 && force_next < nenc && encs[force_next].where == WH_WILD) force_next = -1;
+}
 
 /* the main loop (root 03a1:000a), once the game's start-up has cleared its data: the cards' entries
    written there, before any save is read. A save made during a new encounter names its card, and the

@@ -33,6 +33,7 @@
 #include "fixes.h"
 #include "gamemodel.h"
 #include "lodgeview.h"
+#include "checks.h"
 
 extern char game_dir[1024];
 
@@ -515,6 +516,7 @@ static void step_hook(void)                 /* s030 1462:0c44 (key): one step of
     {   /* travel.camp_at_8: on the move, the clock strikes 20:00 */
         int moved = e0 != (s16)g_rw(GV_map_buf_row) || c0 != (s16)g_rw(GV_map_view_row) || y0 != (s16)g_rw(GV_map_marker_y)
                     || x0 != (s16)g_rw(GV_map_marker_x) || v0 != (s16)g_rw(GV_map_view_col);
+        checks_map_step(r, moved);
         if (moved && !travel.active && camp_resume) camp_resume = 0;   /* (walked by hand meanwhile: no journey taken up later) */
         if (moved && (s16)g_rw(GV_cur_hour) == 20 && (h0 == 19 || camp_due == today())) {
             if (r >= 0) camp_due = today();               /* an encounter, a place: on the next step */
@@ -554,8 +556,14 @@ void travel_set(int on, int fast)
  * 100 % a step's weight is 0 (no encounter) that often, above it the weight grows. */
 static void encounter_weight_hook(void)
 {
+    int t = (s16)rw(SS, (u16)(SP + 4));                         /* (type, loc): the terrain stepped on */
     hook_call_original();
-    if (encounters_force_pending()) { AX = 1000; return; }      /* test: a new encounter at the next step */
+    /* an encounter due (a night in camp brought one; a test's uenc) makes this step's encounter certain - but
+       only where the game has encounter cards: on a river (terrain 3; 1 and 2 are not stepped on) its step with
+       an encounter brings none (s030 1462:02c0 draws no card there) and goes nowhere, and a party camped by the
+       river NW of Graz could not step off it (1.4.6-RC6, "the river acted as a wall"). There the step is the
+       game's own, and the encounter comes at the next one on land. */
+    if (encounters_force_pending() && t > 3) { AX = 1000; encounters_forced_step(); return; }
     int pct = config_get_int("travel.encounters", 100);
     if (config_get_int("original", 0) || pct == 100) return;
     int w = (s16)AX;

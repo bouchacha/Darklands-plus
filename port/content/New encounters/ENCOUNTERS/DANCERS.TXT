@@ -9,7 +9,7 @@ weight   1
 [start]
 block    0
 chosen   bestattr(Cha)
-saints   0x80, 0x60, 0x73                # Vitus, Michael, Roch
+saints   0x80, 0x28, 0x73                # Vitus, Dymphna (of the possessed and the mad), Roch
 option 0                                   # play them down slowly
   need   has(party, 0x41) or has(party, 0x42)
   who    bestattr(Cha)
@@ -35,7 +35,7 @@ option 4                                   # walk on
 
 [drawn]
 block    10
-saints   0x80, 0x60, 0x73                # Vitus, Michael, Roch
+saints   0x80, 0x28, 0x73                # Vitus, Dymphna (of the possessed and the mad), Roch
 option 0                                   # seize the dancer and hold on
   who    party
   chance clamp(10, 90, maxattr(Str) + avgattr(Str) / 2 - 5)

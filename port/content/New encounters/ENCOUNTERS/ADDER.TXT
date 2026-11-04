@@ -28,7 +28,7 @@ option 2                                   # sit still and let the sun draw it o
 [bitten]
 block    6
 chosen   bit
-saints   0x69, 0x68, 0x6f, -1                  # Paul (the viper of Malta), Patrick, Raphael
+saints   0x67, 0x6a, 0x6f, -1                  # Pantaleon (who raised a child a viper had killed), Paul the Simple (a healer), Raphael
 items    0x73, 0x70                            # Essence o'Grace, New-wind
 option 0                                   # cut, suck and bind the bite (Healing)
   who    bestskill(Healing, chosen)

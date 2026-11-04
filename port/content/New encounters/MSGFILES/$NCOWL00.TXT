@@ -7,7 +7,7 @@ In the grey hour before dawn an owl lands on the ridge-pole of your tent and scr
 \15...\1dshoot the bird off the tent.
 \15...\1dbreak camp at once and get away from it.
 === card 1: 10 10 0 240 0 ===
-"An owl is God's creature like the rest of us," says $ChosenTwoName, "and it hunts mice, not Christians." Then the two of them kneel and pray to St. Michael, guardian of souls, until the sky pales. The owl blinks, loses interest and flaps away, and $ChosenOneName laughs shakily and asks for bread.
+"An owl is God's creature like the rest of us," says $ChosenTwoName, "and it hunts mice, not Christians." Then the two of them kneel and pray to their guardian angels until the sky pales. The owl blinks, loses interest and flaps away, and $ChosenOneName laughs shakily and asks for bread.
 === card 2: 10 10 0 240 0 ===
 "An owl is God's creature like the rest of us," says $ChosenTwoName, but it comes out less sure than it was meant. The owl screeches again, as if in answer. $ChosenOneName shudders and says nothing, and all day $he walks like someone on the way to the gallows.
 === card 3: 10 10 0 240 0 ===

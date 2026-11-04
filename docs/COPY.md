@@ -1596,87 +1596,87 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/nsdraw.cpp:134` | Everyone's shield is as good or better. |
 | `ui/nsdraw.cpp:149` |  Too heavy for  |
 | `ui/nsdraw.cpp:149` |  (it needs {Strength: |
-| `ui/nsdraw.cpp:171` | Many encounters let you use it. |
-| `ui/nsdraw.cpp:171` | Some encounters let you use it. |
-| `ui/nsdraw.cpp:171` | A few encounters let you use it. |
-| `ui/nsdraw.cpp:171` | No encounter asks for it. |
-| `ui/nsdraw.cpp:185` | For climbing: over a town's walls at night, into a castle and the like, the best climber goes up first and lets it down for the others (without one, each climbs alone). One in the party is enough. |
-| `ui/nsdraw.cpp:186` | For picking locks: shops at night, doors, chests, a cell. One in the party is enough. |
-| `ui/nsdraw.cpp:189` | St. Cecilia, the patron of music, raises the party's standing in a town greatly for a member who carries an instrument. |
-| `ui/nsdraw.cpp:190` |  of the new encounters asks |
-| `ui/nsdraw.cpp:190` |  of the new encounters ask |
-| `ui/nsdraw.cpp:190` |  for one too. |
-| `ui/nsdraw.cpp:194` |  of the new encounters asks |
-| `ui/nsdraw.cpp:194` |  of the new encounters ask |
-| `ui/nsdraw.cpp:194` |  for one; nothing in the game's own cards does. |
-| `ui/nsdraw.cpp:195` | Nothing in the game asks for one (no card, no saint): it is worth only what it sells for. |
-| `ui/nsdraw.cpp:198` | One of the Six Keys: the gate to the last chamber of the Baphomet's lair opens only for a party that carries all six. Keep it. |
-| `ui/nsdraw.cpp:199` | A trophy: the boars' tusks, thought to be good-luck charms. Nothing in the game asks for them and no shop buys them. |
-| `ui/nsdraw.cpp:200` | A trophy. Nothing in the game asks for it. |
-| `ui/nsdraw.cpp:201` | A skeleton near a cemetery wants its bone back: give it this and it will talk with you. |
-| `ui/nsdraw.cpp:202` | The dragon's gold cup, taken back from the thief: brandish it before the dragon and it will not breathe fire on its treasure. |
-| `ui/nsdraw.cpp:204` | Wanted by whoever sent you to fetch it: bring it to them (the quests on the world map, M, say who and where). |
-| `ui/nsdraw.cpp:227` | No formula uses it. |
-| `ui/nsdraw.cpp:257` | ; the other two grades don't use it |
-| `ui/nsdraw.cpp:257` | ; the other grade doesn't use it |
-| `ui/nsdraw.cpp:260` | Dots: the grades (1 to 3) whose formula uses it, gold where the party knows it. Point at a potion for more. |
-| `ui/nsdraw.cpp:261` | Nobody in the party knows a formula with it. Dots: the grades (1 to 3) that use it; point at a potion for more. |
-| `ui/nsdraw.cpp:274` |  for about a day (19 to 21 hours). |
-| `ui/nsdraw.cpp:274` |  permanently, adding up with the next dose. |
-| `ui/nsdraw.cpp:276` | Thrown in a battle: a reeking cloud (up to 4 by 4 paces). Whoever it hits loses half their {Agility}, {Perception} and weapon skills and everyone else in the cloud a quarter, allies and enemies alike, while it lasts (longer at higher grades). |
-| `ui/nsdraw.cpp:277` | Thrown: blinding powder. The target loses a third of their {Agility}, {Perception} and weapon skills and is blinded (cannot shoot, throw or take orders well); those beside them lose a quarter. Lasts longer at higher grades. |
-| `ui/nsdraw.cpp:278` | Thrown: a cloud of black smoke. Shots through any cloud hit far less often (a fifth of the chance), and fighting from inside one costs 15 to hit. Lasts longer at higher grades. (The battle menu never offers it to the party: it is used on cards, and enemies throw it.) |
-| `ui/nsdraw.cpp:279` | Thrown: itching powder. Weapon skills fall by five times the armor worn on the body and limbs: the heavier the armor, the worse the itch. Lasts longer at higher grades. |
-| `ui/nsdraw.cpp:280` | Thrown: acid that eats the target's armor, lowering its quality by 4, 6 or 8 (grade 1, 2, 3) plus up to 8 more at random; armor eaten to nothing is destroyed, and where there is no armor (or damage is left over) it wounds the target. Also dissolves locks. |
-| `ui/nsdraw.cpp:281` | Thrown: a poison cloud (up to 2 by 2 paces) whose wounds no armor stops, worse for weaker targets; stronger at higher grades. |
-| `ui/nsdraw.cpp:282` | Thrown: a blinding flash. The target and every enemy of the thrower on that floor who faces it are blinded for a while (longer at higher grades); the thrower's allies are spared. |
-| `ui/nsdraw.cpp:283` | Thrown: it bursts with great force: damage 4, 6 or 8 (grade 1, 2, 3) plus up to 8 more at random, penetration 6, 7 or 8 on the target and less around it; it also wears the armor down by a quarter of the damage. |
-| `ui/nsdraw.cpp:284` | Thrown: burning pitch that no armor stops: damage 4, 6 or 8 (grade 1, 2, 3) plus up to 6 more at random, a quarter of that further off, minus a tenth of the armor's quality (and of Firewall's protection); it also wears the armor down. |
-| `ui/nsdraw.cpp:285` | Thrown: a pool of sticky sludge (up to 4 by 4 paces) that slows whoever crosses it to 1/2, 3/8 or 1/4 of their pace (grade 1, 2, 3), for a long while. |
-| `ui/nsdraw.cpp:286` | Used (P in the inventory) by a member: {*Damage} +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land with any weapon except an impact weapon or a flail. Damage only, not the chance to hit; |
-| `ui/nsdraw.cpp:287` | Used (P in the inventory) by a member: {*Damage} +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land, with any weapon: bows, guns, impact weapons and fists too. Damage only, not the chance to hit; |
-| `ui/nsdraw.cpp:288` | Used by a member: {*Penetration} +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land with a blade or a polearm,  |
-| `ui/nsdraw.cpp:288` | up to 15 in all |
-| `ui/nsdraw.cpp:288` | past 15 the penetration starts again from 0 |
-| `ui/nsdraw.cpp:289` | Used by a member: {*Penetration} +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land, with any weapon,  |
-| `ui/nsdraw.cpp:289` | up to 15 in all |
-| `ui/nsdraw.cpp:289` | past 15 the penetration starts again from 0 (a bow's 6 + 10 hits as 0) |
-| `ui/nsdraw.cpp:290` | Used by a member: {*Weapon Quality} the weapon in hand counts as 14, 22 or 30 points higher in quality (grade 1, 2, 3; up to 99),  |
-| `ui/nsdraw.cpp:290` | if it is an impact weapon, a flail or a handgun |
-| `ui/nsdraw.cpp:290` | including bows, guns and fists |
-| `ui/nsdraw.cpp:290` | , for about a day (19 to 21 hours). Each 10 points of quality add one step of damage. A second dose adds to the first. |
-| `ui/nsdraw.cpp:291` | Used by a member, on every hit they land, with any weapon: grade 1 {*Penetration} +14 penetration; grade 2 {*Damage} +1 damage and {*Penetration} +6 penetration; grade 3 {*Damage} +1 damage and {*Penetration} +14 penetration.  |
-| `ui/nsdraw.cpp:291` | Penetration counts up to 15 in all |
-| `ui/nsdraw.cpp:291` | Penetration past 15 starts again from 0, so grades 1 and 3 lower a bow's penetration |
-| `ui/nsdraw.cpp:292` | Used by a member: +14, +22 or +30 (grade 1, 2, 3) to {Bows}, {Thrown Weapons} and {Missile Devices} (up to 99), for about a day (19 to 21 hours). A second dose adds to the first. |
-| `ui/nsdraw.cpp:293` | Used by a member: {*Armor} their armor counts 20, 25 or 30 points better in quality and 1, 2 or 2 levels thicker (grade 1, 2, 3) against every blow and shot, for about a day (19 to 21 hours). A second dose while one is active keeps the stronger. |
-| `ui/nsdraw.cpp:294` | Used by a member: {*Armor} +1, +2 or +3 (grade 1, 2, 3) to their armor against every hit, blow or shot, permanently; doses add up. |
-| `ui/nsdraw.cpp:295` | Drinking it yields just one florin: it is meant for cards, where an encounter asks for it (to purify, or to make gold). |
-| `ui/nsdraw.cpp:298` | 9-14, 15-21 or 22-29 |
-| `ui/nsdraw.cpp:298` | 6-11, 8-13 or 10-15 |
-| `ui/nsdraw.cpp:298` | 6-11, 8-13 or 10-15 |
-| `ui/nsdraw.cpp:298` | 6-11, 8-15 or 10-17 |
-| `ui/nsdraw.cpp:300` |  (grade 1, 2, 3) for about a day: the current value rises, past the maximum if need be; the maximum itself does not change.  |
-| `ui/nsdraw.cpp:301` | On a wounded member it heals:  |
-| `ui/nsdraw.cpp:301` | when it wears off, only the part still above the maximum is lost, so the healing stays. |
-| `ui/nsdraw.cpp:301` | but when it wears off the whole amount is taken back, healed or not. |
-| `ui/nsdraw.cpp:302` | When it wears off, what it added is lost. |
-| `ui/nsdraw.cpp:303` |  A second dose while the first is active adds only what goes beyond it. |
-| `ui/nsdraw.cpp:305` | Drunk: permanently heals 50, 70 or 90% of the {Strength} lost to wounds (grade 1, 2, 3), and raises {Endurance} by 9-14, 15-21 or 22-29 for about 30 hours. |
-| `ui/nsdraw.cpp:307` | Drunk: {*Fire} protection against fire for about a day (19 to 21 hours): Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3). A second dose keeps the stronger. |
-| `ui/nsdraw.cpp:308` | Drunk: {*Fire} permanent protection against fire: Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3). |
-| `ui/nsdraw.cpp:308` |  It also adds {*Armor} 16 to the armor permanently. |
-| `ui/nsdraw.cpp:324` |  when equipped |
-| `ui/nsdraw.cpp:349` | a light load: no hindrance |
-| `ui/nsdraw.cpp:349` | a normal load: blows hand to hand a fifth slower |
-| `ui/nsdraw.cpp:350` | a heavy load: blows at the usual pace, dodging hampered |
-| `ui/nsdraw.cpp:350` | overloaded: blows two thirds slower, little or no dodging |
-| `ui/nsdraw.cpp:353` | Worn by %s: load %d \xc2\xbb %d of %d, %s%s |
-| `ui/nsdraw.cpp:417` | Load %d \xc2\xbb %d of %d |
-| `ui/nsdraw.cpp:418` | Load %d of %d |
-| `ui/nsdraw.cpp:474` | Spare equipment |
-| `ui/nsdraw.cpp:474` | Tools and other goods |
-| `ui/nsdraw.cpp:474` | Trophies and quest items |
+| `ui/nsdraw.cpp:169` | Many encounters let you use it. |
+| `ui/nsdraw.cpp:169` | Some encounters let you use it. |
+| `ui/nsdraw.cpp:169` | A few encounters let you use it. |
+| `ui/nsdraw.cpp:169` | No encounter asks for it. |
+| `ui/nsdraw.cpp:181` | For climbing: over a town's walls at night, into a castle and the like, the best climber goes up first and lets it down for the others (without one, each climbs alone). One in the party is enough. |
+| `ui/nsdraw.cpp:182` | For picking locks: shops at night, doors, chests, a cell. One in the party is enough. |
+| `ui/nsdraw.cpp:185` | St. Cecilia, the patron of music, raises the party's standing in a town greatly for a member who carries an instrument. |
+| `ui/nsdraw.cpp:186` |  of the new encounters asks |
+| `ui/nsdraw.cpp:186` |  of the new encounters ask |
+| `ui/nsdraw.cpp:186` |  for one too. |
+| `ui/nsdraw.cpp:190` | One of the Six Keys: the gate to the last chamber of the Baphomet's lair opens only for a party that carries all six. Keep it. |
+| `ui/nsdraw.cpp:191` | A trophy: the boars' tusks, thought to be good-luck charms. Nothing in the game asks for them and no shop buys them. |
+| `ui/nsdraw.cpp:192` | A trophy. Nothing in the game asks for it. |
+| `ui/nsdraw.cpp:193` | A skeleton near a cemetery wants its bone back: give it this and it will talk with you. |
+| `ui/nsdraw.cpp:194` | The dragon's gold cup, taken back from the thief: brandish it before the dragon and it will not breathe fire on its treasure. |
+| `ui/nsdraw.cpp:198` |  of the new encounters asks |
+| `ui/nsdraw.cpp:198` |  of the new encounters ask |
+| `ui/nsdraw.cpp:198` |  for one; nothing in the game's own cards does. |
+| `ui/nsdraw.cpp:199` | Nothing in the game asks for one (no card, no saint): it is worth only what it sells for. |
+| `ui/nsdraw.cpp:201` | Wanted by whoever sent you to fetch it: bring it to them (the quests on the world map, M, say who and where). |
+| `ui/nsdraw.cpp:224` | No formula uses it. |
+| `ui/nsdraw.cpp:254` | ; the other two grades don't use it |
+| `ui/nsdraw.cpp:254` | ; the other grade doesn't use it |
+| `ui/nsdraw.cpp:257` | Dots: the grades (1 to 3) whose formula uses it, gold where the party knows it. Point at a potion for more. |
+| `ui/nsdraw.cpp:258` | Nobody in the party knows a formula with it. Dots: the grades (1 to 3) that use it; point at a potion for more. |
+| `ui/nsdraw.cpp:271` |  for about a day (19 to 21 hours). |
+| `ui/nsdraw.cpp:271` |  permanently, adding up with the next dose. |
+| `ui/nsdraw.cpp:273` | Thrown in a battle: a reeking cloud (up to 4 by 4 paces). Whoever it hits loses half their {Agility}, {Perception} and weapon skills and everyone else in the cloud a quarter, allies and enemies alike, while it lasts (longer at higher grades). |
+| `ui/nsdraw.cpp:274` | Thrown: blinding powder. The target loses a third of their {Agility}, {Perception} and weapon skills and is blinded (cannot shoot, throw or take orders well); those beside them lose a quarter. Lasts longer at higher grades. |
+| `ui/nsdraw.cpp:275` | Thrown: a cloud of black smoke. Shots through any cloud hit far less often (a fifth of the chance), and fighting from inside one costs 15 to hit. Lasts longer at higher grades. (The battle menu never offers it to the party: it is used on cards, and enemies throw it.) |
+| `ui/nsdraw.cpp:276` | Thrown: itching powder. Weapon skills fall by five times the armor worn on the body and limbs: the heavier the armor, the worse the itch. Lasts longer at higher grades. |
+| `ui/nsdraw.cpp:277` | Thrown: acid that eats the target's armor, lowering its quality by 4, 6 or 8 (grade 1, 2, 3) plus up to 8 more at random; armor eaten to nothing is destroyed, and where there is no armor (or damage is left over) it wounds the target. Also dissolves locks. |
+| `ui/nsdraw.cpp:278` | Thrown: a poison cloud (up to 2 by 2 paces) whose wounds no armor stops, worse for weaker targets; stronger at higher grades. |
+| `ui/nsdraw.cpp:279` | Thrown: a blinding flash. The target and every enemy of the thrower on that floor who faces it are blinded for a while (longer at higher grades); the thrower's allies are spared. |
+| `ui/nsdraw.cpp:280` | Thrown: it bursts with great force: damage 4, 6 or 8 (grade 1, 2, 3) plus up to 8 more at random, penetration 6, 7 or 8 on the target and less around it; it also wears the armor down by a quarter of the damage. |
+| `ui/nsdraw.cpp:281` | Thrown: burning pitch that no armor stops: damage 4, 6 or 8 (grade 1, 2, 3) plus up to 6 more at random, a quarter of that further off, minus a tenth of the armor's quality (and of Firewall's protection); it also wears the armor down. |
+| `ui/nsdraw.cpp:282` | Thrown: a pool of sticky sludge (up to 4 by 4 paces) that slows whoever crosses it to 1/2, 3/8 or 1/4 of their pace (grade 1, 2, 3), for a long while. |
+| `ui/nsdraw.cpp:283` | Used (P in the inventory) by a member: {*Damage} +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land with any weapon except an impact weapon or a flail. Damage only, not the chance to hit; |
+| `ui/nsdraw.cpp:284` | Used (P in the inventory) by a member: {*Damage} +3, +4 or +5 damage (grade 1, 2, 3) on every hit they land, with any weapon: bows, guns, impact weapons and fists too. Damage only, not the chance to hit; |
+| `ui/nsdraw.cpp:285` | Used by a member: {*Penetration} +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land with a blade or a polearm,  |
+| `ui/nsdraw.cpp:285` | up to 15 in all |
+| `ui/nsdraw.cpp:285` | past 15 the penetration starts again from 0 |
+| `ui/nsdraw.cpp:286` | Used by a member: {*Penetration} +3, +4 or +5 penetration (grade 1, 2, 3) on every hit they land, with any weapon,  |
+| `ui/nsdraw.cpp:286` | up to 15 in all |
+| `ui/nsdraw.cpp:286` | past 15 the penetration starts again from 0 (a bow's 6 + 10 hits as 0) |
+| `ui/nsdraw.cpp:287` | Used by a member: {*Weapon Quality} the weapon in hand counts as 14, 22 or 30 points higher in quality (grade 1, 2, 3; up to 99),  |
+| `ui/nsdraw.cpp:287` | if it is an impact weapon, a flail or a handgun |
+| `ui/nsdraw.cpp:287` | including bows, guns and fists |
+| `ui/nsdraw.cpp:287` | , for about a day (19 to 21 hours). Each 10 points of quality add one step of damage. A second dose adds to the first. |
+| `ui/nsdraw.cpp:288` | Used by a member, on every hit they land, with any weapon: grade 1 {*Penetration} +14 penetration; grade 2 {*Damage} +1 damage and {*Penetration} +6 penetration; grade 3 {*Damage} +1 damage and {*Penetration} +14 penetration.  |
+| `ui/nsdraw.cpp:288` | Penetration counts up to 15 in all |
+| `ui/nsdraw.cpp:288` | Penetration past 15 starts again from 0, so grades 1 and 3 lower a bow's penetration |
+| `ui/nsdraw.cpp:289` | Used by a member: +14, +22 or +30 (grade 1, 2, 3) to {Bows}, {Thrown Weapons} and {Missile Devices} (up to 99), for about a day (19 to 21 hours). A second dose adds to the first. |
+| `ui/nsdraw.cpp:290` | Used by a member: {*Armor} their armor counts 20, 25 or 30 points better in quality and 1, 2 or 2 levels thicker (grade 1, 2, 3) against every blow and shot, for about a day (19 to 21 hours). A second dose while one is active keeps the stronger. |
+| `ui/nsdraw.cpp:291` | Used by a member: {*Armor} +1, +2 or +3 (grade 1, 2, 3) to their armor against every hit, blow or shot, permanently; doses add up. |
+| `ui/nsdraw.cpp:292` | Drinking it yields just one florin: it is meant for cards, where an encounter asks for it (to purify, or to make gold). |
+| `ui/nsdraw.cpp:295` | 9-14, 15-21 or 22-29 |
+| `ui/nsdraw.cpp:295` | 6-11, 8-13 or 10-15 |
+| `ui/nsdraw.cpp:295` | 6-11, 8-13 or 10-15 |
+| `ui/nsdraw.cpp:295` | 6-11, 8-15 or 10-17 |
+| `ui/nsdraw.cpp:297` |  (grade 1, 2, 3) for about a day: the current value rises, past the maximum if need be; the maximum itself does not change.  |
+| `ui/nsdraw.cpp:298` | On a wounded member it heals:  |
+| `ui/nsdraw.cpp:298` | when it wears off, only the part still above the maximum is lost, so the healing stays. |
+| `ui/nsdraw.cpp:298` | but when it wears off the whole amount is taken back, healed or not. |
+| `ui/nsdraw.cpp:299` | When it wears off, what it added is lost. |
+| `ui/nsdraw.cpp:300` |  A second dose while the first is active adds only what goes beyond it. |
+| `ui/nsdraw.cpp:302` | Drunk: permanently heals 50, 70 or 90% of the {Strength} lost to wounds (grade 1, 2, 3), and raises {Endurance} by 9-14, 15-21 or 22-29 for about 30 hours. |
+| `ui/nsdraw.cpp:304` | Drunk: {*Fire} protection against fire for about a day (19 to 21 hours): Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3). A second dose keeps the stronger. |
+| `ui/nsdraw.cpp:305` | Drunk: {*Fire} permanent protection against fire: Arabian Fire does 5, 7 or 9 points less (grade 1, 2, 3). |
+| `ui/nsdraw.cpp:305` |  It also adds {*Armor} 16 to the armor permanently. |
+| `ui/nsdraw.cpp:321` |  when equipped |
+| `ui/nsdraw.cpp:346` | a light load: no hindrance |
+| `ui/nsdraw.cpp:346` | a normal load: blows hand to hand a fifth slower |
+| `ui/nsdraw.cpp:347` | a heavy load: blows at the usual pace, dodging hampered |
+| `ui/nsdraw.cpp:347` | overloaded: blows two thirds slower, little or no dodging |
+| `ui/nsdraw.cpp:350` | Worn by %s: load %d \xc2\xbb %d of %d, %s%s |
+| `ui/nsdraw.cpp:414` | Load %d \xc2\xbb %d of %d |
+| `ui/nsdraw.cpp:415` | Load %d of %d |
+| `ui/nsdraw.cpp:471` | Spare equipment |
+| `ui/nsdraw.cpp:471` | Tools and other goods |
+| `ui/nsdraw.cpp:471` | Trophies and quest items |
 | `ui/optpreview.cpp:43` | The gate is barred. You... |
 | `ui/optpreview.cpp:45` | ...climb the wall |
 | `ui/optpreview.cpp:46` | ...pray to a saint |
@@ -1922,18 +1922,21 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/quests.cpp:627` | Travel there |
 | `ui/quests.cpp:635` | No quests at the moment. Robber-knight bounties, errands and deliveries the party takes on are listed here with their deadlines. |
 | `ui/quests.cpp:637` | Show secrets (Sabbat dates and places, even before the party learns them) |
-| `ui/report.cpp:129` | Linux (Wine or Proton  |
-| `ui/report.cpp:135` | Windows %s (build %lu) |
-| `ui/report.cpp:136` | Windows %lu.%lu |
-| `ui/report.cpp:149` | own switches (%d from %s) |
-| `ui/report.cpp:165` | The report from Darklands+ (F12 > About > Report a problem): drag  |
-| `ui/report.cpp:166` |  here from the folder it opened. It holds the log, the settings and the two newest saves. |
-| `ui/report.cpp:191` | Could not write  |
-| `ui/report.cpp:208` | Darklands+ build  |
-| `ui/report.cpp:221` | Something wrong? Make a report: a zip of this session's log and the last one's, your settings and your two newest saves (your own name taken out of the folder paths in them). Its folder opens, and GitHub's bug form with the version, system and preset filled in: write what happened and drag the zip into the form. Posting there takes a free GitHub account. |
-| `ui/report.cpp:225` | Make a report and open the form |
-| `ui/report.cpp:230` | Show the zip |
-| `ui/report.cpp:232` | Open the form again |
+| `ui/report.cpp:130` | Linux (Wine or Proton  |
+| `ui/report.cpp:136` | Windows %s (build %lu) |
+| `ui/report.cpp:137` | Windows %lu.%lu |
+| `ui/report.cpp:150` | own switches (%d from %s) |
+| `ui/report.cpp:166` | The report from Darklands+ (F12 > About > Report a problem): drag  |
+| `ui/report.cpp:167` |  here from the folder it opened. It holds the log, the settings and the two newest saves. |
+| `ui/report.cpp:192` | Could not write  |
+| `ui/report.cpp:209` | Darklands+ build  |
+| `ui/report.cpp:222` | Something wrong? Make a report: a zip of this session's log and the last one's, your settings and your two newest saves (your own name taken out of the folder paths in them). Its folder opens, and GitHub's bug form with the version, system and preset filled in: write what happened and drag the zip into the form. Posting there takes a free GitHub account. |
+| `ui/report.cpp:226` | Make a report and open the form |
+| `ui/report.cpp:231` | Show the zip |
+| `ui/report.cpp:233` | Open the form again |
+| `ui/report.cpp:238` | The log then tells of every journey, encounter, Go to walk and fix at work: what a report needs to show how a fault came about. It grows faster. |
+| `ui/report.cpp:248` | Darklands+ noticed a fault and made a report (F12 > About > Report a problem). Please send it with what you were doing. |
+| `ui/report.cpp:249` | Darklands+ noticed a fault: darklands_port.log in the game folder says what. |
 | `ui/richtext.cpp:190` | Missile Devices |
 | `ui/rosterview.cpp:33` |  Add to the Party |
 | `ui/rosterview.cpp:67` | Who travels on |
@@ -2774,7 +2777,16 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/cacheview.c:202` | Nothing to store: everything %s carries is equipped. |
 | `mods/cardview.c:125` | You gather around the comfortable fire at the |
 | `mods/cardview.c:400` | \x81<name>\xff  |
-| `mods/cardview.c:469` | Buffer dealloc error |
+| `mods/cardview.c:476` | Buffer dealloc error |
+| `mods/checks.c:54` | the menu bar's title %d is now "%s" (memory written past a buffer?) |
+| `mods/checks.c:75` | the party's size is %d |
+| `mods/checks.c:81` | member %d has %d items |
+| `mods/checks.c:84` | the party's money is below 0 (%d %d %d) |
+| `mods/checks.c:86` | the current place is %d |
+| `mods/checks.c:94` | %d of the game's %d notes in use |
+| `mods/checks.c:107` | the date went backwards (%ld to %ld) without a load |
+| `mods/checks.c:120` | the party stands on water (terrain %d) |
+| `mods/checks.c:129` | 12 steps on the map in a row each brought an encounter (one held waiting?) |
 | `mods/cutcards.c:68` | name     The hospice  |
 | `mods/cutcards.c:68` | card     $CityH00  |
 | `mods/cutcards.c:68` | picture  XDAMONK  |
@@ -2806,72 +2818,72 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/cutcards.c:131` | ...\x1dvisit the Heilig-Geist-Spital, where injuries and the ill are tended. |
 | `mods/datamods.c:375` | # right edge). Bytes the game uses for layout are written \\xx (hex): \\14 new paragraph, \\15 an option, # \\1d after the option's "...", \\16 an option opening the saints, \\10 the potions, \\06 a battle, # \\01 ... \\13 a part shown or hidden by the game. { is o-umlaut, \| u-umlaut, \\1f a-umlaut. # Put the edited file into mods/<your mod>/MSGFILES/ (keep the name); lines starting with # are ignored.  |
 | `mods/datamods.c:412` | Describe your mod here (these lines show in F12 > Mods).  Put files into this folder laid out like the game folder; while the mod is on, the game reads them instead of its own: DARKLAND.LST, DARKLAND.ENM, PICS/NAME.PIC, a folder MSGFILES/ with single card files (.MSG, or .TXT as written by "Export the card texts"), art/ and sounds/ as in the game folder, music/ with recordings named by the piece's number (10.ogg, "11 market.ogg"; see F12 > Settings > Sound).  |
-| `mods/encounters.c:239` | he will tell every market in Kuttenberg |
-| `mods/encounters.c:520` | A new encounter stopped because of a mistake in its file (see darklands_port.log); the party is back in the overland view. |
-| `mods/encounters.c:570` | '%s' expected |
-| `mods/encounters.c:630` | %s: %s out of range |
-| `mods/encounters.c:630` | an attribute |
-| `mods/encounters.c:691` | %s takes %d argument%s |
-| `mods/encounters.c:727` | %s: who, then an item (0 to 199) |
-| `mods/encounters.c:735` | wounds: an attribute |
-| `mods/encounters.c:742` | unknown function %s |
-| `mods/encounters.c:761` | unknown name %s |
-| `mods/encounters.c:764` | a value expected |
-| `mods/encounters.c:770` | nested too deeply |
-| `mods/encounters.c:828` | unexpected "%s" |
-| `mods/encounters.c:842` | %s takes %d to %d values |
-| `mods/encounters.c:853` | nested too deeply |
-| `mods/encounters.c:866` | no section [%s] |
-| `mods/encounters.c:894` | %s: %s expected |
-| `mods/encounters.c:900` | an action expected |
-| `mods/encounters.c:919` | 'then' or 'goto' expected |
-| `mods/encounters.c:929` | card: one of the game's cards, 1 to 0x16d |
-| `mods/encounters.c:946` | unknown variable %s |
-| `mods/encounters.c:952` | picture names have at most 8 letters |
-| `mods/encounters.c:961` | options are numbered 0 to 9 |
-| `mods/encounters.c:967` | battle: a battlefield, then enemy, quality, count for each group |
-| `mods/encounters.c:972` | battle: a wilderness battlefield (Wilds, Surrounded, Clearing, Cave, or 0x2e-0x55, 0x61-0x63, 0x6f-0x79), or in a town's streets MainStreet, SideStreet |
-| `mods/encounters.c:974` | battle: MainStreet and SideStreet only in a town (where street) |
-| `mods/encounters.c:1001` | %s: who, then a %s |
-| `mods/encounters.c:1001` | skill (0 to 18) |
-| `mods/encounters.c:1001` | attribute (0 to 6) |
-| `mods/encounters.c:1023` | unknown action %s |
-| `mods/encounters.c:1027` | text %ld: %s has blocks 0 to %d |
-| `mods/encounters.c:1028` | text %ld: a card holds blocks 0 to 24 |
-| `mods/encounters.c:1081` | ';' expected |
-| `mods/encounters.c:1091` | unexpected "%s" |
-| `mods/encounters.c:1223` | where: wild, boat, street or camp |
-| `mods/encounters.c:1229` | unknown setting %s |
-| `mods/encounters.c:1235` | option: a number 0 to 9 |
-| `mods/encounters.c:1237` | option %d twice |
-| `mods/encounters.c:1240` | option %d: potion or saint |
-| `mods/encounters.c:1253` | at most 4 potions |
-| `mods/encounters.c:1255` | potion CODE, CHANCE |
-| `mods/encounters.c:1277` | unknown key %s |
-| `mods/encounters.c:1279` | no card (the MSGFILES text) given |
-| `mods/encounters.c:1280` | no picture given |
-| `mods/encounters.c:1281` | no [section] |
-| `mods/encounters.c:1384` | %s has %d text blocks: the game holds 25 |
-| `mods/encounters.c:1385` | %s is too long: %ld bytes as the game loads it, under 6000 fit |
-| `mods/encounters.c:1386` | %s has a block with %d option lines: at most %d |
-| `mods/encounters.c:1391` | %s block %d is too long: up to %d characters with its $variables filled in (%d as written), at most 899 fit |
-| `mods/encounters.c:1405` | [%s] has options but no block |
-| `mods/encounters.c:1408` | [%s] option %d: block %d of %s has %d option line%s |
-| `mods/encounters.c:1411` | [%s] option %d: %s |
-| `mods/encounters.c:1411` | its line (\\16) opens the saints: write option N saint |
-| `mods/encounters.c:1411` | a saint option needs a \\16 line |
+| `mods/encounters.c:240` | he will tell every market in Kuttenberg |
+| `mods/encounters.c:521` | A new encounter stopped because of a mistake in its file (see darklands_port.log); the party is back in the overland view. |
+| `mods/encounters.c:571` | '%s' expected |
+| `mods/encounters.c:631` | %s: %s out of range |
+| `mods/encounters.c:631` | an attribute |
+| `mods/encounters.c:692` | %s takes %d argument%s |
+| `mods/encounters.c:728` | %s: who, then an item (0 to 199) |
+| `mods/encounters.c:736` | wounds: an attribute |
+| `mods/encounters.c:743` | unknown function %s |
+| `mods/encounters.c:762` | unknown name %s |
+| `mods/encounters.c:765` | a value expected |
+| `mods/encounters.c:771` | nested too deeply |
+| `mods/encounters.c:829` | unexpected "%s" |
+| `mods/encounters.c:843` | %s takes %d to %d values |
+| `mods/encounters.c:854` | nested too deeply |
+| `mods/encounters.c:867` | no section [%s] |
+| `mods/encounters.c:895` | %s: %s expected |
+| `mods/encounters.c:901` | an action expected |
+| `mods/encounters.c:920` | 'then' or 'goto' expected |
+| `mods/encounters.c:930` | card: one of the game's cards, 1 to 0x16d |
+| `mods/encounters.c:947` | unknown variable %s |
+| `mods/encounters.c:953` | picture names have at most 8 letters |
+| `mods/encounters.c:962` | options are numbered 0 to 9 |
+| `mods/encounters.c:968` | battle: a battlefield, then enemy, quality, count for each group |
+| `mods/encounters.c:973` | battle: a wilderness battlefield (Wilds, Surrounded, Clearing, Cave, or 0x2e-0x55, 0x61-0x63, 0x6f-0x79), or in a town's streets MainStreet, SideStreet |
+| `mods/encounters.c:975` | battle: MainStreet and SideStreet only in a town (where street) |
+| `mods/encounters.c:1002` | %s: who, then a %s |
+| `mods/encounters.c:1002` | skill (0 to 18) |
+| `mods/encounters.c:1002` | attribute (0 to 6) |
+| `mods/encounters.c:1024` | unknown action %s |
+| `mods/encounters.c:1028` | text %ld: %s has blocks 0 to %d |
+| `mods/encounters.c:1029` | text %ld: a card holds blocks 0 to 24 |
+| `mods/encounters.c:1082` | ';' expected |
+| `mods/encounters.c:1092` | unexpected "%s" |
+| `mods/encounters.c:1224` | where: wild, boat, street or camp |
+| `mods/encounters.c:1230` | unknown setting %s |
+| `mods/encounters.c:1236` | option: a number 0 to 9 |
+| `mods/encounters.c:1238` | option %d twice |
+| `mods/encounters.c:1241` | option %d: potion or saint |
+| `mods/encounters.c:1254` | at most 4 potions |
+| `mods/encounters.c:1256` | potion CODE, CHANCE |
+| `mods/encounters.c:1278` | unknown key %s |
+| `mods/encounters.c:1280` | no card (the MSGFILES text) given |
+| `mods/encounters.c:1281` | no picture given |
+| `mods/encounters.c:1282` | no [section] |
+| `mods/encounters.c:1385` | %s has %d text blocks: the game holds 25 |
+| `mods/encounters.c:1386` | %s is too long: %ld bytes as the game loads it, under 6000 fit |
+| `mods/encounters.c:1387` | %s has a block with %d option lines: at most %d |
+| `mods/encounters.c:1392` | %s block %d is too long: up to %d characters with its $variables filled in (%d as written), at most 899 fit |
+| `mods/encounters.c:1406` | [%s] has options but no block |
+| `mods/encounters.c:1409` | [%s] option %d: block %d of %s has %d option line%s |
 | `mods/encounters.c:1412` | [%s] option %d: %s |
-| `mods/encounters.c:1412` | its line (\\10) opens the potions: write option N potion |
-| `mods/encounters.c:1412` | a potion option needs a \\10 line |
-| `mods/encounters.c:1421` | [%s] option %d is a saint option, but there are no saints |
-| `mods/encounters.c:1422` | [%s] option %d is a potion option, but there are no items |
-| `mods/encounters.c:1424` | [%s] has a block but no options |
-| `mods/encounters.c:1426` | [%s] saints: numbers 0 to 135 (DARKLAND.LST), or -1 |
-| `mods/encounters.c:1427` | [%s] items: numbers 0 to 199 (DARKLAND.LST), or -1 |
-| `mods/encounters.c:1429` | [%s] block %d: the game holds 25 blocks (0 to 24) |
-| `mods/encounters.c:1476` | (Darklands+ %s) |
-| `mods/encounters.c:1502` | New encounters: %d file%s with errors left out (see darklands_port.log). |
-| `mods/encounters.c:1997` | on the screen |
+| `mods/encounters.c:1412` | its line (\\16) opens the saints: write option N saint |
+| `mods/encounters.c:1412` | a saint option needs a \\16 line |
+| `mods/encounters.c:1413` | [%s] option %d: %s |
+| `mods/encounters.c:1413` | its line (\\10) opens the potions: write option N potion |
+| `mods/encounters.c:1413` | a potion option needs a \\10 line |
+| `mods/encounters.c:1422` | [%s] option %d is a saint option, but there are no saints |
+| `mods/encounters.c:1423` | [%s] option %d is a potion option, but there are no items |
+| `mods/encounters.c:1425` | [%s] has a block but no options |
+| `mods/encounters.c:1427` | [%s] saints: numbers 0 to 135 (DARKLAND.LST), or -1 |
+| `mods/encounters.c:1428` | [%s] items: numbers 0 to 199 (DARKLAND.LST), or -1 |
+| `mods/encounters.c:1430` | [%s] block %d: the game holds 25 blocks (0 to 24) |
+| `mods/encounters.c:1477` | (Darklands+ %s) |
+| `mods/encounters.c:1503` | New encounters: %d file%s with errors left out (see darklands_port.log). |
+| `mods/encounters.c:1998` | on the screen |
 | `mods/fixgroups.c:10` | Crashes, freezes, items or progress lost, saved games spoiled, quests that can never be finished. Nobody wants these. |
 | `mods/fixgroups.c:11` | Plain mistakes |
 | `mods/fixgroups.c:11` | Something the game sets out to do and gets wrong: the wrong member, the wrong town, a check on the wrong option, a number lost on the way. |
@@ -3314,7 +3326,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/saintinfo.c:457` | Every member: fire protection 90 for good, and armor +48 for good (meant as protection against fire). |
 | `mods/saintinfo.c:488` | This is the help the texts and the manual give St. Paul the Simple: the two Pauls are mixed up (the fix "The two St. Pauls do what their texts say" sets this right). |
 | `mods/saintinfo.c:489` | This is St. Thomas Aquinas's help: the two Pauls are mixed up (the fix "The two St. Pauls do what their texts say" sets this right). |
-| `mods/saintinfo.c:504` | A saint's help lasts about a day, unless said otherwise. |
+| `mods/saintinfo.c:516` | A saint's help lasts about a day, unless said otherwise. |
 | `mods/sainttexts.c:79` | Endurance (healing only) |
 | `mods/sainttexts.c:84` | Endurance (healing only) |
 | `mods/sainttexts.c:89` | Strength and Endurance (healing only) |
@@ -3438,13 +3450,14 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/teachers.c:225` | Here: choose "inquire about special training". |
 | `mods/teachers.c:226` | They may say no (it depends on {Charisma}, reputation here and fame); they always agree if the guild owes the party a favor. |
 | `mods/teachers.c:229` | A bug in the original game: this guild's teacher teaches no skill at all. |
-| `mods/travel.c:272` | No way there from here. |
-| `mods/travel.c:298` | how far is it |
-| `mods/travel.c:420` | 20:00: the party makes camp (the campfire under the clock). A night in camp lasts until 5:00. |
-| `mods/travel.c:421` | The party makes camp before 20:00 (the campfire under the clock): the way ahead would take past it. |
-| `mods/travel.c:456` | a long step ahead |
-| `mods/travel.c:504` | Travel stopped: the party could not get any further this way. |
-| `mods/travel.c:634` | the marked place |
+| `mods/travel.c:273` | No way there from here. |
+| `mods/travel.c:299` | how far is it |
+| `mods/travel.c:421` | 20:00: the party makes camp (the campfire under the clock). A night in camp lasts until 5:00. |
+| `mods/travel.c:422` | The party makes camp before 20:00 (the campfire under the clock): the way ahead would take past it. |
+| `mods/travel.c:457` | a long step ahead |
+| `mods/travel.c:505` | Travel stopped: the party could not get any further this way. |
+| `mods/travel.c:564` | the river acted as a wall |
+| `mods/travel.c:642` | the marked place |
 | `mods/war.c:98` | pics\gate4.pic: No such file |
 | `mods/war.c:147` | ...hidden option |
 

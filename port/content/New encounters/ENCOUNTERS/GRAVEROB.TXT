@@ -8,7 +8,7 @@ weight   1
 
 [start]
 block    0
-saints   0x60, 0x55, 0x39, -1            # Michael, Lazarus, Gertrude of Nivelles
+saints   0x6f, 0x55, 0x39, -1            # Raphael (who stood by Tobit, burier of the dead), Lazarus, Gertrude of Nivelles
 option 0                                   # fall upon them
   chance combat
   ok     goto fight

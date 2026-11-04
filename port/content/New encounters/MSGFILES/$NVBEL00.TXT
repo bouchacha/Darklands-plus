@@ -6,7 +6,7 @@ Near midnight the river widens into a still, black pool, and the boatmen stop th
 \14You...
 \14\15...\1danswer the drowned priest.
 \16...\1dpray for the souls under the water.
-\15...\1dlower a grappling hook for the bell.
+\15...\1dknot your rope to the anchor and drag for the bell.
 \15...\1dstop your ears and row on.
 === card 1: 10 10 0 240 0 ===
 "Ad Deum qui laetificat juventutem meam," answers $ChosenOneName, leaning out over the black water. The voice below goes on, and $ChosenOneName answers it, response by response, through the whole Mass, while the boatmen kneel among the bales.
@@ -19,9 +19,9 @@ You pray for the drowned, for their sins and their long waiting. The tolling gro
 === card 4: 10 10 0 240 0 ===
 You pray, but the tolling goes on, slow and patient, as if it had not heard.
 === card 5: 10 10 0 240 0 ===
-$ChosenOneName lowers the hook into the pool and drags it slowly along the bottom until something catches. $He hauls it up hand over hand: not the bell, but a censer of tarnished silver on a broken chain, weed in its fretwork.
+$ChosenOneName knots your rope to the boat's anchor, lowers it into the pool and drags it slowly along the bottom until something catches. $He hauls it up hand over hand: not the bell, but a censer of tarnished silver on a broken chain, weed in its fretwork.
 \14The tolling stops at once. The boatmen will not look at the censer, or at you, but a silversmith at the landing gives you $Money1 for it and asks no questions.
 === card 6: 10 10 0 240 0 ===
-$ChosenOneName lowers the hook into the pool. Something below takes hold of it, and pulls. The rope tears through $his hands and drags $him against the gunwale, and only the boatmen's grip keeps $him in the boat. When they haul the hook up, its iron arms are twisted together like wet straw. The bell tolls on, louder.
+$ChosenOneName lowers the anchor into the pool on your rope. Something below takes hold of it, and pulls. The rope tears through $his hands and drags $him against the gunwale, and only the boatmen's grip keeps $him in the boat. When they haul the anchor up, its iron flukes are twisted together like wet straw. The bell tolls on, louder.
 === card 7: 10 10 0 240 0 ===
 You stop your ears with wool and the boatmen row as they have never rowed. Even through the wool the tolling follows you a long way down the river, fainter and fainter, and then it is gone. Nothing more comes of it.

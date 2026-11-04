@@ -3,14 +3,14 @@
 A bell tolls slowly, and the street falls quiet. Down it comes a man barefoot in a white shift, a rope round his neck and a great candle in his hands, between two priests: a carter who killed a man in a tavern quarrel. By the peace the council made between the families, he must walk from the tavern to the church door, beg the widow's pardon on his knees, and set up a stone cross by the road.
 \14Behind him walk the dead man's three brothers, hands on their knives. If the candle goes out on the way, they say loudly, God has refused his penance and the peace is void.
 \14As he passes you, a gust snuffs the flame. The knives come half out. You...
-\14\15...\1dlight it again from your own torch, lantern or candle.
+\14\15...\1drun for a flame from the lamp at the corner shrine.
 \15...\1danswer the brothers from Scripture.
 \16...\1dcall on a saint.
 \15...\1dstay out of it.
 === card 1: 10 10 0 240 0 ===
-Before the brothers can move, $ChosenOneName has the carter's wick against $his own flame, and it catches. "It only stumbled," says the elder priest firmly, "as we all do." The procession goes on, and the street lets out its breath.
+Before the brothers can move, $ChosenOneName has darted to the lamp before the Virgin at the corner and back with a burning wisp of straw, and the carter's wick catches. "It only stumbled," says the elder priest firmly, "as we all do." The procession goes on, and the street lets out its breath.
 === card 2: 10 10 0 240 0 ===
-$ChosenOneName fumbles for a light, but the eldest brother is quicker. "God has spoken!" he shouts, and the knives come out.
+$ChosenOneName runs for the shrine lamp, but the eldest brother is quicker. "God has spoken!" he shouts, and the knives come out.
 === card 3: 10 10 0 240 0 ===
 "The wind bloweth where it listeth," says $ChosenOneName, in the priests' Latin and then in plain German, "and thou canst not tell whence it cometh." Weather, then, not God's verdict. The priests seize on it with relief, the crowd murmurs that the strangers are right, and the brothers, scowling, let their knives slide home.
 === card 4: 10 10 0 240 0 ===

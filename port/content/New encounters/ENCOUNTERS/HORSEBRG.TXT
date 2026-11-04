@@ -10,7 +10,7 @@ only     month >= 5 and month <= 9             # the gadflies of summer
 [start]
 block    0
 chosen   bestskill(Riding)
-saints   0x37, 0x5d, 0x16                # George, Martin of Tours, Christopher
+saints   0x09, 0x5d, 0x16                # Anthony (of beasts), Martin of Tours, Christopher
 option 0                                   # catch the halter and gentle him (Riding)
   who    bestskill(Riding)
   chance clamp(5, 90, skill(who, Riding) + attr(who, Agl) / 3 - 5)

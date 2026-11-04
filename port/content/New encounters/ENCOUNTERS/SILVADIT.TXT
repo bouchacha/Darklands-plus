@@ -10,10 +10,9 @@ weight   1
 [start]
 block    0
 chosen   bestskill(Artifice)
-option 0                                   # go in with lights (Artifice reads the old timbers)
+option 0                                   # go in by the light of pine splints (Artifice reads the old timbers)
   who    bestskill(Artifice)
-  need   has(party, 0x39) or has(party, 0x3a) or has(party, 0x3d)
-  chance clamp(5, 90, skill(who, Artifice) + attr(who, Per) / 3 - 5)
+  chance clamp(5, 90, skill(who, Artifice) + attr(who, Per) / 3 - 10)
   ok     chosen who; text 1; hours 1; practice who, Artifice, 1, 10, 0; goto deep
   fail   chosen who; text 2; hours 1; injure who, 1, 1, 10; practice who, Artifice, 0, 10, 0; exit
 option 1                                   # pick over the spoil heaps
@@ -28,7 +27,7 @@ option 3                                   # go on
 
 [deep]
 picture  XMINER4
-saints   0x0d, 0x60, 0x39, -1            # Barbara, Michael, Gertrude of Nivelles
+saints   0x0d, 0x3f, 0x39, -1            # Barbara, Gregory Thaumaturgus (who moved a mountain), Gertrude of Nivelles
 block    6
 option 0                                   # greet him humbly and ask his leave (Virtue)
   who    party

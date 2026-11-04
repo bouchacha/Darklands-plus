@@ -35,7 +35,7 @@ $ChosenOneName catches the haft as it comes down, twists, and the hammer is in $
 === card 12: 10 10 0 240 0 ===
 $ChosenOneName grabs for the hammer and takes it on the shoulder instead. Before the master can raise it again the priest and two gravediggers have him by the arms, and the boy runs for his life.
 === card 13: 10 10 0 240 0 ===
-"Whose hand poured it, master, the boy's or God's? A bell is cast for God. Would you christen it in blood?" The master stares at $ChosenOneName, then at the mould, and lets the hammer fall. He embraces the boy, weeping beer, and swears the bell shall be named for Saint Agatha.
+"Whose hand poured it, master, the boy's or God's? A bell is cast for God. Would you christen it in blood?" The master stares at $ChosenOneName, then at the mould, and lets the hammer fall. He embraces the boy, weeping beer, and swears the bell shall be named for Saint Cecilia.
 === card 14: 10 10 0 240 0 ===
 The master shoves past $ChosenOneName and lays into the boy with his fists until the priest comes running. You could not stop it, and nothing more comes of it.
 === card 15: 10 10 0 240 0 ===

@@ -359,3 +359,26 @@ covered and found, and what it could not check.
   a modded city of size 10+); the encounters' enemy names are ENM indexes as the game ships them (a mod that
   reorders ENM would mislead); cardhints_data.h's 283 reasons, offices.c's rules and the place-type labels are
   not checked against the cards.
+- 2026-11-04 (1.4.6-RC10): asked how to find bugs before a release rather than after it. Two tools, both kept:
+  mods/checks.c watches each frame for what must never happen (the menu bar's title pointers changed, a member's
+  item count out of range, money below 0, the place or party size out of range, the date going back without a
+  load, 285 of the 300 notes in use, the party on water, 12 map steps in a row each an encounter) and writes one
+  "check:" line with the card, screen, place, tile and date; the first of a session also makes a report zip and
+  tells the player (ui_check_noticed). A value must stay out of range two seconds (the opening has no party: the
+  first soak run caught the check firing at every start; a load passes through such frames), and the party is
+  let stand on water while a saint's help makes water land (kind 0x4b). tools/soaktest.py plays for N minutes through nctl (cards' options at
+  random, Go to and leaving towns, journeys to near towns, F12, the sheet, fights on auto) and fails on any
+  "check:", FATAL, hook or encounter error, or a state that does not change for 15 actions; it replaces
+  monkey.py (random cards, journeys and battles, no checks) and can start from a player's save (--load). release_check.py
+  now fails on "check:", "cards: ... cut at" and "goto: ... not found". Found at the cause: the river trap
+  near Graz was travel.c's weight hook making every step an encounter while one was due, on a river too, where
+  s030's card draw has none and the step goes nowhere; now only on land, and given up after six steps that
+  bring none. The pointer's hot spot was learnt from where the game's sprite stood while the mouse stood still;
+  inside our own screens the game's sprite stands still too, so the map's (5, 0) stayed: now read from the
+  game's own variables (DS:6ef6/6ef8), the gauntlet always (0, 0) (its fingertip is its top left pixel). The
+  map's (5, 0) is the original's own slip: s030 takes a click at the mouse itself (1462:02e6, mouse less 0x41,
+  0x15, the tiles' origin), so there too the fingertip stood 5 pixels left of the click.
+  Content: 33 new encounters asked for saints, potions or things no original card asks for; replaced by ones
+  the original cards ask for. The original's counts are now in one place (saintinfo.c: saint_info_cards_game,
+  potion_cards_game, item_unasked_game; nsdraw.cpp's copy of the potions' table went), and enccheck with ENC_DIR
+  fails on an encounter that asks for one of those (release_check builds and runs it on port/content).

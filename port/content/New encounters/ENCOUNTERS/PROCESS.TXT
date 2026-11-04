@@ -9,7 +9,7 @@ weight   1
 [start]
 block    0
 chosen   bestskill(Religion)
-saints   0x60, 0x39, 0x55, 0x64          # Michael, Gertrude of Nivelles, Lazarus, Odilia
+saints   0x35, 0x39, 0x55, 0x64          # Gabriel (whose trumpet the dead await), Gertrude of Nivelles, Lazarus, Odilia
 option 0                                   # hide your faces and pray
   chance none
   ok     text 1; hours 1; attr party, DF, 1; exit

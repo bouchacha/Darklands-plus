@@ -22,7 +22,7 @@ option 2                                   # leave the keeper to his troubles
 [house]
 picture  XKBOLD2
 block    3
-saints   0x60, 0x4f, 0x39                # Michael, Joseph, Gertrude of Nivelles
+saints   0x80, 0x4f, 0x39                # Vitus (who dispels demons), Joseph, Gertrude of Nivelles
 option 0                                   # make Master Ott set out its bowl and beg its pardon (Woodwise)
   who    bestattrskill(Cha, Woodwise)
   chance clamp(5, 90, skill(who, Woodwise) + attr(who, Cha) / 2 - 5)

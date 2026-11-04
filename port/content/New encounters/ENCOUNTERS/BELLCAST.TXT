@@ -10,7 +10,7 @@ only     month >= 4 and month <= 10
 [start]
 block    0
 chosen   bestskill(Artifice)
-saints   0x01, 0x0d                      # Agatha (patron of bell-founders), Barbara
+saints   0x12, 0x0d                      # Cecilia (of church music), Barbara (of founders and gunners)
 option 0                                   # help him tap the furnace and pour
   who    bestskill(Artifice)
   chance clamp(5, 90, skill(who, Artifice) + attr(who, Str) / 3 - 10)

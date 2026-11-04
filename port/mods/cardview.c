@@ -462,6 +462,13 @@ static int entry_at(int mx, int my)
    while the native layout moved) */
 static int forced_opt = -1;
 void cardview_choose(int opt) { forced_opt = opt; }
+/* test (ustate): the option numbers that can be chosen now, at most max of them */
+int cardview_test_options(int *out, int max)
+{
+    const CardView *c = &cardview; int n = 0;
+    for (int j = 0; j < c->npieces && n < max; j++) if (c->piece[j].is_opt && c->piece[j].state == 1) out[n++] = c->piece[j].opt;
+    return n;
+}
 
 /* A load asked for while a card is up (the menu bar's Load, F9, Darklands+'s Load page) is handed to the game's
    own card screen: the native loop ends and the game's card_menu or card_text runs, whose menu bar loads the save.
@@ -494,10 +501,20 @@ int cardview_menu(void)
         { static int lx = -1, ly = -1; if (mx != lx || my != ly) { if (lx >= 0) c->key_line = -1; lx = mx; ly = my; } }   /* the mouse moved: it leads again */
         c->hover = c->key_line >= 0 ? -1 : piece_at(mx, my);
         c->hover_entry = entry_at(mx, my);
-        if (forced_opt >= 0) {
+        if (forced_opt >= 0) {                              /* (test: uchoose; an option with a box of items or saints takes its first that may be chosen) */
             int o = forced_opt; forced_opt = -1;
-            for (int j = 0; j < c->npieces; j++) if (c->piece[j].is_opt && c->piece[j].opt == o && c->piece[j].state == 1 && c->piece[j].type != 1 && c->piece[j].type != 2) sel = o;
-            if (sel >= 0) break;
+            for (int j = 0; j < c->npieces && sel < 0; j++) {
+                if (!c->piece[j].is_opt || c->piece[j].opt != o || c->piece[j].state != 1) continue;
+                if (c->piece[j].type != 1 && c->piece[j].type != 2) { sel = o; break; }
+                build_popup(j);
+                if (ns_unwinding) break;
+                for (int e = 0; e < c->nentries; e++) if (c->entry[e].on) {
+                    g_ww(A_MENU_MEMBER, (u16)c->entry[e].member); g_ww(A_MENU_SLOT, (u16)c->entry[e].slot);
+                    g_ww(A_MENU_POPUP, 1); g_wb(A_EE42, 1);
+                    sel = o; break;
+                }
+            }
+            if (ns_unwinding || sel >= 0) break;
         }
         if (left_released(&mx, &my)) {
             int e = entry_at(mx, my), j = piece_at(mx, my);

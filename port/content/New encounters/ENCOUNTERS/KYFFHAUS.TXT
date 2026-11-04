@@ -10,7 +10,7 @@ vars     lost
 
 [start]
 block    0
-saints   0x60, 0x16, 0x5d, 0x63          # Michael, Christopher, Martin of Tours, Nicholas
+saints   0x1d, 0x16, 0x5d, 0x63          # Cyprian (who makes enchantments fail), Christopher, Martin of Tours, Nicholas
 option 0                                   # follow the dwarf into the hill (days will pass inside)
   chance assured
   ok     goto hall
