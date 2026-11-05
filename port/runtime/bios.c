@@ -452,6 +452,27 @@ static void int10(void)
     }
 }
 
+/* wait_ticks (n), root 0000:4402: the game's pause of n ticks (a message shown for a while: show_message; "Saint
+   Call Fails", "Sword changed from 45 to 46" in a battle) waits for its tick byte to come to exactly its start + n.
+   On a PC the timer's ticks come one at a time and the loop sees every value; here a frame slow to draw leaves
+   several due, delivered together (dl_poll below), and the byte could pass the value waited for: the wait then went
+   on until the byte came round again, 256 ticks, the game asking for no key meanwhile (1.4.6-RC13 under Wine: 11 s
+   for a prayer's "Saint Call Fails"; on a big screen, "unresponsive to controls although it's still running", the
+   keys taken when it ended). The same wait, counting the ticks gone by instead */
+#include "hooks.h"
+#include "gamevars.h"
+#include "game.h"
+static void wait_ticks_hook(void)
+{
+    int n = (s16)rw(SS, (u16)(SP + 4)) & 0xff;
+    if ((s16)rw(SS, (u16)(SP + 4)) > 0 && n) {
+        u8 start = g_rb(GV_tick_byte);
+        while ((u8)(g_rb(GV_tick_byte) - start) < n && !unw_active) { poll_flag = 1; dl_poll(); }
+    }
+    hook_return_far(0);
+}
+void bios_hooks_init(void) { if (!getenv("DL_ORIGINAL_TICKWAIT")) hook_install(GF_wait_ticks, wait_ticks_hook); }   /* (test: the game's own wait) */
+
 u8 hle_in8(u16 port)
 {
     switch (port) {

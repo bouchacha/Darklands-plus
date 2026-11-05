@@ -354,6 +354,7 @@ int main(int argc, char **argv)
     { void dos_saves_aliases(void); dos_saves_aliases(); }   /* saves past 99 under long names: their short ones (runtime/dos.c) */
     if (getenv("DL_DUMP_SWITCHES")) { int options_dump_markdown(const char *); exit(options_dump_markdown(getenv("DL_DUMP_SWITCHES")) ? 0 : 1); }   /* docs/SWITCHES.md */
     { void options_sync_bundles(void); options_sync_bundles(); }   /* (New screens: its members as it says, before the modules read them) */
+    { void bios_hooks_init(void); bios_hooks_init(); }   /* (the emulated PC's own: runtime/bios.c) */
     mods_init();
     { void rules_apply(void); rules_apply(); }       /* mods' rules.ini (ui/rules.cpp) */
 

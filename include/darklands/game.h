@@ -113,6 +113,7 @@
 #define draw_frame_box           sub_root_0000_2286   /* (win, x, y, cw, ch, bg): bevelled box with a cw x ch interior */
 #define text_box                 sub_root_0000_23e6   /* (win, y, save, text, dst, ...): framed text box, returns the saved rectangle */
 #define show_message             sub_root_0000_24bc   /* (text, ticks): message box for a while */
+#define wait_ticks               sub_root_0000_4402   /* (n): until tick_byte has counted n more (n & 255; waits for it to equal the start + n) */
 #define ask_yes_no               sub_root_0000_2522   /* (question) */
 #define datafile_select          sub_root_0000_25f2   /* (name): select data file name (kept in data_file) unless current */
 #define datafile_forget          sub_root_0000_262e   /* (): data_file = "" */
@@ -440,6 +441,7 @@
 #define enemy_class              D_c2bf               /* [13] 0 melee, 1 archer, 2 caster */
 #define cbt_selected             D_9064               /* [13] chosen flags */
 #define real_combat              D_a6c1               /* 1 = enemies engaged (battle mode) */
+#define tick_byte                D_07d2               /* char: counts the timer's ticks (with combat_clock and the clocks beside it) */
 #define combat_clock             D_07d4               /* ticks */
 #define combat_alarm             D_d6f4               /* alarm: real combat starts */
 #define combat_flags             D_9080               /* combat start flags */

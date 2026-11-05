@@ -98,6 +98,7 @@
 #define GV_enemy_class                  0xc2bf    /* [13] 0 melee, 1 archer, 2 caster */
 #define GV_cbt_selected                 0x9064    /* [13] chosen flags */
 #define GV_real_combat                  0xa6c1    /* 1 = enemies engaged (battle mode) */
+#define GV_tick_byte                    0x07d2    /* char: counts the timer's ticks (with combat_clock and the clocks beside it) */
 #define GV_combat_clock                 0x07d4    /* ticks */
 #define GV_combat_alarm                 0xd6f4    /* alarm: real combat starts */
 #define GV_combat_flags                 0x9080    /* combat start flags */
@@ -463,6 +464,7 @@
 #define GF_draw_frame_box               -1, 0x0000, 0x2286    /* (win, x, y, cw, ch, bg): bevelled box with a cw x ch interior */
 #define GF_text_box                     -1, 0x0000, 0x23e6    /* (win, y, save, text, dst, ...): framed text box, returns the saved rectangle */
 #define GF_show_message                 -1, 0x0000, 0x24bc    /* (text, ticks): message box for a while */
+#define GF_wait_ticks                   -1, 0x0000, 0x4402    /* (n): until tick_byte has counted n more (n & 255; waits for it to equal the start + n) */
 #define GF_ask_yes_no                   -1, 0x0000, 0x2522    /* (question) */
 #define GF_datafile_select              -1, 0x0000, 0x25f2    /* (name): select data file name (kept in data_file) unless current */
 #define GF_datafile_forget              -1, 0x0000, 0x262e    /* (): data_file = "" */
