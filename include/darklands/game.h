@@ -389,9 +389,9 @@
 #define door_set_vec             vec_1d6f             /* overlay call vector of door_set */
 #define secret_door_search       sub_s023_1ef8_0812   /* (who, roll) */
 #define secret_door_search_vec   vec_17ed             /* overlay call vector of secret_door_search */
-#define trap_spell               sub_s023_1ef8_0d88   /* (t, who) */
+#define trap_spell               sub_s023_1ef8_0d88   /* (who, h, t): who sprang handler h, spell trap t (s014 19cd:216a calls each handler (who, h, a, b)) */
 #define trap_spell_vec           vec_1801             /* overlay call vector of trap_spell */
-#define trap_missile             sub_s023_1ef8_0e30   /* (t, t2) */
+#define trap_missile             sub_s023_1ef8_0e30   /* (who, h, t, t2): missile trap t and its twin t2 (0xff none); its darts loosed by -1 (strikes) / -2 (misses) */
 #define trap_missile_vec         vec_180b             /* overlay call vector of trap_missile */
 #define lock_pick                sub_s023_1ef8_12c0   /* (): selected member picks a lock (lock picks = item 0x40) */
 #define lock_pick_vec            vec_1d1f             /* overlay call vector of lock_pick */

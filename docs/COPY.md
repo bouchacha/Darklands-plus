@@ -659,23 +659,28 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/battlelog.cpp:129` | ; knocked back |
 | `ui/battlelog.cpp:130` | , knocked back |
 | `ui/battlelog.cpp:134` | , knocked back, misses  |
-| `ui/battlelog.cpp:199` | <skill> changed from X to Y |
-| `ui/battlelog.cpp:199` | Edged +3 (now 33) |
-| `ui/battlelog.cpp:201` |  changed from  |
-| `ui/battlelog.cpp:203` |  changed from %d to %d |
-| `ui/battlelog.cpp:204` | changed from 99 to 99 |
-| `ui/battlelog.cpp:214` | {%s:%+d (now %d)} |
-| `ui/battlelog.cpp:215` | %s %+d (now %d) |
-| `ui/battlelog.cpp:242` | The battle is over: the party has fallen. |
-| `ui/battlelog.cpp:242` | The battle is over: the enemies are beaten. |
-| `ui/battlelog.cpp:242` | The battle is over. |
-| `ui/battlelog.cpp:266` |  falls unconscious |
-| `ui/battlelog.cpp:268` |  leaves the field |
-| `ui/battlelog.cpp:272` | , the armor holds |
-| `ui/battlelog.cpp:306` | Each blow will be listed here. |
-| `ui/battlelog.cpp:351` | No battle yet: the battle log shows here, blow by blow, during each battle and after it. |
-| `ui/battlelog.cpp:354` | The last battle |
-| `ui/battlelog.cpp:355` | The battle before |
+| `ui/battlelog.cpp:187` | A dart from a trap misses  |
+| `ui/battlelog.cpp:211` | <skill> changed from X to Y |
+| `ui/battlelog.cpp:211` | Edged +3 (now 33) |
+| `ui/battlelog.cpp:213` |  changed from  |
+| `ui/battlelog.cpp:215` |  changed from %d to %d |
+| `ui/battlelog.cpp:216` | changed from 99 to 99 |
+| `ui/battlelog.cpp:226` | {%s:%+d (now %d)} |
+| `ui/battlelog.cpp:227` | %s %+d (now %d) |
+| `ui/battlelog.cpp:260` | The battle is over: the party has fallen. |
+| `ui/battlelog.cpp:260` | The battle is over: the enemies are beaten. |
+| `ui/battlelog.cpp:260` | The battle is over. |
+| `ui/battlelog.cpp:278` |  is wounded by  |
+| `ui/battlelog.cpp:278` | a dart from a trap |
+| `ui/battlelog.cpp:285` |  falls unconscious |
+| `ui/battlelog.cpp:287` |  leaves the field |
+| `ui/battlelog.cpp:291` | A dart from a trap hits  |
+| `ui/battlelog.cpp:291` | , the armor holds |
+| `ui/battlelog.cpp:292` | , the armor holds |
+| `ui/battlelog.cpp:326` | Each blow will be listed here. |
+| `ui/battlelog.cpp:371` | No battle yet: the battle log shows here, blow by blow, during each battle and after it. |
+| `ui/battlelog.cpp:374` | The last battle |
+| `ui/battlelog.cpp:375` | The battle before |
 | `ui/battleoverlay.cpp:240` | Click: attack |
 | `ui/battleoverlay.cpp:240` | No clear shot |
 | `ui/battleoverlay.cpp:273` | The picture at the lower left of each member's box is their way of fighting: what they do until you give them an order.  |
@@ -1347,23 +1352,23 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/journal.cpp:1160` | Town (nearest first) |
 | `ui/levelmap.cpp:50` | does not work consistently |
 | `ui/levelmap.cpp:65` | does not work consistently |
-| `ui/levelmap.cpp:296` |  Stairs seen to floor  |
-| `ui/levelmap.cpp:296` |  Stairs seen to floors  |
-| `ui/levelmap.cpp:297` | Floor %d: the party has been here.%s%s%s |
-| `ui/levelmap.cpp:297` |  Stairs seen to floor  |
-| `ui/levelmap.cpp:297` |  Stairs seen to floors  |
-| `ui/levelmap.cpp:298` | A floor nobody has been on yet: stairs from floor %s lead there. |
-| `ui/levelmap.cpp:299` |  Click: the party walks to those stairs. |
-| `ui/levelmap.cpp:299` |  Click: the party walks to those stairs and takes them. |
-| `ui/levelmap.cpp:607` | The whole level  (floor %d) |
-| `ui/levelmap.cpp:607` | The level, as far as the party has seen it  (floor %d) |
-| `ui/levelmap.cpp:630` | enemies seen |
-| `ui/levelmap.cpp:632` | arrows: who targets whom |
-| `ui/levelmap.cpp:635` | stairs, ways out |
-| `ui/levelmap.cpp:637` | not explored yet |
-| `ui/levelmap.cpp:638` | not yet revealed |
-| `ui/levelmap.cpp:640` | Click the floor to walk the party there (the map closes, and they go). Tab or Esc closes the level map; the game is paused until then. |
-| `ui/levelmap.cpp:640` | Tab or Esc closes the level map; the game is paused until then. |
+| `ui/levelmap.cpp:313` |  Stairs seen to floor  |
+| `ui/levelmap.cpp:313` |  Stairs seen to floors  |
+| `ui/levelmap.cpp:314` | Floor %d: the party has been here.%s%s%s |
+| `ui/levelmap.cpp:314` |  Stairs seen to floor  |
+| `ui/levelmap.cpp:314` |  Stairs seen to floors  |
+| `ui/levelmap.cpp:315` | A floor nobody has been on yet: stairs from floor %s lead there. |
+| `ui/levelmap.cpp:316` |  Click: the party walks to those stairs. |
+| `ui/levelmap.cpp:316` |  Click: the party walks to those stairs and takes them. |
+| `ui/levelmap.cpp:624` | The whole level  (floor %d) |
+| `ui/levelmap.cpp:624` | The level, as far as the party has seen it  (floor %d) |
+| `ui/levelmap.cpp:647` | enemies seen |
+| `ui/levelmap.cpp:649` | arrows: who targets whom |
+| `ui/levelmap.cpp:652` | stairs, ways out |
+| `ui/levelmap.cpp:654` | not explored yet |
+| `ui/levelmap.cpp:655` | not yet revealed |
+| `ui/levelmap.cpp:657` | Click the floor to walk the party there (the map closes, and they go). Tab or Esc closes the level map; the game is paused until then. |
+| `ui/levelmap.cpp:657` | Tab or Esc closes the level map; the game is paused until then. |
 | `ui/lodgeview.cpp:168` | Camping in the wild |
 | `ui/lodgeview.cpp:168` | Staying here |
 | `ui/lodgeview.cpp:190` | The room: %s a day.%s |
