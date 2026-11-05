@@ -190,7 +190,7 @@ class Soak:
         elif sc == 13:                                       # marching order: move one, done
             self.do('ucmd unspush:%d,%d; wait 1; ucmd unspush:3; wait 2' % (1 + (k & 1), m))
         elif sc == 14:                                       # the inn or camp: a member's activity, a day, leave
-            self.do(['ucmd unspush:2,%d,%d; wait 1' % (k % 6, m), 'ucmd unspush:4; wait 6', 'ucmd unspush:6; wait 4'][min(2, int(r * 3))])
+            self.do(['ucmd unspush:2,%d,%d; wait 1' % (k % 6, m), 'ucmd unspush:4; wait 6', 'ucmd unspush:6; wait 4'][0 if r < 0.25 else 1 if r < 0.5 else 2])
         elif sc == 15:
             self.do('click; wait 2')
         elif sc == 18:                                       # a choice of ours (a cathedral's relics ...)
