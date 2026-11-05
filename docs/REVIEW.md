@@ -395,3 +395,16 @@ covered and found, and what it could not check.
   the original cards ask for. The original's counts are now in one place (saintinfo.c: saint_info_cards_game,
   potion_cards_game, item_unasked_game; nsdraw.cpp's copy of the potions' table went), and enccheck with ENC_DIR
   fails on an encounter that asks for one of those (release_check builds and runs it on port/content).
+- 2026-11-05 (1.4.6-RC13): his RC12 reports. Looked back at the hardest of them for patchwork. The freeze in a
+  mine came from the port, not the game: dl_poll hands over the ticks due after a slow frame together, and
+  wait_ticks (root 0000:4402, show_message's pause) waits for its tick byte to equal start + n, so it could step
+  past and wait 256 more. The answer is at the cause, in the one place the ticks are emulated (runtime/bios.c,
+  installed before the mods): the same wait counting the ticks gone by. Only two callers use that byte so; no
+  other loop compares a clock by equality (the battle's compare with >=). The relic and the minerals (fixes
+  dwarfrelic, carditems) are each one hook on the game's own path (the loot's distribution, the item records'
+  adding), not a patch on the card; minechests clears pictures at level_switch, where the floor is built. The
+  stall log (no key or click asked for 2.5 s while frames are drawn) found the freeze in the Wine check of the RC
+  and stays as a diagnostic, with the native stack (module + offset on Windows; the runtime's resolve with an
+  unstripped link of the same build). The alchemy list's marks moved from formula to potion in keep.c, one
+  storage, old marks read once. The game's messages over our screens: one layout function for the three kinds.
+  Not checked: a translated game's message headings (the outcome and the shield go by the English words).
