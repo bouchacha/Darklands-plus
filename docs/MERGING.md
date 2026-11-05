@@ -137,7 +137,7 @@ the files where each switch's key is read.
 | `display.native_mapmsg` | New overland view messages | show | mapmsg.c |
 | `display.native_saves` | New Save and Load screens | show | savesview.c |
 | **Cards and towns** | | | |
-| `assist.inn_earn` | Rested members work or keep watch | ease | lodgeview.c |
+| `assist.inn_earn` | Each member's day set by what they need | ease | lodgeview.c |
 | `assist.card_helpers` | Chances and hints on the cards | show | a group of switches: options.c (BUNDLES), optpreview.cpp |
 | `assist.chances` | Chances of success | show | assist.c |
 | `assist.best_leader` | The best member speaks for the party | ease | assist.c, sheetview.cpp |
@@ -342,6 +342,9 @@ the files where each switch's key is read.
 | `fix.knightdead` | A robber knight killed stays dead | fix | fixes.c |
 | `fix.alertonce` | A castle on its guard is one note, not hundreds | fix | fixes.c |
 | `fix.kingdoor` | The dwarf king waits behind his own door | fix | fixes.c |
+| `fix.dwarfrelic` | The dwarf's relic is won from its guards | fix | fixes.c |
+| `fix.minechests` | A chest in a mine is one the party can open | fix | fixes.c |
+| `fix.carditems` | Things a card gives after a battle are the things it names | fix | fixes.c |
 | `fix.prayfor` | Every prayer asks who it is for | fix | fixes.c, prayview.c |
 
 The fixes (`fix.<id>`) are listed with their explanations in `port/mods/fixes.c`; the built-in
