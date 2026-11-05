@@ -324,8 +324,7 @@ extern "C" void worldmap_draw(void)
     // auto-travel route
     if (travel.active && travel.n > 1) {
         std::vector<ImVec2> pts;
-        for (int i = travel.i > 0 ? travel.i - 1 : 0; i < travel.n; i++) { float x, y; tile_px(travel.rx[i], travel.ry[i], &x, &y); pts.push_back(ImVec2(x, y)); }
-        route_smooth(pts);
+        route_ahead(travel.rx, travel.ry, travel.n, travel.i - 1, pts);
         for (ImVec2 &q : pts) q = to_scr(q.x, q.y);
         dl->AddPolyline(pts.data(), (int)pts.size(), IM_COL32(0, 0, 0, 160), 0, 5);
         dl->AddPolyline(pts.data(), (int)pts.size(), IM_COL32(255, 220, 90, 255), 0, 2.5f);
@@ -382,7 +381,7 @@ extern "C" void worldmap_draw(void)
             ImVec2 prev = ImVec2(0, 0);
             std::vector<ImVec2> way; way.reserve((size_t)pn);
             for (int i = 0; i < pn; i++) { float x, y; tile_px(px_[i], py_[i], &x, &y); way.push_back(ImVec2(x, y)); }
-            route_smooth(way);
+            route_simplify(way);
             for (int i = 0; i < (int)way.size(); i++) {
                 ImVec2 q = to_scr(way[i].x, way[i].y);
                 if (i) {

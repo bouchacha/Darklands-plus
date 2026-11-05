@@ -41,6 +41,7 @@ What changed since 1.4.5.
 
 **Changed**
 
+- **The journey's line on the maps:** straight lines between the places where the way turns, which keep their shape as the party walks. 1.4.5's smoothed line was worked out again at every step from where the party stood, and its bends moved about.
 - **The new encounters give no use to what the original leaves without one:** 33 of them called on saints (St. Michael in 20 of them) or asked for potions (Ironarm, Trueflight) or things (a torch, candle or lantern; a grappling hook) that none of the game's own cards asks for. They now call on saints and ask for potions and things that the game's own cards ask for too; the two that needed a light no longer do.
 - A ladder that leads nowhere says so (GitHub issue 9: the one past the door in the dwarf king's mine; the mine's builder makes it a dead end that brings the party back where it stands). The way on is the floor just past it: the iron door's riddle, then the king.
 - The load's tooltip on the character sheet: one short text instead of two that said the same twice.

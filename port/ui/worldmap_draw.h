@@ -28,7 +28,8 @@ void quest_ring(std::vector<ImVec2> &at, int n, ImVec2 mid, ImVec2 pin, float is
 std::string hhmm(int minutes);                         /* "40 minutes", "22 hours", "1.4 days" */
 float aspect(void);
 void tile_px(int x, int y, float *px, float *py);      /* a tile's middle, in travel-screen pixels */
-void route_smooth(std::vector<ImVec2> &p);             /* a route of tiles' middles drawn as the way goes, not the rows' zigzag */
+void route_simplify(std::vector<ImVec2> &p);           /* a route of tiles' middles as straight legs between its turns */
+void route_ahead(const int *rx, const int *ry, int n, int cur, std::vector<ImVec2> &out);   /* the journey's route from tile cur on (tile_px pixels), its turns kept for the route */
 float map_border_px(void);
 void compass_rose(ImDrawList *dl, ImVec2 c, float r);
 void draw_map_frame(ImDrawList *dl, ImVec2 a, ImVec2 b);

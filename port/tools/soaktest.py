@@ -13,7 +13,7 @@ the actions before it, the log lines and a screenshot:
   - the game standing still: the same screen, card and place for many actions in a row although
     something was clicked or pressed each time (a stuck screen or loop).
 
-  soaktest.py --game DIR [--exe EXE] [--minutes 60] [--seed 1] [--out DIR] [--encounters MODDIR] [--load SAVE]
+  soaktest.py --game DIR [--exe EXE] [--minutes 60] [--seed 1] [--out DIR] [--encounters MODDIR] [--load SAVE] [--name N]
 
 --game: a game folder (copied, never changed); --encounters: a "New encounters" folder to put in its mods
 and switch on (default: the repo's port/content/New encounters); --load: a saved game (a DKSAVE*.SAV, a
@@ -164,10 +164,44 @@ class Soak:
         self.do('ucmd utravel:%d; wait 25' % self.near_town(s))
 
     def screen(self, s):
-        # the lodging screen (camp or inn): a day, then leave; any other: its way out
-        self.do('ucmd unspush:4; wait 6; ucmd unspush:6; wait 4; key Escape; wait 2')
+        # each native screen (mods/nscreen.h NS_*) with its own actions (ucmd unspush: the screen's *_ enums)
+        r, k, m = self.rng.random(), self.rng.randrange(12), self.rng.randrange(max(1, s['members']))
+        sc = s['screen']
+        if sc == 2:                                          # a shop: buy, sell, another member, leave
+            self.do(['ucmd unspush:1,%d,1; wait 2' % k, 'ucmd unspush:2,%d,0; wait 2' % k, 'ucmd unspush:3,%d; wait 1' % m,
+                     'ucmd unspush:5; wait 4'][0 if r < 0.3 else 1 if r < 0.55 else 2 if r < 0.7 else 3])
+        elif sc in (3, 4):                                   # the sheet: ready, put away, give, drink, leader, close
+            self.do(['ucmd unspush:2,%d; wait 1' % k, 'ucmd unspush:3,%d; wait 1' % k, 'ucmd unspush:4,%d,%d; wait 1' % (k, m),
+                     'ucmd unspush:6,%d; wait 2' % k, 'ucmd unspush:7,%d; wait 1' % m, 'ucmd unspush:1,%d; wait 1' % m,
+                     'ucmd unspush:8; wait 3'][min(6, int(r * 8))])
+        elif sc == 5:                                        # the loot: take, take all, share, leave
+            self.do(['ucmd unspush:1,%d; wait 1' % k, 'ucmd unspush:4; wait 1', 'ucmd unspush:5; wait 2',
+                     'ucmd unspush:6; wait 4'][min(3, int(r * 4))])
+        elif sc == 6:                                        # alchemy: a formula, batches, mix, leave
+            self.do(['ucmd unspush:1,%d; wait 1' % k, 'ucmd unspush:6,%d; wait 1' % (1 + k % 4), 'ucmd unspush:4; wait 6',
+                     'ucmd unspush:5; wait 3'][min(3, int(r * 4))])
+        elif sc == 8:                                        # the store room: take, put, leave
+            self.do(['ucmd unspush:1,%d; wait 1' % k, 'ucmd unspush:2,%d; wait 1' % k, 'ucmd unspush:5; wait 3'][min(2, int(r * 3))])
+        elif sc == 9:                                        # a prayer: pray (for the one who prays or a member), or not
+            self.do(['ucmd unspush:5,99; wait 1; ucmd unspush:3,-1; wait 8', 'ucmd unspush:5,99; wait 1; ucmd unspush:3,%d; wait 8' % m,
+                     'ucmd unspush:4; wait 3'][min(2, int(r * 3))])
+        elif sc == 12:
+            self.do('ucmd unspush:1; wait 2')
+        elif sc == 13:                                       # marching order: move one, done
+            self.do('ucmd unspush:%d,%d; wait 1; ucmd unspush:3; wait 2' % (1 + (k & 1), m))
+        elif sc == 14:                                       # the inn or camp: a member's activity, a day, leave
+            self.do(['ucmd unspush:2,%d,%d; wait 1' % (k % 6, m), 'ucmd unspush:4; wait 6', 'ucmd unspush:6; wait 4'][min(2, int(r * 3))])
+        elif sc == 15:
+            self.do('click; wait 2')
+        elif sc == 18:                                       # a choice of ours (a cathedral's relics ...)
+            self.do('ucmd unspush:1,%d; wait 3' % (k % 3) if r < 0.6 else 'ucmd unspush:2; wait 3')
+        else:
+            self.do('key Escape; wait 2; key Return; wait 2')
 
     def battle(self, s):
+        if self.rng.random() < 0.25:                         # (walking a castle, a mine, a dungeon: somewhere on its level)
+            self.do('ucmd ulvwalk:%d,%d; wait 8' % (self.rng.randrange(40), self.rng.randrange(40)))
+            return
         self.do('; '.join('ucmd ukill:%d' % c for c in range(5, 13)) + '; ucmd uunpause:; wait 8')
         self.do('ucmd unspush:5; wait 2; ucmd unspush:6; wait 4; key Return; wait 2')
 
@@ -182,8 +216,14 @@ class Soak:
             self.do('ucmd usaint:%d,%d; wait 4; ucmd unspush:5,99; wait 1; ucmd unspush:3,-1; wait 8; key Return; wait 2' % (m, self.rng.randrange(136)))
         elif r < 0.75 and s['mode'] in (1, 2):
             self.do('ucmd ualchemy:0,8; wait 4; ucmd unspush:1,0; wait 1; ucmd unspush:5; wait 3')
-        elif r < 0.9:
-            self.do('key F2; wait 4; key Escape; wait 3')
+        elif r < 0.8:
+            self.do('key F2; wait 4')                         # (the sheet: its actions next, screen())
+        elif r < 0.85 and s['mode'] in (1, 2):
+            self.do('ucmd umenu:3,%d; wait 3' % self.rng.randrange(2))   # (party info, marching order)
+        elif r < 0.9 and s['mode'] in (1, 2):                # (the world map: find a town, close)
+            self.do('key m; wait 3; ucmd ufind:%s; wait 2; key m; wait 2' % self.rng.choice(['Koln', 'Wien', 'Graz', 'Bremen', 'Prag', 'Ulm']))
+        elif r < 0.95:                                       # (F12: a page, back)
+            self.do('key F12; wait 2; ucmd utab:%d; wait 2; key F12; wait 2' % self.rng.randrange(9))
         else:
             self.do('ucmd ufight:99,5; wait 2')
 
@@ -235,7 +275,10 @@ def main():
     ap.add_argument('--out', default=os.path.join(TOP, 'build', 'soaktest'))
     ap.add_argument('--encounters', default=os.path.join(TOP, 'port', 'content', 'New encounters'))
     ap.add_argument('--load', default='', help='a saved game to start from')
+    ap.add_argument('--name', default='soak', help='the session\'s name (two runs at once: two names)')
     a = ap.parse_args()
+    global NAME
+    NAME = a.name
     shutil.rmtree(a.out, ignore_errors=True)
     os.makedirs(a.out)
     game = os.path.join(a.out, 'game')                      # (the player's folder is never touched)
@@ -244,6 +287,9 @@ def main():
         sd = next((os.path.join(game, n) for n in os.listdir(game) if n.upper() == 'SAVES'), os.path.join(game, 'SAVES'))
         os.makedirs(sd, exist_ok=True)
         shutil.copy(a.load, os.path.join(sd, os.path.basename(a.load).upper()))
+        bsv = a.load[:-4] + ('.BSV' if a.load.endswith('.SAV') else '.bsv')       # (its battle part, when it has one)
+        if os.path.exists(bsv):
+            shutil.copy(bsv, os.path.join(sd, os.path.basename(bsv).upper()))
     if a.encounters and os.path.isdir(a.encounters):
         dst = os.path.join(game, 'mods', 'New encounters')
         shutil.rmtree(dst, ignore_errors=True)

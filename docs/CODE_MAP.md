@@ -202,8 +202,8 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/travel.cpp` | 143 | the route of auto-travel drawn over the overland map (mods/travel.c walks it; the world map, ui/worldmap.cpp, is where a journey is chosen), and the campfire under the clock that makes the party stop to camp at 20:00 (travel.camp_at_8). |
 | `ui/ui.cpp` | 765 | the native port's own interface, drawn over the game: the Darklands+ window (F12) and its pages (the settings pages in settings.cpp), help, notices. |
 | `ui/ui_windows.cpp` | 396 | the interface's side windows: About, the welcome on the first start, getting the MT-32 working, and F11's keys and clicks for the screen in view. |
-| `ui/worldmap.cpp` | 1124 | the world map: the whole of the Holy Roman Empire as the travel screen draws it (mods/worldmap.c), to pan and zoom, with towns and places named, the party, the route of auto-travel and the places the quest log points to. |
-| `ui/worldmap_draw.cpp` | 615 | the world map's pictures (the places' seals and painted icons, the frame, the compass rose, the boats' red ink and ships, the layer buttons' glyphs, a quest's halo), its list of places, the names over the game's own travel map, and a test sheet of the pictures. |
+| `ui/worldmap.cpp` | 1123 | the world map: the whole of the Holy Roman Empire as the travel screen draws it (mods/worldmap.c), to pan and zoom, with towns and places named, the party, the route of auto-travel and the places the quest log points to. |
+| `ui/worldmap_draw.cpp` | 651 | the world map's pictures (the places' seals and painted icons, the frame, the compass rose, the boats' red ink and ships, the layer buttons' glyphs, a quest's halo), its list of places, the names over the game's own travel map, and a test sheet of the pictures. |
 
 ## tools
 
@@ -235,7 +235,7 @@ Tools: tests, checks, the harness.
 | `tools/release_check.py` | 167 | a scripted session through the parts of Darklands+ that a release must not break, in a window (native screens are drawn only there), on your own game files. |
 | `tools/reloc_check.py` | 54 | every segment the DOS loader would have fixed up in DARKLAND.EXE's code, and whether the translation (port/recomp/recomp16.py) adds the load segment there too. |
 | `tools/smoke.py` | 52 | quick checks of a Darklands+ build against your own game files, before a release. |
-| `tools/soaktest.py` | 288 | a long automated playtest: plays the game for a while as a restless player would, and reports what went wrong. |
+| `tools/soaktest.py` | 334 | a long automated playtest: plays the game for a while as a restless player would, and reports what went wrong. |
 | `tools/soundpack.py` | 324 | build the sample battle-sound pack from free recordings. |
 | `tools/switch_map.py` | 56 | docs/MERGING.md with its section 4 (every switch and the files that read it) made anew from docs/SWITCHES.md (the switches, as the game writes them) and the sources (a file reads a switch when its key is written in it, in quotes). |
 | `tools/uitour.py` | 70 | every tooltip beside what it describes (never over it nor over the pointer), and no two of Darklands+'s panels over each other. |

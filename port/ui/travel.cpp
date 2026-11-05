@@ -29,24 +29,24 @@ extern "C" void travel_overlay(void)
                                                   count of the last card stays set after it closes */
     ImDrawList *dl = ImGui::GetForegroundDrawList();
     int vx = (s16)g_rw(GV_map_view_col), vr = (s16)g_rw(GV_map_buf_row) + (s16)g_rw(GV_map_view_row);
-    /* the tiles' middles on the game's screen (a tile 16 x 4 pixels, odd rows half a tile to the right), the way
-       drawn as it goes (route_smooth), the part in the map's window */
+    /* the route ahead in straight legs (route_ahead, tile_px pixels: a tile 16 x 4, odd rows half a tile to the
+       right), on the game's screen (the map's window from x 65, y 21: tile_px less 16 a column and 4 a row of the
+       view, + 56, + 9), the part in the map's window */
     std::vector<ImVec2> pts;
-    for (int k = travel.i - 1; k < travel.n; k++) {
-        if (k < 0) continue;
-        int tx = travel.rx[k], ty = travel.ry[k];
-        pts.push_back(ImVec2((float)(16 * (tx - vx) + ((ty & 1) ? 7 : -1) + 65), (float)(4 * (ty - vr) - 6 + 21)));
-    }
-    route_smooth(pts);
+    route_ahead(travel.rx, travel.ry, travel.n, travel.i - 1, pts);
+    for (ImVec2 &q : pts) q = ImVec2(q.x + 56 - 16.0f * vx, q.y + 9 - 4.0f * vr);
     auto inside = [](ImVec2 q) { return q.x >= 62 && q.x <= 318 && q.y >= 16 && q.y <= 198; };
+    ImVec2 c0, c1; plat_game_to_win(62, 16, &c0.x, &c0.y); plat_game_to_win(318, 198, &c1.x, &c1.y);
+    dl->PushClipRect(c0, c1, true);                             /* (a leg may run out of the map's window: cut at its edge) */
     for (size_t k = 0; k < pts.size(); k++) {
         ImVec2 p; plat_game_to_win(pts[k].x, pts[k].y, &p.x, &p.y);
-        if (k && inside(pts[k]) && inside(pts[k - 1])) {
+        if (k) {
             ImVec2 lastp; plat_game_to_win(pts[k - 1].x, pts[k - 1].y, &lastp.x, &lastp.y);
             dl->AddLine(lastp, p, IM_COL32(40, 20, 10, 170), 7.0f); dl->AddLine(lastp, p, IM_COL32(255, 200, 60, 235), 3.5f);
         }
         if (k + 1 == pts.size() && inside(pts[k])) { dl->AddCircleFilled(p, 7, IM_COL32(200, 40, 30, 230)); dl->AddCircle(p, 7, IM_COL32(255, 240, 200, 255), 0, 2); }
     }
+    dl->PopClipRect();
     static double last; if (getenv("DL_TRAVEL_LOG") && ImGui::GetTime() - last > 1) { last = ImGui::GetTime();
         fprintf(stderr, "travel overlay: route %d/%d view %d,%d first tile %d,%d\n", travel.i, travel.n, vx, vr, travel.rx[travel.i], travel.ry[travel.i]); }
 }

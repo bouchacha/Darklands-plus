@@ -291,18 +291,19 @@ float aspect(void) { return ui_settings.aspect ? 1.2f : 1.0f; }
 void tile_px(int x, int y, float *px, float *py) { *px = x * 16.0f + ((y & 1) ? 8 : 0) + 8; *py = y * 4.0f + 6; }
 /* The travel map's rows are half a tile apart, every other one shifted half a tile to the right: a route due
    north or south steps right and left from row to row, and a slant one goes in stairs, though the way is straight
-   (GitHub issue 3). Drawn, its tiles' middles (travel-screen pixels, or any picture of them to scale) are first
-   averaged with their neighbours (1 2 1: a zigzag row to row becomes straight), then the points the line keeps
-   within a third of a tile of are left out (Douglas-Peucker); its ends stay where they are */
-void route_smooth(std::vector<ImVec2> &p)
+   (GitHub issue 3). Drawn, it is straight legs between the places where the way really turns: a tile's middle
+   (travel-screen pixels, or any picture of them to scale) is kept only where the line without it would pass more
+   than 9 pixels from it - just over the rows' half-tile zigzag (Douglas-Peucker; the ends stay). (Till 1.4.6-RC10
+   the middles were first averaged with their neighbours and kept within a third of a tile, afresh each frame
+   from where the party stood: the line bent and its bends moved at every step, his "jiggles".) */
+static std::vector<char> route_keep(const std::vector<ImVec2> &q)
 {
-    size_t n = p.size();
-    if (n < 3) return;
-    std::vector<ImVec2> q(p);
-    for (size_t i = 1; i + 1 < n; i++) q[i] = ImVec2((p[i - 1].x + 2 * p[i].x + p[i + 1].x) * 0.25f, (p[i - 1].y + 2 * p[i].y + p[i + 1].y) * 0.25f);
-    std::vector<char> keep(n, 0); keep[0] = keep[n - 1] = 1;
+    size_t n = q.size();
+    std::vector<char> keep(n, 0);
+    if (!n) return keep;
+    keep[0] = keep[n - 1] = 1;
     std::vector<std::pair<size_t, size_t>> st; st.push_back({ 0, n - 1 });
-    const float tol = 16.0f / 3;
+    const float tol = 9.0f;
     while (!st.empty()) {
         size_t a = st.back().first, b = st.back().second; st.pop_back();
         if (b <= a + 1) continue;
@@ -314,8 +315,43 @@ void route_smooth(std::vector<ImVec2> &p)
         }
         if (fd > tol) { keep[far] = 1; st.push_back({ a, far }); st.push_back({ far, b }); }
     }
-    p.clear();
-    for (size_t i = 0; i < n; i++) if (keep[i]) p.push_back(q[i]);
+    return keep;
+}
+void route_simplify(std::vector<ImVec2> &p)
+{
+    if (p.size() < 3) return;
+    std::vector<char> keep = route_keep(p);
+    std::vector<ImVec2> q;
+    for (size_t i = 0; i < p.size(); i++) if (keep[i]) q.push_back(p[i]);
+    p.swap(q);
+}
+/* the journey's route ahead (ui/travel.cpp, ui/worldmap.cpp): its turns found once for the route, so the line ahead
+   keeps its shape as the party walks; it begins where the party stands, on its leg (the tile's middle brought onto
+   the leg, which the rows' zigzag would shake) */
+void route_ahead(const int *rx, const int *ry, int n, int cur, std::vector<ImVec2> &out)
+{
+    static unsigned key; static int kn = -1; static std::vector<int> turns; static std::vector<ImVec2> mid;
+    out.clear();
+    if (n < 2) return;
+    unsigned h = 2166136261u;
+    for (int i = 0; i < n; i++) { h = (h ^ (unsigned)rx[i]) * 16777619u; h = (h ^ (unsigned)ry[i]) * 16777619u; }
+    if (h != key || n != kn) {
+        key = h; kn = n; mid.resize((size_t)n);
+        for (int i = 0; i < n; i++) tile_px(rx[i], ry[i], &mid[(size_t)i].x, &mid[(size_t)i].y);
+        std::vector<char> keep = route_keep(mid);
+        turns.clear();
+        for (int i = 0; i < n; i++) if (keep[(size_t)i]) turns.push_back(i);
+    }
+    if (cur < 0) cur = 0;
+    if (cur > n - 1) cur = n - 1;
+    size_t j = 0;
+    while (j + 1 < turns.size() && turns[j + 1] <= cur) j++;   /* (the leg turns[j] .. turns[j + 1] holds cur) */
+    if (j + 1 >= turns.size()) { out.push_back(mid[(size_t)(n - 1)]); return; }
+    ImVec2 a = mid[(size_t)turns[j]], b = mid[(size_t)turns[j + 1]], p = mid[(size_t)cur];
+    float dx = b.x - a.x, dy = b.y - a.y, L2 = dx * dx + dy * dy, t = L2 > 1e-3f ? ((p.x - a.x) * dx + (p.y - a.y) * dy) / L2 : 1.0f;
+    t = fminf(1.0f, fmaxf(0.0f, t));
+    out.push_back(ImVec2(a.x + dx * t, a.y + dy * t));
+    for (size_t k = j + 1; k < turns.size(); k++) out.push_back(mid[(size_t)turns[k]]);
 }
 
 

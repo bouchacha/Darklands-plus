@@ -2660,61 +2660,61 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/worldmap.cpp:233` | Boat routes between the towns' docks |
 | `ui/worldmap.cpp:233` | Each place as an icon of its kind (else a dot) |
 | `ui/worldmap.cpp:234` | The days of travel from the party to every town, under its name (off at first: it crowds the map) |
-| `ui/worldmap.cpp:451` | Towns with ... |
-| `ui/worldmap.cpp:540` | the marked spot |
-| `ui/worldmap.cpp:557` | Click for what it offers, and to travel there |
-| `ui/worldmap.cpp:593` | No way there from here |
-| `ui/worldmap.cpp:594` | Travel there |
-| `ui/worldmap.cpp:599` | Travel there |
-| `ui/worldmap.cpp:602` | Leave town and travel there |
-| `ui/worldmap.cpp:611` | No way there by land from here. |
-| `ui/worldmap.cpp:613` | To travel, be in the overland view or in a town's streets |
-| `ui/worldmap.cpp:619` | Walk out of %s's gate and travel to %s? |
-| `ui/worldmap.cpp:620` | The party walks through the streets to a gate and out; in the overland view the journey begins. |
-| `ui/worldmap.cpp:621` | Leave and travel |
-| `ui/worldmap.cpp:640` | The wares noted here (%d shop%s) |
-| `ui/worldmap.cpp:657` | Boats leave here for these towns (not every day: the docks say which leave today). |
-| `ui/worldmap.cpp:658` | Boats from these towns call here; none sail back to them from here. |
-| `ui/worldmap.cpp:659` | Boats sail both ways between here and these towns (not every day: the docks say which leave today). |
-| `ui/worldmap.cpp:681` | Its docks have no boats leaving (the original game has none either). |
-| `ui/worldmap.cpp:723` | Collect your reward |
-| `ui/worldmap.cpp:723` | Robber knights |
-| `ui/worldmap.cpp:723` | Treasures to fetch |
-| `ui/worldmap.cpp:723` | Papers to get in a town |
-| `ui/worldmap.cpp:723` | City politics |
-| `ui/worldmap.cpp:723` | Cities at war |
-| `ui/worldmap.cpp:723` | The Wild Hunt |
-| `ui/worldmap.cpp:723` | Other quests |
-| `ui/worldmap.cpp:741` | %s (%d)###qg |
-| `ui/worldmap.cpp:747` | Sorted %s first: click for %s first. |
-| `ui/worldmap.cpp:747` | the soonest due |
-| `ui/worldmap.cpp:756` | No quests or rumors yet. |
-| `ui/worldmap.cpp:850` | cave near Köln |
-| `ui/worldmap.cpp:856` | and %d more: type more of the name to narrow the list |
-| `ui/worldmap.cpp:857` | No place of that name. |
-| `ui/worldmap.cpp:861` | Alchemical ingredients |
-| `ui/worldmap.cpp:877` | Click one to circle those towns on the map. |
-| `ui/worldmap.cpp:889` |  the party has been to: |
-| `ui/worldmap.cpp:893` | ... and %d more (circled on the map) |
-| `ui/worldmap.cpp:894` | %s %dq##tl%d |
-| `ui/worldmap.cpp:904` | Show on the map |
-| `ui/worldmap.cpp:921` | shown (click to hide) |
-| `ui/worldmap.cpp:921` | hidden (click to show) |
-| `ui/worldmap.cpp:936` | Places: click a kind to show or hide it. |
-| `ui/worldmap.cpp:965` | The party: a click shows it on the map. |
-| `ui/worldmap.cpp:969` | Map of Greater Germany |
-| `ui/worldmap.cpp:975` | {LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes. |
-| `ui/worldmap.cpp:976` | Drag to move, wheel to zoom. M or Esc closes. |
-| `ui/worldmap.cpp:978` | Traveling to %s |
-| `ui/worldmap.cpp:1041` | faded: leaves later this week |
-| `ui/worldmap.cpp:1106` | Click to take the boat. |
+| `ui/worldmap.cpp:450` | Towns with ... |
+| `ui/worldmap.cpp:539` | the marked spot |
+| `ui/worldmap.cpp:556` | Click for what it offers, and to travel there |
+| `ui/worldmap.cpp:592` | No way there from here |
+| `ui/worldmap.cpp:593` | Travel there |
+| `ui/worldmap.cpp:598` | Travel there |
+| `ui/worldmap.cpp:601` | Leave town and travel there |
+| `ui/worldmap.cpp:610` | No way there by land from here. |
+| `ui/worldmap.cpp:612` | To travel, be in the overland view or in a town's streets |
+| `ui/worldmap.cpp:618` | Walk out of %s's gate and travel to %s? |
+| `ui/worldmap.cpp:619` | The party walks through the streets to a gate and out; in the overland view the journey begins. |
+| `ui/worldmap.cpp:620` | Leave and travel |
+| `ui/worldmap.cpp:639` | The wares noted here (%d shop%s) |
+| `ui/worldmap.cpp:656` | Boats leave here for these towns (not every day: the docks say which leave today). |
+| `ui/worldmap.cpp:657` | Boats from these towns call here; none sail back to them from here. |
+| `ui/worldmap.cpp:658` | Boats sail both ways between here and these towns (not every day: the docks say which leave today). |
+| `ui/worldmap.cpp:680` | Its docks have no boats leaving (the original game has none either). |
+| `ui/worldmap.cpp:722` | Collect your reward |
+| `ui/worldmap.cpp:722` | Robber knights |
+| `ui/worldmap.cpp:722` | Treasures to fetch |
+| `ui/worldmap.cpp:722` | Papers to get in a town |
+| `ui/worldmap.cpp:722` | City politics |
+| `ui/worldmap.cpp:722` | Cities at war |
+| `ui/worldmap.cpp:722` | The Wild Hunt |
+| `ui/worldmap.cpp:722` | Other quests |
+| `ui/worldmap.cpp:740` | %s (%d)###qg |
+| `ui/worldmap.cpp:746` | Sorted %s first: click for %s first. |
+| `ui/worldmap.cpp:746` | the soonest due |
+| `ui/worldmap.cpp:755` | No quests or rumors yet. |
+| `ui/worldmap.cpp:849` | cave near Köln |
+| `ui/worldmap.cpp:855` | and %d more: type more of the name to narrow the list |
+| `ui/worldmap.cpp:856` | No place of that name. |
+| `ui/worldmap.cpp:860` | Alchemical ingredients |
+| `ui/worldmap.cpp:876` | Click one to circle those towns on the map. |
+| `ui/worldmap.cpp:888` |  the party has been to: |
+| `ui/worldmap.cpp:892` | ... and %d more (circled on the map) |
+| `ui/worldmap.cpp:893` | %s %dq##tl%d |
+| `ui/worldmap.cpp:903` | Show on the map |
+| `ui/worldmap.cpp:920` | shown (click to hide) |
+| `ui/worldmap.cpp:920` | hidden (click to show) |
+| `ui/worldmap.cpp:935` | Places: click a kind to show or hide it. |
+| `ui/worldmap.cpp:964` | The party: a click shows it on the map. |
+| `ui/worldmap.cpp:968` | Map of Greater Germany |
+| `ui/worldmap.cpp:974` | {LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes. |
+| `ui/worldmap.cpp:975` | Drag to move, wheel to zoom. M or Esc closes. |
+| `ui/worldmap.cpp:977` | Traveling to %s |
+| `ui/worldmap.cpp:1040` | faded: leaves later this week |
+| `ui/worldmap.cpp:1105` | Click to take the boat. |
 | `ui/worldmap_draw.cpp:105` | ruined castle |
 | `ui/worldmap_draw.cpp:107` | ruined village |
 | `ui/worldmap_draw.cpp:108` | standing stone |
 | `ui/worldmap_draw.cpp:108` | witches' meeting place |
 | `ui/worldmap_draw.cpp:137` | Spring or lake |
-| `ui/worldmap_draw.cpp:388` | Map of Greater Germany |
-| `ui/worldmap_draw.cpp:553` | About %s of travel |
+| `ui/worldmap_draw.cpp:424` | Map of Greater Germany |
+| `ui/worldmap_draw.cpp:589` | About %s of travel |
 
 ## The game side (mods/)
 
