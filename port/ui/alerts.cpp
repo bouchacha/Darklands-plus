@@ -131,29 +131,73 @@ extern "C" void ui_text_utf8(const char *game, char *out, int n)
 extern "C" { extern int cardview_dialog, game_dialog_kind; extern char game_dialog_text[600]; void plat_game_to_win(float gx, float gy, float *wx, float *wy); }
 extern ImFont *ui_font_text;
 
+/* its text in lines of at most width (font f at size) */
+static void wrap_lines(ImFont *f, float size, const std::string &s, float width, std::vector<std::string> &out)
+{
+    const char *p = s.c_str(), *e = p + s.size();
+    while (p < e) {
+        const char *q = f->CalcWordWrapPositionA(size / f->FontSize, p, e, width);
+        if (q <= p) q = p + 1;
+        const char *qe = q; while (qe > p && qe[-1] == ' ') qe--;
+        out.push_back(std::string(p, qe));
+        p = q; while (p < e && *p == ' ') p++;
+    }
+}
+/* The box is as wide as its words, everything in it centred: a heading of the message's own words ("Alchemy
+   Success", "Saint Call Fails" - what comes before " - ", or the whole of a short message), in green for a
+   success and red for a failure, beside the shield of what it took (Alchemy, Divine Favor); a gilt rule; the
+   rest of the words; for a message that waits, what goes on. (1.4.6-RC12, his words: "one giant blank box and
+   the text shows up left and top aligned".) */
 extern "C" void game_dialog_draw(void)
 {
     if (!cardview_dialog || !game_dialog_kind || ns_screen == NS_NONE) return;
     std::string t = game_text(game_dialog_text, strlen(game_dialog_text)), title;
+    for (char &c : t) if (c == '\n' || c == '\r') c = ' ';
+    while (!t.empty() && t.back() == ' ') t.pop_back();
     size_t d = t.find(" - ");
     if (d != std::string::npos && d < 40) { title = t.substr(0, d); t = t.substr(d + 3); }
-    for (char &c : t) if (c == '\n' || c == '\r') c = ' ';
+    else if (t.size() <= 40 && t.find_first_of(".!?:,") == std::string::npos) { title = t; t.clear(); }
+    const bool good = title.find("Success") != std::string::npos, bad = title.find("Fail") != std::string::npos;
+    const int key = title.find("Saint") != std::string::npos ? ATTR_DF : title.find("Alchemy") != std::string::npos ? ui_key_of("Alchemy", 7) : -1;
+    const ImU32 head = good ? IM_COL32(40, 98, 38, 255) : bad ? IM_COL32(156, 34, 20, 255) : IM_COL32(120, 36, 20, 255);
     ImDrawList *dl = ImGui::GetForegroundDrawList();
     float x0, y0, x1, y1; plat_game_to_win(60, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
-    float k = (y1 - y0) / 200.0f, w = (x1 - x0) * 0.62f, pad = 8 * k;
+    const float k = (y1 - y0) / 200.0f, pad = 11 * k, sh = 10 * k, sb = 7 * k, lh = sb * 1.25f, is = sh * 0.95f;
     ImFont *fh = ui_font_head ? ui_font_head : ImGui::GetFont(), *fb = ui_font_text ? ui_font_text : ImGui::GetFont();
-    float sh = 9 * k, sb = 7 * k;
-    ImVec2 tb = fb->CalcTextSizeA(sb, FLT_MAX, w - pad * 2, t.c_str());
-    float h = pad * 2 + (title.empty() ? 0 : sh * 1.4f) + tb.y + sb * 1.8f;
-    ImVec2 a((x0 + x1 - w) * 0.5f, (y0 + y1 - h) * 0.5f), b(a.x + w, a.y + h);
+    const float wmax = (x1 - x0) * 0.62f, wmin = (x1 - x0) * 0.34f;
+    const float iw = key >= 0 ? is * UI_SHIELD_W + 4 * k : 0;
+    const float tw = title.empty() ? 0 : fh->CalcTextSizeA(sh, FLT_MAX, 0, title.c_str()).x + iw;
+    std::vector<std::string> lines; float bw = 0;
+    if (!t.empty()) wrap_lines(fb, sb, t, wmax - pad * 2, lines);
+    for (const std::string &l : lines) bw = fmaxf(bw, fb->CalcTextSizeA(sb, FLT_MAX, 0, l.c_str()).x);
+    const char *foot = game_dialog_kind == 3 ? "Y: yes     N: no" : game_dialog_kind == 2 ? "Any key or click: go on" : "";
+    const float fs = sb * 0.85f, fw = *foot ? fb->CalcTextSizeA(fs, FLT_MAX, 0, foot).x : 0;
+    const float w = fminf(wmax, fmaxf(wmin, fmaxf(tw, fmaxf(bw, fw)) + pad * 2));
+    const float rule = !title.empty() && !lines.empty() ? 9 * k : 0;
+    const float h = pad * 2 + (title.empty() ? 0 : sh * 1.2f) + rule + lines.size() * lh + (*foot ? fs * 1.9f : 0);
+    const ImVec2 a(roundf((x0 + x1 - w) * 0.5f), roundf((y0 + y1 - h) * 0.5f)), b(a.x + w, a.y + h);
+    const float mx = (a.x + b.x) * 0.5f;
     dl->AddRectFilled(ImVec2(x0, y0), ImVec2(x1, y1), IM_COL32(10, 6, 2, 110));
     dl->AddRectFilled(a, b, IM_COL32(242, 230, 200, 255), 3 * k);
     if (orn_on()) { orn_parchment_edges(dl, a, b, 6 * k); orn_gilt_frame(dl, a, b, 6 * k); }
     else dl->AddRect(a, b, IM_COL32(120, 80, 36, 255), 3 * k, 0, fmaxf(1, k * 0.6f));
     float y = a.y + pad;
-    if (!title.empty()) { ImVec2 ts = fh->CalcTextSizeA(sh, FLT_MAX, 0, title.c_str()); dl->AddText(fh, sh, ImVec2((a.x + b.x - ts.x) * 0.5f, y), IM_COL32(120, 36, 20, 255), title.c_str()); y += sh * 1.4f; }
-    dl->AddText(fb, sb, ImVec2(a.x + pad, y), IM_COL32(44, 26, 10, 255), t.c_str(), nullptr, w - pad * 2);
-    y += tb.y + sb * 0.6f;
-    const char *foot = game_dialog_kind == 3 ? "Y: yes     N: no" : game_dialog_kind == 2 ? "Any key or click: go on" : "";
-    if (*foot) { ImVec2 fs = fb->CalcTextSizeA(sb * 0.85f, FLT_MAX, 0, foot); dl->AddText(fb, sb * 0.85f, ImVec2((a.x + b.x - fs.x) * 0.5f, y), IM_COL32(110, 80, 50, 255), foot); }
+    if (!title.empty()) {
+        float sx = mx - tw * 0.5f;
+        if (key >= 0) ui_key_icon(dl, ImVec2(sx + is * UI_SHIELD_W * 0.5f, y + sh * 0.6f), is, key);
+        dl->AddText(fh, sh, ImVec2(sx + iw, y), head, title.c_str());
+        y += sh * 1.2f;
+    }
+    if (rule > 0) {
+        if (orn_on()) orn_rule(dl, mx - w * 0.22f, mx + w * 0.22f, y + rule * 0.45f, 5 * k);
+        else dl->AddLine(ImVec2(mx - w * 0.22f, y + rule * 0.45f), ImVec2(mx + w * 0.22f, y + rule * 0.45f), IM_COL32(150, 110, 60, 255), fmaxf(1, k * 0.5f));
+        y += rule;
+    }
+    const bool centred = lines.size() <= 2;                 /* (a long text reads better from a straight left edge) */
+    for (const std::string &l : lines) {
+        float lx = centred ? mx - fb->CalcTextSizeA(sb, FLT_MAX, 0, l.c_str()).x * 0.5f : a.x + pad;
+        dl->AddText(fb, sb, ImVec2(lx, y), IM_COL32(44, 26, 10, 255), l.c_str());
+        y += lh;
+    }
+    if (*foot) dl->AddText(fb, fs, ImVec2(mx - fw * 0.5f, y + fs * 0.7f), IM_COL32(110, 80, 50, 255), foot);
 }
