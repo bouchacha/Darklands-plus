@@ -688,6 +688,9 @@ extern "C" void levelmap_dump(void)
             for (int k = 0; k < 4; k++) { int t = (int)(v >> (k * 8)) & 15; if (t >= 1 && t <= 11) m |= 1 << k; }
             fprintf(stderr, "%c", (v & 0x80000000u) ? '-' : "0123456789abcdef"[m]); } fprintf(stderr, "\n"); }
     }
+    if (getenv("DL_LEVELS_LOG")) {                                  /* (each cell's bytes 0..3, high nibbles: furniture pieces ('.' none)) */
+        for (int b = 0; b < 4; b++) for (int y = 0; y < 40; y++) { fprintf(stderr, "  hi%d %2d ", b, y); for (int x = 0; x < 40; x++) { int v = ((u32)cell(x, y) >> (8 * b + 4)) & 15; fprintf(stderr, "%c", v ? "0123456789abcdef"[v] : '.'); } fprintf(stderr, "\n"); }
+    }
     int nd = (s8)rb(G_FAR20A5, 0x1f52);
     for (int k = 0; k < nd && k < 40; k++) {
         u16 r0 = (u16)(0x1f54 + 14 * k);

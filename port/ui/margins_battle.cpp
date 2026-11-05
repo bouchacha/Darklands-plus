@@ -469,16 +469,6 @@ void battle_panel(float width, float fs)
     }
     else if (down == shown) {
         ImGui::TextDisabled("All down.");
-        /* a fight in a town's street: the party stays there afterwards (combat_flags 1) and the game goes on
-           only when it walks out (s014 combat_over), off the street's edge or through a door - which nothing
-           on the field says. Not in a castle, mine or dungeon: there the foes beaten are one group of many,
-           the party explores on, and the place is won when its master falls (said beside the master) */
-        int loc = (s16)g_rw(G_CUR_LOC); u32 lr = loc >= 0 && loc < G_NLOC ? g_location(loc) : 0;
-        int town = lr && (s16)rw((u16)(lr >> 16), (u16)lr) == 0;
-        if ((g_rb(GV_combat_flags) & 1) && !g_rb(GV_real_combat) && town) {
-            ImGui::Spacing();
-            ImGui::TextWrapped("The fight is won. To go on, walk the party out of the street: click its edge or a door.");
-        }
     }
     foes_left_section();
     margin_effects(gm_party_size(), true);               /* (what is at work goes on in a fight: as in the town's margin) */

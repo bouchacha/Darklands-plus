@@ -49,8 +49,12 @@ std::string ui_enemy_name(int floor, u16 b);
 static std::string enemy_name(int floor, u16 b) { return ui_enemy_name(floor, b); }
 std::string ui_enemy_name(int floor, u16 b)
 {
-    static std::vector<EnmRec> recs[8]; static long sizes[8] = { -1, -1, -1, -1, -1, -1, -1, -1 }; static long long stamps[8];
-    if (floor < 0 || floor > 7) return "";
+    /* (a floor's file, level<floor>.enm: a mine goes as deep as 9 floors, and the 9th's foes - demons, in
+       the dwarves' mines - were "Enemy" while only 8 were read) */
+    enum { NF = 16 };
+    static std::vector<EnmRec> recs[NF]; static long sizes[NF]; static long long stamps[NF]; static bool init;
+    if (!init) { init = true; for (int k = 0; k < NF; k++) sizes[k] = -1; }
+    if (floor < 0 || floor >= NF) return "";
     char dn[16]; snprintf(dn, sizeof dn, "level%d.enm", floor);
     char p[1300]; dos_host_path(dn, p, sizeof p);
     struct stat stt; long long mt = stat(p, &stt) == 0 ? (long long)stt.st_mtime : 0;
