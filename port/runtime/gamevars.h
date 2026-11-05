@@ -615,8 +615,8 @@
 #define GF_door_toggle                  23, 0x1ef8, 0x00b8    /* (n, who): open/close a door */
 #define GF_door_set                     23, 0x1ef8, 0x04ac    /* (n, state) */
 #define GF_secret_door_search           23, 0x1ef8, 0x0812    /* (who, roll) */
-#define GF_trap_spell                   23, 0x1ef8, 0x0d88    /* (t, who) */
-#define GF_trap_missile                 23, 0x1ef8, 0x0e30    /* (t, t2) */
+#define GF_trap_spell                   23, 0x1ef8, 0x0d88    /* (who, h, t): who sprang handler h, spell trap t (s014 19cd:216a calls each handler (who, h, a, b)) */
+#define GF_trap_missile                 23, 0x1ef8, 0x0e30    /* (who, h, t, t2): missile trap t and its twin t2 (0xff none); its darts loosed by -1 (strikes) / -2 (misses) */
 #define GF_lock_pick                    23, 0x1ef8, 0x12c0    /* (): selected member picks a lock (lock picks = item 0x40) */
 #define GF_chest_open                   23, 0x1ef8, 0x13d0    /* (who) */
 #define GF_chest_disarm                 23, 0x1ef8, 0x153e    /* (who) */

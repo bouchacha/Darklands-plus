@@ -62,10 +62,17 @@ static Exit exits[NFLOORS][6]; static int nexits[NFLOORS];
    its ways to the other floors. A floor is matched to its record only once it has settled - the same place,
    number of floors, floor and fingerprint for SETTLE frames running - since while a battle is set up the
    art can hold another map for a moment, and a check made then took the dungeon for another one and threw
-   away what was seen of it (1.4: "does not work consistently"). A layout with no record (a street fight in a
-   town: another map each time) gets one of its own; none is thrown away for another (at most KEEP a floor,
-   the oldest goes). With each record the cells that were floor when seen (DLLV2; 1.4's DLLV1 files, which
-   lacked them, start afresh). Out of a town, castle, mine or dungeon (a fight in the wilds) nothing is kept. */
+   away what was seen of it (1.4: "does not work consistently"). Nor is anything matched or seen from a battle's
+   start (s002 0e76:0000) or a save read until the game has put the floor to be shown in place (level_switch,
+   s024 1ef8:059a): until then the floor there is the last battle's, or the one the dungeon's generator made
+   last, every cell of it revealed - the party entered a mine and its floor showed as seen to the edges (1.4.6).
+   What a floor shows as seen is its record's, and only its record's: another record taken up (another place,
+   another layout) starts from that record alone. A layout with no record (a street fight in a town: another
+   map each time) gets one of its own; none is thrown away for another (at most KEEP a floor, the oldest goes).
+   With each record the cells that were floor when seen (DLLV2; 1.4's DLLV1 files, which lacked them, start
+   afresh). A record with every cell seen came from that fault and is dropped when the file is read (an open
+   field has every cell revealed by the game anyway). Out of a town, castle, mine or dungeon (a fight in the
+   wilds) nothing is kept. */
 #pragma pack(push, 1)
 struct LvRec { s16 loc; u8 nf, fl; u32 hash; u8 bits[200]; u8 ne; Exit ex[6]; u8 floor[200]; };
 #pragma pack(pop)
@@ -75,6 +82,7 @@ static std::vector<LvRec> recs;
 static int recs_seed = -99999, lv_loc = -2, lv_nf = -1;
 static int cur_rec[NFLOORS];                     /* the record matched to each floor of the place, -1 none yet */
 static bool recs_dirty;
+static bool lv_ready;                            /* the floor at 20a5 is the one this battle shows (above) */
 static double recs_saved;
 static void lv_path(char *b, size_t n, int seed) { snprintf(b, n, "%s/darklands_levels_%u.bin", dlp_data_dir, (unsigned)(u16)seed); }
 static void lv_load(int seed)
@@ -85,7 +93,11 @@ static void lv_load(int seed)
     if (!f) return;
     char magic[6] = ""; u32 n = 0;
     if (fread(magic, 1, 6, f) == 6 && !memcmp(magic, "DLLV2", 6) && fread(&n, 4, 1, f) == 1 && n < 4096)
-        for (u32 k = 0; k < n; k++) { LvRec r; if (fread(&r, sizeof r, 1, f) != 1) break; if (r.fl < NFLOORS && r.ne <= 6) recs.push_back(r); }
+        for (u32 k = 0; k < n; k++) {
+            LvRec r; if (fread(&r, sizeof r, 1, f) != 1) break;
+            int ns = 0; for (int b = 0; b < 200; b++) ns += __builtin_popcount(r.bits[b]);
+            if (r.fl < NFLOORS && r.ne <= 6 && ns < 1600) recs.push_back(r); else recs_dirty = true;   /* (every cell seen: the fault above) */
+        }
     fclose(f);
 }
 static void lv_save(void)
@@ -106,6 +118,7 @@ static u32 floor_hash(void)                      /* (FNV-1a of the floor's cell 
     for (int k = 0; k < 1600; k++) { h ^= rb(G_FAR20A5, (u16)(0x1900 + k)); h *= 16777619u; }
     return h;
 }
+static void floor_clear(int f) { memset(seen[f], 0, sizeof seen[f]); memset(kfloor[f], 0, sizeof kfloor[f]); }
 static int lv_find(int loc, int nf, int fl, u32 h) { for (size_t i = recs.size(); i-- > 0;) if (recs[i].loc == loc && recs[i].nf == nf && recs[i].fl == fl && recs[i].hash == h) return (int)i; return -1; }
 static void rec_to_seen(const LvRec &r)
 {
@@ -129,7 +142,7 @@ static void lv_keep(int fl)
     if (s_n < SETTLE) { s_n++; return; }                          /* (not settled yet: nothing matched, nothing written) */
     if (loc != lv_loc || nf != lv_nf) {                            /* (another place: its floors' records taken up anew) */
         lv_loc = loc; lv_nf = nf;
-        for (int f = 0; f < NFLOORS; f++) cur_rec[f] = -1;
+        for (int f = 0; f < NFLOORS; f++) { cur_rec[f] = -1; floor_clear(f); if (f != fl) nexits[f] = 0; }
         for (int f = 0; f < nf; f++) {                             /* (the floors not shown: their latest record) */
             if (f == fl) continue;
             for (size_t i = recs.size(); i-- > 0;) {
@@ -144,6 +157,7 @@ static void lv_keep(int fl)
     int ri = cur_rec[fl];
     if (ri < 0 || ri >= (int)recs.size() || recs[ri].hash != h) {
         ri = lv_find(loc, nf, fl, h);
+        floor_clear(fl);
         if (getenv("DL_LEVELS_LOG")) fprintf(stderr, "levels: place %d floor %d/%d layout %08x: %s\n", loc, fl, nf, h, ri >= 0 ? "its record" : "a new record");
         if (ri < 0) {
             int same = 0;                                          /* (a floor keeps KEEP layouts at most: the oldest goes) */
@@ -176,9 +190,11 @@ static void lv_keep(int fl)
    s004 0e76:0000, from s002's tac start) or come out of a save (EXPLODE, s003 1016:0d07, the battle save's
    blocks), and the kept records of the place taken up again (lv_keep); the same dungeon taken up again
    after a card (a riddle, a talk) keeps it as it is */
-static void forget(void) { lv_save(); memset(seen, 0, sizeof seen); memset(kfloor, 0, sizeof kfloor); memset(nexits, 0, sizeof nexits); lv_loc = -2; }
+static void forget(void) { lv_save(); memset(seen, 0, sizeof seen); memset(kfloor, 0, sizeof kfloor); memset(nexits, 0, sizeof nexits); lv_loc = -2; lv_ready = false; }
 static void floors_made_hook(void) { forget(); hook_call_original(); }
 static void save_read_hook(void) { forget(); hook_call_original(); }
+static void battle_start_hook(void) { lv_ready = false; hook_call_original(); }
+static void level_switch_hook(void) { hook_call_original(); if (!unw_active) lv_ready = true; }
 
 static int floor_now(void) { return (s8)g_rb(GV_floor_shown); }
 
@@ -190,11 +206,12 @@ extern "C" void levelmap_toggle(void) { open_lm = !open_lm && levelmap_available
 extern "C" void levelmap_frame(void)
 {
     static bool hooked;
-    if (!hooked) { hooked = true; hook_install(4, 0x0e76, 0x0000, floors_made_hook); hook_install(3, 0x1016, 0x0d07, save_read_hook); }
+    if (!hooked) { hooked = true; hook_install(4, 0x0e76, 0x0000, floors_made_hook); hook_install(3, 0x1016, 0x0d07, save_read_hook);
+                  hook_install(GF_battle_run, battle_start_hook); hook_install(GF_level_switch, level_switch_hook); }
     int gm = game_mode();
     if (gm != GM_BATTLE) { open_lm = false; lv_save(); return; }
     int fl = floor_now();
-    if (fl < 0 || fl >= NFLOORS) return;
+    if (fl < 0 || fl >= NFLOORS || !lv_ready) return;
     int ne = (s8)rb(G_FAR20A5, 0x2fb6);
     if (ne < 0 || ne > 6) ne = 0;
     for (int k = 0; k < ne; k++) {
@@ -651,7 +668,9 @@ extern "C" void levelmap_draw(void)
 extern "C" void levelmap_dump(void)
 {
     int fl = floor_now();
-    fprintf(stderr, "floor %d\n", fl);
+    int ns = 0, nk = 0;
+    if (fl >= 0 && fl < NFLOORS) for (int x = 0; x < 40; x++) for (int y = 0; y < 40; y++) { ns += seen[fl][x][y]; nk += kfloor[fl][x][y]; }
+    fprintf(stderr, "floor %d (the level map: %d cells seen, %d of them floor)\n", fl, ns, nk);
     char rows[40][41];
     for (int y = 0; y < 40; y++) { for (int x = 0; x < 40; x++) rows[y][x] = cell(x, y) < 0 ? '#' : '.'; rows[y][40] = 0; }
     for (int i = 0; i < 5; i++) {

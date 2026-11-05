@@ -146,7 +146,8 @@ static int shooter_at(int t)
     }
     for (int j = 0; j < 13; j++) {
         u16 b = CB(j);
-        if (j == t || g_rb((u16)(b + 0x14)) != 1 || (s8)g_rb((u16)(b + 0x4a)) != t) continue;
+        if ((j < 5) == (t < 5)) continue;          /* (one of the other side only: a member walking in file has the one ahead as +0x4a) */
+        if (g_rb((u16)(b + 0x14)) != 1 || (s8)g_rb((u16)(b + 0x4a)) != t) continue;
         int w = (s8)g_rb((u16)(b + 0x22));
         if (w >= 0 && w < 64 && missile[w]) return j;
     }
@@ -157,6 +158,11 @@ static int shooter_at(int t)
  * a missile that will strike flies to its target (record +0x11 = 0), one that misses flies
  * on until something stops it (+0x11 = 1). The hit itself shows when the target's endurance
  * drops (battlelog_frame); one whose armour held shows when it should have landed. */
+/* a trap's harm (s023): a missile trap's darts are loosed by "who" -1 (it will strike) or -2 (it misses,
+ * or the target dodged it: trap_missile, s023 1ef8:0e30); a spell or gas trap (trap_spell, 0d88) works on
+ * the one who sprang it. Told as such, not taken for a shot of whoever has the one hurt as +0x4a. */
+#define BY_DART 13
+#define BY_TRAP 14
 static int shot_by[13] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
 static u32 shot_t[13];
 static std::string shot_word(int who)
@@ -173,6 +179,12 @@ static void launch_hook(void)               /* s018 1ef8:0000 missile_launch(who
         int id = 95 + kind;
         std::string pn = id >= 95 && id <= 104 && id < (int)gamedata.items.size() ? game_text(gamedata.items[id].name.c_str(), gamedata.items[id].name.size()) : std::string("a potion");
         add(who < 5 ? 0 : 1, named(who) + " throws " + pn + (tgt >= 0 && tgt < 13 && tgt != who ? " at " + named(tgt) : std::string()));
+        return;
+    }
+    if (!unw_active && ui_battle_log && type == 0 && (who == -1 || who == -2) && tgt >= 0 && tgt < 13) {   /* a trap's dart (above) */
+        if (!in_battle) start_battle();
+        if (who == -1) { shot_by[tgt] = BY_DART; shot_t[tgt] = plat_ticks_ms(); }
+        else { met[tgt] = true; add(4, "A dart from a trap misses " + named(tgt)); }
         return;
     }
     if (unw_active || !ui_battle_log || type != 0 || who < 0 || who >= 13 || tgt < 0 || tgt >= 13 || who == tgt) return;
@@ -224,7 +236,13 @@ static void sidemsg_hook(void)
     fprintf(stderr, "side message (row %d): %s\n", row, rich_plain(t.c_str()).c_str());
     hook_return_far(0);
 }
-extern "C" void battlelog_init(void) { hook_install(GF_missile_launch, launch_hook); hook_install(21, 0x1ef8, 0x01e2, sidemsg_hook); hook_install(43, 0x150b, 0x1f40, sidemsg_hook);   /* (the cards' own copy: add_skill, s029 via vec_1e91) */ }
+static void trap_spell_hook(void)          /* s023 1ef8:0d88 trap_spell(who, h, t): its harm, a trap's */
+{
+    int who = (s16)rw(SS, (u16)(SP + 4));
+    if (!unw_active && ui_battle_log && who >= 0 && who < 13) { shot_by[who] = BY_TRAP; shot_t[who] = plat_ticks_ms(); }
+    hook_call_original();
+}
+extern "C" void battlelog_init(void) { hook_install(GF_trap_spell, trap_spell_hook); hook_install(GF_missile_launch, launch_hook); hook_install(21, 0x1ef8, 0x01e2, sidemsg_hook); hook_install(43, 0x150b, 0x1f40, sidemsg_hook);   /* (the cards' own copy: add_skill, s029 via vec_1e91) */ }
 
 /* every frame: falls, deaths and harm that came from no blow */
 extern "C" void battlelog_frame(void)
@@ -257,7 +275,8 @@ extern "C" void battlelog_frame(void)
             if (de || ds) {
                 int by = shot_by[i] >= 0 ? shot_by[i] : shooter_at(i);
                 shot_by[i] = -1;
-                if (by >= 0) { met[by] = met[i] = true; add(i < 5 ? 2 : by < 5 ? 0 : 1, named(by) + shot_word(by) + (ds > 0 ? " wounds " : " hits ") + named(i) + " (" + cost(de, ds) + ")"); }
+                if (by == BY_DART || by == BY_TRAP) { met[i] = true; add(i < 5 ? 2 : 4, named(i) + (ds > 0 ? " is wounded by " : " is hit by ") + (by == BY_DART ? "a dart from a trap" : "a trap") + " (" + cost(de, ds) + ")"); }
+                else if (by >= 0) { met[by] = met[i] = true; add(i < 5 ? 2 : by < 5 ? 0 : 1, named(by) + shot_word(by) + (ds > 0 ? " wounds " : " hits ") + named(i) + " (" + cost(de, ds) + ")"); }
                 else { met[i] = true; add(i < 5 ? 2 : 4, named(i) + " is hurt (" + cost(de, ds) + ")"); }
             }
         }
@@ -269,7 +288,8 @@ extern "C" void battlelog_frame(void)
         }
         if (shot_by[i] >= 0 && plat_ticks_ms() - shot_t[i] > 2500) {      /* it struck, and nothing came through */
             int by = shot_by[i]; shot_by[i] = -1;
-            if (st == 1 && by < 13) add(by < 5 ? 0 : 1, named(by) + shot_word(by) + " hits " + named(i) + ", the armor holds");
+            if (st == 1 && by == BY_DART) add(4, "A dart from a trap hits " + named(i) + ", the armor holds");
+            else if (st == 1 && by < 13) add(by < 5 ? 0 : 1, named(by) + shot_word(by) + " hits " + named(i) + ", the armor holds");
         }
         known_end[i] = e; known_str[i] = s; known_st[i] = st;
         if (st) last_st[i] = st;
