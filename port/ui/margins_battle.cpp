@@ -340,6 +340,7 @@ static void top_buttons(void)
     float lh = ImGui::GetTextLineHeight(), pad = lh * 0.3f, gap = lh * 0.4f;
     float bx = p.x;
     if (config_get_int("battle.fast_key", 1) && game_mode() == GM_BATTLE) {   /* fast forward (Z, mods/pathfix.c): on the field (not over a sheet or the loot) */
+        extern int ui_fast_button_frame; ui_fast_button_frame = ImGui::GetFrameCount();   /* (the field's badge then not shown: one sign of it) */
         const char *t = battle_fast ? (padp ? "Back to the chosen speed" : "Back to the chosen speed (Z)") : (padp ? "Fast forward" : "Fast forward (Z)");
         ImVec2 ts = ImGui::CalcTextSize(t);
         float gh = ts.y * 1.05f, gw = padp ? ui_pad_glyph_width(gh, PB_RSTICK) + pad : 0;
@@ -468,11 +469,15 @@ void battle_panel(float width, float fs)
     }
     else if (down == shown) {
         ImGui::TextDisabled("All down.");
-        /* a fight in a street or a dungeon: the party stays there afterwards (combat_flags 1) and the
-           game goes on only when it walks out through a way out (s014 combat_over) */
-        if ((g_rb(GV_combat_flags) & 1) && !g_rb(GV_real_combat)) {
+        /* a fight in a town's street: the party stays there afterwards (combat_flags 1) and the game goes on
+           only when it walks out (s014 combat_over), off the street's edge or through a door - which nothing
+           on the field says. Not in a castle, mine or dungeon: there the foes beaten are one group of many,
+           the party explores on, and the place is won when its master falls (said beside the master) */
+        int loc = (s16)g_rw(G_CUR_LOC); u32 lr = loc >= 0 && loc < G_NLOC ? g_location(loc) : 0;
+        int town = lr && (s16)rw((u16)(lr >> 16), (u16)lr) == 0;
+        if ((g_rb(GV_combat_flags) & 1) && !g_rb(GV_real_combat) && town) {
             ImGui::Spacing();
-            ImGui::TextWrapped("The fight is won. To go on, walk the party out of this place: click a way out (the edge of the street, a door, stairs).");
+            ImGui::TextWrapped("The fight is won. To go on, walk the party out of the street: click its edge or a door.");
         }
     }
     foes_left_section();

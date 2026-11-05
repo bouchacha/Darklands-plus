@@ -348,18 +348,22 @@ static int select_member(int i)
     return 1;
 }
 
-/* assist.inn_earn: a day of Just Relax refills Endurance and nothing else. A member at full Endurance
-   left relaxing is set to the day's work: at an inn Earn a little money, in camp Guard the camp (Relax
-   is not offered to them: can[0]). On opening, and after each day, as the game sets those done
-   regaining Strength or praying back to relaxing. */
+/* assist.inn_earn: a day of Just Relax refills Endurance and nothing else, yet it is what the game sets
+   everyone to. A member left relaxing is set to what it needs most (his order, 2026-11-05): Regain
+   Strength when short of it, else Pray when short of Divine Favor, else Just Relax when short of
+   Endurance; one who needs nothing to the day's work: at an inn Earn a little money, in camp Guard
+   the camp (Relax is then not offered: can[0]). On opening, and after each day, as the game sets those
+   done regaining Strength or praying back to relaxing; a day the player chose stands. */
 static int rested_to_work(LodgeModel *m)
 {
+    static const int ACT_KEY[6] = { 0x244a, 0x1352, 0x1950, 0x1e41, 0x1245, 0x2247 };
     if (!config_get_int("assist.inn_earn", 1) || config_get_int("original", 0)) return 0;
     int any = 0, sel0 = (s16)g_rw(LV_SEL);
     for (int i = 0; i < 5 && !ns_unwinding; i++) {
         const LodgeMember *p = &m->m[i];
-        if (!p->present || p->act != 0 || p->can[0]) continue;
-        if (select_member(i)) { key(p->can[4] ? 0x1245 : 0x2247, 0); any = 1; }
+        if (!p->present || p->act != 0) continue;
+        int to = p->can[1] ? 1 : p->can[2] ? 2 : p->can[0] ? 0 : p->can[4] ? 4 : 5;
+        if (to != 0 && select_member(i)) { key(ACT_KEY[to], 0); any = 1; }
     }
     if (any && !ns_unwinding) { select_member(sel0 >= 0 ? sel0 : 0); build(); }
     return any;

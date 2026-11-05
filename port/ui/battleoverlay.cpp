@@ -474,10 +474,13 @@ void ui_draw_battle_info(void)
 
 /* character creation: what the step on screen asks for and what the numbers on the right mean,
  * in the empty column at the left of the creation screen (s037 18c8, state D_8c1e) */
-/* fast forward in a battle (Z, mods/pathfix.c): a badge at the field's top right */
+/* fast forward in a battle (Z, mods/pathfix.c): a badge at the field's top right, where the right margin
+   does not show its own button for it ("Back to the chosen speed (Z)": two signs of one thing) */
+int ui_fast_button_frame = -100;
 void ui_draw_battle_fast(void)
 {
     if (!battle_fast || game_mode() != GM_BATTLE || ns_showing()) return;
+    if (ImGui::GetFrameCount() - ui_fast_button_frame <= 2) return;
     ImDrawList *dl = ovl_list();
     const char *t = "\xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z)";
     ImFont *f = ImGui::GetFont(); float fs = ImGui::GetFontSize();
