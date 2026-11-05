@@ -31,6 +31,7 @@ What changed since 1.4.5.
 - A member whose foe fell while it was on its way to it stood where it was for the rest of the fight, a foe hitting it or not.
 - **The miners' ten sacks of minerals** (a mine won) never reached the party: a card right after a battle made things from a copy of the item list the battle's own data lies over, and they came out as the wrong kind. Every thing a card gives now takes its kind from the item list (fix *Things a card gives after a battle are the things it names*).
 - **The dwarf's relic past a mine's iron door:** he tells of a relic its guards hold, which dwarfs cannot touch, and bids the party regain it, yet the game put a relic in the leader's hands at once. The relic is now in the loot of the next fight the party wins in that mine (fix *The dwarf's relic is won from its guards*).
+- **Chests in a mine that could not be opened:** some chests drawn on a mine's floors were only pictures, with nothing there to open. They are no longer drawn (fix *A chest in a mine is one the party can open*).
 - Foes on a mine's ninth floor (the demons of the deepest mines) were listed as "Enemy" in the battle margin and log: only eight floors' foes were read.
 - The battle margin's "The fight is won. To go on, walk the party out of this place" is gone: a street fight ends by itself once its foes are down, and in a castle, mine or dungeon the party explores on.
 - Fast forward showed twice in a battle: a badge over the field and the margin's button. The badge shows only where the margin does not.

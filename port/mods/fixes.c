@@ -197,6 +197,8 @@
  *  dwarfrelic The dwarf at a mine's iron door ($MineH00 text 7) tells of a relic its guards hold and
  *            hands the leader a relic there and then; it comes in the loot of the next fight won there
  *            (below, dwarfrelic).
+ *  minechests A mine's floor shows a chest (piece 5 closed, 6 open, of a cell's first byte's high nibble)
+ *            only where a chest is (below, minechests).
  *  carditems Things a card gives by kind (add_items, add_item, add_item_q) take their type and weight from
  *            the item list as it is, not the game's copy a battle or dungeon lays other data over
  *            (below, carditems).
@@ -383,6 +385,8 @@ Fix FIXES[] = {
       "In the mine of the dwarf king with the red hat, the iron door to the king brings him \"again\", with his hat, once its riddle is solved; but 2 of its 12 riddles led instead to the card where he tells the party to go away, which another door of the mine always brings. Brushing past him there opened the door, but the king was gone for good, so his treasure could no longer be offered back to him (GitHub issue 9). Now every riddle of that door brings the king with his red hat.", 1 },
     { "dwarfrelic", "The dwarf's relic is won from its guards",
       "Past an iron door in a mine, a grinning dwarf says that enemies beyond it guard a relic they stole, which the dwarfs cannot touch, and bids the party regain it; yet the game put a relic in the leader's hands there and then. Now the relic is among the things of the next fight the party wins in that mine (it shows in that fight's loot), and the dwarf speaks of it as taken only once it is.", 1 },
+    { "minechests", "A chest in a mine is one the party can open",
+      "Some chests drawn on a mine's floors are only pictures: no chest is there, and clicking or standing by one does nothing. They are no longer drawn; every chest left on a mine's floor can be opened (or picked, or its lock dissolved).", 1 },
     { "carditems", "Things a card gives after a battle are the things it names",
       "Once a mine is won, the miners give the party ten sacks of minerals (10 to 14 each of ten ingredients), but none reached the party's lists: a card right after a battle or in a dungeon made things from the game's copy of the item list, which the battle's own data lies over then, and they came out of the wrong kind. Now every thing a card gives takes its kind and weight from the item list itself.", 1 },
     { "prayfor", "Every prayer asks who it is for",
@@ -2700,6 +2704,37 @@ static void dwarfrelic_screen_hook(void)    /* loot_distribute (items far, u8 *c
     hook_call_original();
 }
 
+/* ---------------------------------------------------------------- minechests
+ * A floor's cells (20a5:0000, 40 x 40 x 4 bytes) hold a furniture piece in their first byte's high nibble; in a mine's
+ * set 5 is a closed chest and 6 an open one: the mine builder draws 5 at each chest it keeps (s009 1432: lv->cell[x6][x7]
+ * |= 0x50, the chest record's +6, +7), and opening one turns it to 6 (chest_open, s023 1ef8:13d0). A layout's chests the
+ * builder did not keep stay drawn, with no record (20a5:300c records of 0x2c bytes from 300e): nothing to open (his
+ * Döfering mine, floor 5). Here, as a mine's floor comes in (level_switch, s024 1ef8:059a), a 5 or 6 that is no
+ * record's picture is cleared. Only in a mine (the place's kind 6): elsewhere 5 and 6 are other furniture (a castle's
+ * set has dozens). */
+static void minechests_hook(void)
+{
+    hook_call_original();
+    if (unw_active) return;
+    int loc = (s16)g_rw(G_CUR_LOC);
+    u32 lr = loc >= 0 && loc < G_NLOC ? g_location(loc) : 0;
+    if (!lr || (s16)rw((u16)(lr >> 16), (u16)lr) != 6) return;
+    static unsigned char pic[40][40];
+    memset(pic, 0, sizeof pic);
+    int nc = (s8)rb(G_FAR20A5, 0x300c);
+    for (int k = 0; k < nc && k < 12; k++) {
+        int x = rb(G_FAR20A5, (u16)(0x300e + 0x2c * k + 6)), y = rb(G_FAR20A5, (u16)(0x300e + 0x2c * k + 7));
+        if (x < 40 && y < 40) pic[x][y] = 1;
+    }
+    int cleared = 0;
+    for (int x = 0; x < 40; x++) for (int y = 0; y < 40; y++) {
+        u16 o = (u16)((x * 40 + y) * 4);
+        int b0 = rb(G_FAR20A5, o), piece = b0 >> 4;
+        if ((piece == 5 || piece == 6) && !pic[x][y]) { wb(G_FAR20A5, o, (u8)(b0 & 0x0f)); cleared++; }
+    }
+    if (cleared && getenv("DL_FIX_LOG")) fprintf(stderr, "fix minechests: %d chest%s with nothing there not drawn\n", cleared, cleared == 1 ? "" : "s");
+}
+
 /* ---------------------------------------------------------------- carditems
  * A card gives things by kind through add_items (who, code, n), add_item (who, code) and add_item_q (who, code,
  * quality), s031 18e7:00e0, 0128, 016e, which fill the record's type, quality and weight from item_defs (2e38:0890),
@@ -2968,7 +3003,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook },
     { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
     { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook },
-    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook } };   /* (hitsound: mods/sfx.c) */
+    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook } };   /* (hitsound: mods/sfx.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {

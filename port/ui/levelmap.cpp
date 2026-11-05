@@ -707,8 +707,8 @@ extern "C" void levelmap_dump(void)
     for (int k = 0; k < nc && k < 12; k++) {
         u16 r0 = (u16)(0x300e + 0x2c * k);
         s16 x = (s16)rw(G_FAR20A5, r0), y = (s16)rw(G_FAR20A5, (u16)(r0 + 2));
-        fprintf(stderr, "  chest %d at %d,%d %dx%d lock %d acid %d (cell %d,%d)\n", k, x, y, rb(G_FAR20A5, (u16)(r0 + 4)), rb(G_FAR20A5, (u16)(r0 + 5)),
-                rb(G_FAR20A5, (u16)(r0 + 8)), rb(G_FAR20A5, (u16)(r0 + 9)), x / 32, y / 16);
+        fprintf(stderr, "  chest %d at %d,%d %dx%d lock %d acid %d (cell %d,%d; its picture's cell %d,%d)\n", k, x, y, rb(G_FAR20A5, (u16)(r0 + 4)), rb(G_FAR20A5, (u16)(r0 + 5)),
+                rb(G_FAR20A5, (u16)(r0 + 8)), rb(G_FAR20A5, (u16)(r0 + 9)), x / 32, y / 16, rb(G_FAR20A5, (u16)(r0 + 6)), rb(G_FAR20A5, (u16)(r0 + 7)));
     }
     fprintf(stderr, "  real combat %d, leader %d, paused %d\n", g_rb(GV_real_combat), (s8)g_rb(GV_marching_order), g_rb(GV_ai_paused));
     int nh = (s8)rb(G_FAR20A5, 0x2184);
