@@ -51,6 +51,8 @@ What changed since 1.4.5.
 
 **Changed**
 
+- **The alchemy screen lists each potion once:** its three formulae (grades 1 to 3) are seals under its name, green where the party's ingredients make a batch, red where they fall short, faint where the alchemist does not know it; a click on a seal chooses that formula. A star or a mark aside is for the potion, all three formulae (one set on a formula before is kept for its potion).
+- **The game's messages over the screens of Darklands+** (Alchemy Success, Saint Call Fails): a box as wide as its words, everything centred, the heading green for a success and red for a failure beside the shield of what it took. It was a wide box with the words at its top left.
 - **The journey's line on the maps:** straight lines between the places where the way turns, which keep their shape as the party walks. 1.4.5's smoothed line was worked out again at every step from where the party stood, and its bends moved about.
 - **The new encounters give no use to what the original leaves without one:** 33 of them called on saints (St. Michael in 20 of them) or asked for potions (Ironarm, Trueflight) or things (a torch, candle or lantern; a grappling hook) that none of the game's own cards asks for. They now call on saints and ask for potions and things that the game's own cards ask for too; the two that needed a light no longer do.
 - A ladder that leads nowhere says so (GitHub issue 9: the one past the door in the dwarf king's mine; the mine's builder makes it a dead end that brings the party back where it stands). The way on is the floor just past it: the iron door's riddle, then the king.

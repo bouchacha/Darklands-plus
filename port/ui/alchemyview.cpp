@@ -1,7 +1,8 @@
 /* alchemyview.cpp - draws the alchemy screen (mods/alchemyview.c runs it; docs/NATIVE_SCREENS.md)
  * on an alchemist's workbench (ui/alchemydesk.cpp): the formulary open, its left page the index
- * of the formulas the alchemist knows (how many potions the party's ingredients make; a star puts
- * one first, a mark puts it aside, last), its right page the chosen one written out (what it does,
+ * of the potions the alchemist knows a formula of, a row each with its three formulae (the grades)
+ * as seals (how many batches the party's ingredients make; a star puts a potion first, a mark puts
+ * it aside, last), its right page the chosen formula written out (what it does,
  * its mystic number and risk, its ingredients needed and at hand); the apothecary's chest beside
  * it, a compartment for each of the 23 ingredients with what the party carries, those the formula
  * needs tagged; the wax tablet below: the batches (- and +), the chance for every number of them
@@ -106,60 +107,111 @@ extern "C" void alchemyview_draw(void)
     }
     if (P.button(282, 4, 316, 16, "Leave", IM_COL32(112, 40, 22, 235), NsDraw::FS_HEADBTN, PB_Y)) ns_push(AV_LEAVE, 0, 0, 0);
 
-    /* ---- the formulary's left page: the index, the starred first and those put aside last */
+    /* ---- the formulary's left page: the index, a potion a row (the starred first, those put aside last), its
+       three formulae - the grades 1 to 3 - as seals under its name: green where the party's ingredients
+       make a batch, red where they fall short, faint where the alchemist does not know it; a click on a
+       seal chooses that formula, on the row the one chosen last for it (else the highest grade the
+       ingredients make, else the highest known) */
     const float LX0 = AD_BOOK_X0 + 6, LX1 = AD_GUTTER - 4, LY0 = AD_BOOK_Y0 + 11, ROWH = 12.5f; const int NROWS = 7;
     const float LY1 = LY0 + NROWS * ROWH;
-    std::vector<int> order;
+    static int chosen[22] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };   /* (the formula last chosen for a potion) */
+    int row_of[66]; for (int f = 0; f < 66; f++) row_of[f] = -1;
+    for (int i = 0; i < a.nrows; i++) if (a.row[i].formula >= 0 && a.row[i].formula < 66) row_of[a.row[i].formula] = i;
+    if (sel_f >= 0 && sel_f < 66) chosen[sel_f / 3] = sel_f;
+    auto row_for = [&](int k) {                                  /* the row a click on potion k's line chooses */
+        if (chosen[k] >= 0 && row_of[chosen[k]] >= 0) return row_of[chosen[k]];
+        int best = -1, best_can = -1;
+        for (int g = 0; g < 3; g++) { int f = 3 * k + g; if (row_of[f] < 0) continue; best = row_of[f]; if (batches_of(f)) best_can = row_of[f]; }
+        return best_can >= 0 ? best_can : best;
+    };
+    std::vector<int> order;                                     /* the potions with a formula known, by their marks */
     for (int mk : { FMARK_FIRST, FMARK_NONE, FMARK_LAST })
-        for (int i = 0; i < a.nrows; i++) { int m = formula_mark(a.row[i].formula); if (m == mk || (mk == FMARK_NONE && m != FMARK_FIRST && m != FMARK_LAST)) order.push_back(i); }
-    P.text(fo, 4.3f, LX0 + 1, AD_BOOK_Y0 + 5, soft, "Formulae known");
+        for (int k = 0; k < 22; k++) {
+            if (row_of[3 * k] < 0 && row_of[3 * k + 1] < 0 && row_of[3 * k + 2] < 0) continue;
+            int m = potion_mark(k);
+            if (m == mk || (mk == FMARK_NONE && m != FMARK_FIRST && m != FMARK_LAST)) order.push_back(k);
+        }
+    P.text(fo, 4.3f, LX0 + 1, AD_BOOK_Y0 + 5, soft, "Potions and their formulae known");
+    const int npot = (int)order.size();
     if (P.over(LX0, LY0, LX1, LY1) && ns_in.wheel != 0) { V.scroll -= (int)(ns_in.wheel * 2); ns_in.wheel = 0; }
-    int maxs = a.nrows - NROWS; if (maxs < 0) maxs = 0;
+    int maxs = npot - NROWS; if (maxs < 0) maxs = 0;
     if (V.scroll > maxs) V.scroll = maxs;
     if (V.scroll < 0) V.scroll = 0;
     if (!a.nrows) P.para(fo, NsDraw::FS_BODY, LX0 + 2, LY0 + 2, LX1 - LX0 - 4, dim, who + " knows no formulae yet.");
-    const char *mark_tip = nullptr;
-    for (int r = 0; r < NROWS && V.scroll + r < (int)order.size(); r++) {
-        int i = order[V.scroll + r];
-        const AvRow &w = a.row[i];
-        int mk = formula_mark(w.formula);
+    const char *mark_tip = nullptr; std::string seal_tip;
+    for (int r = 0; r < NROWS && V.scroll + r < npot; r++) {
+        const int k = order[V.scroll + r], mk = potion_mark(k);
         float y = LY0 + r * ROWH;
-        bool h = P.over(LX0, y, LX1, y + ROWH), sel = i == a.sel, put = mk == FMARK_LAST;
+        const bool h = P.over(LX0, y, LX1, y + ROWH), sel = sel_f >= 0 && sel_f / 3 == k, put = mk == FMARK_LAST;
         if (sel) P.rect(LX0, y + 0.3f, LX1, y + ROWH - 0.3f, IM_COL32(150, 60, 40, 70), 1.5f);
         else if (h) P.rect(LX0, y + 0.3f, LX1, y + ROWH - 0.3f, IM_COL32(150, 60, 40, 36), 1.5f);
-        P.icon(LX0 + 5, y + ROWH * 0.5f, 7.5f, 95 + w.formula / 3, -1, w.formula % 3 + 1);
+        const int fshow = sel ? sel_f : (row_for(k) >= 0 ? a.row[row_for(k)].formula : 3 * k);   /* (the formula the line tells of) */
+        P.icon(LX0 + 5, y + ROWH * 0.5f, 7.5f, 95 + k);
         if (put) P.dl->AddCircleFilled(NsDraw::w(LX0 + 5, y + ROWH * 0.5f), 4.2f * P.k, IM_COL32(236, 222, 186, 150));   /* (put aside: its flask faint) */
-        std::string nm = w.formula < (int)gamedata.formula_names.size() ? gamedata.formula_names[w.formula] : "?";
-        int bt = batches_of(w.formula);
-        int pc = potions_of(w.formula);                                   /* (the potion carried already, any grade) */
+        int any = 0; for (int g = 0; g < 3; g++) if (row_of[3 * k + g] >= 0) any |= batches_of(3 * k + g) > 0 || a.row[row_of[3 * k + g]].count > 0;   /* (a formula known that can be brewed) */
+        int pc = potions_of(3 * k);                                  /* (the potion carried already, any grade) */
         std::string pcs = pc ? std::to_string(pc) + " carried" : "";
         float pcw = pc ? P.width(fo, 4.2f, pcs) + 2 : 0;
-        P.text(f, 5.0f, LX0 + 10.5f, y + 0.9f, (bt || w.count) && !put ? ink : dim, nm, -1, LX1 - 1 - pcw);
+        P.text(f, 5.0f, LX0 + 10.5f, y + 0.9f, any && !put ? ink : dim, ns_item_name(95 + k), -1, LX1 - 1 - pcw);
         if (pc) P.text(fo, 4.2f, 0, y + 1.6f, put ? dim : soft, pcs, LX1 - 1);
-        std::string l2;
-        if (bt) l2 = "enough ingredients to make " + std::to_string(bt) + (bt == 1 ? " potion" : " potions");
-        else if (w.formula < (int)gamedata.formulas.size()) {                /* what is short: the first, and how many more */
+        /* the seals: a grade each */
+        const float SY = y + 9.0f, SR = 2.1f;
+        bool on_seal = false;
+        for (int g = 0; g < 3; g++) {
+            const int fm = 3 * k + g, rw_ = row_of[fm], bt = rw_ >= 0 ? batches_of(fm) : 0;
+            const float sx = LX0 + 12.6f + g * 5.2f;
+            const bool known = rw_ >= 0, cur = fm == sel_f, hov = P.over(sx - 2.4f, SY - 2.6f, sx + 2.4f, SY + 2.6f);
+            ImVec2 c = NsDraw::w(sx, SY); const float rr = SR * P.k;
+            ImU32 fill = !known ? 0 : bt ? IM_COL32(58, 118, 48, put ? 140 : 255) : IM_COL32(150, 62, 44, put ? 140 : 255);
+            if (fill) P.dl->AddCircleFilled(c, rr, fill, 16);
+            else P.dl->AddCircle(c, rr, IM_COL32(120, 96, 66, 130), 16, fmaxf(1.0f, 0.3f * P.k));
+            /* (rings: gold the formula chosen; brown the one the line tells of and a click on the row chooses) */
+            if (cur) P.dl->AddCircle(c, rr + 0.75f * P.k, IM_COL32(214, 160, 40, 255), 16, fmaxf(1.0f, 0.45f * P.k));
+            else if (hov && known) P.dl->AddCircle(c, rr + 0.7f * P.k, IM_COL32(214, 160, 40, 150), 16, fmaxf(1.0f, 0.35f * P.k));
+            else if (fm == fshow && known) P.dl->AddCircle(c, rr + 0.7f * P.k, IM_COL32(120, 80, 36, 170), 16, fmaxf(1.0f, 0.35f * P.k));
+            char gn[2] = { (char)('1' + g), 0 };
+            ImVec2 ts = f->CalcTextSizeA(3.6f * P.k, FLT_MAX, 0, gn);
+            P.dl->AddText(f, 3.6f * P.k, ImVec2(c.x - ts.x * 0.5f, c.y - ts.y * 0.52f), known ? IM_COL32(246, 234, 206, 255) : IM_COL32(120, 96, 66, 170), gn);
+            if (hov) {
+                on_seal = true;
+                std::string nm = fm < (int)gamedata.formula_names.size() ? gamedata.formula_names[fm] : "?";
+                static const char *RISKW[3] = { "low risk", "medium risk", "high risk" };
+                const Formula *F = fm < (int)gamedata.formulas.size() ? &gamedata.formulas[fm] : nullptr;
+                char b[300];
+                if (!known) snprintf(b, sizeof b, "Grade %d: %s. %s does not know this formula.", g + 1, nm.c_str(), who.c_str());
+                else snprintf(b, sizeof b, "Grade %d: %s. Mystic number %d, %s. %s%s", g + 1, nm.c_str(), F ? F->mystic : 0, F && F->risk >= 0 && F->risk < 3 ? RISKW[F->risk] : "?",
+                              bt ? ("The party's ingredients make " + std::to_string(bt) + (bt == 1 ? " batch." : " batches.")).c_str() : "The party's ingredients fall short of a batch.",
+                              cur ? " The formula on the right page." : " Click to choose it.");
+                seal_tip = b;
+                if (known && P.hit(sx - 2.4f, SY - 2.6f, sx + 2.4f, SY + 2.6f) && !cur) { chosen[k] = fm; ns_push(AV_SELECT, rw_, 0, 0); }
+            }
+        }
+        /* the line: the formula it tells of - what its ingredients make, or what is short */
+        std::string l2; const int bt = batches_of(fshow);
+        if (bt) l2 = "enough for " + std::to_string(bt) + (bt == 1 ? " batch" : " batches");
+        else if (fshow < (int)gamedata.formulas.size()) {
             int nshort = 0; std::string first;
-            for (const FormulaIngr &q : gamedata.formulas[w.formula].ingr) if (q.item >= 0 && q.item < 200 && have[q.item] < q.count) { if (!nshort) first = ns_item_name(q.item); nshort++; }
+            for (const FormulaIngr &q : gamedata.formulas[fshow].ingr) if (q.item >= 0 && q.item < 200 && have[q.item] < q.count) { if (!nshort) first = ns_item_name(q.item); nshort++; }
             l2 = "needs " + first + (nshort > 1 ? " and " + std::to_string(nshort - 1) + " more" : "");
         }
-        if (w.count) l2 = std::to_string(w.count) + (w.count == 1 ? " batch set - " : " batches set - ") + l2;
+        if (row_of[fshow] >= 0 && a.row[row_of[fshow]].count) { int c = a.row[row_of[fshow]].count; l2 = std::to_string(c) + (c == 1 ? " batch set - " : " batches set - ") + l2; }
         /* the marks, at the end of the second line: shown when set, offered when the row is pointed at */
         const float SX = LX1 - 9.5f, AX2 = LX1 - 3.5f, MY = y + 9.0f;
         bool on_star = P.over(SX - 2.8f, y + 5.8f, SX + 2.8f, y + ROWH), on_aside = P.over(AX2 - 2.8f, y + 5.8f, AX2 + 2.8f, y + ROWH);
-        P.text(fo, 4.2f, LX0 + 10.5f, y + 6.8f, put ? dim : bt ? green : red, l2, -1, (h || mk) ? SX - 3.5f : LX1 - 1);
+        P.text(fo, 4.2f, LX0 + 28.5f, y + 6.8f, put ? dim : bt ? green : red, l2, -1, (h || mk) ? SX - 3.5f : LX1 - 1);
         if (mk == FMARK_FIRST || h)
             star(P.dl, SX, MY, 2.3f, mk == FMARK_FIRST ? IM_COL32(222, 168, 40, 255) : on_star ? IM_COL32(222, 168, 40, 110) : 0,
                  mk == FMARK_FIRST ? IM_COL32(120, 70, 10, 255) : IM_COL32(120, 80, 36, on_star ? 230 : 140), th);
         if (put || h) aside(P.dl, AX2, MY - 0.3f, 2.2f, put ? IM_COL32(120, 80, 36, 255) : IM_COL32(120, 80, 36, on_aside ? 230 : 120), th);
-        if (on_star) mark_tip = mk == FMARK_FIRST ? "Starred: first in the list. Click to take the star off." : "Star it: first in the list.";
+        if (on_star) mark_tip = mk == FMARK_FIRST ? "Starred: first in the list, all three formulae. Click to take the star off." : "Star it: first in the list, all three formulae.";
         else if (on_aside) mark_tip = put ? "Put aside: last in the list, still there. Click to bring it back." : "Put it aside: last in the list, still there.";
-        if (P.hit(SX - 2.8f, y + 5.8f, SX + 2.8f, y + ROWH)) formula_mark_set(w.formula, mk == FMARK_FIRST ? FMARK_NONE : FMARK_FIRST);
-        else if (P.hit(AX2 - 2.8f, y + 5.8f, AX2 + 2.8f, y + ROWH)) formula_mark_set(w.formula, put ? FMARK_NONE : FMARK_LAST);
-        else if (P.hit(LX0, y, LX1, y + ROWH) && !sel) ns_push(AV_SELECT, i, 0, 0);
+        if (P.hit(SX - 2.8f, y + 5.8f, SX + 2.8f, y + ROWH)) potion_mark_set(k, mk == FMARK_FIRST ? FMARK_NONE : FMARK_FIRST);
+        else if (P.hit(AX2 - 2.8f, y + 5.8f, AX2 + 2.8f, y + ROWH)) potion_mark_set(k, put ? FMARK_NONE : FMARK_LAST);
+        else if (!on_seal && P.hit(LX0, y, LX1, y + ROWH) && !sel && row_for(k) >= 0) ns_push(AV_SELECT, row_for(k), 0, 0);
     }
-    if (a.nrows > NROWS) {
-        float th2 = (LY1 - LY0) * NROWS / a.nrows, ty = LY0 + (LY1 - LY0 - th2) * V.scroll / (float)(a.nrows - NROWS);
+    if (!mark_tip && !seal_tip.empty()) { static std::string keep_tip; keep_tip = seal_tip; mark_tip = keep_tip.c_str(); }
+    if (npot > NROWS) {
+        float th2 = (LY1 - LY0) * NROWS / npot, ty = LY0 + (LY1 - LY0 - th2) * V.scroll / (float)(npot - NROWS);
         P.rect(LX1 + 0.6f, ty, LX1 + 1.6f, ty + th2, IM_COL32(120, 80, 36, 140), 0.6f);
     }
 

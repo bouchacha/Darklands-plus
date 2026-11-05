@@ -136,12 +136,38 @@ static void set_batches(int n)
     }
 }
 
-/* the row shown first: the first formula starred, else the first not put aside (keep.c) */
+/* the party's ingredients make a batch of formula f */
+static int can_brew(int f)
+{
+    u32 p = formula_ptr(f);
+    for (int i = 0; p && i < 5; i++) {
+        int c = (s8)rb((u16)(p >> 16), (u16)((u16)p + 0x54 + 4 * i)), it = (s16)rw((u16)(p >> 16), (u16)((u16)p + 0x56 + 4 * i));
+        if (!c) break;
+        if (have(it) < c) return 0;
+    }
+    return p != 0;
+}
+/* potion k's row (its formula) to begin with: the highest grade known that the ingredients make, else the
+   highest known; -1 if none of its formulae is known */
+static int potion_row(int k)
+{
+    int n = (s16)g_rw(GV_alchemy_nrows), best = -1, best_can = -1;
+    for (int r = 0; r < n; r++) {
+        int f = row_formula(r);
+        if (f / 3 != k) continue;
+        if (best < 0 || f > row_formula(best)) best = r;
+        if (can_brew(f) && (best_can < 0 || f > row_formula(best_can))) best_can = r;
+    }
+    return best_can >= 0 ? best_can : best;
+}
+/* the row shown first: the first potion starred, else the first not put aside (keep.c) */
 static int first_row(void)
 {
-    int n = (s16)g_rw(GV_alchemy_nrows);
-    for (int r = 0; r < n; r++) if (formula_mark(row_formula(r)) == FMARK_FIRST) return r;
-    for (int r = 0; r < n; r++) if (formula_mark(row_formula(r)) != FMARK_LAST) return r;
+    for (int pass = 0; pass < 2; pass++)
+        for (int k = 0; k < 22; k++) {
+            int m = potion_mark(k), r = potion_row(k);
+            if (r >= 0 && (pass ? m != FMARK_LAST : m == FMARK_FIRST)) return r;
+        }
     return 0;
 }
 
