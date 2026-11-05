@@ -20,6 +20,7 @@ volatile int poll_flag = 1;
 extern int in_game_call;  /* (below) an evaluation is running (gamecall.c) */
 int idle_hits;          /* busy-wait polls (keyboard status, retrace) since the last dl_poll() */
 int spin_polls;         /* the game asked for a click (int 33h, 5 and 6), a key (int 16h, 1) or the time (int 21h, 2Ah / 2Ch) */
+static int input_asks;  /* the game asked for the mouse (int 33h, 3, 5, 6) or a key (int 16h, 0, 1): it is listening (dl_poll's stall watch) */
 static u32 screen_changed;  /* when the picture or the palette last changed */
 static int spin_limit(void) { static int v = -1; if (v < 0) { const char *e = getenv("DL_SPIN_LIMIT"); v = e ? atoi(e) : 150; } return v; }
 int idle_rest = 1;      /* rest while the game only waits (always; DL_NO_SPIN_REST for tests) */
@@ -333,13 +334,13 @@ static void int33(void)
         ms_minx = 0; ms_maxx = 639; ms_miny = 0; ms_maxy = 199; ms_x = 320; ms_y = 100; ms_mickx = ms_micky = 0; ms_resync = 1; break;
     case 0x01: ms_shown++; break;
     case 0x02: ms_shown--; break;
-    case 0x03: BX = (u16)ms_b; CX = (u16)ms_x; DX = (u16)ms_y; if (ms_resync == 1) ms_resync = 2; break;
+    case 0x03: input_asks++; BX = (u16)ms_b; CX = (u16)ms_x; DX = (u16)ms_y; if (ms_resync == 1) ms_resync = 2; break;
     case 0x04: { static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_MOUSE") != 0; if (tr) fprintf(stderr, "mouse: set %d,%d\n", (s16)CX, (s16)DX); }
         ms_x = CX; ms_y = DX;
         if (!in_game_call) { void plat_mouse_warp(int, int); plat_mouse_warp((s16)CX / 2, (s16)DX); }   /* the system pointer follows (not for an evaluation) */
         break;
-    case 0x05: spin_polls++; { int b = BX & 3; AX = (u16)ms_b; BX = (u16)ms_press[b]; CX = (u16)ms_lpx[b]; DX = (u16)ms_lpy[b]; ms_press[b] = 0; break; }
-    case 0x06: spin_polls++; { int b = BX & 3; AX = (u16)ms_b; BX = (u16)ms_release[b]; CX = (u16)ms_lrx[b]; DX = (u16)ms_lry[b]; ms_release[b] = 0; break; }
+    case 0x05: spin_polls++; input_asks++; { int b = BX & 3; AX = (u16)ms_b; BX = (u16)ms_press[b]; CX = (u16)ms_lpx[b]; DX = (u16)ms_lpy[b]; ms_press[b] = 0; break; }
+    case 0x06: spin_polls++; input_asks++; { int b = BX & 3; AX = (u16)ms_b; BX = (u16)ms_release[b]; CX = (u16)ms_lrx[b]; DX = (u16)ms_lry[b]; ms_release[b] = 0; break; }
     case 0x07: { static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_MOUSE") != 0; if (tr) fprintf(stderr, "mouse: x range %d..%d\n", (s16)CX, (s16)DX); }
         ms_minx = (s16)CX < (s16)DX ? (s16)CX : (s16)DX; ms_maxx = (s16)CX < (s16)DX ? (s16)DX : (s16)CX; break;
     case 0x08: { static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_MOUSE") != 0; if (tr) fprintf(stderr, "mouse: y range %d..%d\n", (s16)CX, (s16)DX); }
@@ -544,8 +545,8 @@ static void service(int n)
     case 0x15: if (AH == 0x88) { AX = 0; SETCF(0); } else { AH = 0x86; SETCF(1); } break;
     case 0x16:
         switch (AH & 0xef) {
-        case 0x00: { u16 w; while (!(w = bios_kbd_get(1))) { poll_flag = 1; dl_poll(); plat_sleep_ms(5); } AX = w; break; }
-        case 0x01: { u16 w = bios_kbd_get(0); SETZF(w == 0); if (w) AX = w; else spin_polls++; poll_flag = 1; break; }
+        case 0x00: { u16 w; input_asks++; while (!(w = bios_kbd_get(1))) { poll_flag = 1; dl_poll(); plat_sleep_ms(5); } AX = w; break; }
+        case 0x01: { u16 w = bios_kbd_get(0); SETZF(w == 0); input_asks++; if (w) AX = w; else spin_polls++; poll_flag = 1; break; }
         case 0x02: AL = shift_state; break;
         default: break;
         }
@@ -645,6 +646,10 @@ void dl_poll(void)
     { static int tr = -1; static u32 lt, np; if (tr < 0) tr = getenv("DL_TRACE_POLL") != 0;
       if (tr) { np++; u32 t = plat_ticks_ms(); if (t - lt >= 1000) { lt = t; fprintf(stderr, "poll %u: %u polls, game call %d, irq %d, if %d, menu %d, cs %04x\n", t, np, in_game_call, in_irq, R.iflag, plat_menu_open(), CS); np = 0; } } }
     if (in_game_call) { void call_watchdog(void); call_watchdog(); return; }
+    {   /* the game run from inside an interface frame (ui/ui.cpp ui_draw): its next picture would begin another */
+        extern int ui_frame_depth; void plat_native_stack(void);
+        if (ui_frame_depth) { static int said; if (!said++) { fprintf(stderr, "dl_poll: the game run from inside an interface frame\n"); plat_native_stack(); } }
+    }
     if (in_irq) return;
     if (idle_hits > 300) plat_sleep_ms(1);     /* the game is busy-waiting: give the CPU back */
     idle_hits = 0;
@@ -687,6 +692,19 @@ void dl_poll(void)
         }
         present_end = plat_ticks_ms();
         present_cost = present_end - now; if (present_cost > 100) present_cost = 100;
+        {   /* a stall: the picture goes on being drawn while the game asks for no key or click (a freeze in a mine,
+               1.4.6-RC12, "unresponsive to controls although it's still running", the keys taken late): said in the
+               log with what the game was doing, and when it listens again */
+            static u32 heard, stalled; int game_mode(void); extern int battle_fast, hook_current;
+            if (input_asks || plat_menu_open() || game_mode() == 0) { input_asks = 0; heard = now;
+                if (stalled) { fprintf(stderr, "stall: over after %u ms\n", now - stalled); stalled = 0; } }
+            else if (now - heard > 2500 && !stalled) {
+                stalled = heard; void plat_native_stack(void);
+                fprintf(stderr, "stall: the game has asked for no key or click for %u ms (game mode %d, fast forward %d, frame %u ms, hooked function %d)\n",
+                        now - heard, game_mode(), battle_fast, present_cost, hook_current);
+                plat_native_stack();
+            }
+        }
         if (plat_menu_open()) {               /* the game is paused while the menu is open */
             /* the music plays on (sound.music_in_menus) while the world map, F12 or another window of
                Darklands+ is open, outside battles: the game's timer interrupt (which drives the music

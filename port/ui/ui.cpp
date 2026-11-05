@@ -536,8 +536,12 @@ static void draw_icon_grid(void)
 int vt_on = -1, vt_frame, vt_last_mark, vt_time = -1;
 unsigned long long ui_build_us;
 extern "C" int ui_vtx, ui_cmds; int ui_vtx, ui_cmds;   /* (DL_PRESENT_TIME: the size of what the interface hands the graphics card) */
+extern "C" int ui_frame_depth; int ui_frame_depth;    /* an interface frame being made (the game must not run inside one: runtime/bios.c dl_poll) */
+extern "C" void plat_native_stack(void);
 extern "C" void ui_draw(SDL_Renderer *ren)
 {
+    if (ui_frame_depth) { static int said; if (!said++) { fprintf(stderr, "ui: a frame begun while another is being made\n"); plat_native_stack(); } }
+    ui_frame_depth++;
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::GetStyle().HoverDelayNormal = config_get_int("display.tooltip_delay", 500) / 1000.0f;   /* (third_party/imgui: a tooltip waits so long) */
@@ -740,6 +744,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
             fprintf(stderr, "renderer: %s (a frame of %d vertices, %d indices)\n", e, dd->TotalVtxCount, dd->TotalIdxCount);
         }
     }
+    ui_frame_depth--;
 }
 
 /* the first start of a release: the game module is being made (runtime/prepare_run.c) */

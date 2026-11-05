@@ -102,6 +102,22 @@ static LONG WINAPI crash_filter(EXCEPTION_POINTERS *e)
     return EXCEPTION_EXECUTE_HANDLER;
 }
 static void crash_handler_install(void) { SetUnhandledExceptionFilter(crash_filter); }
+/* the native call stack, in the log: each frame as module+offset (darklands_dbg.exe of the same build names
+   the program's) */
+void plat_native_stack(void)
+{
+    void *fr[40]; USHORT k = RtlCaptureStackBackTrace(1, 40, fr, 0);
+    fprintf(stderr, "native stack:");
+    for (int i = 0; i < k; i++) {
+        HMODULE m = 0; char nm[MAX_PATH] = "?";
+        if (GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)fr[i], &m) && m) {
+            GetModuleFileNameA(m, nm, sizeof nm);
+            const char *b = strrchr(nm, '\\'); if (b) memmove(nm, b + 1, strlen(b));
+        }
+        fprintf(stderr, " %s+%llx", nm, (unsigned long long)((char *)fr[i] - (char *)m));
+    }
+    fprintf(stderr, "\n");
+}
 #else
 #include <signal.h>
 #include <execinfo.h>
@@ -113,6 +129,12 @@ static void crash_signal(int sig)
     void *fr[48]; int k = backtrace(fr, 48);
     backtrace_symbols_fd(fr, k, 2);
     signal(sig, SIG_DFL); raise(sig);
+}
+void plat_native_stack(void)
+{
+    fprintf(stderr, "native stack:\n"); fflush(stderr);
+    void *fr[40]; int k = backtrace(fr, 40);
+    backtrace_symbols_fd(fr + 1, k - 1, 2);
 }
 static void crash_handler_install(void)
 {

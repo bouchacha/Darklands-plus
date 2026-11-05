@@ -52,7 +52,8 @@ void pathfix_long_search(int on);
 static int walk_to(int lead, int tx, int ty, int *gx, int *gy)
 {
     int otx = (s16)g_rw(CBF(lead, CB_TO_X)), oty = (s16)g_rw(CBF(lead, CB_TO_Y));
-    int mx = -1, my = -1;
+    int mx = -1, my = -1, tries = 0;
+    u32 t0 = plat_ticks_ms();
     pathfix_long_search(1);
     /* first the cell itself: its middle, else the spot in it nearest the middle a member can stand on (beside a
        wall the middle can be too near it for the member's breadth, and the walk went to the next cell: 1.4,
@@ -67,6 +68,7 @@ static int walk_to(int lead, int tx, int ty, int *gx, int *gy)
         int px = tx + off[k][0], py = ty + off[k][1];
         if (px < 0 || py < 0 || px >= 40 * 32 || py >= 40 * 16 || px / 32 != tx / 32 || py / 16 != ty / 16) continue;
         g_ww(CBF(lead, CB_TO_X), (u16)px); g_ww(CBF(lead, CB_TO_Y), (u16)py);
+        tries++;
         if (ns_call(GF_path_find, 1, lead) == 1) { mx = px; my = py; }
         if (ns_unwinding) { pathfix_long_search(0); return 0; }
     }
@@ -77,10 +79,12 @@ static int walk_to(int lead, int tx, int ty, int *gx, int *gy)
                 int px = tx + dx * 32, py = ty + dy * 16;
                 if (px < 0 || py < 0 || px >= 40 * 32 || py >= 40 * 16) continue;
                 g_ww(CBF(lead, CB_TO_X), (u16)px); g_ww(CBF(lead, CB_TO_Y), (u16)py);
+                tries++;
                 if (ns_call(GF_path_find, 1, lead) == 1) { mx = px; my = py; }
                 if (ns_unwinding) { pathfix_long_search(0); return 0; }
             }
     pathfix_long_search(0);
+    if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: %d routes looked for in %u ms (%s)\n", tries, plat_ticks_ms() - t0, mx < 0 ? "none" : "found");
     if (mx < 0) { g_ww(CBF(lead, CB_TO_X), (u16)otx); g_ww(CBF(lead, CB_TO_Y), (u16)oty); return 0; }
     for (int i = 0; i < 5; i++) if (g_rb(CBF(i, CB_STATUS)) == 1) g_wb((u16)(GV_cbt_moving + i), 1);
     ns_call(GF_path_give, 1, lead);                             /* (the path found last: to mx, my) */
