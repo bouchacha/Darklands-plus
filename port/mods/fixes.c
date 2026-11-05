@@ -194,6 +194,12 @@
  *            (the item list's), not quality 35 and item type 0x9f for any relic (below, minerelic).
  *  ownplace  A place stepped on is the place whose own tile it is, when the game took another one
  *            near it (below, ownplace).
+ *  dwarfrelic The dwarf at a mine's iron door ($MineH00 text 7) tells of a relic its guards hold and
+ *            hands the leader a relic there and then; it comes in the loot of the next fight won there
+ *            (below, dwarfrelic).
+ *  carditems Things a card gives by kind (add_items, add_item, add_item_q) take their type and weight from
+ *            the item list as it is, not the game's copy a battle or dungeon lays other data over
+ *            (below, carditems).
  *  cityalert, dayjobs, cloudline, attrsum, lootcount, corridors, battledead, createback: below, each
  *            at its hook (Arkana Mechanika's B-55afd6, B-074e99, B-3cc78a and B-bfb04e, B-82a302,
  *            B-e080d4, B-c90740, B-f7799c, B-126118).
@@ -375,6 +381,10 @@ Fix FIXES[] = {
       "At a robber knight's tower, challenging him, sneaking up and other tries each leave word that the castle is on its guard for 270 days, a new note each time beside the last. Enough tries filled the game's table of 300 notes, and then nothing new could be noted: \"EVENT Failure\" at every turn (GitHub issue 8). Now a new note replaces the last, and a saved game's extra copies are dropped as it loads.", 1 },
     { "kingdoor", "The dwarf king waits behind his own door",
       "In the mine of the dwarf king with the red hat, the iron door to the king brings him \"again\", with his hat, once its riddle is solved; but 2 of its 12 riddles led instead to the card where he tells the party to go away, which another door of the mine always brings. Brushing past him there opened the door, but the king was gone for good, so his treasure could no longer be offered back to him (GitHub issue 9). Now every riddle of that door brings the king with his red hat.", 1 },
+    { "dwarfrelic", "The dwarf's relic is won from its guards",
+      "Past an iron door in a mine, a grinning dwarf says that enemies beyond it guard a relic they stole, which the dwarfs cannot touch, and bids the party regain it; yet the game put a relic in the leader's hands there and then. Now the relic is among the things of the next fight the party wins in that mine (it shows in that fight's loot), and the dwarf speaks of it as taken only once it is.", 1 },
+    { "carditems", "Things a card gives after a battle are the things it names",
+      "Once a mine is won, the miners give the party ten sacks of minerals (10 to 14 each of ten ingredients), but none reached the party's lists: a card right after a battle or in a dungeon made things from the game's copy of the item list, which the battle's own data lies over then, and they came out of the wrong kind. Now every thing a card gives takes its kind and weight from the item list itself.", 1 },
     { "prayfor", "Every prayer asks who it is for",
       "A prayer from the character sheet asks who it is for, but one a card calls for (calling on a saint in an encounter or in a town) did not: the game took it as a prayer for the whole party, and what the saint gives one person (a boost, healing) went to the party's leader, though another prayed and spent the Divine Favor. Praying with P, without choosing, did the same. Now every prayer asks who it is for, the one who prays first, and a prayer made without choosing helps the one who prays.", 1 },
 };
@@ -2600,6 +2610,121 @@ static void minerelic_hook(void)            /* s009 182c:1146 (struct grp far *g
     hook_call_original();
 }
 
+/* ---------------------------------------------------------------- dwarfrelic
+ * $MineH00 (s101 1957:0004), past an iron door's riddle of its fourth group (prev_screen 0xd8..0xde): "Further beyond
+ * this door, Enemies linger, to Guard with their lives holy Treasure they've stole ... Try to regain it", the dwarfs
+ * "always vulnerable to Christian symbols"; the script then picks a relic the party lacks (vec_207b(0x1000)), gives it
+ * to the leader (add_item, s031 18e7:0128) and notes the mine as despoiled for good (event_new(-2, loc, 0x5a, 0x1c,
+ * 7, 0x63, 0, 9999 h, 0, 0xc), its last argument the note's tag (+0x28); a later visit's text 8: "you've taken their
+ * relic"). Here the relic is held back: the note is made with tag DR_TAG and the relic in its aux (+0x2a) (so loc_fact(0xc,
+ * 7) does not find it, and the save keeps it), and the next loot of a fight at that place (a loot screen in the battle, not a chest's,
+ * s023 1ef8:13d0) has the relic
+ * in its pile; the note then becomes the game's own (tag 0xc). */
+#define DR_TAG 0x7c
+static int dr_pending, dr_chest;
+static int card_named(const char *n) { char nm[16]; g_str(G_DGROUP, GV_card_name, nm, sizeof nm); return !strcasecmp(nm, n); }
+/* the note of a relic waiting at loc in EVENTS.TMP (u16 count, then 0x30-byte records, as cards_shutdown wrote it): its relic,
+   the note made the game's own there (tag 0xc), as cards_startup will read it back after the battle; 0 none */
+static int dr_take_from_file(int loc)
+{
+    char p[1200]; dos_host_path("EVENTS.TMP", p, sizeof p);
+    FILE *f = fopen(p, "r+b");
+    if (!f) return 0;
+    unsigned char c[2], r[0x30]; int code = 0;
+    if (fread(c, 1, 2, f) == 2) {
+        int n = c[0] | c[1] << 8;
+        for (int i = 0; i < n && i < G_NEVENTS && !code; i++) {
+            long at = ftell(f);
+            if (fread(r, 1, 0x30, f) != 0x30) break;
+            int kind = (s16)(r[0x22] | r[0x23] << 8), t0 = (s16)(r[0] | r[1] << 8), tag = (s16)(r[0x28] | r[0x29] << 8), l = (s16)(r[0x1c] | r[0x1d] << 8);
+            if (kind != 0x1c || t0 != 7 || tag != DR_TAG || l != loc) continue;
+            code = r[0x2a] | r[0x2b] << 8;
+            r[0x28] = 0xc; r[0x29] = 0; r[0x2a] = 0; r[0x2b] = 0;
+            fseek(f, at, SEEK_SET); fwrite(r, 1, 0x30, f);
+        }
+    }
+    fclose(f);
+    return code;
+}
+static void dwarfrelic_item_hook(void)      /* add_item_impl (who, code), s031 18e7:0128 */
+{
+    int code = (s16)rw(SS, (u16)(SP + 6));
+    if (code >= 0x96 && code <= 0xab && card_named("$MineH00")) {
+        dr_pending = code;
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix dwarfrelic: relic %#x held back for the guards beyond the door\n", code);
+        hook_return_far(0);
+        return;
+    }
+    hook_call_original();
+}
+static void dwarfrelic_event_hook(void)     /* event_new (owner, loc, c, kind, type, f, g, hours, x, tag), s029 0e76:2c4e */
+{
+    if (dr_pending && (s16)rw(SS, (u16)(SP + 10)) == 0x1c && (s16)rw(SS, (u16)(SP + 12)) == 7 && (s16)rw(SS, (u16)(SP + 22)) == 0xc) {
+        int loc = (s16)rw(SS, (u16)(SP + 6));
+        for (int i = 0; i < G_NEVENTS; i++) {               /* (the door passed again before the fight: the relic already waits) */
+            u32 e = g_event(i);
+            if (e && g_ev(e, G_EV_KIND) == 0x1c && g_ev(e, G_EV_TYPE0) == 7 && g_ev(e, G_EV_TAG) == DR_TAG && g_ev(e, G_EV_LOC) == loc) { dr_pending = 0; AX = (u16)i; hook_return_far(0); return; }
+        }
+        int code = dr_pending; dr_pending = 0;
+        ww(SS, (u16)(SP + 22), DR_TAG);                     /* (the last argument: the note's tag, +0x28) */
+        hook_call_original();
+        u32 e = (s16)AX >= 0 && !unw_active ? g_event((s16)AX) : 0;
+        if (e) ww((u16)(e >> 16), (u16)((u16)e + G_EV_AUX), (u16)code);   /* (the relic waiting, in the note itself: a save keeps it) */
+        return;
+    }
+    hook_call_original();
+}
+static void dwarfrelic_chest_hook(void) { dr_chest++; hook_call_original(); if (dr_chest > 0) dr_chest--; }   /* (chest_open, s023 1ef8:13d0: a chest's things, not a fight's) */
+static void dwarfrelic_screen_hook(void)    /* loot_distribute (items far, u8 *count, cash far), s040 1462:0000: the loot screen's entry; after a
+                                               fight at a place where a relic waits, it is in the pile (the native loot screen reads it from there) */
+{
+    int loc = (s16)g_rw(G_CUR_LOC);
+    u16 off = rw(SS, (u16)(SP + 4)), sg = rw(SS, (u16)(SP + 6)), cp = rw(SS, (u16)(SP + 8));
+    int n = g_rb(cp), code = 0;
+    if (!dr_chest && g_rb(GV_in_battle) == 1 && loc >= 0 && sg && n < 200) {
+        if (fixes_cards_down()) code = dr_take_from_file(loc);       /* (a battle has closed the cards: the party's notes are in EVENTS.TMP) */
+        else for (int i = 0; i < G_NEVENTS && !code; i++) {
+            u32 e = g_event(i);
+            if (!e || g_ev(e, G_EV_KIND) != 0x1c || g_ev(e, G_EV_TYPE0) != 7 || g_ev(e, G_EV_TAG) != DR_TAG || g_ev(e, G_EV_LOC) != loc) continue;
+            code = g_ev(e, G_EV_AUX);
+            ww((u16)(e >> 16), (u16)((u16)e + G_EV_TAG), 0xc); ww((u16)(e >> 16), (u16)((u16)e + G_EV_AUX), 0);
+        }
+    }
+    if (code >= 0x96 && code <= 0xab) {
+        u16 o = (u16)(off + 6 * n);
+        ww(sg, o, (u16)code); wb(sg, (u16)(o + 2), (u8)gm_itemdef_u8(code, 0x1e)); wb(sg, (u16)(o + 3), (u8)gm_itemdef_u8(code, 0x26));
+        wb(sg, (u16)(o + 4), 1); wb(sg, (u16)(o + 5), (u8)gm_itemdef_u8(code, 0x25));
+        g_wb(cp, (u8)(n + 1));
+        fprintf(stderr, "fix dwarfrelic: the guards' relic %#x is in the loot\n", code);
+    }
+    hook_call_original();
+}
+
+/* ---------------------------------------------------------------- carditems
+ * A card gives things by kind through add_items (who, code, n), add_item (who, code) and add_item_q (who, code,
+ * quality), s031 18e7:00e0, 0128, 016e, which fill the record's type, quality and weight from item_defs (2e38:0890),
+ * the game's copy of DARKLAND.LST: a battle or a dungeon lays its own data over it, and a card right after one ($MineE00,
+ * the miners' ten sacks once the mine is won: ten ingredients, 10 to 14 each) made records of the wrong type (72 as
+ * type 5, not 109), which the party's lists then did not show. Here the record (add_item_rec_impl, its struct on the
+ * stack: code, type, quality, count, weight) takes them from the list itself; add_item_q's quality stays. */
+static int ci_kind;                         /* 1 a thing of the list's quality, 2 of the caller's */
+static void carditems_n_hook(void)   { ci_kind = 1; hook_call_original(); ci_kind = 0; }
+static void carditems_one_hook(void) { ci_kind = 1; hook_call_original(); ci_kind = 0; }
+static void carditems_q_hook(void)   { ci_kind = 2; hook_call_original(); ci_kind = 0; }
+static void carditems_rec_hook(void)        /* add_item_rec_impl (who, struct item) */
+{
+    if (ci_kind) {
+        int code = rw(SS, (u16)(SP + 6)) & 0xfff, t = gm_itemdef_u8(code, 0x1e), w = gm_itemdef_u8(code, 0x25), q = gm_itemdef_u8(code, 0x26);
+        if (t >= 0 && rb(SS, (u16)(SP + 8)) != (u8)t) {
+            if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix carditems: item %d of type %d, not %d\n", code, t, rb(SS, (u16)(SP + 8)));
+            wb(SS, (u16)(SP + 8), (u8)t);
+            if (w >= 0) wb(SS, (u16)(SP + 11), (u8)w);
+            if (ci_kind == 1 && q >= 0) wb(SS, (u16)(SP + 9), (u8)q);
+        }
+    }
+    hook_call_original();
+}
+
 /* ---------------------------------------------------------------- rkcastle
  * The givers of robber knights (the councils, lords, merchants, the Hanse, the Fuggers, a village:
  * s039 1462:10b6 and its ten callers) name the knight of the castle nearest them: nearest_loc_type
@@ -2843,10 +2968,12 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook },
     { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
     { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook },
-    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { GF_saint_finish, prayfor_hook } };   /* (hitsound: mods/sfx.c) */
+    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook } };   /* (hitsound: mods/sfx.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
+    { "dwarfrelic", GF_event_new, dwarfrelic_event_hook }, { "dwarfrelic", GF_chest_open, dwarfrelic_chest_hook }, { "dwarfrelic", 40, 0x1462, 0x0000, dwarfrelic_screen_hook },
+    { "carditems", GF_add_items_impl, carditems_n_hook }, { "carditems", 31, 0x18e7, 0x0128, carditems_one_hook }, { "carditems", GF_add_item_q, carditems_q_hook },
     { "knightdead", 81, 0x1838, 0x0000, knightcard_hook }, { "knightdead", 81, 0x18bb, 0x0004, knightcard_hook },
     { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook },
     { "teachers", 29, 0x0e76, 0x324c, teachers_next_hook }, { "armorwear", 19, 0x1ef8, 0x0914, wornout_hook },
