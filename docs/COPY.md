@@ -2785,7 +2785,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/checks.c:91` | the current place is %d |
 | `mods/checks.c:99` | %d of the game's %d notes in use |
 | `mods/checks.c:118` | the date went backwards (%ld to %ld) without a load |
-| `mods/checks.c:128` | 12 steps on the map in a row each brought an encounter (one held waiting?) |
+| `mods/checks.c:129` | 12 steps on the map in a row each brought an encounter (one held waiting?) |
 | `mods/cutcards.c:68` | name     The hospice  |
 | `mods/cutcards.c:68` | card     $CityH00  |
 | `mods/cutcards.c:68` | picture  XDAMONK  |
