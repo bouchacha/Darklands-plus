@@ -48,8 +48,8 @@ extern "C" int saves_restart;
    the game's Save and Load, redrawn, from the right-click menu) */
 extern "C" void saves_prefs(void)
 {
-    bool in_game = game_mode() != GM_OTHER;
     bool on = saves_on != 0;
+    ImGui::PushTextWrapPos(0.0f);
     if (ImGui::Checkbox("Quick save, quick load and autosaves", &on)) saves_enable(on);
     { bool rs = saves_restart != 0;
       if (ImGui::Checkbox("When the party's journey ends, return to the start screen (the original game quits)", &rs)) { saves_restart = rs; config_set_int("saves.restart_on_end", rs); } }
@@ -64,13 +64,9 @@ extern "C" void saves_prefs(void)
         ImGui::SameLine(0, UIS(30)); ImGui::SetNextItemWidth(UIS(160));
         if (ImGui::SliderInt("quick saves kept", &saves_keep_quick, 1, 9)) config_set_int("saves.keep_quick", saves_keep_quick);
         ImGui::Unindent(UIS(20));
-        if (in_game) {
-            if (ImGui::Button("Save now")) { saves_quick_save(); ui_toggle(); }
-            ImGui::SameLine();
-            ImGui::TextDisabled("as a quick save, when the game next allows saving (not in shops or during conversations).");
-        }
     }
     ImGui::TextDisabled("Save and Load: the Game menu (right-click), or Alt+S and Alt+L. Quick save and Quick load are also in the menu bar's Darklands+ menu.");
+    ImGui::PopTextWrapPos();
 }
 
 extern "C" void tab_saves(void)

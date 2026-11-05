@@ -48,6 +48,8 @@ extern "C" { int marchview_is_on(void); void marchview_set(int on); }
 extern "C" void lodgeview_draw(void);
 extern "C" int lodgeview_showing(void), lodgeview_camping(void);
 extern "C" int savesview_showing(int *loading);
+extern "C" int savesview_opts_open(void);
+extern "C" void savesview_opts_close(void);
 extern "C" { int lodgeview_is_on(void); void lodgeview_set(int on); }
 extern "C" void enemyview_draw(void);
 extern "C" { int enemyview_is_on(void); void enemyview_set(int on); }

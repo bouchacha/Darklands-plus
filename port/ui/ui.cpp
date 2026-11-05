@@ -367,6 +367,11 @@ extern "C" int ui_event(const SDL_Event *e)
         ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
+    if (savesview_opts_open()) {            /* the Save page's saving options (ui/savesview.cpp): every event, as the menu */
+        if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_ESCAPE) { savesview_opts_close(); return 1; }
+        ImGui_ImplSDL2_ProcessEvent(e);
+        return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
+    }
     if (open_map) {
         if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_ESCAPE && worldmap_find_escape(ImGui::GetIO().WantTextInput)) {   /* (Esc: a name in the Find box cleared first) */
             if (ImGui::GetIO().WantTextInput) ImGui_ImplSDL2_ProcessEvent(e);
@@ -428,7 +433,8 @@ static void tab_editor_all(void)
 static bool windows_up(void)
 {
     return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || tips_open() || levelmap_is_open() || halloffame_is_open() || figpick_is_open()
-           || ui_alert_open();                 /* (a notice to click through: its OK under the system's pointer, not the game's hand drawn beneath it) */
+           || ui_alert_open()                  /* (a notice to click through: its OK under the system's pointer, not the game's hand drawn beneath it) */
+           || savesview_opts_open();           /* (the Save page's saving options) */
 }
 static void ui_cursor(void)
 {

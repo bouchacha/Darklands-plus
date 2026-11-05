@@ -18,6 +18,7 @@
 #include "../runtime/dispatch.h"
 #include "gamemodel.h"
 #include "saves.h"
+#include "fixes.h"
 
 #include "../ui/alerts.h"
 void ui_text_utf8(const char *game, char *out, int n);
@@ -30,9 +31,17 @@ static struct { char name[24]; s8 max[7]; s8 skill[19]; int have; } snap[5];
 static int in_battle;
 static int snap_seed;
 
-/* the events are in memory (the battle and what follows it until the next card swap them out: the
-   table reads empty, a saint's boost to a skill cannot be told from the skill then) */
-static int events_known(void) { for (int i = 0; i < G_NEVENTS; i++) if (g_event(i)) return 1; return 0; }
+/* the party's events are in memory: not while a battle has closed the cards (run_battle: cards_shutdown to
+   cards_startup, mods/fixes.c), when the table holds only what the battle made - a saint's boost to a skill
+   cannot be told from the skill then. Taken for the party's, the battle's table (any event in it) gave the
+   skills with their boosts as the members' own, and the boosts, back with the cards, as a loss ("Artifice 58
+   (was 99)" as the battle ended, a +41 boost still at work) */
+static int events_known(void)
+{
+    if (fixes_cards_down()) return 0;
+    for (int i = 0; i < G_NEVENTS; i++) if (g_event(i)) return 1;
+    return 0;
+}
 static void take(int m)
 {
     char nm[24]; gm_member_name(m, nm, sizeof nm);

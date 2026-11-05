@@ -129,7 +129,7 @@ static void to_melee(int i, int t, int beside)
     ns_call(GF_weapon_ready, 3, i, (s8)g_rb((u16)(c + CB_MELEE)), 0);
     g_wb((u16)(c + CB_TARGET), (u8)t);
     int kind = ways_melee_kind(i, t);
-    if (beside) { g_ww((u16)(c + CB_ORDER), (u16)kind); g_wb((u16)(GV_cbt_action + i), 7); }
+    if (beside) { g_ww((u16)(c + CB_ORDER), (u16)kind); g_wb((u16)(GV_cbt_action + i), 7); g_wb((u16)(GV_cbt_moving + i), 0); }   /* (fighting where it stands: no longer on its way to the last foe) */
     else {
         g_ww((u16)(c + CB_TO_X), g_rw(CBF(t, CB_X))); g_ww((u16)(c + CB_TO_Y), g_rw(CBF(t, CB_Y)));
         if (ns_call(GF_path_find, 1, i) != 1) {     /* (no way to it now: the member is free, and goes at another, or at this one when it comes) */
@@ -448,7 +448,8 @@ static void stale_melee(void)
         if (g_rb((u16)(c + CB_STATUS)) != 1 || !automated(i)) continue;
         int t = (s8)g_rb((u16)(c + CB_TARGET));
         int alive = t >= 5 && t < 13 && g_rb(CBF(t, CB_STATUS)) == 1;
-        if (g_rb((u16)(GV_cbt_moving + i))) continue;
+        if (alive && g_rb((u16)(GV_cbt_moving + i))) continue;                     /* (on its way to a foe still standing) */
+        if (!alive) g_wb((u16)(GV_cbt_moving + i), 0);                              /* (on its way to one that fell: it stood there for good, a foe at it - RC11) */
         if (alive && adj(i, t)) continue;                                           /* (beside its foe: fighting) */
         if (alive && t == pt[i]) continue;                                          /* (the player's own foe, still standing: the game's way to it) */
         int b = -1;
@@ -592,14 +593,22 @@ static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchange
     { extern int arena_log_every; void arena_tick(void); if (arena_log_every) arena_tick(); }   /* (the test arena's log: runtime/testcmds.c) */
     keep_kinds();
     if (!combat_improved()) return;
-    /* a member marked as walking with no order: the battle's start (a battle save loaded too) clears the orders but
-       not cbt_moving, so one saved half way through a walk came back marked walking, order 0, and stood for good
-       (cbt_step walks only on an order with the walk bit) while the ways let it be as one walking (his dksaveb4) */
-    for (int i = 0; i < 5; i++)
-        if (g_rb(CBF(i, CB_STATUS)) == 1 && g_rw(CBF(i, CB_ORDER)) == 0 && g_rb((u16)(GV_cbt_moving + i))) {
-            g_wb((u16)(GV_cbt_moving + i), 0);
-            fprintf(stderr, "orders: member %d was marked walking with no order (a battle saved half way through a walk): stands\n", i);
+    /* a member marked as walking with no order that does not move: the battle's start (a battle save loaded too)
+       clears the orders but not cbt_moving, so one saved half way through a walk came back marked walking, order 0,
+       and stood for good while the ways let it be as one walking (his dksaveb4). Out of a fight the party walks
+       with order 0 (a walk on the level map, single file), so only one that has stood still a while is let go
+       (RC11 stopped every such walker at once, over and over) */
+    {   static s16 still_x[5], still_y[5]; static u16 still_since[5];
+        u16 now = g_rw(GV_combat_clock);
+        for (int i = 0; i < 5; i++) {
+            if (g_rb(CBF(i, CB_STATUS)) != 1 || g_rw(CBF(i, CB_ORDER)) != 0 || !g_rb((u16)(GV_cbt_moving + i))) { still_since[i] = 0; continue; }
+            s16 x = (s16)g_rw(CBF(i, CB_X)), y = (s16)g_rw(CBF(i, CB_Y));
+            if (!still_since[i] || x != still_x[i] || y != still_y[i]) { still_x[i] = x; still_y[i] = y; still_since[i] = now ? now : 1; continue; }
+            if ((u16)(now - still_since[i]) < 40) continue;
+            g_wb((u16)(GV_cbt_moving + i), 0); still_since[i] = 0;
+            fprintf(stderr, "orders: member %d was marked walking with no order and stood still: stands\n", i);
         }
+    }
     note_lines();
     retarget_shooters();
     if (ns_unwinding) return;
