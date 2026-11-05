@@ -122,7 +122,8 @@ static void calendar(void)
 /* each step on the map (mods/travel.c): an encounter at every one of many steps in a row */
 void checks_map_step(int result, int moved)
 {
-    static int run;
+    static int run; static unsigned load_seen;
+    if (load_seen != saves_loaded_ms) { load_seen = saves_loaded_ms; run = 0; }   /* (a load: the steps before it are another game's; the encounters sweep loaded before each one) */
     if (result == 1000 || result == 2000) run++;
     else if (moved) run = 0;
     if (run == 12) check_fail(CK_ENCOUNTERS, "12 steps on the map in a row each brought an encounter (one held waiting?)");
