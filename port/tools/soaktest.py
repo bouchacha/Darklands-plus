@@ -6,8 +6,8 @@ card's choices taken at random), battles won, prayers, the alchemy screen, the c
 and loads. Each action is followed by a look at the log; anything that must not happen is reported with
 the actions before it, the log lines and a screenshot:
 
-  - a "check:" line (mods/checks.c: memory written past a buffer, an encounter at every step, the party
-    on water, the date going back, ...), a hook that left the stack wrong, a crash;
+  - a "check:" line (mods/checks.c: memory written past a buffer, an encounter at every step, the date
+    going back, ...), a hook that left the stack wrong, a crash;
   - Go to that fails for want of a way, a Go to list that the cards contradict ("goto:"), a journey that
     stops getting nearer, an encounter script's error, a card text cut short;
   - the game standing still: the same screen, card and place for many actions in a row although

@@ -221,7 +221,7 @@ int main(int argc, char **argv)
         for (unsigned k = 0; k < sizeof LOGS / sizeof *LOGS; k++) {
             if (getenv(LOGS[k])) continue;
 #ifdef _WIN32
-            _putenv_s(LOGS[k], "1");
+            { char e[40]; snprintf(e, sizeof e, "%s=1", LOGS[k]); _putenv(e); }
 #else
             setenv(LOGS[k], "1", 0);
 #endif

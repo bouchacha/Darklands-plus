@@ -362,15 +362,18 @@ covered and found, and what it could not check.
 - 2026-11-04 (1.4.6-RC10): asked how to find bugs before a release rather than after it. Two tools, both kept:
   mods/checks.c watches each frame for what must never happen (the menu bar's title pointers changed, a member's
   item count out of range, money below 0, the place or party size out of range, the date going back without a
-  load, 285 of the 300 notes in use, the party on water, 12 map steps in a row each an encounter) and writes one
+  load, 285 of the 300 notes in use, 12 map steps in a row each an encounter) and writes one
   "check:" line with the card, screen, place, tile and date; the first of a session also makes a report zip and
   tells the player (ui_check_noticed). A value must stay out of range two seconds (the opening has no party: the
   first soak run caught the check firing at every start; a load passes through such frames; the second, a
   quickload taken for the date going back, twice: no date is looked at while a load of ours is asked for or
   under way, saves_load_under_way, nor for five seconds after any load; DL_CHECKS_LOG traces the dates), and the
-  party is
-  let stand on water while a saint's help makes water land (kind 0x4b); the party's checks wait for a party seen
-  since the title (the Windows build sat over two seconds on the start's cards with none). tools/soaktest.py plays for N minutes through nctl (cards' options at
+  party's checks wait for a party seen since the title (the Windows build sat over two seconds on the start's
+  cards with none). A review by a second reader (2026-11-04) took out the check of the party on water: a saint's
+  water-as-land help that runs out mid-crossing leaves the party walking on water as the original allows (s030
+  1462:1300 stops only a step from land), so it would have reported a fault in plain play; a date read back is
+  forgotten once the date is where it was; the florins (unsigned past 32767, as the rest of the code reads them)
+  are no longer checked for below 0. tools/soaktest.py plays for N minutes through nctl (cards' options at
   random, Go to and leaving towns, journeys to near towns, F12, the sheet, fights on auto) and fails on any
   "check:", FATAL, hook or encounter error, or a state that does not change for 15 actions; it replaces
   monkey.py (random cards, journeys and battles, no checks) and can start from a player's save (--load). release_check.py

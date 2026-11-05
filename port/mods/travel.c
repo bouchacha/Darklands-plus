@@ -511,6 +511,7 @@ static void step_hook(void)                 /* s030 1462:0c44 (key): one step of
     int e0 = (s16)g_rw(GV_map_buf_row), c0 = (s16)g_rw(GV_map_view_row), y0 = (s16)g_rw(GV_map_marker_y);
     int x0 = (s16)g_rw(GV_map_marker_x), v0 = (s16)g_rw(GV_map_view_col), h0 = (s16)g_rw(GV_cur_hour);
     hook_call_original();
+    if (unw_active) return;                                  /* (a load from the map's menu bar: AX is not this step's) */
     int r = (s16)AX;
     foot_fix(e0, c0, y0);
     travel_step_result = r;

@@ -2781,12 +2781,11 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/checks.c:56` | the menu bar's title %d is now "%s" (memory written past a buffer?) |
 | `mods/checks.c:81` | the party's size is %d |
 | `mods/checks.c:87` | member %d has %d items |
-| `mods/checks.c:90` | the party's money is below 0 (%d %d %d) |
-| `mods/checks.c:92` | the current place is %d |
-| `mods/checks.c:100` | %d of the game's %d notes in use |
+| `mods/checks.c:89` | the party's money is below 0 (%d %d %d) |
+| `mods/checks.c:91` | the current place is %d |
+| `mods/checks.c:99` | %d of the game's %d notes in use |
 | `mods/checks.c:118` | the date went backwards (%ld to %ld) without a load |
-| `mods/checks.c:131` | the party stands on water (terrain %d) |
-| `mods/checks.c:140` | 12 steps on the map in a row each brought an encounter (one held waiting?) |
+| `mods/checks.c:128` | 12 steps on the map in a row each brought an encounter (one held waiting?) |
 | `mods/cutcards.c:68` | name     The hospice  |
 | `mods/cutcards.c:68` | card     $CityH00  |
 | `mods/cutcards.c:68` | picture  XDAMONK  |
@@ -3456,8 +3455,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/travel.c:423` | The party makes camp before 20:00 (the campfire under the clock): the way ahead would take past it. |
 | `mods/travel.c:458` | a long step ahead |
 | `mods/travel.c:506` | Travel stopped: the party could not get any further this way. |
-| `mods/travel.c:565` | the river acted as a wall |
-| `mods/travel.c:649` | the marked place |
+| `mods/travel.c:566` | the river acted as a wall |
+| `mods/travel.c:650` | the marked place |
 | `mods/war.c:98` | pics\gate4.pic: No such file |
 | `mods/war.c:147` | ...hidden option |
 

@@ -7,7 +7,7 @@
  *    a card text past msg_buf's 900 bytes once turned "Game" into "MeetA01"), the members' item
  *    counts (one too many taken: a crash at the next death);
  *  - state that stuck: every step on the map an encounter (a night in camp's encounter waiting for
- *    a card it could replace, 1.4.6-RC6), the party standing on water;
+ *    a card it could replace, 1.4.6-RC6);
  *  - values out of range: the place, the party's size, the money, the date going backwards
  *    without a load, the game's 300 notes nearly full ("EVENT Failure"). */
 #include <stdio.h>
@@ -85,8 +85,7 @@ static void party(void)
         if (g_rb(G_MEMBER(m)) && (n < 0 || n > 64)) { im = m; items = n; }
     }
     if (lasting(CK_ITEMS, im >= 0)) check_fail(CK_ITEMS, "member %d has %d items", im, items);
-    int neg = 0;
-    for (int k = 0; k < 3; k++) if ((s16)g_rw((u16)(G_MONEY + 2 * k)) < 0) neg = 1;
+    int neg = (s16)g_rw((u16)(G_MONEY + 2)) < 0 || (s16)g_rw((u16)(G_MONEY + 4)) < 0;   /* (groschen, pfennigs; florins past 32767 are read as a sum elsewhere) */
     if (lasting(CK_MONEY, neg)) check_fail(CK_MONEY, "the party's money is below 0 (%d %d %d)", (s16)g_rw(G_MONEY), (s16)g_rw(G_MONEY + 2), (s16)g_rw(G_MONEY + 4));
     int loc = (s16)g_rw(G_CUR_LOC);
     if (lasting(CK_LOC, loc < -1 || loc >= G_NLOC)) check_fail(CK_LOC, "the current place is %d", loc);
@@ -114,21 +113,10 @@ static void calendar(void)
       if (lg && now != shown) { fprintf(stderr, "checks: date %ld (mode %d, load %u, loading %d)\n", now, game_mode(), saves_loaded_ms, saves_load_under_way()); shown = now; } }
     if (load_seen != saves_loaded_ms) { load_seen = saves_loaded_ms; load_t = plat_ticks_ms() | 1; }
     if (load_t && plat_ticks_ms() - load_t < 5000) { last = now; back_t = 0; return; }
+    if (back_t && now >= back_from) back_t = 0;                 /* (back where it was: a moment's reading, not a step back) */
     if (last >= 0 && now < last && !back_t) { back_t = plat_ticks_ms() | 1; back_from = last; back_to = now; }
     if (back_t && plat_ticks_ms() - back_t > 5000) { back_t = 0; check_fail(CK_TIME, "the date went backwards (%ld to %ld) without a load", back_from, back_to); }
     last = now;
-}
-
-static void map_spot(void)
-{
-    int px = -1, py = -1, t = -1;
-    if (game_mode() == GM_MAP) { travel_party_tile(&px, &py); t = travel_terrain(px, py); }
-    int wet = t == 1 || t == 2;
-    for (int i = 0; wet && i < G_NEVENTS; i++) {              /* (a saint's help: water crossed as land for a day, kind 0x4b, s039) */
-        u32 e = g_event(i);
-        if (e && g_ev(e, G_EV_KIND) == 0x4b) wet = 0;
-    }
-    if (lasting(CK_WATER, wet)) check_fail(CK_WATER, "the party stands on water (terrain %d)", t);
 }
 
 /* each step on the map (mods/travel.c): an encounter at every one of many steps in a row */
@@ -143,5 +131,5 @@ void checks_map_step(int result, int moved)
 void checks_frame(void)
 {
     if (config_get_int("original", 0)) return;
-    menus(); party(); notes(); calendar(); map_spot();
+    menus(); party(); notes(); calendar();
 }
