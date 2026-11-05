@@ -38,7 +38,7 @@ BAD = [
     (re.compile(r'^cards: .* cut at'), 'text'),
     (re.compile(r'nscreen: no game function'), 'screen'),
 ]
-STATE = re.compile(r'state: mode (-?\d+) screen (-?\d+) card (\S*) menu (\d+) options (\S+) place (-?\d+) tile (-?\d+),(-?\d+) day (-?\d+) hour (-?\d+) travel (\d+) goto (\d+) enc (\d+) members (\d+)')
+STATE = re.compile(r'state: mode (-?\d+) screen (-?\d+) card (\S*) menu (\d+) options (\S+) place (-?\d+) tile (-?\d+),(-?\d+) day (-?\d+) hour (-?\d+) travel (\d+) goto (\d+) enc (\d+) members (\d+)(?: nav (\d))?')
 TOWNS = list(range(0, 92))                      # (DARKLAND.LOC: the cities come first, 0x5c of them)
 POS = {}                                        # town -> (x, y), from the game folder's DARKLAND.LOC (read in main)
 
@@ -97,10 +97,10 @@ class Soak:
                 break
         if not m:
             return None
-        k = ['mode', 'screen', 'card', 'menu', 'options', 'place', 'tx', 'ty', 'day', 'hour', 'travel', 'goto', 'enc', 'members']
+        k = ['mode', 'screen', 'card', 'menu', 'options', 'place', 'tx', 'ty', 'day', 'hour', 'travel', 'goto', 'enc', 'members', 'nav']
         v = list(m.groups())
         opts = [int(x) for x in v[4].split(',')] if v[4] != '-' else []   # (the option numbers that may be chosen now)
-        return dict(zip(k, [int(v[0]), int(v[1]), v[2], int(v[3]), opts] + [int(x) for x in v[5:]]))
+        return dict(zip(k, [int(v[0]), int(v[1]), v[2], int(v[3]), opts] + [int(x) if x is not None else 1 for x in v[5:]]))
 
     def report(self, kind, what, lines):
         self.shot += 1
@@ -131,7 +131,7 @@ class Soak:
 
     def town(self, s):
         r = self.rng.random()
-        if self.same >= 3:                                  # (a card Go to and journeys cannot leave: the night watch)
+        if self.same >= 3 or not s.get('nav', 1):          # (a card Go to and journeys cannot leave: the night watch; before the walls)
             self.card(s)
             return
         if r < 0.45:

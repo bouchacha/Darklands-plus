@@ -389,9 +389,10 @@ int testcmd_run(const char *cmd, const char *arg)
             extern TravelState travel; int citynav_busy(void), encounters_card_active(void);
             int cardview_test_options(int *, int), op[20], no = assist_in_card_menu() ? cardview_test_options(op, 20) : 0;
             char os[80] = "-"; for (int k = 0, w = 0; k < no && w < 70; k++) w += snprintf(os + w, sizeof os - w, k ? ",%d" : "%d", op[k]);
-            fprintf(stderr, "state: mode %d screen %d card %s menu %d options %s place %d tile %d,%d day %d hour %d travel %d goto %d enc %d members %d\n",
+            int citynav_available(void);
+            fprintf(stderr, "state: mode %d screen %d card %s menu %d options %s place %d tile %d,%d day %d hour %d travel %d goto %d enc %d members %d nav %d\n",
                     game_mode(), ns_screen, cn, assist_in_card_menu(), os, (s16)g_rw(G_CUR_LOC), px, py,
-                    (s16)g_rw(G_CUR_DAY), (s16)g_rw(G_CUR_HOUR), travel.active, citynav_busy(), encounters_card_active(), (s16)g_rw(G_PARTY_SIZE));
+                    (s16)g_rw(G_CUR_DAY), (s16)g_rw(G_CUR_HOUR), travel.active, citynav_busy(), encounters_card_active(), (s16)g_rw(G_PARTY_SIZE), citynav_available());
         }
         else if (!strcmp(cmd, "umode")) { int game_mode(void); fprintf(stderr, "mode %d\n", game_mode()); }   /* 1 card 2 map 3 screen 4 battle */
         else if (!strcmp(cmd, "ugroups")) {             /* test: the enemy groups of the place's levels, the combatants */

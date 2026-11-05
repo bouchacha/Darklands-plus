@@ -37,7 +37,7 @@ The runtime: the CPU and DOS the game runs on, the window, sound, saves, the con
 | `runtime/sounddev.c` | 128 | which sound driver the game gets. |
 | `runtime/speaker.c` | 77 | the PC speaker, which the port had not made at all ("PC speaker" in F12 > Settings > Sound played nothing). |
 | `runtime/stb_impl.c` | 16 | the stb image reader and PNG writer (public domain, third_party/stb) for replacement art (mods/hdart.c, platform_sdl.c) |
-| `runtime/testcmds.c` | 577 | the test commands that look at or change the game's state, for the scripted sessions (port/tools/nctl.py "ucmd NAME:ARGS", release_check.py, soaktest.py): a battle at the next card, hits, items, saves, the native screens' actions, dumps of what the game holds ... |
+| `runtime/testcmds.c` | 578 | the test commands that look at or change the game's state, for the scripted sessions (port/tools/nctl.py "ucmd NAME:ARGS", release_check.py, soaktest.py): a battle at the next card, hits, items, saves, the native screens' actions, dumps of what the game holds ... |
 
 ## mods
 
