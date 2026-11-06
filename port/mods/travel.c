@@ -387,7 +387,7 @@ static void foot_fix(int e0, int c0, int y0)
 /* travel.camp_at_8 (the campfire under the clock, ui/travel.cpp): a party on the move when the clock strikes 20:00 stops
  * and makes camp (the game's C), since a day in camp or at an inn (camp_spend_day, s036 1462:147a) lasts until 5:00, or until
  * 5:00 the day after when that is less than 9 hours away: from 20:00 a night of 9 hours, from 21:00 one of 32. 1: when a
- * member is short of Endurance, Strength or Divine Favor; 2: always (alchemy on the road). Once a day; a step that ends
+ * member needs rest (travel_camp_needed); 2: always (alchemy on the road). Once a day; a step that ends
  * in an encounter leaves it for the next step on the map at that hour. On auto-travel, a step that may take an hour or
  * more (hills, mountains: travel time per step, s030 1462:2ac8) is not begun at 19:00 lest it pass 20:00 by. */
 static long camp_done, camp_due = -1;
@@ -396,13 +396,24 @@ static long camp_done, camp_due = -1;
 static int forced_x = -1, forced_y = -1;      /* the tile the last step made certain was taken from (encounter_weight_hook) */
 static void travel_after_load(void) { travel.active = 0; camp_done = 0; camp_due = -1; camp_resume = 0; pend_loc = -1; forced_x = forced_y = -1; }
 static long today(void) { return (long)(s16)g_rw(GV_cur_year) * 400 + (s16)g_rw(GV_cur_month) * 32 + (s16)g_rw(GV_cur_day); }
-int travel_camp_needed(void)                /* a member short of Endurance, Strength or Divine Favor */
+/* a member needs rest: short of Strength, or of more Divine Favor than a night brings back. What comes back
+   without a camp, from the game's hourly update of the party (hours_pass, s029 0e76:255a, on the road and in
+   towns): Endurance each hour to 4 short of full, then 1 an hour to 2 short (a camp is not needed for it: the last
+   2 are a sliver, his word); Divine Favor at midnight by Religious Training / (20 to 24), at least 1, at most 5
+   (the least of it counted here); Strength only by chance (one in 150 for each point of the party's best Healing). */
+static char camp_why[80];                   /* (the log's: who needed it) */
+int travel_camp_needed(void)
 {
     for (int m = 0; m < 5; m++) {
         int st = gm_member_status(m);
         if (st != 1 && st != 2) continue;
-        for (int k = 0; k < 3; k++) { int a = k == 2 ? ATTR_DF : k, c, x; gm_member_attr(m, a, &c, &x); if (c < x) return 1; }
+        int c, x; gm_member_attr(m, ATTR_STR, &c, &x);
+        if (c < x) { snprintf(camp_why, sizeof camp_why, "member %d: Strength %d of %d", m, c, x); return 1; }
+        int night = gm_member_skill(m, SKILL_RELIGION) / 24; if (night < 1) night = 1; if (night > 5) night = 5;
+        gm_member_attr(m, ATTR_DF, &c, &x);
+        if (x - c > night) { snprintf(camp_why, sizeof camp_why, "member %d: Divine Favor %d of %d, a night brings back %d", m, c, x, night); return 1; }
     }
+    snprintf(camp_why, sizeof camp_why, "nobody needs rest");
     return 0;
 }
 static int camp_now(const char *why)
@@ -410,7 +421,7 @@ static int camp_now(const char *why)
     int mode = config_get_int("travel.camp_at_8", 0);
     if (!mode || config_get_int("original", 0) || camp_done == today()) return 0;
     camp_done = today();
-    if (mode == 1 && !travel_camp_needed()) return 0;
+    if (mode == 1 && !travel_camp_needed()) { fprintf(stderr, "travel: no camp at %d:00 (%s)\n", (s16)g_rw(GV_cur_hour), camp_why); return 0; }
     void ui_notice(const char *); void plat_press_key(int scancode);
     if (travel.active) {                                 /* auto-travel goes on after the camp, as after an encounter */
         camp_resume = 1; camp_seen = lodge_entered; camp_tx = travel.tx; camp_ty = travel.ty; camp_loc = travel.loc;
@@ -418,7 +429,7 @@ static int camp_now(const char *why)
     }
     travel.active = 0;
     plat_press_key(6);                                   /* (SDL_SCANCODE_C: the game's camp) */
-    fprintf(stderr, "travel: camp at %d:00 (%s, travel.camp_at_8 %d)\n", (s16)g_rw(GV_cur_hour), why, mode);
+    fprintf(stderr, "travel: camp at %d:00 (%s, travel.camp_at_8 %d%s%s)\n", (s16)g_rw(GV_cur_hour), why, mode, mode == 1 ? ", " : "", mode == 1 ? camp_why : "");
     ui_notice((s16)g_rw(GV_cur_hour) == 20 ? "20:00: the party makes camp (the campfire under the clock). A night in camp lasts until 5:00."
                                            : "The party makes camp before 20:00 (the campfire under the clock): the way ahead would take past it.");
     return 1;

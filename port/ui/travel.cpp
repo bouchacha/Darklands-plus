@@ -112,7 +112,7 @@ extern "C" void travel_camp_button(void)
     else if (hot) {
         static const char *const SAY[3] = {
             "Stop to camp at 20:00: off.",
-            "At 20:00 the party stops and makes camp when someone is short of {Endurance}, {Strength} or {Divine Favor}.",
+            "At 20:00 the party stops and makes camp when someone is short of {Strength}, or of more {Divine Favor} than a night brings back ({Endurance} comes back on the road by itself).",
             "At 20:00 the party stops and makes camp every night (to brew potions on the road, say)." };
         static const char *const NEXT[3] = { "Click: stop at 20:00 when someone needs rest.", "Click: stop at 20:00 every night.", "Click: off." };
         ImGui::BeginTooltip();

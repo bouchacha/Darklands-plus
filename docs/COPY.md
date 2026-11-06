@@ -51,7 +51,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:123` | One store room shared by every inn |
 | `mods/options.c:123` | what you leave with one innkeeper is waiting at every other inn, as with the item boxes of a certain mansion; best not to ask how (100 kinds of items at most). Items already stored in several towns are put together the first time a store room is opened. |
 | `mods/options.c:124` | Each member's day set by what they need |
-| `mods/options.c:124` | each member is set to what they need most, instead of Just Relax (which only refills Endurance): Regain Strength when short of it, else Pray when short of Divine Favor, else Just Relax when short of Endurance; one who needs nothing Earns a little money at an inn, or Guards the camp in the wild (Just Relax is then not offered). When the stay begins, and after each day for one the game puts back to relaxing. Change it as you like on the screen. |
+| `mods/options.c:124` | each member is set to what they need most, instead of Just Relax (which only refills Endurance): Regain Strength when short of it, else Just Relax when short of Endurance, else Pray when short of Divine Favor; one who needs nothing Earns a little money at an inn, or Guards the camp in the wild (Just Relax is then not offered). When the stay begins, and after each day for one the game puts back to relaxing. Change it as you like on the screen. |
 | `mods/options.c:125` | New inn and camp screen |
 | `mods/options.c:125` | each member's activity for the day, its cost, the teachers and their fees, and "Until rested". |
 | `mods/options.c:126` | New prayer screen |
@@ -191,7 +191,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:200` | Auto-travel speed |
 | `mods/options.c:200` | walking pace\|4x\|instant |
 | `mods/options.c:201` | Stop to camp at 20:00 |
-| `mods/options.c:201` | a party on the move stops and makes camp when the clock strikes 20:00, the last hour from which a day in camp (or at an inn) is only the night, until 5:00: 9 hours, where from 21:00 it lasts until 5:00 the day after, 32 hours. When someone is short of Endurance, Strength or Divine Favor, or every night (to brew on the road). The campfire under the clock in the overland view switches it too. |
+| `mods/options.c:201` | a party on the move stops and makes camp when the clock strikes 20:00, the last hour from which a day in camp (or at an inn) is only the night, until 5:00: 9 hours, where from 21:00 it lasts until 5:00 the day after, 32 hours. When someone needs rest (short of Strength, or of more Divine Favor than a night brings back: Endurance comes back on the road by itself to 2 short of full), or every night (to brew on the road). The campfire under the clock in the overland view switches it too. |
 | `mods/options.c:201` | off\|when someone needs rest\|every night |
 | `mods/options.c:202` | Names and quest markers in the overland view |
 | `mods/options.c:202` | the towns and places named in the overland view, each quest's icon above its place, and a sign beside a town that bars the party or where the watch is after it. |
@@ -2435,7 +2435,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/travel.cpp:111` | Keep the campfire shown. |
 | `ui/travel.cpp:111` | Hide the campfire under the clock (point at the clock to see it again). |
 | `ui/travel.cpp:114` | Stop to camp at 20:00: off. |
-| `ui/travel.cpp:115` | At 20:00 the party stops and makes camp when someone is short of {Endurance}, {Strength} or {Divine Favor}. |
+| `ui/travel.cpp:115` | At 20:00 the party stops and makes camp when someone is short of {Strength}, or of more {Divine Favor} than a night brings back ({Endurance} comes back on the road by itself). |
 | `ui/travel.cpp:116` | At 20:00 the party stops and makes camp every night (to brew potions on the road, say). |
 | `ui/travel.cpp:117` | Click: stop at 20:00 when someone needs rest. |
 | `ui/travel.cpp:117` | Click: stop at 20:00 every night. |
@@ -3467,12 +3467,15 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/teachers.c:229` | A bug in the original game: this guild's teacher teaches no skill at all. |
 | `mods/travel.c:273` | No way there from here. |
 | `mods/travel.c:299` | how far is it |
-| `mods/travel.c:422` | 20:00: the party makes camp (the campfire under the clock). A night in camp lasts until 5:00. |
-| `mods/travel.c:423` | The party makes camp before 20:00 (the campfire under the clock): the way ahead would take past it. |
-| `mods/travel.c:458` | a long step ahead |
-| `mods/travel.c:506` | Travel stopped: the party could not get any further this way. |
-| `mods/travel.c:566` | the river acted as a wall |
-| `mods/travel.c:650` | the marked place |
+| `mods/travel.c:411` | member %d: Strength %d of %d |
+| `mods/travel.c:414` | member %d: Divine Favor %d of %d, a night brings back %d |
+| `mods/travel.c:416` | nobody needs rest |
+| `mods/travel.c:433` | 20:00: the party makes camp (the campfire under the clock). A night in camp lasts until 5:00. |
+| `mods/travel.c:434` | The party makes camp before 20:00 (the campfire under the clock): the way ahead would take past it. |
+| `mods/travel.c:469` | a long step ahead |
+| `mods/travel.c:517` | Travel stopped: the party could not get any further this way. |
+| `mods/travel.c:577` | the river acted as a wall |
+| `mods/travel.c:661` | the marked place |
 | `mods/war.c:98` | pics\gate4.pic: No such file |
 | `mods/war.c:147` | ...hidden option |
 
