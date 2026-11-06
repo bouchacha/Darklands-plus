@@ -51,7 +51,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:123` | One store room shared by every inn |
 | `mods/options.c:123` | what you leave with one innkeeper is waiting at every other inn, as with the item boxes of a certain mansion; best not to ask how (100 kinds of items at most). Items already stored in several towns are put together the first time a store room is opened. |
 | `mods/options.c:124` | Each member's day set by what they need |
-| `mods/options.c:124` | each member is set to what they need most, instead of Just Relax (which only refills Endurance): Regain Strength when short of it, else Just Relax when short of Endurance, else Pray when short of Divine Favor; one who needs nothing Earns a little money at an inn, or Guards the camp in the wild (Just Relax is then not offered). When the stay begins, and after each day for one the game puts back to relaxing. Change it as you like on the screen. |
+| `mods/options.c:124` | each member is set to what they need most, instead of Just Relax (which only refills Endurance): Regain Strength when short of it, else Pray when short of Divine Favor, else Just Relax when short of Endurance; one who needs nothing Earns a little money at an inn, or Guards the camp in the wild (Just Relax is then not offered). When the stay begins, and after each day for one the game puts back to relaxing. Change it as you like on the screen. |
 | `mods/options.c:125` | New inn and camp screen |
 | `mods/options.c:125` | each member's activity for the day, its cost, the teachers and their fees, and "Until rested". |
 | `mods/options.c:126` | New prayer screen |
@@ -2981,10 +2981,10 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/lodgeview.c:150` | Mendicant Friar |
 | `mods/lodgeview.c:150` | Hospital Helper |
 | `mods/lodgeview.c:151` | Town Militia |
-| `mods/lodgeview.c:527` | The days stop: %s's teacher has gone. |
-| `mods/lodgeview.c:529` | The days stop: what %s does each day has changed. |
-| `mods/lodgeview.c:531` | The days stop: %s has regained all {Strength}. |
-| `mods/lodgeview.c:532` | The days stop: %s's {Divine Favor} is full. |
+| `mods/lodgeview.c:528` | The days stop: %s's teacher has gone. |
+| `mods/lodgeview.c:530` | The days stop: what %s does each day has changed. |
+| `mods/lodgeview.c:532` | The days stop: %s has regained all {Strength}. |
+| `mods/lodgeview.c:533` | The days stop: %s's {Divine Favor} is full. |
 | `mods/looks.c:85` | Gray-haired fighter |
 | `mods/looks.c:85` | Brown-haired woman |
 | `mods/looks.c:85` | Blond fighter |

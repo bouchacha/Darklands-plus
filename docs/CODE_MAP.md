@@ -74,7 +74,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/infoview.c` | 125 | the party information screen as a native page (display.native_info; the view is ui/infoview.cpp). |
 | `mods/keep.c` | 84 | the player's marks, for each game (party seed) in darklands_keep_<seed>.txt beside the journal (dlp_data_dir): - things marked "keep": never sold (one by one, Sell spare gear) or dropped by the screens of Darklands+, until unmarked; or "sell": sold with Sell spare gear though they are no weapon, armor or shield (the potions the player never wants). |
 | `mods/levelwalk.c` | 443 | a click on the level map (Tab, ui/levelmap.cpp) walks the party there. |
-| `mods/lodgeview.c` | 545 | staying at an inn, camping, as a native screen (display.native_lodge; the view is ui/lodgeview.cpp). |
+| `mods/lodgeview.c` | 546 | staying at an inn, camping, as a native screen (display.native_lodge; the view is ui/lodgeview.cpp). |
 | `mods/looks.c` | 1063 | more figures for the party. |
 | `mods/loot.c` | 499 | the loot screen and the shops, one at a time no more. |
 | `mods/lootview.c` | 276 | the loot screen as a native screen (nscreen.h; the view is ui/lootview.cpp). |
