@@ -760,11 +760,13 @@ extern "C" void worldmap_draw(void)
        an ingredient or any ware); then what the map shows (the layers, the kinds of place) */
     ImGui::SetNextWindowPos(ImVec2(o.x + sz.x - pad, o.y + pad), ImGuiCond_Always, ImVec2(1, 0));
     ImGui::SetNextWindowBgAlpha(0.97f);
-    ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(fminf(UIS(380) * pk, sz.x * 0.27f), avail_h));
+    /* as wide folded as open: anchored at its right edge, it grew to the left as a section opened, and the header
+       pressed moved under the pointer (third_party/imgui's tree node now keeps where the press was, too) */
+    float rw = fminf(UIS(300) * pk, sz.x * 0.27f - 2 * ImGui::GetStyle().WindowPadding.x);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(rw + 2 * ImGui::GetStyle().WindowPadding.x, 0), ImVec2(fminf(UIS(380) * pk, sz.x * 0.27f), avail_h));
     ImGui::Begin("##wmfind", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
     wm_find_left = ImGui::GetWindowPos().x - o.x; wm_find_bottom = ImGui::GetWindowPos().y + ImGui::GetWindowHeight() - o.y;
     ImGui::SetWindowFontScale(pk);
-    float rw = fminf(UIS(300) * pk, sz.x * 0.27f - 2 * ImGui::GetStyle().WindowPadding.x);
     /* a grid of entries, two to a row, each a picture and a word, in the small font: the legend's
        kinds of place (a click shows or hides them) and the towns' offers (a click marks the towns
        with it, again unmarks) */

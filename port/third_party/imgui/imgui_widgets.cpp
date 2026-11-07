@@ -6582,11 +6582,14 @@ bool ImGui::TreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* l
     // When clicking on the rest of the tree node we always disallow keyboard modifiers.
     const float arrow_hit_x1 = (text_pos.x - text_offset_x) - style.TouchExtraPadding.x;
     const float arrow_hit_x2 = (text_pos.x - text_offset_x) + (g.FontSize + padding.x * 2.0f) + style.TouchExtraPadding.x;
-    // Darklands+: while the node is held, on the arrow or not goes by where the click was pressed. A press on the
-    // arrow toggles at once; a pointer that then slid onto the label before the release toggled it back on the
-    // release (a header that opened and shut again, 1.4.6-RC14).
-    const float arrow_test_x = (g.ActiveId == id) ? g.IO.MouseClickedPos[0].x : g.IO.MousePos.x;
-    const bool is_mouse_x_over_arrow = (arrow_test_x >= arrow_hit_x1 && arrow_test_x < arrow_hit_x2);
+    // Darklands+: whether a press was on the arrow is decided when the button goes down, and kept while the node
+    // is held. A press on the arrow toggles at once; the release then counted as a click on the label whenever
+    // the label had come under the pointer: the pointer slid onto it, or the node itself moved (the world map's
+    // right panel grows to the left as its section opens): a header that opened on the press and shut on the
+    // release (1.4.6-RC14, and still in 1.4.6 with the press position tested against the node where it is now).
+    static ImGuiID dlp_arrow_press_id = 0;
+    const bool is_mouse_x_over_arrow = (g.ActiveId == id && dlp_arrow_press_id == id)
+                                       || (g.ActiveId != id && g.IO.MousePos.x >= arrow_hit_x1 && g.IO.MousePos.x < arrow_hit_x2);
 
     const bool is_multi_select = (g.LastItemData.ItemFlags & ImGuiItemFlags_IsMultiSelect) != 0;
     if (is_multi_select) // We absolutely need to distinguish open vs select so _OpenOnArrow comes by default
@@ -6627,6 +6630,8 @@ bool ImGui::TreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* l
 
     bool hovered, held;
     bool pressed = ButtonBehavior(interact_bb, id, &hovered, &held, button_flags);
+    if (g.ActiveId == id && g.ActiveIdIsJustActivated)          // Darklands+: the press latched (above)
+        dlp_arrow_press_id = is_mouse_x_over_arrow ? id : 0;
     bool toggled = false;
     if (!is_leaf)
     {

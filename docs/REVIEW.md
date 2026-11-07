@@ -424,3 +424,11 @@ covered and found, and what it could not check.
   one out shifted the next (map.overland_marks); options_sync_bundles now says at start when one does not match.
   Also the covers drawn over everything (loading, Go to) give way to a window over the game, as the clock does:
   the first battle's notice, come up during a load, stood under "Loading...".
+- 2026-11-06 (1.4.6, rebuilt): he still could not keep a world map section open, on RC15 and 1.4.6. I had
+  called it fixed from a test where the right panel was already wide. With his settings (both sections folded,
+  the panel narrow) it reproduced at once: the press on the arrow opened the section, the panel, anchored at its
+  right edge, grew to the left, the title came under the press position, and the release closed it again. The
+  RC15 patch tested the press position against the node where it was now; the fix keeps the decision itself,
+  made when the button went down (third_party/imgui TreeNodeBehavior, dlp_arrow_press_id), so a node that
+  moves under the pointer cannot turn a press on the arrow into a click on the label. The panel also keeps its
+  open width when folded, so it no longer jumps. Lesson: test a report from the player's own settings file.

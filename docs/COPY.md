@@ -2702,25 +2702,25 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/worldmap.cpp:746` | Sorted %s first: click for %s first. |
 | `ui/worldmap.cpp:746` | the soonest due |
 | `ui/worldmap.cpp:755` | No quests or rumors yet. |
-| `ui/worldmap.cpp:849` | cave near Köln |
-| `ui/worldmap.cpp:855` | and %d more: type more of the name to narrow the list |
-| `ui/worldmap.cpp:856` | No place of that name. |
-| `ui/worldmap.cpp:860` | Alchemical ingredients |
-| `ui/worldmap.cpp:876` | Click one to circle those towns on the map. |
-| `ui/worldmap.cpp:888` |  the party has been to: |
-| `ui/worldmap.cpp:892` | ... and %d more (circled on the map) |
-| `ui/worldmap.cpp:893` | %s %dq##tl%d |
-| `ui/worldmap.cpp:903` | Show on the map |
-| `ui/worldmap.cpp:920` | shown (click to hide) |
-| `ui/worldmap.cpp:920` | hidden (click to show) |
-| `ui/worldmap.cpp:935` | Places: click a kind to show or hide it. |
-| `ui/worldmap.cpp:964` | The party: a click shows it on the map. |
-| `ui/worldmap.cpp:968` | Map of Greater Germany |
-| `ui/worldmap.cpp:974` | {LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes. |
-| `ui/worldmap.cpp:975` | Drag to move, wheel to zoom. M or Esc closes. |
-| `ui/worldmap.cpp:977` | Traveling to %s |
-| `ui/worldmap.cpp:1040` | faded: leaves later this week |
-| `ui/worldmap.cpp:1105` | Click to take the boat. |
+| `ui/worldmap.cpp:851` | cave near Köln |
+| `ui/worldmap.cpp:857` | and %d more: type more of the name to narrow the list |
+| `ui/worldmap.cpp:858` | No place of that name. |
+| `ui/worldmap.cpp:862` | Alchemical ingredients |
+| `ui/worldmap.cpp:878` | Click one to circle those towns on the map. |
+| `ui/worldmap.cpp:890` |  the party has been to: |
+| `ui/worldmap.cpp:894` | ... and %d more (circled on the map) |
+| `ui/worldmap.cpp:895` | %s %dq##tl%d |
+| `ui/worldmap.cpp:905` | Show on the map |
+| `ui/worldmap.cpp:922` | shown (click to hide) |
+| `ui/worldmap.cpp:922` | hidden (click to show) |
+| `ui/worldmap.cpp:937` | Places: click a kind to show or hide it. |
+| `ui/worldmap.cpp:966` | The party: a click shows it on the map. |
+| `ui/worldmap.cpp:970` | Map of Greater Germany |
+| `ui/worldmap.cpp:976` | {LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes. |
+| `ui/worldmap.cpp:977` | Drag to move, wheel to zoom. M or Esc closes. |
+| `ui/worldmap.cpp:979` | Traveling to %s |
+| `ui/worldmap.cpp:1042` | faded: leaves later this week |
+| `ui/worldmap.cpp:1107` | Click to take the boat. |
 | `ui/worldmap_draw.cpp:105` | ruined castle |
 | `ui/worldmap_draw.cpp:107` | ruined village |
 | `ui/worldmap_draw.cpp:108` | standing stone |
