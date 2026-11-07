@@ -1311,54 +1311,54 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/itemedit.cpp:131` | Could not write  |
 | `ui/itemedit.cpp:132` | . Tick the mod (F12 > Mods) and start the game again. |
 | `ui/itemedit.cpp:135` | Undo all changes |
-| `ui/journal.cpp:211` | Goods merchant |
-| `ui/journal.cpp:399` | the countryside |
-| `ui/journal.cpp:457` | the countryside |
-| `ui/journal.cpp:460` | A made-up text, number , to try the chronicle's days and places. It runs on a little so that it wraps over two lines in the window....leave. |
-| `ui/journal.cpp:470` | The chronicle is off: tick both boxes above (the Full Original preset keeps it off). |
-| `ui/journal.cpp:472` | Hide the list of days |
-| `ui/journal.cpp:472` | Show the list of days |
-| `ui/journal.cpp:475` | %d text%s read in this game |
-| `ui/journal.cpp:478` | Save as a text file |
-| `ui/journal.cpp:492` | Could not write the file. |
-| `ui/journal.cpp:505` | Every text the cards show is kept here, with the date, the place and the choice you made. |
-| `ui/journal.cpp:505` | Nothing found. |
-| `ui/journal.cpp:553` | < Day before |
-| `ui/journal.cpp:557` |  (matching texts only) |
-| `ui/journal.cpp:635` | a complete idiot: worse than none |
-| `ui/journal.cpp:665` | Start or load a game first: each game has its own notes. |
-| `ui/journal.cpp:671` | Your own notes for this game: clues, plans, who wanted what. Kept as darklands_notes_%u.txt. |
-| `ui/journal.cpp:826` | %s  (%d wares, noted %s) |
-| `ui/journal.cpp:905` | sold here (expected) |
-| `ui/journal.cpp:925` | Start or load a game first. |
-| `ui/journal.cpp:926` | Available after the battle. |
-| `ui/journal.cpp:933` | What the party has left with innkeepers ("store items with the innkeeper" at a town's inn): one store room, the same at every inn (the Darklands+ switch "One store room shared by every inn" in F12 > Settings > New screens). |
-| `ui/journal.cpp:934` | What the party has left with innkeepers ("store items with the innkeeper" at a town's inn), and where.  |
-| `ui/journal.cpp:934` | The original game shows a store room only while the party is in it. |
-| `ui/journal.cpp:963` | Nothing stored anywhere. |
-| `ui/journal.cpp:969` |  kind of item |
-| `ui/journal.cpp:969` |  kinds of items |
-| `ui/journal.cpp:970` | Every inn's store room  -   |
-| `ui/journal.cpp:1001` | The quests and every town (its shops, the wares noted, where to buy an item) are on the world map (M). |
-| `ui/journal.cpp:1004` | Note each town's shops and wares |
-| `ui/journal.cpp:1016` | The Honor Roll of Glory: the four most famous parties. MicroProse drew it and wrote the code for it, but never finished it (the manual mentions a Hall of Fame, the game's README says there is none). A party enters it when its journey ends, or now with the button. |
-| `ui/journal.cpp:1020` | Show the Honor Roll of Glory |
-| `ui/journal.cpp:1024` | Enter the party now |
-| `ui/journal.cpp:1024` | The party is on the roll. |
-| `ui/journal.cpp:1024` | The party is not yet famous enough to be among the four best (or the roll could not be saved). |
-| `ui/journal.cpp:1074` | Find alchemical ingredients###wtb0 |
-| `ui/journal.cpp:1074` | Find any ware###wtb1 |
-| `ui/journal.cpp:1077` | Nothing noted yet: the wares of each shop are noted as the party sees them. |
-| `ui/journal.cpp:1083` | Show %s on the world map |
-| `ui/journal.cpp:1092` | Bought ingredients are always quality 25. A click on a column's head sorts by it%s. |
-| `ui/journal.cpp:1092` |  (the nearest: not known now, the party's position is not) |
-| `ui/journal.cpp:1109` | Nearest town |
-| `ui/journal.cpp:1110` | Also sold at |
-| `ui/journal.cpp:1127` | not seen in a shop yet |
-| `ui/journal.cpp:1144` | A click on a column's head sorts by it. |
-| `ui/journal.cpp:1155` | No shop's wares noted yet. |
-| `ui/journal.cpp:1155` | Not seen in any shop yet. |
-| `ui/journal.cpp:1160` | Town (nearest first) |
+| `ui/journal.cpp:212` | Goods merchant |
+| `ui/journal.cpp:401` | the countryside |
+| `ui/journal.cpp:470` | the countryside |
+| `ui/journal.cpp:473` | A made-up text, number , to try the chronicle's days and places. It runs on a little so that it wraps over two lines in the window....leave. |
+| `ui/journal.cpp:483` | The chronicle is off: tick both boxes above (the Full Original preset keeps it off). |
+| `ui/journal.cpp:485` | Hide the list of days |
+| `ui/journal.cpp:485` | Show the list of days |
+| `ui/journal.cpp:488` | %d text%s read in this game |
+| `ui/journal.cpp:491` | Save as a text file |
+| `ui/journal.cpp:505` | Could not write the file. |
+| `ui/journal.cpp:518` | Every text the cards show is kept here, with the date, the place and the choice you made. |
+| `ui/journal.cpp:518` | Nothing found. |
+| `ui/journal.cpp:566` | < Day before |
+| `ui/journal.cpp:570` |  (matching texts only) |
+| `ui/journal.cpp:648` | a complete idiot: worse than none |
+| `ui/journal.cpp:678` | Start or load a game first: each game has its own notes. |
+| `ui/journal.cpp:684` | Your own notes for this game: clues, plans, who wanted what. Kept as darklands_notes_%u.txt. |
+| `ui/journal.cpp:839` | %s  (%d wares, noted %s) |
+| `ui/journal.cpp:918` | sold here (expected) |
+| `ui/journal.cpp:938` | Start or load a game first. |
+| `ui/journal.cpp:939` | Available after the battle. |
+| `ui/journal.cpp:946` | What the party has left with innkeepers ("store items with the innkeeper" at a town's inn): one store room, the same at every inn (the Darklands+ switch "One store room shared by every inn" in F12 > Settings > New screens). |
+| `ui/journal.cpp:947` | What the party has left with innkeepers ("store items with the innkeeper" at a town's inn), and where.  |
+| `ui/journal.cpp:947` | The original game shows a store room only while the party is in it. |
+| `ui/journal.cpp:976` | Nothing stored anywhere. |
+| `ui/journal.cpp:982` |  kind of item |
+| `ui/journal.cpp:982` |  kinds of items |
+| `ui/journal.cpp:983` | Every inn's store room  -   |
+| `ui/journal.cpp:1014` | The quests and every town (its shops, the wares noted, where to buy an item) are on the world map (M). |
+| `ui/journal.cpp:1017` | Note each town's shops and wares |
+| `ui/journal.cpp:1029` | The Honor Roll of Glory: the four most famous parties. MicroProse drew it and wrote the code for it, but never finished it (the manual mentions a Hall of Fame, the game's README says there is none). A party enters it when its journey ends, or now with the button. |
+| `ui/journal.cpp:1033` | Show the Honor Roll of Glory |
+| `ui/journal.cpp:1037` | Enter the party now |
+| `ui/journal.cpp:1037` | The party is on the roll. |
+| `ui/journal.cpp:1037` | The party is not yet famous enough to be among the four best (or the roll could not be saved). |
+| `ui/journal.cpp:1087` | Find alchemical ingredients###wtb0 |
+| `ui/journal.cpp:1087` | Find any ware###wtb1 |
+| `ui/journal.cpp:1090` | Nothing noted yet: the wares of each shop are noted as the party sees them. |
+| `ui/journal.cpp:1096` | Show %s on the world map |
+| `ui/journal.cpp:1105` | Bought ingredients are always quality 25. A click on a column's head sorts by it%s. |
+| `ui/journal.cpp:1105` |  (the nearest: not known now, the party's position is not) |
+| `ui/journal.cpp:1122` | Nearest town |
+| `ui/journal.cpp:1123` | Also sold at |
+| `ui/journal.cpp:1140` | not seen in a shop yet |
+| `ui/journal.cpp:1157` | A click on a column's head sorts by it. |
+| `ui/journal.cpp:1168` | No shop's wares noted yet. |
+| `ui/journal.cpp:1168` | Not seen in any shop yet. |
+| `ui/journal.cpp:1173` | Town (nearest first) |
 | `ui/levelmap.cpp:50` | does not work consistently |
 | `ui/levelmap.cpp:65` | does not work consistently |
 | `ui/levelmap.cpp:313` |  Stairs seen to floor  |

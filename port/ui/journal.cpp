@@ -36,6 +36,7 @@ extern "C" {
 #include "../mods/gamemodel.h"
 extern "C" void travel_party_tile(int *x, int *y);
 extern char game_dir[1024];
+int cardview_active(void); extern char cardview_last_choice[160];   /* (mods/cardview.c: the option it chose, its words) */
 void ovl_enter(int sect);
 }
 
@@ -341,7 +342,8 @@ static std::string chron_text_now(void)
         line[n] = 0;
         const char *p = line; bool opt = false;
         while (*p == 0x14) { p++; if (!para.empty()) { out += (out.empty() ? "" : "\n\n") + para; para.clear(); } }
-        if (*p == 0x15) {
+        if (*p == 0x15 || *p == 0x10 || *p == 0x16 || *p == 0x06) {   /* an option: plain, with a list of items, of saints, a battle (as
+                                                                     mods/cardview.c reads them: the lists' lines stood in the text) */
             opt = true;
             std::string o;
             for (const char *q = p + 1; *q; q++) if ((unsigned char)*q >= 0x20) o += *q; else if (*q == 0x1d) o += ' ';
@@ -406,6 +408,17 @@ extern "C" void chronicle_capture(void)
 extern "C" void chronicle_choice(int sel)
 {
     if (!chron_on() || chron.empty() || !chron_pending || !chron.back().choice.empty()) return;
+    {   /* the card drawn by Darklands+ (mods/cardview.c): the words of the option it chose. The lines read below are
+           where the game's own screen puts them, and the crisp text there was another option's (1.4.6-RC16: the
+           dwarf's price agreed to, the chronicle said the potion thrown) */
+        if (cardview_active()) {
+            std::string t = game_text(cardview_last_choice, strlen(cardview_last_choice));
+            while (!t.empty() && (t[0] == '.' || t[0] == ' ')) t.erase(0, 1);
+            if (!t.empty()) chron.back().choice = t;
+            chron_flush();
+            return;
+        }
+    }
     int n = (s8)g_rb(GV_card_layout);
     if (getenv("DL_CHRON_LOG")) { fprintf(stderr, "chronicle: choice %d of %d lines, %d parsed:", sel, n, (int)chron_cur_opts.size()); for (int i = 0; i < n && i < 20; i++) fprintf(stderr, " %d", (s8)g_rb((u16)(GV_card_layout_opt + i))); fprintf(stderr, "\n"); }
     for (int i = 0; i < n && i < 20; i++) {
