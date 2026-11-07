@@ -154,10 +154,7 @@ the files where each switch's key is read.
 | `journal.chronicle` | Chronicle | look | journal.cpp |
 | **The party and its items** | | | |
 | `rules.ingredients_one_quality` | Ingredients of one quality | plus | loot.c |
-| `assist.return_thrown` | Thrown weapons picked up after a battle | ease | loot.c |
-| `assist.endless` | Endless ammunition and thrown weapons | plus | a group of switches: options.c (BUNDLES) |
-| `assist.infinite_ammo` | Endless ammunition | plus | ammo.c |
-| `assist.infinite_thrown` | Endless thrown weapons | plus | ammo.c |
+| `assist.endless` | Ammunition | plus | ammo.c, settings.cpp |
 | `rules.relics` | Relics as the manual has them | plus | relics.c |
 | `rules.aging` | Aging during play | plus | aging.c |
 | `rules.hirelings_stay` | Companions stay | experiment | hirelings.c |

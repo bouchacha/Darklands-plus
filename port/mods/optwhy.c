@@ -59,11 +59,8 @@ static const struct { const char *key, *why; } WHY[] = {
     { "journal.chronicle", "A record of the journey the original does not keep." },
     { "rules.relics", "The manual says a relic lowers the Divine Favor a prayer to its saint costs, for a bearer of enough Virtue; the game never did it, so this is half a fix: a good-faith reading of two sentences. To its own saint alone was too narrow, so here it is any prayer. Relics could be worn down like any weapon, and a cathedral took whichever relic came first, without saying what giving it does." },
     { "rules.ingredients_one_quality", "Ingredients of one kind at two qualities were listed twice, and the quality changed nothing but the price." },
-    { "assist.return_thrown", "Gathering thrown weapons after each battle is busywork." },
-    { "assist.endless", "Counting arrows and gathering javelins is bookkeeping, not play; enemies still run out." },
+    { "assist.endless", "Counting arrows and gathering javelins is bookkeeping, not play; enemies still run out. The middle way keeps the original's losses without the picking." },
     { "map.overland_marks", "The original overland view names nothing and shows no quest." },
-    { "assist.infinite_ammo", "Counting arrows is bookkeeping, not play; enemies still run out." },
-    { "assist.infinite_thrown", "The same for thrown weapons." },
     { "rules.aging", "Creation ages characters but play does not, so starting with older characters cost nothing later; this keeps age a cost." },
     { "rules.hirelings_stay", "A player asked to keep a companion for the whole game instead of taking one on again each time the agreed days run out; a cheat, so experimental and off." },
     { "assist.loss_alerts", "Permanent losses happen silently in the original." },
@@ -150,6 +147,7 @@ const char *const OPTIONS_RETIRED[] = {
     "display.integer_scale",         /* whole-number scaling: three ways to scale instead (Sharp pixels, Rounded edges, Soft) */
     "display.idle_rest",             /* the game waits without spinning: always */
     "sound.hit_sounds",              /* hits make a sound: the fix "hitsound" */
+    "assist.infinite_ammo", "assist.infinite_thrown", "assist.return_thrown",   /* one choice instead, Ammunition (assist.endless: 1 endless, 2 given back, 0 the original's) */
     0 };
 
 const char *option_why(const Option *o)

@@ -71,7 +71,7 @@ void gamepics_set_renderer(SDL_Renderer *r);
 extern "C" { int lootview_showing(void); int lootview_is_on(void); void lootview_set(int on); }
 extern "C" { int sheetview_showing(void); int sheetview_is_on(void); void sheetview_set(int on); }
 extern "C" { int barterview_is_on(void); void barterview_set(int on); int barterview_showing(void); }
-extern "C" { extern int battlescroll_on, battlescroll_rest; void battlescroll_set(int, int); extern int loot_return_thrown; extern int ammo_infinite; void ammo_set(int v); extern int thrown_infinite; void thrown_set(int v); }
+extern "C" { extern int battlescroll_on, battlescroll_rest; void battlescroll_set(int, int); extern int ammo_infinite; extern int thrown_infinite; }
 extern "C" void halloffame_close(void);
 extern "C" int halloffame_record(void);
 void halloffame_set_renderer(SDL_Renderer *r);

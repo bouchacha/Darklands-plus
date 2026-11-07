@@ -416,3 +416,11 @@ covered and found, and what it could not check.
   starting again when it shows. The cards' saints: the 99% favor is reckoned by the Saints page's own function
   (sheetview.c pray_member, now shared), not a copy. The new toolchain (mingw-w64 g++ 13) no longer brings
   math.h through other headers: the eight files that use its functions include it.
+  Ammunition (his wish): the three switches (endless ammunition, endless thrown weapons, thrown weapons given
+  back) became one choice, assist.endless (1 endless, 2 given back, 0 the original's), its values the old
+  group's so saved settings keep their meaning; ammo.c owns the mode and sets the modules' variables, loot.c's
+  give-back takes arrows and quarrels as it took thrown weapons. A choice can now be a list with words for each
+  (OF_LIST, choice_desc). Found while at it: a group switch named its group by its place in BUNDLES, so taking
+  one out shifted the next (map.overland_marks); options_sync_bundles now says at start when one does not match.
+  Also the covers drawn over everything (loading, Go to) give way to a window over the game, as the clock does:
+  the first battle's notice, come up during a load, stood under "Loading...".

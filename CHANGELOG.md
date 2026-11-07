@@ -55,6 +55,7 @@ What changed since 1.4.5.
 
 **Changed**
 
+- **Ammunition** (F12 > Settings > The party and its items) is a choice of three: endless (as before, the default; the setting says what the original's losses come to), given back after a battle (the original's rules, but what each member shot or threw that can be found again goes back to them when the loot screen opens: arrows and quarrels now too), or the original's. It takes the place of the endless-ammunition switch and "Thrown weapons picked up after a battle".
 - **The alchemy screen lists each potion once:** its three formulae (grades 1 to 3) are seals under its name, green where the party's ingredients make a batch, red where they fall short, faint where the alchemist does not know it; a click on a seal chooses that formula. A star or a mark aside is for the potion, all three formulae (one set on a formula before is kept for its potion).
 - **The game's messages over the screens of Darklands+** (Alchemy Success, Saint Call Fails): a box as wide as its words, everything centred, the heading green for a success and red for a failure beside the shield of what it took. It was a wide box with the words at its top left.
 - **The journey's line on the maps:** straight lines between the places where the way turns, which keep their shape as the party walks. 1.4.5's smoothed line was worked out again at every step from where the party stood, and its bends moved about.

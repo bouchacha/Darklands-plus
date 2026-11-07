@@ -47,7 +47,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 |---|---:|---|
 | `mods/aging.c` | 139 | the years take their toll in play, as they do while a character is made. |
 | `mods/alchemyview.c` | 257 | the alchemy screen as a native screen (nscreen.h; the view is ui/alchemyview.cpp). |
-| `mods/ammo.c` | 73 | arrows, quarrels and balls that never run out (assist.infinite_ammo, on by default; the Full Original preset turns it off). |
+| `mods/ammo.c` | 79 | what a shot or a throw uses up (assist.endless, a choice: 1 endless, by default; 2 spent ones given back after a battle; 0 the original's; the Full Original preset sets 0). |
 | `mods/assist.c` | 517 | playing aids of the native port that watch the game through hooks: |
 | `mods/autopause.c` | 104 | battles pause themselves (as if Space were pressed) when a member of the party falls, or is badly hurt, or when foes waiting in a castle, dungeon or mine come out to fight (a group of the shown floor's activations steps out: their count, DS:d6cc, falls while the floor stays the same; see mods/foesleft.c), so the player can give new orders in time. |
 | `mods/barterview.c` | 299 | the shop screen as a native screen (nscreen.h). |
@@ -76,7 +76,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/levelwalk.c` | 443 | a click on the level map (Tab, ui/levelmap.cpp) walks the party there. |
 | `mods/lodgeview.c` | 546 | staying at an inn, camping, as a native screen (display.native_lodge; the view is ui/lodgeview.cpp). |
 | `mods/looks.c` | 1063 | more figures for the party. |
-| `mods/loot.c` | 499 | the loot screen and the shops, one at a time no more. |
+| `mods/loot.c` | 500 | the loot screen and the shops, one at a time no more. |
 | `mods/lootview.c` | 276 | the loot screen as a native screen (nscreen.h; the view is ui/lootview.cpp). |
 | `mods/losaim.c` | 105 | battle.los_line: while a member is about to shoot or throw at a foe (the pointer on it, order mode), the line the game tests for a clear shot and what stands across it (ui/battleoverlay.cpp draws them). |
 | `mods/losses.c` | 144 | what is lost for good is told in a window to click through (the game waits): - an attribute's maximum or a skill lowered, by whatever does it (a card, a curse ...): the members' maxima and skills are watched from one moment to the next. |
@@ -88,8 +88,8 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/nscreen.c` | 235 | the frame for native screens (see nscreen.h). |
 | `mods/offices.c` | 102 | whether a town's task givers have work now, or when again (offices.h). |
 | `mods/opening.c` | 117 | the opening (the MicroProse logo, the animations, the music and the digitized speech), F12 > Settings > "At start": the whole opening (the default), its last scene alone (the lady of the Darklands and her welcome), or nothing. |
-| `mods/options.c` | 494 | the table of Darklands+'s switches and the presets (options.h). |
-| `mods/optwhy.c` | 162 | why each switch exists, one line each: beside what it does (the table's description, mods/options.c), the reason for it, for whoever carries a feature into another engine (the list docs/SWITCHES.md is made from both: DL_DUMP_SWITCHES, runtime/main.c). |
+| `mods/options.c` | 506 | the table of Darklands+'s switches and the presets (options.h). |
+| `mods/optwhy.c` | 160 | why each switch exists, one line each: beside what it does (the table's description, mods/options.c), the reason for it, for whoever carries a feature into another engine (the list docs/SWITCHES.md is made from both: DL_DUMP_SWITCHES, runtime/main.c). |
 | `mods/orders.c` | 424 | in a battle, a member who is not yet fighting can be sent at an enemy with a click on it (F12 > Settings; the Full Original preset leaves the game's way). |
 | `mods/pack.c` | 355 | the shared pack's housekeeping (inventory.shared, mods/sheetview.c): the party's spare things are one pack in Darklands+'s screens, but the game still keeps each thing with a member, and in a battle a bow, a crossbow or a gun shoots only what its bearer carries (can_fire, s014 18bf:0c02: the ammunition of the weapon's kind, far 20a5:7822[type]). |
 | `mods/pathfix.c` | 829 | better pathfinding in battles and dungeons. |
@@ -131,7 +131,7 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/bestiary.cpp` | 241 | F12 > Appendices > Enemies: every foe of the game (DARKLAND.ENM: 71 kinds of 204 bytes, then 82 named foes of 24 bytes; formats/dlformats/enm.py has the layout) with its attributes, weapon skills, armour (and how hard it is against which weapons), shield and weapons. |
 | `ui/cacheview.cpp` | 143 | draws the store room (mods/cacheview.c runs it; docs/NATIVE_SCREENS.md). |
 | `ui/cardhints.cpp` | 40 | why an option of a card is greyed: the cards' scripts (src/c) show some options without letting them be chosen - something done already, the time of day, a fact the party has yet to learn, money - and the game never says which. |
-| `ui/cardview.cpp` | 911 | draws the card screen (mods/cardview.c runs it): the card's picture stays the game's own (with its palette, frame and any replacement art), the text and the options are set here in the chosen typeface, sized to the text block the card file gives for them. |
+| `ui/cardview.cpp` | 915 | draws the card screen (mods/cardview.c runs it): the card's picture stays the game's own (with its palette, frame and any replacement art), the text and the options are set here in the chosen typeface, sized to the text block the card file gives for them. |
 | `ui/careericons.cpp` | 93 | a picture for each kind of profession on the making of a character (arms, nobility, church, trade, learning, crafts, common folk), in the manner of the town's pictures (ui/townicons.cpp): a parchment disc, bold shapes with an ink outline. |
 | `ui/choose.cpp` | 57 | the box asking which of the party's things (mods/choose.c runs it): over the card, in the cards' style, the question and what picking does, a line each (the thing's picture, name and quality, what it does under them, who carries it: their head), a click or its number picks it; and a button for none. |
 | `ui/citynav.cpp` | 1226 | "Go to" in cities. A city in Darklands is a maze of card menus (main street, market, churches, the crafts district, side streets ...); the list here names every place at once, and picking one walks the party there throug |
@@ -189,7 +189,7 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/saves.cpp` | 119 | the saves' preferences (F12 > Settings); the old list of saves (tab_saves, no longer a tab: the game's Load does it), the party in it and its comment, newest first; load or delete any of them; quick save / quick load and the autosave settings (mods/saves.c does the work through the game's own routines). |
 | `ui/savesview.cpp` | 184 | the game's Save and Load drawn by Darklands+ (mods/savesview.c runs them): the comment to save under, and the saves there are, newest first, each with its comment, where and when in the game, who, the purse and how long ago it was written. |
 | `ui/screenpics.cpp` | 210 | pictures of the new screens from the player's own game, for the settings' "New screens" switch: the first time a card, a shop, a character sheet, the inn and the alchemy screen have stood still on screen for a moment (no window of Darklands+'s over them), the whole window is kept, small, in <data>/previews/<name>.png. |
-| `ui/settings.cpp` | 604 | the Darklands+ window's Settings page (F12), and its Mods and Reconstructed Content tabs. |
+| `ui/settings.cpp` | 626 | the Darklands+ window's Settings page (F12), and its Mods and Reconstructed Content tabs. |
 | `ui/settings_look.cpp` | 274 | the Settings page's sections on what things look like (ui/settings.cpp draws the page): Text (the original lettering or the new text, the typeface, the coins) and Frames and clock (the band around the windows, the frames, the buttons, the clock, the potions' grade marks). |
 | `ui/settings_setup.cpp` | 439 | the Settings page's sections on the game on this computer (ui/settings.cpp draws the page): Screen, Intro, Sound and Controller. |
 | `ui/sheetview.cpp` | 1308 | draws a member's sheet (mods/sheetview.c runs it; docs/NATIVE_SCREENS.md), the whole page anew beside the party panel. |
@@ -200,7 +200,7 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/titleview.cpp` | 110 | the start screen, drawn by Darklands+ (mods/titleview.c runs it): laid out as the game lays out a card, the words on the parchment at the left and a picture at the right (the castle at dusk the game shows on the road to a town, pics\aproch1.pic), the Darklands lettering of the original start screen (pics\startscr.pic) cut from its stone. |
 | `ui/townicons.cpp` | 390 | see townicons.h. Drawn with ImGui's shapes (pen.h) in the manner of the quests' pictures: bold shapes with an ink outline, readable at the size of a line of text. |
 | `ui/travel.cpp` | 143 | the route of auto-travel drawn over the overland map (mods/travel.c walks it; the world map, ui/worldmap.cpp, is where a journey is chosen), and the campfire under the clock that makes the party stop to camp at 20:00 (travel.camp_at_8). |
-| `ui/ui.cpp` | 781 | the native port's own interface, drawn over the game: the Darklands+ window (F12) and its pages (the settings pages in settings.cpp), help, notices. |
+| `ui/ui.cpp` | 783 | the native port's own interface, drawn over the game: the Darklands+ window (F12) and its pages (the settings pages in settings.cpp), help, notices. |
 | `ui/ui_windows.cpp` | 396 | the interface's side windows: About, the welcome on the first start, getting the MT-32 working, and F11's keys and clicks for the screen in view. |
 | `ui/worldmap.cpp` | 1123 | the world map: the whole of the Holy Roman Empire as the travel screen draws it (mods/worldmap.c), to pan and zoom, with towns and places named, the party, the route of auto-travel and the places the quest log points to. |
 | `ui/worldmap_draw.cpp` | 651 | the world map's pictures (the places' seals and painted icons, the frame, the compass rose, the boats' red ink and ships, the layer buttons' glyphs, a quest's halo), its list of places, the names over the game's own travel map, and a test sheet of the pictures. |

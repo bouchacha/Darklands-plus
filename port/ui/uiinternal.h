@@ -24,7 +24,7 @@ extern "C" { int menuview_is_on(void); void menuview_set(int on); }
 extern "C" { int alchemyview_showing(void); int alchemyview_is_on(void); void alchemyview_set(int on); }
 extern "C" { int partypanel_is_on(void); void partypanel_set(int on); int partypanel_picture(void); void partypanel_set_picture(int v); void partypanel_draw(void); void partypanel_set_renderer(SDL_Renderer *r); void partypanel_init(void); }
 extern "C" { int barterview_is_on(void); void barterview_set(int on); int barterview_showing(void); }
-extern "C" { extern int battlescroll_on, battlescroll_rest; void battlescroll_set(int, int); extern int loot_return_thrown; extern int ammo_infinite; void ammo_set(int v); extern int thrown_infinite; void thrown_set(int v); }
+extern "C" { extern int battlescroll_on, battlescroll_rest; void battlescroll_set(int, int); extern int ammo_infinite; extern int thrown_infinite; }
 extern int ui_spell_out;                   /* overlay.cpp: character sheet names in full */
 extern "C" void rules_apply(void);
 extern "C" void journal_set(int on);

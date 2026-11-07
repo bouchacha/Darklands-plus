@@ -30,6 +30,7 @@ enum OptClass {
 enum {
     OF_ELSEWHERE = 1,   /* shown on another page (Display, Sound, Saves, Travel): the presets set it */
     OF_COMBO = 2,       /* a choice drawn as a drop-down list (else as buttons in a row) */
+    OF_LIST = 4,        /* a choice drawn one under the other, each with its own words (choice_desc) */
 };
 
 typedef struct Option {
@@ -47,6 +48,7 @@ typedef struct Option {
     int flags;                  /* OF_... */
     int arg;                    /* (fixes and built-in changes: their index) */
     void (*apply_i)(int arg, int v);
+    const char *choice_desc;    /* OF_LIST: each choice's words, "words|words|...", as choices */
 } Option;
 
 int option_bundled(const Option *o);       /* set by "New screens", not shown on its own */
@@ -59,6 +61,7 @@ const Option *options_find(const char *key);
 int option_value(const Option *o);
 void option_set(const Option *o, int v);    /* config, apply, then the listener */
 int option_nchoices(const Option *o);
+const char *option_choice_desc(const Option *o, int k, char *buf, int n);   /* OF_LIST: choice k's words ("" none) */
 const char *option_choice(const Option *o, int k, char *buf, int n);   /* label k of a choice */
 /* the interface's listener: called after a switch changes (key), to reload what it keeps itself */
 void options_set_listener(void (*fn)(const char *key, int v));

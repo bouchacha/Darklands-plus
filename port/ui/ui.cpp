@@ -665,14 +665,16 @@ extern "C" void ui_draw(SDL_Renderer *ren)
           float kx = (x1 - x0) / 320.0f, ky = (y1 - y0) / 200.0f;
           ui_draw_hourglass(dl, ImVec2(x0 + 130 * kx, y0 + 49 * ky), kx, ky, hg_hour, hg_day, hg_month);
       } }
-    { if (saves_loading_cover()) {                 /* a load under way: the game's load screen hidden */
+    { if (saves_loading_cover() && !windows_up()) {   /* a load under way: the game's load screen hidden (not a window over the game:
+                                                     the first battle's notice, come up as a save in a battle loaded, stood
+                                                     under "Loading...", the load waiting for its OK) */
           ImDrawList *dl = ImGui::GetForegroundDrawList(); ImGuiIO &io = ImGui::GetIO();
           dl->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(20, 14, 10, 255));
           const char *t = "Loading...";
           ImVec2 ts = ImGui::CalcTextSize(t);
           dl->AddText(ImVec2((io.DisplaySize.x - ts.x) * 0.5f, (io.DisplaySize.y - ts.y) * 0.5f), IM_COL32(230, 210, 170, 255), t);
       } }
-    if (!open_menu && !open_map) VT(citynav_draw_cover());
+    if (!windows_up()) VT(citynav_draw_cover());
     ui_icon_styles_draw();
     { void ui_pstone_sheet_draw(void); ui_pstone_sheet_draw(); }   /* (test: DL_PSTONE_SHEET) */
     ui_draw_notice();

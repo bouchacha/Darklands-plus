@@ -276,6 +276,18 @@ extern "C" bool screenpics_map_draw(ImDrawList *dl, ImVec2 a, ImVec2 b);
 extern "C" bool screenpics_land_draw(ImDrawList *dl, ImVec2 a, ImVec2 b);
 extern "C" void saves_prefs(void);   /* ui/saves.cpp */
 static void opt_set(const Option *o, int v) { option_set(o, v); ui_dirty_config = 1; }
+/* words a choice gets from the game's own data, after its own: Ammunition, Endless - what the original's
+   losses come to, 100 arrows shot, 3 in 10 not found again (missile_spent), at a shop's price for 25q
+   (buy_price, s032 1462:192e: value x quality x 2 / 25, before the town's size and the bargainer's
+   Charisma); arrows are item 33 */
+static std::string choice_more(const Option *o, int k)
+{
+    if (!strcmp(o->key, "assist.endless") && o->vals[k] == 1 && gamedata.items.size() > 33 && gamedata.items[33].value > 0) {
+        long each = (long)gamedata.items[33].value * 25 * 2 / 25;
+        return " Shooting 100 arrows loses about 30 of them, about " + money_str(each * 30) + " at a shop's price for 25q.";
+    }
+    return "";
+}
 static void option_row(const Option *o, int depth);
 static void option_children(const Option *o, int depth)
 {
@@ -302,7 +314,17 @@ static void option_row(const Option *o, int depth)
         int nc = option_nchoices(o), sel = -1;
         for (int k = 0; k < nc; k++) if (o->vals[k] == v) sel = k;
         char lab[96];
-        if (o->flags & OF_COMBO) {
+        if (o->flags & OF_LIST) {                       /* one under the other, each with its words */
+            char cd[1200];
+            for (int k = 0; k < nc; k++) {
+                ImGui::PushID(k);
+                if (ImGui::RadioButton("##r", k == sel)) opt_set(o, o->vals[k]);
+                ImGui::SameLine();
+                std::string w = std::string(option_choice_desc(o, k, cd, sizeof cd)) + choice_more(o, k);
+                if (ui_title_desc(option_choice(o, k, lab, sizeof lab), w.c_str())) opt_set(o, o->vals[k]);
+                ImGui::PopID();
+            }
+        } else if (o->flags & OF_COMBO) {
             float wmax = 0; for (int k = 0; k < nc; k++) wmax = fmaxf(wmax, ImGui::CalcTextSize(option_choice(o, k, lab, sizeof lab)).x);
             ImGui::SetNextItemWidth(wmax + ImGui::GetFrameHeight() + UIS(24));
             if (ImGui::BeginCombo("##c", sel >= 0 ? option_choice(o, sel, lab, sizeof lab) : "")) {

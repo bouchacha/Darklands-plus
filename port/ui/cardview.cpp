@@ -600,6 +600,7 @@ extern "C" void cardview_draw(void)
             for (int e = 0; e < c.nentries; e++) {
                 const CvEntry &en = c.entry[e];
                 float h = L * 0.92f;
+                bool on_chip = false;
                 bool eh = c.hover_entry == e && en.on;
                 if (eh) dl->AddRectFilled(ImVec2(ex - 0.4f * size, ey - 0.1f * h), ImVec2(X1 + 1.0f * k, ey + 0.95f * h), dark ? IM_COL32(255, 214, 140, 50) : IM_COL32(150, 92, 30, 55), 1.2f * k);
                 if (en.who[0]) {
@@ -637,6 +638,7 @@ extern "C" void cardview_draw(void)
                        chance takes (his wish, 2026-11-06), greyed when the member has less (their best chance then in its
                        tooltip), or the best chance when no favor gives 99% */
                     float vs = size * 0.82f, ish = size * 0.8f, gap = 0.7f * size;
+                    on_chip = false;                                 /* (the pointer on one of them: its own tooltip, not the saint's) */
                     char db[16] = "";
                     const bool dfrow = c.popup_kind == 2 && !saint_learning && en.dfbest >= 0 && (en.df99 > 0 || en.dfbest > 0);
                     const bool dfshort = dfrow && en.dfbest < 99;
@@ -648,6 +650,7 @@ extern "C" void cardview_draw(void)
                         ui_shield_value(dl, ImVec2(d0.x, ey + 0.46f * h), ish, ATTR_DF, db, fs, vs, ink_soft);
                         if (dfshort) ui_dim_since(dl, v0, 0.38f);
                         if (ImGui::IsMouseHoveringRect(d0, d1, false) && !ui_is_open()) {
+                            on_chip = true;
                             ui_tip_beside(d0, d1);
                             ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
                             std::string who = ui_member_name(en.member);
@@ -668,6 +671,7 @@ extern "C" void cardview_draw(void)
                         ui_shield_value(dl, ImVec2(m0.x, ey + 0.46f * h), ish, UI_KEY_SKILL + SKILL_VIRTUE, vb, fs, vs, ink_soft);
                         if (low) ui_dim_since(dl, v0, 0.38f);
                         if (ImGui::IsMouseHoveringRect(m0, m1, false) && !ui_is_open()) {
+                            on_chip = true;
                             ui_tip_beside(m0, m1);
                             ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
                             ui_rich_textf("This saint asks a {Virtue} of %d of the one who prays.", en.vmin);
@@ -680,7 +684,7 @@ extern "C" void cardview_draw(void)
                     }
                 }
                 c.entry_y0[e] = wy2g(ey - 0.1f * h); c.entry_y1[e] = wy2g(ey + 0.95f * h);
-                if (c.hover_entry == e) { tip_at = ImVec2(X1 + 2 * k, ey); if (c.popup_kind == 2) tip_saint = en.id; else if (ef >= 0) tip_formula = ef; else tip_item = en.id; }
+                if (c.hover_entry == e && !on_chip) { tip_at = ImVec2(X1 + 2 * k, ey); if (c.popup_kind == 2) tip_saint = en.id; else if (ef >= 0) tip_formula = ef; else tip_item = en.id; }
                 ey += h;
             }
         }

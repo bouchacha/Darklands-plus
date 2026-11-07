@@ -113,19 +113,21 @@ static void screen_hook(void)              /* s040 1462:01c8 the loot screen's l
     loot_active--;
 }
 
-/* ---------------------------------------------------------------- thrown weapons back
- * Javelins, throwing axes, throwing knives and darts (LST flag 0x10) that the party threw lie
- * in the loot pile after the battle, to be handed back one by one. What each member carried
- * of them is noted when a battle starts (run_battle, s029 0e76:2278); when the loot screen
- * after it opens, each gets back, through the game's own G, as many as they are missing (of
- * the same quality first). */
+/* ---------------------------------------------------------------- spent ammunition back
+ * Javelins, throwing axes, throwing knives and darts (LST flag 0x10) that the party threw, and
+ * the arrows and quarrels it shot that can be found again (7 in 10), lie in the loot pile after
+ * the battle, to be handed back one by one. With ammunition given back (assist.endless 2,
+ * mods/ammo.c: loot_return_thrown), what each member carried of them is noted when a battle
+ * starts (run_battle, s029 0e76:2278); when the loot screen after it opens, each gets back,
+ * through the game's own G, as many as they are missing (of the same quality first). */
 #define TH_MAX 12
 static struct { u16 id; u8 q; int n; } th[5][TH_MAX];
 static int th_n[5], th_valid, battle_depth;
-int loot_return_thrown = 1;
+int loot_return_thrown;                                                  /* (set by mods/ammo.c) */
 
 static int thrown_kind(u16 id)
 {
+    if (gm_is_ammo(id)) return 1;                                        /* arrows, quarrels, balls (balls are never found again) */
     int c = gm_itemdef_u8(id, 0x20);
     return c > 0 && (c & 0x10);                                          /* shop categories (+0x20) bit 0x10: thrown weapons */
 }
@@ -199,7 +201,7 @@ static void give_back_thrown(void)
         }
         if (got && ml < (int)sizeof msg - 40) {
             char nm[16]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), nm, sizeof nm);
-            ml += snprintf(msg + ml, sizeof msg - ml, "%s%s %d", ml ? ", " : "Thrown weapons picked up after the battle (Darklands+): ", nm, got);
+            ml += snprintf(msg + ml, sizeof msg - ml, "%s%s %d", ml ? ", " : "Ammunition and thrown weapons given back after the battle: ", nm, got);
         }
     }
     if (!given) return;
@@ -488,7 +490,6 @@ void loot_init(void)
     hook_install(40, 0x1462, 0x01c8, screen_hook);
     hook_install(40, 0x1462, 0x06e2, first_draw_hook);
     hook_install(GF_run_battle, battle_hook);
-    loot_return_thrown = config_get_int("assist.return_thrown", 1);
     loot_ingredients_one = config_get_int("rules.ingredients_one_quality", 1);
     hook_install(GF_add_item_rec_impl, ingr_add_hook);
     hook_install(GF_cache_first_draw, ingr_store_hook);

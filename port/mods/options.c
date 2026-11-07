@@ -13,10 +13,10 @@ void alchemyview_set(int), cacheview_set(int), lodgeview_set(int), prayview_set(
 void infoview_set(int), marchview_set(int), enemyview_set(int), mapmsg_set(int), savesview_set(int);
 void assist_set_chances(int), assist_set_best_leader(int), assist_set_card_help(int), assist_set_card_keys(int);
 void autopause_set(int, int), autopause_set_foes(int), battle_speed_set(int), battle_fast_set(int);
-void battlescroll_set(int, int), pathfix_set(int, int), travel_set(int, int), ammo_set(int), thrown_set(int);
+void battlescroll_set(int, int), pathfix_set(int, int), travel_set(int, int), ammo_mode_set(int);
 void saves_enable(int), hdtext_set(int), hdart_set(int), sfx_set(int);
 extern int autopause_down, autopause_hurt, battlescroll_on, battlescroll_rest, pathfix_party, pathfix_enemies;
-extern int travel_enabled, travel_fast, orders_click_attack, loot_return_thrown;
+extern int travel_enabled, travel_fast, orders_click_attack;
 extern int saves_auto_arrive, saves_auto_battle, saves_restart;
 
 static void ap_down(int v) { autopause_set(v, autopause_hurt); }
@@ -27,7 +27,6 @@ static void pf_set(int v) { pathfix_set(v, v); }
 static void tr_auto(int v) { travel_set(v, travel_fast); }
 static void tr_fast(int v) { travel_set(travel_enabled, v); }
 static void click_attack(int v) { orders_click_attack = v; }
-static void return_thrown(int v) { loot_return_thrown = v; }
 void loot_ingredients_set(int on);
 static void ingredients_one(int v) { loot_ingredients_set(v); }
 static void relics_apply(int v) { void relics_set(int); relics_set(v); }
@@ -44,6 +43,7 @@ static const int V_SPEED[] = { 100, 150, 200, 300 };
 static const int V_PACE[] = { 0, 1, 2 };
 static const int V_RATE[] = { 25, 50, 100, 200 };
 static const int V_CAMP[] = { 0, 1, 2 };
+static const int V_AMMO[] = { 1, 2, 0 };
 
 
 /* groups: one switch for a set of features nobody would want one by one (a screen at a time, each
@@ -65,7 +65,6 @@ static const Bundle BUNDLES[] = {
     { "battle.scrolling", { "battle.smooth_scroll", "battle.scroll_paced", "battle.scroll_rest", 0 } },
     { "assist.card_helpers", { "assist.chances", "assist.card_help", "assist.shop_info", "assist.fast_fades", "assist.card_keys",
       "assist.teachers", "assist.docks_map", "assist.card_outcomes", 0 } },
-    { "assist.endless", { "assist.infinite_ammo", "assist.infinite_thrown", 0 } },
     { "map.overland_marks", { "map.names", "map.quest_marks", 0 } },
 };
 #define NBUNDLE ((int)(sizeof BUNDLES / sizeof BUNDLES[0]))
@@ -84,6 +83,8 @@ static void bundle_set(int g, int v)
 void options_sync_bundles(void)
 {
     for (int g = 0; g < NBUNDLE; g++) {
+        { const Option *m = options_find(BUNDLES[g].key);          /* (a group's switch names its group by its place in BUNDLES) */
+          if (!m || m->arg != g || m->apply_i != bundle_set) fprintf(stderr, "options: the group switch %s is not set up as group %d\n", BUNDLES[g].key, g); }
         const Option *f = options_find(BUNDLES[g].members[0]);
         int v = config_get_int(BUNDLES[g].key, f ? config_get_int(f->key, f->def) != f->orig : 1);
         config_set_int(BUNDLES[g].key, v);
@@ -149,10 +150,9 @@ static Option OPTIONS[] = {
     { "journal.chronicle", S_CARDS, "journal.enabled", "Chronicle", "every text the cards show, word for word, with the date, the place and the choice made, so a clue read weeks ago can be found again (F12 > Journal > Chronicle, where it is switched).", OC_LOOK, 1, 1, 1, 0, 0, 0, 0, OF_ELSEWHERE },
 
     { "rules.ingredients_one_quality", S_PARTY, 0, "Ingredients of one quality", "every ingredient is of quality 25, whoever finds, buys or carries it: its quality only ever changed its price (alchemy takes ingredients by kind and number, and a potion's quality is the formula's), and two of one kind at two qualities were two entries everywhere. Those already carried take quality 25 as a game is loaded, and one member's stacks of a kind become one outside castles, mines and dungeons.", OC_PLUS, 0, 1, 1, 0, 0, ingredients_one },
-    { "assist.return_thrown", S_PARTY, 0, "Thrown weapons picked up after a battle", "when the loot screen opens after a battle, the javelins, throwing axes, throwing knives and darts each member threw are taken from the pile and given back to them.", OC_EASE, 0, 1, 1, 0, 0, return_thrown },
-    { "assist.endless", S_PARTY, 0, "Endless ammunition and thrown weapons", "arrows, quarrels and balls, and javelins, throwing axes, throwing knives and darts, never run out (one is enough to shoot or throw); enemies still use up theirs. When off: each shot uses one, and about 7 in 10 arrows and quarrels can be picked up in the loot afterwards; with the shared pack they are then each member's own, listed with them like potions (picked-up ones go to whoever shoots them; drag them onto another member to hand them over).", OC_PLUS, 0, 1, 1, 0, 0, 0, 0, 0, 6, bundle_set },
-    { "assist.infinite_ammo", S_PARTY, 0, "Endless ammunition", "arrows, quarrels and balls never run out (one is enough to shoot); enemies still use up theirs. When off: each shot uses one, and about 7 in 10 arrows and quarrels can be picked up in the loot afterwards; with the shared pack they are then each member's own, listed with them like potions.", OC_PLUS, 0, 1, 1, 0, 0, ammo_set },
-    { "assist.infinite_thrown", S_PARTY, 0, "Endless thrown weapons", "javelins, throwing axes, throwing knives and darts never run out either (one is enough to throw). When off, with the shared pack they are each member's own, listed with them like potions.", OC_PLUS, 0, 1, 1, 0, 0, thrown_set },
+    { "assist.endless", S_PARTY, 0, "Ammunition", "arrows, quarrels and balls, and javelins, throwing axes, throwing knives and darts. Enemies use up theirs in every case.", OC_PLUS, 0, 1, 1,
+      "Endless|Given back after a battle|As in the original", V_AMMO, ammo_mode_set, 0, OF_LIST, 0, 0,
+      "the party's never run out: one is enough to shoot or throw. Ammunition costs next to nothing, and counting it is busywork: buying more, picking it out of the loot after every fight, finding room for it in every pack.|as the original: each shot or throw uses one, about 7 in 10 arrows and quarrels can be found again (balls never), and thrown weapons lie where they fell; but when the loot screen opens after a battle, each member is given back what they shot or threw, as far as the pile holds it, without picking through it. With the shared pack they are each member's own, listed with them like potions.|Are you insane?" },
     { "rules.relics", S_PARTY, 0, "Relics as the manual has them", "a relic takes Divine Favor off every prayer of its bearer, to any saint, when the bearer has the Virtue it asks (of several, the best; no prayer below 5), as the manual promised and the game never did: a borderline fix, our good-faith reading of the manual, which speaks only of prayers to the relic's own saint and gives no numbers; the two numbers are DARKLAND.LST's, which nothing read. A weapon relic counts while wielded, and only a member with its Virtue wields it; another relic counts for the member carrying it. Relics are immune from any quality degradation (corroding water, acid, fire, battle wear), and a cathedral given one of the party's relics asks which, saying what giving does.", OC_PLUS, 0, 1, 1, 0, 0, relics_apply },
     { "rules.aging", S_PARTY, 0, "Aging during play", "characters go on aging during play (Darklands+ only; the original ages them only during character creation): from thirty on, a little each month, more with age (by seventy, a total loss of 25 Endurance, 21 Strength and Agility each, 10 Perception and Charisma each, and 5 Intelligence).", OC_PLUS, 0, 1, 0 },
     { "rules.hirelings_stay", S_PARTY, 0, "Companions stay", "a companion taken on through a card no longer leaves when the time agreed runs out (a village's Schulz after 90 days, the Hanse's man after 360): he stays for good, as a knight does. A quest that ends with him going home (the Hanse's man delivered) still sends him off.", OC_EXPERIMENT, 0, 0, 0, NULL, NULL, hirelings_apply, "Turned off again, a companion already kept for good stays." },
@@ -199,7 +199,7 @@ static Option OPTIONS[] = {
     { "travel.auto", S_TRAVEL, "map.key_m", "Auto-travel", "the party follows the roads to a place you pick: double-click it (or Travel there) on the world map (M), or Ctrl+click it in the overland view. Any key or click stops it.", OC_EASE, 0, 1, 1, 0, 0, tr_auto },
     { "travel.fast", S_TRAVEL, "travel.auto", "Auto-travel speed", "", OC_TASTE, 0, 1, 1, "walking pace|4x|instant", V_PACE, tr_fast },
     { "travel.camp_at_8", S_TRAVEL, 0, "Stop to camp at 20:00", "a party on the move stops and makes camp when the clock strikes 20:00, the last hour from which a day in camp (or at an inn) is only the night, until 5:00: 9 hours, where from 21:00 it lasts until 5:00 the day after, 32 hours. When someone needs rest (short of Strength, or of more Divine Favor than a night brings back: Endurance comes back on the road by itself to 2 short of full), or every night (to brew on the road). The campfire under the clock in the overland view switches it too.", OC_EASE, 0, 0, 0, "off|when someone needs rest|every night", V_CAMP },
-    { "map.overland_marks", S_TRAVEL, 0, "Names and quest markers in the overland view", "the towns and places named in the overland view, each quest's icon above its place, and a sign beside a town that bars the party or where the watch is after it.", OC_SHOW, 0, 1, 1, 0, 0, 0, 0, 0, 7, bundle_set },
+    { "map.overland_marks", S_TRAVEL, 0, "Names and quest markers in the overland view", "the towns and places named in the overland view, each quest's icon above its place, and a sign beside a town that bars the party or where the watch is after it.", OC_SHOW, 0, 1, 1, 0, 0, 0, 0, 0, 6, bundle_set },
     { "map.names", S_TRAVEL, 0, "Place names in the overland view", "the towns and places named in the overland view.", OC_SHOW, 0, 1, 1 },
     { "map.quest_marks", S_TRAVEL, 0, "Quest markers in the overland view", "each quest's icon above its place in the overland view, and a sign beside a town that bars the party or where the watch is after it.", OC_SHOW, 0, 1, 1 },
     { "map.offers_unvisited", S_EASYPLAY, 0, "What unvisited places offer", "the saints a library teaches, the formulae an alchemist sells and a shop's goods, also in towns and monasteries the party has not visited: on the world map, on the character sheet and beside an ingredient that runs short. When off: only what the party has seen. (How good each town's smiths and shops are is shown either way.)", OC_EASY, 0, 0, 1 },
@@ -323,6 +323,14 @@ int option_nchoices(const Option *o)
     if (!o->choices) return 0;
     int n = 1; for (const char *c = o->choices; *c; c++) n += *c == '|';
     return n;
+}
+const char *option_choice_desc(const Option *o, int k, char *buf, int n)
+{
+    const char *c = o->choice_desc ? o->choice_desc : "";
+    for (; k > 0 && *c; c++) if (*c == '|') k--;
+    int len = 0; while (c[len] && c[len] != '|') len++;
+    snprintf(buf, (size_t)n, "%.*s", len, c);
+    return buf;
 }
 const char *option_choice(const Option *o, int k, char *buf, int n)
 {
@@ -481,7 +489,11 @@ int options_dump_markdown(const char *path)
         const Option *o = options_get(i);
         if (strcmp(o->section, secs[sct])) continue;
         int g = bundle_of(o->key);
-        fputs("| `", f); md(f, o->key); fputs("` | ", f); md(f, o->title); fputs(" | ", f); md(f, o->desc && o->desc[0] ? o->desc : o->title); fputs(" | ", f);
+        fputs("| `", f); md(f, o->key); fputs("` | ", f); md(f, o->title); fputs(" | ", f); md(f, o->desc && o->desc[0] ? o->desc : o->title);
+        if (o->flags & OF_LIST) for (int k = 0; k < option_nchoices(o); k++) {          /* (each choice, its value and its words) */
+            char lab[96], cd[1200]; fprintf(f, " %s%d, ", k ? "" : "Choices: ", o->vals[k]); md(f, option_choice(o, k, lab, sizeof lab)); fputs(": ", f); md(f, option_choice_desc(o, k, cd, sizeof cd));
+        }
+        fputs(" | ", f);
         md(f, option_why(o)); fputs(" | ", f);
         if (g >= 0) { fputs("`", f); md(f, BUNDLES[g].key); fputs("`", f); }
         fprintf(f, " | %s | %d / %d / %d |\n", cls_name(o->cls), o->orig, o->def, o->easy);
