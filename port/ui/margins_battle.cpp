@@ -1,6 +1,7 @@
 /* margins_battle.cpp - the margins in a battle: the right margin's fighters, their orders as
  * buttons (with the potions' pictures), the enemies still waiting; the order buttons at the foot of
  * the field when the window has no margin. Split from ui/margins.cpp (margins_parts.h). */
+#include <math.h>
 #include <stdio.h>
 #include <float.h>
 #include <string.h>

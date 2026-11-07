@@ -2,6 +2,7 @@
 // kind of foe on the field with its picture, how many and how many still fight, its armour,
 // shield and weapons (with the game's word for its skill, but not at Expert), and what each of
 // the party's weapons does against its body armour.
+#include <math.h>
 #include <stdio.h>
 #include <string>
 #include "nsdraw.h"

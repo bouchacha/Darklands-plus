@@ -29,6 +29,9 @@ typedef struct {
     int id;                   /* the saint, or the item */
     char who[24];             /* the member's name (first entry of a member) */
     int vmin, virtue;         /* a saint: the Virtue it asks of the one who prays (0 none), and that member's */
+    int dfbest, df99, dfhave; /* a saint the member can call on: the best chance their Divine Favor gives (-1 not
+                                 reckoned), the favor a 99% chance takes (0 none does), the favor they have (as the
+                                 Saints page reckons them: mods/sheetview.c) */
     char text[60];
 } CvEntry;
 

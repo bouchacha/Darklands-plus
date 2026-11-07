@@ -633,13 +633,37 @@ extern "C" void cardview_draw(void)
                     if (why) dl->AddText(fs, size * 0.78f, ImVec2(tx + f->CalcTextSizeA(size * 0.95f, FLT_MAX, 0, et.c_str()).x + 0.6f * size, ey + 0.12f * h), ink_soft, why);
                     /* a saint to call on, or to learn: the Virtue it asks of the one who prays, at the row's end - Virtue's
                        shield and the number, greyed when this member's is below it (more Divine Favor does not help then),
-                       as on the Saints page and the prayer screen */
+                       as on the Saints page and the prayer screen; after it, for one to call on, the Divine Favor a 99%
+                       chance takes (his wish, 2026-11-06), greyed when the member has less (their best chance then in its
+                       tooltip), or the best chance when no favor gives 99% */
+                    float vs = size * 0.82f, ish = size * 0.8f, gap = 0.7f * size;
+                    char db[16] = "";
+                    const bool dfrow = c.popup_kind == 2 && !saint_learning && en.dfbest >= 0 && (en.df99 > 0 || en.dfbest > 0);
+                    const bool dfshort = dfrow && en.dfbest < 99;
+                    if (dfrow) { if (en.df99 > 0) snprintf(db, sizeof db, "%d", en.df99); else snprintf(db, sizeof db, "%d%%", en.dfbest); }
+                    const float dw = dfrow ? UI_SHIELD_W * ish + ish * 0.2f + fs->CalcTextSizeA(vs, FLT_MAX, 0, db).x : 0;
+                    if (dfrow) {
+                        ImVec2 d0(X1 - 0.5f * size - dw, ey), d1(X1 - 0.5f * size, ey + h);
+                        int v0 = dl->VtxBuffer.Size;
+                        ui_shield_value(dl, ImVec2(d0.x, ey + 0.46f * h), ish, ATTR_DF, db, fs, vs, ink_soft);
+                        if (dfshort) ui_dim_since(dl, v0, 0.38f);
+                        if (ImGui::IsMouseHoveringRect(d0, d1, false) && !ui_is_open()) {
+                            ui_tip_beside(d0, d1);
+                            ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
+                            std::string who = ui_member_name(en.member);
+                            if (en.dfbest >= 99) ui_rich_textf("A 99%% chance takes {Divine Favor:%d}, of the %d %s has: more is spent for nothing. The prayer screen sets the favor.", en.df99, en.dfhave, who.c_str());
+                            else if (en.df99 > 0 && en.dfbest > 0) ui_rich_textf("A 99%% chance takes {Divine Favor:%d}; %s has %d, which gives %d%%.", en.df99, who.c_str(), en.dfhave, en.dfbest);
+                            else if (en.df99 > 0) ui_rich_textf("A 99%% chance takes {Divine Favor:%d}; %s has %d, too little for this saint to hear them.", en.df99, who.c_str(), en.dfhave);
+                            else ui_rich_textf("All of %s's {Divine Favor} (%d) gives a %d%% chance: no favor gives them 99%% with this saint.", who.c_str(), en.dfhave, en.dfbest);
+                            ImGui::PopTextWrapPos(); ImGui::EndTooltip();
+                        }
+                    }
                     if (c.popup_kind == 2 && en.vmin > 0) {
                         char vb[16]; snprintf(vb, sizeof vb, "%d", en.vmin);
-                        float vs = size * 0.82f, ish = size * 0.8f;
                         float vw = UI_SHIELD_W * ish + ish * 0.2f + fs->CalcTextSizeA(vs, FLT_MAX, 0, vb).x;
                         bool low = en.virtue < en.vmin;
-                        ImVec2 m0(X1 - 0.5f * size - vw, ey), m1(X1 - 0.5f * size, ey + h);
+                        float right = X1 - 0.5f * size - (dfrow ? dw + gap : 0);
+                        ImVec2 m0(right - vw, ey), m1(right, ey + h);
                         int v0 = dl->VtxBuffer.Size;
                         ui_shield_value(dl, ImVec2(m0.x, ey + 0.46f * h), ish, UI_KEY_SKILL + SKILL_VIRTUE, vb, fs, vs, ink_soft);
                         if (low) ui_dim_since(dl, v0, 0.38f);

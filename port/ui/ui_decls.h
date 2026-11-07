@@ -105,6 +105,7 @@ extern "C" void levelmap_frame(void);
 extern "C" void levelmap_draw(void);
 extern "C" int ui_alert_open(void);
 void ui_alert_draw(void);
+void ui_alert_hold(void);
 extern "C" int overlay_click(int x, int y), overlay_click_up(int x, int y);
 extern "C" int ns_showing(void);
 extern "C" int margins_click(int x, int y);           /* ui/margins.cpp: the battle's order buttons */

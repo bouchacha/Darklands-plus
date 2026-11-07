@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include <string>
 #include <deque>
 #include "imgui.h"
@@ -77,6 +78,10 @@ static void alert_rows(const std::vector<UiAlertRow> &rows)
     }
 }
 extern "C" void ui_alert_dismiss(void) { if (!queue.empty()) queue.pop_front(); }   /* (the test command ualert) */
+/* a window that takes the events before the notice (F12, the welcome, the tips: ui.cpp ui_event) is up: the
+   notice waits behind it, unseen, and when it comes back its OK waits its half second again, so that the click
+   that closed that window does not close the notice unread (1.4.6-RC14: it stood over F12 and took its place) */
+void ui_alert_hold(void) { if (!queue.empty()) queue.front().shown = -1; }
 
 void ui_alert_draw(void)
 {

@@ -32,6 +32,7 @@
 #include "cardview.h"
 #include "fixes.h"
 #include "nscreen.h"
+#include "gamemodel.h"
 
 CardView cardview;
 int cardview_on = 1;
@@ -427,6 +428,12 @@ static void build_popup(int j)
             e->vmin = sheet_saint_vmin(e->id);
             if (ns_unwinding) return;
             e->virtue = (s8)g_rb((u16)(G_MEMBER(e->member) + G_M_SKILLS + 9));
+            e->dfbest = -1;
+            if (e->virtue >= e->vmin && (gm_knows_saint(e->member, e->id) || code == 0x87)) {   /* (one to call on: the favor it takes) */
+                void sheet_saint_prayer(int m, int t, int *best, int *at, int *df99, int *have);
+                int at; sheet_saint_prayer(e->member, e->id, &e->dfbest, &at, &e->df99, &e->dfhave);
+                if (ns_unwinding) return;
+            }
         }
         name[0] = 0;
     }

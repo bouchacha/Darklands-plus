@@ -408,3 +408,11 @@ covered and found, and what it could not check.
   unstripped link of the same build). The alchemy list's marks moved from formula to potion in keep.c, one
   storage, old marks read once. The game's messages over our screens: one layout function for the three kinds.
   Not checked: a translated game's message headings (the outcome and the shield go by the English words).
+- 2026-11-06 (1.4.6-RC16): his RC14 report, a loss notice in camp under the clock and F12 under both. The cause
+  was layering, not the notice: the clock (and the game's own message) are drawn on ImGui's foreground list, over
+  every window, and the notice took the focus each frame, over F12. One rule now, in ui.cpp's frame, in the order
+  ui_event hands out events: what is drawn over everything gives way to any window over the game (windows_up),
+  and the notice waits behind the windows that take events before it (F12, the welcome, the tips), its OK guard
+  starting again when it shows. The cards' saints: the 99% favor is reckoned by the Saints page's own function
+  (sheetview.c pray_member, now shared), not a copy. The new toolchain (mingw-w64 g++ 13) no longer brings
+  math.h through other headers: the eight files that use its functions include it.

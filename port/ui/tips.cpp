@@ -5,6 +5,7 @@
 // (ui.launches counts them; the box says how many more times it comes first), so a new player sees them a few times. The MT-32 window before the
 // intro (ui/ui_windows.cpp) takes the same box. Not in the test sessions (DL_CTL, DL_SCRIPT)
 // unless DL_TIPS; the test command utip:N opens one.
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

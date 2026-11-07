@@ -656,7 +656,9 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     else if (open_mt32) mt32_window();
     else tips_frame();                      /* (the start screen's note, the first battle's tips: ui/tips.cpp) */
     { extern int hg_active, hg_hour, hg_day, hg_month;          /* time passing under a Darklands+ page (mods/lodgeview.c) */
-      if (hg_active) {
+      if (hg_active && !windows_up()) {                         /* (drawn over everything: it gives way to a window over the game, as the
+                                                                   game's message does below. 1.4.6-RC14, his report: a loss notice came up
+                                                                   during the hours and the clock stood over its OK and over F12) */
           ImDrawList *dl = ImGui::GetForegroundDrawList();
           float x0, y0, x1, y1; plat_game_to_win(0, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
           dl->AddRectFilled(ImVec2(x0, y0), ImVec2(x1, y1), IM_COL32(20, 12, 4, 120));
@@ -687,8 +689,11 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     }
     { void repwatch_tick(void); repwatch_tick(); }
     VT(ui_cursor());
-    VT(ui_alert_draw());
-    { void game_dialog_draw(void); game_dialog_draw(); }
+    /* on top, the window that takes the events (ui_event): a notice waits behind F12, the welcome and the tips;
+       the game's message, drawn over everything, waits behind any window over the game */
+    if (open_menu || open_welcome || open_mt32 || tips_open()) ui_alert_hold();
+    else VT(ui_alert_draw());
+    if (!windows_up()) { void game_dialog_draw(void); game_dialog_draw(); }
     draw_icon_grid();
     if (vt_on > 0 && vt_frame % 120 == 0) fprintf(stderr, "vtx total %d\n", vt_total());
     dc_frame_end();

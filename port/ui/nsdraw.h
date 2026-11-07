@@ -3,6 +3,7 @@
  * share, and the hit tests against the game's pointer and its clicks (mods/nscreen.h). */
 #ifndef DL_NSDRAW_H
 #define DL_NSDRAW_H
+#include <math.h>
 #include "imgui.h"
 #include "ornament.h"
 #include <string.h>

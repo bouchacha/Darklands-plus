@@ -5,6 +5,7 @@
 // ({*Fire}) round, a little less; a struck shield ({~Virtue}) a red stroke over it. With display.coins on, an
 // amount in words is given its coin first (money_words). The shields and heads drawn last are kept, so that the
 // pointer on one names it.
+#include <math.h>
 #include "richtext.h"
 #include "imgui_internal.h"
 #include "skillicons.h"

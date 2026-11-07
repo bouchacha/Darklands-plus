@@ -1,4 +1,5 @@
 /* nsdraw.cpp - see nsdraw.h */
+#include <math.h>
 #include "../runtime/config.h"
 #include "nsdraw.h"
 #include "../runtime/cpu.h"

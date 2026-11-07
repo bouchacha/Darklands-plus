@@ -169,6 +169,26 @@ static int pray_chance(u16 seg, u16 off, void *snap, int m, int d)
     int v = pray_ask_saint(seg, off, snap, m, d, 7);
     return v < 0 ? 0 : v > 99 ? 99 : v;
 }
+/* member m's prayer to the saint whose handler is seg:off, with all c of their favor: the best chance it
+   gives (0 none), the least favor that gives that chance, and the favor a 99% chance takes, had they as
+   much (0: none does). snap: eval_snapshot(), restored after each ask */
+static void pray_member(u16 seg, u16 off, void *snap, int m, int c, int *best, int *at, int *df99)
+{
+    int b = pray_chance(seg, off, snap, m, c), lo = 0, hi = c;
+    while (b > 0 && lo < hi) { int mid = (lo + hi) / 2; if (pray_chance(seg, off, snap, m, mid) >= b) hi = mid; else lo = mid + 1; }
+    *best = b; *at = b > 0 ? lo : 0; *df99 = 0;
+    if (b >= 99) *df99 = lo;                                     /* (the least that gives the best is the least for 99%) */
+    else if (pray_chance(seg, off, snap, m, 99) >= 99) {
+        lo = 0; hi = 99;
+        while (lo < hi) { int mid = (lo + hi) / 2; if (pray_chance(seg, off, snap, m, mid) >= 99) hi = mid; else lo = mid + 1; }
+        *df99 = lo;
+    }
+}
+static void saint_handler(int t, u16 *seg, u16 *off)
+{
+    u16 tseg = (u16)(LOADSEG + 0x290e);
+    *seg = rw(tseg, (u16)(0x2937 + 4 * t + 2)); *off = rw(tseg, (u16)(0x2937 + 4 * t));
+}
 static void pray_reckon(void)
 {
     SheetModel *s = &sheet_model;
@@ -176,23 +196,31 @@ static void pray_reckon(void)
     s->pray_saint = t;
     for (int m = 0; m < 5; m++) { s->pray_best[m] = -1; s->pray_df[m] = s->pray_have[m] = s->pray_least[m] = s->pray_df99[m] = s->pray_relic[m] = s->pray_relic_code[m] = 0; }
     if (t < 0 || t >= saint_cls_n) return;
-    u16 tseg = (u16)(LOADSEG + 0x290e), seg = rw(tseg, (u16)(0x2937 + 4 * t + 2)), off = rw(tseg, (u16)(0x2937 + 4 * t));
+    u16 seg, off; saint_handler(t, &seg, &off);
     void *snap = eval_snapshot();
     for (int m = 0; m < 5; m++) {
         if (!gm_member_present(m) || !gm_knows_saint(m, t)) continue;
         int c, mx; gm_member_attr(m, ATTR_DF, &c, &mx);
         if (c < 0) c = 0;
-        int best = pray_chance(seg, off, snap, m, c), lo = 0, hi = c;
-        while (best > 0 && lo < hi) { int mid = (lo + hi) / 2; if (pray_chance(seg, off, snap, m, mid) >= best) hi = mid; else lo = mid + 1; }
-        s->pray_best[m] = best; s->pray_df[m] = best > 0 ? lo : 0; s->pray_have[m] = c;
+        pray_member(seg, off, snap, m, c, &s->pray_best[m], &s->pray_df[m], &s->pray_df99[m]);
+        s->pray_have[m] = c;
         s->pray_least[m] = pray_ask_saint(seg, off, snap, m, c, 2);
-        if (pray_chance(seg, off, snap, m, 99) >= 99) {           /* (the favor a 99% chance takes, had they as much) */
-            lo = 0; hi = 99;
-            while (lo < hi) { int mid = (lo + hi) / 2; if (pray_chance(seg, off, snap, m, mid) >= 99) hi = mid; else lo = mid + 1; }
-            s->pray_df99[m] = lo;
-        }
         s->pray_relic[m] = relic_discount(m, t, &s->pray_relic_code[m]);
     }
+    eval_free(snap);
+}
+/* the same for one member and saint, for the cards' list of saints (mods/cardview.c): *best -1 when the
+   member cannot call on it; *have their favor. On the game's side only */
+void sheet_saint_prayer(int m, int t, int *best, int *at, int *df99, int *have)
+{
+    *best = -1; *at = *df99 = *have = 0;
+    saint_classes();
+    if (t < 0 || t >= saint_cls_n || !gm_member_present(m)) return;
+    int c, mx; gm_member_attr(m, ATTR_DF, &c, &mx);
+    *have = c < 0 ? 0 : c;
+    u16 seg, off; saint_handler(t, &seg, &off);
+    void *snap = eval_snapshot();
+    pray_member(seg, off, snap, m, *have, best, at, df99);
     eval_free(snap);
 }
 

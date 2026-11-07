@@ -3,6 +3,7 @@
 // attributes, weapon skills, armour (and how hard it is against which weapons), shield and
 // weapons. The numbers can be changed and saved as a mod folder's DARKLAND.ENM; the game reads
 // the file when it starts.
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

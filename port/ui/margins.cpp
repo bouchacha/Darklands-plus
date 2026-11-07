@@ -2,6 +2,7 @@
 // game otherwise keeps behind menus: the date and hour, where the party is, the purse, the
 // tasks the party has taken on (with their deadlines), and on the other side the town the party
 // is in, the blessings and potions working on the party, and who carries too much.
+#include <math.h>
 #include <stdio.h>
 #include <float.h>
 #include <string.h>
