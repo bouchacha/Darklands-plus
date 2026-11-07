@@ -343,6 +343,7 @@ the files where each switch's key is read.
 | `fix.minechests` | A chest in a mine is one the party can open | fix | fixes.c |
 | `fix.carditems` | Things a card gives after a battle are the things it names | fix | fixes.c |
 | `fix.prayfor` | Every prayer asks who it is for | fix | fixes.c, prayview.c |
+| `fix.westedge` | Leaving a place by the map's west edge puts the party beside it | fix | fixes.c |
 
 The fixes (`fix.<id>`) are listed with their explanations in `port/mods/fixes.c`; the built-in
 rule changes (`mod.<id>`) in `port/mods/builtin.c`.
