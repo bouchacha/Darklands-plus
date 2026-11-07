@@ -237,15 +237,20 @@ static void g_rep_adj(int loc, int a, int b) { G(GF_loc_reputation_adj, 3, loc, 
 /* "reputation A, B": the game's own change (loc_reputation_adj, s029 0e76:19d0: from A to one short of B,
    up for B > 0, down for B < 0, kept within -99..99) but made every time. The game makes it only with a
    chance of 100 less the town's present opinion (its sign dropped), so a text saying the town would hear
-   of it ("he will tell every market in Kuttenberg") often came with nothing in What came of it. */
+   of it ("he will tell every market in Kuttenberg") often came with nothing in What came of it. An opinion
+   already past 99 (cards that set it without that limit, $Polit00 +14..19, and events add to it; the game's
+   chance is then 0) is not brought back to 99 by a good word: 1.4.6's build 1203 did ("Stop, thief!" in a
+   Nurnberg at 168: -69). */
 static void rep_change(int loc, int a, int b)
 {
     u32 r = loc >= 0 && loc < 0x5c ? g_location(loc) : 0;
     if (!r) { g_rep_adj(loc, a, b); return; }
     u16 rs = (u16)(r >> 16), ro = (u16)((u16)r + 0x12);
     int aa = abs(a), ab = abs(b), d = aa + (ab > aa ? G(GF_rand_mod, 1, ab - aa) : 0);
-    int v = (s16)rw(rs, ro) + (b > 0 ? d : -d);
-    ww(rs, ro, (u16)(v < -99 ? -99 : v > 99 ? 99 : v));
+    int old = (s16)rw(rs, ro), v = old + (b > 0 ? d : -d);
+    if (b > 0 && v > 99) v = old > 99 ? old : 99;         /* (up: to 99 at most, never down) */
+    if (b <= 0 && v < -99) v = old < -99 ? old : -99;     /* (down: to -99 at most, never up) */
+    ww(rs, ro, (u16)v);
 }
 static void g_name_saint(int s) { G(GF_name_to_slot, 3, 1, s, 0); }
 static void g_load_city(int c) { G(GF_load_city, 1, c); }

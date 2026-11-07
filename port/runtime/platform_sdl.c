@@ -455,18 +455,27 @@ int plat_rec_frames;
    stays on screen until the new view is up (ns_enter releases it), at most ms */
 static u32 hold_until;
 void plat_hold(int ms) { hold_until = ms > 0 ? SDL_GetTicks() + (u32)ms : 0; }
-/* the battle view moved and its floor redrawn, its people not yet (mods/battlescroll.c): the last whole
-   picture of the game stays in the window until the next combat frame is drawn (plat_drawn), at most 150 ms */
+/* a battle's picture while it is not whole (mods/battlescroll.c): the view moved and its floor redrawn, its
+   people not yet (plat_hold_until_drawn, until plat_drawn); or a combat frame being drawn (plat_drawing:
+   combat_draw takes the pointer off, erases the last frame's people and draws them again on the screen itself;
+   a third of a running battle's pictures were taken meanwhile, 13 to 21 of 40 every 2 s in a test battle: the
+   pointer gone, people missing or cut in two - "Ursula flickers while walking"). Meanwhile the window shows the
+   last whole picture: the one taken when combat_draw last finished or the last one taken outside these, if
+   later (64000 bytes and the palette, kept at each), so every finished frame can be shown. (Build 1203 kept the
+   window's last picture instead: a frame finished and drawn over again between two pictures was never shown,
+   and the battles stuttered.) At most 150 ms each (a draw cut short by a load leaves it set). */
 static u32 hold_draw_t; static int hold_draw;
 void plat_hold_until_drawn(void) { hold_draw = 1; hold_draw_t = SDL_GetTicks(); }
 void plat_drawn(void) { hold_draw = 0; }
-/* a combat frame being drawn (mods/battlescroll.c, combat_draw): it takes the pointer off, erases the last
-   frame's people and draws them again on the screen itself. A third of a running battle's pictures were taken
-   meanwhile (a test battle: 13 to 21 of 40 every 2 s): the pointer gone, people missing or cut in two (the
-   people flickered, "Ursula flickers while walking"). The last whole picture stays meanwhile, at most 150 ms
-   (a draw cut short by a load leaves it set) */
 static u32 drawing_t; static int drawing;
-void plat_drawing(int on) { drawing = on; drawing_t = SDL_GetTicks(); }
+static u8 whole_vga[320 * 200], whole_pal[768]; static int whole_ok;
+static const u8 *live_vga, *live_pal;     /* (what plat_present is given: the game's screen and palette) */
+static void keep_whole(const u8 *vga, const u8 *pal) { memcpy(whole_vga, vga, sizeof whole_vga); memcpy(whole_pal, pal, sizeof whole_pal); whole_ok = 1; }
+void plat_drawing(int on)
+{
+    drawing = on; drawing_t = SDL_GetTicks();
+    if (!on && live_vga) keep_whole(live_vga, live_pal);
+}
 void plat_present(const u8 *vga, const u8 *pal)
 {
     { void fixes_frame(void); fixes_frame(); void saves_frame(void); saves_frame(); void rules_frame(void); rules_frame(); void autopause_frame(void); autopause_frame(); void battlelog_frame(void); battlelog_frame(); void memberlooks_frame(void); memberlooks_frame(); void losses_frame(void); losses_frame(); void battleend_frame(void); battleend_frame(); void orders_frame(void); orders_frame(); void encounters_frame(void); encounters_frame(); void relics_frame(void); relics_frame(); void checks_frame(void); checks_frame(); }   /* game-side checks, headless too */
@@ -474,14 +483,18 @@ void plat_present(const u8 *vga, const u8 *pal)
     if (headless) return;
     if (hold_until && (s32)(hold_until - SDL_GetTicks()) > 0) { SDL_PumpEvents(); return; }
     hold_until = 0;
-    /* the battle view just moved, its people not yet drawn again (plat_hold_until_drawn): the window goes on
-       being drawn as ever - the interface, a slide under way - but with the last whole picture of the game
-       (1.3-RC32 held the whole window back instead: the people no longer flickered, but a drag lost its
-       smoothness) */
+    /* the battle's picture not whole (above): the window goes on being drawn as ever - the interface, a slide
+       under way - but with the last whole picture of the game (1.3-RC32 held the whole window back instead:
+       the people no longer flickered, but a drag lost its smoothness) */
     int battle = game_mode() == GM_BATTLE;
-    int held_view = hold_draw && SDL_GetTicks() - hold_draw_t < 150 && battle;
-    if (!held_view) hold_draw = 0;
-    int held = held_view || (drawing && SDL_GetTicks() - drawing_t < 150 && battle);
+    u32 now = SDL_GetTicks();
+    live_vga = vga; live_pal = pal;
+    if (hold_draw && (now - hold_draw_t >= 150 || !battle)) hold_draw = 0;
+    int whole = !battle || !(hold_draw || (drawing && now - drawing_t < 150));
+    if (!battle) whole_ok = 0;
+    else if (whole) keep_whole(vga, pal);
+    else if (whole_ok) { vga = whole_vga; pal = whole_pal; whole = 1; }
+    int held = !whole;                    /* (none yet in this battle: the window's last picture) */
     static int ptime = -1; if (ptime < 0) ptime = getenv("DL_PRESENT_TIME") != 0;
     uint64_t pt0 = ptime ? plat_ticks_us() : 0;
     if (!held) {

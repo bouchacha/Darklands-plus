@@ -447,3 +447,14 @@ covered and found, and what it could not check.
   or dots, by display.potion_grade). His "world map tabs still shut" report was made on build 1200 (the first
   1.4.6 zip), before the fix in 1201; 1201 tested under Wine at his 3840x2160, 150% and his ini: both sections
   stay open from the arrow and from the title.
+- 2026-11-07 (1.4.6, build 1203 reports): the hold during combat_draw made battles stutter, "worse than the
+  flicker", fast-forwarded or not: it kept the window's last picture while a frame was drawn, so a frame
+  finished and drawn over again before a picture fell outside combat_draw was never shown. The elegant form of
+  the same idea: keep the last whole picture (when combat_draw finishes, and at every picture taken outside it
+  or the view-moved hold) and show that while the battle's picture is not whole. One mechanism now serves both
+  holds (platform_sdl.c, keep_whole); measured in a test battle: 15 frames drawn and 15 shown every 2 s, with
+  half the pictures taken mid-draw. And the encounters' rep_change (new since 1.4.5) clamped to 99 a Nurnberg
+  at 168 after a good deed (-69): cards ($Polit00) and events take the opinion past 99 and the game's own
+  chance is then 0; a change now moves toward its limit only, never back. His builds: his logs show build
+  1200 until 1203 was installed (1201 never ran), likely two downloads of the same file name: the zips he gets
+  now carry their build number in the name.

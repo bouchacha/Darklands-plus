@@ -2834,71 +2834,72 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/datamods.c:375` | # right edge). Bytes the game uses for layout are written \\xx (hex): \\14 new paragraph, \\15 an option, # \\1d after the option's "...", \\16 an option opening the saints, \\10 the potions, \\06 a battle, # \\01 ... \\13 a part shown or hidden by the game. { is o-umlaut, \| u-umlaut, \\1f a-umlaut. # Put the edited file into mods/<your mod>/MSGFILES/ (keep the name); lines starting with # are ignored.  |
 | `mods/datamods.c:412` | Describe your mod here (these lines show in F12 > Mods).  Put files into this folder laid out like the game folder; while the mod is on, the game reads them instead of its own: DARKLAND.LST, DARKLAND.ENM, PICS/NAME.PIC, a folder MSGFILES/ with single card files (.MSG, or .TXT as written by "Export the card texts"), art/ and sounds/ as in the game folder, music/ with recordings named by the piece's number (10.ogg, "11 market.ogg"; see F12 > Settings > Sound).  |
 | `mods/encounters.c:240` | he will tell every market in Kuttenberg |
-| `mods/encounters.c:521` | A new encounter stopped because of a mistake in its file (see darklands_port.log); the party is back in the overland view. |
-| `mods/encounters.c:571` | '%s' expected |
-| `mods/encounters.c:631` | %s: %s out of range |
-| `mods/encounters.c:631` | an attribute |
-| `mods/encounters.c:692` | %s takes %d argument%s |
-| `mods/encounters.c:728` | %s: who, then an item (0 to 199) |
-| `mods/encounters.c:736` | wounds: an attribute |
-| `mods/encounters.c:743` | unknown function %s |
-| `mods/encounters.c:762` | unknown name %s |
-| `mods/encounters.c:765` | a value expected |
-| `mods/encounters.c:771` | nested too deeply |
-| `mods/encounters.c:829` | unexpected "%s" |
-| `mods/encounters.c:843` | %s takes %d to %d values |
-| `mods/encounters.c:854` | nested too deeply |
-| `mods/encounters.c:867` | no section [%s] |
-| `mods/encounters.c:895` | %s: %s expected |
-| `mods/encounters.c:901` | an action expected |
-| `mods/encounters.c:920` | 'then' or 'goto' expected |
-| `mods/encounters.c:930` | card: one of the game's cards, 1 to 0x16d |
-| `mods/encounters.c:947` | unknown variable %s |
-| `mods/encounters.c:953` | picture names have at most 8 letters |
-| `mods/encounters.c:962` | options are numbered 0 to 9 |
-| `mods/encounters.c:968` | battle: a battlefield, then enemy, quality, count for each group |
-| `mods/encounters.c:973` | battle: a wilderness battlefield (Wilds, Surrounded, Clearing, Cave, or 0x2e-0x55, 0x61-0x63, 0x6f-0x79), or in a town's streets MainStreet, SideStreet |
-| `mods/encounters.c:975` | battle: MainStreet and SideStreet only in a town (where street) |
-| `mods/encounters.c:1002` | %s: who, then a %s |
-| `mods/encounters.c:1002` | skill (0 to 18) |
-| `mods/encounters.c:1002` | attribute (0 to 6) |
-| `mods/encounters.c:1024` | unknown action %s |
-| `mods/encounters.c:1028` | text %ld: %s has blocks 0 to %d |
-| `mods/encounters.c:1029` | text %ld: a card holds blocks 0 to 24 |
-| `mods/encounters.c:1082` | ';' expected |
-| `mods/encounters.c:1092` | unexpected "%s" |
-| `mods/encounters.c:1224` | where: wild, boat, street or camp |
-| `mods/encounters.c:1230` | unknown setting %s |
-| `mods/encounters.c:1236` | option: a number 0 to 9 |
-| `mods/encounters.c:1238` | option %d twice |
-| `mods/encounters.c:1241` | option %d: potion or saint |
-| `mods/encounters.c:1254` | at most 4 potions |
-| `mods/encounters.c:1256` | potion CODE, CHANCE |
-| `mods/encounters.c:1278` | unknown key %s |
-| `mods/encounters.c:1280` | no card (the MSGFILES text) given |
-| `mods/encounters.c:1281` | no picture given |
-| `mods/encounters.c:1282` | no [section] |
-| `mods/encounters.c:1385` | %s has %d text blocks: the game holds 25 |
-| `mods/encounters.c:1386` | %s is too long: %ld bytes as the game loads it, under 6000 fit |
-| `mods/encounters.c:1387` | %s has a block with %d option lines: at most %d |
-| `mods/encounters.c:1392` | %s block %d is too long: up to %d characters with its $variables filled in (%d as written), at most 899 fit |
-| `mods/encounters.c:1406` | [%s] has options but no block |
-| `mods/encounters.c:1409` | [%s] option %d: block %d of %s has %d option line%s |
-| `mods/encounters.c:1412` | [%s] option %d: %s |
-| `mods/encounters.c:1412` | its line (\\16) opens the saints: write option N saint |
-| `mods/encounters.c:1412` | a saint option needs a \\16 line |
-| `mods/encounters.c:1413` | [%s] option %d: %s |
-| `mods/encounters.c:1413` | its line (\\10) opens the potions: write option N potion |
-| `mods/encounters.c:1413` | a potion option needs a \\10 line |
-| `mods/encounters.c:1422` | [%s] option %d is a saint option, but there are no saints |
-| `mods/encounters.c:1423` | [%s] option %d is a potion option, but there are no items |
-| `mods/encounters.c:1425` | [%s] has a block but no options |
-| `mods/encounters.c:1427` | [%s] saints: numbers 0 to 135 (DARKLAND.LST), or -1 |
-| `mods/encounters.c:1428` | [%s] items: numbers 0 to 199 (DARKLAND.LST), or -1 |
-| `mods/encounters.c:1430` | [%s] block %d: the game holds 25 blocks (0 to 24) |
-| `mods/encounters.c:1477` | (Darklands+ %s) |
-| `mods/encounters.c:1503` | New encounters: %d file%s with errors left out (see darklands_port.log). |
-| `mods/encounters.c:1998` | on the screen |
+| `mods/encounters.c:242` | Stop, thief! |
+| `mods/encounters.c:526` | A new encounter stopped because of a mistake in its file (see darklands_port.log); the party is back in the overland view. |
+| `mods/encounters.c:576` | '%s' expected |
+| `mods/encounters.c:636` | %s: %s out of range |
+| `mods/encounters.c:636` | an attribute |
+| `mods/encounters.c:697` | %s takes %d argument%s |
+| `mods/encounters.c:733` | %s: who, then an item (0 to 199) |
+| `mods/encounters.c:741` | wounds: an attribute |
+| `mods/encounters.c:748` | unknown function %s |
+| `mods/encounters.c:767` | unknown name %s |
+| `mods/encounters.c:770` | a value expected |
+| `mods/encounters.c:776` | nested too deeply |
+| `mods/encounters.c:834` | unexpected "%s" |
+| `mods/encounters.c:848` | %s takes %d to %d values |
+| `mods/encounters.c:859` | nested too deeply |
+| `mods/encounters.c:872` | no section [%s] |
+| `mods/encounters.c:900` | %s: %s expected |
+| `mods/encounters.c:906` | an action expected |
+| `mods/encounters.c:925` | 'then' or 'goto' expected |
+| `mods/encounters.c:935` | card: one of the game's cards, 1 to 0x16d |
+| `mods/encounters.c:952` | unknown variable %s |
+| `mods/encounters.c:958` | picture names have at most 8 letters |
+| `mods/encounters.c:967` | options are numbered 0 to 9 |
+| `mods/encounters.c:973` | battle: a battlefield, then enemy, quality, count for each group |
+| `mods/encounters.c:978` | battle: a wilderness battlefield (Wilds, Surrounded, Clearing, Cave, or 0x2e-0x55, 0x61-0x63, 0x6f-0x79), or in a town's streets MainStreet, SideStreet |
+| `mods/encounters.c:980` | battle: MainStreet and SideStreet only in a town (where street) |
+| `mods/encounters.c:1007` | %s: who, then a %s |
+| `mods/encounters.c:1007` | skill (0 to 18) |
+| `mods/encounters.c:1007` | attribute (0 to 6) |
+| `mods/encounters.c:1029` | unknown action %s |
+| `mods/encounters.c:1033` | text %ld: %s has blocks 0 to %d |
+| `mods/encounters.c:1034` | text %ld: a card holds blocks 0 to 24 |
+| `mods/encounters.c:1087` | ';' expected |
+| `mods/encounters.c:1097` | unexpected "%s" |
+| `mods/encounters.c:1229` | where: wild, boat, street or camp |
+| `mods/encounters.c:1235` | unknown setting %s |
+| `mods/encounters.c:1241` | option: a number 0 to 9 |
+| `mods/encounters.c:1243` | option %d twice |
+| `mods/encounters.c:1246` | option %d: potion or saint |
+| `mods/encounters.c:1259` | at most 4 potions |
+| `mods/encounters.c:1261` | potion CODE, CHANCE |
+| `mods/encounters.c:1283` | unknown key %s |
+| `mods/encounters.c:1285` | no card (the MSGFILES text) given |
+| `mods/encounters.c:1286` | no picture given |
+| `mods/encounters.c:1287` | no [section] |
+| `mods/encounters.c:1390` | %s has %d text blocks: the game holds 25 |
+| `mods/encounters.c:1391` | %s is too long: %ld bytes as the game loads it, under 6000 fit |
+| `mods/encounters.c:1392` | %s has a block with %d option lines: at most %d |
+| `mods/encounters.c:1397` | %s block %d is too long: up to %d characters with its $variables filled in (%d as written), at most 899 fit |
+| `mods/encounters.c:1411` | [%s] has options but no block |
+| `mods/encounters.c:1414` | [%s] option %d: block %d of %s has %d option line%s |
+| `mods/encounters.c:1417` | [%s] option %d: %s |
+| `mods/encounters.c:1417` | its line (\\16) opens the saints: write option N saint |
+| `mods/encounters.c:1417` | a saint option needs a \\16 line |
+| `mods/encounters.c:1418` | [%s] option %d: %s |
+| `mods/encounters.c:1418` | its line (\\10) opens the potions: write option N potion |
+| `mods/encounters.c:1418` | a potion option needs a \\10 line |
+| `mods/encounters.c:1427` | [%s] option %d is a saint option, but there are no saints |
+| `mods/encounters.c:1428` | [%s] option %d is a potion option, but there are no items |
+| `mods/encounters.c:1430` | [%s] has a block but no options |
+| `mods/encounters.c:1432` | [%s] saints: numbers 0 to 135 (DARKLAND.LST), or -1 |
+| `mods/encounters.c:1433` | [%s] items: numbers 0 to 199 (DARKLAND.LST), or -1 |
+| `mods/encounters.c:1435` | [%s] block %d: the game holds 25 blocks (0 to 24) |
+| `mods/encounters.c:1482` | (Darklands+ %s) |
+| `mods/encounters.c:1508` | New encounters: %d file%s with errors left out (see darklands_port.log). |
+| `mods/encounters.c:2003` | on the screen |
 | `mods/fixgroups.c:10` | Crashes, freezes, items or progress lost, saved games spoiled, quests that can never be finished. Nobody wants these. |
 | `mods/fixgroups.c:11` | Plain mistakes |
 | `mods/fixgroups.c:11` | Something the game sets out to do and gets wrong: the wrong member, the wrong town, a check on the wrong option, a number lost on the way. |
