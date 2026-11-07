@@ -1,6 +1,6 @@
 # Darklands+ changelog
 
-## Next (not yet released)
+## 1.4.6
 
 What changed since 1.4.5.
 
