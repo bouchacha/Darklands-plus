@@ -99,10 +99,13 @@ static void select_hook(void)
    showing the last whole frame. Else each step showed the field empty for a moment - at the field's edge,
    where the view no longer moves, at every step: the people and the floor flickered */
 static void view_redraw_hook(void) { hook_call_original(); void plat_hold_until_drawn(void); plat_hold_until_drawn(); }
-static void draw_hook(void)         /* s014 14f7:0008 combat_draw(): a whole combat frame drawn */
+static void draw_hook(void)         /* s014 14f7:0008 combat_draw(): a whole combat frame drawn (not shown until it is whole) */
 {
+    void plat_drawing(int), plat_drawn(void);
+    plat_drawing(1);
     hook_call_original();
-    void plat_drawn(void); plat_drawn();
+    plat_drawing(0);
+    plat_drawn();
 }
 
 static void input_hook(void)        /* s014 0e76:3166 combat_input(): one tick of player input */

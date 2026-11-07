@@ -30,7 +30,7 @@ The runtime: the CPU and DOS the game runs on, the window, sound, saves, the con
 | `runtime/native.c` | 35 | native functions the game calls through far pointers (native.h) |
 | `runtime/overrides.c` | 31 | hand-written replacements for the few original routines whose tricks the static recompiler cannot express (listed in port/recomp/overrides.txt). |
 | `runtime/ovl.c` | 208 | RTLink/Plus overlay sections: loaded into memory on demand, as RTLink does. |
-| `runtime/platform_sdl.c` | 1415 | window, screen, input and time on SDL2. |
+| `runtime/platform_sdl.c` | 1424 | window, screen, input and time on SDL2. |
 | `runtime/prepare_run.c` | 154 | the first start of a release (DL_RTSPLIT): the game module is made from the player's DARKLAND.EXE by port/tools/prepare.py (the bundled Python and TinyCC), with a progress window. |
 | `runtime/sb.c` | 218 | the digital half of a Sound Blaster Pro: DSP (ports base+6/A/C/E), 8237 DMA controller and the transfer-complete interrupt. |
 | `runtime/sound.c` | 200 | AdLib / OPL music through an emulated OPL chip (Nuked OPL3) on SDL audio. |
@@ -53,7 +53,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/barterview.c` | 299 | the shop screen as a native screen (nscreen.h). |
 | `mods/battleend.c` | 102 | the end of a battle said in words (battle.end_words, on by default; F12 > Settings > Battles). |
 | `mods/battlerules.c` | 420 | rules of the battles, switches (F12 > Settings > Battles). |
-| `mods/battlescroll.c` | 163 | scrolling the battle map at a pace a person can follow. |
+| `mods/battlescroll.c` | 166 | scrolling the battle map at a pace a person can follow. |
 | `mods/builtin.c` | 192 | the built-in mods. The same changes as the source mods in mods/ (built into a DOS executable there), done here as run-time hooks on the recompiled game. |
 | `mods/cacheview.c` | 288 | the store room as a native screen (nscreen.h; the view is ui/cacheview.cpp). |
 | `mods/cardview.c` | 668 | the card screen drawn by Darklands+ itself. |
@@ -64,7 +64,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/datamods.c` | 424 | mod folders: game files replaced without touching the game's own. |
 | `mods/encounters.c` | 2045 | new encounters written as data. |
 | `mods/enemyview.c` | 129 | the battle's Enemy Info as a native page (display.native_enemyinfo; the view is ui/enemyview.cpp). |
-| `mods/fixes.c` | 3080 | fixes for bugs that are still in the last official version (483.07). |
+| `mods/fixes.c` | 3121 | fixes for bugs that are still in the last official version (483.07). |
 | `mods/fixgroups.c` | 35 | the fixes (fixes.c) sorted by kind, for the settings' list: from what the game plainly gets wrong to what is open to argument, as players have talked of them over the years (the GOG and Steam forums, the old Usenet posts and the patch notes MicroProse left). |
 | `mods/foesleft.c` | 131 | the foes a place still holds that the party has not met yet (battle.foes_left, on by default): shown under the battle margin's enemies, so a castle, dungeon or mine whose fight "does not end" says where the rest still wait (the game ends it only when they are all beaten, or the party walks out and counts as fled). |
 | `mods/gamemodel.c` | 399 | the game's state by name (gamemodel.h says what each function reads): where the party, the members, their things and their equipment are kept, and the shared pack's listing and "whom it goes to" (gm_pack_rows, gm_pack_target) for the sheet, the shop, the loot and the store room. |
@@ -122,7 +122,7 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 |---|---:|---|
 | `ui/alchemydesk.cpp` | 230 | the alchemy screen's workbench (ui/alchemyview.cpp writes on it; where each thing lies: ui/alchemydesk.h): an oak table; the formulary open on it, bound in red leather with gilt tooling and brass corners, its ribbon out of the gutter; an apothecary's chest of walnut, open, 8 x 3 compartments for the ingredients, a label inside its lid; a wax tablet in a wooden frame with its stylus, for the reckoning; a small brick furnace with fire in its mouth and a brass plate for Start. |
 | `ui/alchemyicons.cpp` | 346 | the pictures of the potions and of the alchemical ingredients, drawn with ImGui's shapes (no image files). |
-| `ui/alchemyview.cpp` | 447 | draws the alchemy screen (mods/alchemyview.c runs it; docs/NATIVE_SCREENS.md) on an alchemist's workbench (ui/alchemydesk.cpp): the formulary open, its left page the index of the potions the alchemist knows a formula of, a row each with its three formulae (the grades) as seals (how many batches the party's ingredients make; a star puts a potion first, a mark puts it aside, last), its right page the chosen formula written out (what it does, its mystic number and risk, its ingredients needed and at hand); the apothecary's chest beside it, a compartment for each of the 23 ingredients with what the party carries, those the formula needs tagged; the wax tablet below: the batches (- and +), the chance for every number of them the ingredients allow (a click there sets it), what may come of the brew and what the chance is made of, in pictures; Start on the furnace. |
+| `ui/alchemyview.cpp` | 459 | draws the alchemy screen (mods/alchemyview.c runs it; docs/NATIVE_SCREENS.md) on an alchemist's workbench (ui/alchemydesk.cpp): the formulary open, its left page the index of the potions the alchemist knows a formula of, a row each with its three formulae (the grades) as seals (how many batches the party's ingredients make; a star puts a potion first, a mark puts it aside, last), its right page the chosen formula written out (what it does, its mystic number and risk, its ingredients needed and at hand); the apothecary's chest beside it, a compartment for each of the 23 ingredients with what the party carries, those the formula needs tagged; the wax tablet below: the batches (- and +), the chance for every number of them the ingredients allow (a click there sets it), what may come of the brew and what the chance is made of, in pictures; Start on the furnace. |
 | `ui/alerts.cpp` | 208 | news the player must read: a window to click through, the game waiting meanwhile (ui_is_open). |
 | `ui/banner.cpp` | 156 | the travel map's banner drawn anew (with the period ornaments, display.ornate): the plaited band across the top (MAPHEADA, 229 x 16 at (60, 0): two strands, a light copper one and a dark brown one, over and under, on grey) and the sky box at its right end (MAPHEADB and its eight frames MAPBRS00..21 at (289, 0): the game shows the hour as a sun eclipsed by a dark disc). |
 | `ui/barterview.cpp` | 416 | draws the shop screen (mods/barterview.c runs it; docs/NATIVE_SCREENS.md). |

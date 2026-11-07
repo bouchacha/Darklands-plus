@@ -460,6 +460,13 @@ void plat_hold(int ms) { hold_until = ms > 0 ? SDL_GetTicks() + (u32)ms : 0; }
 static u32 hold_draw_t; static int hold_draw;
 void plat_hold_until_drawn(void) { hold_draw = 1; hold_draw_t = SDL_GetTicks(); }
 void plat_drawn(void) { hold_draw = 0; }
+/* a combat frame being drawn (mods/battlescroll.c, combat_draw): it takes the pointer off, erases the last
+   frame's people and draws them again on the screen itself. A third of a running battle's pictures were taken
+   meanwhile (a test battle: 13 to 21 of 40 every 2 s): the pointer gone, people missing or cut in two (the
+   people flickered, "Ursula flickers while walking"). The last whole picture stays meanwhile, at most 150 ms
+   (a draw cut short by a load leaves it set) */
+static u32 drawing_t; static int drawing;
+void plat_drawing(int on) { drawing = on; drawing_t = SDL_GetTicks(); }
 void plat_present(const u8 *vga, const u8 *pal)
 {
     { void fixes_frame(void); fixes_frame(); void saves_frame(void); saves_frame(); void rules_frame(void); rules_frame(); void autopause_frame(void); autopause_frame(); void battlelog_frame(void); battlelog_frame(); void memberlooks_frame(void); memberlooks_frame(); void losses_frame(void); losses_frame(); void battleend_frame(void); battleend_frame(); void orders_frame(void); orders_frame(); void encounters_frame(void); encounters_frame(); void relics_frame(void); relics_frame(); void checks_frame(void); checks_frame(); }   /* game-side checks, headless too */
@@ -471,8 +478,10 @@ void plat_present(const u8 *vga, const u8 *pal)
        being drawn as ever - the interface, a slide under way - but with the last whole picture of the game
        (1.3-RC32 held the whole window back instead: the people no longer flickered, but a drag lost its
        smoothness) */
-    int held = hold_draw && SDL_GetTicks() - hold_draw_t < 150 && game_mode() == GM_BATTLE;
-    if (!held) hold_draw = 0;
+    int battle = game_mode() == GM_BATTLE;
+    int held_view = hold_draw && SDL_GetTicks() - hold_draw_t < 150 && battle;
+    if (!held_view) hold_draw = 0;
+    int held = held_view || (drawing && SDL_GetTicks() - drawing_t < 150 && battle);
     static int ptime = -1; if (ptime < 0) ptime = getenv("DL_PRESENT_TIME") != 0;
     uint64_t pt0 = ptime ? plat_ticks_us() : 0;
     if (!held) {

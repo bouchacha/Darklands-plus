@@ -432,3 +432,18 @@ covered and found, and what it could not check.
   made when the button went down (third_party/imgui TreeNodeBehavior, dlp_arrow_press_id), so a node that
   moves under the pointer cannot turn a press on the arrow into a click on the label. The panel also keeps its
   open width when folded, so it no longer jumps. Lesson: test a report from the player's own settings file.
+- 2026-11-07 (1.4.6, rebuilt again): three of his reports. (1) Leaving Helmond put the party right of it.
+  overland_open's west clamp set the marker to 0x82 - (x - 8), a pixel per tile instead of 16 (nine places
+  with x < 8). Fixing that alone left the party a tile east of the icon: the view draws column 0 as column 1
+  ("if (col == 0) col = 1") while the marker's tile is counted from the view's column, so any view at column 0
+  (that placement, or a scroll west, which clamps at 0) drew the party a tile east of where the game had it.
+  Not patched at the one placement: the view's first column is made 1 (and its row, which overland_open also
+  lets be 0) in a hook on the view's drawing, the tile kept (fix westedge, 1462:1c76 and 1462:20d2). Checked
+  against leaving Nesse (x 37): the party on the icon in both. (2) The battle flicker, open since RC13: about a
+  third of a running battle's pictures were taken during combat_draw, which takes the pointer off and redraws
+  the people on the screen itself (dumped: the pointer gone in four of ten). plat_present now keeps the last
+  whole picture while combat_draw runs, as it already did after a view scroll (one mechanism, battlescroll.c's
+  draw hook). (3) The alchemy seals' digits read as counts: they carry the flasks' grade mark instead (chevrons,
+  or dots, by display.potion_grade). His "world map tabs still shut" report was made on build 1200 (the first
+  1.4.6 zip), before the fix in 1201; 1201 tested under Wine at his 3840x2160, 150% and his ini: both sections
+  stay open from the arrow and from the title.

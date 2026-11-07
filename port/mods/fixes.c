@@ -218,6 +218,18 @@
  *            far: 999 (certain) the first time. Now, before each menu, the best climber of all and
  *            his value; everyone's chance is the weakest's. Found by Arkana Mechanika (Darklands
  *            Restoration).
+ *  westedge  overland_open (s030 1462:00a8) puts the party's marker 8 tiles into the view; where the
+ *            place left lies nearer the map's west edge (x < 8), the view stops at column 0 and the
+ *            marker's x should be 0x82 + (x - 8) * 16, but it is 0x82 - (x - 8): a pixel per tile
+ *            instead of 16, so the party came out at column 8, 2 to 5 tiles east of the place
+ *            ("I exited Helmond and it put me to the right of it"). Nine places: Nancy, Elberg,
+ *            Valkenberg, Tongeren, Gemert, Helmond, Limberg, Spa, Briey. The marker is set right
+ *            before the place icons are made (1462:1c76, called only there). And the view
+ *            (1462:20d2) draws column 0 as column 1 ("if (col == 0) col = 1") while the marker's
+ *            tile is counted from the view's column (party_x = view + col - 1): with the view at 0,
+ *            from this placement or from a scroll west (1462:0c44 clamps at 0), the party was drawn
+ *            a tile east of where the game had it. The view's first column is made 1 and the marker
+ *            moved back by 16; the row the same (overland_open lets it be 0, the scroll stops at 1).
  *
  * Known, and left as the game has them (no fix: they are the game's design, or never reached):
  *  - An alchemist offers formula (seed + 100 + 3k) % 22 (k 0..3): only formulae 0..21 are ever
@@ -391,6 +403,8 @@ Fix FIXES[] = {
       "Once a mine is won, the miners give the party ten sacks of minerals (10 to 14 each of ten ingredients), but none reached the party's lists: a card right after a battle or in a dungeon made things from the game's copy of the item list, which the battle's own data lies over then, and they came out of the wrong kind. Now every thing a card gives takes its kind and weight from the item list itself.", 1 },
     { "prayfor", "Every prayer asks who it is for",
       "A prayer from the character sheet asks who it is for, but one a card calls for (calling on a saint in an encounter or in a town) did not: the game took it as a prayer for the whole party, and what the saint gives one person (a boost, healing) went to the party's leader, though another prayed and spent the Divine Favor. Praying with P, without choosing, did the same. Now every prayer asks who it is for, the one who prays first, and a prayer made without choosing helps the one who prays.", 1 },
+    { "westedge", "Leaving a place by the map's west edge puts the party beside it",
+      "Leaving any of the nine places near the travel map's west edge (Nancy, Elberg, Valkenberg, Tongeren, Gemert, Helmond, Limberg, Spa and Briey) put the party 2 to 5 tiles east of it, and wherever the travel map's view reached that edge, the party was drawn a tile east of where the game had it. The party now comes out beside the place, as everywhere else, and is drawn where it is.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -707,6 +721,32 @@ static void offmap_hook(void)                  /* s030 1462:1c76 (f): the overla
                                                   places (k 92..413) - where a step looks for them: moved first, so they are right from the start */
 {
     offmap_move();
+    hook_call_original();
+}
+/* ---------------------------------------------------------------- westedge */
+static void westedge_hook(void)                /* s030 1462:1c76, right after overland_open placed the view and the marker */
+{
+    int col = (s16)g_rw(GV_map_view_col), mx = (s16)g_rw(GV_map_marker_x);
+    if (col == 0 && mx > 0x82 && mx <= 0x8a) {   /* (only the west clamp gives these: 0x82 - (x - 8), x 0..7) */
+        int x = 0x8a - mx;
+        g_ww(GV_map_marker_x, (u16)(x * 16 + 2));
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix westedge: marker x %d -> %d (column %d)\n", mx, x * 16 + 2, x);
+    }
+    hook_call_original();
+}
+static void westedge_view_hook(void)           /* s030 1462:20d2 (col, row): the view drawn - as from column 1 and row 1 when they are 0
+                                                  ("if (col == 0) col = 1"), while the marker's tile is still counted from 0: the
+                                                  view's first column and row are made 1, the marker moved back by one, the same tile */
+{
+    if ((s16)g_rw(GV_map_view_col) == 0) {
+        int mx = (s16)g_rw(GV_map_marker_x) - 16;
+        g_ww(GV_map_view_col, 1);
+        g_ww(GV_map_marker_x, (u16)(mx < 11 ? 11 : mx));      /* (11: as far left as a step takes it; column 0 is never drawn) */
+    }
+    if ((s16)g_rw(GV_map_view_row) == 0) {
+        g_ww(GV_map_view_row, 1);
+        g_ww(GV_map_marker_y, (u16)((s16)g_rw(GV_map_marker_y) - 4));
+    }
     hook_call_original();
 }
 /* ---------------------------------------------------------------- itemcount */
@@ -3003,7 +3043,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook },
     { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
     { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook },
-    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook } };   /* (hitsound: mods/sfx.c) */
+    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook }, { 30, 0x1462, 0x1c76, westedge_hook } };   /* (hitsound: mods/sfx.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
@@ -3037,7 +3077,8 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "cardslips", 65, 0x18fb, 0x0a44, sneak_hook }, { "cardslips", 65, 0x1afe, 0x09cc, sneak_hook },
     { "cardslips", 67, 0x1869, 0x06e6, sneak_hook },
     { "patronsaint", 39, 0x165c, 0x17a4, teach_saint_hook }, { "patronsaint", 39, 0x165c, 0x1988, teach_saint_hook },
-    { "fullpack", GF_barter_key, buy_room_hook }, { "fullpack", 35, 0x1462, 0x0a46, store_get_room_hook } };
+    { "fullpack", GF_barter_key, buy_room_hook }, { "fullpack", 35, 0x1462, 0x0a46, store_get_room_hook },
+    { "westedge", 30, 0x1462, 0x20d2, westedge_view_hook } };
 
 void fix_enable(int i, int on)
 {

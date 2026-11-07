@@ -224,7 +224,7 @@ the files where each switch's key is read.
 | `display.text_size` | Text size | look | margins.cpp, settings_setup.cpp |
 | `display.skill_icons` | Icons beside the skills | look | settings_look.cpp, ui.cpp |
 | `display.skill_icon_look` | Skill icons' look | look | settings_look.cpp, skillicons.cpp |
-| `display.potion_grade` | A potion's grade | look | alchemyicons.cpp, nsdraw.cpp, settings_look.cpp |
+| `display.potion_grade` | A potion's grade | look | alchemyicons.cpp, alchemyview.cpp, nsdraw.cpp, settings_look.cpp |
 | `display.pstone_look` | The Philosopher's Stone | look | pstone.cpp |
 | `display.clock` | Clock | look | lodgeview.c, hourglass.cpp, settings_look.cpp |
 | `display.ornate` | Ornaments | look | ornament.cpp, settings_look.cpp |

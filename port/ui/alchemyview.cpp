@@ -169,9 +169,21 @@ extern "C" void alchemyview_draw(void)
             if (cur) P.dl->AddCircle(c, rr + 0.75f * P.k, IM_COL32(214, 160, 40, 255), 16, fmaxf(1.0f, 0.45f * P.k));
             else if (hov && known) P.dl->AddCircle(c, rr + 0.7f * P.k, IM_COL32(214, 160, 40, 150), 16, fmaxf(1.0f, 0.35f * P.k));
             else if (fm == fshow && known) P.dl->AddCircle(c, rr + 0.7f * P.k, IM_COL32(120, 80, 36, 170), 16, fmaxf(1.0f, 0.35f * P.k));
-            char gn[2] = { (char)('1' + g), 0 };
-            ImVec2 ts = f->CalcTextSizeA(3.6f * P.k, FLT_MAX, 0, gn);
-            P.dl->AddText(f, 3.6f * P.k, ImVec2(c.x - ts.x * 0.5f, c.y - ts.y * 0.52f), known ? IM_COL32(246, 234, 206, 255) : IM_COL32(120, 96, 66, 170), gn);
+            {   /* the grade as the flasks show it (display.potion_grade): one to three chevrons, or dots - a digit read as a count */
+                const ImU32 mc = known ? IM_COL32(246, 234, 206, 255) : IM_COL32(120, 96, 66, 170);
+                const int n = g + 1;
+                if (config_get_int("display.potion_grade", 4) >= 3) {
+                    const float hw = rr * 0.5f, hh = hw * 0.55f, th2 = fmaxf(1.0f, rr * 0.16f), st = hh + th2 * 1.2f;
+                    for (int q = 0; q < n; q++) {
+                        float yy = c.y + (n - 1) * st * 0.5f - q * st;
+                        ImVec2 pts[3] = { ImVec2(c.x - hw, yy + hh * 0.5f), ImVec2(c.x, yy - hh * 0.5f), ImVec2(c.x + hw, yy + hh * 0.5f) };
+                        P.dl->AddPolyline(pts, 3, mc, 0, th2);
+                    }
+                } else {
+                    const float dr = fmaxf(1.0f, rr * 0.17f), st = dr * 2.7f;
+                    for (int q = 0; q < n; q++) P.dl->AddCircleFilled(ImVec2(c.x + ((n - 1) * 0.5f - q) * st, c.y), dr, mc, 10);
+                }
+            }
             if (hov) {
                 on_seal = true;
                 std::string nm = fm < (int)gamedata.formula_names.size() ? gamedata.formula_names[fm] : "?";
