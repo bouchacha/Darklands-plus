@@ -665,32 +665,33 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/barterview.cpp:413` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  purchases go to the member picked above |
 | `ui/barterview.cpp:414` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  click a name to see their items |
 | `ui/barterview.cpp:415` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  click a name's coin to make that member pay |
-| `ui/battlelog.cpp:129` | , the armor holds |
-| `ui/battlelog.cpp:129` | ; knocked back |
-| `ui/battlelog.cpp:130` | , knocked back |
-| `ui/battlelog.cpp:134` | , knocked back, misses  |
-| `ui/battlelog.cpp:187` | A dart from a trap misses  |
-| `ui/battlelog.cpp:211` | <skill> changed from X to Y |
-| `ui/battlelog.cpp:211` | Edged +3 (now 33) |
-| `ui/battlelog.cpp:213` |  changed from  |
-| `ui/battlelog.cpp:215` |  changed from %d to %d |
-| `ui/battlelog.cpp:216` | changed from 99 to 99 |
-| `ui/battlelog.cpp:226` | {%s:%+d (now %d)} |
-| `ui/battlelog.cpp:227` | %s %+d (now %d) |
-| `ui/battlelog.cpp:260` | The battle is over: the party has fallen. |
-| `ui/battlelog.cpp:260` | The battle is over: the enemies are beaten. |
-| `ui/battlelog.cpp:260` | The battle is over. |
-| `ui/battlelog.cpp:278` |  is wounded by  |
-| `ui/battlelog.cpp:278` | a dart from a trap |
-| `ui/battlelog.cpp:285` |  falls unconscious |
-| `ui/battlelog.cpp:287` |  leaves the field |
-| `ui/battlelog.cpp:291` | A dart from a trap hits  |
-| `ui/battlelog.cpp:291` | , the armor holds |
+| `ui/battlelog.cpp:115` | , {Strength:- |
+| `ui/battlelog.cpp:130` | , the armor holds |
+| `ui/battlelog.cpp:130` | ; knocked back |
+| `ui/battlelog.cpp:131` | , knocked back |
+| `ui/battlelog.cpp:135` | , knocked back, misses  |
+| `ui/battlelog.cpp:188` | A dart from a trap misses  |
+| `ui/battlelog.cpp:212` | <skill> changed from X to Y |
+| `ui/battlelog.cpp:212` | Edged +3 (now 33) |
+| `ui/battlelog.cpp:214` |  changed from  |
+| `ui/battlelog.cpp:216` |  changed from %d to %d |
+| `ui/battlelog.cpp:217` | changed from 99 to 99 |
+| `ui/battlelog.cpp:227` | {%s:%+d (now %d)} |
+| `ui/battlelog.cpp:228` | %s %+d (now %d) |
+| `ui/battlelog.cpp:261` | The battle is over: the party has fallen. |
+| `ui/battlelog.cpp:261` | The battle is over: the enemies are beaten. |
+| `ui/battlelog.cpp:261` | The battle is over. |
+| `ui/battlelog.cpp:279` |  is wounded by  |
+| `ui/battlelog.cpp:279` | a dart from a trap |
+| `ui/battlelog.cpp:286` |  falls unconscious |
+| `ui/battlelog.cpp:288` |  leaves the field |
+| `ui/battlelog.cpp:292` | A dart from a trap hits  |
 | `ui/battlelog.cpp:292` | , the armor holds |
-| `ui/battlelog.cpp:326` | Each blow will be listed here. |
-| `ui/battlelog.cpp:371` | No battle yet: the battle log shows here, blow by blow, during each battle and after it. |
-| `ui/battlelog.cpp:374` | The last battle |
-| `ui/battlelog.cpp:375` | The battle before |
+| `ui/battlelog.cpp:293` | , the armor holds |
+| `ui/battlelog.cpp:327` | Each blow will be listed here. |
+| `ui/battlelog.cpp:372` | No battle yet: the battle log shows here, blow by blow, during each battle and after it. |
+| `ui/battlelog.cpp:375` | The last battle |
+| `ui/battlelog.cpp:376` | The battle before |
 | `ui/battleoverlay.cpp:244` | Click: attack |
 | `ui/battleoverlay.cpp:244` | No clear shot |
 | `ui/battleoverlay.cpp:277` | The picture at the lower left of each member's box is their way of fighting: what they do until you give them an order.  |
@@ -1365,25 +1366,25 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/journal.cpp:1168` | No shop's wares noted yet. |
 | `ui/journal.cpp:1168` | Not seen in any shop yet. |
 | `ui/journal.cpp:1173` | Town (nearest first) |
-| `ui/levelmap.cpp:51` | does not work consistently |
-| `ui/levelmap.cpp:66` | does not work consistently |
-| `ui/levelmap.cpp:368` |  Stairs seen to floor  |
-| `ui/levelmap.cpp:368` |  Stairs seen to floors  |
-| `ui/levelmap.cpp:369` | Floor %d: the party has been here.%s%s%s |
-| `ui/levelmap.cpp:369` |  Stairs seen to floor  |
-| `ui/levelmap.cpp:369` |  Stairs seen to floors  |
-| `ui/levelmap.cpp:370` | A floor nobody has been on yet: stairs from floor %s lead there. |
-| `ui/levelmap.cpp:371` |  Click: the party walks to those stairs. |
-| `ui/levelmap.cpp:371` |  Click: the party walks to those stairs and takes them. |
-| `ui/levelmap.cpp:679` | The whole level  (floor %d) |
-| `ui/levelmap.cpp:679` | The level, as far as the party has seen it  (floor %d) |
-| `ui/levelmap.cpp:702` | enemies seen |
-| `ui/levelmap.cpp:704` | arrows: who targets whom |
-| `ui/levelmap.cpp:707` | stairs, ways out |
-| `ui/levelmap.cpp:709` | not explored yet |
-| `ui/levelmap.cpp:710` | not yet revealed |
-| `ui/levelmap.cpp:712` | Click the floor to walk the party there (the map closes, and they go). Tab or Esc closes the level map; the game is paused until then. |
-| `ui/levelmap.cpp:712` | Tab or Esc closes the level map; the game is paused until then. |
+| `ui/levelmap.cpp:52` | does not work consistently |
+| `ui/levelmap.cpp:67` | does not work consistently |
+| `ui/levelmap.cpp:378` |  Stairs seen to floor  |
+| `ui/levelmap.cpp:378` |  Stairs seen to floors  |
+| `ui/levelmap.cpp:379` | Floor %d: the party has been here.%s%s%s |
+| `ui/levelmap.cpp:379` |  Stairs seen to floor  |
+| `ui/levelmap.cpp:379` |  Stairs seen to floors  |
+| `ui/levelmap.cpp:380` | A floor nobody has been on yet: stairs from floor %s lead there. |
+| `ui/levelmap.cpp:381` |  Click: the party walks to those stairs. |
+| `ui/levelmap.cpp:381` |  Click: the party walks to those stairs and takes them. |
+| `ui/levelmap.cpp:689` | The whole level  (floor %d) |
+| `ui/levelmap.cpp:689` | The level, as far as the party has seen it  (floor %d) |
+| `ui/levelmap.cpp:722` | enemies seen |
+| `ui/levelmap.cpp:724` | arrows: who targets whom |
+| `ui/levelmap.cpp:727` | stairs, ways out |
+| `ui/levelmap.cpp:729` | not explored yet |
+| `ui/levelmap.cpp:730` | not yet revealed |
+| `ui/levelmap.cpp:732` | Click the floor to walk the party there (the map closes, and they go). Tab or Esc closes the level map; the game is paused until then. |
+| `ui/levelmap.cpp:732` | Tab or Esc closes the level map; the game is paused until then. |
 | `ui/lodgeview.cpp:168` | Camping in the wild |
 | `ui/lodgeview.cpp:168` | Staying here |
 | `ui/lodgeview.cpp:190` | The room: %s a day.%s |
@@ -1463,79 +1464,79 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/marchview.cpp:44` | Marching order |
 | `ui/marchview.cpp:45` | The first leads the way; in single file the others follow in this order. |
 | `ui/margins.cpp:73` | In the wilds |
-| `ui/margins.cpp:74` | Traveling, near  |
-| `ui/margins.cpp:195` | University: new saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone, teachers to hire (it expects {Latin} and a sharp mind). |
-| `ui/margins.cpp:196` | Cathedral: donations for {Divine Favor} (and maybe {Virtue}), an errand for the canon (a relic), the patron saint's story, sanctuary. |
-| `ui/margins.cpp:200` | armor and shields |
-| `ui/margins.cpp:200` | bows, crossbows and guns |
-| `ui/margins.cpp:201` | weapons, armor and shields |
-| `ui/margins.cpp:201` | hammers, maces, flails and polearms (pikes, halberds, spears, staves) |
-| `ui/margins.cpp:202` | clothing and soft armor (padded, leather, studded leather, cuir bouilli) |
-| `ui/margins.cpp:268` | the party's best  |
-| `ui/margins.cpp:269` | nobody would learn |
-| `ui/margins.cpp:298` | Teachers here: a lesson a day at the inn, for a fee |
-| `ui/margins.cpp:299` | Under each, who would learn, and their skill now. |
-| `ui/margins.cpp:313` | Philosopher's Stone %dq |
-| `ui/margins.cpp:328` | A better Philosopher's Stone, for a price: |
-| `ui/margins.cpp:330` |  the alchemist's, quality %d; |
-| `ui/margins.cpp:331` |  the university's, quality %d; |
-| `ui/margins.cpp:333` |  The party's is %d%s. |
-| `ui/margins.cpp:333` |  The party has none. |
-| `ui/margins.cpp:333` | : nothing to gain here |
-| `ui/margins.cpp:373` | Notable shops |
-| `ui/margins.cpp:373` | Notable shops |
-| `ui/margins.cpp:375` | %s: %s of %dq (most shops sell about 25q). |
-| `ui/margins.cpp:380` | St.Edward, Confessor |
-| `ui/margins.cpp:388` | Saints taught here |
-| `ui/margins.cpp:405` |  (someone in the party knows this saint):  |
-| `ui/margins.cpp:405` |  (nobody in the party knows this saint):  |
-| `ui/margins.cpp:420` | Formulae sold here |
-| `ui/margins.cpp:439` | Someone in the party knows this formula. |
-| `ui/margins.cpp:439` | Nobody in the party knows this formula. |
-| `ui/margins.cpp:460` | Teachers to be hired |
-| `ui/margins.cpp:470` | %s: %s, up to %d |
-| `ui/margins.cpp:470` | %s: %s (their skill %d) |
-| `ui/margins.cpp:472` | A lesson a day at the inn, for a fee. Who would learn, and their skill now: |
-| `ui/margins.cpp:511` | Can't walk there |
-| `ui/margins.cpp:575` | Blessings and potions |
-| `ui/margins.cpp:650` | The first of these ends in  |
-| `ui/margins.cpp:650` | , the last in  |
-| `ui/margins.cpp:670` | Every member alike. |
-| `ui/margins.cpp:672` | Every member:  |
-| `ui/margins.cpp:708` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
-| `ui/margins.cpp:717` | Reputation %d |
-| `ui/margins.cpp:735` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
-| `ui/margins.cpp:735` | Below 0 its shops ask more and pay less: 1% for every 2 points below 0, up to 9%. |
-| `ui/margins.cpp:739` |   Changes seen since this game was loaded: |
-| `ui/margins.cpp:742` | the overland view |
-| `ui/margins.cpp:742` | , after choosing " |
-| `ui/margins.cpp:760` | The town counts as hostile: its gates and people turn the party away. |
-| `ui/margins.cpp:762` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
-| `ui/margins.cpp:773` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
-| `ui/margins.cpp:785` | Preparing for war |
-| `ui/margins.cpp:786` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
-| `ui/margins.cpp:788` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
-| `ui/margins.cpp:812` | The party has goods stored here (F12 > Journal > Stored). |
-| `ui/margins.cpp:817` | No blessings or potions at work. |
-| `ui/margins.cpp:826` | C: camp here |
-| `ui/margins.cpp:827` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
-| `ui/margins.cpp:831` | Go to a place here |
-| `ui/margins.cpp:831` | G: go to a place here |
-| `ui/margins.cpp:837` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
-| `ui/margins.cpp:886` | None taken on. |
-| `ui/margins.cpp:918` | Travel there |
-| `ui/margins.cpp:935` | ... %d more on the world map (M) |
-| `ui/margins.cpp:952` | Night in the streets |
-| `ui/margins.cpp:956` | almost always |
-| `ui/margins.cpp:957` | about %d time%s in 10 |
-| `ui/margins.cpp:958` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's {Stealth} and {Streetwise})%s. An inn is the safe place to wait for morning. |
-| `ui/margins.cpp:961` | , as set in F12 > Mods (Night encounters in the streets) |
-| `ui/margins.cpp:1000` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
-| `ui/margins.cpp:1000` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
-| `ui/margins.cpp:1002` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
-| `ui/margins.cpp:1002` | It is day (from 5:00 to 19:00). |
-| `ui/margins.cpp:1029` | %s in bank notes |
-| `ui/margins.cpp:1043` | F11: the keys and clicks of this screen. |
+| `ui/margins.cpp:75` | Traveling, near  |
+| `ui/margins.cpp:196` | University: new saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone, teachers to hire (it expects {Latin} and a sharp mind). |
+| `ui/margins.cpp:197` | Cathedral: donations for {Divine Favor} (and maybe {Virtue}), an errand for the canon (a relic), the patron saint's story, sanctuary. |
+| `ui/margins.cpp:201` | armor and shields |
+| `ui/margins.cpp:201` | bows, crossbows and guns |
+| `ui/margins.cpp:202` | weapons, armor and shields |
+| `ui/margins.cpp:202` | hammers, maces, flails and polearms (pikes, halberds, spears, staves) |
+| `ui/margins.cpp:203` | clothing and soft armor (padded, leather, studded leather, cuir bouilli) |
+| `ui/margins.cpp:269` | the party's best  |
+| `ui/margins.cpp:270` | nobody would learn |
+| `ui/margins.cpp:299` | Teachers here: a lesson a day at the inn, for a fee |
+| `ui/margins.cpp:300` | Under each, who would learn, and their skill now. |
+| `ui/margins.cpp:314` | Philosopher's Stone %dq |
+| `ui/margins.cpp:329` | A better Philosopher's Stone, for a price: |
+| `ui/margins.cpp:331` |  the alchemist's, quality %d; |
+| `ui/margins.cpp:332` |  the university's, quality %d; |
+| `ui/margins.cpp:334` |  The party's is %d%s. |
+| `ui/margins.cpp:334` |  The party has none. |
+| `ui/margins.cpp:334` | : nothing to gain here |
+| `ui/margins.cpp:374` | Notable shops |
+| `ui/margins.cpp:374` | Notable shops |
+| `ui/margins.cpp:376` | %s: %s of %dq (most shops sell about 25q). |
+| `ui/margins.cpp:381` | St.Edward, Confessor |
+| `ui/margins.cpp:389` | Saints taught here |
+| `ui/margins.cpp:406` |  (someone in the party knows this saint):  |
+| `ui/margins.cpp:406` |  (nobody in the party knows this saint):  |
+| `ui/margins.cpp:421` | Formulae sold here |
+| `ui/margins.cpp:440` | Someone in the party knows this formula. |
+| `ui/margins.cpp:440` | Nobody in the party knows this formula. |
+| `ui/margins.cpp:461` | Teachers to be hired |
+| `ui/margins.cpp:471` | %s: %s, up to %d |
+| `ui/margins.cpp:471` | %s: %s (their skill %d) |
+| `ui/margins.cpp:473` | A lesson a day at the inn, for a fee. Who would learn, and their skill now: |
+| `ui/margins.cpp:512` | Can't walk there |
+| `ui/margins.cpp:576` | Blessings and potions |
+| `ui/margins.cpp:651` | The first of these ends in  |
+| `ui/margins.cpp:651` | , the last in  |
+| `ui/margins.cpp:671` | Every member alike. |
+| `ui/margins.cpp:673` | Every member:  |
+| `ui/margins.cpp:709` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
+| `ui/margins.cpp:718` | Reputation %d |
+| `ui/margins.cpp:736` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
+| `ui/margins.cpp:736` | Below 0 its shops ask more and pay less: 1% for every 2 points below 0, up to 9%. |
+| `ui/margins.cpp:740` |   Changes seen since this game was loaded: |
+| `ui/margins.cpp:743` | the overland view |
+| `ui/margins.cpp:743` | , after choosing " |
+| `ui/margins.cpp:761` | The town counts as hostile: its gates and people turn the party away. |
+| `ui/margins.cpp:763` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
+| `ui/margins.cpp:774` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
+| `ui/margins.cpp:786` | Preparing for war |
+| `ui/margins.cpp:787` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
+| `ui/margins.cpp:789` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
+| `ui/margins.cpp:813` | The party has goods stored here (F12 > Journal > Stored). |
+| `ui/margins.cpp:818` | No blessings or potions at work. |
+| `ui/margins.cpp:827` | C: camp here |
+| `ui/margins.cpp:828` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
+| `ui/margins.cpp:832` | Go to a place here |
+| `ui/margins.cpp:832` | G: go to a place here |
+| `ui/margins.cpp:838` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
+| `ui/margins.cpp:887` | None taken on. |
+| `ui/margins.cpp:919` | Travel there |
+| `ui/margins.cpp:936` | ... %d more on the world map (M) |
+| `ui/margins.cpp:953` | Night in the streets |
+| `ui/margins.cpp:957` | almost always |
+| `ui/margins.cpp:958` | about %d time%s in 10 |
+| `ui/margins.cpp:959` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's {Stealth} and {Streetwise})%s. An inn is the safe place to wait for morning. |
+| `ui/margins.cpp:962` | , as set in F12 > Mods (Night encounters in the streets) |
+| `ui/margins.cpp:1001` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
+| `ui/margins.cpp:1001` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
+| `ui/margins.cpp:1003` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
+| `ui/margins.cpp:1003` | It is day (from 5:00 to 19:00). |
+| `ui/margins.cpp:1030` | %s in bank notes |
+| `ui/margins.cpp:1044` | F11: the keys and clicks of this screen. |
 | `ui/margins_battle.cpp:84` | The battle runs again (the key: Space). Any order being given is given first. |
 | `ui/margins_battle.cpp:85` | This member's order is given; the battle stays paused, to give others theirs (the key: Enter). |
 | `ui/margins_battle.cpp:86` | Every kind of enemy on the field: attributes, weapons, armor (the key: E). |
@@ -1872,75 +1873,80 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/questicons.cpp:18` | Wanted in a town |
 | `ui/questicons.cpp:18` | City politics |
 | `ui/questicons.cpp:18` | Town on alert |
-| `ui/quests.cpp:56` | no time limit |
+| `ui/quests.cpp:57` | no time limit |
 | `ui/quests.cpp:94` | the pagan altar north-west of Hall |
-| `ui/quests.cpp:114` | the lake near Freiberg |
-| `ui/quests.cpp:156` | a foreign trader |
-| `ui/quests.cpp:156` | a pharmacist |
-| `ui/quests.cpp:157` | the villagers |
-| `ui/quests.cpp:158` | the city's lord |
-| `ui/quests.cpp:194` | the leading merchant |
-| `ui/quests.cpp:194` | the Hanseatic League |
-| `ui/quests.cpp:277` | The watch of  |
-| `ui/quests.cpp:277` |  is on alert, after trouble with its guards at the gates or walls (or a rising).  |
-| `ui/quests.cpp:277` | Two times in five, the guards stop a party that simply walks out of the gate, and attack; sneaking out,  |
-| `ui/quests.cpp:277` | or talking your way in, is harder. |
-| `ui/quests.cpp:280` |  With its opinion of the party at -10 or worse, the town counts as hostile. |
-| `ui/quests.cpp:303` | The guards will stop the party and attack:  |
-| `ui/quests.cpp:303` |  counts the party as unwelcome, until  |
-| `ui/quests.cpp:304` | The guards will stop the party and attack:  |
-| `ui/quests.cpp:304` | 's opinion of the party is  |
-| `ui/quests.cpp:304` |  (-75 or worse: hostile). |
-| `ui/quests.cpp:306` | The guards will stop the party and attack:  |
-| `ui/quests.cpp:306` | 's watch is on alert, until  |
-| `ui/quests.cpp:306` | , and its opinion of the party is  |
-| `ui/quests.cpp:306` |  (-10 or worse: hostile). |
-| `ui/quests.cpp:308` | Two times in five, the guards stop the party and attack:  |
-| `ui/quests.cpp:308` | 's watch is on alert, until  |
-| `ui/quests.cpp:336` | no time limit |
-| `ui/quests.cpp:338` | Robber knight @  |
-| `ui/quests.cpp:338` | Kill the robber knight  |
-| `ui/quests.cpp:339` |  A village pays no bounty: its reward is the village's good opinion of the party when he falls. |
-| `ui/quests.cpp:344` | Bounty to collect @  |
-| `ui/quests.cpp:344` | The robber knight is dead: collect the bounty from  |
-| `ui/quests.cpp:344` |  (at the cathedral, by day: at night it holds no audience) |
-| `ui/quests.cpp:348` | The offices of the merchants and bankers are above  |
-| `ui/quests.cpp:348` | 's marketplace; at night the party can sneak up to them. |
-| `ui/quests.cpp:356` | Dragon near  |
-| `ui/quests.cpp:356` | A dragon terrorizes the land around  |
-| `ui/quests.cpp:358` | Trouble at the mine:  |
-| `ui/quests.cpp:360` | The Wild Hunt |
-| `ui/quests.cpp:360` | The Wild Hunt pursues the party. |
-| `ui/quests.cpp:362` | Unwelcome @  |
-| `ui/quests.cpp:362` | Not welcome in  |
-| `ui/quests.cpp:362` | : the town counts as hostile to the party (its gates and people turn it away). |
-| `ui/quests.cpp:366` | Wanted by the watch in  |
-| `ui/quests.cpp:366` | : guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
-| `ui/quests.cpp:369` | Witches' Sabbat at  |
-| `ui/quests.cpp:370` | Witches gather at  |
-| `ui/quests.cpp:370` |  (the night is not known). |
-| `ui/quests.cpp:371` | Witches gather on the night of  |
-| `ui/quests.cpp:371` |  (the place is not known). |
-| `ui/quests.cpp:375` | Rebels @ You have joined the rebels of . Post their handbills, win the guilds over (ask about their leaders and politics, meet their masters), and when the cause is strong ask your leader for a war council: it sets the day of the march. You reach the leader through the agitators' guild or the side streets (other locations you remember). |
-| `ui/quests.cpp:379` | For the government @ You serve the government of  against the rebels. Post its handbills, win the guilds over, and when the time is right ask your patron for a war council: it sets the day of the arrests. Your patron's house is in the side streets (other locations you remember). |
-| `ui/quests.cpp:388` | Your side marches on the  |
-| `ui/quests.cpp:389` |  that day: if you are at the leader's house, the rally starts there; if you are in the streets, the march finds you. |
-| `ui/quests.cpp:390` | The city guard arrests the rebel leaders at  |
-| `ui/quests.cpp:391` |  that day: if you are at your patron's house, the arrest starts there; if you are in the streets, the escort finds you. |
-| `ui/quests.cpp:395` | Sabbat now @  |
-| `ui/quests.cpp:395` | A witches' Sabbat is being held now at  |
-| `ui/quests.cpp:497` |  (The same giver asked twice.) |
-| `ui/quests.cpp:530` | %s, under a day away |
-| `ui/quests.cpp:531` | %s, about %d day%s away |
-| `ui/quests.cpp:576` |  on foot as the crow flies (roads and rivers make it longer) |
-| `ui/quests.cpp:588` | Start or load a game first. |
-| `ui/quests.cpp:595` | Rewards waiting |
-| `ui/quests.cpp:595` | Unwelcome or wanted |
-| `ui/quests.cpp:596` | In order of: |
-| `ui/quests.cpp:601` |   (click a quest to open it) |
-| `ui/quests.cpp:627` | Travel there |
-| `ui/quests.cpp:635` | No quests at the moment. Robber-knight bounties, errands and deliveries the party takes on are listed here with their deadlines. |
-| `ui/quests.cpp:637` | Show secrets (Sabbat dates and places, even before the party learns them) |
+| `ui/quests.cpp:113` | the lake near Freiberg |
+| `ui/quests.cpp:148` | a foreign trader |
+| `ui/quests.cpp:148` | a pharmacist |
+| `ui/quests.cpp:149` | the villagers |
+| `ui/quests.cpp:150` | the city's lord |
+| `ui/quests.cpp:186` | the leading merchant |
+| `ui/quests.cpp:186` | the Hanseatic League |
+| `ui/quests.cpp:269` | The watch of  |
+| `ui/quests.cpp:269` |  is on alert, after trouble with its guards at the gates or walls (or a rising).  |
+| `ui/quests.cpp:269` | Two times in five, the guards stop a party that simply walks out of the gate, and attack; sneaking out,  |
+| `ui/quests.cpp:269` | or talking your way in, is harder. |
+| `ui/quests.cpp:272` |  With its opinion of the party at -10 or worse, the town counts as hostile. |
+| `ui/quests.cpp:295` | The guards will stop the party and attack:  |
+| `ui/quests.cpp:295` |  counts the party as unwelcome, until  |
+| `ui/quests.cpp:296` | The guards will stop the party and attack:  |
+| `ui/quests.cpp:296` | 's opinion of the party is  |
+| `ui/quests.cpp:296` |  (-75 or worse: hostile). |
+| `ui/quests.cpp:298` | The guards will stop the party and attack:  |
+| `ui/quests.cpp:298` | 's watch is on alert, until  |
+| `ui/quests.cpp:298` | , and its opinion of the party is  |
+| `ui/quests.cpp:298` |  (-10 or worse: hostile). |
+| `ui/quests.cpp:300` | Two times in five, the guards stop the party and attack:  |
+| `ui/quests.cpp:300` | 's watch is on alert, until  |
+| `ui/quests.cpp:328` | no time limit |
+| `ui/quests.cpp:330` | Robber knight at  |
+| `ui/quests.cpp:330` | Kill the robber knight  |
+| `ui/quests.cpp:331` |  A village pays no bounty: its reward is the village's good opinion of the party when he falls. |
+| `ui/quests.cpp:336` | Bounty to collect in  |
+| `ui/quests.cpp:336` | The robber knight is dead: collect the bounty from  |
+| `ui/quests.cpp:336` |  (at the cathedral, by day: at night it holds no audience) |
+| `ui/quests.cpp:340` | The offices of the merchants and bankers are above  |
+| `ui/quests.cpp:340` | 's marketplace; at night the party can sneak up to them. |
+| `ui/quests.cpp:348` | Dragon near  |
+| `ui/quests.cpp:348` | A dragon terrorizes the land around  |
+| `ui/quests.cpp:350` | The mine at  |
+| `ui/quests.cpp:350` | Trouble at the mine:  |
+| `ui/quests.cpp:352` | The Wild Hunt |
+| `ui/quests.cpp:352` | The Wild Hunt pursues the party. |
+| `ui/quests.cpp:354` | Unwelcome in  |
+| `ui/quests.cpp:354` | Not welcome in  |
+| `ui/quests.cpp:354` | : the town counts as hostile to the party (its gates and people turn it away). |
+| `ui/quests.cpp:356` | Watch on alert in  |
+| `ui/quests.cpp:358` | Wanted by the watch in  |
+| `ui/quests.cpp:358` | : guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
+| `ui/quests.cpp:361` | Witches' Sabbat at  |
+| `ui/quests.cpp:362` | Witches gather at  |
+| `ui/quests.cpp:362` |  (the night is not known). |
+| `ui/quests.cpp:363` | Witches gather on the night of  |
+| `ui/quests.cpp:363` |  (the place is not known). |
+| `ui/quests.cpp:367` | With the rebels of You have joined the rebels of . Post their handbills, win the guilds over (ask about their leaders and politics, meet their masters), and when the cause is strong ask your leader for a war council: it sets the day of the march. You reach the leader through the agitators' guild or the side streets (other locations you remember). |
+| `ui/quests.cpp:371` | For the government of You serve the government of  against the rebels. Post its handbills, win the guilds over, and when the time is right ask your patron for a war council: it sets the day of the arrests. Your patron's house is in the side streets (other locations you remember). |
+| `ui/quests.cpp:379` | The march in  |
+| `ui/quests.cpp:379` | The arrests in  |
+| `ui/quests.cpp:380` | Your side marches on the  |
+| `ui/quests.cpp:381` |  that day: if you are at the leader's house, the rally starts there; if you are in the streets, the march finds you. |
+| `ui/quests.cpp:382` | The city guard arrests the rebel leaders at  |
+| `ui/quests.cpp:383` |  that day: if you are at your patron's house, the arrest starts there; if you are in the streets, the escort finds you. |
+| `ui/quests.cpp:387` | Sabbat now at  |
+| `ui/quests.cpp:387` | A witches' Sabbat is being held now at  |
+| `ui/quests.cpp:398` | ... in Erfurt. By 9 July 1405. |
+| `ui/quests.cpp:493` |  (The same giver asked twice.) |
+| `ui/quests.cpp:526` | %s, under a day away |
+| `ui/quests.cpp:527` | %s, about %d day%s away |
+| `ui/quests.cpp:572` |  on foot as the crow flies (roads and rivers make it longer) |
+| `ui/quests.cpp:584` | Start or load a game first. |
+| `ui/quests.cpp:591` | Rewards waiting |
+| `ui/quests.cpp:591` | Unwelcome or wanted |
+| `ui/quests.cpp:592` | In order of: |
+| `ui/quests.cpp:597` |   (click a quest to open it) |
+| `ui/quests.cpp:623` | Travel there |
+| `ui/quests.cpp:631` | No quests at the moment. Robber-knight bounties, errands and deliveries the party takes on are listed here with their deadlines. |
+| `ui/quests.cpp:633` | Show secrets (Sabbat dates and places, even before the party learns them) |
 | `ui/report.cpp:130` | Linux (Wine or Proton  |
 | `ui/report.cpp:136` | Windows %s (build %lu) |
 | `ui/report.cpp:137` | Windows %lu.%lu |
@@ -1956,7 +1962,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/report.cpp:238` | The log then tells of every journey, encounter, Go to walk and fix at work: what a report needs to show how a fault came about. It grows faster. |
 | `ui/report.cpp:248` | Darklands+ noticed a fault and made a report (F12 > About > Report a problem). Please send it with what you were doing. |
 | `ui/report.cpp:249` | Darklands+ noticed a fault: darklands_port.log in the game folder says what. |
-| `ui/richtext.cpp:191` | Missile Devices |
+| `ui/richtext.cpp:196` | Missile Devices |
 | `ui/rosterview.cpp:33` |  Add to the Party |
 | `ui/rosterview.cpp:67` | Who travels on |
 | `ui/rosterview.cpp:68` | Up to four travel together. Those who stay behind are kept here and can join again; new characters can join too. |
@@ -2374,15 +2380,15 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/sheetview.cpp:1257` | No alchemist sells it: it is traded for or found. |
 | `ui/sheetview.cpp:1258` | No alchemist the party has been to sells it. |
 | `ui/sheetview.cpp:1263` | Sold by the alchemist of  |
-| `ui/skillicons.cpp:460` | Missile Device |
-| `ui/skillicons.cpp:460` | Missile Weapons |
-| `ui/skillicons.cpp:461` | Edged Weapon |
-| `ui/skillicons.cpp:461` | Impact Weapon |
-| `ui/skillicons.cpp:461` | Thrown Weapon |
-| `ui/skillicons.cpp:596` | Frames and clock |
-| `ui/skillicons.cpp:600` | Cards and towns |
-| `ui/skillicons.cpp:605` | The party and its items |
-| `ui/skillicons.cpp:621` | Fixes for bugs of the original |
+| `ui/skillicons.cpp:462` | Missile Device |
+| `ui/skillicons.cpp:462` | Missile Weapons |
+| `ui/skillicons.cpp:463` | Edged Weapon |
+| `ui/skillicons.cpp:463` | Impact Weapon |
+| `ui/skillicons.cpp:463` | Thrown Weapon |
+| `ui/skillicons.cpp:598` | Frames and clock |
+| `ui/skillicons.cpp:602` | Cards and towns |
+| `ui/skillicons.cpp:607` | The party and its items |
+| `ui/skillicons.cpp:623` | Fixes for bugs of the original |
 | `ui/teachersui.cpp:47` | Missile Devices |
 | `ui/teachersui.cpp:48` | Speak Common |
 | `ui/teachersui.cpp:48` | Read & Write |
