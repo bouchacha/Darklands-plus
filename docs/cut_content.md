@@ -20,6 +20,7 @@ encounter tables and the other scripts.
 | **Cities at war** | 5 coded cards with 78 texts, plus effects across the game (prices, news, docks, a soldiers' street); the state that turns them on is never set, and the war's arrival card loads no text | *Cities at war* (below) |
 | **"Fehde!"** | A finished wilderness encounter with no code | *"Fehde!"* (below) |
 | **The hospice** | A town's hospice by day, written with no code, and an empty line in the church district that once led there | *The hospice* (below) |
+| **The manor rumor** | A town-news text that points to the misty lake's manor, never shown | *The manor rumor* (below) |
 | **Honor Roll of Glory** | An unfinished hall of fame | *Honor Roll of Glory* |
 | **Black Cloud in battle** | The party's battle menu leaves Black Cloud out ("the screen takes too long", the manual says), though its smoke is in the battle's rules and enemies throw it | *Black Cloud in battle* |
 
@@ -151,6 +152,20 @@ port/mods/encounters.c) with the card's own texts and the cloister picture `XDAM
 
 Go to lists the hospice by day. `$CityH01`, the hospice at night ("City hospice, at night."), is
 left unused.
+
+## The manor rumor
+
+The town news (`$CityN00`, "Eyes and ears open, you...") holds a text block no code shows,
+block 2: "More than one person makes a passing reference to a powerful noblewoman whose
+well-guarded manor is said to be $Direction of here. You hear tones of awe and respect on one
+hand, but hints of strange doings on the other. You strain to hear more, but the conversation
+drifts..." The manor is the one by the misty lake where the wise woman judges the party
+(`$WQSta00`; the only place with its icon, `DARKLAND.LOC` 196, south-west of Magdeburg).
+
+**What Darklands+ does** (`rules.manor_rumor`, port/mods/cutcards.c): asking about affairs
+elsewhere in the Empire (the news card's option 1) brings that text one time in three, before the
+news, with `$Direction` pointing from the town to the manor. It stops once the party has been
+there (the journal's record).
 
 ## Written, never coded
 

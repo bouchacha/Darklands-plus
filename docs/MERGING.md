@@ -265,6 +265,7 @@ the files where each switch's key is read.
 | **Reconstructed Content** | | | |
 | `rules.fehde` | "Fehde!" ambush | experiment | cutcards.c |
 | `rules.hospice` | Town hospice | experiment | cutcards.c |
+| `rules.manor_rumor` | Rumor of the manor | experiment | cutcards.c |
 | `rules.war` | Cities at war | experiment | war.c, citynav.cpp, settings.cpp |
 | `rules.politics` | City politics | experiment | politics.c, quests.cpp, settings.cpp |
 | `battle.black_cloud` | Black Cloud in battle | experiment | battlerules.c, builtin.c, settings.cpp |

@@ -1,4 +1,4 @@
-/* cutcards.c - encounters MicroProse wrote and never used, put back (rules.fehde, rules.hospice:
+/* cutcards.c - encounters MicroProse wrote and never used, put back (rules.fehde, rules.hospice, rules.manor_rumor:
  * F12 > Reconstructed Content, experimental, off by default; the catalogue of what the game holds
  * unused is docs/cut_content.md).
  *
@@ -25,6 +25,7 @@
 
 static int fehde_on(void) { return config_get_int("rules.fehde", 0) && !config_get_int("original", 0); }
 static int hospice_on(void) { return config_get_int("rules.hospice", 0) && !config_get_int("original", 0); }
+static int manor_rumor_on(void) { return config_get_int("rules.manor_rumor", 0) && !config_get_int("original", 0); }
 
 static int fehde;                           /* this ambush is the private war's */
 static void meetb02_hook(void)              /* the mercenaries' ambush ($MeetB02), s108 1b3a:0008 */
@@ -148,6 +149,33 @@ static void churches_hospice_hook(void)     /* $Churc00 option 2 (s048 1a88:04c2
     hook_return_far(0);
 }
 
+/* ---------------------------------------------------------------- the manor rumor
+ * The town news ($CityN00, s069 195d) holds a text block no code shows (block 2): "More than one
+ * person makes a passing reference to a powerful noblewoman whose well-guarded manor is said to be
+ * $Direction of here..." - the misty lake's manor where the wise woman judges the party ($WQSta00;
+ * the one place with icon 25, DARKLAND.LOC 196). Here, asking about affairs elsewhere in the
+ * Empire (option 1, 195d:027c) brings it one time in three before the news, while the party has
+ * not been there (the journal's record), $Direction pointing from the town to the manor. */
+static int manor_loc(void)
+{
+    for (int i = 0; i < G_NLOC; i++) { u32 r = g_location(i); if (r && (s16)rw((u16)(r >> 16), (u16)r) == 25) return i; }
+    return -1;
+}
+int journal_visited(int loc);
+static void news_elsewhere_hook(void)       /* $CityN00 option 1, "ask about affairs elsewhere in the Empire" (s069 195d:027c) */
+{
+    int m = manor_rumor_on() ? manor_loc() : -1;
+    if (m >= 0 && !journal_visited(m) && (ns_call(GF_rand_mod, 1, 3) == 0 || getenv("DL_MANOR_RUMOR"))) {   /* (DL_MANOR_RUMOR: every time, for tests) */
+        fprintf(stderr, "cutcards: the manor rumor (place %d)\n", m);
+        u16 was = g_rw(GV_var_loc);
+        g_ww(GV_var_loc, (u16)m);
+        ns_call(GF_card_text, 2, 2, 0);
+        g_ww(GV_var_loc, was);
+        if (ns_unwinding) return;
+    }
+    hook_call_original();
+}
+
 /* test: the next random encounter on the map is the game's card n (ugamecard:N) */
 static int force_card = -1;
 void cutcards_force(int n) { force_card = n; fprintf(stderr, "cutcards: the next random encounter is card %#x\n", n); }
@@ -179,6 +207,7 @@ void cutcards_init(void)
     hook_install(GF_text_expand, churches_text_hook);
     hook_install(GF_card_options, churches_options_hook);
     hook_install(48, 0x1a88, 0x04c2, churches_hospice_hook);
+    hook_install(69, 0x195d, 0x027c, news_elsewhere_hook);
     hook_install(108, 0x1b3a, 0x0008, meetb02_hook);
     hook_install(GF_card_load, card_load_hook);
     hook_install(GF_run_battle, battle_hook);

@@ -281,25 +281,27 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:260` | a road ambush by soldiers of a private feud, written as a variant of the mercenaries' ambush and never used: half the time that ambush comes up, the Fehde comes instead, with its own texts but the same odds and battle (Soldiers led by a Knight). |
 | `mods/options.c:261` | Town hospice |
 | `mods/options.c:261` | a town's hospice by day, written but never made playable: give alms, work a day beside the nuns (Healing), have the party's wounds tended for a fee, or beg to be tended for nothing. The church district leads there, and Go to (G) lists it. |
-| `mods/options.c:262` | Cities at war |
-| `mods/options.c:262` | coded and never switched on. In each quarter of the year, one city in twelve prepares for war for two to four weeks, and half of those then stand a siege of one to three weeks: prices rise, the news tells of it, Soldiers' Road and its market open, the docks are guarded or barricaded, and the gate turns travelers away (talk, bluff, sneak, a farmer's hay cart, or the walls, where patrols take you for spies). A save made during a war carries the war on if loaded in the original game. |
-| `mods/options.c:263` | City politics |
-| `mods/options.c:263` | the campaign written and never switched on. Now and then a city has a season of unrest: rumors in the news and the guild quarters lead to the rebels' leader or the government's man, the party takes a side, posts handbills, sways the guilds, and a war council sets the day of a march on the town hall or of the arrests. |
-| `mods/options.c:264` | Black Cloud in battle |
-| `mods/options.c:264` | the party can throw Black Cloud in a battle too. The manual left it out ("the screen takes too long" on the machines of 1992), but the battle rules handle its smoke: shots through it hit a fifth as often, and fighting from inside it gives -15 to hit. Enemies and cards already use it. |
-| `mods/options.c:265` | Honor Roll of Glory (hall of fame) |
-| `mods/options.c:265` | the hall of fame left unfinished in the game (its picture and table were in the files, never used): a party enters it when its journey ends, and F12 > Journal > Honor Roll shows it. |
-| `mods/options.c:286` | Takes effect when the next new game starts. |
-| `mods/options.c:291` | Fixes for bugs of the original |
-| `mods/options.c:346` | Full Original |
-| `mods/options.c:346` | Darklands as it played in 1993 (version 483.07), bugs and all: everything Darklands+ adds to the play is off, and the original game's sound setup is used. How it looks (the text, the frames, the screen) stays as set in those sections. |
-| `mods/options.c:347` | Saves load in the original game and back. |
-| `mods/options.c:348` | The original game with its bugs fixed: its own screens, rules and graphics. |
-| `mods/options.c:349` | Saves load in the original game and back. |
-| `mods/options.c:350` | The original rules with the original's bugs fixed, the new screens, on screen what the original keeps behind keys or only in its manual, and less busywork: auto-travel, Go to, easier battle controls, one shared pack, one store room for every inn, endless ammunition. Easier play is offered separately, as built-in mods (F12 > Mods). |
-| `mods/options.c:351` | Saves load in the original game and back, unless a member uses an enemy sprite. |
-| `mods/options.c:473` | # Darklands+ switches  Every switch: its key (its name for good: never renamed, never reused), what it does, why it exists, the group switch that sets it (if any), its class (what kind of change: fix, show, ease, plus, easy, experiment, taste, tool) and its value in the original game / Darklands+ / for easy play (the column of the former Easy preset). Made by the game itself (`DL_DUMP_SWITCHES=docs/SWITCHES.md`, from `port/mods/options.c` and `port/mods/optwhy.c`); `tools/check_switches.py` fails if a key disappears without being listed as retired.   |
-| `mods/options.c:502` |  ## Retired keys  No longer offered; not to be used for anything else.   |
+| `mods/options.c:262` | Rumor of the manor |
+| `mods/options.c:262` | a rumor written for the town news and never used: asking about affairs elsewhere in the Empire, the party may hear of a powerful noblewoman whose well-guarded manor lies in such a direction from the town, until it has been there. |
+| `mods/options.c:263` | Cities at war |
+| `mods/options.c:263` | coded and never switched on. In each quarter of the year, one city in twelve prepares for war for two to four weeks, and half of those then stand a siege of one to three weeks: prices rise, the news tells of it, Soldiers' Road and its market open, the docks are guarded or barricaded, and the gate turns travelers away (talk, bluff, sneak, a farmer's hay cart, or the walls, where patrols take you for spies). A save made during a war carries the war on if loaded in the original game. |
+| `mods/options.c:264` | City politics |
+| `mods/options.c:264` | the campaign written and never switched on. Now and then a city has a season of unrest: rumors in the news and the guild quarters lead to the rebels' leader or the government's man, the party takes a side, posts handbills, sways the guilds, and a war council sets the day of a march on the town hall or of the arrests. |
+| `mods/options.c:265` | Black Cloud in battle |
+| `mods/options.c:265` | the party can throw Black Cloud in a battle too. The manual left it out ("the screen takes too long" on the machines of 1992), but the battle rules handle its smoke: shots through it hit a fifth as often, and fighting from inside it gives -15 to hit. Enemies and cards already use it. |
+| `mods/options.c:266` | Honor Roll of Glory (hall of fame) |
+| `mods/options.c:266` | the hall of fame left unfinished in the game (its picture and table were in the files, never used): a party enters it when its journey ends, and F12 > Journal > Honor Roll shows it. |
+| `mods/options.c:287` | Takes effect when the next new game starts. |
+| `mods/options.c:292` | Fixes for bugs of the original |
+| `mods/options.c:347` | Full Original |
+| `mods/options.c:347` | Darklands as it played in 1993 (version 483.07), bugs and all: everything Darklands+ adds to the play is off, and the original game's sound setup is used. How it looks (the text, the frames, the screen) stays as set in those sections. |
+| `mods/options.c:348` | Saves load in the original game and back. |
+| `mods/options.c:349` | The original game with its bugs fixed: its own screens, rules and graphics. |
+| `mods/options.c:350` | Saves load in the original game and back. |
+| `mods/options.c:351` | The original rules with the original's bugs fixed, the new screens, on screen what the original keeps behind keys or only in its manual, and less busywork: auto-travel, Go to, easier battle controls, one shared pack, one store room for every inn, endless ammunition. Easier play is offered separately, as built-in mods (F12 > Mods). |
+| `mods/options.c:352` | Saves load in the original game and back, unless a member uses an enemy sprite. |
+| `mods/options.c:474` | # Darklands+ switches  Every switch: its key (its name for good: never renamed, never reused), what it does, why it exists, the group switch that sets it (if any), its class (what kind of change: fix, show, ease, plus, easy, experiment, taste, tool) and its value in the original game / Darklands+ / for easy play (the column of the former Easy preset). Made by the game itself (`DL_DUMP_SWITCHES=docs/SWITCHES.md`, from `port/mods/options.c` and `port/mods/optwhy.c`); `tools/check_switches.py` fails if a key disappears without being listed as retired.   |
+| `mods/options.c:503` |  ## Retired keys  No longer offered; not to be used for anything else.   |
 
 ## Settings: why each switch (mods/optwhy.c)
 
@@ -412,12 +414,13 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/optwhy.c:121` | The original quits to DOS at the end. |
 | `mods/optwhy.c:123` | Written by MicroProse and never used. |
 | `mods/optwhy.c:124` | Written by MicroProse and never made playable. |
-| `mods/optwhy.c:125` | Coded by MicroProse and never switched on. |
-| `mods/optwhy.c:126` | Written by MicroProse and never switched on. |
-| `mods/optwhy.c:127` | Left out in 1992 for the machines' speed; the rules handle it. |
-| `mods/optwhy.c:128` | Left unfinished in the game's files. |
-| `mods/optwhy.c:155` | Puts right a bug of the original (the description says which). |
-| `mods/optwhy.c:156` | A matter of taste, or of the computer it runs on; no preset touches it. |
+| `mods/optwhy.c:125` | Written by MicroProse and never shown. |
+| `mods/optwhy.c:126` | Coded by MicroProse and never switched on. |
+| `mods/optwhy.c:127` | Written by MicroProse and never switched on. |
+| `mods/optwhy.c:128` | Left out in 1992 for the machines' speed; the rules handle it. |
+| `mods/optwhy.c:129` | Left unfinished in the game's files. |
+| `mods/optwhy.c:156` | Puts right a bug of the original (the description says which). |
+| `mods/optwhy.c:157` | A matter of taste, or of the computer it runs on; no preset touches it. |
 
 ## Fixes (mods/fixes.c)
 
@@ -1362,25 +1365,25 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/journal.cpp:1168` | No shop's wares noted yet. |
 | `ui/journal.cpp:1168` | Not seen in any shop yet. |
 | `ui/journal.cpp:1173` | Town (nearest first) |
-| `ui/levelmap.cpp:50` | does not work consistently |
-| `ui/levelmap.cpp:65` | does not work consistently |
-| `ui/levelmap.cpp:313` |  Stairs seen to floor  |
-| `ui/levelmap.cpp:313` |  Stairs seen to floors  |
-| `ui/levelmap.cpp:314` | Floor %d: the party has been here.%s%s%s |
-| `ui/levelmap.cpp:314` |  Stairs seen to floor  |
-| `ui/levelmap.cpp:314` |  Stairs seen to floors  |
-| `ui/levelmap.cpp:315` | A floor nobody has been on yet: stairs from floor %s lead there. |
-| `ui/levelmap.cpp:316` |  Click: the party walks to those stairs. |
-| `ui/levelmap.cpp:316` |  Click: the party walks to those stairs and takes them. |
-| `ui/levelmap.cpp:624` | The whole level  (floor %d) |
-| `ui/levelmap.cpp:624` | The level, as far as the party has seen it  (floor %d) |
-| `ui/levelmap.cpp:647` | enemies seen |
-| `ui/levelmap.cpp:649` | arrows: who targets whom |
-| `ui/levelmap.cpp:652` | stairs, ways out |
-| `ui/levelmap.cpp:654` | not explored yet |
-| `ui/levelmap.cpp:655` | not yet revealed |
-| `ui/levelmap.cpp:657` | Click the floor to walk the party there (the map closes, and they go). Tab or Esc closes the level map; the game is paused until then. |
-| `ui/levelmap.cpp:657` | Tab or Esc closes the level map; the game is paused until then. |
+| `ui/levelmap.cpp:51` | does not work consistently |
+| `ui/levelmap.cpp:66` | does not work consistently |
+| `ui/levelmap.cpp:368` |  Stairs seen to floor  |
+| `ui/levelmap.cpp:368` |  Stairs seen to floors  |
+| `ui/levelmap.cpp:369` | Floor %d: the party has been here.%s%s%s |
+| `ui/levelmap.cpp:369` |  Stairs seen to floor  |
+| `ui/levelmap.cpp:369` |  Stairs seen to floors  |
+| `ui/levelmap.cpp:370` | A floor nobody has been on yet: stairs from floor %s lead there. |
+| `ui/levelmap.cpp:371` |  Click: the party walks to those stairs. |
+| `ui/levelmap.cpp:371` |  Click: the party walks to those stairs and takes them. |
+| `ui/levelmap.cpp:679` | The whole level  (floor %d) |
+| `ui/levelmap.cpp:679` | The level, as far as the party has seen it  (floor %d) |
+| `ui/levelmap.cpp:702` | enemies seen |
+| `ui/levelmap.cpp:704` | arrows: who targets whom |
+| `ui/levelmap.cpp:707` | stairs, ways out |
+| `ui/levelmap.cpp:709` | not explored yet |
+| `ui/levelmap.cpp:710` | not yet revealed |
+| `ui/levelmap.cpp:712` | Click the floor to walk the party there (the map closes, and they go). Tab or Esc closes the level map; the game is paused until then. |
+| `ui/levelmap.cpp:712` | Tab or Esc closes the level map; the game is paused until then. |
 | `ui/lodgeview.cpp:168` | Camping in the wild |
 | `ui/lodgeview.cpp:168` | Staying here |
 | `ui/lodgeview.cpp:190` | The room: %s a day.%s |
@@ -2802,104 +2805,105 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/checks.c:99` | %d of the game's %d notes in use |
 | `mods/checks.c:118` | the date went backwards (%ld to %ld) without a load |
 | `mods/checks.c:129` | 12 steps on the map in a row each brought an encounter (one held waiting?) |
-| `mods/cutcards.c:68` | name     The hospice  |
-| `mods/cutcards.c:68` | card     $CityH00  |
-| `mods/cutcards.c:68` | picture  XDAMONK  |
-| `mods/cutcards.c:68` | terrain  any  |
-| `mods/cutcards.c:68` | vars     cost, wage  |
-| `mods/cutcards.c:68` | chosen   bestskill(Healing)  |
-| `mods/cutcards.c:68` | do       set cost = max(12, wounds(End) * 2 + wounds(Str) * 8); money2 cost; money1 240  |
-| `mods/cutcards.c:79` |   need   money >= 240  |
-| `mods/cutcards.c:79` |   chance none  |
-| `mods/cutcards.c:79` |   ok     pay 240; text 1; attr party, DF, 1; reputation 1, 2; hours 1; disable 0  |
-| `mods/cutcards.c:83` |   who    chosen  |
-| `mods/cutcards.c:83` |   chance none  |
-| `mods/cutcards.c:83` |   ok     if skill(chosen, Healing) < 20 goto refused else goto work  |
-| `mods/cutcards.c:87` |   need   wounds(End) + wounds(Str) > 0 and money >= cost  |
-| `mods/cutcards.c:87` |   chance none  |
-| `mods/cutcards.c:87` |   ok     pay cost; hours 24; heal party, End, 100; heal party, Str, 100; text 4;  |
-| `mods/cutcards.c:87` |          set cost = 12; money2 cost  |
-| `mods/cutcards.c:92` |   need   wounds(End) + wounds(Str) > 0  |
-| `mods/cutcards.c:92` |   who    bestattr(Cha)  |
-| `mods/cutcards.c:92` |   chance clamp(5, 95, 40 + standing / 2 + maxattr(Cha) / 4 - money / 2400)  |
-| `mods/cutcards.c:92` |   ok     hours 24; heal party, End, 100; heal party, Str, 50; text 5; disable 3;  |
-| `mods/cutcards.c:92` |          set cost = max(12, wounds(End) * 2 + wounds(Str) * 8); money2 cost  |
-| `mods/cutcards.c:92` |   fail   text 6; hours 1; disable 3  |
-| `mods/cutcards.c:99` |   chance none  |
-| `mods/cutcards.c:99` |   ok     card 0x13  |
-| `mods/cutcards.c:102` | do       text 2; hours 1; disable 1  |
-| `mods/cutcards.c:102` | do       set wage = 24 + skill(chosen, Healing); money1 wage; text 3; money1 240; gain wage  |
-| `mods/cutcards.c:102` |          practice chosen, Healing, 1, 40, 0; practice party, Healing, 1, 10, 0; hours 24; disable 1  |
-| `mods/cutcards.c:131` | ...\x1dvisit the Heilig-Geist-Spital, where injuries and the ill are tended. |
+| `mods/cutcards.c:69` | name     The hospice  |
+| `mods/cutcards.c:69` | card     $CityH00  |
+| `mods/cutcards.c:69` | picture  XDAMONK  |
+| `mods/cutcards.c:69` | terrain  any  |
+| `mods/cutcards.c:69` | vars     cost, wage  |
+| `mods/cutcards.c:69` | chosen   bestskill(Healing)  |
+| `mods/cutcards.c:69` | do       set cost = max(12, wounds(End) * 2 + wounds(Str) * 8); money2 cost; money1 240  |
+| `mods/cutcards.c:80` |   need   money >= 240  |
+| `mods/cutcards.c:80` |   chance none  |
+| `mods/cutcards.c:80` |   ok     pay 240; text 1; attr party, DF, 1; reputation 1, 2; hours 1; disable 0  |
+| `mods/cutcards.c:84` |   who    chosen  |
+| `mods/cutcards.c:84` |   chance none  |
+| `mods/cutcards.c:84` |   ok     if skill(chosen, Healing) < 20 goto refused else goto work  |
+| `mods/cutcards.c:88` |   need   wounds(End) + wounds(Str) > 0 and money >= cost  |
+| `mods/cutcards.c:88` |   chance none  |
+| `mods/cutcards.c:88` |   ok     pay cost; hours 24; heal party, End, 100; heal party, Str, 100; text 4;  |
+| `mods/cutcards.c:88` |          set cost = 12; money2 cost  |
+| `mods/cutcards.c:93` |   need   wounds(End) + wounds(Str) > 0  |
+| `mods/cutcards.c:93` |   who    bestattr(Cha)  |
+| `mods/cutcards.c:93` |   chance clamp(5, 95, 40 + standing / 2 + maxattr(Cha) / 4 - money / 2400)  |
+| `mods/cutcards.c:93` |   ok     hours 24; heal party, End, 100; heal party, Str, 50; text 5; disable 3;  |
+| `mods/cutcards.c:93` |          set cost = max(12, wounds(End) * 2 + wounds(Str) * 8); money2 cost  |
+| `mods/cutcards.c:93` |   fail   text 6; hours 1; disable 3  |
+| `mods/cutcards.c:100` |   chance none  |
+| `mods/cutcards.c:100` |   ok     card 0x13  |
+| `mods/cutcards.c:103` | do       text 2; hours 1; disable 1  |
+| `mods/cutcards.c:103` | do       set wage = 24 + skill(chosen, Healing); money1 wage; text 3; money1 240; gain wage  |
+| `mods/cutcards.c:103` |          practice chosen, Healing, 1, 40, 0; practice party, Healing, 1, 10, 0; hours 24; disable 1  |
+| `mods/cutcards.c:132` | ...\x1dvisit the Heilig-Geist-Spital, where injuries and the ill are tended. |
+| `mods/cutcards.c:165` | ask about affairs elsewhere in the Empire |
 | `mods/datamods.c:375` | # right edge). Bytes the game uses for layout are written \\xx (hex): \\14 new paragraph, \\15 an option, # \\1d after the option's "...", \\16 an option opening the saints, \\10 the potions, \\06 a battle, # \\01 ... \\13 a part shown or hidden by the game. { is o-umlaut, \| u-umlaut, \\1f a-umlaut. # Put the edited file into mods/<your mod>/MSGFILES/ (keep the name); lines starting with # are ignored.  |
 | `mods/datamods.c:412` | Describe your mod here (these lines show in F12 > Mods).  Put files into this folder laid out like the game folder; while the mod is on, the game reads them instead of its own: DARKLAND.LST, DARKLAND.ENM, PICS/NAME.PIC, a folder MSGFILES/ with single card files (.MSG, or .TXT as written by "Export the card texts"), art/ and sounds/ as in the game folder, music/ with recordings named by the piece's number (10.ogg, "11 market.ogg"; see F12 > Settings > Sound).  |
 | `mods/encounters.c:240` | he will tell every market in Kuttenberg |
 | `mods/encounters.c:242` | Stop, thief! |
-| `mods/encounters.c:526` | A new encounter stopped because of a mistake in its file (see darklands_port.log); the party is back in the overland view. |
-| `mods/encounters.c:576` | '%s' expected |
-| `mods/encounters.c:636` | %s: %s out of range |
-| `mods/encounters.c:636` | an attribute |
-| `mods/encounters.c:697` | %s takes %d argument%s |
-| `mods/encounters.c:733` | %s: who, then an item (0 to 199) |
-| `mods/encounters.c:741` | wounds: an attribute |
-| `mods/encounters.c:748` | unknown function %s |
-| `mods/encounters.c:767` | unknown name %s |
-| `mods/encounters.c:770` | a value expected |
-| `mods/encounters.c:776` | nested too deeply |
-| `mods/encounters.c:834` | unexpected "%s" |
-| `mods/encounters.c:848` | %s takes %d to %d values |
-| `mods/encounters.c:859` | nested too deeply |
-| `mods/encounters.c:872` | no section [%s] |
-| `mods/encounters.c:900` | %s: %s expected |
-| `mods/encounters.c:906` | an action expected |
-| `mods/encounters.c:925` | 'then' or 'goto' expected |
-| `mods/encounters.c:935` | card: one of the game's cards, 1 to 0x16d |
-| `mods/encounters.c:952` | unknown variable %s |
-| `mods/encounters.c:958` | picture names have at most 8 letters |
-| `mods/encounters.c:967` | options are numbered 0 to 9 |
-| `mods/encounters.c:973` | battle: a battlefield, then enemy, quality, count for each group |
-| `mods/encounters.c:978` | battle: a wilderness battlefield (Wilds, Surrounded, Clearing, Cave, or 0x2e-0x55, 0x61-0x63, 0x6f-0x79), or in a town's streets MainStreet, SideStreet |
-| `mods/encounters.c:980` | battle: MainStreet and SideStreet only in a town (where street) |
-| `mods/encounters.c:1007` | %s: who, then a %s |
-| `mods/encounters.c:1007` | skill (0 to 18) |
-| `mods/encounters.c:1007` | attribute (0 to 6) |
-| `mods/encounters.c:1029` | unknown action %s |
-| `mods/encounters.c:1033` | text %ld: %s has blocks 0 to %d |
-| `mods/encounters.c:1034` | text %ld: a card holds blocks 0 to 24 |
-| `mods/encounters.c:1087` | ';' expected |
-| `mods/encounters.c:1097` | unexpected "%s" |
-| `mods/encounters.c:1229` | where: wild, boat, street or camp |
-| `mods/encounters.c:1235` | unknown setting %s |
-| `mods/encounters.c:1241` | option: a number 0 to 9 |
-| `mods/encounters.c:1243` | option %d twice |
-| `mods/encounters.c:1246` | option %d: potion or saint |
-| `mods/encounters.c:1259` | at most 4 potions |
-| `mods/encounters.c:1261` | potion CODE, CHANCE |
-| `mods/encounters.c:1283` | unknown key %s |
-| `mods/encounters.c:1285` | no card (the MSGFILES text) given |
-| `mods/encounters.c:1286` | no picture given |
-| `mods/encounters.c:1287` | no [section] |
-| `mods/encounters.c:1390` | %s has %d text blocks: the game holds 25 |
-| `mods/encounters.c:1391` | %s is too long: %ld bytes as the game loads it, under 6000 fit |
-| `mods/encounters.c:1392` | %s has a block with %d option lines: at most %d |
-| `mods/encounters.c:1397` | %s block %d is too long: up to %d characters with its $variables filled in (%d as written), at most 899 fit |
-| `mods/encounters.c:1411` | [%s] has options but no block |
-| `mods/encounters.c:1414` | [%s] option %d: block %d of %s has %d option line%s |
-| `mods/encounters.c:1417` | [%s] option %d: %s |
-| `mods/encounters.c:1417` | its line (\\16) opens the saints: write option N saint |
-| `mods/encounters.c:1417` | a saint option needs a \\16 line |
-| `mods/encounters.c:1418` | [%s] option %d: %s |
-| `mods/encounters.c:1418` | its line (\\10) opens the potions: write option N potion |
-| `mods/encounters.c:1418` | a potion option needs a \\10 line |
-| `mods/encounters.c:1427` | [%s] option %d is a saint option, but there are no saints |
-| `mods/encounters.c:1428` | [%s] option %d is a potion option, but there are no items |
-| `mods/encounters.c:1430` | [%s] has a block but no options |
-| `mods/encounters.c:1432` | [%s] saints: numbers 0 to 135 (DARKLAND.LST), or -1 |
-| `mods/encounters.c:1433` | [%s] items: numbers 0 to 199 (DARKLAND.LST), or -1 |
-| `mods/encounters.c:1435` | [%s] block %d: the game holds 25 blocks (0 to 24) |
-| `mods/encounters.c:1482` | (Darklands+ %s) |
-| `mods/encounters.c:1508` | New encounters: %d file%s with errors left out (see darklands_port.log). |
-| `mods/encounters.c:2003` | on the screen |
+| `mods/encounters.c:543` | A new encounter stopped because of a mistake in its file (see darklands_port.log); the party is back in the overland view. |
+| `mods/encounters.c:593` | '%s' expected |
+| `mods/encounters.c:653` | %s: %s out of range |
+| `mods/encounters.c:653` | an attribute |
+| `mods/encounters.c:714` | %s takes %d argument%s |
+| `mods/encounters.c:750` | %s: who, then an item (0 to 199) |
+| `mods/encounters.c:758` | wounds: an attribute |
+| `mods/encounters.c:765` | unknown function %s |
+| `mods/encounters.c:784` | unknown name %s |
+| `mods/encounters.c:787` | a value expected |
+| `mods/encounters.c:793` | nested too deeply |
+| `mods/encounters.c:851` | unexpected "%s" |
+| `mods/encounters.c:865` | %s takes %d to %d values |
+| `mods/encounters.c:876` | nested too deeply |
+| `mods/encounters.c:889` | no section [%s] |
+| `mods/encounters.c:917` | %s: %s expected |
+| `mods/encounters.c:923` | an action expected |
+| `mods/encounters.c:942` | 'then' or 'goto' expected |
+| `mods/encounters.c:952` | card: one of the game's cards, 1 to 0x16d |
+| `mods/encounters.c:969` | unknown variable %s |
+| `mods/encounters.c:975` | picture names have at most 8 letters |
+| `mods/encounters.c:984` | options are numbered 0 to 9 |
+| `mods/encounters.c:990` | battle: a battlefield, then enemy, quality, count for each group |
+| `mods/encounters.c:995` | battle: a wilderness battlefield (Wilds, Surrounded, Clearing, Cave, or 0x2e-0x55, 0x61-0x63, 0x6f-0x79), or in a town's streets MainStreet, SideStreet |
+| `mods/encounters.c:997` | battle: MainStreet and SideStreet only in a town (where street) |
+| `mods/encounters.c:1024` | %s: who, then a %s |
+| `mods/encounters.c:1024` | skill (0 to 18) |
+| `mods/encounters.c:1024` | attribute (0 to 6) |
+| `mods/encounters.c:1046` | unknown action %s |
+| `mods/encounters.c:1050` | text %ld: %s has blocks 0 to %d |
+| `mods/encounters.c:1051` | text %ld: a card holds blocks 0 to 24 |
+| `mods/encounters.c:1104` | ';' expected |
+| `mods/encounters.c:1114` | unexpected "%s" |
+| `mods/encounters.c:1246` | where: wild, boat, street or camp |
+| `mods/encounters.c:1252` | unknown setting %s |
+| `mods/encounters.c:1258` | option: a number 0 to 9 |
+| `mods/encounters.c:1260` | option %d twice |
+| `mods/encounters.c:1263` | option %d: potion or saint |
+| `mods/encounters.c:1276` | at most 4 potions |
+| `mods/encounters.c:1278` | potion CODE, CHANCE |
+| `mods/encounters.c:1300` | unknown key %s |
+| `mods/encounters.c:1302` | no card (the MSGFILES text) given |
+| `mods/encounters.c:1303` | no picture given |
+| `mods/encounters.c:1304` | no [section] |
+| `mods/encounters.c:1407` | %s has %d text blocks: the game holds 25 |
+| `mods/encounters.c:1408` | %s is too long: %ld bytes as the game loads it, under 6000 fit |
+| `mods/encounters.c:1409` | %s has a block with %d option lines: at most %d |
+| `mods/encounters.c:1414` | %s block %d is too long: up to %d characters with its $variables filled in (%d as written), at most 899 fit |
+| `mods/encounters.c:1428` | [%s] has options but no block |
+| `mods/encounters.c:1431` | [%s] option %d: block %d of %s has %d option line%s |
+| `mods/encounters.c:1434` | [%s] option %d: %s |
+| `mods/encounters.c:1434` | its line (\\16) opens the saints: write option N saint |
+| `mods/encounters.c:1434` | a saint option needs a \\16 line |
+| `mods/encounters.c:1435` | [%s] option %d: %s |
+| `mods/encounters.c:1435` | its line (\\10) opens the potions: write option N potion |
+| `mods/encounters.c:1435` | a potion option needs a \\10 line |
+| `mods/encounters.c:1444` | [%s] option %d is a saint option, but there are no saints |
+| `mods/encounters.c:1445` | [%s] option %d is a potion option, but there are no items |
+| `mods/encounters.c:1447` | [%s] has a block but no options |
+| `mods/encounters.c:1449` | [%s] saints: numbers 0 to 135 (DARKLAND.LST), or -1 |
+| `mods/encounters.c:1450` | [%s] items: numbers 0 to 199 (DARKLAND.LST), or -1 |
+| `mods/encounters.c:1452` | [%s] block %d: the game holds 25 blocks (0 to 24) |
+| `mods/encounters.c:1499` | (Darklands+ %s) |
+| `mods/encounters.c:1525` | New encounters: %d file%s with errors left out (see darklands_port.log). |
+| `mods/encounters.c:2020` | on the screen |
 | `mods/fixgroups.c:10` | Crashes, freezes, items or progress lost, saved games spoiled, quests that can never be finished. Nobody wants these. |
 | `mods/fixgroups.c:11` | Plain mistakes |
 | `mods/fixgroups.c:11` | Something the game sets out to do and gets wrong: the wrong member, the wrong town, a check on the wrong option, a number lost on the way. |
@@ -3365,20 +3369,20 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/saves.c:282` | Loading is irreversable. Proceed? |
 | `mods/saves.c:325` | That save could not be read. |
 | `mods/saves.c:344` | Loaded %s: a battle, paused (Space resumes it) |
-| `mods/saves.c:386` | Saved (an Ironman game keeps one save, saved over as you go) |
-| `mods/saves.c:402` | Saved: %s (%s), in place of the old save |
-| `mods/saves.c:403` | Saved: %s (%s) |
-| `mods/saves.c:426` | use your horses |
-| `mods/saves.c:446` | Autosave: battle |
-| `mods/saves.c:478` | Ironman %04x |
-| `mods/saves.c:480` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
-| `mods/saves.c:512` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:513` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:534` | Start or load a game first. |
-| `mods/saves.c:541` | Loading from here works once a game is running; until then, load from the start screen. |
-| `mods/saves.c:543` | Buffer dealloc error |
-| `mods/saves.c:545` | That save could not be read. |
-| `mods/saves.c:565` | No quicksave yet (Ctrl+S makes one). |
+| `mods/saves.c:396` | Saved (an Ironman game keeps one save, saved over as you go) |
+| `mods/saves.c:412` | Saved: %s (%s), in place of the old save |
+| `mods/saves.c:413` | Saved: %s (%s) |
+| `mods/saves.c:436` | use your horses |
+| `mods/saves.c:456` | Autosave: battle |
+| `mods/saves.c:488` | Ironman %04x |
+| `mods/saves.c:490` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
+| `mods/saves.c:522` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:523` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:544` | Start or load a game first. |
+| `mods/saves.c:551` | Loading from here works once a game is running; until then, load from the start screen. |
+| `mods/saves.c:553` | Buffer dealloc error |
+| `mods/saves.c:555` | That save could not be read. |
+| `mods/saves.c:575` | No quicksave yet (Ctrl+S makes one). |
 | `mods/savesview.c:51` | %.14s %d %.3s |
 | `mods/sfx.c:51` | an attack that misses |
 | `mods/sfx.c:51` | a parried or blocked blow |

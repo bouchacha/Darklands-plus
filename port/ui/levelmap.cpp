@@ -17,6 +17,7 @@
 #include <string.h>
 #include <math.h>
 #include <float.h>
+#include <sys/stat.h>
 #include <string>
 #include <vector>
 #include "imgui.h"
@@ -85,12 +86,30 @@ static bool recs_dirty;
 static bool lv_ready;                            /* the floor at 20a5 is the one this battle shows (above) */
 static double recs_saved;
 static void lv_path(char *b, size_t n, int seed) { snprintf(b, n, "%s/darklands_levels_%u.bin", dlp_data_dir, (unsigned)(u16)seed); }
-static void lv_load(int seed)
+/* and as it stood when each save was written: levels/darklands_levels_<seed>_<save>.bin in the same folder (1.4.6:
+   loading an earlier save showed the floors as explored later on). Loading a save takes up its own (a save made
+   before 1.4.7 has none: what the game knows then stands). A save written again over its slot writes its file
+   again. */
+static void lv_side_path(char *b, size_t n, int seed, const char *save, bool make)
 {
-    recs.clear(); recs_seed = seed; recs_dirty = false;
-    char p[1200]; lv_path(p, sizeof p, seed);
+    char lc[16]; size_t i = 0;
+    for (; save[i] && save[i] != '.' && i < sizeof lc - 1; i++) lc[i] = (char)(save[i] >= 'A' && save[i] <= 'Z' ? save[i] + 32 : save[i]);
+    lc[i] = 0;
+    snprintf(b, n, "%s/levels", dlp_data_dir);
+    if (make) {
+#ifdef _WIN32
+        mkdir(b);
+#else
+        mkdir(b, 0755);
+#endif
+    }
+    snprintf(b, n, "%s/levels/darklands_levels_%u_%s.bin", dlp_data_dir, (unsigned)(u16)seed, lc);
+}
+static bool recs_read(const char *p)
+{
     FILE *f = fopen(p, "rb");
-    if (!f) return;
+    if (!f) return false;
+    recs.clear();
     char magic[6] = ""; u32 n = 0;
     if (fread(magic, 1, 6, f) == 6 && !memcmp(magic, "DLLV2", 6) && fread(&n, 4, 1, f) == 1 && n < 4096)
         for (u32 k = 0; k < n; k++) {
@@ -99,18 +118,29 @@ static void lv_load(int seed)
             if (r.fl < NFLOORS && r.ne <= 6 && ns < 1600) recs.push_back(r); else recs_dirty = true;   /* (every cell seen: the fault above) */
         }
     fclose(f);
+    return true;
 }
-static void lv_save(void)
+static void recs_write(const char *p)
 {
-    if (!recs_dirty || recs_seed == -99999) return;
-    recs_dirty = false; recs_saved = ImGui::GetTime();
-    char p[1200]; lv_path(p, sizeof p, recs_seed);
     FILE *f = fopen(p, "wb");
     if (!f) return;
     u32 n = (u32)recs.size();
     fwrite("DLLV2", 1, 6, f); fwrite(&n, 4, 1, f);
     if (n) fwrite(recs.data(), sizeof(LvRec), n, f);
     fclose(f);
+}
+static void lv_load(int seed)
+{
+    recs.clear(); recs_seed = seed; recs_dirty = false;
+    char p[1200]; lv_path(p, sizeof p, seed);
+    recs_read(p);
+}
+static void lv_save(void)
+{
+    if (!recs_dirty || recs_seed == -99999) return;
+    recs_dirty = false; recs_saved = ImGui::GetTime();
+    char p[1200]; lv_path(p, sizeof p, recs_seed);
+    recs_write(p);
 }
 static u32 floor_hash(void)                      /* (FNV-1a of the floor's cell art) */
 {
@@ -192,6 +222,30 @@ static void lv_keep(int fl)
    after a card (a riddle, a talk) keeps it as it is */
 static void forget(void) { lv_save(); memset(seen, 0, sizeof seen); memset(kfloor, 0, sizeof kfloor); memset(nexits, 0, sizeof nexits); lv_loc = -2; lv_ready = false; }
 static void floors_made_hook(void) { forget(); hook_call_original(); }
+extern "C" void saves_on_saved(void (*fn)(const char *));
+extern "C" void saves_on_loaded(void (*fn)(void));
+extern "C" void saves_cur_name(char *out, size_t n);
+static void game_saved(const char *save)        /* (saves_on_saved) */
+{
+    int seed = (s16)g_rw(G_PARTY_SEED);
+    if (seed != recs_seed) { lv_save(); lv_load(seed); }
+    char p[1200]; lv_side_path(p, sizeof p, seed, save, true);
+    recs_write(p);
+    if (getenv("DL_LEVELS_LOG")) fprintf(stderr, "levels: %d records kept with %s\n", (int)recs.size(), save);
+}
+static void game_loaded(void)                   /* (saves_on_loaded) */
+{
+    char save[16]; saves_cur_name(save, sizeof save);
+    int seed = (s16)g_rw(G_PARTY_SEED);
+    char p[1200]; lv_side_path(p, sizeof p, seed, save, false);
+    lv_save();
+    if (!recs_read(p)) { if (seed != recs_seed) lv_load(seed); return; }
+    recs_seed = seed; recs_dirty = true;                 /* (the game's file now as this save had it) */
+    memset(seen, 0, sizeof seen); memset(kfloor, 0, sizeof kfloor); memset(nexits, 0, sizeof nexits);
+    for (int f = 0; f < NFLOORS; f++) cur_rec[f] = -1;
+    lv_loc = -2;
+    if (getenv("DL_LEVELS_LOG")) fprintf(stderr, "levels: %d records taken up from %s\n", (int)recs.size(), save);
+}
 static void save_read_hook(void) { forget(); hook_call_original(); }
 static void battle_start_hook(void) { lv_ready = false; hook_call_original(); }
 static void level_switch_hook(void) { hook_call_original(); if (!unw_active) lv_ready = true; }
@@ -207,7 +261,8 @@ extern "C" void levelmap_frame(void)
 {
     static bool hooked;
     if (!hooked) { hooked = true; hook_install(4, 0x0e76, 0x0000, floors_made_hook); hook_install(3, 0x1016, 0x0d07, save_read_hook);
-                  hook_install(GF_battle_run, battle_start_hook); hook_install(GF_level_switch, level_switch_hook); }
+                  hook_install(GF_battle_run, battle_start_hook); hook_install(GF_level_switch, level_switch_hook);
+                  saves_on_saved(game_saved); saves_on_loaded(game_loaded); }
     int gm = game_mode();
     if (gm != GM_BATTLE) { open_lm = false; lv_save(); return; }
     int fl = floor_now();

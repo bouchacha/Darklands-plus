@@ -506,11 +506,25 @@ static void gmenu_hook(void)                    /* card_menu (win, win2), s043 1
     LOG("a game card's option %d chosen: the party noted\n", sel);
     gcard_note();
 }
-/* each frame: away from the cards (the map, a battle, a shop or a sheet), nothing is kept */
+/* a screen the card opens - a battle (its loot screen with it), a find shown on the loot screen, a shop - shows
+   what changes there itself: when it closes, the party is noted again, before the card goes on. What the card
+   gives as soon as it is back (the caravan master's purse and another merchant's gun after the fight, $Rescu00)
+   is then listed with the next text: it was not, when the note was dropped at the screen and taken again only
+   at that text (1.4.6) */
+static void gscreen_hook(void)                  /* run_battle, loot_distribute, barter_screen */
+{
+    int card = gcard_here();
+    hook_call_original();
+    if (!unw_active && card && gout_on() && !rt.active) { g_pray_m = g_potion = -1; gcard_note(); LOG("a game card's screen closed: the party noted\n"); }
+}
+/* each frame: the note is dropped as the cards are left for another screen (the map, a battle, a shop, a sheet),
+   once, and stays dropped until a text or menu notes the party again, or the card's own screen closes (above) */
 void encounters_frame(void)
 {
-    if (!gsnap_ok) return;
-    if (game_mode() != GM_CARD || (ns_screen != NS_NONE && ns_screen != NS_CARD && ns_screen != NS_PRAY && ns_screen != NS_CHOOSE)) gsnap_ok = 0;   /* (a prayer from the card's box is the choice's own, and so is a thing chosen for it) */
+    static int away_was;
+    int away = game_mode() != GM_CARD || (ns_screen != NS_NONE && ns_screen != NS_CARD && ns_screen != NS_PRAY && ns_screen != NS_CHOOSE);   /* (a prayer from the card's box is the choice's own, and so is a thing chosen for it) */
+    if (away && !away_was) gsnap_ok = 0;
+    away_was = away;
 }
 /* the card screen of Darklands+ was switched (mods/cardview.c): these hooks first again (they set the band
    before that screen's text hook, which does not hand on to the game's) */
@@ -518,6 +532,9 @@ void encounters_rehook(void)
 {
     hook_remove(GF_card_text, gtext_hook); hook_install(GF_card_text, gtext_hook);
     hook_remove(43, 0x150b, 0x1142, gmenu_hook); hook_install(43, 0x150b, 0x1142, gmenu_hook);
+    hook_remove(GF_run_battle, gscreen_hook); hook_install(GF_run_battle, gscreen_hook);
+    hook_remove(GF_loot_distribute, gscreen_hook); hook_install(GF_loot_distribute, gscreen_hook);
+    hook_remove(GF_barter_screen, gscreen_hook); hook_install(GF_barter_screen, gscreen_hook);
 }
 
 static void script_error_at(const char *file)     /* a script error while it runs: the encounter ends, the player is never stuck in it */

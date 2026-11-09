@@ -458,3 +458,15 @@ covered and found, and what it could not check.
   chance is then 0; a change now moves toward its limit only, never back. His builds: his logs show build
   1200 until 1203 was installed (1201 never ran), likely two downloads of the same file name: the zips he gets
   now carry their build number in the name.
+- 2026-11-09 (next version): three of his asks. (1) What came of it missed a card's gifts after a battle (the
+  caravan master's gun, $Rescu00): the note was dropped every frame away from the cards and taken again only at
+  the next text, after the card had already given. Not one more special case: the note is now dropped once,
+  as the cards are left, and taken again when a screen the card opened closes (run_battle with its loot,
+  loot_distribute, barter_screen: encounters.c gscreen_hook), before the card goes on; tested on $Rescu00
+  (card 0x105): "+1 Brass Handgun" under the thanks. (2) The level map kept what was explored per game, so an
+  earlier save showed the later exploration: saves.c now tells its modules of every save written
+  (saves_on_saved, beside saves_on_loaded), and levelmap.cpp keeps its records with each save
+  (levels/darklands_levels_<seed>_<save>.bin) and takes them up on load. (3) The manor rumor ($CityN00 block
+  2), reconstructed content, off: shown one time in three on "ask about affairs elsewhere", $Direction to the
+  place with icon 25, until the journal records a visit. The chronicle's "empty paragraph" (an open item since
+  1.4.6) was looked for and not found: entries with list and battle options read cleanly; dropped.

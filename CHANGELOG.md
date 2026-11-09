@@ -1,5 +1,18 @@
 # Darklands+ changelog
 
+## Next (not yet released)
+
+What changed since 1.4.6.
+
+**Added**
+
+- **The manor rumor** (F12 > Reconstructed Content, off unless ticked): a town-news text MicroProse wrote and never showed. Asking about affairs elsewhere in the Empire, the party may hear of a powerful noblewoman whose well-guarded manor lies in such a direction from the town, until it has been there.
+
+**Fixed**
+
+- **What came of it** missed what a card gave as soon as a battle, a find or a shop it had opened was over (the caravan master's purse and another merchant's gun after the fight). The party is now noted again as each such screen closes, so the next text lists it.
+- **The level map after loading an earlier save** showed a castle, mine or dungeon as explored later on. What was explored is now kept with each save (in `levels` beside the game's other Darklands+ files) and taken up when it is loaded; a save made before this version has none.
+
 ## 1.4.6
 
 What changed since 1.4.5.

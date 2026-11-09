@@ -32,6 +32,9 @@ void saves_cur_name(char *out, size_t n);         /* the save last written or lo
    quick load, a load inside a card or a battle): what a module keeps of the game before is dropped in the function it
    gives here (at its init), called in the order given. The one place that says a game was loaded */
 void saves_on_loaded(void (*fn)(void));
+/* fn (the save's name, "DKSAVE12.SAV") after a save is written, every kind (the game's Save, quick, auto, Ironman):
+   what a module keeps beside the game for that save (ui/levelmap.cpp: what was explored of a castle, mine or dungeon) */
+void saves_on_saved(void (*fn)(const char *name));
 extern unsigned saves_loaded_ms;                 /* when (plat_ticks_ms) the last game was loaded, 0 none yet */
 #ifdef __cplusplus
 }

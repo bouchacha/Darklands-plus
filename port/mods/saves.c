@@ -365,6 +365,15 @@ static void loaded_hook(void)              /* the save is read (s037 1c7d:0d24):
 #define CARD_FILE_N 6000
 static u8 keep_file[CARD_FILE_N], keep_msg[900];
 static void save_hook_run(void);
+static void (*on_saved[8])(const char *); static int non_saved;
+void saves_on_saved(void (*fn)(const char *)) { if (non_saved < 8) on_saved[non_saved++] = fn; }
+static void saved_tell(void)               /* (the save named last, if it was written just now) */
+{
+    char name[16], p[1200]; struct stat st;
+    saves_cur_name(name, sizeof name);
+    if (!name[0] || !real_path(name, p, sizeof p) || stat(p, &st) || time(0) - st.st_mtime > 10) return;
+    for (int i = 0; i < non_saved; i++) on_saved[i](name);
+}
 static void save_hook(void)                /* save_game () */
 {
     for (int i = 0; i < CARD_FILE_N; i++) keep_file[i] = g_rb((u16)(GV_msg_file + i));
@@ -373,6 +382,7 @@ static void save_hook(void)                /* save_game () */
     if (unw_active) return;
     for (int i = 0; i < CARD_FILE_N; i++) g_wb((u16)(GV_msg_file + i), keep_file[i]);
     for (int i = 0; i < (int)sizeof keep_msg; i++) g_wb((u16)(GV_msg_buf + i), keep_msg[i]);
+    saved_tell();
 }
 static void save_hook_run(void)
 {

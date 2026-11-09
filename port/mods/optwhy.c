@@ -122,6 +122,7 @@ static const struct { const char *key, *why; } WHY[] = {
     /* restored cut content */
     { "rules.fehde", "Written by MicroProse and never used." },
     { "rules.hospice", "Written by MicroProse and never made playable." },
+    { "rules.manor_rumor", "Written by MicroProse and never shown." },
     { "rules.war", "Coded by MicroProse and never switched on." },
     { "rules.politics", "Written by MicroProse and never switched on." },
     { "battle.black_cloud", "Left out in 1992 for the machines' speed; the rules handle it." },

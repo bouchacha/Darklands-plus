@@ -60,9 +60,9 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/checks.c` | 136 | things that must never happen, watched while the game runs. |
 | `mods/choose.c` | 48 | a box asking which of the party's things (ui/choose.cpp draws it): the native screens' frame (mods/nscreen.h), a line clicked or its number pressed picks it, Esc or the way out's button picks none. |
 | `mods/createview.c` | 199 | making a character as a native screen (display.native_create; the view is ui/createview.cpp). |
-| `mods/cutcards.c` | 185 | encounters MicroProse wrote and never used, put back (rules.fehde, rules.hospice: F12 > Reconstructed Content, experimental, off by default; the catalogue of what the game holds unused is docs/cut_content.md). |
+| `mods/cutcards.c` | 214 | encounters MicroProse wrote and never used, put back (rules.fehde, rules.hospice, rules.manor_rumor: F12 > Reconstructed Content, experimental, off by default; the catalogue of what the game holds unused is docs/cut_content.md). |
 | `mods/datamods.c` | 424 | mod folders: game files replaced without touching the game's own. |
-| `mods/encounters.c` | 2050 | new encounters written as data. |
+| `mods/encounters.c` | 2067 | new encounters written as data. |
 | `mods/enemyview.c` | 129 | the battle's Enemy Info as a native page (display.native_enemyinfo; the view is ui/enemyview.cpp). |
 | `mods/fixes.c` | 3121 | fixes for bugs that are still in the last official version (483.07). |
 | `mods/fixgroups.c` | 35 | the fixes (fixes.c) sorted by kind, for the settings' list: from what the game plainly gets wrong to what is open to argument, as players have talked of them over the years (the GOG and Steam forums, the old Usenet posts and the patch notes MicroProse left). |
@@ -88,8 +88,8 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/nscreen.c` | 235 | the frame for native screens (see nscreen.h). |
 | `mods/offices.c` | 102 | whether a town's task givers have work now, or when again (offices.h). |
 | `mods/opening.c` | 117 | the opening (the MicroProse logo, the animations, the music and the digitized speech), F12 > Settings > "At start": the whole opening (the default), its last scene alone (the lady of the Darklands and her welcome), or nothing. |
-| `mods/options.c` | 506 | the table of Darklands+'s switches and the presets (options.h). |
-| `mods/optwhy.c` | 160 | why each switch exists, one line each: beside what it does (the table's description, mods/options.c), the reason for it, for whoever carries a feature into another engine (the list docs/SWITCHES.md is made from both: DL_DUMP_SWITCHES, runtime/main.c). |
+| `mods/options.c` | 507 | the table of Darklands+'s switches and the presets (options.h). |
+| `mods/optwhy.c` | 161 | why each switch exists, one line each: beside what it does (the table's description, mods/options.c), the reason for it, for whoever carries a feature into another engine (the list docs/SWITCHES.md is made from both: DL_DUMP_SWITCHES, runtime/main.c). |
 | `mods/orders.c` | 424 | in a battle, a member who is not yet fighting can be sent at an enemy with a click on it (F12 > Settings; the Full Original preset leaves the game's way). |
 | `mods/pack.c` | 355 | the shared pack's housekeeping (inventory.shared, mods/sheetview.c): the party's spare things are one pack in Darklands+'s screens, but the game still keeps each thing with a member, and in a battle a bow, a crossbow or a gun shoots only what its bearer carries (can_fire, s014 18bf:0c02: the ammunition of the weapon's kind, far 20a5:7822[type]). |
 | `mods/pathfix.c` | 829 | better pathfinding in battles and dungeons. |
@@ -100,7 +100,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/rosterview.c` | 307 | the party of a new game as a native screen (display.native_roster; the view is ui/rosterview.cpp). |
 | `mods/saintinfo.c` | 518 | what each saint's help does in the game's code, beside the description the game shows (DARKLAND.SNT), for Darklands+'s screens (saintinfo.h). |
 | `mods/sainttexts.c` | 436 | the "sainttexts" fix: saints whose help, in the game's code, plainly falls short of or departs from their own description (DARKLAND.SNT) do what the description says. |
-| `mods/saves.c` | 689 | quick save and quick load, autosaves, and loading any save from the Darklands+ menu. |
+| `mods/saves.c` | 699 | quick save and quick load, autosaves, and loading any save from the Darklands+ menu. |
 | `mods/savesview.c` | 170 | the game's Save and Load as native dialogs (display.native_saves; the Full Original preset keeps the game's). |
 | `mods/sfx.c` | 630 | battle sound effects. The battle driver (PSOUND.DB and the others) makes every combat sound on the FM chip or MIDI synthesizer ("random notes rather than clashing swords"). Here they are played as recorded-style sounds i |
 | `mods/sharedstore.c` | 224 | one store room for every inn (store.shared, F12 > Settings; on by default): what is left with one innkeeper (a town's inn, a village's old woman) is there at every other, like a chest that follows the party. |
@@ -152,7 +152,7 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/inventory.cpp` | 665 | the things' pictures, drawn by kind (weapons, armour, ingredients, potions ...) for every screen that lists them; what a thing is good for (ui_item_details: the numbers of a weapon, armour or shield and who in the party could use it); the tidy order of a pack; and giving a thing to another member through the game's own routine (give_stack, s031 18e7:007c: the test command ugive). |
 | `ui/itemedit.cpp` | 137 | F12 > Editor > Items (for a mod): the item list (DARKLAND.LST: 200 records of 46 bytes, then the saints' and formulas' names) as an editable table. |
 | `ui/journal.cpp` | 1199 | the town journal: as the party travels, it notes the towns it reaches (with the shops each one has, from DARKLAND.CTY) and the full stock of every shop whose wares it looks at, with qualities and prices. |
-| `ui/levelmap.cpp` | 721 | Tab in a battle or while exploring a castle, mine or dungeon (the tactical view, which shows only 14 x 10 cells around the party): a map of the level as far as the party has seen it, in the view's own slant, with the party, the enemies in sight, doors and furniture, and at its top right the floors in short (a square a floor, the stairs seen between them). |
+| `ui/levelmap.cpp` | 776 | Tab in a battle or while exploring a castle, mine or dungeon (the tactical view, which shows only 14 x 10 cells around the party): a map of the level as far as the party has seen it, in the view's own slant, with the party, the enemies in sight, doors and furniture, and at its top right the floors in short (a square a floor, the stairs seen between them). |
 | `ui/libraries.cpp` | 126 | see libraries.h. Which places have a library the party can study in: the saint card ($Learn00, card 0x39) is reached from a town's monastery ($CityM00), its university ($Unive00) and a monastery in the country ($Count04) |
 | `ui/lodgeview.cpp` | 408 | an inn's room or a camp drawn by Darklands+ (mods/lodgeview.c runs it): the members with each one's day, what the chosen member can do (the original's words; greyed with the reason where not), the town's teachers with their fees, what a day costs against the purse, and Spend a day, Until rested and Leave. |
 | `ui/lootview.cpp` | 167 | draws the loot screen (mods/lootview.c runs it; docs/NATIVE_SCREENS.md). |
