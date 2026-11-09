@@ -13,6 +13,10 @@ What changed since 1.4.6.
 - **What came of it** missed what a card gave as soon as a battle, a find or a shop it had opened was over (the caravan master's purse and another merchant's gun after the fight). The party is now noted again as each such screen closes, so the next text lists it.
 - **The level map after loading an earlier save** showed a castle, mine or dungeon as explored later on. What was explored is now kept with each save (in `levels` beside the game's other Darklands+ files) and taken up when it is loaded; a save made before this version has none.
 
+**Changed**
+
+- **One look across the screens:** the level map's title, floors and legend sit on parchment like the world map's panels; the battle log shows what a wound took as the Endurance and Strength shields; quests read "Robber knight at Goslar" and "Sabbat at the pagan altar near Hall", not "@ Goslar" or "@ Pagan Altar"; travel near one reads "Traveling, near a cave"; the age is a plain hourglass, since shields mean attributes and skills.
+
 ## 1.4.6
 
 What changed since 1.4.5.

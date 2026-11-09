@@ -24,6 +24,7 @@
 #include "ui.h"
 #include "gamedata.h"
 #include "richtext.h"
+#include "ornament.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -282,6 +283,16 @@ extern "C" void levelmap_frame(void)
     if (!config_get_int("original", 0)) lv_keep(fl);
 }
 
+/* the map's panels (the title, the floors, the legend): parchment in a gilt frame, dark ink, as the world map's */
+static const ImU32 LM_INK = IM_COL32(44, 26, 10, 255), LM_SOFT = IM_COL32(92, 60, 30, 235);
+static void lm_panel(ImDrawList *dl, ImVec2 a, ImVec2 b, float fs)
+{
+    float r = fs * 0.3f;
+    dl->AddRectFilled(a, b, IM_COL32(240, 226, 192, 238), r);
+    dl->AddRect(a, b, IM_COL32(120, 80, 36, 140), r, 0, 1.5f);
+    if (orn_on()) orn_gilt_frame(dl, a, b, fs * 0.8f);
+}
+
 /* the floors of a castle, mine or dungeon in short, at the level map's top right: a square a floor, the
    floors the party has been on and those its stairs lead to (a "?" while nobody has been there), lines
    for the stairs seen, the party's floor outlined; a click on a floor its stairs on this floor lead to
@@ -332,15 +343,14 @@ static ImVec2 floors_draw(ImDrawList *dl, ImVec2 o, ImVec2 sz, int fl, Known kno
     if (pw < UIS(120)) pw = UIS(120);
     if (measure) return ImVec2(pw, ph);
     ImVec2 p0(o.x + sz.x - pw - UIS(16), o.y + UIS(14)), p1(p0.x + pw, p0.y + ph);
-    dl->AddRectFilled(p0, p1, IM_COL32(26, 22, 18, 235), UIS(6));
-    dl->AddRect(p0, p1, IM_COL32(120, 100, 70, 255), UIS(6), 0, 1.5f);
-    dl->AddText(f, LS, ImVec2(p0.x + pad, p0.y + pad * 0.6f), IM_COL32(230, 214, 180, 255), "Floors");
+    lm_panel(dl, p0, p1, LS);
+    dl->AddText(f, LS, ImVec2(p0.x + pad, p0.y + pad * 0.6f), LM_INK, "Floors");
     auto centre = [&](int fi) {
         float rw = rowlen[depth[fi]] * qs + (rowlen[depth[fi]] - 1) * gx;
         return ImVec2(p0.x + (pw - rw) * 0.5f + col[fi] * (qs + gx) + qs * 0.5f, p0.y + pad + th + depth[fi] * (qs + gy) + qs * 0.5f);
     };
     for (int a = 0; a < nf; a++) for (int b = a + 1; b < nf; b++)
-        if (edge[a][b]) dl->AddLine(centre(a), centre(b), IM_COL32(196, 170, 90, 255), fmaxf(1.5f, UIS(2.5f)));
+        if (edge[a][b]) dl->AddLine(centre(a), centre(b), IM_COL32(120, 84, 40, 255), fmaxf(1.5f, UIS(2.5f)));
     bool party_on[NFLOORS] = {};
     for (int i = 0; i < 5; i++) { int st = g_rb(CBF(i, CB_STATUS)), pf = (s8)g_rb((u16)(GV_cbt_floor + i)); if ((st == 1 || st == 2) && pf >= 0 && pf < NFLOORS) party_on[pf] = true; }
     ImGuiIO &io = ImGui::GetIO();
@@ -350,7 +360,7 @@ static ImVec2 floors_draw(ImDrawList *dl, ImVec2 o, ImVec2 sz, int fl, Known kno
         ImVec2 c = centre(fi), a(c.x - qs * 0.5f, c.y - qs * 0.5f), b(c.x + qs * 0.5f, c.y + qs * 0.5f);
         bool here = fi == fl;
         dl->AddRectFilled(a, b, here ? IM_COL32(150, 140, 120, 255) : visited[fi] ? IM_COL32(110, 102, 88, 255) : IM_COL32(44, 38, 32, 255), UIS(3));
-        dl->AddRect(a, b, here ? IM_COL32(250, 220, 120, 255) : visited[fi] ? IM_COL32(30, 26, 22, 255) : IM_COL32(120, 104, 80, 255), UIS(3), 0, here ? 2.5f : 1.2f);
+        dl->AddRect(a, b, here ? IM_COL32(150, 40, 24, 255) : visited[fi] ? IM_COL32(30, 26, 22, 255) : IM_COL32(120, 104, 80, 255), UIS(3), 0, here ? 2.5f : 1.2f);   /* (the floor shown: red, as a chosen tab) */
         char num[8]; snprintf(num, sizeof num, visited[fi] ? "%d" : "?", fi + 1);
         ImVec2 ts = f->CalcTextSizeA(LS, FLT_MAX, 0, num);
         dl->AddText(f, LS, ImVec2(c.x - ts.x * 0.5f, c.y - ts.y * 0.5f), visited[fi] ? IM_COL32(20, 16, 12, 255) : IM_COL32(200, 180, 140, 255), num);
@@ -677,14 +687,23 @@ extern "C" void levelmap_draw(void)
     /* title and legend */
     char t[160];
     snprintf(t, sizeof t, all ? "The whole level  (floor %d)" : "The level, as far as the party has seen it  (floor %d)", fl + 1);
-    dl->AddText(f, TS, ImVec2(o.x + 16, o.y + 14), IM_COL32(230, 214, 180, 255), t);
-    float lx = o.x + 16, ly = o.y + sz.y - LS * 1.5f;
+    {
+        ImVec2 ts = f->CalcTextSizeA(TS, FLT_MAX, 0, t), tp(o.x + 16 + LS * 0.6f, o.y + 14 + LS * 0.3f);
+        lm_panel(dl, ImVec2(tp.x - LS * 0.6f, tp.y - LS * 0.3f), ImVec2(tp.x + ts.x + LS * 0.6f, tp.y + ts.y + LS * 0.3f), LS);
+        dl->AddText(f, TS, tp, LM_INK, t);
+    }
+    /* the legend and what a click does, along the foot on a panel of their own (drawn first, the words over it) */
+    float lx = o.x + 16 + LS * 0.6f, ly = o.y + sz.y - 14 - LS * 1.5f;   /* (14 from the foot, as the title from the top) */
+    float lx_min = lx, ly_min = ly, lx_max = lx; const float ly_row = ly;
+    dl->ChannelsSplit(2); dl->ChannelsSetCurrent(1);
     auto legend = [&](ImU32 c, const char *txt, int circle) {
         float u = LS / 18.0f;
         if (circle == 2) { dl->AddCircleFilled(ImVec2(lx + 7 * u, ly + 9 * u), 7 * u, IM_COL32(18, 14, 10, 255)); dl->AddCircle(ImVec2(lx + 7 * u, ly + 9 * u), 7 * u, c, 0, 2.0f); }
-        else if (circle) dl->AddCircleFilled(ImVec2(lx + 7 * u, ly + 9 * u), 7 * u, c); else dl->AddRectFilled(ImVec2(lx, ly + 3 * u), ImVec2(lx + 16 * u, ly + 15 * u), c);
-        dl->AddText(f, LS, ImVec2(lx + 22 * u, ly), IM_COL32(220, 205, 170, 255), txt);
+        else if (circle) dl->AddCircleFilled(ImVec2(lx + 7 * u, ly + 9 * u), 7 * u, c);
+        else { dl->AddRectFilled(ImVec2(lx, ly + 3 * u), ImVec2(lx + 16 * u, ly + 15 * u), c); dl->AddRect(ImVec2(lx, ly + 3 * u), ImVec2(lx + 16 * u, ly + 15 * u), IM_COL32(60, 40, 20, 200)); }
+        dl->AddText(f, LS, ImVec2(lx + 22 * u, ly), LM_INK, txt);
         lx += 30 * u + f->CalcTextSizeA(LS, FLT_MAX, 0, txt).x;
+        if (lx > lx_max) lx_max = lx;
     };
     auto legend_dashed = [&](const char *txt) {                 /* (an opening not yet explored: as drawn on the map) */
         float u = LS / 18.0f;
@@ -692,11 +711,12 @@ extern "C" void levelmap_draw(void)
         for (int k = 0; k < 3; k++) {
             float x0 = a.x + (b.x - a.x) * (k + 0.15f) / 3.0f, x1 = a.x + (b.x - a.x) * (k + 0.6f) / 3.0f;
             float y0 = a.y + (b.y - a.y) * (k + 0.15f) / 3.0f, y1 = a.y + (b.y - a.y) * (k + 0.6f) / 3.0f;
-            dl->AddLine(ImVec2(x0, a.y), ImVec2(x1, a.y), UNSEEN, 1.2f); dl->AddLine(ImVec2(x0, b.y), ImVec2(x1, b.y), UNSEEN, 1.2f);
-            dl->AddLine(ImVec2(a.x, y0), ImVec2(a.x, y1), UNSEEN, 1.2f); dl->AddLine(ImVec2(b.x, y0), ImVec2(b.x, y1), UNSEEN, 1.2f);
+            dl->AddLine(ImVec2(x0, a.y), ImVec2(x1, a.y), LM_SOFT, 1.2f); dl->AddLine(ImVec2(x0, b.y), ImVec2(x1, b.y), LM_SOFT, 1.2f);   /* (on the parchment: the ink's) */
+            dl->AddLine(ImVec2(a.x, y0), ImVec2(a.x, y1), LM_SOFT, 1.2f); dl->AddLine(ImVec2(b.x, y0), ImVec2(b.x, y1), LM_SOFT, 1.2f);
         }
-        dl->AddText(f, LS, ImVec2(lx + 22 * u, ly), IM_COL32(220, 205, 170, 255), txt);
+        dl->AddText(f, LS, ImVec2(lx + 22 * u, ly), LM_INK, txt);
         lx += 30 * u + f->CalcTextSizeA(LS, FLT_MAX, 0, txt).x;
+        if (lx > lx_max) lx_max = lx;
     };
     legend(IM_COL32(70, 150, 230, 255), "party", 2);
     legend(IM_COL32(210, 60, 50, 255), "enemies seen", true);
@@ -711,9 +731,13 @@ extern "C" void levelmap_draw(void)
     {   /* (what a click does, on a line of its own above the legend when the legend leaves no room) */
         const char *how = walk ? "Click the floor to walk the party there (the map closes, and they go). Tab or Esc closes the level map; the game is paused until then." : "Tab or Esc closes the level map; the game is paused until then.";
         float hw = f->CalcTextSizeA(LS, FLT_MAX, 0, how).x;
-        if (lx + 10 + hw > o.x + sz.x - 16) { lx = o.x + 16 - 10; ly -= LS * 1.4f; }
-        dl->AddText(f, LS, ImVec2(lx + 10, ly), IM_COL32(170, 155, 125, 255), how);
+        if (lx + 10 + hw > o.x + sz.x - 16 - LS * 0.6f) { lx = lx_min - 10; ly -= LS * 1.4f; ly_min = ly; }
+        dl->AddText(f, LS, ImVec2(lx + 10, ly), LM_SOFT, how);
+        if (lx + 10 + hw > lx_max) lx_max = lx + 10 + hw;
     }
+    dl->ChannelsSetCurrent(0);
+    lm_panel(dl, ImVec2(lx_min - LS * 0.6f, ly_min - LS * 0.35f), ImVec2(lx_max + LS * 0.3f, ly_row + LS * 1.15f + LS * 0.35f), LS);
+    dl->ChannelsMerge();
     ImGui::End();
 }
 

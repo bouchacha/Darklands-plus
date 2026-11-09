@@ -335,6 +335,14 @@ std::string loc_display_name(int loc)
     for (const auto &c : CUT) if (!strcmp(b, c.cut)) return c.full;
     return game_text(b, sizeof b);
 }
+std::string loc_common_noun(int loc)
+{
+    std::string n = loc_display_name(loc);
+    static const char *const KIND[] = { "Cave", "Tomb", "Lair", "Spring", "Lake", "Shrine", "Pagan Altar" };
+    for (const char *k : KIND)
+        if (n == k) { for (char &c : n) c = (char)tolower((unsigned char)c); return n; }
+    return "";
+}
 
 /* (for C: a byte (size 1) or a word (size 2) of item id's record in DARKLAND.LST, a mod's if one replaces it; -1 if
    unknown. The game's own copy is not in memory in a battle or a dungeon: what its pointers then point at is other

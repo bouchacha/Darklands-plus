@@ -87,7 +87,12 @@ ImVec2 layout(ImFont *f, float fs, float wrap, const std::vector<Atom> &at, std:
         float w = atom_width(f, fs, a);
         if (a.br) { line++; x = 0; first = true; }
         float gap = first ? 0 : a.space ? sp : a.key >= 0 && i > 0 && at[i - 1].key >= 0 ? fs * 0.06f : 0;
-        if (!first && wrap > 0 && x + gap + w > wrap && a.space) { line++; x = 0; gap = 0; }   /* (only where there is a space: "{Strength}," stays together) */
+        if (!first && wrap > 0 && a.space) {                    /* (only where there is a space: "({Endurance:-9}," stays together, all of it) */
+            float run = w;
+            for (size_t j = i + 1; j < at.size() && !at[j].space && !at[j].br; j++)
+                run += (at[j].key >= 0 && at[j - 1].key >= 0 ? fs * 0.06f : 0) + atom_width(f, fs, at[j]);
+            if (x + gap + run > wrap) { line++; x = 0; gap = 0; }
+        }
         if (pos) pos->push_back(ImVec2(x + gap, line * fs));
         x += gap + w; first = false;
         if (x > wmax) wmax = x;

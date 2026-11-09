@@ -71,7 +71,8 @@ static std::string place_name(void)
             if (d < bd) { bd = d; best = k; }
         }
         if (best < 0 || bd > 60 * 60) return "In the wilds";
-        return "Traveling, near " + loc_display_name(best);
+        std::string kind = loc_common_noun(best);                    /* ("near a cave", not "near Cave": the game names many places by their kind alone) */
+        return "Traveling, near " + (kind.empty() ? loc_display_name(best) : "a " + kind);
     }
     return loc_display_name(cur);
 }

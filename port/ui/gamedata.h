@@ -82,6 +82,9 @@ std::string gamedata_spell_text(const std::string &t);
 /* a place's name as shown: a city's in full (DARKLAND.CTY), else the location's own (+0x26, a few
    of them cut short by the game's 11 letters: written out); "" for none */
 std::string loc_display_name(int loc);
+/* a place the game names only by its kind (a "Cave", a "Pagan Altar": many of each): the kind as a common
+   noun ("cave", "pagan altar"); "" for a place with a name of its own */
+std::string loc_common_noun(int loc);
 bool loc_is_twin(int loc);              /* the same place twice in the game's list (the maps show the first) */
 int town_seed(int loc);                     /* a town's number for its cards (loc_query 0x21: the city's +0x56 + party_seed) */
 extern "C" int town_stone_offer(int loc, int university);   /* the Philosopher's Stone quality its alchemist (0) or university (1) sells */

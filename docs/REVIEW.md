@@ -470,3 +470,23 @@ covered and found, and what it could not check.
   2), reconstructed content, off: shown one time in three on "ask about affairs elsewhere", $Direction to the
   place with icon 25, until the journal records a visit. The chronicle's "empty paragraph" (an open item since
   1.4.6) was looked for and not found: entries with list and battle options read cleanly; dropped.
+- 2026-11-09 (next version, style pass): his standing order on consistency is a style director's review, not
+  "shields wherever an attribute is named". Looked over the ten README screens for one visual language.
+  (1) The level map was the one full screen in grey on black with light text: its title, floors and legend
+  now sit on the world map's parchment panels in a gilt frame (levelmap.cpp lm_panel), dark ink, the floor
+  shown outlined in red as a chosen tab. (2) The battle log wrote a wound as "(-9 End, -3 Str)" beside the
+  margins' shields: now the Endurance and Strength shields with the loss ("({Endurance:-9}, {Strength:-3})");
+  rich text no longer breaks a line inside a run with no space in it, so "({Endurance:-9}," stays whole.
+  (3) Quest titles used "@" ("Robber knight @ Goslar", "Sabbat @ Pagan Altar"): plain words, and the places
+  the game names only by their kind read as such everywhere ("the pagan altar near Hall"; one helper,
+  gamedata.cpp loc_common_noun, for the quest log, the margin's travel line ("Traveling, near a cave", not
+  "near Cave") and the world map). The map tooltip's "(by 9 July 1405)" bracket became a sentence. (4) The
+  age wore an attribute's sable shield: the shields are the attributes', skills' and the party's standing
+  (which cards test); the years are none of these, so the hourglass stands alone. Two README shots retaken.
+  Also answered: the town-square "easter egg" is the spider warehouse poster ($DPost00): $Speci00's first job
+  shows where (city +0x56 + party seed) is a multiple of 20 (signed), until taken (event 0x65); in his save
+  (seed 99): Flensburg, Nymwegen, Marienburg, Nordlingen, Salzburg; checked in game (Gorlitz greyed; with the
+  seed set so it qualified, the line led to the poster). $Offic00 holds ten notices no code shows (robber
+  bounties, the Fuggers' mining job): candidates for reconstructed content if he wants them. Go to evaluating
+  the cards' own conditions: declined (card start-ups load text, roll dice and draw; running them unseen needs
+  a full save and restore around each), the hand-kept rules being checked and self-correcting.

@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <math.h>
 #include <string>
 #include <vector>
@@ -90,10 +91,8 @@ static std::string where(int loc)
     static const char *DIR[8] = { "east", "north-east", "north", "north-west", "west", "south-west", "south", "south-east" };
     int k = (int)floor((ang + 22.5 + 360) / 45) % 8;
     std::string rel = (bd < 3 ? "near " : std::string(DIR[k]) + " of ") + loc_name(best);
-    static const char *KIND[] = { "Cave", "Tomb", "Lair", "Spring", "Lake", "Shrine", "Pagan Altar" };   /* a place with no name of its own: */
-    for (const char *kd : KIND)                                                                          /* "the pagan altar north-west of Hall" */
-        if (n == kd) { std::string l = n; for (char &c : l) c = (char)tolower((unsigned char)c); return "the " + l + " " + rel; }
-    return n + ", " + rel;
+    std::string kind = loc_common_noun(loc);                    /* a place with no name of its own: "the pagan altar north-west of Hall" */
+    return kind.empty() ? n + ", " + rel : "the " + kind + " " + rel;
 }
 
 /* the town nearest a place (its own name for a town) */
@@ -114,15 +113,8 @@ static std::string nearest_town(int loc)
    ... DARKLAND.LOC), "the lake near Freiberg" */
 static std::string site(int loc)
 {
-    std::string n = loc_name(loc);
-    static const char *KIND[] = { "Cave", "Tomb", "Lair", "Spring", "Lake", "Shrine", "Pagan Altar" };
-    for (const char *k : KIND)
-        if (n == k) {
-            std::string l = n;
-            for (char &c : l) c = (char)tolower((unsigned char)c);
-            return "the " + l + " near " + nearest_town(loc);
-        }
-    return n;
+    std::string kind = loc_common_noun(loc);
+    return kind.empty() ? loc_name(loc) : "the " + kind + " near " + nearest_town(loc);
 }
 
 /* the game's own name for a person (random_name, s029 1367:0db4, seeded by the party seed);
@@ -335,13 +327,13 @@ static std::vector<Line> build_lines(void)
         };
         bool limit = date(e.end) != "no time limit";
         if (e.kind == 8 && e.tag == 3)
-            add("Robber knight @ " + place, "Kill the robber knight " + (person(e.loc + 0x44c).empty() ? std::string("") : person(e.loc + 0x44c) + " ") + "at " + where(e.loc)
+            add("Robber knight at " + place, "Kill the robber knight " + (person(e.loc + 0x44c).empty() ? std::string("") : person(e.loc + 0x44c) + " ") + "at " + where(e.loc)
                 + ", for " + by + " of " + loc_name(e.value) + "." + (e.owner == 9 ? " A village pays no bounty: its reward is the village's good opinion of the party when he falls." : ""),
                 "by " + date(e.end), 0, e.loc, limit, QC_ROBBER);
         else if (e.kind == 0x24 && e.tag == 3 && e.owner == 9)
             ;                                                   /* (a village's: the game never pays it, $Villa01/02 never look for it) */
         else if (e.kind == 0x24 && e.tag == 3)
-            add("Bounty to collect @ " + place, "The robber knight is dead: collect the bounty from " + by + " in " + place + (e.owner == 3 ? " (at the cathedral, by day: at night it holds no audience)" : "") + ".",
+            add("Bounty to collect in " + place, "The robber knight is dead: collect the bounty from " + by + " in " + place + (e.owner == 3 ? " (at the cathedral, by day: at night it holds no audience)" : "") + ".",
                 "by " + date(e.end), 1, e.loc, limit, QC_REWARD), v.back().giver = e.owner;
         else if (e.kind == 8 && e.tag == 10 && e.loc >= 0 && e.loc < (int)gamedata.cities.size())    /* (a town: papers, or a thing kept in an office) */
             add(item_name(e.item) + " from " + site(e.loc), "Get the " + item_name(e.item) + " from " + papers_holder(e) + " in " + place + " for " + by + " of " + loc_name(e.value) + ". "
@@ -355,28 +347,28 @@ static std::vector<Line> build_lines(void)
         else if (e.kind == 8 && e.tag == 4)
             add("Dragon near " + nearest_town(e.loc), "A dragon terrorizes the land around " + where(e.loc) + ".", "", 2, -1, false, QC_DRAGON);
         else if (e.kind == 8 && e.tag == 12)
-            add("Mine @ " + place, "Trouble at the mine: " + where(e.loc) + ".", "", 2, e.loc, false, QC_MINE);
+            add("The mine at " + place, "Trouble at the mine: " + where(e.loc) + ".", "", 2, e.loc, false, QC_MINE);
         else if (e.kind == 8 && e.tag == 7)
             add("The Wild Hunt", "The Wild Hunt pursues the party.", "", 2, -1, false, QC_HUNT);
         else if (e.kind == 0x11 && e.loc >= 0 && e.loc < (int)gamedata.cities.size())
-            { add("Unwelcome @ " + place, "Not welcome in " + place + ": the town counts as hostile to the party (its gates and people turn it away).", "until " + date(e.end), 3, -1, true, QC_UNWELCOME); v.back().town = e.loc; }
+            { add("Unwelcome in " + place, "Not welcome in " + place + ": the town counts as hostile to the party (its gates and people turn it away).", "until " + date(e.end), 3, -1, true, QC_UNWELCOME); v.back().town = e.loc; }
         else if (e.kind == 0x13 && e.loc >= 0 && e.loc < (int)gamedata.cities.size())
-            { add("On alert @ " + place, town_alert_text(e.loc), "until " + date(e.end), 3, -1, true, QC_ALERT); v.back().town = e.loc; }
+            { add("Watch on alert in " + place, town_alert_text(e.loc), "until " + date(e.end), 3, -1, true, QC_ALERT); v.back().town = e.loc; }
         else if (e.kind == 0x12 && e.loc >= 0 && e.loc < (int)gamedata.cities.size())
-            { add("Wanted @ " + place, "Wanted by the watch in " + place + ": guards who recognize the party try to arrest it, and talking or bribing your way out is harder.", "until " + date(e.end), 3, -1, true, QC_WANTED); v.back().town = e.loc; }
+            { add("Wanted in " + place, "Wanted by the watch in " + place + ": guards who recognize the party try to arrest it, and talking or bribing your way out is harder.", "until " + date(e.end), 3, -1, true, QC_WANTED); v.back().town = e.loc; }
         else if (e.kind == 0x1c && e.tag == 1 && e.type0 == 4 && (spoilers || sab_what(e))) {
             int known = sab_what(e), w = spoilers ? 3 : known, g = known ? 0 : 4;    /* (learned: among the tasks; else a secret) */
-            if (w == 3) add("Sabbat @ " + loc_name(e.aux), "Witches' Sabbat at " + where(e.aux) + ".", "on " + date(e.end), g, e.aux, true, QC_SABBAT);
-            else if (w == 1) add("Sabbat @ " + loc_name(e.aux), "Witches gather at " + where(e.aux) + " (the night is not known).", "", g, e.aux, false, QC_SABBAT);
+            if (w == 3) add("Sabbat at " + site(e.aux), "Witches' Sabbat at " + where(e.aux) + ".", "on " + date(e.end), g, e.aux, true, QC_SABBAT);
+            else if (w == 1) add("Sabbat at " + site(e.aux), "Witches gather at " + where(e.aux) + " (the night is not known).", "", g, e.aux, false, QC_SABBAT);
             else add("Sabbat on " + date(e.end), "Witches gather on the night of " + date(e.end) + " (the place is not known).", "on " + date(e.end), g, -1, true, QC_SABBAT);
         }
         else if (e.kind == 8 && e.tag == 2 && (e.value == -1 || e.value == 1) && politics && e.loc >= 0 && e.loc < (int)gamedata.cities.size()) {
             if (e.value == -1)                                  /* (a season of city politics, mods/politics.c: the party took a side) */
-                add("Rebels @ " + place, "You have joined the rebels of " + place + ". Post their handbills, win the guilds over (ask about their "
+                add("With the rebels of " + place, "You have joined the rebels of " + place + ". Post their handbills, win the guilds over (ask about their "
                     "leaders and politics, meet their masters), and when the cause is strong ask your leader for a war council: it sets the day of "
                     "the march. You reach the leader through the agitators' guild or the side streets (other locations you remember).", "", 0, e.loc, false, QC_POLITICS);
             else
-                add("For the government @ " + place, "You serve the government of " + place + " against the rebels. Post its handbills, win "
+                add("For the government of " + place, "You serve the government of " + place + " against the rebels. Post its handbills, win "
                     "the guilds over, and when the time is right ask your patron for a war council: it sets the day of the arrests. Your patron's "
                     "house is in the side streets (other locations you remember).", "", 0, e.loc, false, QC_POLITICS);
         }
@@ -384,7 +376,7 @@ static std::vector<Line> build_lines(void)
             bool march = e.type0 == 0x16;                       /* (the party's own side's day; the other side's is learnt from the gossip) */
             bool hall = e.loc >= 0 && e.loc < (int)gamedata.cities.size() && (gamedata.cities[e.loc].buildings & 2);
             char at[64]; gm_hour_name(e.start[0], at, sizeof at);
-            add(std::string(march ? "The march" : "The arrests") + " @ " + place,
+            add(std::string(march ? "The march in " : "The arrests in ") + place,
                 march ? "Your side marches on the " + std::string(hall ? "town hall" : "fortress") + " of " + place + " at " + at + " on " + date(e.start)
                         + ". Be in " + place + " that day: if you are at the leader's house, the rally starts there; if you are in the streets, the march finds you."
                       : "The city guard arrests the rebel leaders at " + std::string(at) + " on " + date(e.start) + ". Be in " + place
@@ -392,7 +384,7 @@ static std::vector<Line> build_lines(void)
                 "on " + date(e.start), 0, e.loc, false, QC_POLITICS);
         }
         else if (e.kind == 0x1c && e.tag == 1 && e.type0 == 5 && (spoilers || [&] { sab_load(); for (const SabbatKnown &k : sab_known) if (k.loc == e.aux && (k.what & 1)) return true; return false; }()))
-            add("Sabbat now @ " + loc_name(e.aux), "A witches' Sabbat is being held now at " + where(e.aux) + ".", "", spoilers ? 4 : 0, e.aux, false, QC_SABBAT);
+            add("Sabbat now at " + site(e.aux), "A witches' Sabbat is being held now at " + where(e.aux) + ".", "", spoilers ? 4 : 0, e.aux, false, QC_SABBAT);
     }
     return v;
 }
@@ -403,7 +395,11 @@ void quest_marks_cat(std::vector<std::pair<int, std::string>> &out, std::vector<
     out.clear(); cats.clear();
     if (game_mode() == GM_OTHER) return;
     for (const Line &l : build_lines())
-        if (l.loc >= 0) { out.push_back({ l.loc, l.text + (l.when.empty() ? "" : " (" + l.when + ")") }); cats.push_back(l.cat); }
+        if (l.loc >= 0) {                                        /* (the time as a sentence of its own: "... in Erfurt. By 9 July 1405.") */
+            std::string w = l.when;
+            if (!w.empty()) w[0] = (char)toupper((unsigned char)w[0]);
+            out.push_back({ l.loc, l.text + (w.empty() ? "" : " " + w + ".") }); cats.push_back(l.cat);
+        }
 }
 void quest_marks(std::vector<std::pair<int, std::string>> &out) { std::vector<int> c; quest_marks_cat(out, c); }
 

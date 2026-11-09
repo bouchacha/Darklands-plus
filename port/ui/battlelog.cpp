@@ -107,11 +107,12 @@ static void start_battle(void)
     in_battle = true;
 }
 
+/* what a wound took, each attribute as its shield with the loss after it (ui/richtext.h; the log file has the words) */
 static std::string cost(int de, int ds)
 {
     std::string s;
-    if (de > 0) s = "-" + std::to_string(de) + " End";
-    if (ds > 0) s += (s.empty() ? "-" : ", -") + std::to_string(ds) + " Str";
+    if (de > 0) s = "{Endurance:-" + std::to_string(de) + "}";
+    if (ds > 0) s += (s.empty() ? "{Strength:-" : ", {Strength:-") + std::to_string(ds) + "}";
     return s;
 }
 
