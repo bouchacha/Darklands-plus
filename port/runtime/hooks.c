@@ -19,7 +19,7 @@ static int find(int sect, unsigned seg, unsigned off)
 /* hooks chain: several mods may hook one function. The hook installed last runs first; its
  * hook_call_original() runs the one installed before it, and the last of them the game's own
  * function. hook_table[i] is the first of the chain (the generated code tests it). */
-#define CHAIN_MAX 6
+#define CHAIN_MAX 12            /* (run_battle had 7 in 1.4.7-RC1: the seventh was refused) */
 static struct { void (*fn[CHAIN_MAX])(void); int n; } *chains;
 static int nchains;
 int hook_depth;
