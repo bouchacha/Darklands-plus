@@ -505,3 +505,11 @@ covered and found, and what it could not check.
   titles read in a game: "The mine at Zbraslavice", "Sabbat at Achlum". Not looked into: the party seed is the
   BIOS tick count since the program started (99 in his game), where the original's was the time of day: games
   still differ, within a narrower range.
+- 2026-11-09 (next version, his report 203017, build 1204): members told to parry "often change to
+  vulnerable". kept_kind (ways.c) was meant to hold the kind, but (1) it was noted only on a click at a foe,
+  not for a kind chosen from the Orders menu or the buttons against the foe already fought (the usual way to
+  say Parry); (2) keep_kinds put it back only over a Std Attack, and to_melee opened on the next foe with
+  what the armour asked (Vulnerable); (3) a fallen foe (order 0) forgot it. One rule now: Parry and Berserk are
+  the member's stance, noted where every order passes (leave_hook), used by to_melee, kept over a fallen foe,
+  and a member on Parry takes only a foe beside it. Tested in his castle fight: 0x22 noted from the P key, no
+  new foe sought after the foe fell.

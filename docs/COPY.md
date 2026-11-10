@@ -3490,4 +3490,5 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/travel.c:661` | the marked place |
 | `mods/war.c:98` | pics\gate4.pic: No such file |
 | `mods/war.c:147` | ...hidden option |
+| `mods/ways.c:110` | often change to vulnerable |
 

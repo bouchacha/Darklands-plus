@@ -102,6 +102,14 @@ static unsigned char bow_flips[5];
 static u16 idle_since[5];             /* melee_hook: since when a shooter stood idle with its order */
 static signed char told[5];           /* a click of the player's taken in this order (a foe, a spot): click_hook, place_hook */
 static signed char pt[5] = { -1, -1, -1, -1, -1 };   /* the foe the player sent the member at hand to hand */
+/* a Parry, Berserk or Vulnerable order kept: the game turns a member who is set upon on the way
+   to its foe (or whose foe falls) to a Std Attack on whoever it fights; the kind the player chose
+   is kept for that fight too, until the member is given another order. Parry and Berserk are the
+   player's stance for the member (one in trouble told to parry): they hold against every foe that
+   comes, whatever our ways would open with (to_melee), and a member on Parry seeks no new foe
+   (idle_fighters) - his report, build 1204: members told to parry "often change to vulnerable" */
+static int kept_kind[5] = { -1, -1, -1, -1, -1 };
+static int stance(int i) { return kept_kind[i] == 0x22 || kept_kind[i] == 6 ? kept_kind[i] : -1; }
 static void leave_hook(void)                    /* s014 19cd:0738 order_mode_leave(): the order chosen applied */
 {
     int i = (s8)g_rb(D_SELECTED), act = (s16)g_rw(D_ORDER_ACTION);
@@ -116,6 +124,8 @@ static void leave_hook(void)                    /* s014 19cd:0738 order_mode_lea
     int f = (s16)g_rw(CBF(i, CB_ORDER)), k = act != -1 ? act : f;   /* (an attack on a foe far off: walking to it, the attack queued) */
     int melee = k == STD_ATTACK || k == 0x0a || k == 0x22 || k == 6;
     pt[i] = melee ? (s8)g_rb(CBF(i, CB_TARGET)) : -1;
+    /* (the kind from the Orders menu or the buttons too, not only a click on a foe: mods/orders.c) */
+    if (k == 0x22 || k == 6) kept_kind[i] = k; else if (k != 0x0a) kept_kind[i] = -1;
     if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d's order (%#x)%s\n", i, k, pt[i] >= 5 ? ": that foe until it falls" : "");
     bow_given[i] = bow_hold[i] = 0; bow_flips[i] = 0;
 }     /* member i at foe t hand to hand (beside it, or walking to it), its melee weapon drawn; the kind of attack as its way has it */
@@ -128,7 +138,7 @@ static void to_melee(int i, int t, int beside)
     if (st(i) == ST_SKIRMISHER && !committed[i]) { committed[i] = 1; fprintf(stderr, "orders: member %d (Skirmisher) fights hand to hand from now on\n", i); }
     ns_call(GF_weapon_ready, 3, i, (s8)g_rb((u16)(c + CB_MELEE)), 0);
     g_wb((u16)(c + CB_TARGET), (u8)t);
-    int kind = ways_melee_kind(i, t);
+    int kind = stance(i) >= 0 ? stance(i) : ways_melee_kind(i, t);
     if (beside) { g_ww((u16)(c + CB_ORDER), (u16)kind); g_wb((u16)(GV_cbt_action + i), 7); g_wb((u16)(GV_cbt_moving + i), 0); }   /* (fighting where it stands: no longer on its way to the last foe) */
     else {
         g_ww((u16)(c + CB_TO_X), g_rw(CBF(t, CB_X))); g_ww((u16)(c + CB_TO_Y), g_rw(CBF(t, CB_Y)));
@@ -426,6 +436,7 @@ static void idle_fighters(void)
         case ST_ARCHER: case ST_SKIRMISHER: how = armed ? PICK_BESIDE : PICK_FOOT; break;
         case ST_CHARGER: how = PICK_CHARGE; break;
         }
+        if (stance(i) == 0x22) how = PICK_BESIDE;                 /* (on Parry: only a foe that comes at it) */
         int beside = 0, t = melee_pick(i, how, &beside);
         if (ns_unwinding) return;
         if (t < 0) continue;
@@ -536,10 +547,6 @@ void orders_style_changed(int m)
     if (m < 0 || m > 4) return;
     committed[m] = 0; pt[m] = -1;
 }
-/* a Parry, Berserk or Vulnerable order kept: the game turns a member who is set upon on the way
-   to its foe (or whose foe falls) to a Std Attack on whoever it fights; the kind the player chose
-   is kept for that fight too, until the member is given another order */
-static int kept_kind[5] = { -1, -1, -1, -1, -1 };
 /* every frame (runtime/platform_sdl.c): a battle begun (the battle's screen, not back from a sheet or
    Enemy Info opened in it: the game's in_battle flag stays set), what this file remembers of the members is
    cleared - the last battle's orders, kinds kept, marks, bow switches and ways given way to orders are
@@ -569,8 +576,8 @@ static void keep_kinds(void)
         u16 c = (u16)(D_CBT + i * 0x80);
         if (g_rb((u16)(c + CB_STATUS)) != 1) { kept_kind[i] = -1; continue; }
         int f = (s16)g_rw((u16)(c + CB_ORDER));
-        if (f == STD_ATTACK) { g_ww((u16)(c + CB_ORDER), (u16)kept_kind[i]); if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d keeps its %#x\n", i, kept_kind[i]); }
-        else if (f == MISSILE || f == 0) kept_kind[i] = -1;                 /* (another kind of order now) */
+        if (f == STD_ATTACK || (f == 0x0a && stance(i) >= 0)) { g_ww((u16)(c + CB_ORDER), (u16)kept_kind[i]); if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d keeps its %#x\n", i, kept_kind[i]); }
+        else if (f == MISSILE || (f == 0 && stance(i) < 0)) kept_kind[i] = -1;   /* (another kind of order now; a stance outlasts a fallen foe) */
     }
 }
 static void note_lines(void)
