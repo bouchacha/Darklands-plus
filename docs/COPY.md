@@ -1259,12 +1259,12 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/iconsheets.cpp:103` | Melancholic Base |
 | `ui/iconsheets.cpp:133` | Drawn in color (no disc) |
 | `ui/infoview.cpp:70` | %d (the next title at %d) |
-| `ui/infoview.cpp:80` | Reputation here: %s (%d) |
+| `ui/infoview.cpp:80` | {Reputation} Here: %s (%d) |
 | `ui/infoview.cpp:89` | Bank notes: %s |
 | `ui/infoview.cpp:93` | Philosopher's Stone |
 | `ui/infoview.cpp:95` | Quality %d: +%d to every batch |
 | `ui/infoview.cpp:95` | None yet: an alchemist or a university makes one |
-| `ui/infoview.cpp:100` | Reputation in the cities |
+| `ui/infoview.cpp:100` | {Reputation} Reputation in the cities |
 | `ui/infoview.cpp:102` | by reputation |
 | `ui/infoview.cpp:141` | Last change:  |
 | `ui/infoview.cpp:142` | , after choosing " |
