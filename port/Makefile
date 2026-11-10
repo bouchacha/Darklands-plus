@@ -113,6 +113,14 @@ $(OUT)/version.o: $(OUT)/version.c
 	$(CC) -c -o $@ $<
 .PHONY: FORCE
 FORCE:
+# a release build stops at once when a generated text is behind the code (check_docs.py --fix, commit, build again):
+# found only by the release check, it cost a rebuild and a second check each time
+ifneq ($(RELEASE),)
+$(OUT)/version.c: docs_ok
+docs_ok:
+	@cd .. && python3 -I port/tools/check_docs.py
+.PHONY: docs_ok
+endif
 clean:
 	rm -rf $(OUT)
 .PHONY: all clean

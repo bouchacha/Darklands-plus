@@ -1826,7 +1826,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/partypanel.cpp:470` | far too much |
 | `ui/partypanel.cpp:470` | a heavy load |
 | `ui/partypanel.cpp:492` | In effect on %s:%s |
-| `ui/partypanel.cpp:497` | Click: give %s orders. Right-click: %s's character sheet (F%d). |
+| `ui/partypanel.cpp:497` | Click: give %s orders (double-click: and move the view there). Right-click: %s's character sheet (F%d). |
 | `ui/partypanel.cpp:498` | Click: %s's character sheet (F%d). |
 | `ui/partypanel.cpp:513` | %s is on Manual: %s Click to choose a way of fighting. |
 | `ui/partypanel.cpp:514` | %s fights as %s until you give them an order: %s Click to choose another way. |

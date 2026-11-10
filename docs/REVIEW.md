@@ -494,3 +494,14 @@ covered and found, and what it could not check.
   for a long while (attributes, skills, age, fame, a town's opinion), the roundels for what passes (blessings,
   potions): the age keeps its sable shield (the hourglass-alone change undone), and Party Info (F6), the one
   screen naming Fame and Reputation without them, now shows their shields as the margins do.
+- 2026-11-09 (next version, loose ends of the day): (1) the "click on Ursula's box moved the view to a black
+  corner" seen once while taking screenshots was the double-click (the view goes to the member), in a small
+  castle room with nothing around it: reproduced with two clicks, not with one; no bug. The box's tooltip now
+  says so ("double-click: and move the view there"). (2) Twice today a generated text behind the code was
+  found only by the release check, costing a rebuild and a second 20-minute check each time: a RELEASE build
+  now runs check_docs.py first and stops (port/Makefile docs_ok). (3) More screens looked over for the style
+  pass (the keys window, the Darklands+ window's journal, the sheet's Items, Saints and Formulae): of a piece;
+  the formulae's own descriptions name attributes in words, being the game's text (left). (4) The new quest
+  titles read in a game: "The mine at Zbraslavice", "Sabbat at Achlum". Not looked into: the party seed is the
+  BIOS tick count since the program started (99 in his game), where the original's was the time of day: games
+  still differ, within a narrower range.

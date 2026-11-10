@@ -494,7 +494,7 @@ extern "C" void partypanel_draw(void)
         }
         if (battle && !out && P.over(px0, py0, px1, py1) && !config_get_int("original", 0) && config_get_int("battle.panel_select", 1)) {   /* (what a click on the box does here) */
             char t[200];
-            if (g_rb(GV_real_combat) == 1) snprintf(t, sizeof t, "Click: give %s orders.\nRight-click: %s's character sheet (F%d).", name.c_str(), name.c_str(), m + 1);
+            if (g_rb(GV_real_combat) == 1) snprintf(t, sizeof t, "Click: give %s orders (double-click: and move the view there).\nRight-click: %s's character sheet (F%d).", name.c_str(), name.c_str(), m + 1);
             else snprintf(t, sizeof t, "Click: %s's character sheet (F%d).", name.c_str(), m + 1);
             ns_tip(t, 26);
         }
