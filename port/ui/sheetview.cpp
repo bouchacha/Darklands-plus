@@ -203,7 +203,7 @@ static void header(NsDraw &P, const SheetModel &s)
     P.text(f, NsDraw::FS_HEAD, 63.5f, 2.2f, NsDraw::INK, ns_gtext(s.fullname), -1, 290);
     if (P.button(296, 2.5f, 318, 10.2f, "Close", IM_COL32(112, 40, 22, 235), NsDraw::FS_SMALL, PB_Y)) ns_push(SV_CLOSE, 0, 0, 0);
     float x = 63.5f;
-    {   /* the sex: a plain sign (its word under the pointer), a little smaller than the age's hourglass beside it */
+    {   /* the sex: a plain sign (its word under the pointer), a little smaller than the age's shield beside it */
         ImU32 c = NsDraw::INK_SOFT; float t = fmaxf(1.1f, 0.45f * P.k), r = 1.4f * P.k;
         ImVec2 o = NsDraw::w(x + 1.8f, s.female ? 14.4f : 15.9f);
         P.dl->AddCircle(o, r, c, 24, t);

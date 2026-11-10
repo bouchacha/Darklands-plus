@@ -15,7 +15,7 @@ What changed since 1.4.6.
 
 **Changed**
 
-- **One look across the screens:** the level map's title, floors and legend sit on parchment like the world map's panels; the battle log shows what a wound took as the Endurance and Strength shields; quests read "Robber knight at Goslar" and "Sabbat at the pagan altar near Hall", not "@ Goslar" or "@ Pagan Altar"; travel near one reads "Traveling, near a cave"; the age is a plain hourglass, since shields mean attributes and skills.
+- **One look across the screens:** the level map's title, floors and legend sit on parchment like the world map's panels; the battle log shows what a wound took as the Endurance and Strength shields; quests read "Robber knight at Goslar" and "Sabbat at the pagan altar near Hall", not "@ Goslar" or "@ Pagan Altar"; travel near one reads "Traveling, near a cave"; Party Info shows Fame and Reputation with their shields, as the margins do.
 
 ## 1.4.6
 

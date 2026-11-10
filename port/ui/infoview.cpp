@@ -64,7 +64,7 @@ extern "C" void infoview_draw(void)
     const float LX0 = 66, LX1 = 166;
     float x = LX0 + 3, y = 20, w = LX1 - LX0 - 6;
     auto head = [&](const char *t) { P.text(fo, 4.2f, x, y, dim, t); y += 6; };
-    head("Fame");
+    head("{Fame} Fame");                                        /* (fame and the towns' opinion with their shields, as in the margins) */
     y += P.para(f, NsDraw::FS_HEAD, x, y, w, ink, ns_gtext(m.fame_word)) + 0.5f;
     int lv = m.fame / 50;
     if (lv < 10) snprintf(b, sizeof b, "%d (the next title at %d)", m.fame, (lv + 1) * 50); else snprintf(b, sizeof b, "%d", m.fame);
@@ -77,7 +77,7 @@ extern "C" void infoview_draw(void)
     head(m.in_city ? "In" : "Where");
     y += P.para(f, NsDraw::FS_NAME, x, y, w, ink, ns_gtext(m.where)) + 0.5f;
     if (m.in_city && m.here >= 0) {
-        snprintf(b, sizeof b, "Reputation here: %s (%d)", ns_gtext(m.city[m.here].band_word).c_str(), m.city[m.here].rep);
+        snprintf(b, sizeof b, "{Reputation} Here: %s (%d)", ns_gtext(m.city[m.here].band_word).c_str(), m.city[m.here].rep);
         y += P.para(fo, NsDraw::FS_BODY, x, y, w, ink, b);
     }
     y += 4;
@@ -97,7 +97,7 @@ extern "C" void infoview_draw(void)
 
     /* every city */
     const float RX0 = 177, RX1 = 314, RY0 = 12, RY1 = 182;
-    P.text(f, NsDraw::FS_HEAD, RX0 + 3, RY0 + 2, ink, "Reputation in the cities");
+    P.text(f, NsDraw::FS_HEAD, RX0 + 3, RY0 + 2, ink, "{Reputation} Reputation in the cities");
     float sy = RY0 + 11;
     const char *SORT[2] = { "by reputation", "by name" };
     for (int k = 0; k < 2; k++) {

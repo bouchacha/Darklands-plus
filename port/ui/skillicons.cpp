@@ -334,9 +334,9 @@ static void standing_body(ImDrawList *dl, ImVec2 c, float s, int k)
 void ui_standing_icon(ImDrawList *dl, ImVec2 c, float s, int k) { styled(dl, c, s, 4, standing_body, k); }
 void ui_skill_icon(ImDrawList *dl, ImVec2 c, float s, int k) { styled(dl, c, s, k < 7 ? 1 : k < 13 ? 2 : 3, skill_body, k); }
 void ui_attr_icon(ImDrawList *dl, ImVec2 c, float s, int k) { if (k >= 0 && k < 7) styled(dl, c, s, 0, attr_body, k); }
-/* the age: the hourglass alone, on no shield in any look - the shields are the attributes' and skills' (and the
-   party's standing, which the cards weigh); the years are neither, and nothing tests them */
-void ui_age_icon(ImDrawList *dl, ImVec2 c, float s) { attr_body(dl, c, s * 0.86f, 7); }
+/* the age on a shield, sable as the attributes: the shields are for what a member or the party has for a long while
+   (the attributes, the skills, the age, the party's fame and a town's opinion of it); the roundels for what passes */
+void ui_age_icon(ImDrawList *dl, ImVec2 c, float s) { styled(dl, c, s, 0, attr_body, 7); }
 
 /* what is at work that is not an attribute or a skill (the margin's blessings and potions, ui/effects.h EI_*): on a
    roundel, not a shield (the shields are the attributes' and skills' alone), its charge in gold the same way;

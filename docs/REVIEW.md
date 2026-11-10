@@ -490,3 +490,7 @@ covered and found, and what it could not check.
   bounties, the Fuggers' mining job): candidates for reconstructed content if he wants them. Go to evaluating
   the cards' own conditions: declined (card start-ups load text, roll dice and draw; running them unseen needs
   a full save and restore around each), the hand-kept rules being checked and self-correcting.
+- 2026-11-09 (next version, his answer on the style pass): the shields are for what a member or the party has
+  for a long while (attributes, skills, age, fame, a town's opinion), the roundels for what passes (blessings,
+  potions): the age keeps its sable shield (the hourglass-alone change undone), and Party Info (F6), the one
+  screen naming Fame and Reputation without them, now shows their shields as the margins do.
