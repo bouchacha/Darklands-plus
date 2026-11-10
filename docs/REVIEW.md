@@ -513,3 +513,9 @@ covered and found, and what it could not check.
   the member's stance, noted where every order passes (leave_hook), used by to_melee, kept over a fallen foe,
   and a member on Parry takes only a foe beside it. Tested in his castle fight: 0x22 noted from the P key, no
   new foe sought after the foe fell.
+- 2026-11-09 (next version, his answer on Parry): a member standing on Parry with no foe "is too confusing":
+  the stance now ends when no foe is beside the member (it fights on in its way). And as he asked, a member
+  with two or more foes beside it parries by itself (Improved combat; Parry still strikes, slower, and is
+  harder to hit: s014 18bf), back to its attack once fewer have been beside it for 40 clock ticks (foes step
+  in and out of reach: without the wait it flapped every tick), not over the player's stance or an order
+  given while beset. Tested: Ursula alone against the castle's two: "has 2 foes beside it: parries", once.

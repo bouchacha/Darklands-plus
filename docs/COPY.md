@@ -125,7 +125,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:167` | Pause when enemies come out |
 | `mods/options.c:167` | the battle pauses when enemies waiting in a castle, dungeon or mine come out to fight. |
 | `mods/options.c:168` | Improved combat |
-| `mods/options.c:168` | the party fights on sensibly between orders, each member in their way of fighting, chosen on their box in the party panel: Skirmisher (everyone's way until you choose another: shoots while the enemies come, if they have a missile weapon, then fights hand to hand to the end), Archer, Charger, or Manual (the original's way: every order yours). An order of yours is carried out, then the member goes back to their way; an enemy you sent them at hand to hand stays their foe until it falls. A shooter whose target falls takes the nearest enemy in sight; with no clear line (a wall, a tree or someone standing between, as the aiming line shows), they move to the nearest spot a few paces off that has one. Parry, Berserk and Vulnerable stay as ordered, and a click on an enemy opens with a Vulnerable attack (aimed at the gaps in its armor) when only that would get through its armor. When off: the original's ways. |
+| `mods/options.c:168` | the party fights on sensibly between orders, each member in their way of fighting, chosen on their box in the party panel: Skirmisher (everyone's way until you choose another: shoots while the enemies come, if they have a missile weapon, then fights hand to hand to the end), Archer, Charger, or Manual (the original's way: every order yours). An order of yours is carried out, then the member goes back to their way; an enemy you sent them at hand to hand stays their foe until it falls. A shooter whose target falls takes the nearest enemy in sight; with no clear line (a wall, a tree or someone standing between, as the aiming line shows), they move to the nearest spot a few paces off that has one. Parry and Berserk stay as ordered while an enemy is beside the member, a member with two or more enemies beside them parries until fewer are (unless you order otherwise), and a click on an enemy opens with a Vulnerable attack (aimed at the gaps in its armor) when only that would get through its armor. When off: the original's ways. |
 | `mods/options.c:169` | Click an enemy to attack it |
 | `mods/options.c:169` | a click on an enemy sends the selected member to attack it, even before an attack is chosen: a standard attack, or with Improved combat a Vulnerable one where only that gets through the enemy's armor. |
 | `mods/options.c:170` | Way of fighting on each member's box |
@@ -3490,5 +3490,5 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/travel.c:661` | the marked place |
 | `mods/war.c:98` | pics\gate4.pic: No such file |
 | `mods/war.c:147` | ...hidden option |
-| `mods/ways.c:110` | often change to vulnerable |
+| `mods/ways.c:111` | often change to vulnerable |
 

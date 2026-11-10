@@ -106,10 +106,15 @@ static signed char pt[5] = { -1, -1, -1, -1, -1 };   /* the foe the player sent 
    to its foe (or whose foe falls) to a Std Attack on whoever it fights; the kind the player chose
    is kept for that fight too, until the member is given another order. Parry and Berserk are the
    player's stance for the member (one in trouble told to parry): they hold against every foe that
-   comes, whatever our ways would open with (to_melee), and a member on Parry seeks no new foe
-   (idle_fighters) - his report, build 1204: members told to parry "often change to vulnerable" */
+   comes, whatever our ways would open with (to_melee), for as long as a foe is beside the member; with
+   none left the stance ends and the member fights on in its way (a member standing still on Parry
+   would look broken) - his report, build 1204: members told to parry "often change to vulnerable".
+   And a member with two or more foes beside it parries by itself until fewer are (auto_parry: Parry
+   still strikes, more slowly, and is harder to hit: s014 18bf), unless the player gave it a stance or
+   an order while so beset (own_order) */
 static int kept_kind[5] = { -1, -1, -1, -1, -1 };
 static int stance(int i) { return kept_kind[i] == 0x22 || kept_kind[i] == 6 ? kept_kind[i] : -1; }
+static signed char auto_parry[5], own_order[5];
 static void leave_hook(void)                    /* s014 19cd:0738 order_mode_leave(): the order chosen applied */
 {
     int i = (s8)g_rb(D_SELECTED), act = (s16)g_rw(D_ORDER_ACTION);
@@ -126,6 +131,7 @@ static void leave_hook(void)                    /* s014 19cd:0738 order_mode_lea
     pt[i] = melee ? (s8)g_rb(CBF(i, CB_TARGET)) : -1;
     /* (the kind from the Orders menu or the buttons too, not only a click on a foe: mods/orders.c) */
     if (k == 0x22 || k == 6) kept_kind[i] = k; else if (k != 0x0a) kept_kind[i] = -1;
+    auto_parry[i] = 0; own_order[i] = 1;            /* (the player's word stands while the member is beset: keep_kinds) */
     if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d's order (%#x)%s\n", i, k, pt[i] >= 5 ? ": that foe until it falls" : "");
     bow_given[i] = bow_hold[i] = 0; bow_flips[i] = 0;
 }     /* member i at foe t hand to hand (beside it, or walking to it), its melee weapon drawn; the kind of attack as its way has it */
@@ -138,7 +144,7 @@ static void to_melee(int i, int t, int beside)
     if (st(i) == ST_SKIRMISHER && !committed[i]) { committed[i] = 1; fprintf(stderr, "orders: member %d (Skirmisher) fights hand to hand from now on\n", i); }
     ns_call(GF_weapon_ready, 3, i, (s8)g_rb((u16)(c + CB_MELEE)), 0);
     g_wb((u16)(c + CB_TARGET), (u8)t);
-    int kind = stance(i) >= 0 ? stance(i) : ways_melee_kind(i, t);
+    int kind = stance(i) >= 0 ? stance(i) : auto_parry[i] ? 0x22 : ways_melee_kind(i, t);
     if (beside) { g_ww((u16)(c + CB_ORDER), (u16)kind); g_wb((u16)(GV_cbt_action + i), 7); g_wb((u16)(GV_cbt_moving + i), 0); }   /* (fighting where it stands: no longer on its way to the last foe) */
     else {
         g_ww((u16)(c + CB_TO_X), g_rw(CBF(t, CB_X))); g_ww((u16)(c + CB_TO_Y), g_rw(CBF(t, CB_Y)));
@@ -436,7 +442,6 @@ static void idle_fighters(void)
         case ST_ARCHER: case ST_SKIRMISHER: how = armed ? PICK_BESIDE : PICK_FOOT; break;
         case ST_CHARGER: how = PICK_CHARGE; break;
         }
-        if (stance(i) == 0x22) how = PICK_BESIDE;                 /* (on Parry: only a foe that comes at it) */
         int beside = 0, t = melee_pick(i, how, &beside);
         if (ns_unwinding) return;
         if (t < 0) continue;
@@ -559,7 +564,7 @@ void orders_frame(void)
     if (in && !was) {
         for (int i = 0; i < 5; i++) {
             bow_given[i] = bow_hold[i] = 0; bow_flips[i] = 0;
-            idle_since[i] = 0; shot_at[i] = -1; kept_kind[i] = -1; told[i] = 0;
+            idle_since[i] = 0; shot_at[i] = -1; kept_kind[i] = -1; told[i] = 0; auto_parry[i] = own_order[i] = 0;
             committed[i] = 0; pt[i] = -1; noway[i] = -1;
         }
         lines_met = 0;
@@ -571,13 +576,33 @@ void orders_frame(void)
 static void keep_kinds(void)
 {
     if (!combat_improved()) return;
+    for (int i = 0; i < 5; i++) {                               /* beset by two or more: Parry, until fewer are */
+        u16 c = (u16)(D_CBT + i * 0x80);
+        if (g_rb((u16)(c + CB_STATUS)) != 1 || !automated(i)) { auto_parry[i] = own_order[i] = 0; continue; }
+        int n = foes_beside(i), f = (s16)g_rw((u16)(c + CB_ORDER));
+        static u16 beset_at[5];                               /* (foes step in and out of reach: fewer for a while, not for a tick) */
+        u16 now = g_rw(GV_combat_clock);
+        if (n >= 2) beset_at[i] = now;
+        if (n < 2) {
+            if (n == 0 || (u16)(now - beset_at[i]) >= 40) own_order[i] = 0;
+            if (auto_parry[i] && (n == 0 || (u16)(now - beset_at[i]) >= 40)) {
+                auto_parry[i] = 0;
+                int t = (s8)g_rb((u16)(c + CB_TARGET));
+                if (f == 0x22) g_ww((u16)(c + CB_ORDER), (u16)ways_melee_kind(i, t));
+                fprintf(stderr, "orders: member %d no longer beset: fights on\n", i);
+            }
+        } else if (!auto_parry[i] && !own_order[i] && kept_kind[i] < 0 && (f == STD_ATTACK || f == 0x0a)) {
+            g_ww((u16)(c + CB_ORDER), 0x22); auto_parry[i] = 1;
+            fprintf(stderr, "orders: member %d has %d foes beside it: parries\n", i, n);
+        }
+    }
     for (int i = 0; i < 5; i++) {
         if (kept_kind[i] < 0) continue;
         u16 c = (u16)(D_CBT + i * 0x80);
         if (g_rb((u16)(c + CB_STATUS)) != 1) { kept_kind[i] = -1; continue; }
         int f = (s16)g_rw((u16)(c + CB_ORDER));
         if (f == STD_ATTACK || (f == 0x0a && stance(i) >= 0)) { g_ww((u16)(c + CB_ORDER), (u16)kept_kind[i]); if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d keeps its %#x\n", i, kept_kind[i]); }
-        else if (f == MISSILE || (f == 0 && stance(i) < 0)) kept_kind[i] = -1;   /* (another kind of order now; a stance outlasts a fallen foe) */
+        else if (f == MISSILE || (f == 0 && (stance(i) < 0 || !foes_beside(i)))) kept_kind[i] = -1;   /* (another kind of order now; a stance outlasts a fallen foe while another is beside) */
     }
 }
 static void note_lines(void)

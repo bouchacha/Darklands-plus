@@ -11,7 +11,7 @@ What changed since 1.4.6.
 **Fixed**
 
 - **What came of it** missed what a card gave as soon as a battle, a find or a shop it had opened was over (the caravan master's purse and another merchant's gun after the fight). The party is now noted again as each such screen closes, so the next text lists it.
-- **Parry and Berserk hold.** A member told to parry went back to a standard or Vulnerable attack when their foe fell or another came at them. The stance now stays until you give them another order, and a member on Parry no longer walks off to find a new foe.
+- **Parry holds, and comes by itself.** A member told to parry went back to a standard or Vulnerable attack when their foe fell or another came at them: Parry and Berserk now stay while any enemy is beside them. And with Improved combat, a member with two or more enemies beside them parries until fewer are, unless you order otherwise.
 - **The level map after loading an earlier save** showed a castle, mine or dungeon as explored later on. What was explored is now kept with each save (in `levels` beside the game's other Darklands+ files) and taken up when it is loaded; a save made before this version has none.
 
 **Changed**
