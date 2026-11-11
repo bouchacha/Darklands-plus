@@ -170,7 +170,7 @@ the files where each switch's key is read.
 | `battle.pause_foes` | Pause when enemies come out | ease | autopause.c |
 | `battle.improved` | Improved combat | ease | battlerules.c, ui_windows.cpp |
 | `battle.click_attack` | Click an enemy to attack it | ease | orders.c |
-| `battle.volley_toggle` | Way of fighting on each member's box | show | battleoverlay.cpp, partypanel.cpp, ui_windows.cpp |
+| `battle.volley_toggle` | Fighting style on each member's box | show | battleoverlay.cpp, partypanel.cpp, ui_windows.cpp |
 | `battle.panel_select` | Click a member's box to give them orders | ease | partypanel.cpp, ui_windows.cpp |
 | `battle.quick_orders` | One click gives an order | ease | orders.c, battleoverlay.cpp, margins_battle.cpp, tips.cpp, ui_windows.cpp |
 | `battle.next_member` | Then select the next member without orders | ease | orders.c |
@@ -271,7 +271,7 @@ the files where each switch's key is read.
 | `battle.black_cloud` | Black Cloud in battle | experiment | battlerules.c, builtin.c, settings.cpp |
 | `assist.hall_of_fame` | Honor Roll of Glory (hall of fame) | experiment | builtin.c, halloffame.cpp, journal.cpp |
 | **Fixes for bugs of the original** | | | |
-| `fix.blessing` | Blessings no longer cost attribute points for good | fix | fixes.c, nsdraw.cpp |
+| `fix.blessing` | Blessings no longer cost attribute points permanently | fix | fixes.c, nsdraw.cpp |
 | `fix.fireward` | No invulnerability from fire protection | fix | fixes.c, saintinfo.c, nsdraw.cpp, saintchips.cpp |
 | `fix.nullitem` | No "(null)" or empty items | fix | fixes.c |
 | `fix.castle` | Castle battles end when the knight dies | fix | fixes.c, worldmap_draw.cpp |
