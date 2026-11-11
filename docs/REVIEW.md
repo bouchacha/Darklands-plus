@@ -555,3 +555,16 @@ covered and found, and what it could not check.
   the click (orders.c click_hook), not under the pointer; the learned saint goes with its card.
   (6) Copy: "fighting style", "no path", "no clear shot", "no ammo", "permanently", "continue", "route";
   the load tooltip a line per effect with its numbers (ui_load_lines).
+- 2026-11-11 (standing orders, after RC7): (1) Structure: levelwalk.c has one ground_at (the ground point
+  under the game's pointer, figures excluded) for the stairs, chests and ways out; the chest lookup no longer
+  repeats it. (4) The stairs chain's fix was a timer (a floor change within 2 s of the party's refused):
+  the cause is a follower stepping onto stairs on the leader's trail, so the rule is now the game's own
+  logic of single file: there only the leader takes the party to another floor; a follower's step onto
+  stairs stops them (a group or a fight: each member stays the player's to send). Tested in his save: one
+  U, the party on floor 11 together, the three followers' steps stopped. (2) Style: the inn's rows named
+  the game's "Regain strength (gain 2)" and "Pray for divine favor (gain 5)" in words beside rows that use
+  verbs and shields: now "Regains {Strength} (+2)", "Prays for {Divine Favor} (+5)", as the right page.
+  A skill gain in a battle named "Missile Dvc" in words beside the other skills' shields: the game's short
+  names (Missile Dvc, Speak Common, Speak Latin, Read & Write) now find their shields. Looked at and left:
+  the camp (of a piece with the inn), Settings (its section pictures differ in kind but read at a glance),
+  Save and Load (the party named in words: those members are the save's, not the party's, so no heads).

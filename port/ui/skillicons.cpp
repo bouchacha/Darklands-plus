@@ -459,7 +459,10 @@ int ui_key_of(const char *name, int len)
     for (int k = 0; k < UI_KEYS; k++) if (is(ui_key_name(k))) return k;
     for (int k = 0; k < 7; k++) if (is(gm_skill_short(k))) return UI_KEY_SKILL + k;
     if (is("Latin")) return UI_KEY_SKILL + 11;
-    if (is("Missile Device") || is("Missile Weapons")) return UI_KEY_SKILL + 6;
+    if (is("Missile Device") || is("Missile Weapons") || is("Missile Dvc")) return UI_KEY_SKILL + 6;   /* ("Missile Dvc": the game's own short name, skill_change_msg) */
+    if (is("Speak Common")) return UI_KEY_SKILL + 10;
+    if (is("Speak Latin")) return UI_KEY_SKILL + 11;
+    if (is("Read & Write")) return UI_KEY_SKILL + 12;
     static const char *const ONE[6] = { "Edged Weapon", "Impact Weapon", "Flail", "Polearm", "Thrown Weapon", "Bow" };   /* (the game's "Flail Wpns" less " Wpns") */
     for (int k = 0; k < 6; k++) if (is(ONE[k])) return UI_KEY_SKILL + k;
     return -1;

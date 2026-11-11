@@ -226,9 +226,13 @@ extern "C" void lodgeview_draw(void)
                 line += (k ? ", " : "") + std::to_string(p.brew_n[k]) + " " + (fm >= 0 && fm < (int)gamedata.formula_names.size() ? gamedata.formula_names[fm] : std::string("?"));
             }
         } else if (act == 0) { line = "Relaxes"; more = p.end < p.end_max ? "back to full: {Endurance:" + std::to_string(p.end) + " of " + std::to_string(p.end_max) + "}" : p.can[4] ? "Already rested: earning would be better" : p.can[5] ? "Already rested: a watch would be better" : "Already rested"; if (!p.can[0]) mc = IM_COL32(150, 70, 20, 255); }
-        else if (act == 1) more = "{Strength:" + std::to_string(p.str) + " of " + std::to_string(p.str_max) + "}";
+        else if (act == 1 || act == 2) {                         /* (the game's "Regain strength (gain 2)", "Pray for divine favor (gain 5)": a verb as the rest, the shield) */
+            size_t g = line.find("(gain "); int gain = g != std::string::npos ? atoi(line.c_str() + g + 6) : 0;
+            line = act == 1 ? "Regains {Strength}" : "Prays for {Divine Favor}";
+            if (gain > 0) line += " (+" + std::to_string(gain) + ")";
+            more = act == 1 ? "{Strength:" + std::to_string(p.str) + " of " + std::to_string(p.str_max) + "}" : "{Divine Favor:" + std::to_string(p.df) + " of " + std::to_string(p.df_max) + "}";
+        }
         else if (act == 5) { line = "Keeps watch"; more = "{Woodwise:" + std::to_string(gm_member_skill(i, 18)) + "}  {Stealth:" + std::to_string(gm_member_skill(i, 15)) + "}"; }
-        else if (act == 2) more = "{Divine Favor:" + std::to_string(p.df) + " of " + std::to_string(p.df_max) + "}";
         else if (act == 4) more = p.end < p.end_max ? "stays down: {Endurance:" + std::to_string(p.end) + " of " + std::to_string(p.end_max) + "}" : "";
         P.text(fo, NsDraw::FS_BODY, nx, y + 8.6f, IM_COL32(92, 40, 12, 255), line, -1, LX1 - 1);
         if (!more.empty() && rh >= 20) P.text(fo, NsDraw::FS_SMALL, nx, y + 15.0f, mc, more, -1, LX1 - 1);

@@ -219,21 +219,16 @@ static void take_exit_hook(void)           /* take_exit (n, who) */
     int n = (s16)rw(SS, (u16)(SP + 4)), who = (s16)rw(SS, (u16)(SP + 6));
     int from = (s8)g_rb((u16)(GV_cbt_floor + (who >= 0 && who < 13 ? who : 0)));
     int explore = !g_rb(GV_real_combat) && who >= 0 && who < 5 && !following && !config_get_int("original", 0);
-    /* a member still walking when the party came down (single file: the leader's trail, laid on the floor left) steps
-       onto the stairs it arrived by and the game takes them: the party ran through floor after floor on one U, five
-       floors in his save (1.4.7-RC6, found testing his report of floor shown beyond the walls). Out of a fight, a floor
-       change so soon after the last is the walk's, not the player's: the member stops instead */
-    static u32 party_took;
-    if (explore && party_took && plat_ticks_ms() - party_took < 2000) {
-        if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: member %d onto the stairs just after arriving: stops\n", who);
+    /* in single file only the leader takes the party to another floor: a follower steps onto stairs only on the leader's
+       trail, which a floor change leaves on the floor left, and the game took it through them - the party ran through
+       floor after floor on one U, five in his save (1.4.7-RC6, found testing his report of floor shown beyond the walls).
+       The follower stops instead (as a group, or in a fight, each member is the player's to send) */
+    if (explore && g_rb(GV_move_mode) == 2 && who != (s8)g_rb(GV_marching_order)) {
+        if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: follower %d onto the stairs in single file: stops\n", who);
         ns_call(GF_cbt_cancel_action, 1, who);
         if (!ns_unwinding) hook_return_far(0);
         return;
     }
-    /* a dead end: the mine's builder (s009 1432:2c98) gives a passage to a section it does not build an exit to its
-       own level, its arrival beside itself (the ladder past the door to the dwarf king's, GitHub issue 9): said so */
-    if (explore && n >= 0 && n < 6 && (s8)rb(G_FAR20A5, (u16)(FLR_STAIRS + 14 * n + 6)) == from && from == (s8)g_rb(GV_floor_shown))
-        ui_notice("This ladder leads nowhere: it brings the party back to where it stands.");
     hook_call_original();
     if (ns_unwinding || !explore) return;
     following = 1;
@@ -243,7 +238,7 @@ static void take_exit_hook(void)           /* take_exit (n, who) */
         if (!ns_unwinding) ns_call(GF_cbt_cancel_action, 1, i);
     }
     following = 0;
-    if (!ns_unwinding) { ns_call(GF_cbt_cancel_action, 1, who); party_took = plat_ticks_ms(); }
+    if (!ns_unwinding) ns_call(GF_cbt_cancel_action, 1, who);
 }
 static int stairs_under(int i)
 {
@@ -446,13 +441,7 @@ int levelwalk_wayout_at(int gx, int gy)
    seen when its cell is (not dark); the pointer is on it within its cell's floor or the H pixels its picture rises */
 int levelwalk_chest_at(int gx, int gy)
 {
-    if (game_mode() != GM_BATTLE || config_get_int("original", 0)) return -1;
-    int fx = gx - 60;
-    if (fx < 0 || fx >= 0x104) return -1;
-    int nh = (s8)g_rb(GV_hotspot_count);                                  /* (on a figure: the figure's) */
-    for (int k = 0; k < nh && k < 40; k++)
-        if (fx >= (s16)g_rw((u16)(0xd8f1 + 2 * k)) && fx <= (s16)g_rw((u16)(0xd8d7 + 2 * k)) && gy >= (s16)g_rw((u16)(0xd8bd + 2 * k)) && gy <= (s16)g_rw((u16)(0xd8a3 + 2 * k))) return -1;
-    int ox = (s8)g_rb(0xc866) * 32, oy = (s8)g_rb(0xc886) * 16;
+    int mx0, my0; if (!ground_at(gx, gy, &mx0, &my0)) return -1;
     int n = (s8)rb(G_FAR20A5, 0x300c);
     if (n < 0 || n > 12) return -1;
     const int H = 22;
@@ -465,8 +454,8 @@ int levelwalk_chest_at(int gx, int gy)
         for (int d = 0, nd = (s8)rb(G_FAR20A5, 0x1f52); d < nd && d < 40; d++)
             if ((s16)rw(G_FAR20A5, DOOR_REC(d)) / 32 == cx && (s16)rw(G_FAR20A5, (u16)(DOOR_REC(d) + 2)) / 16 == cy) lock = 1;
         if (lock) continue;
-        for (int h = 0; h <= H; h++) {
-            int my = gy + h - 109 + oy, mx = fx - 135 + ox + (my - oy);
+        for (int h = 0; h <= H; h++) {                                     /* (a pixel up the screen: the ground a pixel further, along both axes) */
+            int my = my0 + h, mx = mx0 + h;
             if (mx >= cx * 32 && mx < cx * 32 + 32 && my >= cy * 16 && my < cy * 16 + 16) return k;
         }
     }
