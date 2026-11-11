@@ -431,7 +431,7 @@ static int camp_now(const char *why)
     plat_press_key(6);                                   /* (SDL_SCANCODE_C: the game's camp) */
     fprintf(stderr, "travel: camp at %d:00 (%s, travel.camp_at_8 %d%s%s)\n", (s16)g_rw(GV_cur_hour), why, mode, mode == 1 ? ", " : "", mode == 1 ? camp_why : "");
     ui_notice((s16)g_rw(GV_cur_hour) == 20 ? "20:00: the party makes camp (the campfire under the clock). A night in camp lasts until 5:00."
-                                           : "The party makes camp before 20:00 (the campfire under the clock): the way ahead would take past it.");
+                                           : "The party makes camp before 20:00 (the campfire under the clock): the journey ahead would run past it.");
     return 1;
 }
 
@@ -514,7 +514,7 @@ static void step_hook(void)                 /* s030 1462:0c44 (key): one step of
                     fprintf(stderr, "travel: stopped, no nearer in 150 steps: tile (%d,%d) terrain %d, next (%d,%d) terrain %d, marker %d,%d, view %d+%d col %d, last step %d\n",
                             px, py, travel_terrain(px, py), nx, ny, travel_terrain(nx, ny), x, y, (s16)g_rw(GV_map_buf_row), (s16)g_rw(GV_map_view_row),
                             (s16)g_rw(GV_map_view_col), travel_step_result);
-                    ui_notice("Travel stopped: the party could not get any further this way.");
+                    ui_notice("Travel stopped: the party could get no further along this route.");
                 }
             }
         }

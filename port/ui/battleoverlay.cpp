@@ -336,8 +336,8 @@ static void battle_intro(void)
     ui_alert("Battles need fewer clicks",
              "Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. "
              "Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.\n\n"
-             "Each member fights in their own way until you give them an order: the picture at the lower left of their box. Click it to choose another "
-             "(Skirmisher, Archer, Charger, or Manual). An order you give is carried out, then they go back to their way.\n\n"
+             "Each member fights in their own fighting style until you give them an order: the picture at the lower left of their box. Click it to choose another "
+             "(Skirmisher, Archer, Charger, or Manual). An order you give is carried out, then they go back to their style.\n\n"
              "Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.\n\n"
              "While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does.",
              "All this is Darklands+; each part can be switched off, for the original game's controls, in F12 > Settings > Battles. F11 lists the battle's keys and clicks.");

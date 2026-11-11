@@ -513,7 +513,7 @@ extern "C" void partypanel_draw(void)
             if (hov && !open) {
                 char t[640];
                 if (now == ST_OFF) snprintf(t, sizeof t, "%s is on Manual: %s\nClick to choose a fighting style.", name.c_str(), style_brief(now));
-                else snprintf(t, sizeof t, "%s fights as %s until you give them an order:\n%s\nClick to choose another way.", name.c_str(), style_name(now), style_brief(now));
+                else snprintf(t, sizeof t, "%s fights as %s until you give them an order:\n%s\nClick to choose another fighting style.", name.c_str(), style_name(now), style_brief(now));
                 ns_tip(t, 26);
             }
         }
