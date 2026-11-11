@@ -350,7 +350,7 @@ Fix FIXES[] = {
     { "membervalue", "A church tithe blesses the member best at Religion",
       "When the party gave a tenth in a town church, the Divine Favor meant first for the member best at Religion went to no member at all (the game took the skill's value for a member's number); and sneaking into a guild leader's house at night showed a garbled name instead of the member with the lowest Agility. Both now use the right member.", 1 },
     { "cardslips", "Small mistakes in single cards",
-      "Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said \"Please accept this florin\" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both its options were switched off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armor, and clearing the spider warehouse, healed the party, though their texts say it is hurt; and the warehouse's owner had no name of his own (\"I am . Are ye hardy adventurers?\"), nor had the dwarf king when met again with his red hat (\"It is  again, king of the dwarfs\"). When the party was paid for a robber knight, the Hanse's guide or the village's Schulz who had come along was said to leave by the toss of a coin (or even when he had never come), and then stayed on. A second fight with a town's gate guards cost no standing (the card kept the standing it had found on arrival), the docks said \"You need a missile weapon\" to a party short of the fare, trouble on the way to a town's grove at night led to the grove's night card even after day had come, and sneaking into a guild's quarters made the whole party practice once for each member. Each now does what its text says.", 1 },
+      "Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said \"Please accept this florin\" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both its options were switched off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armor, and clearing the spider warehouse, healed the party, though their texts say it is hurt; and the warehouse's owner had no name of his own (\"I am . Are ye hardy adventurers?\"), nor had the dwarf king when met again with his red hat (\"It is  again, king of the dwarfs\"). When the party was paid for a robber knight, the Hanse's guide or the village's Schulz who had come along was said to leave by the toss of a coin (or even when he had never come), and then stayed on. A second fight with a town's gate guards cost no standing (the card kept the standing it had found on arrival), the docks said \"You need a missile weapon\" to a party short of the fare, trouble on the way to a town's grove at night led to the grove's night card even after day had come, sneaking into a guild's quarters made the whole party practice once for each member, and a cell door in a fortress dungeon flashed its card and went back to the level without a word, though its text was written (\"This door is solid oak, with a rusty iron grating in the center...\"). Each now does what its text says.", 1 },
     { "nightwall", "Climbing a city wall at night uses the climbers' own chances",
       "Along a city's walls at night, the best climber's chance with a rope was a number left over from the last failed climb by everyone (0 the first time: he always fell), and the chance of everyone climbing without one compared each member with that number instead of taking the weakest (certain the first time). The first member was never chosen as the climber. Now the climber is the best of all, his chance is his own, and the chance of everyone climbing is the weakest member's.", 1 },
     { "campguard", "A guard skilled with impact weapons keeps the camp safer",
@@ -2385,6 +2385,19 @@ static void docks_hint_hook(void)
 /* $SideS01 (a side street at night, s046 194b:0736), "to the grove": trouble on the way sends the
    party to an encounter (0x3c) that returns to the night grove (0x22) though the hour spent may have
    brought the day; the clear way picks the day's grove (0x21) or the night's by daylight (B-ed73b9). */
+/* $Witcd41 (card 0x16b, s134 1a25:000a): the card of a cell door's trigger in a fortress dungeon. It loads its
+   picture and goes straight back to the level (battle_mode 1, -2) without showing its text 0 ("This door is
+   solid oak ... A quick search of the cell reveals nothing of interest."): the screen flashed and nothing was said
+   (his report, 1.4.7-RC5). Its text 1 (a captured member found in the cell) has no code at all and stays unused. */
+static void celldoor_hook(void)
+{
+    hook_call_original();
+    if (ns_unwinding) return;
+    ns_call(GF_card_text, 2, 0, 0);
+    if (ns_unwinding) return;
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix cardslips: the cell door's text shown\n");
+    AX = 0xfffe;
+}
 static void grove_hook(void)
 {
     hook_call_original();
@@ -3078,7 +3091,7 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "cardslips", 67, 0x1869, 0x06e6, sneak_hook },
     { "patronsaint", 39, 0x165c, 0x17a4, teach_saint_hook }, { "patronsaint", 39, 0x165c, 0x1988, teach_saint_hook },
     { "fullpack", GF_barter_key, buy_room_hook }, { "fullpack", 35, 0x1462, 0x0a46, store_get_room_hook },
-    { "westedge", 30, 0x1462, 0x20d2, westedge_view_hook } };
+    { "westedge", 30, 0x1462, 0x20d2, westedge_view_hook }, { "cardslips", 134, 0x1a25, 0x000a, celldoor_hook } };
 
 void fix_enable(int i, int on)
 {

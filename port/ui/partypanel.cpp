@@ -30,6 +30,7 @@ extern "C" {
 #include "../mods/styles.h"
 #include "../mods/nscreen.h"
 extern "C" int combat_improved(void);
+extern "C" int ways_blocked(int m);
 #include "../runtime/gamevars.h"
 #include "../third_party/stb/stb_image.h"
 u8 *hdart_decode_pic(const char *dosname, int *w, int *h, u32 *pal, u8 *mask);
@@ -275,6 +276,7 @@ static const char *order_word(char c, int place, bool shortw)
             W("no line", "has no clear line of fire to the target: steps aside or nearer until there is one");
         W("no line", "has no clear line of fire to the target and waits for one (or give another order)");
     case 'e': W("no shot", "has nothing left to shoot or throw: give another order");
+    case 'n': W("no way", "finds no way to an enemy: friends or walls stand between. Move someone aside, or give an order (a shot, a spot to walk to)");
     case '-': W("waits", "waits for an order: click them here or on the battlefield, then an enemy, a spot or a choice from the Orders menu");
     }
     #undef W
@@ -392,6 +394,7 @@ extern "C" void partypanel_draw(void)
         std::string name = ns_gtext(nm);
         /* the order (in a battle), a word right of the name */
         char oc = battle && !out ? gm_member_order(m) : 0;
+        if (oc == '-' && ways_blocked(m)) oc = 'n';                /* (waits because nothing is in reach: said so) */
         int place = oc ? gm_member_order_place(m) : 0;
         float name_end = 56.5f;
         if (oc && order_word(oc, place, true)) {

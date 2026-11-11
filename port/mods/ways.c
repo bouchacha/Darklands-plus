@@ -135,9 +135,16 @@ static void leave_hook(void)                    /* s014 19cd:0738 order_mode_lea
     if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d's order (%#x)%s\n", i, k, pt[i] >= 5 ? ": that foe until it falls" : "");
     bow_given[i] = bow_hold[i] = 0; bow_flips[i] = 0;
 }     /* member i at foe t hand to hand (beside it, or walking to it), its melee weapon drawn; the kind of attack as its way has it */
-static signed char noway[5] = { -1, -1, -1, -1, -1 };   /* a foe member i found no way to, and when: left alone a while */
-static u16 noway_at[5];
-static int no_way_to(int i, int j) { return noway[i] == j && noway_at[i] && (u16)(g_rw(GV_combat_clock) - noway_at[i]) < 90; }
+/* the foes member i found no way to, and when: each left alone a while. (One foe remembered, RC5: a member
+   in a passage behind its friends, no way to either of two foes, was sent at one and the other by turns at every
+   tick and stood there as "waits" - his report 221057.) With no way to any, the member is "blocked"
+   (ways_blocked: the party's box says so) */
+static u16 noway_at[5][13], blocked_at[5];
+static int no_way_to(int i, int j) { return noway_at[i][j] && (u16)(g_rw(GV_combat_clock) - noway_at[i][j]) < 90; }
+int ways_blocked(int i)
+{
+    return i >= 0 && i < 5 && blocked_at[i] && (u16)(g_rw(GV_combat_clock) - blocked_at[i]) < 30 && g_rw((u16)(D_CBT + i * 0x80 + CB_ORDER)) == 0;
+}
 static void to_melee(int i, int t, int beside)
 {
     u16 c = (u16)(D_CBT + i * 0x80);
@@ -150,7 +157,7 @@ static void to_melee(int i, int t, int beside)
         g_ww((u16)(c + CB_TO_X), g_rw(CBF(t, CB_X))); g_ww((u16)(c + CB_TO_Y), g_rw(CBF(t, CB_Y)));
         if (ns_call(GF_path_find, 1, i) != 1) {     /* (no way to it now: the member is free, and goes at another, or at this one when it comes) */
             g_ww((u16)(c + CB_ORDER), 0); g_wb((u16)(GV_cbt_action + i), 7);
-            noway[i] = (signed char)t; noway_at[i] = g_rw(GV_combat_clock); if (!noway_at[i]) noway_at[i] = 1;
+            if (t >= 0 && t < 13) { noway_at[i][t] = g_rw(GV_combat_clock); if (!noway_at[i][t]) noway_at[i][t] = 1; }
             fprintf(stderr, "orders: member %d finds no way to %d: another for now\n", i, t);
             return;
         }
@@ -444,7 +451,10 @@ static void idle_fighters(void)
         }
         int beside = 0, t = melee_pick(i, how, &beside);
         if (ns_unwinding) return;
-        if (t < 0) continue;
+        if (t < 0) {                                              /* (none to go at: for want of a way to any? then it is blocked) */
+            for (int j = 5; j < 13; j++) if (g_rb(CBF(j, CB_STATUS)) == 1 && no_way_to(i, j)) { blocked_at[i] = g_rw(GV_combat_clock); if (!blocked_at[i]) blocked_at[i] = 1; break; }
+            continue;
+        }
         to_melee(i, t, beside);
         if (ns_unwinding) return;
         fprintf(stderr, "orders: member %d had no orders: joins the fight against %d (%s, as %s)\n", i, t, beside ? "beside it" : "walking to it", style_name(s0));
@@ -565,7 +575,7 @@ void orders_frame(void)
         for (int i = 0; i < 5; i++) {
             bow_given[i] = bow_hold[i] = 0; bow_flips[i] = 0;
             idle_since[i] = 0; shot_at[i] = -1; kept_kind[i] = -1; told[i] = 0; auto_parry[i] = own_order[i] = 0;
-            committed[i] = 0; pt[i] = -1; noway[i] = -1;
+            committed[i] = 0; pt[i] = -1; memset(noway_at[i], 0, sizeof noway_at[i]); blocked_at[i] = 0;
         }
         lines_met = 0;
         battlerules_battle_begins(); pathfix_battle_begins(); levelwalk_battle_begins();   /* (every file's memory of a battle: forgotten at the next) */
@@ -579,7 +589,8 @@ static void keep_kinds(void)
     for (int i = 0; i < 5; i++) {                               /* beset by two or more: Parry, until fewer are */
         u16 c = (u16)(D_CBT + i * 0x80);
         if (g_rb((u16)(c + CB_STATUS)) != 1 || !automated(i)) { auto_parry[i] = own_order[i] = 0; continue; }
-        int n = foes_beside(i), f = (s16)g_rw((u16)(c + CB_ORDER));
+        int n = 0, f = (s16)g_rw((u16)(c + CB_ORDER));          /* (foes that fight this member, not all in reach: in a press every foe is beside every member) */
+        for (int j = 5; j < 13; j++) if (g_rb(CBF(j, CB_STATUS)) == 1 && adj(i, j) && (s8)g_rb(CBF(j, CB_TARGET)) == i) n++;
         static u16 beset_at[5];                               /* (foes step in and out of reach: fewer for a while, not for a tick) */
         u16 now = g_rw(GV_combat_clock);
         if (n >= 2) beset_at[i] = now;
@@ -593,7 +604,7 @@ static void keep_kinds(void)
             }
         } else if (!auto_parry[i] && !own_order[i] && kept_kind[i] < 0 && (f == STD_ATTACK || f == 0x0a)) {
             g_ww((u16)(c + CB_ORDER), 0x22); auto_parry[i] = 1;
-            fprintf(stderr, "orders: member %d has %d foes beside it: parries\n", i, n);
+            fprintf(stderr, "orders: member %d has %d foes on it: parries\n", i, n);
         }
     }
     for (int i = 0; i < 5; i++) {

@@ -519,3 +519,14 @@ covered and found, and what it could not check.
   harder to hit: s014 18bf), back to its attack once fewer have been beside it for 40 clock ticks (foes step
   in and out of reach: without the wait it flapped every tick), not over the player's stance or an order
   given while beset. Tested: Ursula alone against the castle's two: "has 2 foes beside it: parries", once.
+- 2026-11-10 (next version, his reports 220630, 221057, 221951, build 1214): (1) "the red door flashes and I
+  am back in the dungeon": the door's trigger ends the level with result 7 and runs card 0x16b, $Witcd41
+  (found by the overlay trace: s134), whose code loads the picture and returns to the level without showing
+  its text 0 (the empty cell); its text 1 (a captured member found) has no code. MicroProse's own slip:
+  text 0 is now shown (fix cardslips, celldoor_hook). His "Artifice +4" was the click on a locked door
+  before it. (2) "why is Ursula waiting": a Charger behind her friends in a passage, no way to either of two
+  foes: ways.c remembered one unreachable foe, so idle_fighters sent her at the other, and back, at every
+  tick (hundreds of log lines). Every unreachable foe is remembered now (noway_at[5][13]); with none left to
+  go at for want of a way, the box says "no way" (ways_blocked). His "Chargers still shoot": the volley was
+  loosed while they were Skirmishers; none after. (3) "4 against 4 and two still parry": auto-parry counted
+  foes within reach, which in a press is all of them: it counts foes whose target is the member.

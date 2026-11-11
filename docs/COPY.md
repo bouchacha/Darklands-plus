@@ -519,7 +519,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:350` | A church tithe blesses the member best at Religion |
 | `mods/fixes.c:351` | When the party gave a tenth in a town church, the Divine Favor meant first for the member best at Religion went to no member at all (the game took the skill's value for a member's number); and sneaking into a guild leader's house at night showed a garbled name instead of the member with the lowest Agility. Both now use the right member. |
 | `mods/fixes.c:352` | Small mistakes in single cards |
-| `mods/fixes.c:353` | Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said "Please accept this florin" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both its options were switched off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armor, and clearing the spider warehouse, healed the party, though their texts say it is hurt; and the warehouse's owner had no name of his own ("I am . Are ye hardy adventurers?"), nor had the dwarf king when met again with his red hat ("It is  again, king of the dwarfs"). When the party was paid for a robber knight, the Hanse's guide or the village's Schulz who had come along was said to leave by the toss of a coin (or even when he had never come), and then stayed on. A second fight with a town's gate guards cost no standing (the card kept the standing it had found on arrival), the docks said "You need a missile weapon" to a party short of the fare, trouble on the way to a town's grove at night led to the grove's night card even after day had come, and sneaking into a guild's quarters made the whole party practice once for each member. Each now does what its text says. |
+| `mods/fixes.c:353` | Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said "Please accept this florin" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both its options were switched off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armor, and clearing the spider warehouse, healed the party, though their texts say it is hurt; and the warehouse's owner had no name of his own ("I am . Are ye hardy adventurers?"), nor had the dwarf king when met again with his red hat ("It is  again, king of the dwarfs"). When the party was paid for a robber knight, the Hanse's guide or the village's Schulz who had come along was said to leave by the toss of a coin (or even when he had never come), and then stayed on. A second fight with a town's gate guards cost no standing (the card kept the standing it had found on arrival), the docks said "You need a missile weapon" to a party short of the fare, trouble on the way to a town's grove at night led to the grove's night card even after day had come, sneaking into a guild's quarters made the whole party practice once for each member, and a cell door in a fortress dungeon flashed its card and went back to the level without a word, though its text was written ("This door is solid oak, with a rusty iron grating in the center..."). Each now does what its text says. |
 | `mods/fixes.c:354` | Climbing a city wall at night uses the climbers' own chances |
 | `mods/fixes.c:355` | Along a city's walls at night, the best climber's chance with a rope was a number left over from the last failed climb by everyone (0 the first time: he always fell), and the chance of everyone climbing without one compared each member with that number instead of taking the weakest (certain the first time). The first member was never chosen as the climber. Now the climber is the best of all, his chance is his own, and the chance of everyone climbing is the weakest member's. |
 | `mods/fixes.c:356` | A guard skilled with impact weapons keeps the camp safer |
@@ -582,9 +582,9 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:2053` | claim friendship |
 | `mods/fixes.c:2105` | It is $NamedOneName again |
 | `mods/fixes.c:2368` | You need a missile weapon |
-| `mods/fixes.c:2433` | Not bought: nobody in the party has room for another kind of item. |
-| `mods/fixes.c:2451` | Nobody in the party has room for another kind of item. |
-| `mods/fixes.c:3047` | a hook (or { -2 }) for each fix, in the same order |
+| `mods/fixes.c:2446` | Not bought: nobody in the party has room for another kind of item. |
+| `mods/fixes.c:2464` | Nobody in the party has room for another kind of item. |
+| `mods/fixes.c:3060` | a hook (or { -2 }) for each fix, in the same order |
 
 ## The interface (ui/)
 
@@ -1802,36 +1802,37 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/party.cpp:24` | The ways of the city streets and their underworld. |
 | `ui/party.cpp:25` | Handling horses. |
 | `ui/party.cpp:26` | Life in the wild: finding the way, hunting, reading tracks. |
-| `ui/partypanel.cpp:257` | attacks (Std Attack, a standard attack) |
-| `ui/partypanel.cpp:258` | attacks with Vulnerable: aims at the gaps in the armor (1 to 4 more penetration), slower and a little less likely to land |
-| `ui/partypanel.cpp:259` | is berserk: attacks without thought of defense |
-| `ui/partypanel.cpp:261` | picks the lock of the door given |
-| `ui/partypanel.cpp:262` | picks the lock of the chest given |
-| `ui/partypanel.cpp:263` | parries: mostly defends, hard to hit, striking back slower and less surely |
-| `ui/partypanel.cpp:264` | shoots at the target given |
-| `ui/partypanel.cpp:265` | throws a potion at the target given |
-| `ui/partypanel.cpp:266` | walks to the spot given |
-| `ui/partypanel.cpp:267` | flees to the spot given: does not stop to fight or strike back |
-| `ui/partypanel.cpp:268` | takes the stairs given |
-| `ui/partypanel.cpp:268` | opens or shuts the door given |
-| `ui/partypanel.cpp:269` | dissolves the lock given |
-| `ui/partypanel.cpp:270` | opens the chest given |
-| `ui/partypanel.cpp:271` | leaves the battlefield by the chosen exit |
-| `ui/partypanel.cpp:272` | halts and stands where they are |
-| `ui/partypanel.cpp:275` | has no clear line of fire to the target: steps aside or nearer until there is one |
-| `ui/partypanel.cpp:276` | has no clear line of fire to the target and waits for one (or give another order) |
-| `ui/partypanel.cpp:277` | has nothing left to shoot or throw: give another order |
-| `ui/partypanel.cpp:278` | waits for an order: click them here or on the battlefield, then an enemy, a spot or a choice from the Orders menu |
-| `ui/partypanel.cpp:469` | %s carries %s: %d against %d ({Endurance} + {Strength}; only equipped items count). %s %s. |
-| `ui/partypanel.cpp:470` | far too much |
-| `ui/partypanel.cpp:470` | a heavy load |
-| `ui/partypanel.cpp:492` | In effect on %s:%s |
-| `ui/partypanel.cpp:497` | Click: give %s orders (double-click: and move the view there). Right-click: %s's character sheet (F%d). |
-| `ui/partypanel.cpp:498` | Click: %s's character sheet (F%d). |
-| `ui/partypanel.cpp:513` | %s is on Manual: %s Click to choose a way of fighting. |
-| `ui/partypanel.cpp:514` | %s fights as %s until you give them an order: %s Click to choose another way. |
-| `ui/partypanel.cpp:524` | Divine Favor |
-| `ui/partypanel.cpp:562` | 's way of fighting |
+| `ui/partypanel.cpp:258` | attacks (Std Attack, a standard attack) |
+| `ui/partypanel.cpp:259` | attacks with Vulnerable: aims at the gaps in the armor (1 to 4 more penetration), slower and a little less likely to land |
+| `ui/partypanel.cpp:260` | is berserk: attacks without thought of defense |
+| `ui/partypanel.cpp:262` | picks the lock of the door given |
+| `ui/partypanel.cpp:263` | picks the lock of the chest given |
+| `ui/partypanel.cpp:264` | parries: mostly defends, hard to hit, striking back slower and less surely |
+| `ui/partypanel.cpp:265` | shoots at the target given |
+| `ui/partypanel.cpp:266` | throws a potion at the target given |
+| `ui/partypanel.cpp:267` | walks to the spot given |
+| `ui/partypanel.cpp:268` | flees to the spot given: does not stop to fight or strike back |
+| `ui/partypanel.cpp:269` | takes the stairs given |
+| `ui/partypanel.cpp:269` | opens or shuts the door given |
+| `ui/partypanel.cpp:270` | dissolves the lock given |
+| `ui/partypanel.cpp:271` | opens the chest given |
+| `ui/partypanel.cpp:272` | leaves the battlefield by the chosen exit |
+| `ui/partypanel.cpp:273` | halts and stands where they are |
+| `ui/partypanel.cpp:276` | has no clear line of fire to the target: steps aside or nearer until there is one |
+| `ui/partypanel.cpp:277` | has no clear line of fire to the target and waits for one (or give another order) |
+| `ui/partypanel.cpp:278` | has nothing left to shoot or throw: give another order |
+| `ui/partypanel.cpp:279` | finds no way to an enemy: friends or walls stand between. Move someone aside, or give an order (a shot, a spot to walk to) |
+| `ui/partypanel.cpp:280` | waits for an order: click them here or on the battlefield, then an enemy, a spot or a choice from the Orders menu |
+| `ui/partypanel.cpp:472` | %s carries %s: %d against %d ({Endurance} + {Strength}; only equipped items count). %s %s. |
+| `ui/partypanel.cpp:473` | far too much |
+| `ui/partypanel.cpp:473` | a heavy load |
+| `ui/partypanel.cpp:495` | In effect on %s:%s |
+| `ui/partypanel.cpp:500` | Click: give %s orders (double-click: and move the view there). Right-click: %s's character sheet (F%d). |
+| `ui/partypanel.cpp:501` | Click: %s's character sheet (F%d). |
+| `ui/partypanel.cpp:516` | %s is on Manual: %s Click to choose a way of fighting. |
+| `ui/partypanel.cpp:517` | %s fights as %s until you give them an order: %s Click to choose another way. |
+| `ui/partypanel.cpp:527` | Divine Favor |
+| `ui/partypanel.cpp:565` | 's way of fighting |
 | `ui/prayview.cpp:38` |  calls on the saint for the whole party: |
 | `ui/prayview.cpp:38` |  calls on the saint: |
 | `ui/prayview.cpp:52` | This saint asks a {Virtue} of %d of the one who prays. %s%s |

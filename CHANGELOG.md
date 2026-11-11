@@ -11,7 +11,9 @@ What changed since 1.4.6.
 **Fixed**
 
 - **What came of it** missed what a card gave as soon as a battle, a find or a shop it had opened was over (the caravan master's purse and another merchant's gun after the fight). The party is now noted again as each such screen closes, so the next text lists it.
-- **Parry holds, and comes by itself.** A member told to parry went back to a standard or Vulnerable attack when their foe fell or another came at them: Parry and Berserk now stay while any enemy is beside them. And with Improved combat, a member with two or more enemies beside them parries until fewer are, unless you order otherwise.
+- **Parry holds, and comes by itself.** A member told to parry went back to a standard or Vulnerable attack when their foe fell or another came at them: Parry and Berserk now stay while any enemy is beside them. And with Improved combat, a member with two or more enemies attacking them parries until fewer do, unless you order otherwise.
+- **A cell door in a fortress dungeon** flashed its card and went back to the level without a word. Its text is now shown (the cell is empty).
+- **A member with no way to any enemy** (friends ahead in a passage) was sent at one and another by turns and stood there as "waits": they now hold, and their box says "no way".
 - **The level map after loading an earlier save** showed a castle, mine or dungeon as explored later on. What was explored is now kept with each save (in `levels` beside the game's other Darklands+ files) and taken up when it is loaded; a save made before this version has none.
 
 **Changed**
