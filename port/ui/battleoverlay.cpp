@@ -1,6 +1,8 @@
 // battleoverlay.cpp - drawn over a battle: a bar over each fighter (endurance, and strength once it is
-// down by half), who the pointer is on (condition, attack, defence, weapon, and against the party's
-// weapons), and the fast-forward badge (Z). overlay.cpp calls these within its layer.
+// down by half), a thrown potion at work on them as its picture (mods/foefx.c), who the pointer is on
+// (condition, attack, defence, weapon, the potions at work, and against the party's weapons: in a
+// corner of the field, not over the fighters), and the fast-forward badge (Z). overlay.cpp calls these
+// within its layer.
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -13,6 +15,7 @@
 #include "../mods/styles.h"
 #include <vector>
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "richtext.h"
 #include "skillicons.h"
 void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);   /* ui/inventory.cpp */
@@ -28,6 +31,7 @@ extern "C" {
 #include "../runtime/hle.h"
 #include "../mods/assist.h"
 #include "../mods/hdtext.h"
+#include "../mods/foefx.h"
 }
 extern ImFont *ui_font_small, *ui_font_text;
 extern ImFont *ui_font_overlay;
@@ -119,6 +123,33 @@ static void draw_float(ImDrawList *dl, const Float &f, float cx, float gy, float
 /* battle.los_line: the line of a shot about to be ordered and what stands across it (mods/losaim.c).
    The field's picture is the map sheared: a map point (x, y) is drawn at x - y across and y down,
    from the view's origin (D_c26c, D_c293: cbt_screen_pos, s014 14f7) */
+/* a potion at work on a fighter (mods/foefx.c): its picture in a dark roundel, the part of its time gone
+   shaded round the dial as a clock's hand sweeps (the darker, the sooner it wears off) */
+static void draw_fx_icon(ImDrawList *dl, ImVec2 c, float r, const FoeFx &f)
+{
+    dl->AddCircleFilled(c, r, IM_COL32(18, 12, 8, 215));
+    ui_item_icon(dl, c, r * 1.75f, f.potion >= 0 ? f.potion : 95);
+    float gone = f.total > 0 ? 1.0f - fminf(1.0f, (float)f.left / f.total) : 0.0f;
+    if (gone > 0.01f) {                                         /* (in halves: a fill must be convex) */
+        const float a0 = -IM_PI * 0.5f, a1 = a0 + gone * 2 * IM_PI;
+        for (float s0 = a0; s0 < a1 - 0.001f; s0 += IM_PI) {
+            dl->PathLineTo(c); dl->PathArcTo(c, r, s0, fminf(a1, s0 + IM_PI), 16); dl->PathFillConvex(IM_COL32(10, 6, 2, 160));
+        }
+    }
+    dl->AddCircle(c, r, f.what == FX_BLIND ? IM_COL32(236, 214, 120, 235) : IM_COL32(190, 150, 90, 230), 0, fmaxf(1.0f, r * 0.14f));
+}
+/* the words for one, as in the info under the pointer: "Fleadust: weapon skills 35% lower, 31 s more" */
+static std::string fx_words(const FoeFx &f)
+{
+    std::string nm = f.potion >= 0 && f.potion < (int)gamedata.items.size() ? game_text(gamedata.items[f.potion].name.c_str(), gamedata.items[f.potion].name.size()) : std::string("A potion");
+    char t[200];
+    int sec = (f.left + 59) / 60;
+    if (f.what == FX_SKILLS) snprintf(t, sizeof t, "%s: weapon skills %d%% lower, %d s more", nm.c_str(), f.pct, sec);
+    else if (f.what == FX_WEAKENED) snprintf(t, sizeof t, "%s: {Agility}, {Perception} and weapon skills %d%% lower, %d s more", nm.c_str(), f.pct, sec);
+    else snprintf(t, sizeof t, "%s: blinded, %d s more (only parries; cannot shoot or throw)", nm.c_str(), sec);
+    return t;
+}
+
 static ImVec2 map2w(float x, float y, float up = 0)
 {
     float ox = (s16)g_rw(0xc26c), oy = (s16)g_rw(0xc293);
@@ -218,6 +249,13 @@ void ui_draw_battle_bars(void)
         ImVec2 a = g2w(cx - w * 0.5f, gy), c = g2w(cx + w * 0.5f, gy);
         float h = fmaxf(2.0f, 0.9f * k), bw = c.x - a.x, below = a.y;
         for (const Float &f : floats) if (f.m == m) draw_float(dl, f, cx, gy, k, nowms);
+        FoeFx fx[3]; int nfx = foe_bars ? foefx_of(m, fx, 3) : 0;
+        if (nfx) {                                                 /* the potions at work: their pictures in a row above the head (and its bar) */
+            float r = 2.6f * k, step = 2 * r + 0.6f * k;
+            bool bar = m >= 5 && (end < endm || ImGui::GetIO().KeyAlt);
+            float y = a.y - (bar ? 1.4f * k : 0) - r - 0.4f * k, x = (a.x + c.x) * 0.5f - step * (nfx - 1) * 0.5f;
+            for (int q = 0; q < nfx; q++) draw_fx_icon(dl, ImVec2(x + step * q, y), r, fx[q]);
+        }
         if (foe_bars && m >= 5 && (end < endm || ImGui::GetIO().KeyAlt)) {   /* an enemy's Endurance left, once it is hurt (Alt: all) */
             float fe = end < 0 ? 0 : end > endm ? 1 : (float)end / endm;
             ImU32 col = fe <= 0.25f ? IM_COL32(240, 70, 50, 240) : IM_COL32(215, 95, 70, 235);
@@ -226,15 +264,20 @@ void ui_draw_battle_bars(void)
             below = a.y + h + 1;
         }
         int act = g_rb((u16)(GV_cbt_action + m));
-        if (reload && m < 5 && (act == 9 || act == 10)) {         /* reloading and aiming: a thin amber line filling up */
+        /* a potion about to be thrown (s014 0e76:1066 f: action 11 until DS:d948[m], 90 to 129 ticks after it began,
+           then 12, the throw): its start is not kept, so seen here (his ask, RC6: as the reload bar) */
+        static u16 throw_start[5], throw_end[5];
+        if (m < 5 && act == 11 && throw_end[m] != g_rw((u16)(0xd948 + 2 * m))) { throw_end[m] = g_rw((u16)(0xd948 + 2 * m)); throw_start[m] = now; }
+        if (reload && m < 5 && (act == 9 || act == 10 || act == 11)) {   /* reloading, aiming, about to throw: a thin amber line filling up */
             u16 s0 = (u16)(g_rw((u16)(0xd948 + 2 * m)) - 10), e0 = g_rw((u16)(0xdaa3 + 2 * m));
+            if (act == 11) { s0 = throw_start[m]; e0 = throw_end[m]; }
             u16 span = (u16)(e0 - s0), done_t = (u16)(now - s0);
             float f = span ? fminf(1.0f, (float)done_t / span) : 1.0f;
             if (done_t > span) f = (s16)done_t < 0 ? 0.0f : 1.0f;
             float rh = fmaxf(2.0f, 0.7f * k);
             ImVec2 r0(a.x, below);
             dl->AddRectFilled(ImVec2(r0.x - 1, r0.y - 0.5f), ImVec2(r0.x + bw + 1, r0.y + rh + 0.5f), IM_COL32(10, 6, 2, 170));
-            dl->AddRectFilled(r0, ImVec2(r0.x + bw * f, r0.y + rh), act == 10 ? IM_COL32(250, 214, 110, 235) : IM_COL32(205, 150, 60, 220));
+            dl->AddRectFilled(r0, ImVec2(r0.x + bw * f, r0.y + rh), act != 9 ? IM_COL32(250, 214, 110, 235) : IM_COL32(205, 150, 60, 220));
         }
     }
     dl->PopClipRect();
@@ -244,12 +287,13 @@ void ui_draw_battle_bars(void)
    "Click: attack", or why not ("No clear shot"), the first line of the info, or alone by the pointer */
 extern "C" const char *orders_hint(void);
 extern "C" int ui_pointer_on_cover(void);
-extern "C" int levelwalk_door_at(int gx, int gy), levelwalk_door_open(int n);   /* (mods/levelwalk.c) */          /* (ui/margins.cpp) */
+extern "C" int levelwalk_door_at(int gx, int gy), levelwalk_door_open(int n), levelwalk_chest_at(int gx, int gy), levelwalk_stairs_at(int gx, int gy), levelwalk_wayout_at(int gx, int gy);   /* (mods/levelwalk.c) */          /* (ui/margins.cpp) */
 extern "C" int plat_pointer_outside(void);
 static void hint_line(const char *h)
 {
-    bool no = strncmp(h, "Click", 5) != 0;
-    ImGui::TextColored(no ? ImVec4(0.62f, 0.20f, 0.12f, 1) : ImVec4(0.18f, 0.40f, 0.16f, 1), "%s", h);
+    /* green what a click does, red why it cannot be done; a thing on the field named (a door, a chest) in plain ink */
+    bool yes = strncmp(h, "Click", 5) == 0, place = !strncmp(h, "Door:", 5) || !strncmp(h, "Chest", 5) || !strncmp(h, "Stairs", 6) || !strncmp(h, "Way out", 7);
+    ImGui::TextColored(place ? ImVec4(0.17f, 0.10f, 0.04f, 1) : yes ? ImVec4(0.18f, 0.40f, 0.16f, 1) : ImVec4(0.62f, 0.20f, 0.12f, 1), "%s", h);
 }
 extern "C" int enemyview_human(int i);         /* (mods/enemyview.c: a man with armor and weapons, or natural ones) */
 extern ImVec2 ptr_lo, ptr_hi; extern int ptr_frame;   /* (ui/overlay_text.cpp: where the game's pointer was drawn) */
@@ -274,13 +318,13 @@ static void ways_intro(void)
 {
     if (config_get_int("battle.ways_seen", 0) || !config_get_int("battle.intro_seen", 0) || !combat_improved() || !config_get_int("battle.volley_toggle", 1)) return;
     config_set_int("battle.ways_seen", 1); config_save();
-    std::string t = "The picture at the lower left of each member's box is their way of fighting: what they do until you give them an order. "
+    std::string t = "The picture at the lower left of each member's box is their fighting style: what they do until you give them an order. "
                     "Click it to choose another. ";
     t += STYLE_NOTE;
     t += "\n\n";
     for (int k = 0; k < STYLE_CHOICES; k++) { t += style_name(STYLE_ORDER[k]); t += ": "; t += style_brief(STYLE_ORDER[k]); t += "\n"; }
-    t += "\nEveryone starts as a Skirmisher. Each character keeps the way you choose, battle to battle.";
-    ui_alert("Each member's way of fighting", t.c_str(), "Darklands+; F12 > Settings > Battles > Improved combat.");
+    t += "\nEveryone starts as a Skirmisher. Each character keeps the style you choose, battle to battle.";
+    ui_alert("Each member's fighting style", t.c_str(), "Darklands+; F12 > Settings > Battles > Improved combat.");
 }
 /* the first battle with the easier controls: what changed, once (battle.intro_seen) */
 static void battle_intro(void)
@@ -296,7 +340,7 @@ static void battle_intro(void)
              "(Skirmisher, Archer, Charger, or Manual). An order you give is carried out, then they go back to their way.\n\n"
              "Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.\n\n"
              "While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does.",
-             "All this is Darklands+; each part can be switched off, for the game's own ways, in F12 > Settings > Battles. F11 lists the battle's keys and clicks.");
+             "All this is Darklands+; each part can be switched off, for the original game's controls, in F12 > Settings > Battles. F11 lists the battle's keys and clicks.");
 }
 
 /* battle.foe_arrow: no enemy of the fight on the screen, but some on this floor - an arrow at the
@@ -371,11 +415,20 @@ void ui_draw_battle_info(void)
     if (ui_pointer_on_cover()) return;                  /* (on the order strip or a chooser: not the field's) */
     int gx, gy; plat_mouse_game(&gx, &gy);
     { int cx, cy, cw, ch; if (hdtext_game_cursor(&cx, &cy, &cw, &ch)) { gx = cx; gy = cy; } }
-    int mx = gx - 60, my = gy, n = (s8)g_rb(GV_hotspot_count), best = -1, by = -32768;
+    int mx = gx - 60, my = gy, n = (s8)g_rb(GV_hotspot_count), best = -1, by = -32768, hx0 = 0, hy0 = 0, hx1 = 0, hy1 = 0;
     const char *hint = mx >= 0 && mx < 0x104 && !plat_pointer_outside() ? orders_hint() : nullptr;
     {   /* a door under the pointer, out of a fight: that it can be used, and how (mods/levelwalk.c) */
         int d = mx >= 0 && mx < 0x104 && !plat_pointer_outside() ? levelwalk_door_at(gx, gy) : -1;
         if (d >= 0) hint = levelwalk_door_open(d) ? "Door: click to walk there and close it" : "Door: click to walk there and open it";
+        /* a chest: what it is, so it stands out from the furniture that does nothing (its lock or trap not told) */
+        /* the things on the field that can be used, named under the pointer (furniture that does nothing is not): out of a fight what a
+           click does there (mods/levelwalk.c levelwalk_door_click), in a fight what they are */
+        if ((!hint || strncmp(hint, "Click", 5)) && d < 0 && mx >= 0 && mx < 0x104 && !plat_pointer_outside()) {
+            bool calm = !g_rb(GV_real_combat);
+            if (levelwalk_stairs_at(gx, gy) >= 0) hint = calm ? "Stairs: click to walk there and take them" : "Stairs";
+            else if (levelwalk_chest_at(gx, gy) >= 0) hint = calm ? "Chest: click to walk there, then choose what to do with it" : "Chest: open it from the orders of a member beside it";
+            else if (levelwalk_wayout_at(gx, gy) >= 0) hint = calm ? "Way out: click to walk there; then Exit Battlefield (X) for each member" : "Way out: a member standing here can leave (Exit Battlefield, X)";
+        }
     }
     if (hint && (!ui_battle_info || n <= 0 || n > 40)) n = 0;          /* (the hint alone) */
     else if (!ui_battle_info || mx < 0 || n <= 0 || n > 40) return;
@@ -384,7 +437,7 @@ void ui_draw_battle_info(void)
         int m = g_rb((u16)(GV_hotspot_cbt + k));
         if (m >= 13 || mx < x0 || mx > x1 || my < y0 || my > y1) continue;
         int cyy = (s16)g_rw(CBF(m, CB_Y));
-        if (cyy > by) { by = cyy; best = m; }
+        if (cyy > by) { by = cyy; best = m; hx0 = x0; hy0 = y0; hx1 = x1; hy1 = y1; }
     }
     if (best < 0) {
         if (!hint) return;
@@ -409,16 +462,48 @@ void ui_draw_battle_info(void)
     if (name.empty()) name = best < 5 ? "?" : "Enemy";
     const char *cond = st == 3 ? "dead" : st == 2 ? "unconscious" : endm <= 0 ? "" : end * 4 <= endm ? "badly hurt" : end * 2 <= endm ? "hurt" : end < endm ? "a little hurt" : "unhurt";
     if (st == 1 && strm > 0 && str * 2 <= strm) cond = "gravely wounded";
-    place_by_pointer(g2w((float)gx, (float)gy));
+    if (hint) {                                          /* what a click does: by the pointer, where the eye is */
+        place_by_pointer(g2w((float)gx, (float)gy));
+        if (ImGui::Begin("##clickhint", nullptr, INFO_FLAGS)) {
+            ImGui::PushFont(ui_font_overlay);
+            ImGui::SetWindowFontScale(ui_text_px() * 0.85f / ui_font_overlay->FontSize);
+            hint_line(hint);
+            ImGui::PopFont();
+        }
+        ImGui::End();
+    }
+    /* who it is: in a top corner of the field, not by the pointer over the fighters round the one pointed at
+       (his ask, RC6: tooltips put where they never get in the way). The left corner, or the right while the
+       pointer or the one pointed at is under the left one */
+    static ImVec2 last_size(0, 0);                      /* (the window's size the frame before: it sizes itself) */
+    {
+        ImVec2 f0 = g2w(60, 0), f1 = g2w(320, 200), mp = ImGui::GetIO().MousePos;
+        float pad = ui_text_px() * 0.4f;
+        ImVec2 h0 = g2w((float)hx0 + 60, (float)hy0), h1 = g2w((float)hx1 + 60, (float)hy1);
+        ImRect corner(f0.x, f0.y, f0.x + last_size.x + 2 * pad, f0.y + last_size.y + 2 * pad);
+        bool right = corner.Contains(mp) || corner.Overlaps(ImRect(h0, h1));
+        ImGui::SetNextWindowPos(right ? ImVec2(f1.x - pad, f0.y + pad) : ImVec2(f0.x + pad, f0.y + pad), ImGuiCond_Always, ImVec2(right ? 1.0f : 0.0f, 0.0f));
+        ImGui::SetNextWindowBgAlpha(0.92f);
+    }
     if (ImGui::Begin("##battleinfo", nullptr, INFO_FLAGS)) {
+        last_size = ImGui::GetWindowSize();
         ImGui::PushFont(ui_font_overlay);
         ImGui::SetWindowFontScale(ui_text_px() * 0.85f / ui_font_overlay->FontSize);
-        if (hint) hint_line(hint);
         ImGui::TextColored(best < 5 ? ImVec4(0.18f, 0.32f, 0.55f, 1) : ImVec4(0.55f, 0.15f, 0.10f, 1), "%s", name.c_str());
         if (*cond) { ImGui::SameLine(); ImGui::TextDisabled("- %s", cond); }
         if (best < 5 || ui_battle_numbers) ui_rich_textf("{Endurance:%d/%d}   {Strength:%d/%d}", end, endm, str, strm);
         if (wm >= 0 && wm <= 33) ImGui::Text("Melee rating %d, aim %d", def, atk);   /* (+0x20 both ways hand to hand, +0x21 shooting: mods/gamemodel.h) */
         else ImGui::Text("Melee rating %d", def);
+        {   FoeFx fx[3]; int nfx = foefx_of(best, fx, 3);       /* the potions at work on them, and for how long */
+            for (int q = 0; q < nfx; q++) {
+                float fsz = ImGui::GetFontSize();
+                ImVec2 p = ImGui::GetCursorScreenPos();
+                ImGui::Dummy(ImVec2(fsz * 1.1f, fsz));
+                draw_fx_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + fsz * 0.5f, p.y + fsz * 0.55f), fsz * 0.5f, fx[q]);
+                ImGui::SameLine(0, fsz * 0.3f);
+                ui_rich_text(fx_words(fx[q]).c_str());
+            }
+        }
         if (best >= 5 && st == 1 && g_rb((u16)(GV_cbt_ends_battle + best)) == 1)
             ImGui::TextColored(ImVec4(0.55f, 0.15f, 0.10f, 1), "The master of this place: once this enemy has fallen and the fight is over, the place is won.");
         auto wid = [](int t) -> int {                           /* a weapon type's item (its name, its picture); -1 none */

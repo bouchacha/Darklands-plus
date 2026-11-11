@@ -267,7 +267,7 @@ void look_clock(void)
             ImGui::PopID();
         }
         ui_hint("Shown while hours pass (at the inn, waiting, traveling on a card). The tower dial follows the great clocks of about 1400 (Wells, Prague); "
-                "the copper astrolabe is the game's own clock, drawn anew so that it stays sharp.");
+                "the copper astrolabe is the game's own clock, redrawn so that it stays sharp.");
     }
 
 }

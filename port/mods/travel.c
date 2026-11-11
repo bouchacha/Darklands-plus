@@ -270,7 +270,7 @@ static int pending_check(void)
     if (plat_ticks_ms() - pend_t > 60000) { pend_loc = -1; return 0; }
     if (!map_ready()) return 0;
     int loc = pend_loc; pend_loc = -1;
-    if (!travel_to_loc(loc, pend_name)) { void ui_notice(const char *); ui_notice("No way there from here."); return 0; }
+    if (!travel_to_loc(loc, pend_name)) { void ui_notice(const char *); ui_notice("No route there from here."); return 0; }
     return 1;
 }
 

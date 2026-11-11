@@ -257,7 +257,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     if (getenv("DL_RESTARTED")) {
         const char *ee = getenv("DL_ERROR_EXIT");
         if (ee && atoi(ee)) ui_notice_for("Darklands stopped because of an error. Your saves are safe: Load is in the Game menu (right-click). F12 > About > Report a problem makes a report of it.", 30000);
-        else ui_notice_for("The party's journey has ended. Load a saved game to go on: Load in the Game menu (right-click).", 20000);
+        else ui_notice_for("The party's journey has ended. Load a saved game to continue: Load in the Game menu (right-click).", 20000);
     }
     halloffame_set_renderer(ren);
     gamepics_set_renderer(ren); partypanel_set_renderer(ren); partypanel_init();

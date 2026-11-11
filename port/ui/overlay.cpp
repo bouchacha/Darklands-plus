@@ -455,11 +455,14 @@ static void draw_card_help(void)
     }
 }
 
-/* a saint learned: its description for a while (the Companion showed the clue book's text
- * then). saints_known (far 2e38:082c, 20 bytes per member) is watched; a bit or two
+/* a saint learned: its description (the Companion showed the clue book's text then), while the card
+ * it was learned on stays (a monastery's, a library's): it goes with that card, not some seconds later
+ * over the town or the map (his ask, 1.4.7-RC6: it stayed "up to leaving a city"); learned off a card,
+ * some seconds. saints_known (far 2e38:082c, 20 bytes per member) is watched; a bit or two
  * appearing while no game is being loaded or made is a saint learned. */
 #include "../runtime/dispatch.h"
 static u8 sk_prev[5][20]; static int sk_have, learned_saint = -1, learned_by = -1; static u32 learned_t;
+static char learned_card[16];                                   /* (the card it was learned on; "" none) */
 static void watch_saints(void)
 {
     u8 cur[5][20];
@@ -471,7 +474,11 @@ static void watch_saints(void)
             u8 add = (u8)(cur[m][i] & ~sk_prev[m][i]);
             for (int b = 0; b < 8; b++) if (add & (0x80 >> b)) { n++; ls = i * 8 + b; lm = m; }
         }
-        if (n >= 1 && n <= 2 && ls < (int)gamedata.saints.size()) { learned_saint = ls; learned_by = lm; learned_t = plat_ticks_ms(); }
+        if (n >= 1 && n <= 2 && ls < (int)gamedata.saints.size()) {
+            learned_saint = ls; learned_by = lm; learned_t = plat_ticks_ms();
+            learned_card[0] = 0;
+            if (game_mode() == GM_CARD) g_str(G_DGROUP, GV_card_name, learned_card, sizeof learned_card);
+        }
     }
     memcpy(sk_prev, cur, sizeof cur); sk_have = 1;
 }
@@ -479,8 +486,11 @@ static void draw_learned(void)
 {
     if (learned_saint < 0) return;
     u32 age = plat_ticks_ms() - learned_t;
-    if (age > 12500) { learned_saint = -1; return; }
-    float a = age < 11500 ? 1.0f : (12500 - age) / 1000.0f;
+    if (learned_card[0]) {                                        /* (on its card: until another card, or none) */
+        char cn[16] = ""; if (game_mode() == GM_CARD) g_str(G_DGROUP, GV_card_name, cn, sizeof cn);
+        if (age > 2500 && strcmp(cn, learned_card)) { learned_saint = -1; return; }   /* (at least a moment: a card after it shown at once) */
+    } else if (age > 12500) { learned_saint = -1; return; }
+    float a = learned_card[0] || age < 11500 ? 1.0f : (12500 - age) / 1000.0f;
     const Saint &t = gamedata.saints[learned_saint];
     char who[16] = ""; if (learned_by >= 0) g_str(G_DGROUP, (u16)(G_MEMBER(learned_by) + G_M_SHORTNAME), who, sizeof who);
     std::string head = (who[0] ? game_text(who, sizeof who) + " learned of " : std::string("Learned of ")) + t.name;

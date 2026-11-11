@@ -181,6 +181,31 @@ int testcmd_run(const char *cmd, const char *arg)
                 fprintf(stderr, "potion %x q%d for %d: bonus byte %02x, armor byte %02x, fire %d\n", code, q, m, g_rb((u16)(G_MEMBER(m) + 0x34)), g_rb((u16)(G_MEMBER(m) + 0x41)), (s8)g_rb((u16)(G_MEMBER(m) + 0x10)));
             }
         }
+        else if (!strcmp(cmd, "uadditem")) {            /* test: member m given n of item code (hex) at quality q, a record of its own: uadditem:0,62,45,3 */
+            int m = 0, code = 0x62, q = 45, k = 1; sscanf(arg, "%d,%x,%d,%d", &m, &code, &q, &k);
+            int n = m >= 0 && m < 5 ? g_rb((u16)(G_MEMBER(m) + G_M_NITEMS)) : 64;
+            if (n < 64) {
+                u16 o = G_ITEM(m, n);
+                ww(G_FAR2E38, o, (u16)code); wb(G_FAR2E38, (u16)(o + 2), 0); wb(G_FAR2E38, (u16)(o + 3), (u8)q); wb(G_FAR2E38, (u16)(o + 4), (u8)k); wb(G_FAR2E38, (u16)(o + 5), 0);
+                g_wb((u16)(G_MEMBER(m) + G_M_NITEMS), (u8)(n + 1));
+                if (g_rb(GV_in_battle) == 1) g_wb(CBF(m, CB_NITEMS), (u8)(n + 1));
+                fprintf(stderr, "added %d of item %x q%d to member %d (record %d)\n", k, code, q, m, n);
+            }
+        }
+        else if (!strcmp(cmd, "uallexits")) {           /* test (in a castle, mine or dungeon, paused): every floor's stairs and ways out, each floor loaded in turn (level_switch), then the floor shown again */
+            int nf = g_rb(0xd661), here = (s8)g_rb(GV_floor_shown);   /* (D_d661: the floors) */
+            for (int f = 0; f < nf && f < 16; f++) {
+                u16 a[1] = { (u16)f }; game_call_far(GF_level_switch, 1, a);
+                int ne = (s8)rb(G_FAR20A5, 0x2fb6), nh = (s8)rb(G_FAR20A5, 0x2184);
+                fprintf(stderr, "allexits floor %d:", f);
+                for (int k = 0; k < ne && k < 6; k++) { u16 r0 = (u16)(0x2fb8 + 14 * k); fprintf(stderr, " [exit %d at cell %d,%d to %d (+7 %d)]", k, (s16)rw(G_FAR20A5, r0) / 32, (s16)rw(G_FAR20A5, (u16)(r0 + 2)) / 16, (s8)rb(G_FAR20A5, (u16)(r0 + 6)), (s8)rb(G_FAR20A5, (u16)(r0 + 7))); }
+                { int nw = (s8)rb(G_FAR20A5, 0x3326);           /* (the ways out of the battlefield: count 20a5:3326, 10-byte records at 3328: x, y, w, h; s014 19cd:209a) */
+                  for (int k = 0; k < nw && k < 12; k++) { u16 r0 = (u16)(0x3328 + 10 * k); fprintf(stderr, " <way out %d at %d,%d %dx%d: cell %d,%d>", k, (s16)rw(G_FAR20A5, r0), (s16)rw(G_FAR20A5, (u16)(r0 + 2)), (s16)rw(G_FAR20A5, (u16)(r0 + 4)), (s16)rw(G_FAR20A5, (u16)(r0 + 6)), (s16)rw(G_FAR20A5, r0) / 32, (s16)rw(G_FAR20A5, (u16)(r0 + 2)) / 16); } }
+                for (int k = 0; k < nh && k < 50; k++) { u16 r0 = (u16)(0x2186 + 14 * k); u16 fn = rw(G_FAR20A5, (u16)(r0 + 6)); if (fn != 0x1815 && fn != 0x1833) continue; fprintf(stderr, " {%s b %d at %d,%d}", fn == 0x1815 ? "reveal" : "card", (s16)rw(G_FAR20A5, (u16)(r0 + 12)), (s16)rw(G_FAR20A5, r0) / 32, (s16)rw(G_FAR20A5, (u16)(r0 + 2)) / 16); }
+                fprintf(stderr, "\n");
+            }
+            u16 a[1] = { (u16)here }; game_call_far(GF_level_switch, 1, a);
+        }
         else if (!strcmp(cmd, "uicongrid")) { void ui_icon_grid_toggle(void); ui_icon_grid_toggle(); }   /* test: the potions' and ingredients' pictures */
         else if (!strcmp(cmd, "usainttab")) {           /* test: each saint's table entry t[0..6] (day, class, min x, max, virtue, base, t6), through saint_fns */
             u16 tseg = (u16)(LOADSEG + 0x290e), vseg = (u16)(LOADSEG + 0x09c0);

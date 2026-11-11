@@ -530,3 +530,28 @@ covered and found, and what it could not check.
   go at for want of a way, the box says "no way" (ways_blocked). His "Chargers still shoot": the volley was
   loosed while they were Skirmishers; none after. (3) "4 against 4 and two still parry": auto-parry counted
   foes within reach, which in a press is all of them: it counts foes whose target is the member.
+- 2026-11-11 (next version, his asks and reports 102254, 110134 and the Templars' fortress, build 1216):
+  (1) Potions: SV_SHARE (sheetview.c) gives one at a time (give_one) until every member on their feet has
+  the same, the odd ones to the first; the battle tray adds the chosen member's drinkables (sheet_drinkable),
+  drunk at a safe point (sheet_battle_drink: use_potion, then item_take_one, as the sheet's Drink); every
+  potion's tooltip ends with ns_potion_effect. Shared potions only looked into (his ask: no implementation).
+  (2) Effects on fighters: mods/foefx.c reads cbt_mods (DS:a532: the lowered attributes and skills, held, and
+  the three ends on the battle's clock) and watches effect_spell (s019 1ef8:0000) for which potion set each
+  end; ui/battleoverlay.cpp draws a roundel above the head and lists them in the fighter's info. The throw's
+  wind-up (action 11 until DS:d948[m], s014 0e76:1066) shares the reload bar.
+  (3) The level map: what the view showed was put down for the floor shown before lv_keep had settled on it,
+  so during the stairs chain below a floor got its neighbour's rooms (his "areas beyond the walls"); marking
+  now waits for it, and remembered floor is drawn only where the floor has floor art. The chain itself: the
+  single-file followers' walks went on onto the stairs they had arrived by (take_exit_hook: a floor change
+  within 2 s of the party's, out of a fight, stops the member instead). The ways out (20a5:3326, 10-byte
+  records; the "near an exit" bit, s014 19cd:209a) are drawn: the fortress's is the graveyard hall's north
+  row and east end, found with uallexits (every floor loaded in turn), tested by leaving it in his save.
+  (4) One rule for orders in a pause (orders.c give_now): out of a fight every order runs at once; in a fight
+  the first order of a pause says it waits for Space. A click on stairs, a chest or a way out walks there
+  (levelwalk.c levelwalk_door_click); a chest or way out then chooses the leader, so its orders are on the
+  bar and a trap is not sprung for the player.
+  (5) Tooltips: none while the wheel turns or a button is held (BeginTooltipEx); a row of a list gets its
+  tooltip at its side (tip_auto); the fighter's info in a top corner of the field; "Can't walk there" said on
+  the click (orders.c click_hook), not under the pointer; the learned saint goes with its card.
+  (6) Copy: "fighting style", "no path", "no clear shot", "no ammo", "permanently", "continue", "route";
+  the load tooltip a line per effect with its numbers (ui_load_lines).

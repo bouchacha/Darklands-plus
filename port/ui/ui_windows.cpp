@@ -296,7 +296,7 @@ void help_window(void)
                 row("Click a member", "then click an enemy (attack) or a spot (walk there): that click gives the order");
                 row("1 to 5", "select a member; Esc: cancel the order being given");
                 if (config_get_int("battle.panel_select", 1)) row("A member's box at the left", "in a fight, click: select them (double-click: and move the view to them); right-click: their sheet. Walking a castle, mine or dungeon with no enemy engaged, click: their sheet");
-                if (config_get_int("battle.volley_toggle", 1) && config_get_int("battle.improved", 1)) row("The picture at a box's lower left", "that member's way of fighting, what they do until you give them an order: click it to choose another");
+                if (config_get_int("battle.volley_toggle", 1) && config_get_int("battle.improved", 1)) row("The picture at a box's lower left", "that member's fighting style: what they do until you give them an order: click it to choose another");
                 row("The buttons at the foot of the field", "the selected member's orders, each in the same place for everyone, its key on it (an order not open to them dimmed); their potions and items to throw or use in a grid just above. For a member already fighting, an attack is given against that enemy at once. Fast forward and Resume stand at the top of the right margin");
             } else
                 row("Click a member", "then click an enemy, a spot or a menu choice; Enter gives the order");
@@ -358,8 +358,8 @@ void help_window(void)
             row("D", "in the equipment list: drop the chosen item (with Shift: all of them)");
         }
         orn_septext("Keys of the original game");
-        if (!ui_original_mode()) row("Right-click", "the menu bar: click an entry (or hold the button and let go on it); a click elsewhere or any key closes it; F10 with the keyboard");
-        else row("Right mouse button", "the menu bar, while it is held: let go on an entry (F10 with the keyboard)");
+        if (!ui_original_mode()) row("Right-click", "the menu bar: click an entry (or hold the button and release it on one); a click elsewhere or any key closes it; F10 with the keyboard");
+        else row("Right mouse button", "the menu bar, while it is held: release it on an entry (F10 with the keyboard)");
         row("Alt+S / Alt+L", "save / load, with a comment (the original's screens list nine saves)");
         row("Alt+O", "the marching order");
         row("Alt+D", "difficulty    Alt+M music    Alt+F sound effects");

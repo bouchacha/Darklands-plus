@@ -148,9 +148,9 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
     { "Heals 30% of lost Endurance. Agility +4 to 7, Stealth +15 to 29, Healing +10 to 19.",
       "",
       0, 0, 0, 2 },   /* 40 St.Dymphna */
-    { "Endurance +4 to 7, Intelligence +6 to 11, Perception +8 to 15, Riding +8 to 15, every weapon skill +6 to 11. Every member's Virtue is raised to at least 20, for good, and the party loses a quarter of its money.",
+    { "Endurance +4 to 7, Intelligence +6 to 11, Perception +8 to 15, Riding +8 to 15, every weapon skill +6 to 11. Every member's Virtue is raised to at least 20, permanently, and the party loses a quarter of its money.",
       "Endurance is raised past its maximum for a day, not healed; a rich party loses less than a quarter (the game counts only part of the purse).",
-      "Heals 4 to 7 Endurance (up to its maximum). Intelligence +6 to 11, Perception +8 to 15, Riding +8 to 15, every weapon skill +6 to 11. Every member's Virtue is raised to at least 20, for good, and the party loses a quarter of its money.", "", 0, 6 },   /* 41 St.Edward, Confessor */
+      "Heals 4 to 7 Endurance (up to its maximum). Intelligence +6 to 11, Perception +8 to 15, Riding +8 to 15, every weapon skill +6 to 11. Every member's Virtue is raised to at least 20, permanently, and the party loses a quarter of its money.", "", 0, 6 },   /* 41 St.Edward, Confessor */
     { "Artifice +25 to 74, Alchemy +8 to 15.",
       "",
       "Blades, hammers and maces, polearms, crossbows and guns of the one prayed for count 10 points better in quality. Artifice +25 to 74, Alchemy +8 to 15.", "", 0, 0 },   /* 42 St.Eligius */
@@ -202,7 +202,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
     { "Heals 40% of lost Endurance and 10% of lost Strength. Agility lowered by 4 to 7, the skills of the weapons in hand lowered by 15 to 24, Stealth +30 to 59, Woodwise +5 to 9, Streetwise +50 to 89.",
       "Woodwise and Streetwise the other way around (the text: a little Streetwise, a tremendous Woodwise); no money.",
       "Heals 40% of lost Endurance and 10% of lost Strength. Agility lowered by 4 to 7, the skills of the weapons in hand lowered by 15 to 24, Stealth +30 to 59, Woodwise +50 to 89, Streetwise +5 to 9. A party with neither florins nor groschen gets 3 to 9 groschen.", "", 0, 0 },   /* 58 St.Giles */
-    { "Intelligence +5 to 9, Perception +15 to 24, Alchemy +40 to 59, Artifice +10 to 19. Costs a point of Strength (a wound) and a point of Virtue, for good.",
+    { "Intelligence +5 to 9, Perception +15 to 24, Alchemy +40 to 59, Artifice +10 to 19. Costs a point of Strength (a wound) and a point of Virtue, permanently.",
       "",
       0, 0, 0, 0 },   /* 59 St.Giles of Portugal */
     { "Heals 30% of lost Endurance. Latin +20 to 39, Read & Write +25 to 49.",
@@ -442,19 +442,19 @@ static const char *special(int s, const char *tok, char *buf, size_t n)
     (void)s;
     if (!strcmp(tok, "INSTR")) return sheetview_shared() ? "If anyone in the party carries a musical instrument (with Darklands+'s shared pack, it need not be the one prayed for)" : "If the one prayed for carries a musical instrument";
     if (!strcmp(tok, "FIRE1")) return arm ? "Fire protection 90 for the one prayed for." :
-        fire ? "Meant as protection against fire, but the game adds it to the armor instead, for good (with the fix \"No invulnerability from fire protection\" on, it does nothing)."
-             : "Meant as protection against fire, it gives the one prayed for armor +32 in battle instead, for good.";
+        fire ? "Meant as protection against fire, but the game adds it to the armor instead, permanently (with the fix \"No invulnerability from fire protection\" on, it does nothing)."
+             : "Meant as protection against fire, it gives the one prayed for armor +32 in battle instead, permanently.";
     if (!strcmp(tok, "CRISPIN")) return arm ? "Every member's worn armor counts 10 points better in quality."
-                                            : "Every member's worn body and leg armor +10 quality, for good, piling up with each prayer.";
-    if (!strcmp(tok, "ARM1")) return arm ? "Armor one level thicker." : "Armor one level thicker, for good, piling up.";
-    if (!strcmp(tok, "ARM2")) return arm ? "Armor two levels thicker." : "Armor two levels thicker, for good, piling up.";
+                                            : "Every member's worn body and leg armor +10 quality, permanently, piling up with each prayer.";
+    if (!strcmp(tok, "ARM1")) return arm ? "Armor one level thicker." : "Armor one level thicker, permanently, piling up.";
+    if (!strcmp(tok, "ARM2")) return arm ? "Armor two levels thicker." : "Armor two levels thicker, permanently, piling up.";
     if (!strcmp(tok, "NEPOMUK")) return nep ? "May raise the reputation by 15 to 24 in Prag, and by 10 to 19 in St. Joachimsthal, Bürglitz, Kuttenberg, Olmütz or Brünn (nowhere else)."
         : "May raise the reputation by 10 to 19 in St. Joachimsthal, Bürglitz, Kuttenberg, Olmütz or Brünn (nowhere else); in Prag it goes to a place picked at random.";
     if (!strcmp(tok, "PAUL")) return pauls ? "Heals 10% of lost Strength. Endurance +5 to 9, Charisma +8 to 15, Speak Common +20 to 39, Latin +10 to 19, Read & Write +40 to 79." : "Heals all lost Endurance and Strength. Intelligence lowered by half its maximum.";
     if (!strcmp(tok, "SIMPLE")) return pauls ? "Heals all lost Endurance and Strength. Intelligence lowered by half its maximum." : "Intelligence +12 to 23, Speak Common and Latin +12 to 26, Read & Write +15 to 29, Healing +10 to 19.";
     if (!strcmp(tok, "POLYCARP")) return arm ? "Every member: fire protection 90." :
-        fire ? "Every member: fire protection 90 for good (and an armor bonus, which the fix \"No invulnerability from fire protection\" cancels)."
-             : "Every member: fire protection 90 for good, and armor +48 for good (meant as protection against fire).";
+        fire ? "Every member: fire protection 90 permanently (and an armor bonus, which the fix \"No invulnerability from fire protection\" cancels)."
+             : "Every member: fire protection 90 and armor +48, both permanent (meant as protection against fire).";
     snprintf(buf, n, "?");
     return buf;
 }

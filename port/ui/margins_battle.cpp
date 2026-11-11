@@ -109,7 +109,10 @@ static const char *order_tip(int kind)
 }
 /* the battle menus' Attack and Orders entries (s016 1ef8's), each with what it is: kind (ordericons.h),
    a potion's picture, its label */
-struct OrderEntry { int j, k, s2, kind, pid, pq, count = 0; std::string label, key; };
+struct OrderEntry { int j, k, s2, kind, pid, pq, count = 0; std::string label, key; int drink_m = -1; };   /* (drink_m: a potion to drink, of that member: j -3) */
+std::string ns_potion_effect(int id);
+extern "C" int sheet_battle_drink(int m, int id, int q);
+extern "C" int sheet_drinkable(int id);
 /* the orders as pictures alone (battle.order_icons): the words in the tooltip */
 static bool icons_only(void) { return config_get_int("battle.order_icons", 1) != 0; }
 /* a thing among the orders that is not a potion (a lantern, a rope ...): its picture; -1 none */
@@ -185,6 +188,12 @@ static void order_button(ImDrawList *dl, ImVec2 a, const OrderEntry &e, bool ena
         dl->AddText(ImGui::GetFont(), fs, ImVec2(p.x + 1, p.y + 1), IM_COL32(0, 0, 0, 220), n);
         dl->AddText(ImGui::GetFont(), fs, p, IM_COL32(250, 236, 200, 255), n);
     }
+    if (square && e.drink_m >= 0) {                              /* (to drink, not to throw: a blue drop in the lower left corner) */
+        float r = lh * 0.22f; ImVec2 c(a.x + pad * 0.35f + r, b.y - pad * 0.35f - r);
+        dl->AddCircleFilled(c, r, IM_COL32(70, 120, 210, 255));
+        dl->AddTriangleFilled(ImVec2(c.x - r * 0.86f, c.y - r * 0.5f), ImVec2(c.x + r * 0.86f, c.y - r * 0.5f), ImVec2(c.x, c.y - r * 2.1f), IM_COL32(70, 120, 210, 255));
+        dl->AddCircle(c, r, IM_COL32(20, 30, 60, 220), 0, 1.0f);
+    }
     if (square && !e.key.empty() && e.pq < 0) {                   /* (its key, as the menu has it: in the lower left corner, in the plain face) */
         ImFont *kf = ui_font_text ? ui_font_text : ImGui::GetFont();
         float fs = ImGui::GetFontSize() * 0.72f;
@@ -203,6 +212,7 @@ static void order_button(ImDrawList *dl, ImVec2 a, const OrderEntry &e, bool ena
         if (a.y > ImGui::GetIO().DisplaySize.y * 0.5f) { ImVec2 wp = ImGui::GetWindowPos(), ws = ImGui::GetWindowSize(); ui_tip_beside(ImVec2(a.x, wp.y), ImVec2(b.x, wp.y + ws.y)); }   /* (the strip's whole height: above it) */
         else ui_tip_beside(a, b);
         std::string t = square ? e.label + (order_tip(e.kind) ? std::string("\n") + order_tip(e.kind) : std::string()) : order_tip(e.kind);
+        if (e.pid >= 95 && e.pid <= 116) { std::string fx = ns_potion_effect(e.pid); if (!fx.empty()) t += "\n" + fx; }   /* (what the potion does: his ask, RC6) */
         margin_tip(t.c_str());
     }
 }
@@ -262,7 +272,26 @@ static void order_buttons(float width, bool with_resume)
         default: last.push_back(e); break;                   /* (Resume, Enemy Info, Done; one of the attacks out of a fight ...) */
         }
     }
+    for (OrderEntry &e : tray) if (e.pid >= 95 && e.pid <= 116 && e.label.compare(0, 6, "Throw:") == 0) e.label = "Throw" + e.label.substr(5);
     std::sort(tray.begin(), tray.end(), [](const OrderEntry &a, const OrderEntry &b) { return a.pid != b.pid ? a.pid < b.pid : a.pq < b.pq; });
+    {   /* the potions the member can drink, after those to throw: a click drinks one at once, as Drink on the sheet
+           (his ask, RC6). The game's battle menus offer none: Party Info's sheet did */
+        std::vector<OrderEntry> drinks;
+        for (int i = 0; i < gm_item_count(sel); i++) {
+            GmItem g; if (!gm_item(sel, i, &g) || !sheet_drinkable(g.id)) continue;
+            bool merged = false;
+            for (OrderEntry &d : drinks) if (d.pid == g.id && d.pq == g.qual) { d.count += g.count; merged = true; }
+            if (merged) continue;
+            OrderEntry o{ -3, -1, -1, OI_NONE, g.id, g.qual, g.count, "", "" }; o.drink_m = sel;
+            drinks.push_back(o);
+        }
+        std::sort(drinks.begin(), drinks.end(), [](const OrderEntry &a, const OrderEntry &b) { return a.pid != b.pid ? a.pid < b.pid : a.pq < b.pq; });
+        for (OrderEntry &d : drinks) {
+            const std::string nm = d.pid < (int)gamedata.items.size() ? gamedata.items[d.pid].name : "potion";
+            d.label = "Drink: " + (d.count > 1 ? std::to_string(d.count) + " " : std::string()) + nm + ", quality " + std::to_string(d.pq);
+            tray.push_back(d);
+        }
+    }
     { OrderEntry *e = find(OI_SURRENDER); if (fight || e) row.push_back(e ? *e : placeholder(OI_SURRENDER)); }
     { OrderEntry *e = find(OI_CANCEL); row.push_back(e ? *e : placeholder(OI_CANCEL)); }
     for (const OrderEntry &e : last) row.push_back(e);
@@ -320,6 +349,7 @@ static void potions_tray(float cx, float bottom, float fs, float maxw)
             const OrderEntry &e = tray[i];
             order_button(dl, ImVec2(x, y), e);
             if (e.j >= 0) { int m = e.j, k = e.k, s2 = e.s2; mclick(ImVec2(x, y), ImVec2(x + bs.x, y + bs.y), [m, k, s2] { menuview_request(m, k, s2); }); }
+            else if (e.drink_m >= 0) { int m = e.drink_m, id = e.pid, q = e.pq; mclick(ImVec2(x, y), ImVec2(x + bs.x, y + bs.y), [m, id, q] { sheet_battle_drink(m, id, q); }); }
             x += bs.x + gap; rowh = fmaxf(rowh, bs.y); xmax = fmaxf(xmax, x - gap);
         }
         ImGui::SetCursorScreenPos(ImVec2(o0.x, y + rowh));

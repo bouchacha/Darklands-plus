@@ -11479,9 +11479,16 @@ bool ImGui::BeginTooltipEx(ImGuiTooltipFlags tooltip_flags, ImGuiWindowFlags ext
     Begin(window_name, NULL, flags | extra_window_flags);
     // Darklands+: a tooltip shows only once the pointer has rested on its thing a moment
     // (GImGui->Style.HoverDelayNormal, 0 none); one just shown, the next is at once (as a menu bar).
-    if (!is_dragdrop_tooltip && g.Style.HoverDelayNormal > 0.0f)
+    // None while the wheel turns or a button is held: a list being scrolled, a thing being clicked or
+    // dragged, then the pointer rests again (his ask, 1.4.7-RC6: tooltips over a list being scrolled).
+    static int dlp_last_frame = -10; static float dlp_wanted; static float dlp_shown_until;
+    if (!is_dragdrop_tooltip && (g.IO.MouseWheel != 0.0f || g.IO.MouseWheelH != 0.0f || g.IO.MouseDown[0] || g.IO.MouseDown[1]))
     {
-        static int dlp_last_frame = -10; static float dlp_wanted; static float dlp_shown_until;
+        dlp_wanted = 0.0f; dlp_shown_until = 0.0f; dlp_last_frame = g.FrameCount;
+        g.CurrentWindow->Hidden = g.CurrentWindow->SkipItems = true;
+    }
+    else if (!is_dragdrop_tooltip && g.Style.HoverDelayNormal > 0.0f)
+    {
         if (g.FrameCount - dlp_last_frame > 1) dlp_wanted = 0.0f;
         if (g.FrameCount != dlp_last_frame) { dlp_wanted += g.IO.DeltaTime; dlp_last_frame = g.FrameCount; }
         if (ImLengthSqr(g.IO.MouseDelta) > 4.0f * 4.0f && dlp_wanted < g.Style.HoverDelayNormal) dlp_wanted = 0.0f;   // (still moving across it)

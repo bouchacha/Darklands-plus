@@ -175,7 +175,7 @@ extern "C" void game_dialog_draw(void)
     std::vector<std::string> lines; float bw = 0;
     if (!t.empty()) wrap_lines(fb, sb, t, wmax - pad * 2, lines);
     for (const std::string &l : lines) bw = fmaxf(bw, fb->CalcTextSizeA(sb, FLT_MAX, 0, l.c_str()).x);
-    const char *foot = game_dialog_kind == 3 ? "Y: yes     N: no" : game_dialog_kind == 2 ? "Any key or click: go on" : "";
+    const char *foot = game_dialog_kind == 3 ? "Y: yes     N: no" : game_dialog_kind == 2 ? "Any key or click: continue" : "";
     const float fs = sb * 0.85f, fw = *foot ? fb->CalcTextSizeA(fs, FLT_MAX, 0, foot).x : 0;
     const float w = fminf(wmax, fmaxf(wmin, fmaxf(tw, fmaxf(bw, fw)) + pad * 2));
     const float rule = !title.empty() && !lines.empty() ? 9 * k : 0;

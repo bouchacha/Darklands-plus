@@ -163,10 +163,10 @@ extern "C" int sheetview_pointed_item(void);
 extern "C" const char *ui_load_effect(int band)
 {
     switch (band) {
-    case 0: return "Light load (up to half of {Endurance} + {Strength}): no hindrance at all. Only what is equipped counts (weapons, armor, shield); items merely carried weigh nothing.";
-    case 1: return "Normal load (up to {Endurance} + {Strength}): blows hand to hand come about a fifth slower, and past 5/8 of it the {Agility} used to dodge falls to two thirds.";
-    case 2: return "Heavy load (up to half as much again): the {Agility} used to dodge falls to two thirds, and to a third past 1 1/4 times {Endurance} + {Strength}. Blows hand to hand come at the usual pace, as with a light load (an oversight in the original game).";
-    default: return "Overloaded (more than 1 1/2 times {Endurance} + {Strength}): blows hand to hand come about two thirds slower, and the {Agility} used to dodge falls to a third, then to nothing past 1 7/8 times {Endurance} + {Strength}.";
+    case 0: return "Light load: up to half of {Endurance} + {Strength}.\nNo hindrance.\nOnly equipped weapons, armor and shield count.";
+    case 1: return "Normal load: up to {Endurance} + {Strength}.\nMelee blows: a little slower.\n{Agility} for dodging: two thirds, once past 5/8 of it.";
+    case 2: return "Heavy load: up to 1 1/2 times {Endurance} + {Strength}.\nMelee blows: at the usual speed (an oversight in the original game).\n{Agility} for dodging: two thirds, then a third past 1 1/4 times.";
+    default: return "Overloaded: more than 1 1/2 times {Endurance} + {Strength}.\nMelee blows: much slower.\n{Agility} for dodging: a third, then none past 1 7/8 times.";
     }
 }
 
@@ -264,26 +264,29 @@ static void header(NsDraw &P, const SheetModel &s)
     P.rect(62, 20.3f, 318, 20.7f, IM_COL32(120, 80, 36, 110));
 }
 
-/* what the load does, for this member now (the game's rules: member_eff_attr2 and the band, s029
-   0e76:013a, for the tests on cards; to_hit_roll and attack_rate, s014 18bf, in melee) */
-static std::string load_effects(const SheetModel &s)
+/* what the load does, for a member now, a line each (the game's rules: member_eff_attr2 and the band, s029 0e76:013a, for the
+   tests on cards; to_hit_roll and attack_rate, s014 18bf, in melee): the band and the numbers it is measured by, then each
+   effect with the value it comes to (his ask, RC6: one paragraph of fractions was "very difficult to understand") */
+std::string ui_load_lines(int L, int cap, int capm, int agl)
 {
-    int L = s.load, cap = s.attr[0] + s.attr[1], capm = s.attr_max[0] + s.attr_max[1], agl = s.attr[2], m = 5 * capm / 4;
     auto part = [](int l, int c, int a, bool one) { return l <= c / 2 ? a : l <= c ? 2 * a / 3 : l <= 3 * c / 2 ? a / 3 : one ? 1 : 0; };
-    int card = part(L, cap, agl, true), dodge = part(L, m, agl, false);
+    int m = 5 * capm / 4, card = part(L, cap, agl, true), dodge = part(L, m, agl, false);
     int band = L <= cap / 2 ? 0 : L <= cap ? 1 : L <= 3 * cap / 2 ? 2 : 3;
-    const char *swing = (L > capm / 2 && L <= capm) ? "a little slower" : L > 3 * capm / 2 ? "much slower" : "at the usual pace";
-    char b[900], ag[300];
-    if (card == dodge) snprintf(ag, sizeof ag, "{Agility} counts as %d of %d, for dodging blows and for card tests (climbing, running, a trap).", card, agl);
-    else snprintf(ag, sizeof ag, "{Agility} counts as %d of %d for dodging blows, %d for card tests (climbing, running, a trap).", dodge, agl, card);
+    const char *swing = (L > capm / 2 && L <= capm) ? "a little slower" : L > 3 * capm / 2 ? "much slower" : "at the usual speed";
+    char b[900];
     snprintf(b, sizeof b,
-             "%s: %d, against {Endurance} + {Strength} %d. Only what is equipped counts (weapons, armor, shield).\n"
-             "Light up to %d, normal up to %d, heavy up to %d, overloaded above.\n\n"
-             "Blows hand to hand come %s. %s\n\n"
-             "Travel, walking in a battle and shooting are not slowed by the load.",
-             LOAD[band], L, cap, cap / 2, cap, 3 * cap / 2, swing, ag);
+             "%s: carrying %d, against {Endurance} + {Strength} %d.\n"
+             "Only equipped weapons, armor and shield count.\n\n"
+             "Melee blows: %s.\n"
+             "{Agility} for dodging: %d of %d.\n"
+             "{Agility} for tests on cards (climbing, running, traps): %d of %d.\n"
+             "Travel, walking and shooting: not slowed.\n\n"
+             "Light up to %d, normal up to %d, heavy up to %d, overloaded above.",
+             LOAD[band], L, cap, swing, dodge, agl, card, agl, cap / 2, cap, 3 * cap / 2);
     return b;
 }
+static std::string load_effects(const SheetModel &s) { return ui_load_lines(s.load, s.attr[0] + s.attr[1], s.attr_max[0] + s.attr_max[1], s.attr[2]); }
+extern "C" const char *ui_load_text(int L, int cap, int capm, int agl) { static std::string t; t = ui_load_lines(L, cap, capm, agl); return t.c_str(); }   /* (the party panel's) */
 
 static void doll(NsDraw &P, const SheetModel &s)
 {
@@ -548,7 +551,8 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         }
         P.click = false; V.dragging = false; sheetview_dragging = 0; V.drag_row = -1;
     }
-    int tip_i = -1;
+    int tip_i = -1, share_n = 0;
+    for (int m = 0; m < 5; m++) share_n += s.present[m] && s.able[m];
     const bool cmp_on = config_get_int("display.shop_compare", 1) != 0;
     static int hover_carried = -1;                         /* (the carried row pointed at last frame: what it would replace is lit) */
     const int cmp_hover = hover_carried;
@@ -602,10 +606,13 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         std::string nm = ns_item_name(it.id);
         if (it.count > 1) nm += " (" + std::to_string(it.count) + ")";
         const ItemDef *d = ns_itemdef(it.id);
-        float name_end = (h || busy) ? RX1 - 59 : RX1 - 2;
+        /* a potion of this member's own, with another member on their feet: Share (his ask, RC6), left of Drink, or in
+           Drink's place for one only to throw */
+        const bool share = it.potion && it.holder >= 0 && share_n >= 2, share_wide = share && it.drinkable && !it.equipped;
+        float name_end = (h || busy) ? RX1 - (share_wide ? 78 : 59) : RX1 - 2;
         if (h && P.mx < name_end) tip_i = i;
         if (it.kept || it.sell) {                          /* kept from selling and dropping: a small red seal at the right; marked to sell: a coin */
-            float kx = (h || busy) ? RX1 - 61 : RX1 - 4;
+            float kx = (h || busy) ? RX1 - (share_wide ? 80 : 61) : RX1 - 4;
             ImVec2 kc = NsDraw::w(kx, y + ROWH * 0.5f);
             if (it.kept) P.dl->AddCircleFilled(kc, 1.5f * P.k, IM_COL32(150, 40, 24, 230));
             else { P.dl->AddCircleFilled(kc, 1.5f * P.k, IM_COL32(214, 168, 60, 255)); P.dl->AddCircle(kc, 1.5f * P.k, IM_COL32(120, 84, 30, 255), 0, fmaxf(1.0f, 0.3f * P.k)); }
@@ -648,6 +655,11 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         bool gear = item_wieldable(d);                    /* (a weapon relic too: the game's item_ready readies it as the weapon it is) */
         bool pack = it.holder < 0;                         /* a row of the shared pack: the actions by kind and quality */
         float x = RX1 - 58;
+        if (share) {
+            float sx = share_wide ? x - 19 : x;
+            if (P.button(sx, y + 1, sx + 18, y + ROWH - 1, "Share", IM_COL32(40, 92, 34, 235), 4.4f)) ns_push(SV_SHARE, it.id, it.qual, 0);
+            if (P.over(sx, y + 1, sx + 18, y + ROWH - 1)) { ns_tip("Share these out evenly among the members on their feet. Any left over go to the first in the party's order."); tip_i = -1; }
+        }
         if (it.drinkable && !it.equipped) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Drink", IM_COL32(52, 70, 120, 235), 4.4f)) { if (pack) ns_push(SV_PDRINK, it.id, it.qual, 0); else ns_push(SV_DRINK, it.idx, 0, 0); } }
         else if (it.equipped == 1) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Unequip", IM_COL32(120, 84, 40, 235), 4.4f)) ns_push(SV_PUTAWAY, it.idx, 0, 0); }
         else if (it.equipped == 2) P.text(fo, NsDraw::FS_SMALL, x + 2, y + 2.4f, soft, "rides it");   /* (the shared pack: their own mount) */
@@ -668,8 +680,8 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
             ImU32 bc = mark == 1 ? IM_COL32(150, 40, 24, 245) : mark == 2 ? IM_COL32(150, 112, 30, 245) : IM_COL32(120, 84, 40, 235);
             if (P.button(x, y + 1, x + 18, y + ROWH - 1, lab, bc, 4.4f)) ns_push(SV_KEEP, it.id, it.qual, next);
             if (P.over(x, y + 1, x + 18, y + ROWH - 1))
-                ns_tip(mark == 1 ? (gear ? "Kept from selling and dropping (Sell spare gear skips it). Click to stop keeping it."
-                                         : "Kept from selling and dropping (Sell spare gear skips it). Click to mark it to sell instead.")
+                ns_tip(mark == 1 ? (gear ? "Kept: never sold or dropped (Sell spare gear skips it). Click to stop keeping it."
+                                         : "Kept: never sold or dropped (Sell spare gear skips it). Click to mark it to sell instead.")
                      : mark == 2 ? "Marked to sell: Sell spare gear in a shop sells it with the spare weapons and armor. Click to clear the mark."
                      : "Keep it: Darklands+ will not sell it (one by one or with Sell spare gear) or drop it until you click again.");
         }

@@ -107,7 +107,7 @@ void losses_frame(void)
         len += (size_t)snprintf(body + len, sizeof body - len, "%s%s: %s.", len ? "\n" : "", nu, part);
         if (len >= sizeof body) len = sizeof body - 1;
     }
-    if (body[0]) ui_alert_rows("Lost for good", body, rows, nr, "The maximum of an attribute, or a skill, is lower now (what it was, and what it is now), and will not come back by itself.");
+    if (body[0]) ui_alert_rows("Lost permanently", body, rows, nr, "The maximum of an attribute, or a skill, is lower now (what it was, and what it is now), and will not come back by itself.");
 }
 
 /* ---------------------------------------------------------------- armour worn down */
@@ -137,7 +137,7 @@ static void wear_hook(void)                  /* s019 1ef8:0968 (i, type, quality
 void losses_battle_frame(void)
 {
     if (!worn_len) return;
-    ui_alert("Armor worn down", worn, "Acid and fire wear armor down for good: a smith's work cannot mend it; a better piece must be bought.");
+    ui_alert("Armor worn down", worn, "Acid and fire wear armor down permanently: a smith's work cannot mend it; a better piece must be bought.");
     worn_len = 0; worn[0] = 0;
 }
 

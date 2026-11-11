@@ -167,7 +167,7 @@ extern "C" void savesview_draw(void)
         if (cur) tag = (S.loading ? "the last loaded or saved, " : "the last used, ") + tag;
         ImU32 tc = cur ? NsDraw::GREEN : dim;
         if (sel && !S.loading) { tag = "will be replaced by this save"; tc = IM_COL32(150, 40, 22, 255); }
-        if (armed) { tag = "click again to delete it for good"; tc = IM_COL32(150, 40, 22, 255); }
+        if (armed) { tag = "click again to delete it permanently"; tc = IM_COL32(150, 40, 22, 255); }
         P.text(fo, NsDraw::FS_SMALL, 0, y + 8.6f, tc, tag, X1 - 3);
         if (!del_hit && P.hit(X0, y, X1, y + ROWH) && P.over(X0, LY0, X1, Y1)) {
             u32 now = plat_ticks_ms();

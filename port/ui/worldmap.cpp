@@ -589,7 +589,7 @@ extern "C" void worldmap_draw(void)
         float bx = ImGui::GetWindowContentRegionMax().x;
         if (on_map) {
             int m = travel_minutes_loc(p.loc, nullptr, nullptr);
-            std::string j = m >= 0 ? "About " + hhmm(m) + " of travel" : std::string("No way there from here");
+            std::string j = m >= 0 ? "About " + hhmm(m) + " of travel" : std::string("No route there from here");
             float bw = ImGui::CalcTextSize("Travel there").x + ImGui::GetStyle().FramePadding.x * 2;
             ImGui::SameLine(bx - bw - ImGui::CalcTextSize(j.c_str()).x - ImGui::GetStyle().ItemSpacing.x * 2);
             ImGui::TextDisabled("%s", j.c_str());
@@ -607,7 +607,7 @@ extern "C" void worldmap_draw(void)
             ImGui::BeginDisabled(land < 0);
             if (ImGui::Button(lb)) ImGui::OpenPopup("##leavetravel");
             ImGui::EndDisabled();
-            if (land < 0 && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) { ImGui::BeginTooltip(); ImGui::TextUnformatted("No way there by land from here."); ImGui::EndTooltip(); }
+            if (land < 0 && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) { ImGui::BeginTooltip(); ImGui::TextUnformatted("No land route there from here."); ImGui::EndTooltip(); }
         } else {
             const char *t = "To travel, be in the overland view or in a town's streets";
             ImGui::SameLine(bx - ImGui::CalcTextSize(t).x); ImGui::TextDisabled("%s", t);

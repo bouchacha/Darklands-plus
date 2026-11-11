@@ -461,7 +461,7 @@ static void stop(const char *why)
     LOG("stop: %s\n", why ? why : "");
     bool failed = why && strcmp(why, "stopped.") && goal >= 0;
     if (failed && !strcmp(why, "not found in this city.") && !is_night() && (visited & ((1u << H_MAIN) | (1u << H_SIDE))))   /* (the main or side streets passed: their ways were all tried) */
-        learn((s16)g_rw(G_CUR_LOC), goal, false, "a walk there found no way");
+        learn((s16)g_rw(G_CUR_LOC), goal, false, "a walk there found no path");
     if (failed && !logon) { fprintf(stderr, "Go to %s failed (%s). The walk:\n%s", DEST[goal].label, why, trail.c_str()); fflush(stderr); }
     if (goal >= 0 && why) { char m[160]; snprintf(m, sizeof m, "Go to %s: %s", DEST[goal].label, why); ui_notice(m); }
     goal = -1;

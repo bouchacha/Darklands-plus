@@ -287,7 +287,7 @@ static void astrolabe_clock(ImDrawList *dl, ImVec2 tl, float kx, float k, int ho
 
 const char *ui_clock_name(int k)
 {
-    static const char *N[6] = { "The game's own", "Tower dial (about 1400)", "Armillary, drawn anew", "Copper astrolabe", "Town clock (Prague, 1410)", "The game's, drawn true" };
+    static const char *N[6] = { "The game's own", "Tower dial (about 1400)", "Armillary, redrawn", "Copper astrolabe", "Town clock (Prague, 1410)", "The game's, drawn true" };
     return k >= 0 && k < 6 ? N[k] : "?";
 }
 void ui_draw_clock_style(int style, ImDrawList *dl, ImVec2 tl, float kx, float k, int hour, int day, int month)

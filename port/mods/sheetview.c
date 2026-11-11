@@ -273,11 +273,43 @@ static int pack_fetch(int w, int id, int q, const char *nm, char *t, size_t tn)
     return r;
 }
 
+static int count_of(int m, int id, int q)
+{
+    int c = 0; GmItem x;
+    for (int i = 0; i < gm_item_count(m); i++) if (gm_item(m, i, &x) && x.id == id && x.qual == q) c += x.count;
+    return c;
+}
+int sheet_drinkable(int id) { return drinkable(id); }
+/* in a battle (the potions tray, ui/margins_battle.cpp): as the sheet's Drink, at a safe point (ns_defer) */
+static void battle_drink_now(int m, int id, int q, int d)
+{
+    (void)d;
+    if (!gm_member_present(m) || gm_member_status(m) != 1 || !drinkable(id)) return;
+    int i = record_of(m, id, q, 1);
+    if (i < 0) return;
+    char nm[32]; item_name(id, nm, sizeof nm);
+    ns_call(GF_use_potion, 2, m, i);
+    if (ns_unwinding) return;
+    ns_call(GF_item_take_one, 2, m, i);
+    if (ns_unwinding) return;
+    char t[96], who[32]; u16 b = G_MEMBER(m); int k = 0;
+    for (; k < 31; k++) { char c = (char)g_rb((u16)(b + 0x2a + k)); if (!c || c == ' ') break; who[k] = c; } who[k] = 0;
+    snprintf(t, sizeof t, "%s drinks the %s.", who, nm);
+    void ui_notice(const char *msg); ui_notice(t);
+    fprintf(stderr, "battle: %s\n", t);
+}
+int sheet_battle_drink(int m, int id, int q)
+{
+    if (record_of(m, id, q, 1) < 0) return 0;
+    ns_defer(battle_drink_now, m, id, q, 0);
+    return 1;
+}
+
 static void act(const NsAction *a, int *who)
 {
     int w = *who, idx = a->a;
     GmItem g; char nm[32] = "", t[160];
-    if (a->type == SV_PREADY || a->type == SV_PDRINK || a->type == SV_PDROP || a->type == SV_KEEP || a->type == SV_PTAKE) {
+    if (a->type == SV_PREADY || a->type == SV_PDRINK || a->type == SV_PDROP || a->type == SV_KEEP || a->type == SV_PTAKE || a->type == SV_SHARE) {
         int id = a->a, q = a->b;
         item_name(id, nm, sizeof nm);
         switch (a->type) {
@@ -294,6 +326,36 @@ static void act(const NsAction *a, int *who)
             if (best == r) snprintf(t, sizeof t, "%s rides the %s.", sheet_model.names[to], nm);
             else { char bn[32] = "mount"; if (best >= 0 && gm_item(to, best, &x)) item_name(x.id, bn, sizeof bn);
                    snprintf(t, sizeof t, "%s carries the %s, but rides the better %s.", sheet_model.names[to], nm, bn); }
+            break; }
+        case SV_SHARE: {                                 /* a potion (id, quality) shared out: each member on their feet the same, the odd ones to the first */
+            int ms[5], n = 0, have[5], total = 0;
+            for (int m = 0; m < gm_party_size(); m++)
+                if (gm_member_present(m) && gm_member_status(m) == 1 && !(g_rb(GV_in_battle) == 1 && (u8)g_rb((u16)(GV_cbt_floor + m)) == 0x9d)) ms[n++] = m;   /* (not one on another floor of a battle) */
+            if (n < 2) return;
+            for (int k = 0; k < n; k++) { have[k] = count_of(ms[k], id, q); total += have[k]; }
+            int moved = 0;
+            for (int guard = 0; guard < 400 && !ns_unwinding; guard++) {
+                int give = -1, take = -1;
+                for (int k = 0; k < n; k++) {
+                    int want = total / n + (k < total % n);
+                    if (have[k] > want && give < 0) give = k;
+                    if (have[k] < want && take < 0) take = k;
+                }
+                if (give < 0 || take < 0) break;
+                int i = record_of(ms[give], id, q, 1);
+                if (i < 0 || (gm_item_count(ms[take]) >= 64 && count_of(ms[take], id, q) == 0)) break;
+                ns_call(GF_give_one, 4, ms[give], ms[take], i, 9);
+                if (ns_unwinding) return;
+                int now = count_of(ms[take], id, q);
+                if (now <= have[take]) break;
+                have[give]--; have[take]++; moved++;
+            }
+            if (ns_unwinding) return;
+            if (!moved) snprintf(t, sizeof t, "%s: already shared out evenly.", nm);
+            else { int p = 0; p += snprintf(t + p, sizeof t - p, "%s shared out:", nm);
+                   for (int k = 0; k < n && p < (int)sizeof t - 24; k++) p += snprintf(t + p, sizeof t - p, "%s %s %d", k ? "," : "", sheet_model.names[ms[k]], have[k]);
+                   snprintf(t + p, sizeof t - p, "."); }
+            member_redraw(w);
             break; }
         case SV_KEEP:
             keep_mark(id, q, a->c);                      /* (no note: the button says it, and the strip) */

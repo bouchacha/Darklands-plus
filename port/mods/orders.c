@@ -192,8 +192,10 @@ const char *orders_hint(void)
     int a = hint_act, flee = (g_rw((u16)(GV_cbt_flags + 2 * hint_sel)) & 0x1000) != 0;
     switch (hint_ct) {
     case -2: return a == 0x100 ? "Click: throw here" : flee && a == 1 ? "Click: flee here" : 0;   /* (walking there goes without saying) */
-    case -3: return a == 0x100 ? "No clear throw" : "Can't walk there";
-    case -4: return a == MISSILE ? "No clear shot" : a == 0x100 ? "No clear throw" : "No way there";
+    /* (ground that cannot be walked to: nothing under the pointer - a hint that said so followed the pointer over every wall and
+       the dark, his report RC6 - but said once, on a click there: click_hook. Aimed at: why it cannot be) */
+    case -3: return a == 0x100 ? "No clear throw" : 0;
+    case -4: return a == MISSILE ? "No clear shot" : a == 0x100 ? "No clear throw" : 0;
     case -1: return 0;
     }
     if (hint_ct < 5 || hint_ct >= 13) return 0;
@@ -264,7 +266,8 @@ static void hover_hook(void)                    /* s014 19cd:0ad4 (x, y): the po
  * (combat_input, s014 0e76:3166), outside the click's and the menu's own code. */
 static int quick_on(void) { return config_get_int("battle.quick_orders", 1) && !config_get_int("original", 0); }
 static int resume_after;            /* choosing a member paused the battle: it runs on with the order */
-static int give_pending, foe_pending = -1;
+static int give_pending, foe_pending = -1, told_pause;   /* (told_pause: the pause's word given) */
+void ui_notice(const char *msg);
 
 /* the battle has been running (not paused, no one given orders) since run_since: a member chosen
    then paused it. (A battle starts with its leader chosen, s014 0e76 combat_main: vec_1c39 and
@@ -354,6 +357,14 @@ static void give_now(void)
 {
     int i = (s8)g_rb(D_SELECTED);
     hint_sel = -1;
+    /* One rule for when an order is carried out (his reports, RC6: stairs, a chest "nothing happens until I
+       unpause"; "not a patchwork"). Out of a fight (no foe engaged: exploring a level) a pause plans nothing:
+       any order is carried out at once, the game running on as it is given, as a click on the level map does
+       (mods/levelwalk.c). In a fight the pause is the player's, to give the party its orders: they wait for
+       Space, and the first order of a pause says so; but a pause that only choosing the member made ends
+       with the order (resume_after, above). */
+    if (g_rb(GV_ai_paused) == 1 && !g_rb(GV_real_combat)) resume_after = 1;
+    else if (g_rb(GV_ai_paused) == 1 && !resume_after && !told_pause) { told_pause = 1; ui_notice("Paused: the orders given are carried out when the battle runs (Space)."); }
     if (resume_after) {
         resume_after = 0;
         fprintf(stderr, "orders: member %d's order given, the battle runs on\n", i);
@@ -368,7 +379,7 @@ static void give_now(void)
 }
 static void input_hook(void)                    /* s014 0e76:3166 combat_input() */
 {
-    if (g_rb(GV_ai_paused) == 0 && g_rb(D_ORDER_MODE) != 1) { resume_after = 0; if (!running) { running = 1; run_since = plat_ticks_ms(); run_clock = g_rw(GV_combat_clock); } }
+    if (g_rb(GV_ai_paused) == 0 && g_rb(D_ORDER_MODE) != 1) { resume_after = 0; told_pause = 0; if (!running) { running = 1; run_since = plat_ticks_ms(); run_clock = g_rw(GV_combat_clock); } }
     else running = 0;
     if (foe_pending >= 0) {
         int t = foe_pending, x, y; foe_pending = -1;
@@ -397,10 +408,12 @@ static void click_hook(void)                    /* s014 19cd:0dcc (x, y): a clic
        "walking" to beside the foe) */
     if (m >= 5 && orders_click_attack && !config_get_int("original", 0) && g_rw(GV_order_dest_x)) { g_ww(GV_order_dest_x, 0); g_ww(GV_order_dest_y, 0); }
     int quick = quick_on() && m >= 5 ? 1 : quick_on() && m < 0 ? 2 : 0;   /* (on a member: the game leaves the order and chooses them) */
+    int walk = m < 0 && (s16)g_rw(D_ORDER_ACTION) != 0x100 && (s16)g_rw(D_ORDER_ACTION) != MISSILE;
     if (quick) g_wb(D_FOE_CLICKED, 0);
     hook_call_original();
     if (!selected_ok()) return;
     int ct = (s8)g_rb(GV_cursor_target);
+    if (walk && (ct == -3 || ct == -4) && config_get_int("battle.click_hint", 1)) ui_notice(ct == -3 ? "Can't walk there." : "No path there: something stands in the way.");
     if ((ct >= 5 && g_rw(D_BOX_COLOUR) != g_rw(D_REFUSED)) || (ct == -2 && g_rw(GV_order_dest_x) != 0))
         ways_told((s8)g_rb(D_SELECTED));               /* (an order of the player's: the member's way gives way to it, mods/ways.c) */
     if (!quick) return;

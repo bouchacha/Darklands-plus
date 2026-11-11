@@ -62,9 +62,13 @@ typedef struct {
 extern SheetModel sheet_model;
 
 enum { SV_WHO = 1, SV_READY, SV_PUTAWAY, SV_GIVE, SV_DROP, SV_DRINK, SV_LEADER, SV_CLOSE, SV_UNDO,
-       SV_PREADY, SV_PDRINK, SV_PDROP, SV_KEEP, SV_PRAY, SV_PTAKE };
+       SV_PREADY, SV_PDRINK, SV_PDROP, SV_KEEP, SV_PRAY, SV_PTAKE, SV_SHARE };
 /* the pack's: SV_PREADY / SV_PDRINK item id, quality   SV_PDROP id, quality, 255 = all the party's spares
-   SV_KEEP id, quality, mark (0 none, 1 kept from selling and dropping, 2 marked to sell: keep.c)   SV_PTAKE id, quality, member: a spare mount for them to ride */
+   SV_KEEP id, quality, mark (0 none, 1 kept from selling and dropping, 2 marked to sell: keep.c)   SV_PTAKE id, quality, member: a spare mount for them to ride
+   SV_SHARE id, quality: a potion shared out evenly among the members on their feet */
+/* in a battle: member m drinks a potion of theirs (id, quality) at once, as from the sheet; 0 none such */
+int sheet_battle_drink(int m, int id, int q);
+int sheet_drinkable(int id);
 /* SV_READY/PUTAWAY/DRINK item   SV_GIVE item, to member, 255 = the whole stack   SV_DROP item, 255 = the stack
    SV_PRAY member, saint (the prayer screen, as a click on a saint in the original sheet)
    SV_WHO / SV_LEADER member   SV_CLOSE   SV_UNDO: the last thing left behind taken back */

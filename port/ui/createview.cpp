@@ -131,7 +131,7 @@ extern "C" void createview_draw(void)
 
     if (c.state == 0) {
         title("Name and gender");
-        note("Type a name or pick a random one, then go on to the childhood.");
+        note("Type a name or pick a random one, then continue to childhood.");
         const char *lab[2] = { "Name", "Short name (the one the cards use)" };
         for (int k = 0; k < 2; k++) {
             P.text(fo, NsDraw::FS_SMALL, LX0 + 3, y, soft, lab[k]);

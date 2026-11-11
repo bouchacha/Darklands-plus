@@ -143,8 +143,8 @@ void ui_guide_tab(void)
         "+Darklands+ also shows each gain rising in gold over the fighter's head (+2 Edged).",
         "Missile weapons need ammunition. A shooter needs a clear line to the target: party members, enemies and corners all block it, so move the shooter where the line is clear.",
         "+Darklands+ can give the party endless ammunition (F12 > Settings > The party and its items).",
-        "After a fight in a street or a dungeon, walk the party out through an exit to go on.",
-        "In a castle, dungeon or mine the battle goes on after each fight; it ends when the master of the place has fallen and his fight is over. Walking out while enemies are at the party is fleeing; between fights it brings the party back to the place's card.",
+        "After a fight in a street or a dungeon, walk the party out through an exit to continue.",
+        "In a castle, dungeon or mine the battle continues after each fight; it ends when the master of the place has fallen and his fight is over. Walking out while enemies are at the party is fleeing; between fights it brings the party back to the place's card.",
         "+The battle margin marks the master among the enemies, and the battle pauses when a group of enemies comes out to fight. With Enemies still waiting (F12 > Mods), it also counts the enemies not yet met, floor by floor, and says on which floor the master waits.",
     });
     topic("Travel", {

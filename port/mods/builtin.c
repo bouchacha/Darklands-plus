@@ -181,6 +181,7 @@ void mods_init(void)
     { void pack_init(void); pack_init(); }
     { void battlerules_init(void); battlerules_init(); }
     { void battleend_init(void); battleend_init(); }
+    { void foefx_init(void); foefx_init(); }
     { void foesleft_init(void); foesleft_init(); }
     { void politics_init(void); politics_init(); }
     { void cutcards_init(void); cutcards_init(); }

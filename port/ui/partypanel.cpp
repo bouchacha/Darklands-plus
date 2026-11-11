@@ -273,10 +273,10 @@ static const char *order_word(char c, int place, bool shortw)
     case 'H': W("halts", "halts and stands where they are");
     case 'b':
         if (combat_improved())
-            W("no line", "has no clear line of fire to the target: steps aside or nearer until there is one");
-        W("no line", "has no clear line of fire to the target and waits for one (or give another order)");
-    case 'e': W("no shot", "has nothing left to shoot or throw: give another order");
-    case 'n': W("no way", "finds no way to an enemy: friends or walls stand between. Move someone aside, or give an order (a shot, a spot to walk to)");
+            W("no clear shot", "has no clear line of fire to the target: steps aside or nearer until there is one");
+        W("no clear shot", "has no clear line of fire to the target and waits for one (or give another order)");
+    case 'e': W("no ammo", "has nothing left to shoot or throw: give another order");
+    case 'n': W("no path", "finds no path to an enemy: friends or walls stand in the way. Move someone aside, or give an order (a shot, a spot to walk to)");
     case '-': W("waits", "waits for an order: click them here or on the battlefield, then an enemy, a spot or a choice from the Orders menu");
     }
     #undef W
@@ -467,11 +467,10 @@ extern "C" void partypanel_draw(void)
             P.dl->AddQuadFilled(a, b, c2, d, fill);                     /* the weight */
             P.dl->AddCircle(NsDraw::w(wx, wy - 1.9f), 1.1f * P.k, fill, 0, fmaxf(1.0f, 0.5f * P.k));   /* its ring */
             if (P.over(wx - r, wy - r, wx + r, wy + r)) {
-                int e, em, s2, sm; gm_member_attr(m, 0, &e, &em); gm_member_attr(m, 1, &s2, &sm);
-                const char *ui_load_effect(int band);
-                char t[700]; snprintf(t, sizeof t, "%s carries %s: %d against %d ({Endurance} + {Strength}; only equipped items count).\n%s %s.",
-                                  name.c_str(), band == 3 ? "far too much" : "a heavy load", gm_member_load(m), e + s2, ui_load_effect(band),
-                                  battle && config_get_int("battle.panel_select", 1) ? "Right-click to open the sheet" : "Click to open the sheet");
+                int e, em, s2, sm, ag, agm; gm_member_attr(m, 0, &e, &em); gm_member_attr(m, 1, &s2, &sm); gm_member_attr(m, 2, &ag, &agm);
+                const char *ui_load_text(int L, int cap, int capm, int agl);
+                char t[1100]; snprintf(t, sizeof t, "%s\n\n%s: open the sheet.", ui_load_text(gm_member_load(m), e + s2, em + sm, ag),
+                                  battle && config_get_int("battle.panel_select", 1) ? "Right-click" : "Click");
                 ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 30); ui_rich_text(t); ImGui::PopTextWrapPos(); ImGui::EndTooltip();
             }
         }
@@ -513,7 +512,7 @@ extern "C" void partypanel_draw(void)
             if (mode_btns < 5) mode_btn[mode_btns++] = { bx - r, by - r, bx + r, by + r, m };
             if (hov && !open) {
                 char t[640];
-                if (now == ST_OFF) snprintf(t, sizeof t, "%s is on Manual: %s\nClick to choose a way of fighting.", name.c_str(), style_brief(now));
+                if (now == ST_OFF) snprintf(t, sizeof t, "%s is on Manual: %s\nClick to choose a fighting style.", name.c_str(), style_brief(now));
                 else snprintf(t, sizeof t, "%s fights as %s until you give them an order:\n%s\nClick to choose another way.", name.c_str(), style_name(now), style_brief(now));
                 ns_tip(t, 26);
             }
@@ -562,7 +561,7 @@ extern "C" void partypanel_draw(void)
     if (chooser_m >= 0) {
         int m = chooser_m, own = style_of(m), sug = style_suggested(m);
         char nm[32]; gm_member_name(m, nm, sizeof nm);
-        std::string name = ns_gtext(nm), head = name + "'s way of fighting";
+        std::string name = ns_gtext(nm), head = name + "'s fighting style";
         const float w = 150.0f, tx = 14.0f, tw = w - tx - 3.0f;
         float rh[STYLE_CHOICES], h = 2.0f + 7.0f + P.para_height(P.fo, NsDraw::FS_SMALL, w - 6.0f, STYLE_NOTE) + 2.5f;
         for (int k = 0; k < STYLE_CHOICES; k++) { rh[k] = 1.4f + 6.6f + P.para_height(P.fo, NsDraw::FS_SMALL, tw, style_brief(STYLE_ORDER[k])) + 1.6f; h += rh[k]; }

@@ -4,6 +4,10 @@
 // BeginTooltipEx calls tip_auto) beside the smallest thing under the pointer: the last ImGui item, or a
 // thing a native screen drew by hand (NsDraw::over, ui_hit_area), else beside the pointer itself. Each
 // frame a check logs a tooltip found over the pointer or its thing (tools/uitour.py fails on it).
+// A row of a list (a thing much wider than tall: an item in the sheet's or a shop's list, a line of a
+// margin) has its tooltip at its side - over the room beside the list (the sheet's figure, the field), not
+// over the rows below, which the player is reading down (his ask, 1.4.7-RC6: "the tooltips obstruct the
+// list of items"). When a tooltip shows and when it waits: third_party/imgui BeginTooltipEx.
 // ImGui places a tooltip by its size, which is known once it has been drawn: the size it had the frame
 // before is used (the same tooltip, while the pointer stays).
 #include "imgui.h"
@@ -107,7 +111,12 @@ static void tip_auto(void)
     };
     consider(g.LastItemData.Rect.Min, g.LastItemData.Rect.Max);
     if (hits_frame == g.FrameCount) for (int i = 0; i < nhits; i++) if (hits[i].win == g.CurrentWindow) consider(hits[i].a0, hits[i].a1);
-    if (best < FLT_MAX) { ui_tip_beside(b0, b1); return; }
+    if (best < FLT_MAX) {
+        if (b1.x - b0.x >= 4.0f * (b1.y - b0.y))                 /* a row: at its side, the roomier first */
+            ui_tip_beside_in(b0, b1, b0.x > ds.x - b1.x ? "lrba" : "rlba");
+        else ui_tip_beside(b0, b1);
+        return;
+    }
     ImRect p = ui_pointer_rect();
     ui_tip_beside(p.Min, p.Max);
 }

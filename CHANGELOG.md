@@ -6,6 +6,10 @@ What changed since 1.4.6.
 
 **Added**
 
+- **Potions made easier:** Share on a potion's row of the character sheet shares that potion out evenly among the members on their feet; in a battle the potions tray also offers what the chosen member can drink (a blue drop on them), drunk at once with a click; and each potion's tooltip says what it does.
+- **What a potion is doing to an enemy:** a fighter under Fleadust, Noxious Aroma, Eyeburn or Sunburst wears its picture above the head, a dial darkening as it wears off, and the info on them says what it does and how many seconds remain. A throw wound up shows its bar as a reload does.
+- **Things to use on the field are named:** pointing at stairs, a chest or a way out says what it is; out of a fight a click on stairs walks the party there and takes them, and a click on a chest or a way out walks there and chooses the leader, with that place's orders (Open, Disarm, Pick Lock, Exit Battlefield) on the order bar.
+- **The level map shows the ways out** (a castle's are no stairs: the Templars' fortress has its way out along the graveyard hall) and the chests seen, and is drawn on parchment, as a plan.
 - **The manor rumor** (F12 > Reconstructed Content, off unless ticked): a town-news text MicroProse wrote and never showed. Asking about affairs elsewhere in the Empire, the party may hear of a powerful noblewoman whose well-guarded manor lies in such a direction from the town, until it has been there.
 
 **Fixed**
@@ -13,11 +17,17 @@ What changed since 1.4.6.
 - **What came of it** missed what a card gave as soon as a battle, a find or a shop it had opened was over (the caravan master's purse and another merchant's gun after the fight). The party is now noted again as each such screen closes, so the next text lists it.
 - **Parry holds, and comes by itself.** A member told to parry went back to a standard or Vulnerable attack when their foe fell or another came at them: Parry and Berserk now stay while any enemy is beside them. And with Improved combat, a member with two or more enemies attacking them parries until fewer do, unless you order otherwise.
 - **A cell door in a fortress dungeon** flashed its card and went back to the level without a word. Its text is now shown (the cell is empty).
-- **A member with no way to any enemy** (friends ahead in a passage) was sent at one and another by turns and stood there as "waits": they now hold, and their box says "no way".
+- **A member with no path to any enemy** (friends ahead in a passage) was sent at one and another by turns and stood there as "waits": they now hold, and their box says "no path".
+- **One U ran the party through floor after floor** (five in a fortress): a member still walking in single file when the party came down stepped onto the stairs it arrived by. Now the party stops on the floor it came to.
+- **The level map showed floor beyond the walls** that could never be reached: while the party changed floors, what the view showed of one floor was put down as the next one's. It is now noted only once the floor shown has settled, and what was put down wrongly before is left out.
+- **Orders at a pause:** out of a fight every order is carried out at once (stairs, a door, a chest gave no sign and waited for Space); in a fight, the first order given in a pause says it waits for Space.
+- **The learned saint** stayed on the screen long after, over the town or the map: it now goes with the card it was learned on.
 - **The level map after loading an earlier save** showed a castle, mine or dungeon as explored later on. What was explored is now kept with each save (in `levels` beside the game's other Darklands+ files) and taken up when it is loaded; a save made before this version has none.
 
 **Changed**
 
+- **Tooltips keep out of the way:** none while the wheel turns or a button is held, a list's tooltip at its side instead of over the rows below, the info on a fighter in a top corner of the field instead of beside the pointer, and "Can't walk there" said once on the click instead of following the pointer.
+- **Plainer words:** "fighting style" for "way of fighting", "no path" for "no way", "permanently" for "for good", "continue" for "go on"; the load's tooltip a line per effect, with the numbers it comes to.
 - **One look across the screens:** the level map's title, floors and legend sit on parchment like the world map's panels; the battle log shows what a wound took as the Endurance and Strength shields; quests read "Robber knight at Goslar" and "Sabbat at the pagan altar near Hall", not "@ Goslar" or "@ Pagan Altar"; travel near one reads "Traveling, near a cave"; Party Info shows Fame and Reputation with their shields, as the margins do.
 
 ## 1.4.6
