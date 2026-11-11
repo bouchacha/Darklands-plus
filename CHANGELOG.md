@@ -18,7 +18,7 @@ What changed since 1.4.6.
 - **Parry holds, and comes by itself.** A member told to parry went back to a standard or Vulnerable attack when their foe fell or another came at them: Parry and Berserk now stay while any enemy is beside them. And with Improved combat, a member with two or more enemies attacking them parries until fewer do, unless you order otherwise.
 - **A cell door in a fortress dungeon** flashed its card and went back to the level without a word. Its text is now shown (the cell is empty).
 - **A member with no path to any enemy** (friends ahead in a passage) was sent at one and another by turns and stood there as "waits": they now hold, and their box says "no path".
-- **One U ran the party through floor after floor** (five in a fortress): a member still walking in single file when the party came down stepped onto the stairs it arrived by. Now the party stops on the floor it came to.
+- **One U ran the party through floor after floor** (five in a fortress): a member following in single file stepped onto the stairs the party had arrived by, and the game took the party on. In single file only the leader now takes the party to another floor.
 - **The level map showed floor beyond the walls** that could never be reached: while the party changed floors, what the view showed of one floor was put down as the next one's. It is now noted only once the floor shown has settled, and what was put down wrongly before is left out.
 - **Orders at a pause:** out of a fight every order is carried out at once (stairs, a door, a chest gave no sign and waited for Space); in a fight, the first order given in a pause says it waits for Space.
 - **The learned saint** stayed on the screen long after, over the town or the map: it now goes with the card it was learned on.
@@ -28,7 +28,7 @@ What changed since 1.4.6.
 
 - **Tooltips keep out of the way:** none while the wheel turns or a button is held, a list's tooltip at its side instead of over the rows below, the info on a fighter in a top corner of the field instead of beside the pointer, and "Can't walk there" said once on the click instead of following the pointer.
 - **Plainer words:** "fighting style" for "way of fighting", "no path" for "no way", "permanently" for "for good", "continue" for "go on"; the load's tooltip a line per effect, with the numbers it comes to.
-- **One look across the screens:** the level map's title, floors and legend sit on parchment like the world map's panels; the battle log shows what a wound took as the Endurance and Strength shields; quests read "Robber knight at Goslar" and "Sabbat at the pagan altar near Hall", not "@ Goslar" or "@ Pagan Altar"; travel near one reads "Traveling, near a cave"; Party Info shows Fame and Reputation with their shields, as the margins do.
+- **One look across the screens:** the level map's title, floors and legend sit on parchment like the world map's panels; the battle log shows what a wound took as the Endurance and Strength shields; quests read "Robber knight at Goslar" and "Sabbat at the pagan altar near Hall", not "@ Goslar" or "@ Pagan Altar"; travel near one reads "Traveling, near a cave"; Party Info shows Fame and Reputation with their shields, as the margins do; the inn's and camp's rows read "Regains {Strength} (+2)" and "Prays for {Divine Favor} (+5)" with their shields, as the choices beside them; a Missile Devices gain in a battle shows its shield.
 
 ## 1.4.6
 

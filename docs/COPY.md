@@ -702,7 +702,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/battleoverlay.cpp:327` | Each member's fighting style |
 | `ui/battleoverlay.cpp:327` | Darklands+; F12 > Settings > Battles > Improved combat. |
 | `ui/battleoverlay.cpp:336` | Battles need fewer clicks |
-| `ui/battleoverlay.cpp:337` | Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.  Each member fights in their own way until you give them an order: the picture at the lower left of their box. Click it to choose another (Skirmisher, Archer, Charger, or Manual). An order you give is carried out, then they go back to their way.  Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.  While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does. |
+| `ui/battleoverlay.cpp:337` | Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.  Each member fights in their own fighting style until you give them an order: the picture at the lower left of their box. Click it to choose another (Skirmisher, Archer, Charger, or Manual). An order you give is carried out, then they go back to their style.  Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.  While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does. |
 | `ui/battleoverlay.cpp:343` | All this is Darklands+; each part can be switched off, for the original game's controls, in F12 > Settings > Battles. F11 lists the battle's keys and clicks. |
 | `ui/battleoverlay.cpp:406` | The nearest enemy is this way: click to look |
 | `ui/battleoverlay.cpp:422` | Door: click to walk there and close it |
@@ -1403,62 +1403,66 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/lodgeview.cpp:228` | Already rested: earning would be better |
 | `ui/lodgeview.cpp:228` | Already rested: a watch would be better |
 | `ui/lodgeview.cpp:228` | Already rested |
-| `ui/lodgeview.cpp:230` | }  {Stealth: |
-| `ui/lodgeview.cpp:231` | {Divine Favor: |
-| `ui/lodgeview.cpp:232` | stays down: {Endurance: |
-| `ui/lodgeview.cpp:250` | Regain {Endurance} |
-| `ui/lodgeview.cpp:250` | Regain {Strength} |
-| `ui/lodgeview.cpp:250` | Pray for {Divine Favor} |
-| `ui/lodgeview.cpp:250` | Alchemy work |
-| `ui/lodgeview.cpp:250` | Earn a little money |
-| `ui/lodgeview.cpp:250` | Guard the camp |
-| `ui/lodgeview.cpp:250` | Train or study |
-| `ui/lodgeview.cpp:251` | {Endurance} is full: earning money is the better day. |
-| `ui/lodgeview.cpp:251` | Already at full {Strength}. |
-| `ui/lodgeview.cpp:251` | {Divine Favor} is full. |
-| `ui/lodgeview.cpp:251` | Knows no formula to make. |
-| `ui/lodgeview.cpp:251` | Only at an inn in a town. |
-| `ui/lodgeview.cpp:251` | Only when camping in the wild. |
-| `ui/lodgeview.cpp:251` | No teachers retained in this town. |
-| `ui/lodgeview.cpp:252` | Rest: {Endurance} comes back to full. Nothing else is gained. |
-| `ui/lodgeview.cpp:252` | Rest and care: {Strength} comes back, the more the better the party's {Healing}; {Endurance} comes back too. |
-| `ui/lodgeview.cpp:253` | Prayer: {Divine Favor} comes back; the better {Religion} and {Virtue}, the more. {Endurance} does not come back that day. |
-| `ui/lodgeview.cpp:253` | Make potions from a known formula (the ingredients are used up). {Endurance} does not come back that day. |
-| `ui/lodgeview.cpp:254` | Work in the town: the job that pays this member best, by their attributes and skills (wounds lower the pay; a bad name in the town too). {Endurance} does not come back that day. |
-| `ui/lodgeview.cpp:255` | Keep watch: the risk that the lord's men find the party living off his land grows each day by the place's own amount, less for each member on guard: 1 for {Woodwise} (2 from 30, 3 from 70), 1 for {Stealth} from 30 (2 from 70), 1 for a weapon skill of 30 or more. |
-| `ui/lodgeview.cpp:255` | Lessons from a teacher hired in this town, for a fee each day. {Endurance} does not come back that day. |
-| `ui/lodgeview.cpp:280` | none retained |
-| `ui/lodgeview.cpp:285` | No risk here: the lord's men will not come. |
-| `ui/lodgeview.cpp:286` | The lord's men: %d%% before the next day, %d%% the day after |
-| `ui/lodgeview.cpp:302` | learned all (%d) |
-| `ui/lodgeview.cpp:303` | now %d, to %d  \xc2\xb7  %d%%  \xc2\xb7  %s  \xc2\xb7  %d day%s |
-| `ui/lodgeview.cpp:316` | The lord's men may find the party living off his land, more likely each day. With %s on guard the day after is %d%% (%d%% unguarded). |
-| `ui/lodgeview.cpp:318` | The lord's men may find the party living off his land, more likely each day; members on guard slow it. |
-| `ui/lodgeview.cpp:319` |  After the camp is broken, the risk built up stays for 12 to 60 hours: camping again within that time starts from it. |
-| `ui/lodgeview.cpp:320` | {Endurance} is full: keeping watch is the better day. |
-| `ui/lodgeview.cpp:321` |  At an inn a failed batch can blow up; in a camp in the wild it cannot. |
-| `ui/lodgeview.cpp:329` | The teacher of {%s} knows %d; %s has %d already: nothing more to learn here. |
-| `ui/lodgeview.cpp:331` | Teacher of {%s} (skill %d), %d more day%s hired. Each day: %d%% chance of +1 (about one point in %d day%s)%s. %s has %d.%s |
-| `ui/lodgeview.cpp:332` | , up to the teacher's skill |
-| `ui/lodgeview.cpp:333` |  (The best of the teachers of it hired here teaches.) |
-| `ui/lodgeview.cpp:333` |  (The one hired first teaches.) |
-| `ui/lodgeview.cpp:335` | No teachers retained in this town: ask a guild's masters, the university, the monks, the physician or an alchemist (with the Darklands+ switch "Teachers" on, a lectern marks the option on their cards); a teacher stays a week. |
-| `ui/lodgeview.cpp:336` | Point at a choice to see what it does. |
-| `ui/lodgeview.cpp:358` | In the purse |
-| `ui/lodgeview.cpp:360` | Food: from the land |
-| `ui/lodgeview.cpp:360` | Room and lessons |
-| `ui/lodgeview.cpp:372` | %d hours, until 5:00 |
-| `ui/lodgeview.cpp:382` | Until rested |
-| `ui/lodgeview.cpp:384` | The purse cannot pay for a day. Members set to Earn a little money may make up the difference; otherwise, leave. |
-| `ui/lodgeview.cpp:385` | Days pass until no one is regaining Strength or praying (at most 14; it stops if anything happens). |
-| `ui/lodgeview.cpp:385` | Nobody is short of Strength, regaining it or praying. |
-| `ui/lodgeview.cpp:386` | Seven days, each member doing what was chosen (it stops if anything happens, or when a day cannot be paid). |
-| `ui/lodgeview.cpp:387` | A day lasts until 5:00, or until 5:00 the day after when that is less than 9 hours away: from 20:00 a night of 9 hours, from 21:00 one of 32. |
-| `ui/lodgeview.cpp:396` | A day in camp |
-| `ui/lodgeview.cpp:396` | A day at the inn |
-| `ui/lodgeview.cpp:398` | , until rested |
-| `ui/lodgeview.cpp:403` | Click or press a key to skip to the end |
-| `ui/lodgeview.cpp:403` | Click or press a key to skip |
+| `ui/lodgeview.cpp:229` | Regain strength (gain 2) |
+| `ui/lodgeview.cpp:229` | Pray for divine favor (gain 5) |
+| `ui/lodgeview.cpp:231` | Regains {Strength} |
+| `ui/lodgeview.cpp:231` | Prays for {Divine Favor} |
+| `ui/lodgeview.cpp:233` | {Divine Favor: |
+| `ui/lodgeview.cpp:235` | }  {Stealth: |
+| `ui/lodgeview.cpp:236` | stays down: {Endurance: |
+| `ui/lodgeview.cpp:254` | Regain {Endurance} |
+| `ui/lodgeview.cpp:254` | Regain {Strength} |
+| `ui/lodgeview.cpp:254` | Pray for {Divine Favor} |
+| `ui/lodgeview.cpp:254` | Alchemy work |
+| `ui/lodgeview.cpp:254` | Earn a little money |
+| `ui/lodgeview.cpp:254` | Guard the camp |
+| `ui/lodgeview.cpp:254` | Train or study |
+| `ui/lodgeview.cpp:255` | {Endurance} is full: earning money is the better day. |
+| `ui/lodgeview.cpp:255` | Already at full {Strength}. |
+| `ui/lodgeview.cpp:255` | {Divine Favor} is full. |
+| `ui/lodgeview.cpp:255` | Knows no formula to make. |
+| `ui/lodgeview.cpp:255` | Only at an inn in a town. |
+| `ui/lodgeview.cpp:255` | Only when camping in the wild. |
+| `ui/lodgeview.cpp:255` | No teachers retained in this town. |
+| `ui/lodgeview.cpp:256` | Rest: {Endurance} comes back to full. Nothing else is gained. |
+| `ui/lodgeview.cpp:256` | Rest and care: {Strength} comes back, the more the better the party's {Healing}; {Endurance} comes back too. |
+| `ui/lodgeview.cpp:257` | Prayer: {Divine Favor} comes back; the better {Religion} and {Virtue}, the more. {Endurance} does not come back that day. |
+| `ui/lodgeview.cpp:257` | Make potions from a known formula (the ingredients are used up). {Endurance} does not come back that day. |
+| `ui/lodgeview.cpp:258` | Work in the town: the job that pays this member best, by their attributes and skills (wounds lower the pay; a bad name in the town too). {Endurance} does not come back that day. |
+| `ui/lodgeview.cpp:259` | Keep watch: the risk that the lord's men find the party living off his land grows each day by the place's own amount, less for each member on guard: 1 for {Woodwise} (2 from 30, 3 from 70), 1 for {Stealth} from 30 (2 from 70), 1 for a weapon skill of 30 or more. |
+| `ui/lodgeview.cpp:259` | Lessons from a teacher hired in this town, for a fee each day. {Endurance} does not come back that day. |
+| `ui/lodgeview.cpp:284` | none retained |
+| `ui/lodgeview.cpp:289` | No risk here: the lord's men will not come. |
+| `ui/lodgeview.cpp:290` | The lord's men: %d%% before the next day, %d%% the day after |
+| `ui/lodgeview.cpp:306` | learned all (%d) |
+| `ui/lodgeview.cpp:307` | now %d, to %d  \xc2\xb7  %d%%  \xc2\xb7  %s  \xc2\xb7  %d day%s |
+| `ui/lodgeview.cpp:320` | The lord's men may find the party living off his land, more likely each day. With %s on guard the day after is %d%% (%d%% unguarded). |
+| `ui/lodgeview.cpp:322` | The lord's men may find the party living off his land, more likely each day; members on guard slow it. |
+| `ui/lodgeview.cpp:323` |  After the camp is broken, the risk built up stays for 12 to 60 hours: camping again within that time starts from it. |
+| `ui/lodgeview.cpp:324` | {Endurance} is full: keeping watch is the better day. |
+| `ui/lodgeview.cpp:325` |  At an inn a failed batch can blow up; in a camp in the wild it cannot. |
+| `ui/lodgeview.cpp:333` | The teacher of {%s} knows %d; %s has %d already: nothing more to learn here. |
+| `ui/lodgeview.cpp:335` | Teacher of {%s} (skill %d), %d more day%s hired. Each day: %d%% chance of +1 (about one point in %d day%s)%s. %s has %d.%s |
+| `ui/lodgeview.cpp:336` | , up to the teacher's skill |
+| `ui/lodgeview.cpp:337` |  (The best of the teachers of it hired here teaches.) |
+| `ui/lodgeview.cpp:337` |  (The one hired first teaches.) |
+| `ui/lodgeview.cpp:339` | No teachers retained in this town: ask a guild's masters, the university, the monks, the physician or an alchemist (with the Darklands+ switch "Teachers" on, a lectern marks the option on their cards); a teacher stays a week. |
+| `ui/lodgeview.cpp:340` | Point at a choice to see what it does. |
+| `ui/lodgeview.cpp:362` | In the purse |
+| `ui/lodgeview.cpp:364` | Food: from the land |
+| `ui/lodgeview.cpp:364` | Room and lessons |
+| `ui/lodgeview.cpp:376` | %d hours, until 5:00 |
+| `ui/lodgeview.cpp:386` | Until rested |
+| `ui/lodgeview.cpp:388` | The purse cannot pay for a day. Members set to Earn a little money may make up the difference; otherwise, leave. |
+| `ui/lodgeview.cpp:389` | Days pass until no one is regaining Strength or praying (at most 14; it stops if anything happens). |
+| `ui/lodgeview.cpp:389` | Nobody is short of Strength, regaining it or praying. |
+| `ui/lodgeview.cpp:390` | Seven days, each member doing what was chosen (it stops if anything happens, or when a day cannot be paid). |
+| `ui/lodgeview.cpp:391` | A day lasts until 5:00, or until 5:00 the day after when that is less than 9 hours away: from 20:00 a night of 9 hours, from 21:00 one of 32. |
+| `ui/lodgeview.cpp:400` | A day in camp |
+| `ui/lodgeview.cpp:400` | A day at the inn |
+| `ui/lodgeview.cpp:402` | , until rested |
+| `ui/lodgeview.cpp:407` | Click or press a key to skip to the end |
+| `ui/lodgeview.cpp:407` | Click or press a key to skip |
 | `ui/lootview.cpp:61` |  in cash (added to the purse). |
 | `ui/lootview.cpp:61` | No money found. |
 | `ui/lootview.cpp:76` | The party's pack |
@@ -1592,7 +1596,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/margins_battle.cpp:485` | gravely wounded |
 | `ui/margins_battle.cpp:490` | The master of this place: once this one has fallen and the fight is over, the place is won. |
 | `ui/margins_battle.cpp:495` | None in sight yet. |
-| `ui/margins_battle.cpp:497` | To explore: in Single File (Q) or as a Group (G), click a passage or stairs and the party walks there; click a shut door and they walk to it and open it%s. |
+| `ui/margins_battle.cpp:497` | To explore: in Single File (Q) or as a Group (G), click a passage and the party walks there. Click stairs and they take them; a shut door and they open it; a chest or a way out and they walk to it, its orders ready%s. |
 | `ui/margins_battle.cpp:498` | ; Tab shows the level map (as far as the party has seen it), and a click on it walks the party there |
 | `ui/menuview.cpp:106` | Arrows, Enter; Esc closes |
 | `ui/menuview.cpp:106` | Click to choose; Esc or a click elsewhere closes |
@@ -1838,7 +1842,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/partypanel.cpp:499` | Click: give %s orders (double-click: and move the view there). Right-click: %s's character sheet (F%d). |
 | `ui/partypanel.cpp:500` | Click: %s's character sheet (F%d). |
 | `ui/partypanel.cpp:515` | %s is on Manual: %s Click to choose a fighting style. |
-| `ui/partypanel.cpp:516` | %s fights as %s until you give them an order: %s Click to choose another way. |
+| `ui/partypanel.cpp:516` | %s fights as %s until you give them an order: %s Click to choose another fighting style. |
 | `ui/partypanel.cpp:526` | Divine Favor |
 | `ui/partypanel.cpp:564` | 's fighting style |
 | `ui/prayview.cpp:38` |  calls on the saint for the whole party: |
@@ -2391,13 +2395,15 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/sheetview.cpp:1275` | Sold by the alchemist of  |
 | `ui/skillicons.cpp:462` | Missile Device |
 | `ui/skillicons.cpp:462` | Missile Weapons |
-| `ui/skillicons.cpp:463` | Edged Weapon |
-| `ui/skillicons.cpp:463` | Impact Weapon |
-| `ui/skillicons.cpp:463` | Thrown Weapon |
-| `ui/skillicons.cpp:598` | Frames and clock |
-| `ui/skillicons.cpp:602` | Cards and towns |
-| `ui/skillicons.cpp:607` | The party and its items |
-| `ui/skillicons.cpp:623` | Fixes for bugs of the original |
+| `ui/skillicons.cpp:463` | Speak Common |
+| `ui/skillicons.cpp:465` | Read & Write |
+| `ui/skillicons.cpp:466` | Edged Weapon |
+| `ui/skillicons.cpp:466` | Impact Weapon |
+| `ui/skillicons.cpp:466` | Thrown Weapon |
+| `ui/skillicons.cpp:601` | Frames and clock |
+| `ui/skillicons.cpp:605` | Cards and towns |
+| `ui/skillicons.cpp:610` | The party and its items |
+| `ui/skillicons.cpp:626` | Fixes for bugs of the original |
 | `ui/teachersui.cpp:47` | Missile Devices |
 | `ui/teachersui.cpp:48` | Speak Common |
 | `ui/teachersui.cpp:48` | Read & Write |
@@ -2983,15 +2989,14 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/levelwalk.c:199` | The party walks there%s. |
 | `mods/levelwalk.c:200` | The party will walk there%s: Space resumes the battle. |
 | `mods/levelwalk.c:201` | The party walks there%s. |
-| `mods/levelwalk.c:236` | This ladder leads nowhere: it brings the party back to where it stands. |
-| `mods/levelwalk.c:288` | There are no stairs on this floor that the party has found. |
-| `mods/levelwalk.c:301` | The party walks to the stairs and takes them. |
-| `mods/levelwalk.c:301` | The party walks to the stairs. |
-| `mods/levelwalk.c:430` | near an exit |
-| `mods/levelwalk.c:533` | The party walks to the chest: then choose what to do with it (Open, Disarm, Pick Lock). |
-| `mods/levelwalk.c:533` | The party walks to the way out: then Exit Battlefield (X) for each member to leave. |
-| `mods/levelwalk.c:540` | The party walks to the door to close it. |
-| `mods/levelwalk.c:540` | The party walks to the door to open it. |
+| `mods/levelwalk.c:283` | There are no stairs on this floor that the party has found. |
+| `mods/levelwalk.c:296` | The party walks to the stairs and takes them. |
+| `mods/levelwalk.c:296` | The party walks to the stairs. |
+| `mods/levelwalk.c:425` | near an exit |
+| `mods/levelwalk.c:522` | The party walks to the chest: then choose what to do with it (Open, Disarm, Pick Lock). |
+| `mods/levelwalk.c:522` | The party walks to the way out: then Exit Battlefield (X) for each member to leave. |
+| `mods/levelwalk.c:529` | The party walks to the door to close it. |
+| `mods/levelwalk.c:529` | The party walks to the door to open it. |
 | `mods/lodgeview.c:140` | Castle Guard |
 | `mods/lodgeview.c:143` | Castle Servant |
 | `mods/lodgeview.c:144` | Castle Steward |
@@ -3497,9 +3502,9 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/travel.c:414` | member %d: Divine Favor %d of %d, a night brings back %d |
 | `mods/travel.c:416` | nobody needs rest |
 | `mods/travel.c:433` | 20:00: the party makes camp (the campfire under the clock). A night in camp lasts until 5:00. |
-| `mods/travel.c:434` | The party makes camp before 20:00 (the campfire under the clock): the way ahead would take past it. |
+| `mods/travel.c:434` | The party makes camp before 20:00 (the campfire under the clock): the journey ahead would run past it. |
 | `mods/travel.c:469` | a long step ahead |
-| `mods/travel.c:517` | Travel stopped: the party could not get any further this way. |
+| `mods/travel.c:517` | Travel stopped: the party could get no further along this route. |
 | `mods/travel.c:577` | the river acted as a wall |
 | `mods/travel.c:661` | the marked place |
 | `mods/war.c:98` | pics\gate4.pic: No such file |
