@@ -344,7 +344,7 @@ const char *option_choice(const Option *o, int k, char *buf, int n)
 
 /* ---------------------------------------------------------------- presets */
 const Preset PRESETS[PRESET_COUNT] = {
-    { "Full Original", "Darklands as it played in 1993 (version 483.07), bugs and all: everything Darklands+ adds to the play is off, and the original game's sound setup is used. How it looks (the text, the frames, the screen) stays as set in those sections.",
+    { "Full Original", "Darklands as it played in 1993 (version 483.07), bugs and all: everything Darklands+ adds to the play is off. How it looks (the text, the frames, the screen) and how it sounds (the Roland MT-32 Darklands was written for, when its ROMs are found) stay as set in those sections.",
       "Saves load in the original game and back." },
     { "Purist", "The original game with its bugs fixed: its own screens, rules and graphics.",
       "Saves load in the original game and back." },
@@ -428,6 +428,20 @@ void preset_restore_custom(void)
     if (listener) listener("preset", PRESET_CUSTOM);
 }
 
+/* until 1.4.7 the purist presets switched the sound to "As set in the original game's INSTALL program" and kept
+   the player's device in keep.sound.device. His choice (2026-11-11): the original's music on the MT-32, as
+   Darklands was written for, whatever the preset: a device the preset set is given back (once, at the start,
+   and whenever a preset is chosen) */
+void options_sound_kept(void)
+{
+    const char *k = config_get("keep.sound.device", 0);
+    if (!k) return;
+    char keep[32]; snprintf(keep, sizeof keep, "%s", k);
+    if (!strcmp(config_get("sound.device", "auto"), "game")) { config_set("sound.device", keep); fprintf(stderr, "sound: the device a preset had set given back: %s\n", keep); }
+    config_unset("keep.sound.device");
+    config_save();
+}
+
 void preset_apply(int p)
 {
     if (p < 0 || p >= PRESET_COUNT) return;
@@ -445,9 +459,7 @@ void preset_apply(int p)
         }
         if (pv != PRESET_KEEP && pv != v) option_set(o, pv);
     }
-    const char *dev = config_get("sound.device", "auto");    /* the purists hear the game's own sound setup */
-    if (purist) { if (strcmp(dev, "game")) { config_set("keep.sound.device", dev); config_set("sound.device", "game"); } }
-    else if (!strcmp(dev, "game")) config_set("sound.device", config_get("keep.sound.device", "auto"));
+    options_sound_kept();                            /* (no preset touches the sound: the MT-32 stays, his choice in 1.4.7) */
     config_set_int("original", p == PRESET_BUGGY_PURIST);
     config_set_int("preset", p);
     void datamods_scan(void), musicpack_reload(void); datamods_scan(); musicpack_reload();

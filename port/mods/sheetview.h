@@ -65,7 +65,7 @@ enum { SV_WHO = 1, SV_READY, SV_PUTAWAY, SV_GIVE, SV_DROP, SV_DRINK, SV_LEADER, 
        SV_PREADY, SV_PDRINK, SV_PDROP, SV_KEEP, SV_PRAY, SV_PTAKE, SV_SHARE };
 /* the pack's: SV_PREADY / SV_PDRINK item id, quality   SV_PDROP id, quality, 255 = all the party's spares
    SV_KEEP id, quality, mark (0 none, 1 kept from selling and dropping, 2 marked to sell: keep.c)   SV_PTAKE id, quality, member: a spare mount for them to ride
-   SV_SHARE id, quality: a potion split evenly among the members on their feet (id -1: every potion) */
+   SV_SHARE id: a potion split evenly among the members on their feet, every quality of it */
 /* in a battle: member m drinks a potion of theirs (id, quality) at once, as from the sheet; 0 none such */
 int sheet_battle_drink(int m, int id, int q);
 int sheet_drinkable(int id);

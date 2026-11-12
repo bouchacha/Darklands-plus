@@ -294,14 +294,14 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:287` | Takes effect when the next new game starts. |
 | `mods/options.c:292` | Fixes for bugs of the original |
 | `mods/options.c:347` | Full Original |
-| `mods/options.c:347` | Darklands as it played in 1993 (version 483.07), bugs and all: everything Darklands+ adds to the play is off, and the original game's sound setup is used. How it looks (the text, the frames, the screen) stays as set in those sections. |
+| `mods/options.c:347` | Darklands as it played in 1993 (version 483.07), bugs and all: everything Darklands+ adds to the play is off. How it looks (the text, the frames, the screen) and how it sounds (the Roland MT-32 Darklands was written for, when its ROMs are found) stay as set in those sections. |
 | `mods/options.c:348` | Saves load in the original game and back. |
 | `mods/options.c:349` | The original game with its bugs fixed: its own screens, rules and graphics. |
 | `mods/options.c:350` | Saves load in the original game and back. |
 | `mods/options.c:351` | The original rules with the original's bugs fixed, the new screens, on screen what the original keeps behind keys or only in its manual, and less busywork: auto-travel, Go to, easier battle controls, one shared pack, one store room for every inn, endless ammunition. Easier play is offered separately, as built-in mods (F12 > Mods). |
 | `mods/options.c:352` | Saves load in the original game and back, unless a member uses an enemy sprite. |
-| `mods/options.c:474` | # Darklands+ switches  Every switch: its key (its permanent name: never renamed, never reused), what it does, why it exists, the group switch that sets it (if any), its class (what kind of change: fix, show, ease, plus, easy, experiment, taste, tool) and its value in the original game / Darklands+ / for easy play (the column of the former Easy preset). Made by the game itself (`DL_DUMP_SWITCHES=docs/SWITCHES.md`, from `port/mods/options.c` and `port/mods/optwhy.c`); `tools/check_switches.py` fails if a key disappears without being listed as retired.   |
-| `mods/options.c:503` |  ## Retired keys  No longer offered; not to be used for anything else.   |
+| `mods/options.c:486` | # Darklands+ switches  Every switch: its key (its permanent name: never renamed, never reused), what it does, why it exists, the group switch that sets it (if any), its class (what kind of change: fix, show, ease, plus, easy, experiment, taste, tool) and its value in the original game / Darklands+ / for easy play (the column of the former Easy preset). Made by the game itself (`DL_DUMP_SWITCHES=docs/SWITCHES.md`, from `port/mods/options.c` and `port/mods/optwhy.c`); `tools/check_switches.py` fails if a key disappears without being listed as retired.   |
+| `mods/options.c:515` |  ## Retired keys  No longer offered; not to be used for anything else.   |
 
 ## Settings: why each switch (mods/optwhy.c)
 
@@ -1583,28 +1583,28 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/margins_battle.cpp:227` | Travel As Group |
 | `ui/margins_battle.cpp:228` | Travel Single File |
 | `ui/margins_battle.cpp:228` | Cancel Giving Order |
-| `ui/margins_battle.cpp:387` | Drink: a click and the member drinks one at once. |
-| `ui/margins_battle.cpp:387` | Throw or use: a click gives the order (a potion is thrown at the enemy you then click). |
-| `ui/margins_battle.cpp:421` | Back to the chosen speed |
-| `ui/margins_battle.cpp:421` | Back to the chosen speed (Z) |
-| `ui/margins_battle.cpp:421` | Fast forward |
-| `ui/margins_battle.cpp:421` | Fast forward (Z) |
-| `ui/margins_battle.cpp:436` | Resume (Space) |
-| `ui/margins_battle.cpp:443` | The battle is running: Space pauses it, or click one of the party. |
-| `ui/margins_battle.cpp:451` | does not end |
-| `ui/margins_battle.cpp:460` | Enemies not yet met |
-| `ui/margins_battle.cpp:462` | No one else waits in this place. |
-| `ui/margins_battle.cpp:466` | No one on this floor (%d). |
-| `ui/margins_battle.cpp:470` | %sfloor %d: %d |
-| `ui/margins_battle.cpp:473` | Elsewhere: %s. |
-| `ui/margins_battle.cpp:476` | The master of this place waits on this floor. |
-| `ui/margins_battle.cpp:477` | The master of this place waits on floor %d. |
-| `ui/margins_battle.cpp:530` | a little hurt |
-| `ui/margins_battle.cpp:531` | gravely wounded |
-| `ui/margins_battle.cpp:536` | The master of this place: once this one has fallen and the fight is over, the place is won. |
-| `ui/margins_battle.cpp:541` | None in sight yet. |
-| `ui/margins_battle.cpp:543` | To explore: in Single File (Q) or as a Group (G), click a passage and the party walks there. Click stairs and they take them; a shut door and they open it; a chest and they open it, unless it is locked or trapped (then the leader is chosen: Pick Lock or Disarm is yours to order); a way out and they walk to it, its orders ready%s. |
-| `ui/margins_battle.cpp:544` | ; Tab shows the level map (as far as the party has seen it), and a click on it walks the party there |
+| `ui/margins_battle.cpp:383` | Drink: a click and the member drinks one at once. |
+| `ui/margins_battle.cpp:383` | Throw or use: a click gives the order (a potion is thrown at the enemy you then click). |
+| `ui/margins_battle.cpp:417` | Back to the chosen speed |
+| `ui/margins_battle.cpp:417` | Back to the chosen speed (Z) |
+| `ui/margins_battle.cpp:417` | Fast forward |
+| `ui/margins_battle.cpp:417` | Fast forward (Z) |
+| `ui/margins_battle.cpp:432` | Resume (Space) |
+| `ui/margins_battle.cpp:439` | The battle is running: Space pauses it, or click one of the party. |
+| `ui/margins_battle.cpp:447` | does not end |
+| `ui/margins_battle.cpp:456` | Enemies not yet met |
+| `ui/margins_battle.cpp:458` | No one else waits in this place. |
+| `ui/margins_battle.cpp:462` | No one on this floor (%d). |
+| `ui/margins_battle.cpp:466` | %sfloor %d: %d |
+| `ui/margins_battle.cpp:469` | Elsewhere: %s. |
+| `ui/margins_battle.cpp:472` | The master of this place waits on this floor. |
+| `ui/margins_battle.cpp:473` | The master of this place waits on floor %d. |
+| `ui/margins_battle.cpp:526` | a little hurt |
+| `ui/margins_battle.cpp:527` | gravely wounded |
+| `ui/margins_battle.cpp:532` | The master of this place: once this one has fallen and the fight is over, the place is won. |
+| `ui/margins_battle.cpp:537` | None in sight yet. |
+| `ui/margins_battle.cpp:539` | To explore: in Single File (Q) or as a Group (G), click a passage and the party walks there. Click stairs and they take them; a shut door and they open it; a chest and they open it, unless it is locked or trapped (then the leader is chosen: Pick Lock or Disarm is yours to order); a way out and they walk to it, its orders ready%s. |
+| `ui/margins_battle.cpp:540` | ; Tab shows the level map (as far as the party has seen it), and a click on it walks the party there |
 | `ui/menuview.cpp:106` | Arrows, Enter; Esc closes |
 | `ui/menuview.cpp:106` | Click to choose; Esc or a click elsewhere closes |
 | `ui/money.cpp:49` |  florin = 20 |
@@ -2337,70 +2337,69 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/sheetview.cpp:569` | The party's pack |
 | `ui/sheetview.cpp:588` | Click to show them. |
 | `ui/sheetview.cpp:588` | Click to fold them away. |
-| `ui/sheetview.cpp:599` | Split evenly |
-| `ui/sheetview.cpp:602` | Gather every potion the party carries and split each kind evenly among the members on their feet. The odd ones go round, so that each member ends with about as many potions as the others. |
-| `ui/sheetview.cpp:650` | %s has {Virtue:%d}, less than the {Virtue:%d} this relic asks: %s |
-| `ui/sheetview.cpp:651` | it cannot be wielded, and does nothing for their prayers. |
-| `ui/sheetview.cpp:651` | it does nothing for their prayers. |
-| `ui/sheetview.cpp:671` | Wielding it asks {Virtue:%d}. |
-| `ui/sheetview.cpp:682` | Kept: never sold or dropped (Sell spare gear skips it). Click to stop keeping it. |
-| `ui/sheetview.cpp:683` | Kept: never sold or dropped (Sell spare gear skips it). Click to mark it to sell instead. |
-| `ui/sheetview.cpp:684` | Marked to sell: Sell spare gear in a shop sells it with the spare weapons and armor. Click to clear the mark. |
-| `ui/sheetview.cpp:685` | Keep it: Darklands+ will not sell it (one by one or with Sell spare gear) or drop it until you click again. |
-| `ui/sheetview.cpp:718` | ; hold Shift for one) |
-| `ui/sheetview.cpp:719` | : the party's pack is everyone's already |
-| `ui/sheetview.cpp:720` | : drop it on a member at the left (hold Shift: just one) |
-| `ui/sheetview.cpp:720` | : drop it on a member at the left |
-| `ui/sheetview.cpp:788` | : Virtue too low for this saint |
-| `ui/sheetview.cpp:866` | Known by the party |
-| `ui/sheetview.cpp:883` | Every saint in the game |
-| `ui/sheetview.cpp:897` | Or what it raises: |
-| `ui/sheetview.cpp:897` | Or what it raises: |
-| `ui/sheetview.cpp:911` | %s: the %d saint%s whose help %s it, the most first%s |
-| `ui/sheetview.cpp:911` | The town's opinion of the party (its reputation) |
-| `ui/sheetview.cpp:912` | raises or heals |
-| `ui/sheetview.cpp:912` |  (click again for all) |
-| `ui/sheetview.cpp:938` | No saint helps with that. |
-| `ui/sheetview.cpp:938` | Nobody in the party knows a saint that helps with that. (Every saint in the game shows the others too.) |
-| `ui/sheetview.cpp:978` | This saint asks a {Virtue} of %d of the one who prays%s. Each member's {Virtue}: %s |
-| `ui/sheetview.cpp:979` | , more than anyone who knows it has |
-| `ui/sheetview.cpp:979` | , more than anyone in the party has |
-| `ui/sheetview.cpp:1005` | No library the party has been to teaches this saint. |
-| `ui/sheetview.cpp:1007` | Taught in the library of  |
-| `ui/sheetview.cpp:1030` | Nobody in the party knows this saint. |
-| `ui/sheetview.cpp:1039` | Asks a {%s} of %d%s. |
-| `ui/sheetview.cpp:1039` | Asks a {%s} of %d: too low for %s to call on this saint. |
-| `ui/sheetview.cpp:1040` | , more than anyone in the party has |
-| `ui/sheetview.cpp:1055` | {~Virtue:%d} too low (it asks %d) |
-| `ui/sheetview.cpp:1055` | This saint asks a {Virtue} of %d: no prayer is heard below it. |
-| `ui/sheetview.cpp:1057` | {Divine Favor:%d} needed for a 99%% chance |
-| `ui/sheetview.cpp:1058` | The least Divine Favor that gives the best chance of being heard (of the %d they have): more is spent for nothing. The prayer screen sets the favor. |
-| `ui/sheetview.cpp:1061` | All their Divine Favor gives this chance; a 99%% chance takes {Divine Favor:%d}. The prayer screen sets the favor. |
-| `ui/sheetview.cpp:1062` | All their Divine Favor gives this chance. The prayer screen sets the favor. |
-| `ui/sheetview.cpp:1064` | {Divine Favor:%d} needed at least, has %d |
-| `ui/sheetview.cpp:1065` | This saint hears no prayer of less than %d Divine Favor. |
-| `ui/sheetview.cpp:1069` |  With the %s, it costs them {Divine Favor:%d} less (counted here). |
-| `ui/sheetview.cpp:1074` | Call on this saint now: the prayer screen, where you choose how much Divine Favor to spend. |
-| `ui/sheetview.cpp:1081` | Differs from the description:  |
-| `ui/sheetview.cpp:1119` | The party has none. |
-| `ui/sheetview.cpp:1120` | The party has %d. |
-| `ui/sheetview.cpp:1121` | The party has %d: %s |
-| `ui/sheetview.cpp:1123` | Where to buy: %s |
-| `ui/sheetview.cpp:1147` | Every formula in the game |
-| `ui/sheetview.cpp:1161` | Nobody in the party knows a formula. Every formula in the game shows them all, their ingredients and where they are sold. |
-| `ui/sheetview.cpp:1203` | The party's ingredients |
-| `ui/sheetview.cpp:1233` | Mystic number %d, %s. |
-| `ui/sheetview.cpp:1233` | risk unknown |
-| `ui/sheetview.cpp:1236` | The mystic number: the higher, the harder the formula is to brew (set against the alchemist's {Alchemy} and {Intelligence}). The risk: how badly a failed brew can go wrong. |
-| `ui/sheetview.cpp:1241` | Ingredients: the party has / needed |
-| `ui/sheetview.cpp:1252` | Enough ingredients to make %d potion%s. |
-| `ui/sheetview.cpp:1253` | The party lacks an ingredient: brewing must wait. |
-| `ui/sheetview.cpp:1253` | The party lacks an ingredient. |
-| `ui/sheetview.cpp:1255` | Chance of brewing one batch |
-| `ui/sheetview.cpp:1265` | Nobody in the party knows it. |
-| `ui/sheetview.cpp:1268` | No alchemist sells it: it is traded for or found. |
-| `ui/sheetview.cpp:1269` | No alchemist the party has been to sells it. |
-| `ui/sheetview.cpp:1274` | Sold by the alchemist of  |
+| `ui/sheetview.cpp:646` | %s has {Virtue:%d}, less than the {Virtue:%d} this relic asks: %s |
+| `ui/sheetview.cpp:647` | it cannot be wielded, and does nothing for their prayers. |
+| `ui/sheetview.cpp:647` | it does nothing for their prayers. |
+| `ui/sheetview.cpp:661` | Split this potion evenly among the members on their feet, every quality of it. The odd ones stay with whoever holds them, where they can. |
+| `ui/sheetview.cpp:672` | Wielding it asks {Virtue:%d}. |
+| `ui/sheetview.cpp:683` | Kept: never sold or dropped (Sell spare gear skips it). Click to stop keeping it. |
+| `ui/sheetview.cpp:684` | Kept: never sold or dropped (Sell spare gear skips it). Click to mark it to sell instead. |
+| `ui/sheetview.cpp:685` | Marked to sell: Sell spare gear in a shop sells it with the spare weapons and armor. Click to clear the mark. |
+| `ui/sheetview.cpp:686` | Keep it: Darklands+ will not sell it (one by one or with Sell spare gear) or drop it until you click again. |
+| `ui/sheetview.cpp:719` | ; hold Shift for one) |
+| `ui/sheetview.cpp:720` | : the party's pack is everyone's already |
+| `ui/sheetview.cpp:721` | : drop it on a member at the left (hold Shift: just one) |
+| `ui/sheetview.cpp:721` | : drop it on a member at the left |
+| `ui/sheetview.cpp:789` | : Virtue too low for this saint |
+| `ui/sheetview.cpp:867` | Known by the party |
+| `ui/sheetview.cpp:884` | Every saint in the game |
+| `ui/sheetview.cpp:898` | Or what it raises: |
+| `ui/sheetview.cpp:898` | Or what it raises: |
+| `ui/sheetview.cpp:912` | %s: the %d saint%s whose help %s it, the most first%s |
+| `ui/sheetview.cpp:912` | The town's opinion of the party (its reputation) |
+| `ui/sheetview.cpp:913` | raises or heals |
+| `ui/sheetview.cpp:913` |  (click again for all) |
+| `ui/sheetview.cpp:939` | No saint helps with that. |
+| `ui/sheetview.cpp:939` | Nobody in the party knows a saint that helps with that. (Every saint in the game shows the others too.) |
+| `ui/sheetview.cpp:979` | This saint asks a {Virtue} of %d of the one who prays%s. Each member's {Virtue}: %s |
+| `ui/sheetview.cpp:980` | , more than anyone who knows it has |
+| `ui/sheetview.cpp:980` | , more than anyone in the party has |
+| `ui/sheetview.cpp:1006` | No library the party has been to teaches this saint. |
+| `ui/sheetview.cpp:1008` | Taught in the library of  |
+| `ui/sheetview.cpp:1031` | Nobody in the party knows this saint. |
+| `ui/sheetview.cpp:1040` | Asks a {%s} of %d%s. |
+| `ui/sheetview.cpp:1040` | Asks a {%s} of %d: too low for %s to call on this saint. |
+| `ui/sheetview.cpp:1041` | , more than anyone in the party has |
+| `ui/sheetview.cpp:1056` | {~Virtue:%d} too low (it asks %d) |
+| `ui/sheetview.cpp:1056` | This saint asks a {Virtue} of %d: no prayer is heard below it. |
+| `ui/sheetview.cpp:1058` | {Divine Favor:%d} needed for a 99%% chance |
+| `ui/sheetview.cpp:1059` | The least Divine Favor that gives the best chance of being heard (of the %d they have): more is spent for nothing. The prayer screen sets the favor. |
+| `ui/sheetview.cpp:1062` | All their Divine Favor gives this chance; a 99%% chance takes {Divine Favor:%d}. The prayer screen sets the favor. |
+| `ui/sheetview.cpp:1063` | All their Divine Favor gives this chance. The prayer screen sets the favor. |
+| `ui/sheetview.cpp:1065` | {Divine Favor:%d} needed at least, has %d |
+| `ui/sheetview.cpp:1066` | This saint hears no prayer of less than %d Divine Favor. |
+| `ui/sheetview.cpp:1070` |  With the %s, it costs them {Divine Favor:%d} less (counted here). |
+| `ui/sheetview.cpp:1075` | Call on this saint now: the prayer screen, where you choose how much Divine Favor to spend. |
+| `ui/sheetview.cpp:1082` | Differs from the description:  |
+| `ui/sheetview.cpp:1120` | The party has none. |
+| `ui/sheetview.cpp:1121` | The party has %d. |
+| `ui/sheetview.cpp:1122` | The party has %d: %s |
+| `ui/sheetview.cpp:1124` | Where to buy: %s |
+| `ui/sheetview.cpp:1148` | Every formula in the game |
+| `ui/sheetview.cpp:1162` | Nobody in the party knows a formula. Every formula in the game shows them all, their ingredients and where they are sold. |
+| `ui/sheetview.cpp:1204` | The party's ingredients |
+| `ui/sheetview.cpp:1234` | Mystic number %d, %s. |
+| `ui/sheetview.cpp:1234` | risk unknown |
+| `ui/sheetview.cpp:1237` | The mystic number: the higher, the harder the formula is to brew (set against the alchemist's {Alchemy} and {Intelligence}). The risk: how badly a failed brew can go wrong. |
+| `ui/sheetview.cpp:1242` | Ingredients: the party has / needed |
+| `ui/sheetview.cpp:1253` | Enough ingredients to make %d potion%s. |
+| `ui/sheetview.cpp:1254` | The party lacks an ingredient: brewing must wait. |
+| `ui/sheetview.cpp:1254` | The party lacks an ingredient. |
+| `ui/sheetview.cpp:1256` | Chance of brewing one batch |
+| `ui/sheetview.cpp:1266` | Nobody in the party knows it. |
+| `ui/sheetview.cpp:1269` | No alchemist sells it: it is traded for or found. |
+| `ui/sheetview.cpp:1270` | No alchemist the party has been to sells it. |
+| `ui/sheetview.cpp:1275` | Sold by the alchemist of  |
 | `ui/skillicons.cpp:462` | Missile Device |
 | `ui/skillicons.cpp:462` | Missile Weapons |
 | `ui/skillicons.cpp:463` | Speak Common |
@@ -2797,17 +2796,17 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/battleend.c:31` | The party has surrendered. |
 | `mods/battleend.c:32` | The whole party has fallen. |
 | `mods/battleend.c:32` | The party has left the field. |
-| `mods/builtin.c:103` | Faster overland travel |
-| `mods/builtin.c:103` | Overland travel takes a third of the time. |
-| `mods/builtin.c:104` | Half-price inns |
-| `mods/builtin.c:104` | Lodging costs half as much. |
-| `mods/builtin.c:105` | Quick learning |
-| `mods/builtin.c:105` | Skills improve about twice as often through use, on cards and in battles (slow ones such as Streetwise and Latin too). |
-| `mods/builtin.c:106` | Double damage against enemies |
-| `mods/builtin.c:106` | Every hit on an enemy does double damage. Hits on the party are unchanged. |
-| `mods/builtin.c:107` | Strong Quickstart party |
-| `mods/builtin.c:107` | The four members of the Quickstart party start with 60 in every attribute and 75 in every skill. |
-| `mods/builtin.c:108` | A party made with Create a New World starts with 5000 florins instead of 200. |
+| `mods/builtin.c:104` | Faster overland travel |
+| `mods/builtin.c:104` | Overland travel takes a third of the time. |
+| `mods/builtin.c:105` | Half-price inns |
+| `mods/builtin.c:105` | Lodging costs half as much. |
+| `mods/builtin.c:106` | Quick learning |
+| `mods/builtin.c:106` | Skills improve about twice as often through use, on cards and in battles (slow ones such as Streetwise and Latin too). |
+| `mods/builtin.c:107` | Double damage against enemies |
+| `mods/builtin.c:107` | Every hit on an enemy does double damage. Hits on the party are unchanged. |
+| `mods/builtin.c:108` | Strong Quickstart party |
+| `mods/builtin.c:108` | The four members of the Quickstart party start with 60 in every attribute and 75 in every skill. |
+| `mods/builtin.c:109` | A party made with Create a New World starts with 5000 florins instead of 200. |
 | `mods/cacheview.c:115` | %d %s to %s (to give it to another member, drag it from the character sheet onto them in the party panel). |
 | `mods/cacheview.c:116` | %d %s into the party's pack. |
 | `mods/cacheview.c:117` | No room: every member already carries 64 kinds of items. |
@@ -3433,34 +3432,34 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/sheetview.c:268` | %s cannot carry another kind of item. |
 | `mods/sheetview.c:273` | The %s could not be handed to %s. |
 | `mods/sheetview.c:298` | %s drinks the %s. |
-| `mods/sheetview.c:350` | No spare %s is left in the party's pack. |
-| `mods/sheetview.c:357` | %s rides the %s. |
-| `mods/sheetview.c:359` | %s carries the %s, but rides the better %s. |
-| `mods/sheetview.c:382` | No potions to split. |
-| `mods/sheetview.c:383` | %s: already split evenly. |
-| `mods/sheetview.c:384` | %s split evenly: |
-| `mods/sheetview.c:403` | %s takes up %s%s. |
-| `mods/sheetview.c:404` | Wielding %s%s asks more Virtue than %s has. |
-| `mods/sheetview.c:405` | %s%s cannot be readied. |
-| `mods/sheetview.c:415` | %s drinks the %s. |
-| `mods/sheetview.c:418` | The %s is marked Keep: unmark it before dropping it. |
-| `mods/sheetview.c:434` | Left behind: the %s (%d). Undo takes them back. |
-| `mods/sheetview.c:434` | Left behind: a %s. Undo takes it back. |
-| `mods/sheetview.c:481` | Taken back: the %s (%d). |
-| `mods/sheetview.c:481` | Taken back: the %s. |
-| `mods/sheetview.c:482` | The %s cannot be taken back (no room). |
-| `mods/sheetview.c:487` | %s takes up %s%s. |
-| `mods/sheetview.c:488` | Wielding %s%s asks more Virtue than %s has. |
-| `mods/sheetview.c:489` | %s%s cannot be readied. |
-| `mods/sheetview.c:493` | %s puts %s%s away. |
-| `mods/sheetview.c:499` | %s cannot carry another kind of item. |
-| `mods/sheetview.c:501` | %s gives the %s to %s. |
-| `mods/sheetview.c:501` | %s gives a %s to %s. |
-| `mods/sheetview.c:502` | %s cannot take the %s. |
-| `mods/sheetview.c:506` | The %s is marked Keep: unmark it before dropping it. |
-| `mods/sheetview.c:513` | Left behind: the %s (%d). Undo takes them back. |
-| `mods/sheetview.c:513` | Left behind: a %s. Undo takes it back. |
-| `mods/sheetview.c:520` | %s drinks the %s. |
+| `mods/sheetview.c:352` | No spare %s is left in the party's pack. |
+| `mods/sheetview.c:359` | %s rides the %s. |
+| `mods/sheetview.c:361` | %s carries the %s, but rides the better %s. |
+| `mods/sheetview.c:364` | split all potions of one type |
+| `mods/sheetview.c:384` | %s: already split evenly. |
+| `mods/sheetview.c:385` | %s split evenly: |
+| `mods/sheetview.c:404` | %s takes up %s%s. |
+| `mods/sheetview.c:405` | Wielding %s%s asks more Virtue than %s has. |
+| `mods/sheetview.c:406` | %s%s cannot be readied. |
+| `mods/sheetview.c:416` | %s drinks the %s. |
+| `mods/sheetview.c:419` | The %s is marked Keep: unmark it before dropping it. |
+| `mods/sheetview.c:435` | Left behind: the %s (%d). Undo takes them back. |
+| `mods/sheetview.c:435` | Left behind: a %s. Undo takes it back. |
+| `mods/sheetview.c:482` | Taken back: the %s (%d). |
+| `mods/sheetview.c:482` | Taken back: the %s. |
+| `mods/sheetview.c:483` | The %s cannot be taken back (no room). |
+| `mods/sheetview.c:488` | %s takes up %s%s. |
+| `mods/sheetview.c:489` | Wielding %s%s asks more Virtue than %s has. |
+| `mods/sheetview.c:490` | %s%s cannot be readied. |
+| `mods/sheetview.c:494` | %s puts %s%s away. |
+| `mods/sheetview.c:500` | %s cannot carry another kind of item. |
+| `mods/sheetview.c:502` | %s gives the %s to %s. |
+| `mods/sheetview.c:502` | %s gives a %s to %s. |
+| `mods/sheetview.c:503` | %s cannot take the %s. |
+| `mods/sheetview.c:507` | The %s is marked Keep: unmark it before dropping it. |
+| `mods/sheetview.c:514` | Left behind: the %s (%d). Undo takes them back. |
+| `mods/sheetview.c:514` | Left behind: a %s. Undo takes it back. |
+| `mods/sheetview.c:521` | %s drinks the %s. |
 | `mods/styles.c:18` | Skirmisher, hand to hand |
 | `mods/styles.c:20` | As in the original game: they wait for your orders. |
 | `mods/styles.c:21` | Shoots throughout the fight, each archer at a different enemy; fights hand to hand only when reached, then shoots again. |

@@ -586,3 +586,12 @@ covered and found, and what it could not check.
   hook), putting them back after the write; effects_now and pot_all use the table alone while it holds both.
   Tested: Deadly Blade drunk, sheet opened and closed, bonus byte 40 throughout, the event still there.
   New test command uchest (a chest's lock and trap set, the floor's chests listed).
+- 2026-11-11 (his answers to RC9): (1) Split per potion, not every potion: the heading's Split evenly is gone, a
+  Split on each potion row of a member's own (left of Drink, or in Drink's place for one only thrown) splits that
+  potion, every quality of it; the odd ones go to whoever is to hold fewest of it so far, then to one who holds
+  more of it now (fewer moved). Tested in his DKSAVEDM: Essence of Grace 9/8/8/8, a second click "already split
+  evenly"; Black Cloud, two qualities, 2/1/1/1. (2) The tray's marks "more abstract" (the goblet read as Divine
+  Favor, the flask as a crushed bug): one family of plain signs, a gold dot for the member and a pale arrow for the
+  potion, down into the dot to drink, off on a dashed arc to throw. (3) The sound: no preset touches the device any
+  more (options_sound_kept gives back a device the purist presets had switched to "game", at the start and on a
+  preset choice); Full Original's description says the MT-32 stays.

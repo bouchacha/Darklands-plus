@@ -9,6 +9,7 @@
 #include "../runtime/config.h"
 #include "mods.h"
 #include "assist.h"
+#include "options.h"
 
 /* ---- heavy blows: every hit on an enemy does double damage (s014 18bf:08ca rolls the
  * damage of one hit on combatant t and queues it in D_d70c[t]; enemies are 5..12) */
@@ -138,6 +139,7 @@ static void restored_migrate(void)
 void mods_init(void)
 {
     restored_migrate();
+    options_sound_kept();
     /* first of the hooks on menu_bar_run, so that it runs last, after the others' (the saves', the
        native screens' safe point): when on, it does the menu itself and does not call the original */
     { void menuview_init(void); menuview_init(); }

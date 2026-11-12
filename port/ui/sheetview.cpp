@@ -595,13 +595,6 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
                 int after = cmp_hover >= 0 && cmp_hover < s.nitems && !s.item[cmp_hover].equipped ? ns_load_with(s.item[cmp_hover].id, s.who) : -1;
                 lw = ns_load_note(P, RX1 - 3, y + 2.2f, s.who, after) + 3;
             }
-            if (sec == 1 && !foldable && share_n >= 2) {    /* the member's potions: every potion of the party split evenly, a button at the right (his ask, RC8) */
-                const char *bl = "Split evenly";
-                float bw = P.width(fo, 4.2f, bl) + 4, bx1 = RX1 - 2, bx0 = bx1 - bw;
-                if (P.button(bx0, y + 0.8f, bx1, y + ROWH - 0.8f, bl, IM_COL32(40, 92, 34, 235), 4.2f)) ns_push(SV_SHARE, -1, 0, 0);
-                if (P.over(bx0, y + 0.8f, bx1, y + ROWH - 0.8f)) ns_tip("Gather every potion the party carries and split each kind evenly among the members on their feet. The odd ones go round, so that each member ends with about as many potions as the others.");
-                lw = bw + 3;
-            }
             P.rect(hx + P.width(fo, NsDraw::FS_SMALL, hd) + 2, y + 4.8f, RX1 - 3 - lw, y + 5.1f, IM_COL32(120, 80, 36, 90));
             continue;
         }
@@ -613,10 +606,13 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         std::string nm = ns_item_name(it.id);
         if (it.count > 1) nm += " (" + std::to_string(it.count) + ")";
         const ItemDef *d = ns_itemdef(it.id);
-        float name_end = (h || busy) ? RX1 - 59 : RX1 - 2;
+        /* a potion of this member's own, with another member on their feet: Split (his asks, RC6 and RC9: that potion, every
+           quality of it, split evenly among them), left of Drink, or in Drink's place for one only to throw */
+        const bool split = it.potion && it.holder >= 0 && share_n >= 2, split_wide = split && it.drinkable && !it.equipped;
+        float name_end = (h || busy) ? RX1 - (split_wide ? 78 : 59) : RX1 - 2;
         if (h && P.mx < name_end) tip_i = i;
         if (it.kept || it.sell) {                          /* kept from selling and dropping: a small red seal at the right; marked to sell: a coin */
-            float kx = (h || busy) ? RX1 - 61 : RX1 - 4;
+            float kx = (h || busy) ? RX1 - (split_wide ? 80 : 61) : RX1 - 4;
             ImVec2 kc = NsDraw::w(kx, y + ROWH * 0.5f);
             if (it.kept) P.dl->AddCircleFilled(kc, 1.5f * P.k, IM_COL32(150, 40, 24, 230));
             else { P.dl->AddCircleFilled(kc, 1.5f * P.k, IM_COL32(214, 168, 60, 255)); P.dl->AddCircle(kc, 1.5f * P.k, IM_COL32(120, 84, 30, 255), 0, fmaxf(1.0f, 0.3f * P.k)); }
@@ -659,6 +655,11 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         bool gear = item_wieldable(d);                    /* (a weapon relic too: the game's item_ready readies it as the weapon it is) */
         bool pack = it.holder < 0;                         /* a row of the shared pack: the actions by kind and quality */
         float x = RX1 - 58;
+        if (split) {
+            float sx = split_wide ? x - 19 : x;
+            if (P.button(sx, y + 1, sx + 18, y + ROWH - 1, "Split", IM_COL32(40, 92, 34, 235), 4.4f)) ns_push(SV_SHARE, it.id, it.qual, 0);
+            if (P.over(sx, y + 1, sx + 18, y + ROWH - 1)) { ns_tip("Split this potion evenly among the members on their feet, every quality of it. The odd ones stay with whoever holds them, where they can."); tip_i = -1; }
+        }
         if (it.drinkable && !it.equipped) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Drink", IM_COL32(52, 70, 120, 235), 4.4f)) { if (pack) ns_push(SV_PDRINK, it.id, it.qual, 0); else ns_push(SV_DRINK, it.idx, 0, 0); } }
         else if (it.equipped == 1) { if (P.button(x, y + 1, x + 18, y + ROWH - 1, "Unequip", IM_COL32(120, 84, 40, 235), 4.4f)) ns_push(SV_PUTAWAY, it.idx, 0, 0); }
         else if (it.equipped == 2) P.text(fo, NsDraw::FS_SMALL, x + 2, y + 2.4f, soft, "rides it");   /* (the shared pack: their own mount) */

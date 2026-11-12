@@ -323,39 +323,35 @@ static void order_buttons(float width, bool with_resume)
    than the strip's buttons, as many to a row as the strip is wide, the rows growing upwards from the strip
    (dozens of kinds take a few rows; none, no grid). A click throws or uses one (the order as the game's
    menu gives it) */
-/* a tray row's picture, s square at a: to drink, a goblet; to throw or use, a flask flying on its arc */
+/* the mark before each row of the tray, a pair of plain signs (his ask, RC9: "more abstract"; a goblet read as Divine
+   Favor): a dot for the member, an arrow for the potion. Drink: the arrow comes down into the dot; throw or use: it
+   leaves the dot on a dashed arc and lands away from it */
 static void tray_row_icon(ImDrawList *dl, ImVec2 a, float s, bool drink)
 {
-    const ImU32 gold = IM_COL32(222, 182, 84, 255), dark = IM_COL32(60, 40, 16, 255);
-    ImVec2 c(a.x + s * 0.5f, a.y + s * 0.5f);
-    dl->AddRectFilled(a, ImVec2(a.x + s, a.y + s), IM_COL32(52, 36, 20, 255), s * 0.18f);
-    dl->AddRect(a, ImVec2(a.x + s, a.y + s), IM_COL32(150, 110, 52, 255), s * 0.18f, 0, fmaxf(1.0f, s * 0.05f));
+    const ImU32 ink = IM_COL32(232, 214, 168, 255), dot = IM_COL32(222, 182, 84, 255);
+    const float w = fmaxf(1.5f, s * 0.085f);
+    auto P = [&](float x, float y) { return ImVec2(a.x + s * x, a.y + s * y); };
+    auto head = [&](ImVec2 tip, float dx, float dy) {          /* (an arrowhead at tip, pointing along dx, dy) */
+        float l = sqrtf(dx * dx + dy * dy); dx /= l; dy /= l;
+        float h = s * 0.2f, b = s * 0.13f;
+        dl->AddTriangleFilled(tip, ImVec2(tip.x - dx * h - dy * b, tip.y - dy * h + dx * b), ImVec2(tip.x - dx * h + dy * b, tip.y - dy * h - dx * b), ink);
+    };
+    dl->AddRectFilled(a, P(1, 1), IM_COL32(52, 36, 20, 255), s * 0.18f);
+    dl->AddRect(a, P(1, 1), IM_COL32(150, 110, 52, 255), s * 0.18f, 0, fmaxf(1.0f, s * 0.05f));
     if (drink) {
-        dl->PathClear();                                           /* (the cup) */
-        dl->PathLineTo(ImVec2(c.x - s * 0.26f, a.y + s * 0.2f));
-        dl->PathLineTo(ImVec2(c.x + s * 0.26f, a.y + s * 0.2f));
-        dl->PathBezierCubicCurveTo(ImVec2(c.x + s * 0.26f, a.y + s * 0.46f), ImVec2(c.x + s * 0.12f, a.y + s * 0.54f), ImVec2(c.x, a.y + s * 0.54f));
-        dl->PathBezierCubicCurveTo(ImVec2(c.x - s * 0.12f, a.y + s * 0.54f), ImVec2(c.x - s * 0.26f, a.y + s * 0.46f), ImVec2(c.x - s * 0.26f, a.y + s * 0.2f));
-        dl->PathFillConvex(gold);
-        dl->AddRectFilled(ImVec2(c.x - s * 0.22f, a.y + s * 0.22f), ImVec2(c.x + s * 0.22f, a.y + s * 0.3f), IM_COL32(176, 40, 40, 255));   /* (what is in it) */
-        dl->AddRectFilled(ImVec2(c.x - s * 0.04f, a.y + s * 0.54f), ImVec2(c.x + s * 0.04f, a.y + s * 0.74f), gold);              /* (the stem) */
-        dl->AddRectFilled(ImVec2(c.x - s * 0.18f, a.y + s * 0.74f), ImVec2(c.x + s * 0.18f, a.y + s * 0.81f), gold, s * 0.03f);  /* (the foot) */
+        dl->AddCircleFilled(P(0.5f, 0.76f), s * 0.11f, dot);
+        dl->AddBezierCubic(P(0.80f, 0.18f), P(0.42f, 0.10f), P(0.50f, 0.30f), P(0.50f, 0.48f), ink, w);
+        head(P(0.50f, 0.61f), 0, 1);
     } else {
-        for (int k = 0; k < 3; k++) {                              /* (the arc it flies on, dashed) */
-            float t0 = 0.08f + k * 0.2f, t1 = t0 + 0.12f;
-            auto P = [&](float t) { return ImVec2(a.x + s * (0.14f + 0.5f * t), a.y + s * (0.78f - 0.9f * t + 0.5f * t * t)); };
-            dl->AddLine(P(t0), P(t1), IM_COL32(230, 210, 160, 220), fmaxf(1.0f, s * 0.06f));
+        dl->AddCircleFilled(P(0.20f, 0.76f), s * 0.11f, dot);
+        auto F = [&](float t) { return P(0.26f + 0.50f * t, 0.62f - 1.56f * t + 1.40f * t * t); };
+        float run = 0, dash = s * 0.13f, gap = s * 0.08f;          /* (the flight, dashed: even dashes along its length) */
+        for (int k = 0; k < 36; k++) {
+            ImVec2 p0 = F(k * 0.86f / 36), p1 = F((k + 1) * 0.86f / 36);
+            if (fmodf(run, dash + gap) < dash) dl->AddLine(p0, p1, ink, w);
+            run += sqrtf((p1.x - p0.x) * (p1.x - p0.x) + (p1.y - p0.y) * (p1.y - p0.y));
         }
-        /* (the flask, as the potions' own pictures: a round body, a glass neck, a cork; tilted, flying) */
-        ImVec2 f(a.x + s * 0.64f, a.y + s * 0.46f);
-        const float ca = cosf(0.7f), sa = sinf(0.7f);
-        auto R = [&](float x, float y) { return ImVec2(f.x + s * (x * ca - y * sa), f.y + s * (x * sa + y * ca)); };
-        auto quad = [&](float x0, float y0, float x1, float y1, ImU32 col) { dl->AddQuadFilled(R(x0, y0), R(x1, y0), R(x1, y1), R(x0, y1), col); };
-        quad(-0.06f, -0.3f, 0.06f, -0.08f, IM_COL32(170, 176, 186, 255));                 /* (the neck) */
-        quad(-0.075f, -0.38f, 0.075f, -0.29f, IM_COL32(128, 86, 44, 255));               /* (the cork) */
-        dl->AddCircleFilled(R(0, 0.06f), s * 0.19f, IM_COL32(96, 160, 72, 255));
-        dl->AddCircleFilled(R(-0.06f, 0.0f), s * 0.05f, IM_COL32(210, 236, 190, 200));   /* (the glass's light) */
-        dl->AddCircle(R(0, 0.06f), s * 0.19f, dark, 0, fmaxf(1.0f, s * 0.045f));
+        head(F(1.0f), 0.50f, -1.56f + 2.8f);
     }
 }
 static void potions_tray(float cx, float bottom, float fs, float maxw)
@@ -373,7 +369,7 @@ static void potions_tray(float cx, float bottom, float fs, float maxw)
         float lh = ImGui::GetTextLineHeight(), gap = lh * 0.25f, x1 = o0.x + maxw - fs * 1.2f;
         float y = o0.y, xmax = o0.x, rowh = 0;
         /* two rows (his ask, RC8): what the member can drink, then what they can throw or use, each with its picture at
-           the left (a goblet, a flask flying); a row wraps under itself when it runs out of width */
+           the left (the arrow into the member, or away from them); a row wraps under itself when it runs out of width */
         bool first_group = true;
         for (int grp = 0; grp < 2; grp++) {
             bool any = false;

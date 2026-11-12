@@ -83,6 +83,7 @@ int preset_nearest(int *diffs);             /* the preset with the fewest differ
 void preset_apply(int preset);              /* the player's own choices are kept first, to come back to */
 int preset_custom_saved(void);              /* own choices kept (and not in force) */
 void preset_restore_custom(void);
+void options_sound_kept(void);               /* a sound device the purist presets set before 1.4.7 given back */
 
 #ifdef __cplusplus
 }
