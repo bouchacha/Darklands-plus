@@ -1619,7 +1619,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/nsdraw.cpp:28` |  against blows,  |
 | `ui/nsdraw.cpp:29` |  against shots and throws; unusable with a two-handed weapon |
 | `ui/nsdraw.cpp:34` | , penetration  |
-| `ui/nsdraw.cpp:35` | , time for a blow  |
+| `ui/nsdraw.cpp:35` | , time per blow  |
 | `ui/nsdraw.cpp:36` | draw and loose  |
 | `ui/nsdraw.cpp:42` | Covers body and arms |
 | `ui/nsdraw.cpp:42` | Covers the legs |
