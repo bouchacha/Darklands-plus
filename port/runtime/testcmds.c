@@ -192,6 +192,12 @@ int testcmd_run(const char *cmd, const char *arg)
                 fprintf(stderr, "added %d of item %x q%d to member %d (record %d)\n", k, code, q, m, n);
             }
         }
+        else if (!strcmp(cmd, "uchest")) {              /* test: chest k's lock and trap set (k,lock,trap), then every chest of the floor listed */
+            int k = -1, lk = 0, tr = 0; u16 seg = (u16)(LOADSEG + 0x20a5);
+            if (sscanf(arg, "%d,%d,%d", &k, &lk, &tr) == 3 && k >= 0 && k < 12) { wb(seg, (u16)(0x300e + 0x2c * k + 8), (u8)lk); wb(seg, (u16)(0x300e + 0x2c * k + 9), (u8)tr); }
+            int n = (s8)rb(seg, 0x300c);
+            for (k = 0; k < n && k < 12; k++) { u16 r = (u16)(0x300e + 0x2c * k); fprintf(stderr, "chest %d: at %d,%d lock %d trap %d cell %d,%d\n", k, (s16)rw(seg, r), (s16)rw(seg, (u16)(r + 2)), rb(seg, (u16)(r + 8)), rb(seg, (u16)(r + 9)), rb(seg, (u16)(r + 6)), rb(seg, (u16)(r + 7))); }
+        }
         else if (!strcmp(cmd, "uallexits")) {           /* test (in a castle, mine or dungeon, paused): every floor's stairs and ways out, each floor loaded in turn (level_switch), then the floor shown again */
             int nf = g_rb(0xd661), here = (s8)g_rb(GV_floor_shown);   /* (D_d661: the floors) */
             for (int f = 0; f < nf && f < 16; f++) {

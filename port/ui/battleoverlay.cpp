@@ -287,7 +287,8 @@ void ui_draw_battle_bars(void)
    "Click: attack", or why not ("No clear shot"), the first line of the info, or alone by the pointer */
 extern "C" const char *orders_hint(void);
 extern "C" int ui_pointer_on_cover(void);
-extern "C" int levelwalk_door_at(int gx, int gy), levelwalk_door_open(int n), levelwalk_chest_at(int gx, int gy), levelwalk_stairs_at(int gx, int gy), levelwalk_wayout_at(int gx, int gy);   /* (mods/levelwalk.c) */          /* (ui/margins.cpp) */
+extern "C" int levelwalk_door_at(int gx, int gy), levelwalk_door_open(int n), levelwalk_chest_at(int gx, int gy), levelwalk_stairs_at(int gx, int gy), levelwalk_wayout_at(int gx, int gy),
+                      levelwalk_chest_known(int k), levelwalk_chest_lock(int k), levelwalk_chest_trap(int k);   /* (mods/levelwalk.c) */          /* (ui/margins.cpp) */
 extern "C" int plat_pointer_outside(void);
 static void hint_line(const char *h)
 {
@@ -420,13 +421,26 @@ void ui_draw_battle_info(void)
     {   /* a door under the pointer, out of a fight: that it can be used, and how (mods/levelwalk.c) */
         int d = mx >= 0 && mx < 0x104 && !plat_pointer_outside() ? levelwalk_door_at(gx, gy) : -1;
         if (d >= 0) hint = levelwalk_door_open(d) ? "Door: click to walk there and close it" : "Door: click to walk there and open it";
-        /* a chest: what it is, so it stands out from the furniture that does nothing (its lock or trap not told) */
         /* the things on the field that can be used, named under the pointer (furniture that does nothing is not): out of a fight what a
            click does there (mods/levelwalk.c levelwalk_door_click), in a fight what they are */
         if ((!hint || strncmp(hint, "Click", 5)) && d < 0 && mx >= 0 && mx < 0x104 && !plat_pointer_outside()) {
             bool calm = !g_rb(GV_real_combat);
             if (levelwalk_stairs_at(gx, gy) >= 0) hint = calm ? "Stairs: click to walk there and take them" : "Stairs";
-            else if (levelwalk_chest_at(gx, gy) >= 0) hint = calm ? "Chest: click to walk there, then choose what to do with it" : "Chest: open it from the orders of a member beside it";
+            else if (int ck = levelwalk_chest_at(gx, gy); ck >= 0) {
+                /* what is known of it, as the game's orders there tell once a member has stood at it: locked (Pick Lock), or
+                   unlocked and trapped and how (Disarm ... trap). A locked chest's trap is not told until the lock is picked */
+                static char ct[160];
+                bool known = levelwalk_chest_known(ck) != 0;
+                int lk = known ? levelwalk_chest_lock(ck) : 0, tr = known && !lk ? levelwalk_chest_trap(ck) : 0;
+                const char *trap = tr >= 80 ? "a complex trap" : tr >= 50 ? "a moderate trap" : tr > 0 ? "a simple trap" : "";
+                char state[80] = "";
+                if (lk) snprintf(state, sizeof state, " (locked)");
+                else if (tr) snprintf(state, sizeof state, " (%s)", trap);
+                if (!calm) snprintf(ct, sizeof ct, "Chest%s: open it from the orders of a member beside it", state);
+                else if (lk || tr) snprintf(ct, sizeof ct, "Chest%s: click to walk there; %s is then on the leader's orders", state, lk ? "Pick Lock" : "Disarm");
+                else snprintf(ct, sizeof ct, known ? "Chest: click to walk there and open it" : "Chest: click to walk there and open it (if it is not locked or trapped)");
+                hint = ct;
+            }
             else if (levelwalk_wayout_at(gx, gy) >= 0) hint = calm ? "Way out: click to walk there; then Exit Battlefield (X) for each member" : "Way out: a member standing here can leave (Exit Battlefield, X)";
         }
     }

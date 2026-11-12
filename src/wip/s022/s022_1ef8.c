@@ -110,7 +110,7 @@ void far sub_root_047c_056f(void);
 void far shields_load(void);
 void far shields_free(void);
 void far party_panel_rows(int);
-void far inventory_leave_vec(int);
+void far battle_sheet_vec(int);
 void far battle_tiles_load_vec(void);
 void far furniture_load_vec(void);
 void far level_load_vec(void);
@@ -190,7 +190,7 @@ void far combat_char_sheet(int y)
         sub_root_047c_0568();
         shields_load();
         party_panel_rows(0x100);
-        inventory_leave_vec(idx);
+        battle_sheet_vec(idx);
         sub_root_047c_1320(6, 0);
         D_c62a = 0;
         sub_root_0000_2646("AftCharData");

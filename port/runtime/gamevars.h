@@ -669,7 +669,7 @@
 #define GF_sheet_portrait_frame         31, 0x1462, 0x2518    /* (who, colour): the frame of a portrait */
 #define GF_sheet_box_draw               31, 0x1462, 0x39a0    /* (box, who, struct gfx win): one box's text (0 name bar, 2 load ...) */
 #define GF_use_potion                   31, 0x1462, 0x43b2    /* (who, idx): drink */
-#define GF_inventory_leave              31, 0x1462, 0x0000    /* (): save locs.tmp / events.tmp, free the world data */
+#define GF_battle_sheet                 31, 0x1462, 0x0000    /* (who): a member's sheet in a battle: world_load, member_sheet, then events.tmp written and the world freed */
 #define GF_give_one                     31, 0x18e7, 0x0000    /* (from, to, idx, box): one of the stack (box 9: the equipment list) */
 #define GF_give_stack                   31, 0x18e7, 0x007c    /* (from, to, idx, box): the whole stack */
 #define GF_add_item_q                   31, 0x18e7, 0x016e    /* (who, code, qual): one item of quality qual */

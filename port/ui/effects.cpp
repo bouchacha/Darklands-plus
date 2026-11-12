@@ -149,6 +149,7 @@ std::vector<Eff> effects_now(int size)
     int seed = (u16)g_rw(G_PARTY_SEED);
     std::vector<Eff> v = effects_table(size, table_records());
     if (!fixes_cards_down()) { before = v; before_seed = seed; return v; }
+    if (fixes_world_open()) return v;                   /* (a member's sheet in the battle: the table holds the cards' events as well) */
     {   /* (the file as the cards left it, read again only when it changed: a save loaded in the battle) */
         static long stamp = -2; static double checked = -10;
         double t = ImGui::GetTime();

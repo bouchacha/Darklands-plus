@@ -568,3 +568,20 @@ covered and found, and what it could not check.
   names (Missile Dvc, Speak Common, Speak Latin, Read & Write) now find their shields. Looked at and left:
   the camp (of a piece with the inn), Settings (its section pictures differ in kind but read at a glance),
   Save and Load (the party named in words: those members are the save's, not the party's, so no heads).
+- 2026-11-11 (his asks after RC8): (1) Potions: the per-row Share and its automatic sharing are gone for one
+  "Split evenly" on the sheet's Potions heading (SV_SHARE, id -1): every kind (id, quality) in one order,
+  each split among the members on their feet, the odd ones to whoever is to hold fewest so far, so a second
+  click finds it done and the members' totals come out even too (his save: 41 each). The battle tray is two
+  rows, a goblet before what the member drinks, a flying flask before what they throw or use. (2) A chest
+  clicked out of a fight: opened on arrival (location action 5, as Open Chest) only when it is neither locked
+  nor trapped; otherwise the leader is chosen and the lock or trap named, Pick Lock or Disarm left to the
+  player. Its hint names the lock, or the trap of an unlocked chest, once a member has stood at it, as the
+  game's own orders there tell (a locked chest's trap stays untold until it is picked). (3) Found on the way
+  (his save, the margin's numbers doubled with a sheet open in a battle): the battle's sheet (s031
+  1462:0000, called inventory_leave until now: it is world_load, member_sheet, then events.tmp written and
+  the table freed) wrote the cards' events over the battle's first slots and sent the rest to the file, so a
+  potion drunk in the fight stopped counting. fixes.c battle_sheet_hook moves the battle's events past the
+  loaded slots and takes them aside as the sheet closes (fixes_sheet_closed, from sheetview's member_sheet
+  hook), putting them back after the write; effects_now and pot_all use the table alone while it holds both.
+  Tested: Deadly Blade drunk, sheet opened and closed, bonus byte 40 throughout, the event still there.
+  New test command uchest (a chest's lock and trap set, the floor's chests listed).

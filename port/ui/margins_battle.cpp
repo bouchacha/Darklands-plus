@@ -188,12 +188,6 @@ static void order_button(ImDrawList *dl, ImVec2 a, const OrderEntry &e, bool ena
         dl->AddText(ImGui::GetFont(), fs, ImVec2(p.x + 1, p.y + 1), IM_COL32(0, 0, 0, 220), n);
         dl->AddText(ImGui::GetFont(), fs, p, IM_COL32(250, 236, 200, 255), n);
     }
-    if (square && e.drink_m >= 0) {                              /* (to drink, not to throw: a blue drop in the lower left corner) */
-        float r = lh * 0.22f; ImVec2 c(a.x + pad * 0.35f + r, b.y - pad * 0.35f - r);
-        dl->AddCircleFilled(c, r, IM_COL32(70, 120, 210, 255));
-        dl->AddTriangleFilled(ImVec2(c.x - r * 0.86f, c.y - r * 0.5f), ImVec2(c.x + r * 0.86f, c.y - r * 0.5f), ImVec2(c.x, c.y - r * 2.1f), IM_COL32(70, 120, 210, 255));
-        dl->AddCircle(c, r, IM_COL32(20, 30, 60, 220), 0, 1.0f);
-    }
     if (square && !e.key.empty() && e.pq < 0) {                   /* (its key, as the menu has it: in the lower left corner, in the plain face) */
         ImFont *kf = ui_font_text ? ui_font_text : ImGui::GetFont();
         float fs = ImGui::GetFontSize() * 0.72f;
@@ -329,6 +323,41 @@ static void order_buttons(float width, bool with_resume)
    than the strip's buttons, as many to a row as the strip is wide, the rows growing upwards from the strip
    (dozens of kinds take a few rows; none, no grid). A click throws or uses one (the order as the game's
    menu gives it) */
+/* a tray row's picture, s square at a: to drink, a goblet; to throw or use, a flask flying on its arc */
+static void tray_row_icon(ImDrawList *dl, ImVec2 a, float s, bool drink)
+{
+    const ImU32 gold = IM_COL32(222, 182, 84, 255), dark = IM_COL32(60, 40, 16, 255);
+    ImVec2 c(a.x + s * 0.5f, a.y + s * 0.5f);
+    dl->AddRectFilled(a, ImVec2(a.x + s, a.y + s), IM_COL32(52, 36, 20, 255), s * 0.18f);
+    dl->AddRect(a, ImVec2(a.x + s, a.y + s), IM_COL32(150, 110, 52, 255), s * 0.18f, 0, fmaxf(1.0f, s * 0.05f));
+    if (drink) {
+        dl->PathClear();                                           /* (the cup) */
+        dl->PathLineTo(ImVec2(c.x - s * 0.26f, a.y + s * 0.2f));
+        dl->PathLineTo(ImVec2(c.x + s * 0.26f, a.y + s * 0.2f));
+        dl->PathBezierCubicCurveTo(ImVec2(c.x + s * 0.26f, a.y + s * 0.46f), ImVec2(c.x + s * 0.12f, a.y + s * 0.54f), ImVec2(c.x, a.y + s * 0.54f));
+        dl->PathBezierCubicCurveTo(ImVec2(c.x - s * 0.12f, a.y + s * 0.54f), ImVec2(c.x - s * 0.26f, a.y + s * 0.46f), ImVec2(c.x - s * 0.26f, a.y + s * 0.2f));
+        dl->PathFillConvex(gold);
+        dl->AddRectFilled(ImVec2(c.x - s * 0.22f, a.y + s * 0.22f), ImVec2(c.x + s * 0.22f, a.y + s * 0.3f), IM_COL32(176, 40, 40, 255));   /* (what is in it) */
+        dl->AddRectFilled(ImVec2(c.x - s * 0.04f, a.y + s * 0.54f), ImVec2(c.x + s * 0.04f, a.y + s * 0.74f), gold);              /* (the stem) */
+        dl->AddRectFilled(ImVec2(c.x - s * 0.18f, a.y + s * 0.74f), ImVec2(c.x + s * 0.18f, a.y + s * 0.81f), gold, s * 0.03f);  /* (the foot) */
+    } else {
+        for (int k = 0; k < 3; k++) {                              /* (the arc it flies on, dashed) */
+            float t0 = 0.08f + k * 0.2f, t1 = t0 + 0.12f;
+            auto P = [&](float t) { return ImVec2(a.x + s * (0.14f + 0.5f * t), a.y + s * (0.78f - 0.9f * t + 0.5f * t * t)); };
+            dl->AddLine(P(t0), P(t1), IM_COL32(230, 210, 160, 220), fmaxf(1.0f, s * 0.06f));
+        }
+        /* (the flask, as the potions' own pictures: a round body, a glass neck, a cork; tilted, flying) */
+        ImVec2 f(a.x + s * 0.64f, a.y + s * 0.46f);
+        const float ca = cosf(0.7f), sa = sinf(0.7f);
+        auto R = [&](float x, float y) { return ImVec2(f.x + s * (x * ca - y * sa), f.y + s * (x * sa + y * ca)); };
+        auto quad = [&](float x0, float y0, float x1, float y1, ImU32 col) { dl->AddQuadFilled(R(x0, y0), R(x1, y0), R(x1, y1), R(x0, y1), col); };
+        quad(-0.06f, -0.3f, 0.06f, -0.08f, IM_COL32(170, 176, 186, 255));                 /* (the neck) */
+        quad(-0.075f, -0.38f, 0.075f, -0.29f, IM_COL32(128, 86, 44, 255));               /* (the cork) */
+        dl->AddCircleFilled(R(0, 0.06f), s * 0.19f, IM_COL32(96, 160, 72, 255));
+        dl->AddCircleFilled(R(-0.06f, 0.0f), s * 0.05f, IM_COL32(210, 236, 190, 200));   /* (the glass's light) */
+        dl->AddCircle(R(0, 0.06f), s * 0.19f, dark, 0, fmaxf(1.0f, s * 0.045f));
+    }
+}
 static void potions_tray(float cx, float bottom, float fs, float maxw)
 {
     if (tray.empty()) return;
@@ -342,15 +371,32 @@ static void potions_tray(float cx, float bottom, float fs, float maxw)
         ImDrawList *dl = ImGui::GetWindowDrawList();
         ImVec2 o0 = ImGui::GetCursorScreenPos();
         float lh = ImGui::GetTextLineHeight(), gap = lh * 0.25f, x1 = o0.x + maxw - fs * 1.2f;
-        float x = o0.x, y = o0.y, xmax = o0.x, rowh = 0;
-        for (size_t i = 0; i < tray.size(); i++) {
-            ImVec2 bs = order_button_size(tray[i]);
-            if (x > o0.x && x + bs.x > x1) { x = o0.x; y += rowh + gap; rowh = 0; }
-            const OrderEntry &e = tray[i];
-            order_button(dl, ImVec2(x, y), e);
-            if (e.j >= 0) { int m = e.j, k = e.k, s2 = e.s2; mclick(ImVec2(x, y), ImVec2(x + bs.x, y + bs.y), [m, k, s2] { menuview_request(m, k, s2); }); }
-            else if (e.drink_m >= 0) { int m = e.drink_m, id = e.pid, q = e.pq; mclick(ImVec2(x, y), ImVec2(x + bs.x, y + bs.y), [m, id, q] { sheet_battle_drink(m, id, q); }); }
-            x += bs.x + gap; rowh = fmaxf(rowh, bs.y); xmax = fmaxf(xmax, x - gap);
+        float y = o0.y, xmax = o0.x, rowh = 0;
+        /* two rows (his ask, RC8): what the member can drink, then what they can throw or use, each with its picture at
+           the left (a goblet, a flask flying); a row wraps under itself when it runs out of width */
+        bool first_group = true;
+        for (int grp = 0; grp < 2; grp++) {
+            bool any = false;
+            for (const OrderEntry &e : tray) any |= (e.drink_m >= 0) == (grp == 0);
+            if (!any) continue;
+            if (!first_group) { y += rowh + gap * 2; rowh = 0; }
+            first_group = false;
+            ImVec2 bs0 = order_button_size(tray[0]);
+            float isz = bs0.y, xi = o0.x;
+            tray_row_icon(dl, ImVec2(xi, y), isz, grp == 0);
+            if (ImGui::IsMouseHoveringRect(ImVec2(xi, y), ImVec2(xi + isz, y + isz), false)) margin_tip(grp == 0 ? "Drink: a click and the member drinks one at once." : "Throw or use: a click gives the order (a potion is thrown at the enemy you then click).");
+            float xs = xi + isz + gap * 2, x = xs;
+            rowh = isz;
+            for (size_t i = 0; i < tray.size(); i++) {
+                const OrderEntry &e = tray[i];
+                if ((e.drink_m >= 0) != (grp == 0)) continue;
+                ImVec2 bs = order_button_size(e);
+                if (x > xs && x + bs.x > x1) { x = xs; y += rowh + gap; rowh = 0; }
+                order_button(dl, ImVec2(x, y), e);
+                if (e.j >= 0) { int m = e.j, k = e.k, s2 = e.s2; mclick(ImVec2(x, y), ImVec2(x + bs.x, y + bs.y), [m, k, s2] { menuview_request(m, k, s2); }); }
+                else if (e.drink_m >= 0) { int m = e.drink_m, id = e.pid, q = e.pq; mclick(ImVec2(x, y), ImVec2(x + bs.x, y + bs.y), [m, id, q] { sheet_battle_drink(m, id, q); }); }
+                x += bs.x + gap; rowh = fmaxf(rowh, bs.y); xmax = fmaxf(xmax, x - gap);
+            }
         }
         ImGui::SetCursorScreenPos(ImVec2(o0.x, y + rowh));
         ImGui::Dummy(ImVec2(xmax - o0.x, 1));

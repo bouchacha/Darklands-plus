@@ -220,8 +220,9 @@ void far sub_s031_1462_2b14(int k, int who);
 void far sub_s031_1462_39a0(int i, int who, struct gfx g);
 void far sub_s031_1462_39c6(int i, int who, struct gfx g);
 
-/* leave the inventory screen: save locs.tmp / events.tmp and free the world data */
-int far inventory_leave(int who)
+/* a member's sheet in a battle (the cards closed): the world loaded (locs.tmp, events.tmp), the sheet, then
+   locs.tmp / events.tmp saved and the world data freed */
+int far battle_sheet(int who)
 {
     int fd, fd2;
     unsigned nw;

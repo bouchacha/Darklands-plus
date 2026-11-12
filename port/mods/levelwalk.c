@@ -102,17 +102,43 @@ static int walk_to(int lead, int tx, int ty, int *gx, int *gy)
 int levelwalk_goal_x = -1, levelwalk_goal_y = -1, levelwalk_goal_floor = -1;   /* (ui/levelmap.cpp marks it) */
 static int goal_lead = -1, goal_legs, goal_fx, goal_fy;
 static int door_pending = -1, door_floor = -1, door_wx, door_wy, door_wait;   /* a door clicked on the field: used on arrival (levelwalk_door) */
-static int arrive_pending;                     /* a chest or a way out clicked: the walk's arrival chooses the leader (arrive_choose) */
+static int arrive_pending, chest_pending = -1; /* a chest or a way out clicked: what the walk's arrival does (arrive_choose, chest_goal) */
 #define DOOR_REC(n) ((u16)(0x1f54 + 14 * (n)))      /* doors: count 20a5:1f52, 14-byte records (x, y, w, h map pixels; +12 the door paired with it, -1 none) */
 static int door_partner(int n) { return (s8)rb(G_FAR20A5, (u16)(DOOR_REC(n) + 12)); }
 /* the door whose doorway member i stands in, as the game has it (s014 19cd:1ade, each round: D_a696[i] bit 2, the door D_c64c[i];
    with it what Use Door will do, D_c678[i] open or shut, and from which side, D_c6ef[i]), or -1 */
 static int in_doorway(int i) { return (g_rb((u16)(0xa696 + 2 * i)) & 2) ? (s8)g_rb((u16)(0xc64c + i)) : -1; }
-static int arrive_choose;                       /* a chest or a way out clicked: the leader chosen for orders on arrival (its Open, Disarm,
-                                                   Pick Lock or Exit Battlefield there, the player's to choose: a trap is not sprung for them) */
-static void goal_drop(void) { levelwalk_goal_x = levelwalk_goal_y = levelwalk_goal_floor = -1; goal_lead = -1; door_pending = -1; arrive_choose = 0; }
+static int arrive_choose, chest_goal = -1;      /* a way out clicked: the leader chosen for orders on arrival (Exit Battlefield there).
+                                                   A chest: opened on arrival when it is neither locked nor trapped (the game's Open
+                                                   Chest, offered only then); else the leader chosen, Pick Lock or Disarm the player's
+                                                   to choose - never done for them (his ask, RC8) */
+static void goal_drop(void) { levelwalk_goal_x = levelwalk_goal_y = levelwalk_goal_floor = -1; goal_lead = -1; door_pending = -1; arrive_choose = 0; chest_goal = -1; }
+/* chests: lock 20a5:300e + 0x2c k + 8 (& 127 its difficulty, 0 none), trap +9 (20 simple, 50 moderate, 80 complex, 0 none); the
+   member standing at chest k: D_a696[i] bit 4 and D_c784[i] = k (s014 19cd:1ade builds the chest's orders from them) */
+static int at_chest(int i) { return (g_rb((u16)(0xa696 + 2 * i)) & 4) ? g_rb((u16)(0xc784 + i)) : -1; }
+int levelwalk_chest_lock(int k) { return rb(G_FAR20A5, (u16)(0x300e + 0x2c * k + 8)) & 127; }
+int levelwalk_chest_trap(int k) { return rb(G_FAR20A5, (u16)(0x300e + 0x2c * k + 9)); }
+/* what the party knows of chest k: whether it is locked or trapped is known once a member has stood at it (the game's orders
+   there say so: Pick Lock, Disarm simple trap ...); kept per floor (its place, floor and the chest's cell) */
+static struct { int floor, cx, cy; } chest_seen[12];
+static void chests_note(void)
+{
+    for (int i = 0; i < 5; i++) {
+        int k = at_chest(i);
+        if (k < 0 || k >= 12 || g_rb(CBF(i, CB_STATUS)) != 1) continue;
+        u16 r0 = (u16)(0x300e + 0x2c * k);
+        chest_seen[k].floor = (s8)g_rb(GV_floor_shown) + 1; chest_seen[k].cx = rb(G_FAR20A5, (u16)(r0 + 6)); chest_seen[k].cy = rb(G_FAR20A5, (u16)(r0 + 7));
+    }
+}
+int levelwalk_chest_known(int k)
+{
+    if (k < 0 || k >= 12) return 0;
+    u16 r0 = (u16)(0x300e + 0x2c * k);
+    return chest_seen[k].floor == (s8)g_rb(GV_floor_shown) + 1 && chest_seen[k].cx == rb(G_FAR20A5, (u16)(r0 + 6)) && chest_seen[k].cy == rb(G_FAR20A5, (u16)(r0 + 7));
+}
 static void goal_check(void)
 {
+    chests_note();
     if (goal_lead < 0) return;
     int lead = goal_lead;
     if (g_rb(GV_real_combat) || g_rb(CBF(lead, CB_STATUS)) != 1 || (s8)g_rb((u16)(GV_cbt_floor + lead)) != levelwalk_goal_floor) { goal_drop(); return; }
@@ -127,6 +153,20 @@ static void goal_check(void)
             if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: door %d used by %d\n", gd, lead);
             return;
         }
+    }
+    if (chest_goal >= 0 && at_chest(lead) == chest_goal) {                                   /* (at the chest, as the game has it) */
+        int k = chest_goal; goal_drop();
+        ns_call(GF_cbt_cancel_action, 1, lead);
+        if (ns_unwinding) return;
+        if (!levelwalk_chest_lock(k) && !levelwalk_chest_trap(k)) {
+            g_wb((u16)(0xa6c4 + lead), 5);                          /* (as the game's Open Chest: the location action 5, carried out as it does) */
+            ns_call(GF_cbt_location_action, 1, lead);
+            if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: chest %d opened by %d\n", k, lead);
+        } else {
+            ns_call(16, 0x1ef8, 0x0a2c, 1, lead);                  /* (the leader chosen: Pick Lock or Disarm on their orders, the player's to choose) */
+            ui_notice(levelwalk_chest_lock(k) ? "The chest is locked: Pick Lock is on the leader's orders." : "The chest is trapped: Disarm is on the leader's orders.");
+        }
+        return;
     }
     if (arrive_choose && !g_rb((u16)(GV_cbt_moving + lead)) && abs(x - levelwalk_goal_x) <= 20 && abs(y - levelwalk_goal_y) <= 12) {
         goal_drop();
@@ -171,8 +211,8 @@ static void input_hook(void)                 /* s014 0e76:3166 combat_input () *
     int tx = levelwalk_x, ty = levelwalk_y, tfl = levelwalk_floor;
     levelwalk_x = levelwalk_y = levelwalk_floor = -1;
     int door = door_pending >= 0 && tx == door_wx && ty == door_wy ? door_pending : -1;   /* (another walk asked since: no door) */
-    int choose = arrive_pending && tx == door_wx && ty == door_wy;
-    door_pending = -1; arrive_pending = 0;
+    int choose = arrive_pending && tx == door_wx && ty == door_wy, chest = choose ? chest_pending : -1;
+    door_pending = -1; arrive_pending = 0; chest_pending = -1;
     if ((s8)g_rb(GV_floor_shown) != tfl) { hook_call_original(); return; }
     int fight = g_rb(GV_real_combat) == 1, was_mode = g_rb(GV_move_mode);
     if (was_mode != 2 && !fight) { ns_call(16, 0x1ef8, 0x0cdc, 0); if (ns_unwinding) return; }   /* (single file, out of a fight only) */
@@ -185,7 +225,7 @@ static void input_hook(void)                 /* s014 0e76:3166 combat_input () *
         ui_notice("The party cannot get there from where it stands.");
         hook_call_original(); return;
     }
-    goal_lead = lead; levelwalk_goal_x = mx; levelwalk_goal_y = my; levelwalk_goal_floor = tfl; goal_legs = 0; door_pending = door; door_wait = 0; arrive_choose = choose;
+    goal_lead = lead; levelwalk_goal_x = mx; levelwalk_goal_y = my; levelwalk_goal_floor = tfl; goal_legs = 0; door_pending = door; door_wait = 0; arrive_choose = choose && chest < 0; chest_goal = chest;
     goal_fx = (s16)g_rw(CBF(lead, CB_X)); goal_fy = (s16)g_rw(CBF(lead, CB_Y));
     if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: map %d,%d -> %d,%d for %d (move mode %d, was %d; paused %d)\n", tx, ty, mx, my, lead, g_rb(GV_move_mode), was_mode, g_rb(GV_ai_paused));
     /* (word that the click was taken: the map closes on it, and the party is seen to go. Out of a fight the
@@ -517,9 +557,9 @@ int levelwalk_door_click(void)
             int tx, ty;
             if (ch >= 0) { u16 r0 = (u16)(0x300e + 0x2c * ch); tx = (s16)rw(G_FAR20A5, r0) + rb(G_FAR20A5, (u16)(r0 + 4)) / 2; ty = (s16)rw(G_FAR20A5, (u16)(r0 + 2)) + rb(G_FAR20A5, (u16)(r0 + 5)) / 2; }
             else { int mx, my; ground_at(gx, gy, &mx, &my); tx = mx / 32 * 32 + 16; ty = my / 16 * 16 + 8; }   /* (the cell clicked, in the way out) */
-            levelwalk_x = door_wx = tx; levelwalk_y = door_wy = ty; levelwalk_floor = (s8)g_rb(GV_floor_shown); arrive_pending = 1;
+            levelwalk_x = door_wx = tx; levelwalk_y = door_wy = ty; levelwalk_floor = (s8)g_rb(GV_floor_shown); arrive_pending = 1; chest_pending = ch;
             if (g_rb(GV_ai_paused) == 1) { extern void bios_kbd_inject(u16); bios_kbd_inject(0x3920); }
-            ui_notice(ch >= 0 ? "The party walks to the chest: then choose what to do with it (Open, Disarm, Pick Lock)." : "The party walks to the way out: then Exit Battlefield (X) for each member to leave.");
+            if (wo >= 0) ui_notice("The party walks to the way out: then Exit Battlefield (X) for each member to leave.");
             return 1;
         }
     }

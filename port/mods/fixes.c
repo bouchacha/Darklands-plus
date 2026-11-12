@@ -828,7 +828,7 @@ void fixes_frame(void)
  * a saint's boosts called in a battle, with "battlesaints": the game never took them off). */
 typedef struct { int m, type0, t; s16 end[4]; } PotEv;   /* end: hour, day, month, year (+0x12 ..) */
 static PotEv pot_kept[64];
-static int pot_nkept, cards_down;
+static int pot_nkept, cards_down, world_open;
 static void battledead_after(void);
 
 static int pot_running(const s16 *end)
@@ -857,7 +857,7 @@ static int pot_table(PotEv *out, int max)
 static int pot_all(PotEv *out, int max)
 {
     int n = pot_table(out, max);
-    if (cards_down)
+    if (cards_down && !world_open)                     /* (the battle's sheet open: the table holds the cards' events too) */
         for (int k = 0; k < pot_nkept && n < max; k++) if (pot_running(pot_kept[k].end)) out[n++] = pot_kept[k];
     return n;
 }
@@ -866,7 +866,7 @@ static void cards_down_hook(void)          /* cards_shutdown(), s043 1462:054e *
 {
     pot_nkept = any_potion_fix() ? pot_table(pot_kept, 64) : 0;
     hook_call_original();
-    cards_down = 1;
+    cards_down = 1; world_open = 0;
     if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix potions: the cards close, %d potions running kept\n", pot_nkept);
 }
 /* the cards open again after a battle: the table is read back into its first slots, so what the
@@ -886,6 +886,7 @@ static void cards_up_hook(void)            /* cards_startup(), s043 1462:078e */
         n++;
     }
     hook_call_original();
+    world_open = 0;
     if (!cards_down) return;
     u16 ax = AX, dx = DX;
     cards_down = 0; pot_nkept = 0;
@@ -910,6 +911,67 @@ static void cards_up_hook(void)            /* cards_startup(), s043 1462:078e */
     }
     AX = ax; DX = dx;
 }
+
+/* a member's sheet in a battle (F1..F5: battle_sheet, s031 1462:0000) loads the cards' world for its while - world_load
+   (s043 1462:0100) reads events.tmp into the event table's first slots - shows member_sheet, then writes every event in
+   the table to events.tmp and frees it. Over a battle the table holds only what the battle made (a potion drunk in it, a
+   saint's help called): the load wrote over those in its first slots, lost with their memory, and the write sent the
+   others to the file, where nothing counted them until the battle ended (a Deadly Blade drunk in the fight, then a look
+   at a sheet: its damage gone). Here the battle's events are moved past the slots the load fills, taken out of the
+   table as the sheet closes (fixes_sheet_closed, from ui's member_sheet) and put back once the rest is written: the
+   battle's table and the cards' file as they were, and what was made while the sheet was open (a potion drunk there,
+   a prayer's boost) the battle's. While the sheet is open the table holds both (world_open) */
+static u32 world_ev[G_NEVENTS];                  /* (the cards' events the load made, by their memory) */
+static u32 sheet_kept[G_NEVENTS]; static int sheet_nkept;   /* (the battle's, out of the table while the rest is written) */
+static int sheet_pending, world_keep;            /* (in battle_sheet; the battle's events kept: the potion fixes or battlesaints on) */
+static void ev_set(int i, u32 p) { ww(G_FAR2E38, (u16)(G_EVENTS + i * 4), (u16)p); ww(G_FAR2E38, (u16)(G_EVENTS + i * 4 + 2), (u16)(p >> 16)); }
+static int sheet_nev;                            /* (how many the load reads: events.tmp's count) */
+static void battle_sheet_hook(void)              /* battle_sheet(who), s031 1462:0000 */
+{
+    if (!cards_down || sheet_pending) { hook_call_original(); return; }
+    world_keep = any_potion_fix() || fix_on("battlesaints");   /* (the fixes that keep the battle's events, as cards_up_hook) */
+    int nev = 0;
+    { char p[1200]; dos_host_path("EVENTS.TMP", p, sizeof p); FILE *f = fopen(p, "rb"); unsigned char c[2];
+      if (f) { if (fread(c, 1, 2, f) == 2) nev = c[0] | c[1] << 8; fclose(f); } }
+    sheet_nev = nev = nev > G_NEVENTS ? G_NEVENTS : nev;
+    int moved = 0;
+    for (int i = 0; i < nev && world_keep; i++) {
+        u32 p = g_event(i);
+        if (!p) continue;
+        int j = nev; while (j < G_NEVENTS && g_event(j)) j++;
+        if (j >= G_NEVENTS) break;
+        ev_set(j, p); ev_set(i, 0); moved++;
+    }
+    if (getenv("DL_FIX_LOG") && world_keep) fprintf(stderr, "fix potions: a sheet in a battle: %d of the battle's events moved past the cards' %d\n", moved, nev);
+    sheet_pending = 1; sheet_nkept = 0;
+    hook_call_original();
+    u16 ax = AX, dx = DX;
+    sheet_pending = world_open = 0;
+    for (int i = 0, k = 0; i < G_NEVENTS && k < sheet_nkept; i++) if (!g_event(i)) ev_set(i, sheet_kept[k++]);
+    if (getenv("DL_FIX_LOG") && sheet_nkept) fprintf(stderr, "fix potions: the sheet closed; %d of the battle's events kept\n", sheet_nkept);
+    sheet_nkept = 0;
+    AX = ax; DX = dx;
+}
+static void world_load_hook(void)                /* world_load(locfile), s043 1462:0100 */
+{
+    hook_call_original();
+    if (!sheet_pending) return;
+    for (int i = 0; i < G_NEVENTS; i++) world_ev[i] = i < sheet_nev ? g_event(i) : 0;
+    world_open = 1;
+}
+void fixes_sheet_closed(void)                    /* (fixes.h: member_sheet over) */
+{
+    if (!world_open) return;
+    world_open = 0;
+    if (!world_keep) return;
+    for (int i = 0; i < G_NEVENTS; i++) {
+        u32 p = g_event(i);
+        if (!p) continue;
+        int cards = 0; for (int k = 0; k < sheet_nev && !cards; k++) cards = world_ev[k] == p;
+        if (!cards && sheet_nkept < G_NEVENTS) { sheet_kept[sheet_nkept++] = p; ev_set(i, 0); }
+    }
+}
+int fixes_world_open(void) { return world_open; }   /* (fixes.h) */
 
 /* a running kind 0x4a event that is Greatpower's: marked 0x6b by greatpower, else (the original's)
    an inventory index with 14, 22 or 30 */
@@ -3127,6 +3189,8 @@ void fixes_init(void)
     if (getenv("DL_CHECK_COPY")) hook_install(-1, 0x06a1, 0x2eb4, copy_check_hook);
     hook_install(GF_cards_shutdown, cards_down_hook);   /* (the potions kept over a battle: they ask any_potion_fix) */
     hook_install(GF_cards_startup, cards_up_hook);
+    hook_install(GF_battle_sheet, battle_sheet_hook);   /* (a sheet in a battle: the battle's events kept) */
+    hook_install(GF_world_load, world_load_hook);
     for (int i = 0; i < FIX_COUNT; i++) {
         char key[64]; snprintf(key, sizeof key, "fix.%s", FIXES[i].id);
         fix_enable(i, config_get_int(key, FIXES[i].on));

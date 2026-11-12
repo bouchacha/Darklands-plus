@@ -557,8 +557,8 @@
 #define sheet_portrait_frame     sub_s031_1462_2518   /* (who, colour): the frame of a portrait */
 #define sheet_box_draw           sub_s031_1462_39a0   /* (box, who, struct gfx win): one box's text (0 name bar, 2 load ...) */
 #define use_potion               sub_s031_1462_43b2   /* (who, idx): drink */
-#define inventory_leave          sub_s031_1462_0000   /* (): save locs.tmp / events.tmp, free the world data */
-#define inventory_leave_vec      vec_1dfb             /* overlay call vector of inventory_leave */
+#define battle_sheet          sub_s031_1462_0000   /* (who): a member's sheet in a battle: world_load, member_sheet, then events.tmp written and the world freed */
+#define battle_sheet_vec      vec_1dfb             /* overlay call vector of battle_sheet */
 #define give_one                 sub_s031_18e7_0000   /* (from, to, idx, box): one of the stack (box 9: the equipment list) */
 #define give_stack               sub_s031_18e7_007c   /* (from, to, idx, box): the whole stack */
 #define add_item_q               sub_s031_18e7_016e   /* (who, code, qual): one item of quality qual */
