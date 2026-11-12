@@ -18,6 +18,7 @@ What changed since 1.4.6.
 
 **Fixed**
 
+- **A crash selling spare gear:** the game's timer ran a small saved picture as code, most likely through one of the addresses it calls on, overwritten. It now checks them at each tick and puts back one found changed, with a line in the log; and a crash in data run as code now logs how it got there.
 - **What came of it** missed what a card gave as soon as a battle, a find or a shop it had opened was over (the caravan master's purse and another merchant's gun after the fight). The party is now noted again as each such screen closes, so the next text lists it.
 - **Parry holds, and comes by itself.** A member told to parry went back to a standard or Vulnerable attack when their foe fell or another came at them: Parry and Berserk now stay while any enemy is beside them. And with Improved combat, a member with two or more enemies attacking them parries until fewer do, unless you order otherwise.
 - **A cell door in a fortress dungeon** flashed its card and went back to the level without a word. Its text is now shown (the cell is empty).
@@ -27,7 +28,6 @@ What changed since 1.4.6.
 - **The level map showed floor beyond the walls** that could never be reached: while the party changed floors, what the view showed of one floor was put down as the next one's. It is now noted only once the floor shown has settled, and what was put down wrongly before is left out.
 - **Orders at a pause:** out of a fight every order is carried out at once (stairs, a door, a chest gave no sign and waited for Space); in a fight, the first order given in a pause says it waits for Space.
 - **A lock is picked with the best lock picks:** the game used a member's first lock picks whatever their quality, which adds to the chance; now the best the member carries (with the shared pack, the party) are used. (A new fix, on unless the original is asked for.)
-- **A crash selling spare gear:** the game's timer ran a small saved picture as code, most likely through one of the addresses it calls on, overwritten. It now checks them at each tick and puts back one found changed, with a line in the log; and a crash in data run as code now logs how it got there.
 - **A potion's effects on a foe** showed twice (Eyeburn: weakened, and blinded): one picture and one line now.
 - **Boosts that only healed showed as huge bonuses:** a dose of Essence o'Grace adds Endurance for about 30 hours, and drunk while wounded that only heals; the margin added up every dose (+278 Endurance) though nothing stood above the maximum. It now shows only what is above the maximum, the part that goes when the boosts run out.
 - **At an inn, a member whose Strength filled by a potion or a saint** kept regaining it, a day for nothing, and only then went to work: one with nothing left to regain (or Divine Favor full) now goes to the day's work at once.
