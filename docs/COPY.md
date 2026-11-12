@@ -1603,7 +1603,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/margins_battle.cpp:531` | gravely wounded |
 | `ui/margins_battle.cpp:536` | The master of this place: once this one has fallen and the fight is over, the place is won. |
 | `ui/margins_battle.cpp:541` | None in sight yet. |
-| `ui/margins_battle.cpp:543` | To explore: in Single File (Q) or as a Group (G), click a passage and the party walks there. Click stairs and they take them; a shut door and they open it; a chest or a way out and they walk to it, its orders ready%s. |
+| `ui/margins_battle.cpp:543` | To explore: in Single File (Q) or as a Group (G), click a passage and the party walks there. Click stairs and they take them; a shut door and they open it; a chest and they open it, unless it is locked or trapped (then the leader is chosen: Pick Lock or Disarm is yours to order); a way out and they walk to it, its orders ready%s. |
 | `ui/margins_battle.cpp:544` | ; Tab shows the level map (as far as the party has seen it), and a click on it walks the party there |
 | `ui/menuview.cpp:106` | Arrows, Enter; Esc closes |
 | `ui/menuview.cpp:106` | Click to choose; Esc or a click elsewhere closes |

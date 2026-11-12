@@ -576,7 +576,8 @@ covered and found, and what it could not check.
   clicked out of a fight: opened on arrival (location action 5, as Open Chest) only when it is neither locked
   nor trapped; otherwise the leader is chosen and the lock or trap named, Pick Lock or Disarm left to the
   player. Its hint names the lock, or the trap of an unlocked chest, once a member has stood at it, as the
-  game's own orders there tell (a locked chest's trap stays untold until it is picked). (3) Found on the way
+  game's own orders there tell (a locked chest's trap stays untold until it is picked); the margin's "To
+  explore" help says the same. (3) Found on the way
   (his save, the margin's numbers doubled with a sheet open in a battle): the battle's sheet (s031
   1462:0000, called inventory_leave until now: it is world_load, member_sheet, then events.tmp written and
   the table freed) wrote the cards' events over the battle's first slots and sent the rest to the file, so a
