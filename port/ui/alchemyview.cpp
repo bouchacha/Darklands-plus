@@ -9,6 +9,7 @@
  * the ingredients allow (a click there sets it), what may come of the brew and what the chance is
  * made of, in pictures; Start on the furnace. Drawn from alchemy_model. */
 #include "imgui.h"
+#include "ui.h"
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -28,6 +29,7 @@
 #include "alchemydesk.h"
 #include <map>
 std::string journal_where_sold(int id);              /* ui/journal.cpp */
+std::vector<std::string> journal_where_sold_list(int id, int n);
 
 extern "C" u32 plat_ticks_ms(void);
 void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);
@@ -294,6 +296,7 @@ extern "C" void alchemyview_draw(void)
             float x0 = cx0 + (i % AD_CHEST_COLS) * cw + 0.7f, y0 = cy0 + (i / AD_CHEST_COLS) * ch + 0.7f, x1 = x0 + cw - 1.4f, y1 = y0 + ch - 1.4f;
             bool hov = P.over(x0, y0, x1, y1);
             if (hov) { tip = id; P.dl->AddRect(NsDraw::w(x0, y0), NsDraw::w(x1, y1), IM_COL32(250, 214, 130, 255), 0, 0, 1.5f); }
+            ns_stock_click(P, x0, y0, x1, y1, id);
             if (need) P.dl->AddRect(NsDraw::w(x0 + 0.3f, y0 + 0.3f), NsDraw::w(x1 - 0.3f, y1 - 0.3f), hv >= need ? IM_COL32(150, 214, 120, 255) : IM_COL32(240, 110, 86, 255), 0, 0, 2.0f);
             float is = fminf(ch * 0.5f, cw * 0.5f), icx = (x0 + x1) * 0.5f, icy = (y0 + y1) * 0.5f;   /* (in the middle of its compartment) */
             P.icon(icx, icy, is, id);
@@ -308,15 +311,23 @@ extern "C" void alchemyview_draw(void)
                 float cwid = P.width(fo, 4.4f, c);
                 P.text(fo, 4.4f, x1 - 1.0f - cwid, y1 - 5.6f, cream, c);
             }
+            ns_stock_tag(P, x0 + 0.8f, y0 + 1.2f, id);
         }
         if (tip >= 0) {
-            std::string use = ns_item_use(tip), where;
-            if (have[tip] == 0 && config_get_int("assist.where_sold", 1)) where = journal_where_sold(tip);
+            std::string use = ns_item_use(tip);
+            std::vector<std::string> where;
+            if (config_get_int("assist.where_sold", 1)) where = journal_where_sold_list(tip, 3);
+            ImVec2 b0 = NsDraw::w(X0, Y0), b1 = NsDraw::w(X1, Y1);   /* (beside the chest, the roomier side first: not over the other compartments) */
+            ui_tip_beside_in(b0, b1, b0.x > ImGui::GetIO().DisplaySize.x - b1.x ? "lrab" : "rlab");
             ns_tip_begin();
             ImGui::TextUnformatted(ns_item_name(tip).c_str());
             ImGui::TextDisabled(have[tip] ? "The party carries %d." : "The party has none.", have[tip]);
-            if (!where.empty()) ImGui::TextUnformatted(where.c_str());
+            if (!where.empty()) {
+                ImGui::TextDisabled("Where to buy, nearest first:");
+                for (const std::string &w : where) ImGui::BulletText("%s", w.c_str());
+            }
             if (!use.empty()) ui_rich_text(use.c_str());
+            ImGui::TextDisabled("%s", ns_stock_words(tip).c_str());
             ns_tip_end();
         }
     }

@@ -353,18 +353,22 @@ static int select_member(int i)
    2026-11-06 once he knew Endurance comes back on the road by itself, Divine Favor 1 to 5 a day):
    Regain Strength when short of it, else Pray when short of Divine Favor, else Just Relax when short of
    Endurance; one who needs nothing to the day's work: at an inn Earn a little money, in camp Guard
-   the camp (Relax is then not offered: can[0]). On opening, and after each day, as the game sets those
-   done regaining Strength or praying back to relaxing; a day the player chose stands. */
-static int rested_to_work(LodgeModel *m)
+   the camp (Relax is then not offered: can[0]). On opening, after each day, as the game sets those
+   done regaining Strength or praying back to relaxing, and after a sheet; a day the player chose stands.
+   One set to Regain Strength or to Pray with nothing left to gain (full by a potion or a saint on a
+   sheet, which the game would see only at the day's end, after a day of nothing: his Jorg, 1.4.7) goes
+   on so as well, at once (done_only: those alone, looked at on every round of the page). */
+static int rested_to_work(LodgeModel *m, int done_only)
 {
     static const int ACT_KEY[6] = { 0x244a, 0x1352, 0x1950, 0x1e41, 0x1245, 0x2247 };
     if (!config_get_int("assist.inn_earn", 1) || config_get_int("original", 0)) return 0;
     int any = 0, sel0 = (s16)g_rw(LV_SEL);
     for (int i = 0; i < 5 && !ns_unwinding; i++) {
         const LodgeMember *p = &m->m[i];
-        if (!p->present || p->act != 0) continue;
+        int done = (p->act == 1 && !p->can[1]) || (p->act == 2 && !p->can[2]);
+        if (!p->present || (p->act != 0 && !done) || (done_only && !done)) continue;
         int to = p->can[1] ? 1 : p->can[2] ? 2 : p->can[0] ? 0 : p->can[4] ? 4 : 5;
-        if (to != 0 && select_member(i)) { key(ACT_KEY[to], 0); any = 1; }
+        if (to != p->act && select_member(i)) { key(ACT_KEY[to], 0); any = 1; }
     }
     if (any && !ns_unwinding) { select_member(sel0 >= 0 ? sel0 : 0); build(); }
     return any;
@@ -403,7 +407,7 @@ static void lodge_hook(void)               /* the lodging screen (mode), s036 14
     ns_call(GF_screen_release, 0);
     if (ns_unwinding) { fixes_lodging(0); return; }
     build();
-    rested_to_work(m);
+    rested_to_work(m, 0);
     if (ns_unwinding) { fixes_lodging(0); return; }
     m->open = 1;
     fprintf(stderr, "lodging: open (mode %d, %d teachers, a day %ld pf)\n", mode, m->nteach, m->cost);
@@ -432,6 +436,7 @@ static void lodge_hook(void)               /* the lodging screen (mode), s036 14
             ns_call(GF_party_panel_frames, 1, 0x100); ns_call(GF_party_panel_rows, 1, 0x100);
             build();
         }
+        if (rested_to_work(m, 1) && ns_unwinding) break;     /* (a Regain or a prayer filled on a sheet: the day's work instead) */
         if (ns_call(GF_key_pressed, 0)) {                     /* the original's keys, all of them */
             int k = ns_get_key();
             if (k == 0x11b) leave = 1;
@@ -461,7 +466,7 @@ static void lodge_hook(void)               /* the lodging screen (mode), s036 14
                 }
                 break;
             case LV_DAY:                                                /* (as the button: a day paid for) */
-                if (m->cost <= m->purse) { m->pass_n = m->pass_of = 0; leave = key(0x1f53, 0); if (!leave && !ns_unwinding) { build(); rested_to_work(m); } }
+                if (m->cost <= m->purse) { m->pass_n = m->pass_of = 0; leave = key(0x1f53, 0); if (!leave && !ns_unwinding) { build(); rested_to_work(m, 0); } }
                 break;
             case LV_REST: case LV_DAYS:
                 if (a.type == LV_REST) {                                /* (those short of strength who only relax regain it) */
@@ -483,7 +488,7 @@ static void lodge_hook(void)               /* the lodging screen (mode), s036 14
                     leave = key(0x1f53, 0);
                     if (leave || ns_unwinding || (s16)g_rw(LV_NDAYS) == before) break;   /* (something happened; or the day could not be paid) */
                     build();
-                    rested_to_work(m);
+                    rested_to_work(m, 0);
                     if (d + 1 < (a.type == LV_DAYS ? a.a : 14) && day_changed(&was, m, a.type == LV_REST)) break;   /* (the days stop where a choice would be made anew) */
                     for (int w = 0; w < 30 && !skip_run; w++) {         /* (a moment to see each day: the hours went by on the page) */
                         dl_poll(); plat_sleep_ms(4);

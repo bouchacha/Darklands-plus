@@ -123,7 +123,7 @@ the files where each switch's key is read.
 | `display.native_loot` | New loot screen | show | lootview.c |
 | `assist.loot_worth` | Shop value in the loot screen | show | lootview.cpp |
 | `display.native_alchemy` | New alchemy screen | show | alchemyview.c |
-| `assist.where_sold` | Where to buy missing ingredients | show | alchemyview.cpp |
+| `assist.where_sold` | Where to buy missing ingredients | show | alchemyview.cpp, sheetview.cpp |
 | `display.native_cache` | New store room screen | show | cacheview.c |
 | `store.shared` | One store room shared by every inn | plus | sharedstore.c |
 | `display.native_lodge` | New inn and camp screen | show | lodgeview.c |
@@ -153,7 +153,7 @@ the files where each switch's key is read.
 | `journal.enabled` | Note each town's shops and wares | look | journal.cpp, ui.cpp |
 | `journal.chronicle` | Chronicle | look | journal.cpp |
 | **The party and its items** | | | |
-| `rules.ingredients_one_quality` | Ingredients of one quality | plus | loot.c |
+| `rules.ingredients_one_quality` | Ingredients and goods of one quality | plus | loot.c |
 | `assist.endless` | Ammunition | plus | ammo.c, settings.cpp |
 | `rules.relics` | Relics as the manual has them | plus | relics.c |
 | `rules.aging` | Aging during play | plus | aging.c |
@@ -271,7 +271,7 @@ the files where each switch's key is read.
 | `battle.black_cloud` | Black Cloud in battle | experiment | battlerules.c, builtin.c, settings.cpp |
 | `assist.hall_of_fame` | Honor Roll of Glory (hall of fame) | experiment | builtin.c, halloffame.cpp, journal.cpp |
 | **Fixes for bugs of the original** | | | |
-| `fix.blessing` | Blessings no longer cost attribute points permanently | fix | fixes.c, nsdraw.cpp |
+| `fix.blessing` | Blessings no longer cost attribute points permanently | fix | fixes.c, effects.cpp, nsdraw.cpp |
 | `fix.fireward` | No invulnerability from fire protection | fix | fixes.c, saintinfo.c, nsdraw.cpp, saintchips.cpp |
 | `fix.nullitem` | No "(null)" or empty items | fix | fixes.c |
 | `fix.castle` | Castle battles end when the knight dies | fix | fixes.c, worldmap_draw.cpp |

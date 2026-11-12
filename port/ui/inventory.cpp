@@ -638,7 +638,7 @@ void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's qual
         int p = id - 95;
         ImGui::PushTextWrapPos(UIS(380));
         if (p >= 0 && 3 * p < (int)gamedata.formulas.size()) ImGui::TextWrapped("%s", gamedata.formulas[3 * p].text.c_str());
-        { std::string ns_potion_effect(int id); std::string e = ns_potion_effect(id); if (!e.empty()) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]); ui_rich_text(("How it works: " + e).c_str()); ImGui::PopStyleColor(); } }
+        { std::string ns_potion_effect(int id); std::string e = ns_potion_effect(id); if (!e.empty()) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]); ui_rich_text(e.c_str()); ImGui::PopStyleColor(); } }
         ImGui::PopTextWrapPos();
     }
 }

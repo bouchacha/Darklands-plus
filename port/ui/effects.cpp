@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <algorithm>
 #include "imgui.h"
 #include "gamedata.h"
 #include "effects.h"
@@ -139,11 +140,43 @@ static std::vector<Eff> effects_table(int size, const std::vector<EvRec> &recs)
     }
     return out;
 }
+/* a boost to an attribute in force: with the blessing fix (mods/fixes.c) a boost that runs out takes off no more
+   than what then stands above the maximum, so what a member has of their boosts is what stands above it now, the
+   lowerings running put back; the rest (Essence of Grace's Endurance drunk while wounded, his ask in 1.4.7: "+278")
+   only healed. Shown so: the boosts that end last keep what is above the maximum, those that end first nothing,
+   and a boost of nothing is not shown. Without the fix every point goes when its boost runs out, as recorded */
+static void boosts_in_force(std::vector<Eff> &v)
+{
+    if (!fix_is_on("blessing")) return;
+    for (int m = 0; m < 5; m++) for (int a = 0; a < 7; a++) {
+        int up = 0, down = 0;
+        std::vector<size_t> ix;
+        for (size_t i = 0; i < v.size(); i++) {
+            const Eff &e = v[i];
+            if (e.m != m || e.kind != 0x48 || e.k != a) continue;
+            if (e.amount > 0) { up += e.amount; ix.push_back(i); } else down += e.amount;
+        }
+        if (ix.empty()) continue;
+        int cur = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + a)), max = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + a));
+        int in = cur - (max + down);
+        if (in < 0) in = 0;
+        if (in >= up) continue;
+        std::sort(ix.begin(), ix.end(), [&](size_t x, size_t y) { return v[x].left > v[y].left; });   /* (the last to end first) */
+        for (size_t x : ix) {
+            Eff &e = v[x];
+            e.amount = e.amount < in ? e.amount : in;
+            in -= e.amount;
+            char b[96]; snprintf(b, sizeof b, "%+d %s", e.amount, gm_attr_name(a)); e.what = b;
+        }
+    }
+    v.erase(std::remove_if(v.begin(), v.end(), [](const Eff &e) { return e.kind == 0x48 && e.k >= 0 && e.amount == 0; }), v.end());
+}
+
 /* what is at work now. While a battle has closed the cards the event table holds only what the
    battle made (mods/fixes.c): what was at work when it began is kept from then and shown with it
    (its hours as they were; a battle takes minutes). A game loaded in a battle: what was at work is
    read from the table the cards left (events.tmp), once */
-std::vector<Eff> effects_now(int size)
+static std::vector<Eff> effects_recorded(int size)
 {
     static std::vector<Eff> before; static int before_seed = -1;
     int seed = (u16)g_rw(G_PARTY_SEED);
@@ -162,6 +195,12 @@ std::vector<Eff> effects_now(int size)
     }
     if (seed != before_seed) return v;
     for (const Eff &e : before) if (e.m < size) v.push_back(e);
+    return v;
+}
+std::vector<Eff> effects_now(int size)
+{
+    std::vector<Eff> v = effects_recorded(size);
+    boosts_in_force(v);
     return v;
 }
 

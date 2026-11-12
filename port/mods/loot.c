@@ -241,22 +241,30 @@ static void first_draw_hook(void)          /* s040 1462:06e2: the loot screen dr
     if (!unw_active) give_back_thrown();
 }
 
-/* ---------------------------------------------------------------- ingredients of one quality
+/* ---------------------------------------------------------------- ingredients and goods of one quality
  * An ingredient's quality changes nothing but its price: alchemy takes them by kind and number
- * (s033 1462:1630), a potion's quality is the formula's. Yet one kind at two qualities is two
- * entries everywhere (on the sheet, in the loot, the store room). With rules.ingredients_one_quality
- * every ingredient is of quality 25: as one is added to a member (add_item_rec_impl), in the loot
+ * (s033 1462:1630), a potion's quality is the formula's. So too the goods (his ask, 1.4.7: torch,
+ * candle, rope, iron spike, lantern, clock, grappling hook, harp, flute): the cards ask only whether
+ * the party has rope or lock picks (count_items) or an instrument (St. Cecilia, count_items_flags),
+ * and what a card lets the party use is a potion (card_items, every card); only a lock pick's
+ * quality counts (lock_pick, s023 1ef8:12c0: Pick Locks + quality - 25), and it keeps it. Yet one
+ * kind at two qualities is two entries everywhere (on the sheet, in the loot, the store room). With
+ * rules.ingredients_one_quality every one of them is of quality 25 (a shop's at 15 bought and sold
+ * at 25 gains nothing: the sale is a quarter of the value): as one is added to a member (add_item_rec_impl), in the loot
  * pile as the loot screen opens, in the store room as it is read, and those already carried when a
  * game is loaded, the loot screen opens or the switch is turned on; a member's stacks of a kind are
  * then made one through the game's own item_remove_stack (it puts right what is in hand), but not in
  * a battle or a dungeon (GV_in_battle: the field's records keep the members' item numbers). */
 #define ING_Q 25
 int loot_ingredients_one = 1;
-static int is_ingredient(u16 code)
+#define ID_LOCKPICK_Q 0x40
+static int is_ingredient(u16 code)                                      /* an ingredient, or goods (not lock picks) */
 {
     int f = gm_itemdef_u16(code, 0x20);                                 /* (DARKLAND.LST's, not the game's copy: in a battle or a dungeon
                                                                             that is other data, and every thing came out an ingredient) */
-    return f > 0 && (f & 0x400);                                         /* (the item's flags, as DARKLAND.LST's +32: 0x400 an ingredient) */
+    if (f <= 0 || (f & 0x7800)) return 0;                                /* (the item's flags, as DARKLAND.LST's +32: 0x400 an ingredient;
+                                                                            0x800 potion, 0x1000 relic, 0x2000 horse, 0x4000 document) */
+    return (f & 0x400) || ((f & 0x300) && code != ID_LOCKPICK_Q);        /* (0x100 gear, 0x200 a tool, both an instrument) */
 }
 void loot_test_ingredients(int m)          /* test (uingr:m): what is_ingredient says of member m's records now */
 {
@@ -304,7 +312,7 @@ static void ingr_members(int join)          /* join: the stacks of a kind made o
             if (!again) break;
         }
     }
-    if (merged) fprintf(stderr, "loot: ingredients of one quality: %d stacks joined others of their kind\n", merged);
+    if (merged) fprintf(stderr, "loot: ingredients and goods of one quality: %d stacks joined others of their kind\n", merged);
 }
 static void ingr_pile(void)
 {

@@ -595,3 +595,20 @@ covered and found, and what it could not check.
   potion, down into the dot to drink, off on a dashed arc to throw. (3) The sound: no preset touches the device any
   more (options_sound_kept gives back a device the purist presets had switched to "game", at the start and on a
   preset choice); Full Original's description says the MT-32 stays.
+- 2026-11-12 (his questions and asks after RC10): (1) Quality: the game reads a thing's quality for weapons,
+  armour, shields, potions, a horse (riding checks), a lock pick (lock_pick: Pick Locks + quality - 25) and what
+  a card lets the party use (card_items: potions only, every card); goods are asked for only by count (rope,
+  lock picks, an instrument). So "Ingredients of one quality" (loot.c is_ingredient) now takes the goods but
+  lock picks too, and ns_shows_quality shows a tool's quality only for lock picks. Tested: two flutes 20q and
+  35q joined at 25 on a load, lock picks kept 35 and 20. (2) Essence o'Grace's "+278 Endurance": each dose's
+  raise_attr_temp is an event (0x48), and with the blessing fix a wounded member's boost only heals;
+  effects_now (boosts_in_force) now shows a boost as what stands above the maximum, the last to end keeping it,
+  and none where nothing does. Tested: a dose at 20/39 shows nothing, a second at 36 shows +15 (54/39). (3) His
+  Jorg at the inn, Regain at 37/37: the game sets a member back to relaxing only in the day's own regain, so a
+  Strength filled on a sheet (a potion) waited a day. lodgeview.c rested_to_work(m, 1) runs every round for
+  Regain or Pray with nothing left. Reproduced (uww, F2) and fixed. (4) Ingredient tooltips: the three nearest
+  sellers (journal_where_sold_list), placed beside the shelf, not over it. (5) Potions an effect a line with
+  amounts and how long: thrown durations read from the game's tables (DS:21e6, 2202, 221d: Noxious Aroma 6/9/12 s,
+  Eyeburn 8/16/24, Fleadust 25/40/60, Sunburst 4/6/8, Black Cloud's cloud 20/60/180, Stone-tar 240), drunk ones
+  measured (24 hours asked, 19 to 21 had). (6) A stock to keep (keep.c "stock item n", a click on the shelf) and
+  a notice on reaching a town whose shops (seen or worked out) sell it (journal_stock_check). Test command ustock.

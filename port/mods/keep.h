@@ -1,5 +1,5 @@
 /* keep.h - the player's marks (keep.c): things kept from selling and dropping, or marked to sell;
- * potions first or last in the alchemy screen's list */
+ * potions first or last in the alchemy screen's list; an ingredient's stock to keep */
 #ifndef DL_KEEP_H
 #define DL_KEEP_H
 #ifdef __cplusplus
@@ -12,6 +12,9 @@ void keep_mark(int id, int q, int mark); /* 0 none, 1 keep, 2 sell */
 enum { FMARK_NONE, FMARK_FIRST, FMARK_LAST };
 int potion_mark(int k);                  /* a potion's place in the alchemy list (k 0..21, its formulae 3k..3k+2): FMARK_FIRST (starred), FMARK_LAST (put aside) */
 void potion_mark_set(int k, int mark);
+int stock_want(int id);                  /* an ingredient's (72..94) stock to keep: a notice in a town that sells it while the party has fewer (0 none) */
+void stock_want_set(int id, int n);
+int stock_next(int n);                   /* the step after n: none, 5, 10, 20, 40, none */
 #ifdef __cplusplus
 }
 #endif

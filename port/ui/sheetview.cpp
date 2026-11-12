@@ -67,6 +67,7 @@ const char *ui_skill_help(int k);
 std::string rules_weapons_of_skill(int k);
 size_t saint_effect_at(const std::string &text);
 std::string journal_where_sold(int id);                     /* (ui/journal.cpp) */
+std::vector<std::string> journal_where_sold_list(int id, int n);
 void ui_item_details(const ItemDef *d, int id, int q);      /* (ui/inventory.cpp) */
 
 namespace {
@@ -1120,8 +1121,10 @@ static void ingredient_tip(const SheetModel &s, int id)
     if (!n) ImGui::TextDisabled("The party has none.");
     else if (s.shared) ImGui::Text("The party has %d.", n);
     else ui_rich_textf("The party has %d: %s", n, by.c_str());
-    std::string w = journal_where_sold(id);
-    if (!w.empty()) ImGui::TextDisabled("Where to buy: %s", w.c_str());
+    if (config_get_int("assist.where_sold", 1)) {       /* (the three nearest sellers and how far: his ask, 1.4.7) */
+        std::vector<std::string> w = journal_where_sold_list(id, 3);
+        if (!w.empty()) { ImGui::TextDisabled("Where to buy, nearest first:"); for (const std::string &x : w) ImGui::BulletText("%s", x.c_str()); }
+    }
     std::string uses;                                   /* the formulae the party knows that call for it */
     int nu = 0;
     for (int k = 0; k < (int)gamedata.formulas.size() && k < 66; k++) {
@@ -1131,6 +1134,7 @@ static void ingredient_tip(const SheetModel &s, int id)
     }
     if (nu > 4) uses += " and " + std::to_string(nu - 4) + " more";
     if (!uses.empty()) ImGui::TextWrapped("Used in %s.", uses.c_str());
+    ImGui::TextDisabled("%s", ns_stock_words(id).c_str());
     ns_tip_end();
 }
 
@@ -1209,6 +1213,7 @@ static void formulae(NsDraw &P, const SheetModel &s)
         float x0 = LX0 + 1 + (i % 8) * cellw, y0 = GY0 + (i / 8) * cellh, cxm = x0 + cellw * 0.5f;
         if (need) P.rect(x0 + 0.3f, y0 + 0.3f, x0 + cellw - 0.3f, y0 + cellh - 0.3f, have >= need ? IM_COL32(204, 226, 184, 255) : IM_COL32(238, 196, 180, 255), 1.5f);
         if (P.over(x0, y0, x0 + cellw, y0 + cellh)) { tip = id; P.rect(x0 + 0.3f, y0 + 0.3f, x0 + cellw - 0.3f, y0 + cellh - 0.3f, IM_COL32(226, 204, 160, 160), 1.5f); }
+        ns_stock_click(P, x0, y0, x0 + cellw, y0 + cellh, id);
         float is = std::min(cellw * 0.5f, cellh * 0.46f);         /* (a picture is drawn up to a third wider than its size) */
         float iy = y0 + cellh * 0.36f;
         P.icon(cxm, iy, is, id);
@@ -1216,8 +1221,13 @@ static void formulae(NsDraw &P, const SheetModel &s)
         std::string c = need ? std::to_string(have) + "/" + std::to_string(need) : have ? std::to_string(have) : "";   /* (none: the faded sign says it) */
         ImU32 cc = need ? (have >= need ? NsDraw::GREEN : NsDraw::RED) : ink;
         if (!c.empty()) P.text(fo, NsDraw::FS_SMALL, cxm - P.width(fo, NsDraw::FS_SMALL, c) * 0.5f, y0 + cellh * 0.68f, cc, c);
+        ns_stock_tag(P, x0 + 0.8f, y0 + 0.8f, id);
     }
-    if (tip >= 0) ingredient_tip(s, tip);
+    if (tip >= 0) {                                         /* (beside the shelf, the roomier side first: not over the other ingredients) */
+        ImVec2 b0 = NsDraw::w(LX0, GY0), b1 = NsDraw::w(LX1, GY0 + 3 * cellh);
+        ui_tip_beside_in(b0, b1, b0.x > ImGui::GetIO().DisplaySize.x - b1.x ? "lrab" : "rlab");
+        ingredient_tip(s, tip);
+    }
 
     /* the formula: what it does, how hard and risky, its ingredients, the batches; who can brew
        it and their chance, or (nobody knows it) where it is sold */

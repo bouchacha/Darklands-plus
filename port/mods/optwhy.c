@@ -58,7 +58,7 @@ static const struct { const char *key, *why; } WHY[] = {
     { "journal.enabled", "The player otherwise keeps notes on paper." },
     { "journal.chronicle", "A record of the journey the original does not keep." },
     { "rules.relics", "The manual says a relic lowers the Divine Favor a prayer to its saint costs, for a bearer of enough Virtue; the game never did it, so this is half a fix: a good-faith reading of two sentences. To its own saint alone was too narrow, so here it is any prayer. Relics could be worn down like any weapon, and a cathedral took whichever relic came first, without saying what giving it does." },
-    { "rules.ingredients_one_quality", "Ingredients of one kind at two qualities were listed twice, and the quality changed nothing but the price." },
+    { "rules.ingredients_one_quality", "Ingredients and goods (a flute, a rope) of one kind at two qualities were listed twice, and the quality changed nothing but the price." },
     { "assist.endless", "Counting arrows and gathering javelins is bookkeeping, not play; enemies still run out. The middle way keeps the original's losses without the picking." },
     { "map.overland_marks", "The original overland view names nothing and shows no quest." },
     { "rules.aging", "Creation ages characters but play does not, so starting with older characters cost nothing later; this keeps age a cost." },
