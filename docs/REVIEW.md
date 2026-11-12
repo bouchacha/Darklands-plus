@@ -612,3 +612,6 @@ covered and found, and what it could not check.
   Eyeburn 8/16/24, Fleadust 25/40/60, Sunburst 4/6/8, Black Cloud's cloud 20/60/180, Stone-tar 240), drunk ones
   measured (24 hours asked, 19 to 21 had). (6) A stock to keep (keep.c "stock item n", a click on the shelf) and
   a notice on reaching a town whose shops (seen or worked out) sell it (journal_stock_check). Test command ustock.
+- 2026-11-12 (his "overboard" on the alchemy screen's grade seals): the seal's tooltip repeated the formula's
+  name, mystic number, risk and batches, all on the right page after a click, and covered the rows below. Gone;
+  the row's second line now tells of the grade pointed at ("enough for 7 batches", "needs Aqua Regia").

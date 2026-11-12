@@ -602,42 +602,36 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/alchemyview.cpp:108` | The party has no Philosopher's Stone yet. A town's alchemist (up to quality 25) or university (up to 29) sells one; its quality adds to the chance of every batch. |
 | `ui/alchemyview.cpp:136` | Potions and their formulae known |
 | `ui/alchemyview.cpp:142` |  knows no formulae yet. |
-| `ui/alchemyview.cpp:195` | Grade %d: %s. %s does not know this formula. |
-| `ui/alchemyview.cpp:196` | Grade %d: %s. Mystic number %d, %s. %s%s |
-| `ui/alchemyview.cpp:197` | The party's ingredients make  |
-| `ui/alchemyview.cpp:197` | The party's ingredients fall short of a batch. |
-| `ui/alchemyview.cpp:198` |  The formula on the right page. |
-| `ui/alchemyview.cpp:198` |  Click to choose it. |
-| `ui/alchemyview.cpp:211` |  batch set -  |
-| `ui/alchemyview.cpp:211` |  batches set -  |
-| `ui/alchemyview.cpp:220` | Starred: first in the list, all three formulae. Click to take the star off. |
-| `ui/alchemyview.cpp:220` | Star it: first in the list, all three formulae. |
-| `ui/alchemyview.cpp:221` | Put aside: last in the list, still there. Click to bring it back. |
-| `ui/alchemyview.cpp:221` | Put it aside: last in the list, still there. |
-| `ui/alchemyview.cpp:244` | Mystic number %d, %s |
-| `ui/alchemyview.cpp:272` | For a batch: at hand / needed |
-| `ui/alchemyview.cpp:290` | The party's ingredients |
-| `ui/alchemyview.cpp:324` | The party carries %d. |
-| `ui/alchemyview.cpp:324` | The party has none. |
-| `ui/alchemyview.cpp:326` | Where to buy, nearest first: |
-| `ui/alchemyview.cpp:354` | The party's ingredients make  |
-| `ui/alchemyview.cpp:354` |  of this formula at most. A batch makes one potion. |
-| `ui/alchemyview.cpp:355` | The party lacks the ingredients for a batch of this formula (the right page shows what is short). |
-| `ui/alchemyview.cpp:366` | The chance for each number of batches, 1 to  |
-| `ui/alchemyview.cpp:366` |  (what the ingredients allow). One roll decides them all:  |
-| `ui/alchemyview.cpp:366` | more batches, more potions, a lower chance (1 to 3 alike, then 4 and 5, 6 and 7 ...). Click to set the batches; below, what may come of  |
-| `ui/alchemyview.cpp:391` | Not enough ingredients for one batch. |
-| `ui/alchemyview.cpp:415` | Success, a chance of %d%%: %d %s of %s. One roll decides all %s. |
-| `ui/alchemyview.cpp:417` | Failure and no more: the ingredients of the %s are lost (half the failures here). |
-| `ui/alchemyview.cpp:417` | Failure: the ingredients of the %s are lost; in a camp in the wild nothing worse can happen. |
-| `ui/alchemyview.cpp:418` | Failure, and a stink: the ingredients lost, and no room at this inn for a month. |
-| `ui/alchemyview.cpp:419` | Failure, and an explosion: the ingredients lost, the party hurt, damages to pay, and no room at this inn for four months. |
-| `ui/alchemyview.cpp:424` | No batch set. |
-| `ui/alchemyview.cpp:444` | The chance: %d for %d %s (100 for 1 to 3, 50 for 4 or 5, 33 for 6 or 7, 25 for 8 or 9 ...: 100 divided by half the batches) + %s's {Intelligence:%d} + {Alchemy:%d} + the party's Philosopher's Stone %d - the formula's mystic number %d = %d, at most 99%%. |
-| `ui/alchemyview.cpp:450` | Choose a formula in the book. |
-| `ui/alchemyview.cpp:456` | Start mixing |
-| `ui/alchemyview.cpp:457` | Start mixing |
-| `ui/alchemyview.cpp:465` | The mystic number: the higher, the harder the formula is to brew. The risk is what a failed batch can cause. At an inn, in a village or a hideout, one failure in two ends in a mishap: %s in %s it is an explosion (the party hurt, damages to pay, no room at the inn for four months), otherwise a stink (no room for a month). In a camp in the wild a failure only costs the ingredients. |
+| `ui/alchemyview.cpp:204` |  batch set -  |
+| `ui/alchemyview.cpp:204` |  batches set -  |
+| `ui/alchemyview.cpp:213` | Starred: first in the list, all three formulae. Click to take the star off. |
+| `ui/alchemyview.cpp:213` | Star it: first in the list, all three formulae. |
+| `ui/alchemyview.cpp:214` | Put aside: last in the list, still there. Click to bring it back. |
+| `ui/alchemyview.cpp:214` | Put it aside: last in the list, still there. |
+| `ui/alchemyview.cpp:236` | Mystic number %d, %s |
+| `ui/alchemyview.cpp:264` | For a batch: at hand / needed |
+| `ui/alchemyview.cpp:282` | The party's ingredients |
+| `ui/alchemyview.cpp:316` | The party carries %d. |
+| `ui/alchemyview.cpp:316` | The party has none. |
+| `ui/alchemyview.cpp:318` | Where to buy, nearest first: |
+| `ui/alchemyview.cpp:346` | The party's ingredients make  |
+| `ui/alchemyview.cpp:346` |  of this formula at most. A batch makes one potion. |
+| `ui/alchemyview.cpp:347` | The party lacks the ingredients for a batch of this formula (the right page shows what is short). |
+| `ui/alchemyview.cpp:358` | The chance for each number of batches, 1 to  |
+| `ui/alchemyview.cpp:358` |  (what the ingredients allow). One roll decides them all:  |
+| `ui/alchemyview.cpp:358` | more batches, more potions, a lower chance (1 to 3 alike, then 4 and 5, 6 and 7 ...). Click to set the batches; below, what may come of  |
+| `ui/alchemyview.cpp:383` | Not enough ingredients for one batch. |
+| `ui/alchemyview.cpp:407` | Success, a chance of %d%%: %d %s of %s. One roll decides all %s. |
+| `ui/alchemyview.cpp:409` | Failure and no more: the ingredients of the %s are lost (half the failures here). |
+| `ui/alchemyview.cpp:409` | Failure: the ingredients of the %s are lost; in a camp in the wild nothing worse can happen. |
+| `ui/alchemyview.cpp:410` | Failure, and a stink: the ingredients lost, and no room at this inn for a month. |
+| `ui/alchemyview.cpp:411` | Failure, and an explosion: the ingredients lost, the party hurt, damages to pay, and no room at this inn for four months. |
+| `ui/alchemyview.cpp:416` | No batch set. |
+| `ui/alchemyview.cpp:436` | The chance: %d for %d %s (100 for 1 to 3, 50 for 4 or 5, 33 for 6 or 7, 25 for 8 or 9 ...: 100 divided by half the batches) + %s's {Intelligence:%d} + {Alchemy:%d} + the party's Philosopher's Stone %d - the formula's mystic number %d = %d, at most 99%%. |
+| `ui/alchemyview.cpp:442` | Choose a formula in the book. |
+| `ui/alchemyview.cpp:448` | Start mixing |
+| `ui/alchemyview.cpp:449` | Start mixing |
+| `ui/alchemyview.cpp:457` | The mystic number: the higher, the harder the formula is to brew. The risk is what a failed batch can cause. At an inn, in a village or a hideout, one failure in two ends in a mishap: %s in %s it is an explosion (the party hurt, damages to pay, no room at the inn for four months), otherwise a stink (no room for a month). In a camp in the wild a failure only costs the ingredients. |
 | `ui/alerts.cpp:75` | %s: %d, was %d |
 | `ui/alerts.cpp:111` |   OK (%d more)   |
 | `ui/alerts.cpp:152` |  - what comes before  |

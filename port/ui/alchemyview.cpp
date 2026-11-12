@@ -140,7 +140,7 @@ extern "C" void alchemyview_draw(void)
     if (V.scroll > maxs) V.scroll = maxs;
     if (V.scroll < 0) V.scroll = 0;
     if (!a.nrows) P.para(fo, NsDraw::FS_BODY, LX0 + 2, LY0 + 2, LX1 - LX0 - 4, dim, who + " knows no formulae yet.");
-    const char *mark_tip = nullptr; std::string seal_tip;
+    const char *mark_tip = nullptr;
     for (int r = 0; r < NROWS && V.scroll + r < npot; r++) {
         const int k = order[V.scroll + r], mk = potion_mark(k);
         float y = LY0 + r * ROWH;
@@ -158,7 +158,7 @@ extern "C" void alchemyview_draw(void)
         if (pc) P.text(fo, 4.2f, 0, y + 1.6f, put ? dim : soft, pcs, LX1 - 1);
         /* the seals: a grade each */
         const float SY = y + 9.0f, SR = 2.1f;
-        bool on_seal = false;
+        bool on_seal = false; int fline = fshow;            /* (the line: of the grade pointed at, while it is) */
         for (int g = 0; g < 3; g++) {
             const int fm = 3 * k + g, rw_ = row_of[fm], bt = rw_ >= 0 ? batches_of(fm) : 0;
             const float sx = LX0 + 12.6f + g * 5.2f;
@@ -186,29 +186,22 @@ extern "C" void alchemyview_draw(void)
                     for (int q = 0; q < n; q++) P.dl->AddCircleFilled(ImVec2(c.x + ((n - 1) * 0.5f - q) * st, c.y), dr, mc, 10);
                 }
             }
-            if (hov) {
+            if (hov) {                                    /* (no tooltip, his ask 1.4.7: "overboard": the row's line tells of the grade pointed
+                                                             at, and a click puts its formula on the right page) */
                 on_seal = true;
-                std::string nm = fm < (int)gamedata.formula_names.size() ? gamedata.formula_names[fm] : "?";
-                static const char *RISKW[3] = { "low risk", "medium risk", "high risk" };
-                const Formula *F = fm < (int)gamedata.formulas.size() ? &gamedata.formulas[fm] : nullptr;
-                char b[300];
-                if (!known) snprintf(b, sizeof b, "Grade %d: %s. %s does not know this formula.", g + 1, nm.c_str(), who.c_str());
-                else snprintf(b, sizeof b, "Grade %d: %s. Mystic number %d, %s. %s%s", g + 1, nm.c_str(), F ? F->mystic : 0, F && F->risk >= 0 && F->risk < 3 ? RISKW[F->risk] : "?",
-                              bt ? ("The party's ingredients make " + std::to_string(bt) + (bt == 1 ? " batch." : " batches.")).c_str() : "The party's ingredients fall short of a batch.",
-                              cur ? " The formula on the right page." : " Click to choose it.");
-                seal_tip = b;
+                if (known) fline = fm;
                 if (known && P.hit(sx - 2.4f, SY - 2.6f, sx + 2.4f, SY + 2.6f) && !cur) { chosen[k] = fm; ns_push(AV_SELECT, rw_, 0, 0); }
             }
         }
         /* the line: the formula it tells of - what its ingredients make, or what is short */
-        std::string l2; const int bt = batches_of(fshow);
+        std::string l2; const int bt = batches_of(fline);
         if (bt) l2 = "enough for " + std::to_string(bt) + (bt == 1 ? " batch" : " batches");
-        else if (fshow < (int)gamedata.formulas.size()) {
+        else if (fline < (int)gamedata.formulas.size()) {
             int nshort = 0; std::string first;
-            for (const FormulaIngr &q : gamedata.formulas[fshow].ingr) if (q.item >= 0 && q.item < 200 && have[q.item] < q.count) { if (!nshort) first = ns_item_name(q.item); nshort++; }
+            for (const FormulaIngr &q : gamedata.formulas[fline].ingr) if (q.item >= 0 && q.item < 200 && have[q.item] < q.count) { if (!nshort) first = ns_item_name(q.item); nshort++; }
             l2 = "needs " + first + (nshort > 1 ? " and " + std::to_string(nshort - 1) + " more" : "");
         }
-        if (row_of[fshow] >= 0 && a.row[row_of[fshow]].count) { int c = a.row[row_of[fshow]].count; l2 = std::to_string(c) + (c == 1 ? " batch set - " : " batches set - ") + l2; }
+        if (row_of[fline] >= 0 && a.row[row_of[fline]].count) { int c = a.row[row_of[fline]].count; l2 = std::to_string(c) + (c == 1 ? " batch set - " : " batches set - ") + l2; }
         /* the marks, at the end of the second line: shown when set, offered when the row is pointed at */
         const float SX = LX1 - 9.5f, AX2 = LX1 - 3.5f, MY = y + 9.0f;
         bool on_star = P.over(SX - 2.8f, y + 5.8f, SX + 2.8f, y + ROWH), on_aside = P.over(AX2 - 2.8f, y + 5.8f, AX2 + 2.8f, y + ROWH);
@@ -223,7 +216,6 @@ extern "C" void alchemyview_draw(void)
         else if (P.hit(AX2 - 2.8f, y + 5.8f, AX2 + 2.8f, y + ROWH)) potion_mark_set(k, put ? FMARK_NONE : FMARK_LAST);
         else if (!on_seal && P.hit(LX0, y, LX1, y + ROWH) && !sel && row_for(k) >= 0) ns_push(AV_SELECT, row_for(k), 0, 0);
     }
-    if (!mark_tip && !seal_tip.empty()) { static std::string keep_tip; keep_tip = seal_tip; mark_tip = keep_tip.c_str(); }
     if (npot > NROWS) {
         float th2 = (LY1 - LY0) * NROWS / npot, ty = LY0 + (LY1 - LY0 - th2) * V.scroll / (float)(npot - NROWS);
         P.rect(LX1 + 0.6f, ty, LX1 + 1.6f, ty + th2, IM_COL32(120, 80, 36, 140), 0.6f);
