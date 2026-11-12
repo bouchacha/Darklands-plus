@@ -393,6 +393,10 @@ int testcmd_run(const char *cmd, const char *arg)
             FILE *f = fopen(arg, "wb");
             if (f) { for (unsigned o = 0; o < 0x10000; o++) fputc(g_rb((u16)o), f); fclose(f); fprintf(stderr, "dgroup dumped to %s\n", arg); }
         }
+        else if (!strcmp(cmd, "umemdump")) {           /* debug: the whole emulated memory (1 MB and the HMA) into a file */
+            FILE *f = fopen(arg, "wb");
+            if (f) { fwrite(M, 1, MEM_SIZE, f); fclose(f); fprintf(stderr, "memory dumped to %s\n", arg); }
+        }
         else if (!strcmp(cmd, "uww")) {                /* test: a word of DGROUP (hex offset), set to v when given, then shown */
             unsigned of = 0; int v = 0; int n = sscanf(arg, "%x,%d", &of, &v);
             if (n == 2) g_ww((u16)of, (u16)v);

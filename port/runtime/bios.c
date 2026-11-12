@@ -185,6 +185,16 @@ static void irqd_end(int n)
 
 static void call_handler(int n)
 {
+    /* never the same interrupt again while its handler runs, as the PIC holds an IRQ back until
+       the handler's end-of-interrupt: the game's timer handler moves to a stack of its own at a
+       fixed place (047c:01e4), and a second entry would overwrite the first one's frames */
+    static int running[256];
+    if (running[n]) {
+        static int said;
+        if (said++ < 3) { fprintf(stderr, "warning: int %02x came while its handler still ran: held back\n", n); void plat_native_stack(void); plat_native_stack(); }
+        return;
+    }
+    running[n] = 1;
     irqd_begin();
     IrqSave sv; irq_enter(&sv);
     u16 off = rw(0, (u16)(n * 4)), seg = rw(0, (u16)(n * 4 + 2));
@@ -214,6 +224,7 @@ static void call_handler(int n)
     }
     irq_leave(&sv, n);
     irqd_end(n);
+    running[n] = 0;
 }
 
 /* ---------------------------------------------------------------- keyboard */

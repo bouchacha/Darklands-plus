@@ -85,6 +85,18 @@ int driver_retsite(u16 seg, u16 off)
     return 0;
 }
 
+/* does seg:off lie in a loaded driver's image? */
+int driver_contains(u16 seg, u16 off)
+{
+    u32 lin = LIN(seg, off);
+    for (int i = 0; DRIVERS[i]; i++) {
+        if (!active[i]) continue;
+        u32 base = (u32)*DRIVER_SEGS[i] << 4;
+        if (lin >= base && lin < base + drv_size[i]) return 1;
+    }
+    return 0;
+}
+
 /* the segment of a loaded driver whose image has sig at offset 0x10 (its name and date), or 0 */
 u16 driver_seg_by_sig(const char *sig)
 {

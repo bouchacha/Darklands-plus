@@ -18,11 +18,41 @@ void native_go(u16 seg, u16 off);         /* dispatch.c: call native code (retur
 
 static u16 ip, cs_;
 static u32 ring[64]; static int ring_i;
+/* how the interpreter got where it is: its entries from native code and its jumps from one
+   segment to another, the last 16 (the instructions above show only the last 64 steps: a
+   crash in data run as code showed none of the way into it) */
+static struct { u32 from, to; } xfer[16]; static int xfer_i;
 void interp_ring_dump(void)
 {
     fprintf(stderr, "  interpreter, last instructions:");
     for (int k = 0; k < 64; k++) { u32 v = ring[(ring_i + k) & 63]; if (v) fprintf(stderr, "%s%04x:%04x", k % 8 ? " " : "\n    ", v >> 16, v & 0xffff); }
+    fprintf(stderr, "\n  interpreter, last entries and far jumps:");
+    for (int k = 0; k < 16; k++) { int j = (xfer_i + k) & 15; if (!xfer[j].to) continue;
+        if (xfer[j].from == 0xffffffffu) fprintf(stderr, "%snative -> %04x:%04x", k % 4 ? "   " : "\n    ", xfer[j].to >> 16, xfer[j].to & 0xffff);
+        else fprintf(stderr, "%s%04x:%04x -> %04x:%04x", k % 4 ? "   " : "\n    ", xfer[j].from >> 16, xfer[j].from & 0xffff, xfer[j].to >> 16, xfer[j].to & 0xffff); }
     fprintf(stderr, "\n");
+}
+/* code the game never has: above its data segment and in no driver's image (data run as code) */
+static int outside_code(u16 seg, u16 off)
+{
+    if (seg >= HLE_SEG) return 0;                 /* the emulated BIOS, EMS driver and native entries (F000, F100, F200) */
+    u32 lin = LIN(seg, off);
+    if (lin >= ((u32)LOADSEG << 4) && lin < ((u32)(LOADSEG + 0x321a + 0x1000) << 4)) return 0;   /* the program, its overlays and its data */
+    int driver_contains(u16, u16);
+    return !driver_contains(seg, off);
+}
+static void xfer_note(u32 from, u16 seg, u16 off)
+{
+    xfer[xfer_i & 15].from = from; xfer[xfer_i & 15].to = (u32)seg << 16 | off; xfer_i++;
+    if (!outside_code(seg, off)) return;
+    static int said;
+    if (said >= 4) return;
+    said++;
+    if (from == 0xffffffffu) fprintf(stderr, "interp: code outside the program and its drivers runs at %04x:%04x, called from native code\n", seg, off);
+    else fprintf(stderr, "interp: code outside the program and its drivers runs at %04x:%04x, reached from %04x:%04x\n", seg, off, from >> 16, from & 0xffff);
+    interp_ring_dump();
+    void plat_native_stack(void); plat_native_stack();
+    fflush(stderr);
 }
 #ifdef FTRACE
 u32 interp_lo, interp_hi; int interp_sect = -9;
@@ -210,6 +240,8 @@ void interp_run(u16 seg, u16 off)
     u16 entry_sp = SP, entry_ss = SS;
     if (tail_pending) { entry_sp = tail_sp; tail_pending = 0; }
     cs_ = seg; ip = off;
+    if (!one) xfer_note(0xffffffffu, seg, off);
+    u16 prev_cs = cs_, prev_ip = ip;
     u32 count = 0;
     for (;;) {
         if (((++count) & 255) == 0) POLL();
@@ -217,6 +249,8 @@ void interp_run(u16 seg, u16 off)
         int rep = 0;
         u16 start = ip;
         ring[ring_i++ & 63] = ((u32)cs_ << 16) | ip;
+        if (cs_ != prev_cs) xfer_note((u32)prev_cs << 16 | prev_ip, cs_, ip);
+        prev_cs = cs_; prev_ip = start;
         u8 op;
     again:
         op = fetch8();

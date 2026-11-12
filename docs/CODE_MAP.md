@@ -10,20 +10,20 @@ The runtime: the CPU and DOS the game runs on, the window, sound, saves, the con
 
 | File | Lines | What it is |
 |---|---:|---|
-| `runtime/bios.c` | 840 | interrupts, BIOS services and the PC hardware the game talks to (VGA DAC, PIT, keyboard controller, PIC), plus the safe-point dl_poll() that delivers timer and keyboard interrupts to the game's own handlers and refreshes the screen. |
+| `runtime/bios.c` | 851 | interrupts, BIOS services and the PC hardware the game talks to (VGA DAC, PIT, keyboard controller, PIC), plus the safe-point dl_poll() that delivers timer and keyboard interrupts to the game's own handlers and refreshes the screen. |
 | `runtime/config.c` | 96 | settings kept in darklands_port.ini next to the game (key = value lines) |
 | `runtime/cpu.c` | 202 | flags and arithmetic helpers for recompiled code |
 | `runtime/crt.c` | 126 | the screen effect over the game's picture (display.crt, F12 > Settings > Screen): 0 none, 1 scanlines, 2 CRT, 3 curved CRT. |
 | `runtime/dispatch.c` | 192 | calls and jumps to computed addresses |
 | `runtime/dos.c` | 835 | high-level emulation of the DOS services the game uses (int 21h) |
-| `runtime/drivers.c` | 98 | the run-time loaded driver images (MGRAPHIC.EXE, MISC.EXE, *SOUND.DLC). |
+| `runtime/drivers.c` | 110 | the run-time loaded driver images (MGRAPHIC.EXE, MISC.EXE, *SOUND.DLC). |
 | `runtime/ems.c` | 211 | LIM EMS 4.0 expanded memory (int 67h), which Darklands requires. |
 | `runtime/gamecall.c` | 192 | calling the game's own functions from native code (the new interface uses the game's inventory routines so equipment, weights and stacks stay consistent). |
 | `runtime/gamefind.c` | 193 | where the game is when darklands.exe is not in the Darklands folder: a folder chosen before (darklands_plus/game_folder.txt next to the program), the GOG and Steam installations the registry knows, the usual places, and on Windows a folder dialog. |
 | `runtime/gameload.c` | 92 | the program without the generated code (DL_RTSPLIT, see split.h) loads the game module the player's machine made from DARKLAND.EXE: darklands_game.dll (Windows) or libdarklands_game.so, in the game folder, or where DL_GAME_MODULE says. |
 | `runtime/gensplit.c` | 76 | the game module's side of split.h (compiled with DL_GENSPLIT, together with the generated code, cpu.c and overrides.c): the runtime's variables are pointers set here, its functions are reached through the stubs below, and dl_game_init hands the generated tables back. |
 | `runtime/hooks.c` | 142 | see hooks.h |
-| `runtime/interp.c` | 423 | fallback x86 real-mode interpreter. |
+| `runtime/interp.c` | 457 | fallback x86 real-mode interpreter. |
 | `runtime/main.c` | 390 | start-up of the native Darklands: load the original DARKLAND.EXE image into the emulated address space (the recompiled code reads its data, code-segment tables and overlay sections from there), set up DOS structures, and run the program. |
 | `runtime/mpu.c` | 166 | MPU-401 MIDI interface (ports 330h/331h). |
 | `runtime/mt32.c` | 380 | a Roland MT-32 / CM-32L / LAPC-I inside Darklands+ (Munt's libmt32emu, LGPL 2.1+, third_party/mt32emu). |
@@ -37,7 +37,7 @@ The runtime: the CPU and DOS the game runs on, the window, sound, saves, the con
 | `runtime/sounddev.c` | 128 | which sound driver the game gets. |
 | `runtime/speaker.c` | 77 | the PC speaker, which the port had not made at all ("PC speaker" in F12 > Settings > Sound played nothing). |
 | `runtime/stb_impl.c` | 16 | the stb image reader and PNG writer (public domain, third_party/stb) for replacement art (mods/hdart.c, platform_sdl.c) |
-| `runtime/testcmds.c` | 610 | the test commands that look at or change the game's state, for the scripted sessions (port/tools/nctl.py "ucmd NAME:ARGS", release_check.py, soaktest.py): a battle at the next card, hits, items, saves, the native screens' actions, dumps of what the game holds ... |
+| `runtime/testcmds.c` | 614 | the test commands that look at or change the game's state, for the scripted sessions (port/tools/nctl.py "ucmd NAME:ARGS", release_check.py, soaktest.py): a battle at the next card, hits, items, saves, the native screens' actions, dumps of what the game holds ... |
 
 ## mods
 
