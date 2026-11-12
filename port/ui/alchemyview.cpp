@@ -36,7 +36,7 @@ void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);
 int ui_potion_tier(int q, int base);   /* ui/alchemyicons.cpp */
 
 namespace {
-struct AlchemyView { int scroll = 0; bool was_open = false; bool drag = false; } V;
+struct AlchemyView { int scroll = 0; bool was_open = false; bool drag = false; int drag_first = 1; } V;
 
 /* the small signs (ui/marks.h) at game coordinates: x, y the middle, r the half size in game pixels */
 ImVec2 W(float x, float y) { return NsDraw::w(x, y); }
@@ -347,36 +347,53 @@ extern "C" void alchemyview_draw(void)
                                   : std::string("The party lacks the ingredients for a batch of this formula (the right page shows what is short).");
             y += 9.0f;
 
-            /* the chance by the number of batches: one roll decides them all */
+            /* the chance by the number of batches: one roll decides them all. At most ten bars (his ask, 1.4.7: with a
+               ton of ingredients the bars got too thin to click): past ten the window follows the batches set (+), its
+               first and last numbers written under its ends */
             const float CY0 = y, CY1 = y + 11;
             int hover_n = 0;
             if (most > 0) {
-                float bw = (X1 - X0) / most;
+                const int ncol = most < 10 ? most : 10;
+                int first = cnt > ncol ? cnt - ncol + 1 : 1;
+                if (V.drag) first = V.drag_first;                       /* (the window holds still under a drag) */
+                if (first > most - ncol + 1) first = most - ncol + 1;
+                if (first < 1) first = 1;
+                const int last = first + ncol - 1;
+                float bw = (X1 - X0) / ncol;
                 bool on = P.over(X0, CY0 - 1, X1, CY1 + 1.5f);
                 if (on) {
-                    hover_n = 1 + (int)((P.mx - X0) / bw); if (hover_n < 1) hover_n = 1; if (hover_n > most) hover_n = most;
-                    tablet_tip = "The chance for each number of batches, 1 to " + std::to_string(most) + " (what the ingredients allow). One roll decides them all: "
-                                 "more batches, more potions, a lower chance (1 to 3 alike, then 4 and 5, 6 and 7 ...). Click to set the batches; below, what may come of " +
+                    hover_n = first + (int)((P.mx - X0) / bw); if (hover_n < first) hover_n = first; if (hover_n > last) hover_n = last;
+                    tablet_tip = (most > ncol ? "The chance for " + std::to_string(first) + " to " + std::to_string(last) + " batches, of the " + std::to_string(most) +
+                                                " the ingredients allow (+ goes further). "
+                                              : "The chance for each number of batches, 1 to " + std::to_string(most) + " (what the ingredients allow). ") +
+                                 "One roll decides them all: more batches, more potions, a lower chance (1 to 3 alike, then 4 and 5, 6 and 7 ...). Click to set the batches; below, what may come of " +
                                  std::to_string(hover_n) + (hover_n == 1 ? " batch." : " batches.");
                 }
-                for (int n = 1; n <= most; n++) {
+                for (int n = first; n <= last; n++) {
                     int c = alchemy_chance(&a, n);
-                    float x0 = X0 + (n - 1) * bw, x1 = x0 + bw - (bw > 1.6f ? 0.35f : 0), hh = (CY1 - CY0) * c / 100.0f;
+                    float x0 = X0 + (n - first) * bw, x1 = x0 + bw - (bw > 1.6f ? 0.35f : 0), hh = (CY1 - CY0) * c / 100.0f;
                     ImU32 col = n == cnt ? (c >= 50 ? wax_green : wax_red) : n == hover_n ? wax : IM_COL32(176, 164, 134, 120);
                     if (hh > 0) P.dl->AddRectFilled(NsDraw::w(x0, CY1 - hh), NsDraw::w(x1, CY1), col);
                 }
                 for (float x = X0; x < X1; x += 2.0f)                     /* (an even chance: dotted) */
                     P.dl->AddRectFilled(NsDraw::w(x, CY0 + (CY1 - CY0) * 0.5f - 0.15f), NsDraw::w(x + 0.7f, CY0 + (CY1 - CY0) * 0.5f + 0.15f), IM_COL32(222, 210, 176, 110));
                 P.rect(X0, CY1, X1, CY1 + 0.3f, wax_soft);
-                if (cnt > 0 && cnt <= most) {                           /* the batches set: a notch under its bar */
-                    float cx = X0 + (cnt - 0.5f) * bw;
+                if (most > ncol) {                                      /* (which numbers the bars are) */
+                    std::string a0 = std::to_string(first), a1 = std::to_string(last);
+                    P.text(fo, 3.2f, X0, CY1 + 0.5f, wax_soft, a0);
+                    P.text(fo, 3.2f, X1 - P.width(fo, 3.2f, a1), CY1 + 0.5f, wax_soft, a1);
+                }
+                if (cnt >= first && cnt <= last) {                      /* the batches set: a notch under its bar */
+                    float cx = X0 + (cnt - first + 0.5f) * bw;
                     P.dl->AddTriangleFilled(NsDraw::w(cx, CY1 + 0.4f), NsDraw::w(cx - 1.3f, CY1 + 2.0f), NsDraw::w(cx + 1.3f, CY1 + 2.0f), wax);
                 }
+                bool was = V.drag;
                 if (!ns_in.down) V.drag = false;
                 else if (ns_in.px >= X0 && ns_in.px < X1 && ns_in.py >= CY0 - 1 && ns_in.py < CY1 + 1.5f) V.drag = true;   /* (went down on it) */
                 if (P.hit(X0, CY0 - 1, X1, CY1 + 1.5f)) V.drag = true;
+                if (V.drag && !was) V.drag_first = first;
                 if (V.drag) {
-                    int n = 1 + (int)((P.mx - X0) / bw); if (n < 1) n = 1; if (n > most) n = most;
+                    int n = first + (int)((P.mx - X0) / bw); if (n < first) n = first; if (n > last) n = last;
                     if (n != cnt) ns_push(AV_SET, n, 0, 0);
                     hover_n = n;
                 }

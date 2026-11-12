@@ -69,6 +69,19 @@ int foefx_of(int i, FoeFx *out, int max)
         else f.potion = k == 0 ? 98 : k == 2 ? (left[1] ? 96 : 101) : left[2] ? 96 : -1;   /* (Fleadust lowers the skills alone; blinded and weakened: Eyeburn) */
         out[n++] = f;
     }
+    /* one entry a potion (his ask, 1.4.7: "effect from same potion shows up twice"): Eyeburn's blinding with what it
+       lowers, the dial the longer of the two */
+    for (int b = 0; b < n; b++) {
+        if (out[b].what != FX_BLIND || out[b].potion < 0) continue;
+        for (int o = 0; o < n; o++) {
+            if (o == b || out[o].what == FX_BLIND || out[o].potion != out[b].potion) continue;
+            out[o].blind = 1; out[o].blind_left = out[b].left;
+            if (out[b].left > out[o].left) { out[o].left = out[b].left; out[o].total = out[b].total; }
+            for (int j = b; j + 1 < n; j++) out[j] = out[j + 1];
+            n--; b--;
+            break;
+        }
+    }
     return n;
 }
 

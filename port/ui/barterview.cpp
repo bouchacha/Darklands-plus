@@ -51,6 +51,7 @@ struct View {
     std::string fhead;      /* its heading, "" for the formula's */
     int last_who = -1;
     int flash_ware = -1; unsigned flash_t = 0;   /* a ware found from the Formulae tab: it pulses in For sale a while */
+    int find_ware = -1;                          /* (and is scrolled to) */
     int hover_list = -1, hover_row = -1;       /* the row described in the strip */
     unsigned hover_seq;
 } V;
@@ -163,6 +164,36 @@ extern "C" void barterview_draw(void)
     std::map<int, int> have_n;
     { GmItem g; for (int m = 0; m < 5; m++) if (b.present[m]) for (int i = 0; i < gm_item_count(m); i++) if (gm_item(m, i, &g)) have_n[g.id] += g.count; }
     auto ingredient = [&](int id) { const ItemDef *d = def(id); return d && d->kind == K_INGREDIENT; };
+    /* the wares under headings, a group a kind with how many (his ask, 1.4.7: "I often forget that foreign traders and
+       regular merchants sell ingredients that pharmacists don't"), the shop's own order within each; a shop with one
+       kind of thing has no heading. The quality is the shop's (above the list) and each row's own */
+    static const char *const WGROUP[9] = { "Weapons", "Missile weapons", "Armor", "Shields", "Horses", "Potions", "Ingredients", "Tools and other goods", "Relics" };
+    auto ware_group = [&](int id) {
+        const ItemDef *d = def(id);
+        if (!d) return 7;
+        switch (d->kind) {
+        case K_WEAPON: return 0; case K_MISSILE: return 1; case K_ARMOR: return 2; case K_SHIELD: return 3; case K_HORSE: return 4;
+        case K_POTION: return 5; case K_INGREDIENT: return 6; case K_RELIC: return 8; default: return 7;
+        }
+    };
+    std::vector<int> ware_order;                          /* (a ware's index, or -100 - group: a heading) */
+    static int folded = -1;                               /* (the groups folded by a click on their heading: kept for every shop) */
+    if (folded < 0) folded = config_get_int("display.shop_folded", 0);
+    {
+        int ng = 0, cnt[9] = { 0 };
+        for (int i = 0; i < b.nwares; i++) if (!cnt[ware_group(b.ware[i].id)]++) ng++;
+        for (int g = 0; g < 9; g++) {
+            if (!cnt[g]) continue;
+            if (ng > 1) ware_order.push_back(-100 - g);
+            if (ng > 1 && (folded >> g & 1)) continue;
+            for (int i = 0; i < b.nwares; i++) if (ware_group(b.ware[i].id) == g) ware_order.push_back(i);
+        }
+    }
+    if (V.find_ware >= 0) {
+        for (size_t r = 0; r < ware_order.size(); r++) if (ware_order[r] == V.find_ware) { V.scroll[0] = (int)r - 13 / 2; break; }
+        V.find_ware = -1;
+    }
+    auto ware_heading = [&](int g) { int n = 0; for (int i = 0; i < b.nwares; i++) n += ware_group(b.ware[i].id) == g; return std::string(WGROUP[g]) + " (" + std::to_string(n) + ")"; };
     const bool cmp_on = config_get_int("display.shop_compare", 1) != 0;
     const int cmp_slot = cmp_on && V.hover_list == 0 && V.hover_row >= 0 && V.hover_row < b.nwares ? ns_slot_of(b.ware[V.hover_row].id) : 0;
     static bool spare_lit;                       /* the button under the pointer (last frame): its things pulse in the list */
@@ -173,7 +204,7 @@ extern "C" void barterview_draw(void)
         /* the rows: the wares as the shop has them; the party's things as the character sheet has
            them (Equipped, Potions, the rest; each in the inventory's tidy order), a heading before each */
         std::vector<int> order;
-        if (!L) for (int i = 0; i < b.nwares; i++) order.push_back(i);
+        if (!L) order = ware_order;
         else {
             auto tidy = [&](size_t from) { std::stable_sort(order.begin() + from, order.end(), [&](int a, int c) { return ui_item_tidy_less(b.item[a].id, b.item[a].qual, b.item[c].id, b.item[c].qual); }); };
             for (int k = -1; k < 6; k++) {                         /* (the character sheet's sections, in its order: ns_item_section) */
@@ -196,8 +227,20 @@ extern "C" void barterview_draw(void)
             int i = order[V.scroll[L] + r];
             float y = LY0 + r * ROWH;
             if (i < 0) {                                         /* a heading, as on the character sheet */
-                const char *hd = ns_item_section_name(-1 - i);
-                T(fo, NsDraw::FS_SMALL, x0 + 3, y + 2.2f, ink_soft, hd);
+                std::string hds = i <= -100 ? ware_heading(-100 - i) : std::string(ns_item_section_name(-1 - i));
+                const char *hd = hds.c_str();
+                float hx = x0 + 3;
+                if (i <= -100) {                                  /* a group of wares: a click folds or opens it (remembered) */
+                    int g = -100 - i; bool fo_ = folded >> g & 1, hh = in(mx, my, x0, y, x1, y + ROWH);
+                    ImU32 tc = hh ? ink : ink_soft;
+                    float tx = x0 + 4.2f, ty = y + ROWH * 0.5f;
+                    if (fo_) dl->AddTriangleFilled(g2w(tx - 1.2f, ty - 1.6f), g2w(tx + 1.4f, ty), g2w(tx - 1.2f, ty + 1.6f), tc);
+                    else dl->AddTriangleFilled(g2w(tx - 1.6f, ty - 1.0f), g2w(tx + 1.6f, ty - 1.0f), g2w(tx, ty + 1.4f), tc);
+                    hx = x0 + 7.5f;
+                    if (hh) { ui_hit_area(g2w(x0, y), g2w(x1, y + ROWH)); ImGui::SetTooltip(fo_ ? "Click to show them" : "Click to fold them away (kept so for every shop)"); }
+                    if (hit(x0, y, x1, y + ROWH)) { folded ^= 1 << g; config_set_int("display.shop_folded", folded); }
+                }
+                T(fo, NsDraw::FS_SMALL, hx, y + 2.2f, ink_soft, hd);
                 float lw = 0;
                 if (i == -1) {                                    /* Equipped: the member's load, and what the thing pointed at would make it */
                     int after = -1;
@@ -205,7 +248,7 @@ extern "C" void barterview_draw(void)
                     else if (V.hover_list == 1 && V.hover_row >= 0 && V.hover_row < b.nitems && !b.item[V.hover_row].equipped) after = ns_load_with(b.item[V.hover_row].id, b.who);
                     lw = ns_load_note(P, x1 - 3, y + 2.2f, b.who, after) + 3;
                 }
-                R(x0 + 3 + W(fo, NsDraw::FS_SMALL, hd) + 2, y + 4.8f, x1 - 3 - lw, y + 5.1f, IM_COL32(120, 80, 36, 90));
+                R(hx + W(fo, NsDraw::FS_SMALL, hd) + 2, y + 4.8f, x1 - 3 - lw, y + 5.1f, IM_COL32(120, 80, 36, 90));
                 continue;
             }
             int id, qual, price, count = 1, eq = 0, kept = 0, pack = 0;
@@ -338,7 +381,9 @@ extern "C" void barterview_draw(void)
                 if (hov) {
                     V.fnote = item_name(g.item) + ": the party carries " + std::to_string(have) + ", a batch needs " + std::to_string(g.count) +
                               (w >= 0 ? "; " + money(b.ware[w].price) + " each here. Click: find it in For sale, to buy it there." : "; not sold here.");
-                    if (w >= 0 && hit(x - 0.5f, y + 8.8f, x + cw - 1, y + FH)) { V.flash_ware = w; V.flash_t = plat_ticks_ms(); V.scroll[0] = w - NROWS / 2; }
+                    if (w >= 0 && hit(x - 0.5f, y + 8.8f, x + cw - 1, y + FH)) { V.flash_ware = w; V.flash_t = plat_ticks_ms();
+                        if (folded >> ware_group(b.ware[w].id) & 1) { folded &= ~(1 << ware_group(b.ware[w].id)); config_set_int("display.shop_folded", folded); }
+                        V.find_ware = w; }                       /* (its row, headings counted, next frame: the list as it then is) */
                 }
                 x += cw;
             }

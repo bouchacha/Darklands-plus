@@ -405,6 +405,8 @@ Fix FIXES[] = {
       "A prayer from the character sheet asks who it is for, but one a card calls for (calling on a saint in an encounter or in a town) did not: the game took it as a prayer for the whole party, and what the saint gives one person (a boost, healing) went to the party's leader, though another prayed and spent the Divine Favor. Praying with P, without choosing, did the same. Now every prayer asks who it is for, the one who prays first, and a prayer made without choosing helps the one who prays.", 1 },
     { "westedge", "Leaving a place by the map's west edge puts the party beside it",
       "Leaving any of the nine places near the travel map's west edge (Nancy, Elberg, Valkenberg, Tongeren, Gemert, Helmond, Limberg, Spa and Briey) put the party 2 to 5 tiles east of it, and wherever the travel map's view reached that edge, the party was drawn a tile east of where the game had it. The party now comes out beside the place, as everywhere else, and is drawn where it is.", 1 },
+    { "bestpick", "A lock is picked with the best lock picks",
+      "Picking a lock in a castle, a mine or a dungeon, the game used the member's first lock picks, whatever their quality, though a better set lay further down the pack (or, with the shared pack, with someone else): the quality adds to the chance (Pick Locks + quality - 25). Now the best lock picks the member, or with the shared pack the party, carries are used.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -3099,6 +3101,37 @@ static void ownplace_hook(void)             /* s030 1462:1300 (mx, my): the plac
     }
 }
 
+/* ---------------------------------------------------------------- bestpick
+ * lock_pick (s023 1ef8:12c0) picks with the first record of item 0x40 in the picker's pack (DS e1ca): the chance is
+ * Pick Locks + that record's quality - 25, a better set further down not looked at. For its while that record
+ * takes the best quality the picker has, or with the shared pack (inventory.shared) any member present has. */
+int sheetview_shared(void);
+static void bestpick_hook(void)                 /* lock_pick (lock) */
+{
+    int a = g_rb(0xe1ca), first = -1, best = -1;
+    if (a < 0 || a >= 5) { hook_call_original(); return; }
+    int n = g_rb((u16)(G_MEMBER(a) + G_M_NITEMS));
+    for (int i = 0; i < n && i < 64; i++) if ((rw(G_FAR2E38, G_ITEM(a, i)) & 0xfff) == 0x40) { first = i; break; }
+    if (first < 0) { hook_call_original(); return; }
+    for (int m = 0; m < 5; m++) {
+        if (m != a && !(sheetview_shared() && g_rb(G_MEMBER(m)) == 1)) continue;
+        int nm = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
+        for (int i = 0; i < nm && i < 64; i++) {
+            u16 o = G_ITEM(m, i);
+            if ((rw(G_FAR2E38, o) & 0xfff) == 0x40 && rb(G_FAR2E38, (u16)(o + 4)) > 0 && rb(G_FAR2E38, (u16)(o + 3)) > best) best = rb(G_FAR2E38, (u16)(o + 3));
+        }
+    }
+    u16 q_at = (u16)(G_ITEM(a, first) + 3);
+    u8 had = rb(G_FAR2E38, q_at);
+    if (best <= had) { hook_call_original(); return; }
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix bestpick: member %d picks with quality %d, not %d\n", a, best, had);
+    wb(G_FAR2E38, q_at, (u8)best);
+    hook_call_original();
+    u16 ax = AX;
+    wb(G_FAR2E38, q_at, had);
+    AX = ax;
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -3118,7 +3151,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook },
     { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
     { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook },
-    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook }, { 30, 0x1462, 0x1c76, westedge_hook } };   /* (hitsound: mods/sfx.c) */
+    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook }, { 30, 0x1462, 0x1c76, westedge_hook }, { GF_lock_pick, bestpick_hook } };   /* (hitsound: mods/sfx.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {

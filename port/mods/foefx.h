@@ -11,6 +11,8 @@ typedef struct {
     int left;        /* ticks left of the battle's clock (about 60 a second) */
     int total;       /* ticks it lasts in all, 0 not known */
     int pct;         /* FX_SKILLS, FX_WEAKENED: how much lower, in hundredths of what it was */
+    int blind;       /* FX_SKILLS, FX_WEAKENED: the same potion blinds them too, for blind_left ticks (one entry a potion) */
+    int blind_left;
 } FoeFx;
 int foefx_of(int i, FoeFx *out, int max);   /* combatant i (0-12): its effects now, how many */
 #ifdef __cplusplus

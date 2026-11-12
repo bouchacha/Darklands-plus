@@ -574,17 +574,19 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:405` | A prayer from the character sheet asks who it is for, but one a card calls for (calling on a saint in an encounter or in a town) did not: the game took it as a prayer for the whole party, and what the saint gives one person (a boost, healing) went to the party's leader, though another prayed and spent the Divine Favor. Praying with P, without choosing, did the same. Now every prayer asks who it is for, the one who prays first, and a prayer made without choosing helps the one who prays. |
 | `mods/fixes.c:406` | Leaving a place by the map's west edge puts the party beside it |
 | `mods/fixes.c:407` | Leaving any of the nine places near the travel map's west edge (Nancy, Elberg, Valkenberg, Tongeren, Gemert, Helmond, Limberg, Spa and Briey) put the party 2 to 5 tiles east of it, and wherever the travel map's view reached that edge, the party was drawn a tile east of where the game had it. The party now comes out beside the place, as everywhere else, and is drawn where it is. |
-| `mods/fixes.c:738` | if (col == 0) col = 1 |
-| `mods/fixes.c:1304` | The store room keeps at most 127 of one item. |
-| `mods/fixes.c:1305` | The store room is full: it keeps 100 kinds of items. |
-| `mods/fixes.c:1475` | abandon the horses |
-| `mods/fixes.c:1857` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
-| `mods/fixes.c:2115` | claim friendship |
-| `mods/fixes.c:2167` | It is $NamedOneName again |
-| `mods/fixes.c:2430` | You need a missile weapon |
-| `mods/fixes.c:2508` | Not bought: nobody in the party has room for another kind of item. |
-| `mods/fixes.c:2526` | Nobody in the party has room for another kind of item. |
-| `mods/fixes.c:3122` | a hook (or { -2 }) for each fix, in the same order |
+| `mods/fixes.c:408` | A lock is picked with the best lock picks |
+| `mods/fixes.c:409` | Picking a lock in a castle, a mine or a dungeon, the game used the member's first lock picks, whatever their quality, though a better set lay further down the pack (or, with the shared pack, with someone else): the quality adds to the chance (Pick Locks + quality - 25). Now the best lock picks the member, or with the shared pack the party, carries are used. |
+| `mods/fixes.c:740` | if (col == 0) col = 1 |
+| `mods/fixes.c:1306` | The store room keeps at most 127 of one item. |
+| `mods/fixes.c:1307` | The store room is full: it keeps 100 kinds of items. |
+| `mods/fixes.c:1477` | abandon the horses |
+| `mods/fixes.c:1859` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
+| `mods/fixes.c:2117` | claim friendship |
+| `mods/fixes.c:2169` | It is $NamedOneName again |
+| `mods/fixes.c:2432` | You need a missile weapon |
+| `mods/fixes.c:2510` | Not bought: nobody in the party has room for another kind of item. |
+| `mods/fixes.c:2528` | Nobody in the party has room for another kind of item. |
+| `mods/fixes.c:3155` | a hook (or { -2 }) for each fix, in the same order |
 
 ## The interface (ui/)
 
@@ -617,49 +619,56 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/alchemyview.cpp:346` | The party's ingredients make  |
 | `ui/alchemyview.cpp:346` |  of this formula at most. A batch makes one potion. |
 | `ui/alchemyview.cpp:347` | The party lacks the ingredients for a batch of this formula (the right page shows what is short). |
-| `ui/alchemyview.cpp:358` | The chance for each number of batches, 1 to  |
-| `ui/alchemyview.cpp:358` |  (what the ingredients allow). One roll decides them all:  |
-| `ui/alchemyview.cpp:358` | more batches, more potions, a lower chance (1 to 3 alike, then 4 and 5, 6 and 7 ...). Click to set the batches; below, what may come of  |
-| `ui/alchemyview.cpp:383` | Not enough ingredients for one batch. |
-| `ui/alchemyview.cpp:407` | Success, a chance of %d%%: %d %s of %s. One roll decides all %s. |
-| `ui/alchemyview.cpp:409` | Failure and no more: the ingredients of the %s are lost (half the failures here). |
-| `ui/alchemyview.cpp:409` | Failure: the ingredients of the %s are lost; in a camp in the wild nothing worse can happen. |
-| `ui/alchemyview.cpp:410` | Failure, and a stink: the ingredients lost, and no room at this inn for a month. |
-| `ui/alchemyview.cpp:411` | Failure, and an explosion: the ingredients lost, the party hurt, damages to pay, and no room at this inn for four months. |
-| `ui/alchemyview.cpp:416` | No batch set. |
-| `ui/alchemyview.cpp:436` | The chance: %d for %d %s (100 for 1 to 3, 50 for 4 or 5, 33 for 6 or 7, 25 for 8 or 9 ...: 100 divided by half the batches) + %s's {Intelligence:%d} + {Alchemy:%d} + the party's Philosopher's Stone %d - the formula's mystic number %d = %d, at most 99%%. |
-| `ui/alchemyview.cpp:442` | Choose a formula in the book. |
-| `ui/alchemyview.cpp:448` | Start mixing |
-| `ui/alchemyview.cpp:449` | Start mixing |
-| `ui/alchemyview.cpp:457` | The mystic number: the higher, the harder the formula is to brew. The risk is what a failed batch can cause. At an inn, in a village or a hideout, one failure in two ends in a mishap: %s in %s it is an explosion (the party hurt, damages to pay, no room at the inn for four months), otherwise a stink (no room for a month). In a camp in the wild a failure only costs the ingredients. |
+| `ui/alchemyview.cpp:366` | The chance for  |
+| `ui/alchemyview.cpp:366` |  batches, of the  |
+| `ui/alchemyview.cpp:367` |  the ingredients allow (+ goes further).  |
+| `ui/alchemyview.cpp:368` | The chance for each number of batches, 1 to  |
+| `ui/alchemyview.cpp:368` |  (what the ingredients allow).  |
+| `ui/alchemyview.cpp:369` | One roll decides them all: more batches, more potions, a lower chance (1 to 3 alike, then 4 and 5, 6 and 7 ...). Click to set the batches; below, what may come of  |
+| `ui/alchemyview.cpp:400` | Not enough ingredients for one batch. |
+| `ui/alchemyview.cpp:424` | Success, a chance of %d%%: %d %s of %s. One roll decides all %s. |
+| `ui/alchemyview.cpp:426` | Failure and no more: the ingredients of the %s are lost (half the failures here). |
+| `ui/alchemyview.cpp:426` | Failure: the ingredients of the %s are lost; in a camp in the wild nothing worse can happen. |
+| `ui/alchemyview.cpp:427` | Failure, and a stink: the ingredients lost, and no room at this inn for a month. |
+| `ui/alchemyview.cpp:428` | Failure, and an explosion: the ingredients lost, the party hurt, damages to pay, and no room at this inn for four months. |
+| `ui/alchemyview.cpp:433` | No batch set. |
+| `ui/alchemyview.cpp:453` | The chance: %d for %d %s (100 for 1 to 3, 50 for 4 or 5, 33 for 6 or 7, 25 for 8 or 9 ...: 100 divided by half the batches) + %s's {Intelligence:%d} + {Alchemy:%d} + the party's Philosopher's Stone %d - the formula's mystic number %d = %d, at most 99%%. |
+| `ui/alchemyview.cpp:459` | Choose a formula in the book. |
+| `ui/alchemyview.cpp:465` | Start mixing |
+| `ui/alchemyview.cpp:466` | Start mixing |
+| `ui/alchemyview.cpp:474` | The mystic number: the higher, the harder the formula is to brew. The risk is what a failed batch can cause. At an inn, in a village or a hideout, one failure in two ends in a mishap: %s in %s it is an explosion (the party hurt, damages to pay, no room at the inn for four months), otherwise a stink (no room for a month). In a camp in the wild a failure only costs the ingredients. |
 | `ui/alerts.cpp:75` | %s: %d, was %d |
 | `ui/alerts.cpp:111` |   OK (%d more)   |
 | `ui/alerts.cpp:152` |  - what comes before  |
 | `ui/alerts.cpp:178` | Y: yes     N: no |
 | `ui/alerts.cpp:178` | Any key or click: continue |
-| `ui/barterview.cpp:137` | Click to have %s pay from now on |
-| `ui/barterview.cpp:194` | Nothing to sell. |
-| `ui/barterview.cpp:194` | Nothing for sale today. |
-| `ui/barterview.cpp:311` | None of the party's formulae uses what this shop sells. |
-| `ui/barterview.cpp:318` | no potion yet |
-| `ui/barterview.cpp:323` | . The ingredients the party carries make  |
-| `ui/barterview.cpp:323` |  (a batch makes one). Below, each ingredient: what the party carries / what a batch needs, and its price here. |
-| `ui/barterview.cpp:339` | : the party carries  |
-| `ui/barterview.cpp:339` | , a batch needs  |
-| `ui/barterview.cpp:340` |  each here. Click: find it in For sale, to buy it there. |
-| `ui/barterview.cpp:340` | ; not sold here. |
-| `ui/barterview.cpp:366` | Click again to sell them |
-| `ui/barterview.cpp:366` | Sell spare gear |
-| `ui/barterview.cpp:373` | %d item%s not equipped (weapons, armor, shields; not ammunition or throwing weapons; and whatever is marked Sell on the character sheet), for about %s in all: the ones pulsing in the list.%s |
-| `ui/barterview.cpp:374` |  Click again to sell them all. |
-| `ui/barterview.cpp:390` | the mount this member rides |
-| `ui/barterview.cpp:392` | The merchant pays  |
-| `ui/barterview.cpp:392` | The merchant will not buy this |
-| `ui/barterview.cpp:393` |  - more than the purse holds |
-| `ui/barterview.cpp:398` | Point at a ware or one of your items to see it here; F11 shows what you can do. |
-| `ui/barterview.cpp:413` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  purchases go to the member picked above |
-| `ui/barterview.cpp:414` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  click a name to see their items |
-| `ui/barterview.cpp:415` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  click a name's coin to make that member pay |
+| `ui/barterview.cpp:138` | Click to have %s pay from now on |
+| `ui/barterview.cpp:170` | Missile weapons |
+| `ui/barterview.cpp:170` | Tools and other goods |
+| `ui/barterview.cpp:225` | Nothing to sell. |
+| `ui/barterview.cpp:225` | Nothing for sale today. |
+| `ui/barterview.cpp:240` | Click to show them |
+| `ui/barterview.cpp:240` | Click to fold them away (kept so for every shop) |
+| `ui/barterview.cpp:354` | None of the party's formulae uses what this shop sells. |
+| `ui/barterview.cpp:361` | no potion yet |
+| `ui/barterview.cpp:366` | . The ingredients the party carries make  |
+| `ui/barterview.cpp:366` |  (a batch makes one). Below, each ingredient: what the party carries / what a batch needs, and its price here. |
+| `ui/barterview.cpp:382` | : the party carries  |
+| `ui/barterview.cpp:382` | , a batch needs  |
+| `ui/barterview.cpp:383` |  each here. Click: find it in For sale, to buy it there. |
+| `ui/barterview.cpp:383` | ; not sold here. |
+| `ui/barterview.cpp:411` | Click again to sell them |
+| `ui/barterview.cpp:411` | Sell spare gear |
+| `ui/barterview.cpp:418` | %d item%s not equipped (weapons, armor, shields; not ammunition or throwing weapons; and whatever is marked Sell on the character sheet), for about %s in all: the ones pulsing in the list.%s |
+| `ui/barterview.cpp:419` |  Click again to sell them all. |
+| `ui/barterview.cpp:435` | the mount this member rides |
+| `ui/barterview.cpp:437` | The merchant pays  |
+| `ui/barterview.cpp:437` | The merchant will not buy this |
+| `ui/barterview.cpp:438` |  - more than the purse holds |
+| `ui/barterview.cpp:443` | Point at a ware or one of your items to see it here; F11 shows what you can do. |
+| `ui/barterview.cpp:458` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  purchases go to the member picked above |
+| `ui/barterview.cpp:459` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  click a name to see their items |
+| `ui/barterview.cpp:460` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  click a name's coin to make that member pay |
 | `ui/battlelog.cpp:115` | , {Strength:- |
 | `ui/battlelog.cpp:130` | , the armor holds |
 | `ui/battlelog.cpp:130` | ; knocked back |
@@ -687,45 +696,48 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/battlelog.cpp:372` | No battle yet: the battle log shows here, blow by blow, during each battle and after it. |
 | `ui/battlelog.cpp:375` | The last battle |
 | `ui/battlelog.cpp:376` | The battle before |
-| `ui/battleoverlay.cpp:148` | %s: {Agility}, {Perception} and weapon skills %d%% lower, %d s more |
-| `ui/battleoverlay.cpp:149` | %s: blinded, %d s more (only parries; cannot shoot or throw) |
-| `ui/battleoverlay.cpp:287` | Click: attack |
-| `ui/battleoverlay.cpp:287` | No clear shot |
-| `ui/battleoverlay.cpp:322` | The picture at the lower left of each member's box is their fighting style: what they do until you give them an order.  |
-| `ui/battleoverlay.cpp:322` | Click it to choose another.  |
-| `ui/battleoverlay.cpp:327` |  Everyone starts as a Skirmisher. Each character keeps the style you choose, battle to battle. |
-| `ui/battleoverlay.cpp:328` | Each member's fighting style |
-| `ui/battleoverlay.cpp:328` | Darklands+; F12 > Settings > Battles > Improved combat. |
-| `ui/battleoverlay.cpp:337` | Battles need fewer clicks |
-| `ui/battleoverlay.cpp:338` | Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.  Each member fights in their own fighting style until you give them an order: the picture at the lower left of their box. Click it to choose another (Skirmisher, Archer, Charger, or Manual). An order you give is carried out, then they go back to their style.  Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.  While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does. |
-| `ui/battleoverlay.cpp:344` | All this is Darklands+; each part can be switched off, for the original game's controls, in F12 > Settings > Battles. F11 lists the battle's keys and clicks. |
-| `ui/battleoverlay.cpp:407` | The nearest enemy is this way: click to look |
-| `ui/battleoverlay.cpp:423` | Door: click to walk there and close it |
-| `ui/battleoverlay.cpp:423` | Door: click to walk there and open it |
-| `ui/battleoverlay.cpp:428` | Stairs: click to walk there and take them |
-| `ui/battleoverlay.cpp:435` | a complex trap |
-| `ui/battleoverlay.cpp:435` | a moderate trap |
-| `ui/battleoverlay.cpp:435` | a simple trap |
-| `ui/battleoverlay.cpp:439` | Chest%s: open it from the orders of a member beside it |
-| `ui/battleoverlay.cpp:440` | Chest%s: click to walk there; %s is then on the leader's orders |
-| `ui/battleoverlay.cpp:441` | Chest: click to walk there and open it |
-| `ui/battleoverlay.cpp:441` | Chest: click to walk there and open it (if it is not locked or trapped) |
-| `ui/battleoverlay.cpp:444` | Way out: click to walk there; then Exit Battlefield (X) for each member |
-| `ui/battleoverlay.cpp:444` | Way out: a member standing here can leave (Exit Battlefield, X) |
-| `ui/battleoverlay.cpp:477` | a little hurt |
-| `ui/battleoverlay.cpp:478` | gravely wounded |
-| `ui/battleoverlay.cpp:509` | Melee rating %d, aim %d |
-| `ui/battleoverlay.cpp:510` | Melee rating %d |
-| `ui/battleoverlay.cpp:522` | The master of this place: once this enemy has fallen and the fight is over, the place is won. |
-| `ui/battleoverlay.cpp:532` | Natural weapons |
-| `ui/battleoverlay.cpp:540` | %s (hardness %d) |
-| `ui/battleoverlay.cpp:541` | Natural armor, hardness %d (as %s) |
-| `ui/battleoverlay.cpp:542` | No armor (hardness 0) |
-| `ui/battleoverlay.cpp:556` | extra damage halved |
-| `ui/battleoverlay.cpp:556` | extra damage to an eighth |
-| `ui/battleoverlay.cpp:581` | Back to the chosen speed (Z) |
-| `ui/battleoverlay.cpp:588` | \xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z) |
-| `ui/battleoverlay.cpp:591` | >> fast forward  (Z) |
+| `ui/battleoverlay.cpp:147` | weapon skills |
+| `ui/battleoverlay.cpp:147` | {Agility}, {Perception} and weapon skills |
+| `ui/battleoverlay.cpp:148` | %s: blinded (only parries; cannot shoot or throw), %d s more |
+| `ui/battleoverlay.cpp:149` | %s: blinded (only parries; cannot shoot or throw), %s %d%% lower, %d s more |
+| `ui/battleoverlay.cpp:150` | %s: blinded (only parries; cannot shoot or throw) %d s more; %s %d%% lower, %d s more |
+| `ui/battleoverlay.cpp:289` | Click: attack |
+| `ui/battleoverlay.cpp:289` | No clear shot |
+| `ui/battleoverlay.cpp:324` | The picture at the lower left of each member's box is their fighting style: what they do until you give them an order.  |
+| `ui/battleoverlay.cpp:324` | Click it to choose another.  |
+| `ui/battleoverlay.cpp:329` |  Everyone starts as a Skirmisher. Each character keeps the style you choose, battle to battle. |
+| `ui/battleoverlay.cpp:330` | Each member's fighting style |
+| `ui/battleoverlay.cpp:330` | Darklands+; F12 > Settings > Battles > Improved combat. |
+| `ui/battleoverlay.cpp:339` | Battles need fewer clicks |
+| `ui/battleoverlay.cpp:340` | Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.  Each member fights in their own fighting style until you give them an order: the picture at the lower left of their box. Click it to choose another (Skirmisher, Archer, Charger, or Manual). An order you give is carried out, then they go back to their style.  Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.  While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does. |
+| `ui/battleoverlay.cpp:346` | All this is Darklands+; each part can be switched off, for the original game's controls, in F12 > Settings > Battles. F11 lists the battle's keys and clicks. |
+| `ui/battleoverlay.cpp:409` | The nearest enemy is this way: click to look |
+| `ui/battleoverlay.cpp:425` | Door: click to walk there and close it |
+| `ui/battleoverlay.cpp:425` | Door: click to walk there and open it |
+| `ui/battleoverlay.cpp:430` | Stairs: click to walk there and take them |
+| `ui/battleoverlay.cpp:437` | a complex trap |
+| `ui/battleoverlay.cpp:437` | a moderate trap |
+| `ui/battleoverlay.cpp:437` | a simple trap |
+| `ui/battleoverlay.cpp:441` | Chest%s: open it from the orders of a member beside it |
+| `ui/battleoverlay.cpp:442` | Chest%s: click to walk there; %s is then on the leader's orders |
+| `ui/battleoverlay.cpp:443` | Chest: click to walk there and open it |
+| `ui/battleoverlay.cpp:443` | Chest: click to walk there and open it (if it is not locked or trapped) |
+| `ui/battleoverlay.cpp:446` | Way out: click to walk there; then Exit Battlefield (X) for each member |
+| `ui/battleoverlay.cpp:446` | Way out: a member standing here can leave (Exit Battlefield, X) |
+| `ui/battleoverlay.cpp:479` | a little hurt |
+| `ui/battleoverlay.cpp:480` | gravely wounded |
+| `ui/battleoverlay.cpp:511` | Melee rating %d, aim %d |
+| `ui/battleoverlay.cpp:512` | Melee rating %d |
+| `ui/battleoverlay.cpp:524` | The master of this place: once this enemy has fallen and the fight is over, the place is won. |
+| `ui/battleoverlay.cpp:534` | Natural weapons |
+| `ui/battleoverlay.cpp:542` | %s (hardness %d) |
+| `ui/battleoverlay.cpp:543` | Natural armor, hardness %d (as %s) |
+| `ui/battleoverlay.cpp:544` | No armor (hardness 0) |
+| `ui/battleoverlay.cpp:558` | extra damage halved |
+| `ui/battleoverlay.cpp:558` | extra damage to an eighth |
+| `ui/battleoverlay.cpp:583` | Back to the chosen speed (Z) |
+| `ui/battleoverlay.cpp:590` | \xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z) |
+| `ui/battleoverlay.cpp:593` | >> fast forward  (Z) |
 | `ui/bestiary.cpp:39` | Could not read DARKLAND.ENM. |
 | `ui/bestiary.cpp:43` | DARKLAND.ENM has an unexpected size. |
 | `ui/bestiary.cpp:91` | natural weapons |

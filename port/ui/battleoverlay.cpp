@@ -136,17 +136,19 @@ static void draw_fx_icon(ImDrawList *dl, ImVec2 c, float r, const FoeFx &f)
             dl->PathLineTo(c); dl->PathArcTo(c, r, s0, fminf(a1, s0 + IM_PI), 16); dl->PathFillConvex(IM_COL32(10, 6, 2, 160));
         }
     }
-    dl->AddCircle(c, r, f.what == FX_BLIND ? IM_COL32(236, 214, 120, 235) : IM_COL32(190, 150, 90, 230), 0, fmaxf(1.0f, r * 0.14f));
+    dl->AddCircle(c, r, f.what == FX_BLIND || f.blind ? IM_COL32(236, 214, 120, 235) : IM_COL32(190, 150, 90, 230), 0, fmaxf(1.0f, r * 0.14f));
 }
 /* the words for one, as in the info under the pointer: "Fleadust: weapon skills 35% lower, 31 s more" */
 static std::string fx_words(const FoeFx &f)
 {
     std::string nm = f.potion >= 0 && f.potion < (int)gamedata.items.size() ? game_text(gamedata.items[f.potion].name.c_str(), gamedata.items[f.potion].name.size()) : std::string("A potion");
     char t[200];
-    int sec = (f.left + 59) / 60;
-    if (f.what == FX_SKILLS) snprintf(t, sizeof t, "%s: weapon skills %d%% lower, %d s more", nm.c_str(), f.pct, sec);
-    else if (f.what == FX_WEAKENED) snprintf(t, sizeof t, "%s: {Agility}, {Perception} and weapon skills %d%% lower, %d s more", nm.c_str(), f.pct, sec);
-    else snprintf(t, sizeof t, "%s: blinded, %d s more (only parries; cannot shoot or throw)", nm.c_str(), sec);
+    int sec = (f.left + 59) / 60, bsec = (f.blind_left + 59) / 60;
+    const char *what = f.what == FX_SKILLS ? "weapon skills" : "{Agility}, {Perception} and weapon skills";
+    if (f.what == FX_BLIND) snprintf(t, sizeof t, "%s: blinded (only parries; cannot shoot or throw), %d s more", nm.c_str(), sec);
+    else if (f.blind && bsec == sec) snprintf(t, sizeof t, "%s: blinded (only parries; cannot shoot or throw), %s %d%% lower, %d s more", nm.c_str(), what, f.pct, sec);
+    else if (f.blind) snprintf(t, sizeof t, "%s: blinded (only parries; cannot shoot or throw) %d s more; %s %d%% lower, %d s more", nm.c_str(), bsec, what, f.pct, sec);
+    else snprintf(t, sizeof t, "%s: %s %d%% lower, %d s more", nm.c_str(), what, f.pct, sec);
     return t;
 }
 

@@ -615,3 +615,11 @@ covered and found, and what it could not check.
 - 2026-11-12 (his "overboard" on the alchemy screen's grade seals): the seal's tooltip repeated the formula's
   name, mystic number, risk and batches, all on the right page after a click, and covered the rows below. Gone;
   the row's second line now tells of the grade pointed at ("enough for 7 batches", "needs Aqua Regia").
+- 2026-11-12 (his asks after RC11): (1) The alchemy tablet's chart: at most ten bars, a window of ten that ends at
+  the batches set past ten (held still under a drag: V.drag_first), its ends numbered when it is a window.
+  Tested: 200 of each ingredient, 50 batches allowed, ten bars. (2) Fix "bestpick" (fixes.c, on GF_lock_pick,
+  inside pack.c's fetch): lock_pick reads the first record of item 0x40; for the call it takes the best quality
+  the picker (the shared pack: the party) carries. Tested: lock picks 25 then 45, "picks with quality 45, not
+  25". (3) The shop's For sale under headings by kind (ware_group), counts, a click folds a group
+  (display.shop_folded, every shop); a ware found from the Formulae tab opens its group and is scrolled to.
+  (4) foefx_of: one entry a potion (Eyeburn's blinding folded into what it lowers).
