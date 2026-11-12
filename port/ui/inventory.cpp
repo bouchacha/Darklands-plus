@@ -561,22 +561,23 @@ void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's qual
             dmg = rb(G_FAR20A5, (u16)(0x76e7 + w)), minsk = rb(G_FAR20A5, (u16)(0x7726 + w)), minst = rb(G_FAR20A5, (u16)(0x7765 + w)),
             maxst = rb(G_FAR20A5, (u16)(0x77a4 + w)), reload = rb(G_FAR20A5, (u16)(0x77e3 + w));
         ImGui::Separator();
-        ui_rich_textf("{%s}, %s", gm_skill_name(sk), (cp >> 4) >= 2 ? "two hands" : "one hand");
-        ImGui::Text("Damage %d, penetration %d", dmg, cp & 15);
-        if (speed) ImGui::Text("Time for a blow %d", speed);
-        if (reload) ImGui::Text("Time to %s %d", w >= 30 ? "reload" : w >= 27 ? "draw and loose" : "throw", reload);
+        /* (in plain words, his ask 1.4.7: "this should probably use clearer language": the skill's and Strength's
+           rules as what a point short or over does to attack and defense, the times with which way is better) */
+        ui_rich_textf("{%s} weapon, %s", gm_skill_name(sk), (cp >> 4) >= 2 ? "two-handed" : "one-handed");
+        ImGui::Text("Damage %d, penetration %d (how well it gets through armor)", dmg, cp & 15);
+        if (speed) ImGui::Text("Time per blow %d (lower is faster)", speed);
+        if (reload) ImGui::Text("Time to %s %d (lower is faster)", w >= 30 ? "reload" : w >= 27 ? "draw and loose" : "throw", reload);
         /* (the combatant's melee rating +0x20 and aim +0x21, weapon_ready: mods/gamemodel.h) */
         const bool shot = sk >= 4 && sk <= 6;                 /* (Thrown, Bows, Missile Devices: aimed) */
         if (shot) {
-            ui_rich_textf("{%s:%d} needed: each point short costs 2 aim", gm_skill_name(sk), minsk);
-            if (maxst < 99) ui_rich_textf("{Strength:%d to %d}: below that, each point short costs 1 aim and hits are softer; above %d, hits are harder", minst, maxst, maxst);
-            else ui_rich_textf("{Strength:%d}: below that, each point short costs 1 aim and hits are softer", minst);
+            ui_rich_textf("Needs {%s:%d}: each point below, -2 to aim", gm_skill_name(sk), minsk);
+            if (maxst < 99) ui_rich_textf("Best with {Strength:%d to %d}: each point below, -1 to aim and weaker hits; above, harder hits", minst, maxst);
+            else ui_rich_textf("Needs {Strength:%d}: each point below, -1 to aim and weaker hits", minst);
         } else {
-            ui_rich_textf("{%s:%d} needed: each point short costs 2 melee rating (attack and defense hand to hand)", gm_skill_name(sk), minsk);
-            if (maxst < 99) ui_rich_textf("{Strength:%d to %d}: below that, each point short costs 3 melee rating and blows hit softer;\nabove %d, each point adds 2 melee rating and blows hit harder", minst, maxst, maxst);
-            else ui_rich_textf("{Strength:%d}: below that, each point short costs 3 melee rating and blows hit softer", minst);
+            ui_rich_textf("Needs {%s:%d}: each point below, -2 to attack and defense hand to hand", gm_skill_name(sk), minsk);
+            if (maxst < 99) ui_rich_textf("Best with {Strength:%d to %d}: each point below, -3 to attack and defense and weaker blows;\neach point above, +2 and harder blows", minst, maxst);
+            else ui_rich_textf("Needs {Strength:%d}: each point below, -3 to attack and defense and weaker blows", minst);
         }
-        ImGui::TextDisabled("Lower times are quicker.");
         /* who in the party could use it, and what it would cost them */
         ImGui::Separator();
         int size = (s16)g_rw(G_PARTY_SIZE); if (size < 0 || size > 5) size = 0;
@@ -586,12 +587,12 @@ void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's qual
             int have = sk < 7 ? (s8)g_rb((u16)(b + G_M_SKILLS + sk)) : 0, str = (s8)g_rb((u16)(b + G_M_ATTR_CUR + 1));
             int ss = minsk - have, ws = minst - str;
             std::string v;
-            if (ss > 0) v += "needs " + std::to_string(ss) + " more skill";
-            if (ws > 0) v += std::string(v.empty() ? "" : ", ") + "too weak by " + std::to_string(ws);
-            if (v.empty()) v = str > maxst && maxst < 99 ? "suits (strong enough to hit harder)" : "suits";
+            if (ss > 0) v += std::to_string(ss) + (ss == 1 ? " point" : " points") + " short in skill";
+            if (ws > 0) v += std::string(v.empty() ? "" : ", ") + std::to_string(ws) + (ws == 1 ? " point" : " points") + " short in Strength";
+            if (v.empty()) v = str > maxst && maxst < 99 ? (shot ? "a good fit, and strong enough for harder hits" : "a good fit, and strong enough for harder blows") : "a good fit";
             int loss = 2 * (ss > 0 ? ss : 0) + (shot ? 1 : 3) * (ws > 0 ? ws : 0);
             ImVec4 c = loss ? ImVec4(0.62f, 0.20f, 0.12f, 1) : ImVec4(0.18f, 0.40f, 0.16f, 1);
-            if (loss) ui_rich_textf_c(c, "%s: {%s:%d} {Strength:%d} - %s (-%d %s)", game_text(n, sizeof n).c_str(), gm_skill_name(sk), have, str, v.c_str(), loss, shot ? "aim" : "melee rating");
+            if (loss) ui_rich_textf_c(c, "%s: {%s:%d} {Strength:%d} - %s: -%d to %s", game_text(n, sizeof n).c_str(), gm_skill_name(sk), have, str, v.c_str(), loss, shot ? "aim" : "attack and defense");
             else ui_rich_textf_c(c, "%s: {%s:%d} {Strength:%d} - %s", game_text(n, sizeof n).c_str(), gm_skill_name(sk), have, str, v.c_str());
         }
     }

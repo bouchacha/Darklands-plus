@@ -1298,31 +1298,34 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/inventory.cpp:551` |  - too little |
 | `ui/inventory.cpp:553` | Off: Relics as the manual has them (F12 > Settings > The party and its items). |
 | `ui/inventory.cpp:554` | This blessed item is immune from any quality degradation. |
-| `ui/inventory.cpp:565` | Damage %d, penetration %d |
-| `ui/inventory.cpp:566` | Time for a blow %d |
-| `ui/inventory.cpp:567` | Time to %s %d |
-| `ui/inventory.cpp:567` | draw and loose |
-| `ui/inventory.cpp:571` | {%s:%d} needed: each point short costs 2 aim |
-| `ui/inventory.cpp:572` | {Strength:%d to %d}: below that, each point short costs 1 aim and hits are softer; above %d, hits are harder |
-| `ui/inventory.cpp:573` | {Strength:%d}: below that, each point short costs 1 aim and hits are softer |
-| `ui/inventory.cpp:575` | {%s:%d} needed: each point short costs 2 melee rating (attack and defense hand to hand) |
-| `ui/inventory.cpp:576` | {Strength:%d to %d}: below that, each point short costs 3 melee rating and blows hit softer; above %d, each point adds 2 melee rating and blows hit harder |
-| `ui/inventory.cpp:577` | {Strength:%d}: below that, each point short costs 3 melee rating and blows hit softer |
-| `ui/inventory.cpp:579` | Lower times are quicker. |
-| `ui/inventory.cpp:590` | too weak by  |
-| `ui/inventory.cpp:591` | suits (strong enough to hit harder) |
-| `ui/inventory.cpp:594` | melee rating |
-| `ui/inventory.cpp:606` | Covers the vitals (body and arms) |
-| `ui/inventory.cpp:606` | Covers the legs |
-| `ui/inventory.cpp:608` | Hardness %d of 5 (%s) |
-| `ui/inventory.cpp:615` | Cuts the weapon's extra damage to an eighth (penetration below %d): |
-| `ui/inventory.cpp:615` | Halves the weapon's extra damage (penetration %d): |
-| `ui/inventory.cpp:615` | Pierced (penetration above %d): |
-| `ui/inventory.cpp:625` | A blow that pierces also wounds {Strength}; a good hit gets through more easily. |
-| `ui/inventory.cpp:626` | Quality: every 10 points take 1 off each blow's damage. |
-| `ui/inventory.cpp:630` | Adds to its bearer's defense, more the better it is made; unusable with a two-handed weapon. |
-| `ui/inventory.cpp:634` | %s shield at %dq: %d against blows, %d against shots and throws |
-| `ui/inventory.cpp:635` | No shield counts as -5, and a flail's blow passes any shield. Hand to hand, the chance to hit is 50 + 2/3 of the attacker's melee rating minus (the defender's melee rating + the shield); against a shot or throw, the defense is the shield plus twice {Agility} (less under a load). |
+| `ui/inventory.cpp:566` | {%s} weapon, %s |
+| `ui/inventory.cpp:567` | Damage %d, penetration %d (how well it gets through armor) |
+| `ui/inventory.cpp:568` | Time per blow %d (lower is faster) |
+| `ui/inventory.cpp:569` | Time to %s %d (lower is faster) |
+| `ui/inventory.cpp:569` | draw and loose |
+| `ui/inventory.cpp:573` | Needs {%s:%d}: each point below, -2 to aim |
+| `ui/inventory.cpp:574` | Best with {Strength:%d to %d}: each point below, -1 to aim and weaker hits; above, harder hits |
+| `ui/inventory.cpp:575` | Needs {Strength:%d}: each point below, -1 to aim and weaker hits |
+| `ui/inventory.cpp:577` | Needs {%s:%d}: each point below, -2 to attack and defense hand to hand |
+| `ui/inventory.cpp:578` | Best with {Strength:%d to %d}: each point below, -3 to attack and defense and weaker blows; each point above, +2 and harder blows |
+| `ui/inventory.cpp:579` | Needs {Strength:%d}: each point below, -3 to attack and defense and weaker blows |
+| `ui/inventory.cpp:590` |  short in skill |
+| `ui/inventory.cpp:591` |  short in Strength |
+| `ui/inventory.cpp:592` | a good fit, and strong enough for harder hits |
+| `ui/inventory.cpp:592` | a good fit, and strong enough for harder blows |
+| `ui/inventory.cpp:595` | %s: {%s:%d} {Strength:%d} - %s: -%d to %s |
+| `ui/inventory.cpp:595` | attack and defense |
+| `ui/inventory.cpp:607` | Covers the vitals (body and arms) |
+| `ui/inventory.cpp:607` | Covers the legs |
+| `ui/inventory.cpp:609` | Hardness %d of 5 (%s) |
+| `ui/inventory.cpp:616` | Cuts the weapon's extra damage to an eighth (penetration below %d): |
+| `ui/inventory.cpp:616` | Halves the weapon's extra damage (penetration %d): |
+| `ui/inventory.cpp:616` | Pierced (penetration above %d): |
+| `ui/inventory.cpp:626` | A blow that pierces also wounds {Strength}; a good hit gets through more easily. |
+| `ui/inventory.cpp:627` | Quality: every 10 points take 1 off each blow's damage. |
+| `ui/inventory.cpp:631` | Adds to its bearer's defense, more the better it is made; unusable with a two-handed weapon. |
+| `ui/inventory.cpp:635` | %s shield at %dq: %d against blows, %d against shots and throws |
+| `ui/inventory.cpp:636` | No shield counts as -5, and a flail's blow passes any shield. Hand to hand, the chance to hit is 50 + 2/3 of the attacker's melee rating minus (the defender's melee rating + the shield); against a shot or throw, the defense is the shield plus twice {Agility} (less under a load). |
 | `ui/itemedit.cpp:32` | Could not read DARKLAND.LST. |
 | `ui/itemedit.cpp:49` | Every item of the game. Change names, weight, quality, rarity and value here, then save the list into a mod folder; it takes effect when the game is started again with that mod ticked. |
 | `ui/itemedit.cpp:51` | Every item of the game, with its weight, usual quality, rarity and value (to change them for a mod, choose a preset other than Full Original in F12 > Settings). |
