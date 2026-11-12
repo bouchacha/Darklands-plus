@@ -183,6 +183,34 @@ static void irqd_end(int n)
     }
 }
 
+/* The game's timer handler (047c:01ea) and its tick (047c:000a) call on through far addresses
+ * kept in their own code, read as they run. A crash selling spare gear (1.4.7-RC10) ran a
+ * picture as code from the timer handler (SS its stack, DX 03da from the retrace wait just
+ * before its first such call): one of them held that picture's address. They are checked at
+ * each tick against what they held at the first; one found changed is logged, with the way
+ * the interpreter came, and put back. */
+static void timer_calls_check(u16 seg, u16 off)
+{
+    static const u16 at[] = { 0x0012, 0x002c, 0x0051, 0x005d, 0x0062, 0x0213, 0x021f };
+    enum { N = sizeof at / sizeof at[0] };
+    static u32 want[N]; static int have, said;
+    u16 cs = (u16)(LOADSEG + 0x047c);
+    if (seg != cs || off != 0x01ea) return;
+    for (int k = 0; k < N; k++) {
+        u32 v = (u32)rw(cs, (u16)(at[k] + 2)) << 16 | rw(cs, at[k]);
+        if (!have) { want[k] = v; continue; }
+        if (v == want[k]) continue;
+        if (said++ < 4) {
+            fprintf(stderr, "warning: the timer handler's far address at 047c:%04x was overwritten: %04x:%04x, it was %04x:%04x (put back)\n",
+                    at[k], v >> 16, v & 0xffff, want[k] >> 16, want[k] & 0xffff);
+            void interp_ring_dump(void); interp_ring_dump();
+            void plat_native_stack(void); plat_native_stack();
+        }
+        ww(cs, at[k], (u16)want[k]); ww(cs, (u16)(at[k] + 2), (u16)(want[k] >> 16));
+    }
+    have = 1;
+}
+
 static void call_handler(int n)
 {
     /* never the same interrupt again while its handler runs, as the PIC holds an IRQ back until
@@ -198,6 +226,7 @@ static void call_handler(int n)
     irqd_begin();
     IrqSave sv; irq_enter(&sv);
     u16 off = rw(0, (u16)(n * 4)), seg = rw(0, (u16)(n * 4 + 2));
+    if (n == 8) timer_calls_check(seg, off);
     push16(get_flags());
     R.iflag = 0; R.tf = 0;
     push16(HLE_SEG);
