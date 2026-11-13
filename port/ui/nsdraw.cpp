@@ -158,6 +158,7 @@ extern "C" int fix_is_on(const char *id);
 #include "../mods/encounters.h"
 #include "../mods/saintinfo.h"
 std::string ns_potion_effect(int id);
+std::string ns_potion_effect_grade(int id, int g);
 /* how much the encounters ask for a thing (a potion: the card scripts that list it among an
    option's potions, card_items, counted from the game's code) or a saint (mods/saintinfo.h):
    the line, and its colour - many green, some blue, a few brown, none grey */
@@ -276,12 +277,15 @@ void ns_stock_tag(NsDraw &P, float x0, float y0, int id)
 std::string ns_stock_words(int id)
 {
     int n = stock_want(id), nx = stock_next(n);
-    if (n <= 0) return "A click: a stock to keep (5, then 10, 20, 40, none). In a town that sells it, a notice while the party has fewer.";
-    return "Stock to keep: " + std::to_string(n) + ". In a town that sells it, a notice while the party has fewer. A click: " + (nx ? std::to_string(nx) : std::string("none")) + ".";
+    if (n <= 0) return "A click: a stock to keep (20, then 50, 100, 200, none); Shift+click: the same for every ingredient. In a town that sells it, a notice while the party has fewer.";
+    return "Stock to keep: " + std::to_string(n) + ". In a town that sells it, a notice while the party has fewer. A click: " + (nx ? std::to_string(nx) : std::string("none")) + "; Shift+click: that for every ingredient.";
 }
 void ns_stock_click(NsDraw &P, float x0, float y0, float x1, float y1, int id)
 {
-    if (P.hit(x0, y0, x1, y1)) stock_want_set(id, stock_next(stock_want(id)));
+    if (!P.hit(x0, y0, x1, y1)) return;
+    int n = stock_next(stock_want(id));
+    if (P.shift) { for (int k = 72; k < 95; k++) stock_want_set(k, n); }   /* (every ingredient to this one's next step: his ask, 1.4.7) */
+    else stock_want_set(id, n);
 }
 
 /* what a potion does, as the game's code does it (use_potion s031 1462:43b2; thrown: effect_spell
@@ -296,65 +300,257 @@ void ns_stock_click(NsDraw &P, float x0, float y0, float x1, float y1, int id)
  * oils are the member's, not a weapon's: the game keeps them in one byte of the member (+0x34:
  * damage and penetration) that every hit the member lands uses, whatever the weapon (bows and
  * fists too), whatever the potion's label says. */
-std::string ns_potion_effect(int id)
+/* what a potion does, as its parts: how it is used (drunk, thrown, put on), what it does in words,
+ * the numbers that change with the grade (a table's rows: grade 1, 2, 3), and what stays the same */
+PotionFx ns_potion_fx(int id)
 {
-    bool fixed = fix_is_on("potions") != 0;
-    const std::string grades = "\nThe numbers by grade: 1, 2, 3.";
+    PotionFx f;
+    bool fixed = fix_is_on("potions") != 0, oilw = fix_is_on("oilweapons") != 0;
     const std::string day = fixed ? "Lasts 19 to 21 hours." : "Lasts for good, and adds up with the next dose.";
+    const char *SECS = "How long (seconds of battle)";
+    auto row = [&f](const std::string &l, const char *a, const char *b, const char *c) { FxRow r; r.label = l; r.v[0] = a; r.v[1] = b; r.v[2] = c; f.rows.push_back(r); };
     switch (id) {
-    case 95: return "Thrown: a reeking cloud, up to 4 by 4 paces, that hangs 3 seconds.\n"
-                    "{Agility}{Perception} and every weapon skill halved on the one it hits, a quarter off on everyone else in it, allies too: for 6, 9 or 12 seconds of battle." + grades;
-    case 96: return "Thrown: blinding powder in a small cloud that hangs 3 seconds.\n"
-                    "The one it hits is blinded (only parries: no shooting, no throwing) and loses a third of {Agility}{Perception} and every weapon skill; those beside them lose a quarter: for 8, 16 or 24 seconds of battle." + grades;
-    case 97: return "Thrown: black smoke that hangs 20, 60 or 180 seconds of battle.\n"
-                    "Shots through any such cloud hit a fifth as often; fighting from inside one costs 15 to hit.\n"
-                    "The battle's orders never offer it to the party: it is for the encounters, and enemies throw it." + grades;
-    case 98: return "Thrown: itching powder in a small cloud that hangs 3 seconds.\n"
-                    "Every weapon skill falls by 5% for each point of armor worn on the body and limbs, the heavier the worse: for 25, 40 or 60 seconds of battle." + grades;
-    case 99: return "Thrown: acid on the one it hits, at once: the armor's quality falls by 4, 6 or 8 and up to 8 more at random, for good.\n"
-                    "Armor eaten to nothing is destroyed; with no armor (or damage left over) it wounds instead.\n"
-                    "It also dissolves locks." + grades;
-    case 100: return "Thrown: a poison cloud, up to 2 by 2 paces, that hangs 2 seconds.\n"
-                     "Wounds no armor stops, at once: 4, 6 or 8 and up to 8 more at random, more on a weaker target." + grades;
-    case 101: return "Thrown: a blinding flash. The one it hits, and every enemy of the thrower on that floor who faces it, is blinded (only parries: no shooting, no throwing): for 4, 6 or 8 seconds of battle. The thrower's allies are spared." + grades;
-    case 102: return "Thrown: a blast, at once: {*Damage} 4, 6 or 8 and up to 8 more at random, {*Penetration} 6, 7 or 8 on the one it hits, less around it.\n"
-                     "The armor is worn down by a quarter of the damage, for good." + grades;
-    case 103: return "Thrown: burning pitch that no armor stops, at once: {*Damage} 4, 6 or 8 and up to 6 more at random, a quarter of that further off, less a tenth of the armor's quality (and of Firewall's {*Fire} protection).\n"
-                     "The armor is worn down too, for good." + grades;
-    case 104: return "Thrown: a pool of sticky sludge, up to 4 by 4 paces, for 4 minutes of battle.\n"
-                     "Whoever crosses it moves at a half, three eighths or a quarter of their pace." + grades;
-    case 105: return std::string("Used (P in the inventory) by a member:\n{*Damage} +3, +4 or +5 on every hit they land, ") +
-                     (fix_is_on("oilweapons") ? "with any weapon but an impact weapon or a flail" : "with any weapon: bows, guns, impact weapons and fists too") +
-                     "; damage only, not the chance to hit.\n" + day + grades;
-    case 106: return std::string("Used by a member:\n{*Penetration} +3, +4 or +5 on every hit they land, ") +
-                     (fix_is_on("oilweapons") ? "with a blade or a polearm, " : "with any weapon, ") +
-                     (fixed ? "up to 15 in all." : "and past 15 it starts again from 0 (a bow's 6 + 10 hits as 0).") + "\n" + day + grades;
-    case 107: if (fix_is_on("greatpower")) return std::string("Used by a member:\n{*Weapon Quality} the weapon in hand counts 14, 22 or 30 higher in quality (up to 99), ") +
-                     (fix_is_on("oilweapons") ? "if it is an impact weapon, a flail or a handgun" : "bows, guns and fists too") +
-                     ": each 10 points of quality add a step of damage.\nLasts 19 to 21 hours; a second dose adds to the first." + grades;
-              return "Used by a member, on every hit they land with any weapon:\ngrade 1: {*Penetration} +14\ngrade 2: {*Damage} +1, {*Penetration} +6\ngrade 3: {*Damage} +1, {*Penetration} +14\n" +
-                     std::string(fixed ? "Penetration counts up to 15 in all.\n" : "Penetration past 15 starts again from 0, so grades 1 and 3 lower a bow's.\n") + day;
-    case 108: return "Used by a member:\n{Bows}{Thrown Weapons}{Missile Devices} +14, +22 or +30 (up to 99).\nLasts 19 to 21 hours; a second dose adds to the first." + grades;
-    case 109: if (fix_is_on("armorday")) return "Used by a member:\n{*Armor} the armor counts 20, 25 or 30 better in quality and 1, 2 or 2 levels thicker, against every blow and shot.\nLasts 19 to 21 hours; a second dose while one runs keeps the stronger." + grades;
-              return "Used by a member:\n{*Armor} +1, +2 or +3 to the armor against every blow and shot.\nLasts for good; doses add up." + grades;
-    case 110: return "Drunk: just one florin. It is meant for the encounters, which ask for it (to purify, or to make gold).";
+    case 95: f.how = PFX_THROW;
+        f.what = "A reeking cloud, up to 4 by 4 paces, that hangs 3 seconds. {Agility}{Perception} and every weapon skill halved on the one it hits, a quarter off on everyone else in it, allies too.";
+        row(SECS, "6", "9", "12"); break;
+    case 96: f.how = PFX_THROW;
+        f.what = "Blinding powder in a small cloud that hangs 3 seconds. The one it hits is blinded (only parries: no shooting, no throwing) and loses a third of {Agility}{Perception} and every weapon skill; those beside them lose a quarter.";
+        row(SECS, "8", "16", "24"); break;
+    case 97: f.how = PFX_THROW;
+        f.what = "Black smoke. Shots through any such cloud hit a fifth as often; fighting from inside one costs 15 to hit.";
+        row("How long it hangs (seconds of battle)", "20", "60", "180");
+        f.after = "The battle's orders never offer it to the party: it is for the encounters, and enemies throw it."; break;
+    case 98: f.how = PFX_THROW;
+        f.what = "Itching powder in a small cloud that hangs 3 seconds. Every weapon skill falls by 5% for each point of armor worn on the body and limbs, the heavier the worse.";
+        row(SECS, "25", "40", "60"); break;
+    case 99: f.how = PFX_THROW;
+        f.what = "Acid on the one it hits, at once and for good. Armor eaten to nothing is destroyed; with no armor (or damage left over) it wounds instead. It also dissolves locks.";
+        row("Armor quality lost", "4 to 12", "6 to 14", "8 to 16"); break;
+    case 100: f.how = PFX_THROW;
+        f.what = "A poison cloud, up to 2 by 2 paces, that hangs 2 seconds: wounds that no armor stops, at once, more on a weaker target.";
+        row("Wounds", "4 to 12", "6 to 14", "8 to 16"); break;
+    case 101: f.how = PFX_THROW;
+        f.what = "A blinding flash. The one it hits, and every enemy of the thrower on that floor who faces it, is blinded (only parries: no shooting, no throwing). The thrower's allies are spared.";
+        row(SECS, "4", "6", "8"); break;
+    case 102: f.how = PFX_THROW;
+        f.what = "A blast at once on the one it hits, less around it. The armor is worn down by a quarter of the damage, for good.";
+        row("{*Damage}", "4 to 12", "6 to 14", "8 to 16"); row("{*Penetration}", "6", "7", "8"); break;
+    case 103: f.how = PFX_THROW;
+        f.what = "Burning pitch that no armor stops, at once, and a quarter of that further off, less a tenth of the armor's quality (and of Firewall's {*Fire} protection). The armor is worn down too, for good.";
+        row("{*Damage}", "4 to 10", "6 to 12", "8 to 14"); break;
+    case 104: f.how = PFX_THROW;
+        f.what = "A pool of sticky sludge, up to 4 by 4 paces, for 4 minutes of battle: whoever crosses it is slowed.";
+        row("Pace while crossing it", "1/2", "3/8", "1/4"); break;
+    case 105: f.how = PFX_USE;
+        f.what = std::string("On every hit the member lands, ") + (oilw ? "with any weapon but an impact weapon or a flail" : "with any weapon: bows, guns, impact weapons and fists too") + "; damage only, not the chance to hit. " + day;
+        row("{*Damage}", "+3", "+4", "+5"); break;
+    case 106: f.how = PFX_USE;
+        f.what = std::string("On every hit the member lands, ") + (oilw ? "with a blade or a polearm" : "with any weapon") +
+                 (fixed ? ", up to 15 in all. " : "; past 15 it starts again from 0 (a bow's 6 + 10 hits as 0). ") + day;
+        row("{*Penetration}", "+3", "+4", "+5"); break;
+    case 107: f.how = PFX_USE;
+        if (fix_is_on("greatpower")) {
+            f.what = std::string("The weapon in hand counts higher in quality, up to 99") + (oilw ? ", if it is an impact weapon, a flail or a handgun" : ": bows, guns and fists too") +
+                     "; each 10 points of quality add a step of damage. Lasts 19 to 21 hours; a second dose adds to the first.";
+            row("{*Weapon Quality}", "+14", "+22", "+30");
+        } else {
+            f.what = std::string("On every hit the member lands, with any weapon. ") + (fixed ? "Penetration counts up to 15 in all. " : "Penetration past 15 starts again from 0, so grades 1 and 3 lower a bow's. ") + day;
+            row("{*Damage}", "0", "+1", "+1"); row("{*Penetration}", "+14", "+6", "+14");
+        }
+        break;
+    case 108: f.how = PFX_USE;
+        f.what = "Up to 99. Lasts 19 to 21 hours; a second dose adds to the first.";
+        row("{Bows}{Thrown Weapons}{Missile Devices}", "+14", "+22", "+30"); break;
+    case 109: f.how = PFX_USE;
+        if (fix_is_on("armorday")) {
+            f.what = "Against every blow and shot. Lasts 19 to 21 hours; a second dose while one runs keeps the stronger.";
+            row("{*Armor} quality", "+20", "+25", "+30"); row("{*Armor} thickness (levels)", "+1", "+2", "+2");
+        } else { f.what = "Against every blow and shot. Lasts for good; doses add up."; row("{*Armor}", "+1", "+2", "+3"); }
+        break;
+    case 110: f.how = PFX_DRINK;
+        f.what = "Just one florin. It is meant for the encounters, which ask for it (to purify, or to make gold)."; break;
     case 111: case 112: case 113: case 114: {
         static const char *const ATT[4] = { "{Perception}", "{Endurance}", "{Strength}", "{Agility}" };
-        static const char *const AMT[4] = { "+9 to 14, +15 to 21 or +22 to 29", "+6 to 11, +8 to 13 or +10 to 15", "+6 to 11, +8 to 13 or +10 to 15", "+6 to 11, +8 to 15 or +10 to 17" };
-        int a = id - 111;
-        std::string t = std::string("Drunk:\n") + ATT[a] + " " + AMT[a] + ", past the maximum if need be (the maximum itself stays).\nLasts 19 to 21 hours";
-        if (a == 1 || a == 2) t += fix_is_on("blessing") ? "; on a wounded member it heals, and the healing stays: only what is still above the maximum goes." : "; on a wounded member it heals, but all of it is taken back when it wears off.";
-        else t += "; then what it added goes.";
-        return t + "\nA second dose while the first runs adds only what goes beyond it." + grades;
+        static const char *const AMT[4][3] = { { "+9 to 14", "+15 to 21", "+22 to 29" }, { "+6 to 11", "+8 to 13", "+10 to 15" },
+                                                { "+6 to 11", "+8 to 13", "+10 to 15" }, { "+6 to 11", "+8 to 15", "+10 to 17" } };
+        int a2 = id - 111;
+        f.how = PFX_DRINK;
+        f.what = "Past the maximum if need be (the maximum itself stays). Lasts 19 to 21 hours";
+        if (a2 == 1 || a2 == 2) f.what += fix_is_on("blessing") ? "; on a wounded member it heals, and the healing stays: only what is still above the maximum goes." : "; on a wounded member it heals, but all of it is taken back when it wears off.";
+        else f.what += "; then what it added goes.";
+        f.what += " A second dose while the first runs adds only what goes beyond it.";
+        row(ATT[a2], AMT[a2][0], AMT[a2][1], AMT[a2][2]);
+        break; }
+    case 115: f.how = PFX_DRINK;
+        f.what = std::string("The {Endurance} lasts 29 to 31 hours") + (fix_is_on("blessing") ? "; on a wounded member it heals, and the healing stays." : "; on a wounded member it heals, but all of it is taken back when it wears off.");
+        row("{Strength} back, for good, of what wounds took", "50%", "70%", "90%"); row("{Endurance}", "+9 to 14", "+15 to 21", "+22 to 29"); break;
+    case 116: f.how = PFX_DRINK;
+        if (fix_is_on("armorday")) f.what = "Lasts 19 to 21 hours; a second dose keeps the stronger.";
+        else f.what = std::string("For good.") + (fix_is_on("fireward") ? "" : " And {*Armor} +16 to the armor, for good.");
+        row("{*Fire} damage from Arabian Fire", "-5", "-7", "-9"); break;
+    default: f.how = -1;
     }
-    case 115: return std::string("Drunk:\n{Strength} 50, 70 or 90% of what wounds took healed, for good.\n{Endurance} +9 to 14, +15 to 21 or +22 to 29 for 29 to 31 hours") +
-                     (fix_is_on("blessing") ? "; on a wounded member it heals, and the healing stays." : "; on a wounded member it heals, but all of it is taken back when it wears off.") + grades;
-    case 116: {
-        if (fix_is_on("armorday")) return "Drunk:\n{*Fire} Arabian Fire does 5, 7 or 9 points less.\nLasts 19 to 21 hours; a second dose keeps the stronger." + grades;
-        return std::string("Drunk:\n{*Fire} Arabian Fire does 5, 7 or 9 points less, for good.") + (fix_is_on("fireward") ? "" : "\n{*Armor} +16 to the armor, for good.") + grades; }
-    }
-    return "";
+    return f;
 }
+const char *ns_potion_how_word(int how) { return how == PFX_THROW ? "Thrown" : how == PFX_USE ? "Used by a member (P in the inventory)" : "Drunk"; }
+
+/* the same in words, for a line of text (a tooltip of the battle's orders): grade g's numbers (1..3),
+   or the three (0) */
+std::string ns_potion_effect_grade(int id, int g)
+{
+    PotionFx f = ns_potion_fx(id);
+    if (f.how < 0) return "";
+    std::string t = std::string(ns_potion_how_word(f.how)) + ": " + f.what;
+    for (const FxRow &r : f.rows)
+        t += "\n" + r.label + ": " + (g >= 1 && g <= 3 ? r.v[g - 1] : r.v[0] + ", " + r.v[1] + " or " + r.v[2]);
+    if (!f.after.empty()) t += "\n" + f.after;
+    if (!g && !f.rows.empty()) t += "\nThe numbers by grade: 1, 2, 3.";
+    return t;
+}
+std::string ns_potion_effect(int id) { return ns_potion_effect_grade(id, 0); }
+
+/* how a potion is used, a picture (as the battle's order tray draws its rows): a gold drop and an
+ * arrow - drunk, the arrow comes down into it; thrown, a dashed flight away from it; put on (an oil,
+ * a salve), it is spread along a stroke. dark: light lines on a dark tile (the tray), else dark lines
+ * on the page */
+void ns_potion_how_icon(ImDrawList *dl, ImVec2 a, float s, int how, bool dark)
+{
+    const ImU32 ink = dark ? IM_COL32(232, 214, 168, 255) : IM_COL32(74, 50, 26, 255), dot = dark ? IM_COL32(222, 182, 84, 255) : IM_COL32(196, 146, 40, 255);
+    const float w = fmaxf(1.4f, s * 0.085f);
+    auto Q = [&](float x, float y) { return ImVec2(a.x + s * x, a.y + s * y); };
+    auto head = [&](ImVec2 tip, float dx, float dy) {          /* (an arrowhead at tip, pointing along dx, dy) */
+        float l = sqrtf(dx * dx + dy * dy); dx /= l; dy /= l;
+        float h = s * 0.2f, b = s * 0.13f;
+        dl->AddTriangleFilled(tip, ImVec2(tip.x - dx * h - dy * b, tip.y - dy * h + dx * b), ImVec2(tip.x - dx * h + dy * b, tip.y - dy * h - dx * b), ink);
+    };
+    if (dark) {
+        dl->AddRectFilled(a, Q(1, 1), IM_COL32(52, 36, 20, 255), s * 0.18f);
+        dl->AddRect(a, Q(1, 1), IM_COL32(150, 110, 52, 255), s * 0.18f, 0, fmaxf(1.0f, s * 0.05f));
+    }
+    if (how == PFX_DRINK) {
+        dl->AddCircleFilled(Q(0.5f, 0.76f), s * 0.11f, dot);
+        dl->AddBezierCubic(Q(0.80f, 0.18f), Q(0.42f, 0.10f), Q(0.50f, 0.30f), Q(0.50f, 0.48f), ink, w);
+        head(Q(0.50f, 0.61f), 0, 1);
+    } else if (how == PFX_THROW) {
+        dl->AddCircleFilled(Q(0.20f, 0.76f), s * 0.11f, dot);
+        auto F = [&](float t) { return Q(0.26f + 0.50f * t, 0.62f - 1.56f * t + 1.40f * t * t); };
+        float run = 0, dash = s * 0.13f, gap = s * 0.08f;          /* (the flight, dashed: even dashes along its length) */
+        for (int k = 0; k < 36; k++) {
+            ImVec2 p0 = F(k * 0.86f / 36), p1 = F((k + 1) * 0.86f / 36);
+            if (fmodf(run, dash + gap) < dash) dl->AddLine(p0, p1, ink, w);
+            run += sqrtf((p1.x - p0.x) * (p1.x - p0.x) + (p1.y - p0.y) * (p1.y - p0.y));
+        }
+        head(F(1.0f), 0.50f, -1.56f + 2.8f);
+    } else {
+        dl->AddLine(Q(0.22f, 0.74f), Q(0.78f, 0.74f), dot, s * 0.2f);   /* (the drop spread out) */
+        dl->AddCircleFilled(Q(0.22f, 0.74f), s * 0.1f, dot); dl->AddCircleFilled(Q(0.78f, 0.74f), s * 0.1f, dot);
+        dl->AddLine(Q(0.20f, 0.36f), Q(0.66f, 0.36f), ink, w);
+        head(Q(0.82f, 0.36f), 1, 0);
+    }
+}
+
+/* a potion's grade (1..3) from its quality, 0 not known */
+int ns_potion_grade(int id, int q)
+{
+    const ItemDef *d = ns_itemdef(id);
+    if (!d || d->kind != K_POTION || q < 0) return 0;
+    int ui_potion_tier(int q, int base);
+    return ui_potion_tier(q, d->quality);
+}
+
+/* the table of a potion's numbers by grade at (x, y), w wide: a column a grade under the potion's
+   picture at that grade, the label of a row at its left; the column of the one in hand marked
+   (grade 1..3; 0 none). The height */
+static float potion_table(NsDraw &P, float gs, float x, float y, float w, int id, int grade, const PotionFx &f, bool draw)
+{
+    ImFont *fo = P.fo;
+    float cw = gs * 2.0f;                                        /* a grade's column: as wide as its widest number, with room */
+    for (const FxRow &r : f.rows) for (int g = 0; g < 3; g++) cw = fmaxf(cw, P.width(fo, gs, r.v[g]) + gs * 1.2f);
+    float cx0 = x + w - 3 * cw, lw = cx0 - x - 1.0f, hh = gs * 1.8f;
+    float rows_h = 0;
+    for (const FxRow &r : f.rows) rows_h += fmaxf(P.para_height(fo, gs, lw, r.label), gs * 1.05f) + 0.9f;
+    if (draw) {
+        if (grade >= 1 && grade <= 3) P.rect(cx0 + (grade - 1) * cw + 0.4f, y - 0.3f, cx0 + grade * cw - 0.4f, y + hh + rows_h + 0.2f, IM_COL32(214, 176, 100, 70), 1.0f);
+        for (int g = 1; g <= 3; g++) {
+            float cx = cx0 + (g - 0.5f) * cw;
+            P.icon(cx, y + hh * 0.48f, hh * 0.64f, id, -1, g);
+            if (P.over(cx - cw * 0.5f, y, cx + cw * 0.5f, y + hh)) { char t[32]; snprintf(t, sizeof t, "Grade %d", g); ns_tip(t); }
+        }
+        float ry = y + hh + 1.0f;
+        for (const FxRow &r : f.rows) {
+            float rh = fmaxf(P.para_height(fo, gs, lw, r.label), gs * 1.05f);
+            P.para(fo, gs, x, ry, lw, NsDraw::INK_SOFT, r.label);
+            for (int g = 1; g <= 3; g++) {
+                const std::string &v = r.v[g - 1];
+                bool own = grade == g || grade == 0;
+                P.text(fo, gs, cx0 + (g - 0.5f) * cw - P.width(fo, gs, v) * 0.5f, ry, own ? NsDraw::INK : NsDraw::INK_DIM, v);
+            }
+            ry += rh + 0.9f;
+        }
+    }
+    return hh + 1.0f + rows_h;
+}
+/* the width a potion's table wants beside its words: its labels on one line (to a limit) and the three columns */
+static float potion_table_w(NsDraw &P, float gs, const PotionFx &f, float most)
+{
+    float cw = gs * 2.0f, lw = 0;
+    for (const FxRow &r : f.rows) { lw = fmaxf(lw, P.width(P.fo, gs, r.label)); for (int g = 0; g < 3; g++) cw = fmaxf(cw, P.width(P.fo, gs, r.v[g]) + gs * 1.2f); }
+    return fminf(lw + 1.5f, most) + 3 * cw;
+}
+
+/* What a potion is, the same block wherever one is shown (his ask, 1.4.7: the alchemy screen's and
+ * the sheet's formula pages, the sheet's items, a shop's wares; ui/inventory.cpp lays out the same in
+ * its tooltip): the game's own words for it (blue); how it is used, a picture (as the battle's order
+ * tray draws it; its word on the pointer), and what it does; the numbers that change with the grade
+ * as a table (potion_table), beside the words where the room is wide, under them where narrow; what
+ * stays the same; how much the encounters ask for it. omit: parts left out (PA_). draw false: only
+ * measured. The height. */
+enum { PA_WORDS = 1, PA_AFTER = 2, PA_ENC = 4 };     /* (parts potion_about can leave out, the least needed last) */
+static float potion_about(NsDraw &P, float gs, float x, float y, float w, int id, int grade, int omit, float side_y, bool draw)
+{
+    const float y0 = y;
+    ImFont *fo = P.fo;
+    PotionFx f = ns_potion_fx(id);
+    const float is = gs * 1.5f;                                  /* the picture of how */
+    float tabw = f.how < 0 || f.rows.empty() ? 0 : potion_table_w(P, gs, f, w * 0.3f);
+    bool side = tabw > 0 && w >= 170 && w - tabw - is - 4 >= w * 0.45f;   /* (room for the table beside the words: a wide panel, not a book's page) */
+    float lw = side ? w - tabw - 4 : w;                          /* the words' width */
+    auto para = [&](float px, float pw, ImU32 c, const std::string &t) { return draw ? P.para(fo, gs, px, y, pw, c, t) : P.para_height(fo, gs, pw, t); };
+    float tab_y = side_y >= 0 ? side_y : y, tab_end = tab_y;
+    if (side) tab_end = tab_y + potion_table(P, gs, x + w - tabw, tab_y, tabw, id, grade, f, draw) + 0.6f;
+    int p = id - 95;
+    if (!(omit & PA_WORDS) && p >= 0 && 3 * p < (int)gamedata.formulas.size()) {
+        const std::string &t = gamedata.formulas[3 * p].text;
+        y += para(x, lw, NS_POTION_WORDS, game_text(t.c_str(), t.size())) + 0.6f;
+    }
+    if (f.how >= 0) {
+        float tx = x + is + 1.8f, tw = x + lw - tx;              /* (the words beside the picture) */
+        if (draw) {
+            ns_potion_how_icon(P.dl, NsDraw::w(x, y + 0.1f), is * P.k, f.how, true);
+            if (P.over(x, y, x + is, y + is)) ns_tip(ns_potion_how_word(f.how));
+        }
+        y += fmaxf(para(tx, tw, NsDraw::INK_SOFT, f.what), is) + 0.8f;          /* what it does */
+        if (!side && !f.rows.empty()) y += potion_table(P, gs, tx, y, x + w - tx, id, grade, f, draw) + 0.4f;   /* (narrow: the table under it) */
+        if (!(omit & PA_AFTER) && !f.after.empty()) y += para(tx, tw, NsDraw::INK_SOFT, f.after) + 0.6f;   /* what stays the same */
+    }
+    if (side) y = fmaxf(y, tab_end);
+    ImU32 ec; std::string enc = ns_item_encounters(id, &ec);
+    if (!(omit & PA_ENC) && !enc.empty()) y += para(x, w, ec, enc) + 0.5f;
+    return y - y0;
+}
+/* y_max (> 0): the room ends there - the encounters' line left out first, then what stays the same,
+   then the game's words for it, then the type made smaller (to four fifths): the numbers stay */
+float ns_potion_about(NsDraw &P, float gs, float x, float y, float w, int id, int grade, float y_max, float side_y)
+{
+    int omit = 0;
+    if (y_max > 0) {
+        static const int STEP[4] = { 0, PA_ENC, PA_ENC | PA_AFTER, PA_ENC | PA_AFTER | PA_WORDS };
+        for (int k = 0; k < 4; k++) { omit = STEP[k]; if (y + potion_about(P, gs, x, y, w, id, grade, omit, side_y, false) <= y_max) break; }
+        for (float g0 = gs; gs > g0 * 0.8f && y + potion_about(P, gs, x, y, w, id, grade, omit, side_y, false) > y_max; ) gs -= 0.1f;
+    }
+    return potion_about(P, gs, x, y, w, id, grade, omit, side_y, true);
+}
+float ns_potion_about_height(NsDraw &P, float gs, float w, int id, int grade) { return potion_about(P, gs, 0, 0, w, id, grade, 0, -1, false); }
 
 float ns_item_strip(NsDraw &P, float y0, const NsStripThing &t)
 {
@@ -375,6 +571,7 @@ float ns_item_strip(NsDraw &P, float y0, const NsStripThing &t)
     std::string l2 = ns_item_line(t.id, t.qual);
     if (!l2.empty()) { P.text(P.fo, NsDraw::FS_BODY, 79, y, soft, l2); y += 7; }
     if (d && d->kind == K_INGREDIENT) return y + ns_ingredient_row(P, 79, y, 314, t.id);   /* an ingredient: the potions it goes into, as pictures */
+    if (d && d->kind == K_POTION) return y + ns_potion_about(P, NsDraw::FS_BODY, 79, y, 235, t.id, ns_potion_grade(t.id, t.qual), t.y_max, y0 + 9.5f);   /* (its table from under the price) */
     std::string use = ns_item_use(t.id);                    /* what it is good for (rope, lockpicks ...) */
     if (!use.empty()) {
         y += P.para(P.fo, NsDraw::FS_BODY, 79, y, 235, soft, use);

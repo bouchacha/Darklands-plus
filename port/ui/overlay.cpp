@@ -594,6 +594,8 @@ static void draw_shop_info(void)
     show_tip(ImVec2(right ? lo.x - 6 : hi.x + 6, below ? hi.y : lo.y), ImVec2(right ? 1.0f : 0.0f, below ? 1.0f : 0.0f), item, saint, formula);
 }
 
+static int tip_q = -1;                                  /* (the item's quality when known: a test's) */
+int ui_test_tip_item = -1, ui_test_tip_q = -1, ui_test_tip_formula = -1;   /* test (uitemtip, uformtip): that tooltip shown */
 /* the tooltip for an item, a saint or an alchemy formula, at pos (its corner given by pivot) */
 static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
 {
@@ -630,7 +632,7 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
             ImGui::TextUnformatted(nm.c_str());
             bool wearable = item_wieldable(d);   /* (only equipped things count toward the load) */
             ImGui::TextDisabled("%s%s", kind_name_one(d->kind), wearable && d->weight ? (", weight " + std::to_string(d->weight) + " when equipped").c_str() : "");
-            ui_item_details(d, item);
+            ui_item_details(d, item, tip_q);
         } else if (saint >= 0) {
             const Saint &st = gamedata.saints[saint];
             ImGui::TextUnformatted(st.name.c_str());
@@ -672,7 +674,7 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
                     ImGui::TextDisabled("%s", who.empty() ? "Nobody in the party knows this formula." : ("Known to " + who + ".").c_str());
                 }
                 ImGui::Separator();
-                ImGui::TextWrapped("%s", F.text.c_str());
+                { void ui_potion_about(int id, int grade); ui_potion_about(95 + formula / 3, formula % 3 + 1); }   /* (the potion, as everywhere: this formula's grade marked) */
                 /* each ingredient with what the party carries of it (red: not enough) */
                 int npar = (s16)g_rw(G_PARTY_SIZE), batches = 99;
                 for (const FormulaIngr &g : F.ingr) {
@@ -806,6 +808,8 @@ extern "C" void ui_overlay(void)
     { void battlelog_overlay(void); battlelog_overlay(); }
     if (ns_screen != NS_CREATE) draw_creation_guide();   /* (the page drawn by Darklands+ says it itself) */
     draw_loot_buttons();
+    if (ui_test_tip_item >= 0 && ui_test_tip_item < (int)gamedata.items.size()) { tip_q = ui_test_tip_q; show_tip(ImVec2(UIS(40), UIS(40)), ImVec2(0, 0), ui_test_tip_item, -1, -1); tip_q = -1; }
+    else if (ui_test_tip_formula >= 0 && ui_test_tip_formula < (int)gamedata.formula_names.size()) show_tip(ImVec2(UIS(40), UIS(40)), ImVec2(0, 0), -1, -1, ui_test_tip_formula);
     ImGui::End();                                       /* the layer */
     ovl_dl = nullptr;
 }

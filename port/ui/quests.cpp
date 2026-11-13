@@ -424,11 +424,8 @@ static int day_number(int day, int month, int year)          /* days since a fix
 /* the party's place on the map: the town or site it is at, else its tile (quests.h) */
 bool party_xy(double *x, double *y)
 {
-    int cur = (s16)g_rw(G_CUR_LOC), px, py;
-    if (cur >= 0 && loc_xy(cur, &px, &py)) { *x = px; *y = py; return true; }
-    if (game_mode() != GM_MAP && game_mode() != GM_CARD) return false;
-    travel_party_tile(&px, &py);
-    if (px <= 0 && py <= 0) return false;
+    int px, py;
+    if (!travel_party_at(&px, &py)) return false;
     *x = px; *y = py;
     return true;
 }

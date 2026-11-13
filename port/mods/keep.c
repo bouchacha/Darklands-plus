@@ -92,4 +92,4 @@ void potion_mark_set(int k, int mark) { sync(); if (k < 0 || k >= 22 || pmark[k]
 /* an ingredient's stock to keep (0 none); a click steps it: none, 5, 10, 20, 40, none */
 int stock_want(int id) { sync(); return id >= 72 && id < 95 ? stock[id - 72] : 0; }
 void stock_want_set(int id, int n) { sync(); if (id < 72 || id >= 95 || stock[id - 72] == n) return; stock[id - 72] = (unsigned char)(n < 0 ? 0 : n > 255 ? 255 : n); save(); }
-int stock_next(int n) { return n <= 0 ? 5 : n < 10 ? 10 : n < 20 ? 20 : n < 40 ? 40 : 0; }
+int stock_next(int n) { return n <= 0 ? 20 : n < 50 ? 50 : n < 100 ? 100 : n < 200 ? 200 : 0; }   /* (his steps, 1.4.7) */

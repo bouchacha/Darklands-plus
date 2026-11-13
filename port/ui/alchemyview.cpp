@@ -238,12 +238,16 @@ extern "C" void alchemyview_draw(void)
         P.text(fo, NsDraw::FS_SMALL, RX0 + 6, y, a.risk >= 2 ? red : soft, rl);
         risk_hover = P.over(RX0, y, RX1, y + 6);
         y += 6.5f;
-        if (fm < (int)gamedata.formulas.size()) {
-            const std::string &t = gamedata.formulas[fm].text;
-            y += P.para(fo, NsDraw::FS_SMALL, RX0, y, RX1 - RX0, IM_COL32(26, 64, 132, 255), game_text(t.c_str(), t.size())) + 0.5f;
-            ImU32 ec; std::string enc = ns_item_encounters(95 + fm / 3, &ec);
-            if (!enc.empty()) y += P.para(fo, NsDraw::FS_SMALL, RX0, y, RX1 - RX0, ec, enc);
-            y += 2;
+        float rowh = 7;                                              /* (an ingredient's row: less when the page is full) */
+        {   /* what the potion is, as everywhere (ns_potion_about), this formula's grade marked: its type a
+               little smaller and the ingredients' rows a little closer when it would push them off the page */
+            int pid = 95 + fm / 3, gr = fm % 3 + 1;
+            float rest = 10 + 6.5f + 1.5f, room = AD_BOOK_Y1 - 2 - y, gs = NsDraw::FS_SMALL;
+            while (gs > NsDraw::FS_SMALL * 0.8f && ns_potion_about_height(P, gs, RX1 - RX0, pid, gr) + rest + a.ningr * rowh > room) gs -= 0.1f;
+            float fh = ns_potion_about_height(P, gs, RX1 - RX0, pid, gr);
+            if (a.ningr && fh + rest + a.ningr * rowh > room) rowh = fmaxf(5.6f, (room - fh - rest) / a.ningr);
+            float y_max = AD_BOOK_Y1 - 2 - rest - a.ningr * rowh;   /* (still too long: its encounters' line left out) */
+            y += ns_potion_about(P, gs, RX0, y, RX1 - RX0, pid, gr, y_max) + 1.5f;
         }
         {   /* the potion carried already: a flask of each grade the party has, with how many */
             int k = fm / 3; float x = RX0;
@@ -269,7 +273,7 @@ extern "C" void alchemyview_draw(void)
             int hv = q.item >= 0 && q.item < 200 ? have[q.item] : q.have;   /* (what the party carries, as the chest's tags and the batches a row can make: the game's own count leaves out the batches already set) */
             char v[16]; snprintf(v, sizeof v, "%d / %d", hv, q.need);
             P.text(fo, NsDraw::FS_BODY, 0, y + 0.6f, hv >= q.need ? green : red, v, RX1);
-            y += 7;
+            y += rowh;
         }
     }
 

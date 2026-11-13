@@ -393,10 +393,16 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, l1) + 0.5f;
         std::string l2 = ns_item_line(it.id, it.qual);
         if (!l2.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, l2) + 0.5f;
-        std::string use = ns_item_use(it.id);
-        if (!use.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, use) + 0.5f;
-        if (d && d->kind == K_INGREDIENT) y += ns_ingredient_row(P, SX0 + 2.5f, y + 0.5f, SX0 + 2.5f + SW, it.id) + 1.0f;
-        { ImU32 ec; std::string enc = ns_item_encounters(it.id, &ec); if (!enc.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, ec, enc) + 0.5f; }
+        const char *give_hint = it.type != 108 && it.holder >= 0 && !it.equipped && s.npar > 1   /* (how to hand it over: below; the pack's spares are anyone's already) */
+            ? (it.count > 1 ? "To give the lot, drag it onto a member at the left, or press their number (1 to 5); Shift: just one." : "To give it, drag it onto a member at the left, or press their number (1 to 5).") : nullptr;
+        if (d && d->kind == K_POTION)                                /* (as everywhere, its grade marked; what the strip has room for, the hint below kept) */
+            y += ns_potion_about(P, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, it.id, ns_potion_grade(it.id, it.qual), SY1 - 1 - (give_hint ? P.para_height(fo, NsDraw::FS_SMALL, SW, give_hint) + 0.5f : 0));
+        else {
+            std::string use = ns_item_use(it.id);
+            if (!use.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, use) + 0.5f;
+            if (d && d->kind == K_INGREDIENT) y += ns_ingredient_row(P, SX0 + 2.5f, y + 0.5f, SX0 + 2.5f + SW, it.id) + 1.0f;
+            { ImU32 ec; std::string enc = ns_item_encounters(it.id, &ec); if (!enc.empty()) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, ec, enc) + 0.5f; }
+        }
         const bool relic_low = d && d->kind == K_RELIC && relics_on() && s.who >= 0 && s.who < 5 && !relic_bearer_ok(s.who, it.id);
         if (d && d->kind == K_RELIC && d->relic_df > 0 && relics_on()) {     /* a relic: what it takes off a prayer, and whether this member has the Virtue (mods/relics.c) */
             bool wpn = relic_is_weapon(it.id);
@@ -418,8 +424,7 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
                                         it.holder < 0 ? "For a member to ride it, drag it onto them, or press their number (1 to 5)."
                                                       : "For another member to ride it, drag it onto them, or press their number (1 to 5).") + 0.5f;
         }
-        else if (it.holder >= 0 && !it.equipped && s.npar > 1)          /* (how to hand it over: the pack's spares are anyone's already) */
-            y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, NsDraw::INK_DIM, it.count > 1 ? "To give the lot, drag it onto a member at the left, or press their number (1 to 5); Shift: just one." : "To give it, drag it onto a member at the left, or press their number (1 to 5).") + 0.5f;
+        else if (give_hint) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, NsDraw::INK_DIM, give_hint) + 0.5f;
         if (item_weaponlike(d) && d->type <= 33) {
             int sk = rb(G_FAR20A5, (u16)(0x75ac + d->type)), minsk = rb(G_FAR20A5, (u16)(0x7726 + d->type)), minst = rb(G_FAR20A5, (u16)(0x7765 + d->type));
             int have = sk < 7 ? s.skill[sk] : 0;
@@ -434,8 +439,7 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
             snprintf(b, sizeof b, "%s's defense with it: against a blow, %d + their melee rating; against a shot or throw, %d + twice the {Agility:%d} = %d%s", ns_gtext(s.names[s.who]).c_str(), sb, sh, ag, sh + 2 * ag,
                      ag < a ? " (the load lowers Agility)" : "");
             P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, ink, b);
-        } else if (l2.empty() && it.drinkable && it.id >= 95 && 3 * (it.id - 95) < (int)gamedata.formulas.size())
-            P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, soft, game_text(gamedata.formulas[3 * (it.id - 95)].text.c_str(), gamedata.formulas[3 * (it.id - 95)].text.size()));
+        }                                                         /* (a potion's words: in its block above, ns_potion_about) */
     } else if (V.what == 2 && V.which >= 0 && V.which < 19) {
         std::string help = ui_skill_help(V.which);
         if (V.which < 7) { std::string w = rules_weapons_of_skill(V.which); help = (V.which >= 4 ? "Aim with " : "Attack and defense hand to hand with ") + (w.empty() ? std::string("these weapons") : w) + "."; }
@@ -1240,14 +1244,13 @@ static void formulae(NsDraw &P, const SheetModel &s)
     float y = 24;
     P.icon(DX0 + 6, y + 4, 8, 95 + k / 3, -1, k % 3 + 1);
     y += P.para(f, NsDraw::FS_HEAD, DX0 + 12, y, DW - 9, ink, gamedata.formula_names[k]) + 1.5f;
-    static const char *RISK[3] = { "low risk", "some risk", "high risk" };
+    static const char *RISK[3] = { "low risk", "medium risk", "high risk" };   /* (as the alchemy screen and the formula tooltip say) */
     char mr[64]; snprintf(mr, sizeof mr, "Mystic number %d, %s.", fm.mystic, fm.risk >= 0 && fm.risk < 3 ? RISK[fm.risk] : "risk unknown");
     float mh = P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, soft, mr);
     if (P.over(DX0, y, DX1, y + mh))
         ns_tip("The mystic number: the higher, the harder the formula is to brew (set against the alchemist's {Alchemy} and {Intelligence}). The risk: how badly a failed brew can go wrong.");
     y += mh + 1;
-    y += P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, IM_COL32(26, 64, 132, 255), game_text(fm.text.c_str(), fm.text.size())) + 0.5f;
-    { ImU32 ec; std::string enc = ns_item_encounters(95 + k / 3, &ec); if (!enc.empty()) y += P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, ec, enc); }
+    y += ns_potion_about(P, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW - 2.5f, 95 + k / 3, k % 3 + 1, -1);   /* (what the potion is, as everywhere, this formula's grade marked) */
     y += 1.5f;
     P.text(fo, 4.3f, DX0 + 2.5f, y, soft, "Ingredients: the party has / needed"); y += 6;
     for (const FormulaIngr &g : fm.ingr) {

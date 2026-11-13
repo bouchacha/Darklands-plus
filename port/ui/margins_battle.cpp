@@ -111,6 +111,7 @@ static const char *order_tip(int kind)
    a potion's picture, its label */
 struct OrderEntry { int j, k, s2, kind, pid, pq, count = 0; std::string label, key; int drink_m = -1; };   /* (drink_m: a potion to drink, of that member: j -3) */
 std::string ns_potion_effect(int id);
+std::string ns_potion_effect_grade(int id, int g); int ns_potion_grade(int id, int q);
 extern "C" int sheet_battle_drink(int m, int id, int q);
 extern "C" int sheet_drinkable(int id);
 /* the orders as pictures alone (battle.order_icons): the words in the tooltip */
@@ -206,7 +207,7 @@ static void order_button(ImDrawList *dl, ImVec2 a, const OrderEntry &e, bool ena
         if (a.y > ImGui::GetIO().DisplaySize.y * 0.5f) { ImVec2 wp = ImGui::GetWindowPos(), ws = ImGui::GetWindowSize(); ui_tip_beside(ImVec2(a.x, wp.y), ImVec2(b.x, wp.y + ws.y)); }   /* (the strip's whole height: above it) */
         else ui_tip_beside(a, b);
         std::string t = square ? e.label + (order_tip(e.kind) ? std::string("\n") + order_tip(e.kind) : std::string()) : order_tip(e.kind);
-        if (e.pid >= 95 && e.pid <= 116) { std::string fx = ns_potion_effect(e.pid); if (!fx.empty()) t += "\n" + fx; }   /* (what the potion does: his ask, RC6) */
+        if (e.pid >= 95 && e.pid <= 116) { std::string fx = ns_potion_effect_grade(e.pid, ns_potion_grade(e.pid, e.pq)); if (!fx.empty()) t += "\n" + fx; }   /* (what the potion does, its grade's numbers: his ask, RC6, 1.4.7) */
         margin_tip(t.c_str());
     }
 }

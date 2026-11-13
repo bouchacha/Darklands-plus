@@ -212,6 +212,23 @@ void travel_party_tile(int *x, int *y)
     *x = (s16)g_rw(GV_map_view_col) + cold - 1; *y = py;
 }
 
+/* where the party is on the world map: the tile of the place it is in, or out in the wilds the tile
+   it stands on (kept while a camp, a card, a battle or a screen is over the map); 0 when not known.
+   The one answer for the screens that reckon travel from the party (the days to a seller, quests) */
+int travel_party_at(int *x, int *y)
+{
+    int cur = (s16)g_rw(G_CUR_LOC);
+    if (cur >= 0) {
+        u32 r = g_location(cur);
+        if (!r) return 0;
+        *x = (s16)rw((u16)(r >> 16), (u16)(r + 4)); *y = (s16)rw((u16)(r >> 16), (u16)(r + 6));
+        return 1;
+    }
+    if (!load_map()) return 0;
+    travel_party_tile(x, y);
+    return *x > 0 && *y > 0 && *x < mw && *y < mh;
+}
+
 static int map_ready(void) { return game_mode() == GM_MAP && load_map(); }
 
 /* minutes from the party to tile (x, y), -1 if unreachable; fields are cached per party tile */

@@ -10,8 +10,10 @@
 #include <vector>
 #include <algorithm>
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "../mods/nscreen.h"
 #include "richtext.h"
+#include "nsdraw.h"
 #include "skillicons.h"
 #include "ui.h"
 #include "gamedata.h"
@@ -534,6 +536,72 @@ static void give(int from, int to, int idx, bool one = false)
 
 /* what an item is good for: weapon numbers and who could use it, what armour covers, a potion's
  * effect (the character sheet's and the shops' tooltips) */
+/* what a potion is, as the native screens write it (ns_potion_about, ui/nsdraw.cpp): the game's
+   words for it; how it is used, a picture, and what it does; the numbers by grade as a table, a
+   column a grade under the potion's picture at that grade, the one in hand (grade) marked; what
+   stays the same; how much the encounters ask for it */
+void ui_potion_about(int id, int grade)
+{
+    float wrap = ImGui::GetCurrentWindow()->DC.TextWrapPos;     /* (the width the tooltip wraps its text at: the table kept inside it) */
+    float W = wrap > 0 ? wrap - ImGui::GetCursorPosX() : UIS(360);
+    ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + W);
+    int p = id - 95;
+    if (p >= 0 && 3 * p < (int)gamedata.formulas.size()) {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::ColorConvertU32ToFloat4(NS_POTION_WORDS));
+        ImGui::TextWrapped("%s", gamedata.formulas[3 * p].text.c_str());
+        ImGui::PopStyleColor();
+    }
+    PotionFx f = ns_potion_fx(id);
+    const ImVec4 dimc = ImGui::GetStyle().Colors[ImGuiCol_TextDisabled];
+    if (f.how >= 0) {
+        float is = ImGui::GetTextLineHeight() * 1.3f;
+        ImVec2 c = ImGui::GetCursorScreenPos();
+        ns_potion_how_icon(ImGui::GetWindowDrawList(), ImVec2(c.x, c.y + UIS(1)), is, f.how, true);
+        ImGui::Dummy(ImVec2(is, is)); ImGui::SameLine(0, UIS(6));
+        ImGui::PushStyleColor(ImGuiCol_Text, dimc); ui_rich_text(f.what.c_str()); ImGui::PopStyleColor();
+        if (!f.rows.empty()) {
+            float hs = ImGui::GetTextLineHeight() * 1.5f, pad = ImGui::GetStyle().CellPadding.x * 2, cw = hs;
+            for (const FxRow &r : f.rows) for (int g = 0; g < 3; g++) cw = fmaxf(cw, ImGui::CalcTextSize(r.v[g].c_str()).x);
+            cw += UIS(10);
+            float lw = fmaxf(UIS(80), W - 4 - 3 * (cw + pad) - pad);    /* (the labels: what the three columns leave, wrapped) */
+            if (ImGui::BeginTable("##potion", 4, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoHostExtendX)) {
+            ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, lw);
+            for (int g = 1; g <= 3; g++) ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, cw);
+            const ImU32 band = IM_COL32(214, 176, 100, 60);
+            ImGui::TableNextRow();
+            for (int g = 1; g <= 3; g++) {
+                ImGui::TableSetColumnIndex(g);
+                if (g == grade) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, band);
+                float cw = ImGui::GetContentRegionAvail().x;
+                ImVec2 q0 = ImGui::GetCursorScreenPos();
+                ui_item_icon_tier(ImGui::GetWindowDrawList(), ImVec2(q0.x + cw * 0.5f, q0.y + hs * 0.5f), hs, id, g);
+                ImGui::Dummy(ImVec2(cw, hs));
+            }
+            for (const FxRow &r : f.rows) {
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + lw);
+                ImGui::PushStyleColor(ImGuiCol_Text, dimc); ui_rich_text(r.label.c_str()); ImGui::PopStyleColor();
+                ImGui::PopTextWrapPos();
+                for (int g = 1; g <= 3; g++) {
+                    ImGui::TableSetColumnIndex(g);
+                    if (g == grade) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, band);
+                    float cw = ImGui::GetContentRegionAvail().x, tw = ImGui::CalcTextSize(r.v[g - 1].c_str()).x;
+                    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + fmaxf(0.0f, (cw - tw) * 0.5f));
+                    if (grade == 0 || g == grade) ImGui::TextUnformatted(r.v[g - 1].c_str());
+                    else ImGui::TextDisabled("%s", r.v[g - 1].c_str());
+                }
+            }
+            ImGui::EndTable();
+            }
+        }
+        if (!f.after.empty()) { ImGui::PushStyleColor(ImGuiCol_Text, dimc); ui_rich_text(f.after.c_str()); ImGui::PopStyleColor(); }
+    }
+    ImU32 ec; std::string enc = ns_item_encounters(id, &ec);
+    if (!enc.empty()) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::ColorConvertU32ToFloat4(ec)); ImGui::TextWrapped("%s", enc.c_str()); ImGui::PopStyleColor(); }
+    ImGui::PopTextWrapPos();
+}
+
 void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's quality, -1 unknown: its usual one) */
 {
     if (d && d->kind == K_RELIC && d->relic_df > 0) {      /* a relic: what it takes off a prayer, and who could bear it (mods/relics.c) */
@@ -635,13 +703,7 @@ void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's qual
             (t == d->type ? ImGui::Text : ImGui::TextDisabled)("%s shield at %dq: %d against blows, %d against shots and throws", SZ[t - 95], q, gm_shield_defence(t, q, 0), gm_shield_defence(t, q, 1));
         ui_rich_textf_dim("No shield counts as -5, and a flail's blow passes any shield. Hand to hand, the chance to hit is 50 + 2/3 of the attacker's\nmelee rating minus (the defender's melee rating + the shield); against a shot or throw, the defense is the shield plus twice {Agility} (less under a load).");
     }
-    if (d && d->kind == K_POTION) {
-        int p = id - 95;
-        ImGui::PushTextWrapPos(UIS(380));
-        if (p >= 0 && 3 * p < (int)gamedata.formulas.size()) ImGui::TextWrapped("%s", gamedata.formulas[3 * p].text.c_str());
-        { std::string ns_potion_effect(int id); std::string e = ns_potion_effect(id); if (!e.empty()) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]); ui_rich_text(e.c_str()); ImGui::PopStyleColor(); } }
-        ImGui::PopTextWrapPos();
-    }
+    if (d && d->kind == K_POTION) ui_potion_about(id, ns_potion_grade(id, q));
 }
 
 /* a pack is always shown tidy: by kind (weapons, armour, shields, potions, ingredients ...), then

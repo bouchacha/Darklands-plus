@@ -27,6 +27,7 @@ void travel_after_leaving(int loc, const char *name);   /* set off for loc once 
 void travel_stop(void);
 int travel_boat_way(int a, int b, const short **xs, const short **ys);   /* the tiles a boat from town a to b sails by (water), 0 none */
 void travel_party_tile(int *x, int *y);
+int travel_party_at(int *x, int *y);          /* the party's map tile, in a place or out in the wilds: 0 not known */
 int travel_map_live(void);                   /* the overland loop is running (no card or screen over the map) */
 int travel_terrain(int x, int y);
 int travel_camp_needed(void);                /* travel.camp_at_8: a member short of Endurance, Strength or Divine Favor */

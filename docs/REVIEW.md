@@ -623,3 +623,24 @@ covered and found, and what it could not check.
   25". (3) The shop's For sale under headings by kind (ware_group), counts, a click folds a group
   (display.shop_folded, every shop); a ware found from the Formulae tab opens its group and is scrolled to.
   (4) foefx_of: one entry a potion (Eyeburn's blinding folded into what it lowers).
+- 2026-11-12 (the spare-gear crash, RC10): the timer handler (047c:01ea, recompiled F_root_049aa) reads its
+  far call targets from memory as it runs; his log ran the party panel's saved status-letter background
+  (gfx_save_rect, D_a6c2 = 480a, as the huge pointer 4000:80a0) as code on the timer's own stack. The cause
+  was not reproduced (his save, 25 runs, a 30-minute soak). bios.c now checks those targets at each tick
+  (puts back and logs one changed) and holds back an interrupt whose handler still runs; interp.c keeps its
+  last 16 entries and far jumps for a crash's log and logs code run outside the program and its drivers.
+- 2026-11-13 (structural, his asks after RC12): (1) Where the party is on the map was worked out three ways
+  (journal.cpp travel_min_to: only on the travel map; party_where: not on a native screen; quests.cpp
+  party_xy: the map or a card) - so the days to a seller were missing in a camp and on the alchemy screen,
+  and "nearest first" was in town order there. One answer now, travel.c travel_party_at, for all three.
+  (2) A potion's effects were one string per potion with the grades' numbers written "a, b or c" and a
+  "numbers by grade" line, shown four ways (the shop and sheet strips through ns_item_use, the inventory
+  tooltip, the battle tray). Now data (nsdraw.cpp ns_potion_fx: how used, what it does, rows of three
+  numbers, what stays) with one block that draws it (ns_potion_about: the game's words, the how picture -
+  the battle tray's, now ns_potion_how_icon - the words, the table a column a grade, the one in hand
+  marked; beside the words on a wide panel, under them on a page; fitted to its room by leaving out the
+  encounters' line, then what stays, then the game's words, then smaller type), its ImGui twin
+  (inventory.cpp ui_potion_about, in the item and formula tooltips) and the one line of text for the
+  battle tray (ns_potion_effect_grade, that grade's numbers). The sheet strip's second copy of a potion's
+  words went; "some risk" on the sheet's Formulae is "medium risk" as elsewhere. (3) The stock to keep:
+  20, 50, 100, 200, none; Shift+click sets every ingredient. Test commands uitemtip, uformtip.

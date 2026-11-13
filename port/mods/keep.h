@@ -14,7 +14,7 @@ int potion_mark(int k);                  /* a potion's place in the alchemy list
 void potion_mark_set(int k, int mark);
 int stock_want(int id);                  /* an ingredient's (72..94) stock to keep: a notice in a town that sells it while the party has fewer (0 none) */
 void stock_want_set(int id, int n);
-int stock_next(int n);                   /* the step after n: none, 5, 10, 20, 40, none */
+int stock_next(int n);                   /* the step after n: none, 20, 50, 100, 200, none */
 #ifdef __cplusplus
 }
 #endif

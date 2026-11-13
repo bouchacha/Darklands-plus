@@ -324,6 +324,8 @@ int testcmd_run(const char *cmd, const char *arg)
                 const char *n = strchr(q, '/'); if (!n) break; q = n + 1;
             }
         }
+        else if (!strcmp(cmd, "uitemtip")) { extern int ui_test_tip_item, ui_test_tip_q, ui_test_tip_formula; ui_test_tip_item = -1; ui_test_tip_q = -1; ui_test_tip_formula = -1; sscanf(arg, "%x,%d", &ui_test_tip_item, &ui_test_tip_q); }   /* test: item (hex)[,quality]'s tooltip shown (none: -1) */
+        else if (!strcmp(cmd, "uformtip")) { extern int ui_test_tip_item, ui_test_tip_formula; ui_test_tip_item = -1; ui_test_tip_formula = atoi(arg); }   /* test: formula k's tooltip shown (-1: none) */
         else if (!strcmp(cmd, "utip")) { void tips_show(int); tips_show(atoi(arg)); }   /* test: a tip window: 1 the start screen's (the New Player Guide), 2 the first battle's, 3 the welcome */
         else if (!strcmp(cmd, "uplaylist")) { void playlist_play(const char *, int); void playlist_seek(int); int n = 0, ms = -1; char dv[16] = "fm"; sscanf(arg, "%d,%d,%15s", &n, &ms, dv);   /* test: the soundtrack's player: piece n (n,-1,DEVICE: on that device, fm by default; n,ms: move to ms in the piece playing) */
             if (ms >= 0) playlist_seek(ms); else playlist_play(dv, n); }

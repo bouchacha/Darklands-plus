@@ -807,14 +807,12 @@ extern "C" void journal_init(void)
 
 /* how long the party would travel to loc: from where it stands on the map, or from the town it is
    in (mods/travel.c's search, cached per start); -1 no way or not known */
-extern "C" { int travel_minutes_loc_from(int ox, int oy, int loc); void travel_party_tile(int *x, int *y); }
-static int travel_min_to(int loc)
+extern "C" { int travel_minutes_loc_from(int ox, int oy, int loc); int travel_party_at(int *x, int *y); }
+static int travel_min_to(int loc)                       /* (from a camp too, and from a screen over the map: his ask, 1.4.7) */
 {
-    int cur = (s16)g_rw(G_CUR_LOC), ox = -1, oy = -1;
-    if (loc == cur) return 0;
-    if (cur >= 0) { u32 r = g_location(cur); if (!r) return -1; ox = (s16)rw((u16)(r >> 16), (u16)(r + 4)); oy = (s16)rw((u16)(r >> 16), (u16)(r + 6)); }
-    else if (game_mode() == GM_MAP) travel_party_tile(&ox, &oy);
-    else return -1;
+    int ox, oy;
+    if (loc == (s16)g_rw(G_CUR_LOC)) return 0;
+    if (!travel_party_at(&ox, &oy)) return -1;
     return travel_minutes_loc_from(ox, oy, loc);
 }
 /* the time as a traveller reckons it: "here", "half a day", "1 day", "4 days" */
@@ -888,15 +886,7 @@ struct Hit { SeenItem it; int loc; std::string shop, date; };
 
 
 /* where the party is: the town it is in, else its tile on the map */
-static bool party_where(int *x, int *y)
-{
-    int cur = (s16)g_rw(G_CUR_LOC);
-    u32 r = cur >= 0 ? g_location(cur) : 0;
-    if (r) { *x = (s16)rw((u16)(r >> 16), (u16)(r + 4)); *y = (s16)rw((u16)(r >> 16), (u16)(r + 6)); return true; }
-    if (game_mode() == GM_OTHER) return false;
-    travel_party_tile(x, y);
-    return *x > 0 && *y > 0;
-}
+static bool party_where(int *x, int *y) { return travel_party_at(x, y) != 0; }
 static int loc_distance(int loc, int px, int py)          /* in map tiles (rows are half a tile apart) */
 {
     u32 r = g_location(loc);
