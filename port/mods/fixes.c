@@ -1678,15 +1678,52 @@ static void altar_frame(void)
  * $McGuf08 (s108 1838), "take the $NamedOneName and leave" (1838:07ca): the dead wake (1838:02b0,
  * run_battle) and then vec_214d(cur_loc) (s039 1462:1ab0) gives the thing if an errand (ev8_at(10,
  * cur_loc)) is there. But the victory has set cur_loc to -1 already, so nothing is given; a
- * defeat (3, 4) leaves it set, and the thing is given. Here the battle's result is caught: the
- * giving is let pass only after a victory, with the place for the moment of the call. */
-static int tomb_loc = -1, tomb_result = -1;
-static void tomb_battle_hook(void) { hook_call_original(); tomb_result = (s16)AX; }
+ * defeat (3, 4) leaves it set, and the thing is given. Read the authoritative battle_result
+ * at the post-battle give call (the return AX can be changed by another wrapper), and give
+ * only after a victory, with the place for the moment of the call. */
+static int tomb_loc = -1;
+/* A tomb (battlefield 0x5f) is a one-floor dungeon whose skeletons wait in
+ * separate activation groups. None is a master whose fall finishes the place:
+ * each fight returns to exploration, and using the stairs then returns 8 (later
+ * changed to retreat, 2). Finish as victory once EVERY group is empty and no
+ * enemy is standing. The existing post-battle wrapper below then awards the
+ * quest item, once cards_startup has restored the world and quest records.
+ * Stock tombs use keep tiles and do not permit saving inside the battle. */
+static int tomb_cleared(void)
+{
+    if (g_rw(0xc1f0) != 0x5f || (s8)g_rb(GV_floor_shown) != 0) return 0;
+    int standing = 0;
+    for (int i = 0; i < 13; i++) {
+        if (g_rb(CBF(i, CB_STATUS)) != 1) continue;
+        if (i >= 5) return 0;
+        if ((s8)g_rb((u16)(GV_cbt_floor + i)) == 0) standing = 1;
+    }
+    if (!standing) return 0;
+    int n = g_rb(GV_activation_count);
+    u16 seg = g_rw(0x7d3c);              /* activation records, +0x47ee, 0x1e bytes each */
+    if (n > 30 || (n && !seg)) return 0;
+    for (int k = 0; k < n; k++)
+        for (int j = 0; j < 3; j++)
+            if ((s8)rb(seg, (u16)(0x47ee + k * 0x1e + 0x0b + j)) > 0) return 0;
+    return 1;
+}
+static void tomb_over_hook(void)
+{
+    int result = (s16)g_rw(GV_battle_result);
+    int cleared = !unw_active && (result == -1 || result == 0) && tomb_cleared();
+    if (cleared) {
+        if (getenv("DL_FIX_LOG") && !g_rb(0x9084)) fprintf(stderr, "fix tomb: all skeleton groups beaten, finish as victory\n");
+        g_wb(0x9084, 1);                 /* this dungeon is finished */
+        if (result == -1) g_wb(GV_real_combat, 1); /* also finish after returning to exploration */
+    }
+    hook_call_original();
+}
 static void tomb_give_hook(void)            /* s039 1462:1ab0 (loc), during the option */
 {
     if (tomb_loc < 0) { hook_call_original(); return; }
-    if (tomb_result != 0) {                                  /* lost, fled: no thing */
-        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix tomb: battle %d, nothing given\n", tomb_result);
+    int result = (s16)g_rw(GV_battle_result);
+    if (result != 0) {                                      /* lost, fled: no thing */
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix tomb: battle %d, nothing given\n", result);
         AX = 0; hook_return_far(0); return;
     }
     u16 cur = g_rw(G_CUR_LOC);
@@ -1697,12 +1734,10 @@ static void tomb_give_hook(void)            /* s039 1462:1ab0 (loc), during the 
 }
 static void tomb_hook(void)                 /* $McGuf08 option, s108 1838:07ca */
 {
-    tomb_loc = (s16)g_rw(G_CUR_LOC); tomb_result = -1;
-    hook_install(GF_run_battle, tomb_battle_hook);
+    tomb_loc = (s16)g_rw(G_CUR_LOC);
     hook_install(39, 0x1462, 0x1ab0, tomb_give_hook);
     hook_call_original();
     hook_remove(39, 0x1462, 0x1ab0, tomb_give_hook);
-    hook_remove(GF_run_battle, tomb_battle_hook);
     tomb_loc = -1;
 }
 
@@ -3155,6 +3190,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
+    { "tomb", GF_combat_over, tomb_over_hook },
     { "dwarfrelic", GF_event_new, dwarfrelic_event_hook }, { "dwarfrelic", GF_chest_open, dwarfrelic_chest_hook }, { "dwarfrelic", 40, 0x1462, 0x0000, dwarfrelic_screen_hook },
     { "carditems", GF_add_items_impl, carditems_n_hook }, { "carditems", 31, 0x18e7, 0x0128, carditems_one_hook }, { "carditems", GF_add_item_q, carditems_q_hook },
     { "knightdead", 81, 0x1838, 0x0000, knightcard_hook }, { "knightdead", 81, 0x18bb, 0x0004, knightcard_hook },
