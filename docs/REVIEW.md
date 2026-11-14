@@ -669,3 +669,6 @@ covered and found, and what it could not check.
   was, then its raw addresses named in the decompilation's header (place_won D_9084, which the castle fix
   uses too; battlefield_kind D_c1f0; activations_seg D_7d3c) and gamevars.h regenerated, the activation
   records' offset in foesleft.h; test_tomb.c passes.
+- 2026-11-14 (his ask after RC16): the potion table's number columns sit after the labels (fx_labels_w: the
+  labels on one line where w allows) instead of at the far side, and a bracket runs from a cloud's shields
+  down to the rows they head (native potion_table; the ImGui twin draws the same with the window's draw list).

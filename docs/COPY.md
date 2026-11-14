@@ -1297,41 +1297,41 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/inventory.cpp:514` | Items can't change hands during a battle. |
 | `ui/inventory.cpp:515` | Close the game's current screen (sheet, shop ...) to hand items over. |
 | `ui/inventory.cpp:516` | Start or load a game first. |
-| `ui/inventory.cpp:643` | Wielded, it takes {Divine Favor:%d} off every prayer of the one wielding it, to any saint (none below 5). Wielding it asks {Virtue:%d}. |
-| `ui/inventory.cpp:645` | It takes {Divine Favor:%d} off every prayer of the one carrying it, to any saint (none below 5), if they have {Virtue:%d}. |
-| `ui/inventory.cpp:647` | Of several relics, the best counts. |
-| `ui/inventory.cpp:652` |  - too little to wield it |
-| `ui/inventory.cpp:652` |  - too little |
-| `ui/inventory.cpp:654` | Off: Relics as the manual has them (F12 > Settings > The party and its items). |
-| `ui/inventory.cpp:655` | This blessed item is immune from any quality degradation. |
-| `ui/inventory.cpp:667` | {%s} weapon, %s |
-| `ui/inventory.cpp:668` | Damage %d, penetration %d (how well it gets through armor) |
-| `ui/inventory.cpp:669` | Time per blow %d (lower is faster) |
-| `ui/inventory.cpp:670` | Time to %s %d (lower is faster) |
-| `ui/inventory.cpp:670` | draw and loose |
-| `ui/inventory.cpp:674` | Needs {%s:%d}: each point below, -2 to aim |
-| `ui/inventory.cpp:675` | Best with {Strength:%d to %d}: each point below, -1 to aim and weaker hits; above, harder hits |
-| `ui/inventory.cpp:676` | Needs {Strength:%d}: each point below, -1 to aim and weaker hits |
-| `ui/inventory.cpp:678` | Needs {%s:%d}: each point below, -2 to attack and defense hand to hand |
-| `ui/inventory.cpp:679` | Best with {Strength:%d to %d}: each point below, -3 to attack and defense and weaker blows; each point above, +2 and harder blows |
-| `ui/inventory.cpp:680` | Needs {Strength:%d}: each point below, -3 to attack and defense and weaker blows |
-| `ui/inventory.cpp:691` |  short in skill |
-| `ui/inventory.cpp:692` |  short in Strength |
-| `ui/inventory.cpp:693` | a good fit, and strong enough for harder hits |
-| `ui/inventory.cpp:693` | a good fit, and strong enough for harder blows |
-| `ui/inventory.cpp:696` | %s: {%s:%d} {Strength:%d} - %s: -%d to %s |
-| `ui/inventory.cpp:696` | attack and defense |
-| `ui/inventory.cpp:708` | Covers the vitals (body and arms) |
-| `ui/inventory.cpp:708` | Covers the legs |
-| `ui/inventory.cpp:710` | Hardness %d of 5 (%s) |
-| `ui/inventory.cpp:717` | Cuts the weapon's extra damage to an eighth (penetration below %d): |
-| `ui/inventory.cpp:717` | Halves the weapon's extra damage (penetration %d): |
-| `ui/inventory.cpp:717` | Pierced (penetration above %d): |
-| `ui/inventory.cpp:727` | A blow that pierces also wounds {Strength}; a good hit gets through more easily. |
-| `ui/inventory.cpp:728` | Quality: every 10 points take 1 off each blow's damage. |
-| `ui/inventory.cpp:732` | Adds to its bearer's defense, more the better it is made; unusable with a two-handed weapon. |
-| `ui/inventory.cpp:736` | %s shield at %dq: %d against blows, %d against shots and throws |
-| `ui/inventory.cpp:737` | No shield counts as -5, and a flail's blow passes any shield. Hand to hand, the chance to hit is 50 + 2/3 of the attacker's melee rating minus (the defender's melee rating + the shield); against a shot or throw, the defense is the shield plus twice {Agility} (less under a load). |
+| `ui/inventory.cpp:653` | Wielded, it takes {Divine Favor:%d} off every prayer of the one wielding it, to any saint (none below 5). Wielding it asks {Virtue:%d}. |
+| `ui/inventory.cpp:655` | It takes {Divine Favor:%d} off every prayer of the one carrying it, to any saint (none below 5), if they have {Virtue:%d}. |
+| `ui/inventory.cpp:657` | Of several relics, the best counts. |
+| `ui/inventory.cpp:662` |  - too little to wield it |
+| `ui/inventory.cpp:662` |  - too little |
+| `ui/inventory.cpp:664` | Off: Relics as the manual has them (F12 > Settings > The party and its items). |
+| `ui/inventory.cpp:665` | This blessed item is immune from any quality degradation. |
+| `ui/inventory.cpp:677` | {%s} weapon, %s |
+| `ui/inventory.cpp:678` | Damage %d, penetration %d (how well it gets through armor) |
+| `ui/inventory.cpp:679` | Time per blow %d (lower is faster) |
+| `ui/inventory.cpp:680` | Time to %s %d (lower is faster) |
+| `ui/inventory.cpp:680` | draw and loose |
+| `ui/inventory.cpp:684` | Needs {%s:%d}: each point below, -2 to aim |
+| `ui/inventory.cpp:685` | Best with {Strength:%d to %d}: each point below, -1 to aim and weaker hits; above, harder hits |
+| `ui/inventory.cpp:686` | Needs {Strength:%d}: each point below, -1 to aim and weaker hits |
+| `ui/inventory.cpp:688` | Needs {%s:%d}: each point below, -2 to attack and defense hand to hand |
+| `ui/inventory.cpp:689` | Best with {Strength:%d to %d}: each point below, -3 to attack and defense and weaker blows; each point above, +2 and harder blows |
+| `ui/inventory.cpp:690` | Needs {Strength:%d}: each point below, -3 to attack and defense and weaker blows |
+| `ui/inventory.cpp:701` |  short in skill |
+| `ui/inventory.cpp:702` |  short in Strength |
+| `ui/inventory.cpp:703` | a good fit, and strong enough for harder hits |
+| `ui/inventory.cpp:703` | a good fit, and strong enough for harder blows |
+| `ui/inventory.cpp:706` | %s: {%s:%d} {Strength:%d} - %s: -%d to %s |
+| `ui/inventory.cpp:706` | attack and defense |
+| `ui/inventory.cpp:718` | Covers the vitals (body and arms) |
+| `ui/inventory.cpp:718` | Covers the legs |
+| `ui/inventory.cpp:720` | Hardness %d of 5 (%s) |
+| `ui/inventory.cpp:727` | Cuts the weapon's extra damage to an eighth (penetration below %d): |
+| `ui/inventory.cpp:727` | Halves the weapon's extra damage (penetration %d): |
+| `ui/inventory.cpp:727` | Pierced (penetration above %d): |
+| `ui/inventory.cpp:737` | A blow that pierces also wounds {Strength}; a good hit gets through more easily. |
+| `ui/inventory.cpp:738` | Quality: every 10 points take 1 off each blow's damage. |
+| `ui/inventory.cpp:742` | Adds to its bearer's defense, more the better it is made; unusable with a two-handed weapon. |
+| `ui/inventory.cpp:746` | %s shield at %dq: %d against blows, %d against shots and throws |
+| `ui/inventory.cpp:747` | No shield counts as -5, and a flail's blow passes any shield. Hand to hand, the chance to hit is 50 + 2/3 of the attacker's melee rating minus (the defender's melee rating + the shield); against a shot or throw, the defense is the shield plus twice {Agility} (less under a load). |
 | `ui/itemedit.cpp:32` | Could not read DARKLAND.LST. |
 | `ui/itemedit.cpp:49` | Every item of the game. Change names, weight, quality, rarity and value here, then save the list into a mod folder; it takes effect when the game is started again with that mod ticked. |
 | `ui/itemedit.cpp:51` | Every item of the game, with its weight, usual quality, rarity and value (to change them for a mod, choose a preset other than Full Original in F12 > Settings). |
@@ -1738,18 +1738,19 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/nsdraw.cpp:484` | {*Fire} damage from Arabian Fire |
 | `ui/nsdraw.cpp:489` | Used by a member (P in the inventory) |
 | `ui/nsdraw.cpp:506` |  The numbers by grade: 1, 2, 3. |
-| `ui/nsdraw.cpp:606` | How long it lasts |
-| `ui/nsdraw.cpp:717` |  when equipped |
-| `ui/nsdraw.cpp:743` | a light load: no hindrance |
-| `ui/nsdraw.cpp:743` | a normal load: blows hand to hand a fifth slower |
-| `ui/nsdraw.cpp:744` | a heavy load: blows at the usual pace, dodging hampered |
-| `ui/nsdraw.cpp:744` | overloaded: blows two thirds slower, little or no dodging |
-| `ui/nsdraw.cpp:747` | Worn by %s: load %d \xc2\xbb %d of %d, %s%s |
-| `ui/nsdraw.cpp:811` | Load %d \xc2\xbb %d of %d |
-| `ui/nsdraw.cpp:812` | Load %d of %d |
-| `ui/nsdraw.cpp:868` | Spare equipment |
-| `ui/nsdraw.cpp:868` | Tools and other goods |
-| `ui/nsdraw.cpp:868` | Trophies and quest items |
+| `ui/nsdraw.cpp:589` | too much white space between left and right columns |
+| `ui/nsdraw.cpp:616` | How long it lasts |
+| `ui/nsdraw.cpp:733` |  when equipped |
+| `ui/nsdraw.cpp:759` | a light load: no hindrance |
+| `ui/nsdraw.cpp:759` | a normal load: blows hand to hand a fifth slower |
+| `ui/nsdraw.cpp:760` | a heavy load: blows at the usual pace, dodging hampered |
+| `ui/nsdraw.cpp:760` | overloaded: blows two thirds slower, little or no dodging |
+| `ui/nsdraw.cpp:763` | Worn by %s: load %d \xc2\xbb %d of %d, %s%s |
+| `ui/nsdraw.cpp:827` | Load %d \xc2\xbb %d of %d |
+| `ui/nsdraw.cpp:828` | Load %d of %d |
+| `ui/nsdraw.cpp:884` | Spare equipment |
+| `ui/nsdraw.cpp:884` | Tools and other goods |
+| `ui/nsdraw.cpp:884` | Trophies and quest items |
 | `ui/optpreview.cpp:43` | The gate is barred. You... |
 | `ui/optpreview.cpp:45` | ...climb the wall |
 | `ui/optpreview.cpp:46` | ...pray to a saint |

@@ -582,10 +582,12 @@ int ns_potion_grade(int id, int q)
     return ui_potion_tier(q, d->quality);
 }
 
-/* the table of a potion's effects at (x, y), w wide: its shorthand first (the shields its rows strike),
-   then the rows that are the same at every grade, a label and one number; then, where any differ, the
-   potion's picture at each grade over a column and those rows, the column of the one in hand marked
-   (grade 1..3; 0 none). How long: the hourglass. The height */
+/* the table of a potion's effects at (x, y), at most w wide: its shorthand first (the shields its rows
+   strike) with a bracket down to those rows; then the rows that are the same at every grade, a label and
+   one number; then, where any differ, the potion's picture at each grade over a column and those rows, the
+   column of the one in hand marked (grade 1..3; 0 none). How long: the hourglass. The numbers sit by the
+   labels, not at the far side (his ask, 1.4.7: "too much white space between left and right columns").
+   The height */
 static float fx_label_x(const FxRow &r, float gs) { return r.time ? gs * 1.15f : 0; }      /* (the hourglass before a label) */
 static float fx_cols(NsDraw &P, float gs, const PotionFx &f)                               /* a grade's column: its widest number, with room */
 {
@@ -593,10 +595,18 @@ static float fx_cols(NsDraw &P, float gs, const PotionFx &f)                    
     for (const FxRow &r : f.rows) if (!r.same()) for (int g = 0; g < 3; g++) cw = fmaxf(cw, P.width(P.fo, gs, r.v[g]) + gs * 1.2f);
     return cw;
 }
+static float fx_ind(const PotionFx &f, float gs) { return f.keys.empty() ? 0 : gs * 1.4f; }   /* (the rows under a shorthand: room for its bracket) */
+static float fx_labels_w(NsDraw &P, float gs, const PotionFx &f)                          /* the labels' width on one line */
+{
+    float lw = 0;
+    for (const FxRow &r : f.rows) lw = fmaxf(lw, P.width(P.fo, gs, r.label) + fx_label_x(r, gs) + fx_ind(f, gs));
+    return lw;
+}
 static float potion_table(NsDraw &P, float gs, float x, float y, float w, int id, int grade, const PotionFx &f, bool draw)
 {
     ImFont *fo = P.fo;
-    const float y0 = y, cw = fx_cols(P, gs, f), cx0 = x + w - 3 * cw, ind = f.keys.empty() ? 0 : gs * 0.9f, hh = gs * 1.8f;
+    const float y0 = y, cw = fx_cols(P, gs, f), ind = fx_ind(f, gs), hh = gs * 1.8f;
+    const float cx0 = x + fminf(w, fx_labels_w(P, gs, f) + gs * 1.6f + 3 * cw) - 3 * cw;   /* (the columns right after the labels, as wide as w allows) */
     auto label_h = [&](const FxRow &r, float lw) { float lx = x + ind + fx_label_x(r, gs); return r.label.empty() ? gs * 1.05f : fmaxf(P.para_height(fo, gs, lw - (lx - x), r.label), gs * 1.05f); };
     auto label = [&](const FxRow &r, float ly, float lw) {        /* a row's label (the hourglass first); its height */
         float lx = x + ind + fx_label_x(r, gs), h = label_h(r, lw);
@@ -608,14 +618,21 @@ static float potion_table(NsDraw &P, float gs, float x, float y, float w, int id
         return h;
     };
     if (!f.keys.empty()) y += (draw ? P.para(fo, gs, x, y, w, NsDraw::INK_SOFT, f.keys) : P.para_height(fo, gs, w, f.keys)) + 0.6f;
+    const float bx = x + gs * 0.5f, by0 = y - 0.4f;               /* the bracket from the shorthand down to its rows (those not of how long) */
+    float by1 = -1;
     bool any_varies = false;
     for (const FxRow &r : f.rows) {                               /* the same at every grade: above the grades */
         if (!r.same()) { any_varies = true; continue; }
         float vw = P.width(fo, gs, r.v[0]), lw = cx0 + 1.5f * cw - vw * 0.5f - x - 1.5f;
         float h = label(r, y, lw);
         if (draw) P.text(fo, gs, cx0 + 1.5f * cw - vw * 0.5f, y, NsDraw::INK, r.v[0]);
+        if (!f.keys.empty() && !r.time) {
+            by1 = y + gs * 0.6f;
+            if (draw) P.rect(bx, by1 - 0.13f, x + ind - gs * 0.3f, by1 + 0.13f, IM_COL32(120, 96, 66, 170));
+        }
         y += h + 0.9f;
     }
+    if (draw && by1 > 0) P.rect(bx - 0.13f, by0, bx + 0.13f, by1 + 0.13f, IM_COL32(120, 96, 66, 170));
     if (!any_varies) return y - y0;
     const float ty = y;
     float rows_h = 0;
@@ -644,8 +661,7 @@ static float potion_table(NsDraw &P, float gs, float x, float y, float w, int id
 /* the width a potion's table wants beside its words: its labels on one line (to a limit) and the three columns */
 static float potion_table_w(NsDraw &P, float gs, const PotionFx &f, float most)
 {
-    float cw = fx_cols(P, gs, f), lw = f.keys.empty() ? 0 : P.width(P.fo, gs, f.keys) - 3 * cw;
-    for (const FxRow &r : f.rows) lw = fmaxf(lw, P.width(P.fo, gs, r.label) + fx_label_x(r, gs) + (f.keys.empty() ? 0 : gs * 0.9f));
+    float cw = fx_cols(P, gs, f), lw = fmaxf(f.keys.empty() ? 0 : P.width(P.fo, gs, f.keys) - 3 * cw, fx_labels_w(P, gs, f));
     return fminf(lw + 1.5f, most) + 3 * cw;
 }
 

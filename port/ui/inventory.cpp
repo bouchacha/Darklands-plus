@@ -560,6 +560,8 @@ void ui_potion_about(int id, int grade)
         ImGui::Dummy(ImVec2(is, is)); ImGui::SameLine(0, UIS(6));
         ImGui::PushStyleColor(ImGuiCol_Text, dimc); ui_rich_text(f.what.c_str()); ImGui::PopStyleColor();
         if (!f.keys.empty()) { ImGui::PushStyleColor(ImGuiCol_Text, dimc); ui_rich_text(f.keys.c_str()); ImGui::PopStyleColor(); }   /* the shields its rows strike */
+        const float by0 = ImGui::GetCursorScreenPos().y - ImGui::GetStyle().ItemSpacing.y * 0.5f;   /* (the bracket from them down to their rows) */
+        float by1 = -1, bx = ImGui::GetCursorScreenPos().x + UIS(5);
         if (!f.rows.empty()) {
             /* as the native screens' table (nsdraw.cpp potion_table): the rows the same at every grade first, a
                label and one number across the three columns; then the potion at each grade over its column and
@@ -568,8 +570,9 @@ void ui_potion_about(int id, int grade)
             bool varies = false;
             for (const FxRow &r : f.rows) if (!r.same()) { varies = true; for (int g = 0; g < 3; g++) cw = fmaxf(cw, ImGui::CalcTextSize(r.v[g].c_str()).x); }
             cw += UIS(10);
-            float ind = f.keys.empty() ? 0 : UIS(10);
-            float lw = fmaxf(UIS(80), W - 4 - 3 * (cw + pad) - pad);    /* (the labels: what the three columns leave, wrapped) */
+            float ind = f.keys.empty() ? 0 : UIS(15), nat = 0;
+            for (const FxRow &r : f.rows) nat = fmaxf(nat, rich_size(ImGui::GetFont(), ImGui::GetFontSize(), FLT_MAX, r.label.c_str()).x + (r.time ? lh * 0.9f + UIS(3) : 0));
+            float lw = fminf(nat + ind + UIS(14), fmaxf(UIS(80), W - 4 - 3 * (cw + pad) - pad));   /* (the labels on one line where they fit, the numbers right after; else what the columns leave, wrapped) */
             if (ImGui::BeginTable("##potion", 4, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoHostExtendX)) {
             ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, lw);
             for (int g = 1; g <= 3; g++) ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, cw);
@@ -592,6 +595,12 @@ void ui_potion_about(int id, int grade)
             for (const FxRow &r : f.rows) {                          /* the same at every grade: one number, across the three */
                 if (!r.same()) continue;
                 ImGui::TableNextRow();
+                if (!f.keys.empty() && !r.time) {                    /* (under the shorthand: a tick from its bracket) */
+                    ImGui::TableSetColumnIndex(0);
+                    ImVec2 q = ImGui::GetCursorScreenPos();
+                    by1 = q.y + lh * 0.55f;
+                    ImGui::GetWindowDrawList()->AddLine(ImVec2(bx, by1), ImVec2(q.x + ind - UIS(4), by1), ImGui::GetColorU32(dimc), fmaxf(1.0f, UIS(1)));
+                }
                 label(r);
                 ImGui::TableSetColumnIndex(1);
                 ImVec2 q0 = ImGui::GetCursorScreenPos();
@@ -626,6 +635,7 @@ void ui_potion_about(int id, int grade)
                 }
             }
             ImGui::EndTable();
+            if (by1 > 0) ImGui::GetWindowDrawList()->AddLine(ImVec2(bx, by0), ImVec2(bx, by1), ImGui::GetColorU32(dimc), fmaxf(1.0f, UIS(1)));
             }
         }
         if (!f.after.empty()) { ImGui::PushStyleColor(ImGuiCol_Text, dimc); ui_rich_text(f.after.c_str()); ImGui::PopStyleColor(); }
