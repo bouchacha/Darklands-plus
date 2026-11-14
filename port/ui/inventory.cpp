@@ -561,7 +561,7 @@ void ui_potion_about(int id, int grade)
         ImGui::PushStyleColor(ImGuiCol_Text, dimc); ui_rich_text(f.what.c_str()); ImGui::PopStyleColor();
         if (!f.rows.empty()) {
             float hs = ImGui::GetTextLineHeight() * 1.5f, pad = ImGui::GetStyle().CellPadding.x * 2, cw = hs;
-            for (const FxRow &r : f.rows) for (int g = 0; g < 3; g++) cw = fmaxf(cw, ImGui::CalcTextSize(r.v[g].c_str()).x);
+            for (const FxRow &r : f.rows) for (int g = 0; g < 3; g++) cw = fmaxf(cw, r.same() ? (ImGui::CalcTextSize(r.v[g].c_str()).x - 2 * pad) / 3 : ImGui::CalcTextSize(r.v[g].c_str()).x);
             cw += UIS(10);
             float lw = fmaxf(UIS(80), W - 4 - 3 * (cw + pad) - pad);    /* (the labels: what the three columns leave, wrapped) */
             if (ImGui::BeginTable("##potion", 4, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoHostExtendX)) {
@@ -586,6 +586,17 @@ void ui_potion_about(int id, int grade)
                 for (int g = 1; g <= 3; g++) {
                     ImGui::TableSetColumnIndex(g);
                     if (g == grade) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, band);
+                    if (r.same()) {                                  /* (every grade alike: once, centred across the three columns) */
+                        if (g == 1) {
+                            ImVec2 q0 = ImGui::GetCursorScreenPos();
+                            float span = 3 * cw + 2 * pad, tw = ImGui::CalcTextSize(r.v[0].c_str()).x, lh = ImGui::GetTextLineHeight();
+                            ImGui::PushClipRect(ImVec2(q0.x - pad, q0.y), ImVec2(q0.x + span + pad, q0.y + lh), false);   /* (past the cell's own clip) */
+                            ImGui::GetWindowDrawList()->AddText(ImVec2(q0.x + (span - tw) * 0.5f, q0.y), ImGui::GetColorU32(ImGuiCol_Text), r.v[0].c_str());
+                            ImGui::PopClipRect();
+                            ImGui::Dummy(ImVec2(1, lh));
+                        }
+                        continue;
+                    }
                     float cw = ImGui::GetContentRegionAvail().x, tw = ImGui::CalcTextSize(r.v[g - 1].c_str()).x;
                     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + fmaxf(0.0f, (cw - tw) * 0.5f));
                     if (grade == 0 || g == grade) ImGui::TextUnformatted(r.v[g - 1].c_str());

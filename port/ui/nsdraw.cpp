@@ -2,6 +2,7 @@
 #include <math.h>
 #include "../runtime/config.h"
 #include "nsdraw.h"
+#include "libraries.h"
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
 #include <set>
@@ -262,6 +263,91 @@ float ns_ingredient_row(NsDraw &P, float x0, float y, float x1, int id)
     return sz + 4.2f + P.para(P.fo, NsDraw::FS_SMALL, x0, y + sz + 4.2f, x1 - x0, hov >= 0 ? ink : NsDraw::INK_DIM, line);
 }
 
+/* an ingredient's tooltip, the one on both its shelves (the sheet's Formulae, the alchemy screen):
+ * its name; what the party has (holders: the members' heads with their counts, where each carries
+ * their own); where it is sold, nearest first, each town with the map's hourglass and its days (as
+ * the map's "Days away"); the potions it goes into as ns_ingredient_row draws them (the picture, a
+ * pip a grade: filled where that grade's formula takes it, gold where the party knows that formula);
+ * the stock to keep */
+void layer_glyph(ImDrawList *dl, ImVec2 c, float s, int which, ImU32 ink);   /* (ui/worldmap_draw.cpp: 4, the hourglass) */
+void ui_item_icon_q(ImDrawList *dl, ImVec2 c, float s, int id, int q);
+void ns_ingredient_tip(int id, int have, const std::string &holders)
+{
+    ui_rich_tip_taken();
+    ns_tip_begin(20);
+    ImDrawList *dl = ImGui::GetWindowDrawList();
+    const float lh = ImGui::GetTextLineHeight();
+    const ImU32 ink = ImGui::GetColorU32(ImGuiCol_Text), pipk = IM_COL32(70, 48, 26, 230), gold = IM_COL32(196, 146, 30, 255);
+    ImGui::TextUnformatted(ns_item_name(id).c_str());
+    if (!have) ImGui::TextDisabled("The party has none.");
+    else if (holders.empty()) ImGui::Text("The party has %d.", have);
+    else ui_rich_textf("The party has %d: %s", have, holders.c_str());
+    if (config_get_int("assist.where_sold", 1)) {             /* (the three nearest sellers and how far: his ask, 1.4.7) */
+        std::vector<WhereSold> w = journal_where_sold_rows(id, 3);
+        if (!w.empty()) {
+            ImGui::TextDisabled("Where to buy, nearest first");
+            std::vector<std::string> lab;
+            float namew = 0;
+            for (const WhereSold &r : w) {
+                lab.push_back(r.here ? (r.shop.empty() ? std::string("Here") : "Here, the " + r.shop) : r.name);
+                namew = fmaxf(namew, ImGui::CalcTextSize(lab.back().c_str()).x);
+            }
+            const float x0 = ImGui::GetCursorPosX() + lh * 0.5f, gx = x0 + namew + lh * 0.9f;
+            for (size_t i = 0; i < w.size(); i++) {
+                ImGui::SetCursorPosX(x0);
+                if (w[i].expected) ImGui::TextDisabled("%s", lab[i].c_str()); else ImGui::TextUnformatted(lab[i].c_str());
+                std::string d = w[i].here ? "" : journal_days_short(w[i].min);
+                if (!d.empty()) {
+                    ImGui::SameLine(gx);
+                    ImVec2 p = ImGui::GetCursorScreenPos();
+                    layer_glyph(dl, ImVec2(p.x + lh * 0.4f, p.y + lh * 0.52f), lh * 0.95f, 4, ink);
+                    ImGui::Dummy(ImVec2(lh * 0.8f, lh)); ImGui::SameLine(0, lh * 0.2f);
+                    ImGui::TextUnformatted(d.c_str());
+                }
+                if (w[i].expected) { ImGui::SameLine(); ImGui::TextDisabled("(expected)"); }
+            }
+        }
+    }
+    struct Use { int potion; int need[3]; bool known[3]; };       /* the potions it goes into (ns_ingredient_row's) */
+    std::vector<Use> uses;
+    for (int f = 0; f < (int)gamedata.formulas.size(); f++) {
+        int need = 0;
+        for (const FormulaIngr &g : gamedata.formulas[f].ingr) if (g.item == id) need += g.count;
+        if (!need) continue;
+        int potion = 95 + f / 3; size_t k = 0;
+        while (k < uses.size() && uses[k].potion != potion) k++;
+        if (k == uses.size()) uses.push_back({ potion, { 0, 0, 0 }, { false, false, false } });
+        uses[k].need[f % 3] = need;
+        for (int m = 0; m < gm_party_size() && m < 5; m++) if (gm_member_present(m) && gm_knows_formula(m, f)) uses[k].known[f % 3] = true;
+    }
+    if (uses.empty()) ImGui::TextDisabled("No formula uses it.");
+    else {
+        ImGui::TextDisabled("Goes into (a dot a grade; gold: known)");
+        const float isz = lh * 1.45f, cw = isz * 1.25f, wrap = ImGui::GetFontSize() * 20;
+        float x = 0;
+        ImVec2 o = ImGui::GetCursorScreenPos();
+        float rowh = isz + lh * 0.55f;
+        int row = 0;
+        for (const Use &u : uses) {
+            if (x + cw > wrap) { x = 0; row++; }
+            ImVec2 c(o.x + x + cw * 0.5f, o.y + row * rowh + isz * 0.5f);
+            bool any = u.known[0] || u.known[1] || u.known[2];
+            ui_item_icon_q(dl, c, isz, u.potion, -1);
+            if (!any) dl->AddRectFilled(ImVec2(c.x - isz * 0.55f, c.y - isz * 0.6f), ImVec2(c.x + isz * 0.55f, c.y + isz * 0.6f), IM_COL32(236, 222, 188, 170));   /* (none known: washed out) */
+            for (int g = 0; g < 3; g++) {                          /* the grades' pips */
+                ImVec2 pc(c.x + (g - 1) * isz * 0.27f, c.y + isz * 0.62f + lh * 0.18f);
+                float r = isz * 0.085f;
+                if (u.need[g]) dl->AddCircleFilled(pc, r, u.known[g] ? gold : pipk);
+                else dl->AddCircle(pc, r, IM_COL32(120, 96, 66, 150), 0, 1.0f);
+            }
+            x += cw;
+        }
+        ImGui::Dummy(ImVec2(row ? wrap : x, (row + 1) * rowh));
+    }
+    ImGui::TextDisabled("%s", ns_stock_words(id).c_str());
+    ns_tip_end();
+}
+
 /* an ingredient's stock to keep: a notice in a town whose shops sell it while the party has fewer (ui/journal.cpp
    journal_stock_check); set on the ingredient shelves (the sheet's Formulae, the alchemy screen) by a click */
 extern "C" { int stock_want(int id); void stock_want_set(int id, int n); int stock_next(int n); }
@@ -307,22 +393,31 @@ PotionFx ns_potion_fx(int id)
     PotionFx f;
     bool fixed = fix_is_on("potions") != 0, oilw = fix_is_on("oilweapons") != 0;
     const std::string day = fixed ? "Lasts 19 to 21 hours." : "Lasts for good, and adds up with the next dose.";
-    const char *SECS = "How long (seconds of battle)";
+    const char *LASTS = "How long that lasts on them (seconds of battle)";   /* (a cloud's own life is in the words: what it does lasts longer) */
     auto row = [&f](const std::string &l, const char *a, const char *b, const char *c) { FxRow r; r.label = l; r.v[0] = a; r.v[1] = b; r.v[2] = c; f.rows.push_back(r); };
+    auto all = [&row](const std::string &l, const char *v) { row(l, v, v, v); };   /* (the same at every grade) */
+    /* (the clouds: his ask, 1.4.7 - "it says the cloud hangs for 3 seconds but then how long shows 6/9/12", and
+       who suffers what ran together in one sentence: the cloud in the words, each effect a row, how long they
+       last the last row; the attributes' shields apart, not bracketed as a group sharing one value) */
     switch (id) {
     case 95: f.how = PFX_THROW;
-        f.what = "A reeking cloud, up to 4 by 4 paces, that hangs 3 seconds. {Agility}{Perception} and every weapon skill halved on the one it hits, a quarter off on everyone else in it, allies too.";
-        row(SECS, "6", "9", "12"); break;
+        f.what = "A reeking cloud, up to 4 by 4 paces, that hangs 3 seconds. What it does to those it catches, allies too, lasts longer:";
+        all("The one it hits: {Agility} {Perception} and every weapon skill", "halved");
+        all("Everyone else in the cloud: the same", "a quarter off");
+        row(LASTS, "6", "9", "12"); break;
     case 96: f.how = PFX_THROW;
-        f.what = "Blinding powder in a small cloud that hangs 3 seconds. The one it hits is blinded (only parries: no shooting, no throwing) and loses a third of {Agility}{Perception} and every weapon skill; those beside them lose a quarter.";
-        row(SECS, "8", "16", "24"); break;
+        f.what = "Blinding powder in a small cloud that hangs 3 seconds. What it does lasts longer:";
+        all("The one it hits: blinded (only parries: no shooting, no throwing), and {Agility} {Perception} and every weapon skill", "a third off");
+        all("Those beside them: {Agility} {Perception} and every weapon skill", "a quarter off");
+        row(LASTS, "8", "16", "24"); break;
     case 97: f.how = PFX_THROW;
         f.what = "Black smoke. Shots through any such cloud hit a fifth as often; fighting from inside one costs 15 to hit.";
-        row("How long it hangs (seconds of battle)", "20", "60", "180");
+        row("How long the cloud hangs (seconds of battle)", "20", "60", "180");
         f.after = "The battle's orders never offer it to the party: it is for the encounters, and enemies throw it."; break;
     case 98: f.how = PFX_THROW;
-        f.what = "Itching powder in a small cloud that hangs 3 seconds. Every weapon skill falls by 5% for each point of armor worn on the body and limbs, the heavier the worse.";
-        row(SECS, "25", "40", "60"); break;
+        f.what = "Itching powder in a small cloud that hangs 3 seconds. What it does lasts longer:";
+        all("Every weapon skill, for each point of armor worn on the body and limbs (the heavier, the worse)", "-5%");
+        row(LASTS, "25", "40", "60"); break;
     case 99: f.how = PFX_THROW;
         f.what = "Acid on the one it hits, at once and for good. Armor eaten to nothing is destroyed; with no armor (or damage left over) it wounds instead. It also dissolves locks.";
         row("Armor quality lost", "4 to 12", "6 to 14", "8 to 16"); break;
@@ -331,7 +426,7 @@ PotionFx ns_potion_fx(int id)
         row("Wounds", "4 to 12", "6 to 14", "8 to 16"); break;
     case 101: f.how = PFX_THROW;
         f.what = "A blinding flash. The one it hits, and every enemy of the thrower on that floor who faces it, is blinded (only parries: no shooting, no throwing). The thrower's allies are spared.";
-        row(SECS, "4", "6", "8"); break;
+        row("How long they stay blinded (seconds of battle)", "4", "6", "8"); break;
     case 102: f.how = PFX_THROW;
         f.what = "A blast at once on the one it hits, less around it. The armor is worn down by a quarter of the damage, for good.";
         row("{*Damage}", "4 to 12", "6 to 14", "8 to 16"); row("{*Penetration}", "6", "7", "8"); break;
@@ -401,10 +496,13 @@ std::string ns_potion_effect_grade(int id, int g)
     PotionFx f = ns_potion_fx(id);
     if (f.how < 0) return "";
     std::string t = std::string(ns_potion_how_word(f.how)) + ": " + f.what;
-    for (const FxRow &r : f.rows)
-        t += "\n" + r.label + ": " + (g >= 1 && g <= 3 ? r.v[g - 1] : r.v[0] + ", " + r.v[1] + " or " + r.v[2]);
+    bool by_grade = false;
+    for (const FxRow &r : f.rows) {
+        t += "\n" + r.label + ": " + (g >= 1 && g <= 3 || r.same() ? r.v[g >= 1 && g <= 3 ? g - 1 : 0] : r.v[0] + ", " + r.v[1] + " or " + r.v[2]);
+        by_grade |= !r.same();
+    }
     if (!f.after.empty()) t += "\n" + f.after;
-    if (!g && !f.rows.empty()) t += "\nThe numbers by grade: 1, 2, 3.";
+    if (!g && by_grade) t += "\nThe numbers by grade: 1, 2, 3.";
     return t;
 }
 std::string ns_potion_effect(int id) { return ns_potion_effect_grade(id, 0); }
@@ -449,6 +547,31 @@ void ns_potion_how_icon(ImDrawList *dl, ImVec2 a, float s, int how, bool dark)
     }
 }
 
+void ns_grade_seal(NsDraw &P, float x, float y, float r, int grade, int state, bool put, int ring)
+{
+    ImVec2 c = NsDraw::w(x, y); const float rr = r * P.k;
+    ImU32 fill = state == NS_SEAL_CAN ? IM_COL32(58, 118, 48, put ? 140 : 255) : state == NS_SEAL_SHORT ? IM_COL32(150, 62, 44, put ? 140 : 255) : 0;
+    if (fill) P.dl->AddCircleFilled(c, rr, fill, 16);
+    else P.dl->AddCircle(c, rr, IM_COL32(120, 96, 66, 130), 16, fmaxf(1.0f, 0.3f * P.k));
+    if (ring == NS_RING_CHOSEN) P.dl->AddCircle(c, rr + 0.75f * P.k, IM_COL32(214, 160, 40, 255), 16, fmaxf(1.0f, 0.45f * P.k));
+    else if (ring == NS_RING_HOVER) P.dl->AddCircle(c, rr + 0.7f * P.k, IM_COL32(214, 160, 40, 150), 16, fmaxf(1.0f, 0.35f * P.k));
+    else if (ring == NS_RING_SHOWN) P.dl->AddCircle(c, rr + 0.7f * P.k, IM_COL32(120, 80, 36, 170), 16, fmaxf(1.0f, 0.35f * P.k));
+    /* the grade as the flasks show it (display.potion_grade): one to three chevrons, or dots - a digit read as a count */
+    const ImU32 mc = state != NS_SEAL_UNKNOWN ? IM_COL32(246, 234, 206, 255) : IM_COL32(120, 96, 66, 170);
+    const int n = grade;
+    if (config_get_int("display.potion_grade", 4) >= 3) {
+        const float hw = rr * 0.5f, hh = hw * 0.55f, th2 = fmaxf(1.0f, rr * 0.16f), st = hh + th2 * 1.2f;
+        for (int q = 0; q < n; q++) {
+            float yy = c.y + (n - 1) * st * 0.5f - q * st;
+            ImVec2 pts[3] = { ImVec2(c.x - hw, yy + hh * 0.5f), ImVec2(c.x, yy - hh * 0.5f), ImVec2(c.x + hw, yy + hh * 0.5f) };
+            P.dl->AddPolyline(pts, 3, mc, 0, th2);
+        }
+    } else {
+        const float dr = fmaxf(1.0f, rr * 0.17f), st = dr * 2.7f;
+        for (int q = 0; q < n; q++) P.dl->AddCircleFilled(ImVec2(c.x + ((n - 1) * 0.5f - q) * st, c.y), dr, mc, 10);
+    }
+}
+
 /* a potion's grade (1..3) from its quality, 0 not known */
 int ns_potion_grade(int id, int q)
 {
@@ -464,8 +587,8 @@ int ns_potion_grade(int id, int q)
 static float potion_table(NsDraw &P, float gs, float x, float y, float w, int id, int grade, const PotionFx &f, bool draw)
 {
     ImFont *fo = P.fo;
-    float cw = gs * 2.0f;                                        /* a grade's column: as wide as its widest number, with room */
-    for (const FxRow &r : f.rows) for (int g = 0; g < 3; g++) cw = fmaxf(cw, P.width(fo, gs, r.v[g]) + gs * 1.2f);
+    float cw = gs * 2.0f;                                        /* a grade's column: as wide as its widest number, with room (a number the grades share: across the three) */
+    for (const FxRow &r : f.rows) for (int g = 0; g < 3; g++) cw = fmaxf(cw, (P.width(fo, gs, r.v[g]) + gs * 1.2f) / (r.same() ? 3 : 1));
     float cx0 = x + w - 3 * cw, lw = cx0 - x - 1.0f, hh = gs * 1.8f;
     float rows_h = 0;
     for (const FxRow &r : f.rows) rows_h += fmaxf(P.para_height(fo, gs, lw, r.label), gs * 1.05f) + 0.9f;
@@ -480,7 +603,8 @@ static float potion_table(NsDraw &P, float gs, float x, float y, float w, int id
         for (const FxRow &r : f.rows) {
             float rh = fmaxf(P.para_height(fo, gs, lw, r.label), gs * 1.05f);
             P.para(fo, gs, x, ry, lw, NsDraw::INK_SOFT, r.label);
-            for (int g = 1; g <= 3; g++) {
+            if (r.same()) P.text(fo, gs, cx0 + 1.5f * cw - P.width(fo, gs, r.v[0]) * 0.5f, ry, NsDraw::INK, r.v[0]);   /* (every grade alike: once, across) */
+            else for (int g = 1; g <= 3; g++) {
                 const std::string &v = r.v[g - 1];
                 bool own = grade == g || grade == 0;
                 P.text(fo, gs, cx0 + (g - 0.5f) * cw - P.width(fo, gs, v) * 0.5f, ry, own ? NsDraw::INK : NsDraw::INK_DIM, v);
@@ -494,7 +618,7 @@ static float potion_table(NsDraw &P, float gs, float x, float y, float w, int id
 static float potion_table_w(NsDraw &P, float gs, const PotionFx &f, float most)
 {
     float cw = gs * 2.0f, lw = 0;
-    for (const FxRow &r : f.rows) { lw = fmaxf(lw, P.width(P.fo, gs, r.label)); for (int g = 0; g < 3; g++) cw = fmaxf(cw, P.width(P.fo, gs, r.v[g]) + gs * 1.2f); }
+    for (const FxRow &r : f.rows) { lw = fmaxf(lw, P.width(P.fo, gs, r.label)); for (int g = 0; g < 3; g++) cw = fmaxf(cw, (P.width(P.fo, gs, r.v[g]) + gs * 1.2f) / (r.same() ? 3 : 1)); }
     return fminf(lw + 1.5f, most) + 3 * cw;
 }
 

@@ -123,7 +123,7 @@ the files where each switch's key is read.
 | `display.native_loot` | New loot screen | show | lootview.c |
 | `assist.loot_worth` | Shop value in the loot screen | show | lootview.cpp |
 | `display.native_alchemy` | New alchemy screen | show | alchemyview.c |
-| `assist.where_sold` | Where to buy missing ingredients | show | alchemyview.cpp, sheetview.cpp |
+| `assist.where_sold` | Where to buy missing ingredients | show | nsdraw.cpp |
 | `display.native_cache` | New store room screen | show | cacheview.c |
 | `store.shared` | One store room shared by every inn | plus | sharedstore.c |
 | `display.native_lodge` | New inn and camp screen | show | lodgeview.c |
@@ -224,7 +224,7 @@ the files where each switch's key is read.
 | `display.text_size` | Text size | look | margins.cpp, settings_setup.cpp |
 | `display.skill_icons` | Icons beside the skills | look | settings_look.cpp, ui.cpp |
 | `display.skill_icon_look` | Skill icons' look | look | settings_look.cpp, skillicons.cpp |
-| `display.potion_grade` | A potion's grade | look | alchemyicons.cpp, alchemyview.cpp, nsdraw.cpp, settings_look.cpp |
+| `display.potion_grade` | A potion's grade | look | alchemyicons.cpp, nsdraw.cpp, settings_look.cpp |
 | `display.pstone_look` | The Philosopher's Stone | look | pstone.cpp |
 | `display.clock` | Clock | look | lodgeview.c, hourglass.cpp, settings_look.cpp |
 | `display.ornate` | Ornaments | look | ornament.cpp, settings_look.cpp |

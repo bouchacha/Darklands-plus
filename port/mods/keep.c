@@ -89,7 +89,7 @@ void keep_set(int id, int q, int on) { if (on) keep_mark(id, q, 1); else if (kee
 int potion_mark(int k) { sync(); return k >= 0 && k < 22 ? pmark[k] : 0; }
 void potion_mark_set(int k, int mark) { sync(); if (k < 0 || k >= 22 || pmark[k] == mark) return; pmark[k] = (unsigned char)mark; save(); }
 
-/* an ingredient's stock to keep (0 none); a click steps it: none, 5, 10, 20, 40, none */
+/* an ingredient's stock to keep (0 none); a click steps it: none, 20, 50, 100, 200, none */
 int stock_want(int id) { sync(); return id >= 72 && id < 95 ? stock[id - 72] : 0; }
 void stock_want_set(int id, int n) { sync(); if (id < 72 || id >= 95 || stock[id - 72] == n) return; stock[id - 72] = (unsigned char)(n < 0 ? 0 : n > 255 ? 255 : n); save(); }
 int stock_next(int n) { return n <= 0 ? 20 : n < 50 ? 50 : n < 100 ? 100 : n < 200 ? 200 : 0; }   /* (his steps, 1.4.7) */

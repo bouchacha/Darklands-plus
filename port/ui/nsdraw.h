@@ -256,6 +256,7 @@ float ns_ingredient_row(NsDraw &P, float x0, float y, float x1, int id);   /* an
    when one is set), what the tooltip says of it, and a click on the cell (x0..x1, y0..y1) stepping it */
 void ns_stock_tag(NsDraw &P, float x0, float y0, int id);
 std::string ns_stock_words(int id);
+void ns_ingredient_tip(int id, int have, const std::string &holders);   /* an ingredient's tooltip, the same on both shelves (holders: "" or the members' heads with counts) */
 void ns_stock_click(NsDraw &P, float x0, float y0, float x1, float y1, int id);
 int ns_item_section(int id);              /* the section of the items list: 1 potions, 2 spare equipment, 3 utility, 4 trophies and quest things, 5 ingredients, 6 relics */
 #define NS_NSECT 7                           /* (0 "Equipped" and those six) */
@@ -266,10 +267,10 @@ int ns_load_with(int id, int m);           /* member m's load with thing id worn
 float ns_load_note(NsDraw &P, float x1, float y, int m, int after);   /* "Load 42 >> 47 of 76" right-aligned on a heading; its width */
 int ns_against_worn(int id, int q, int m); /* against what member m has there: 1 better, -1 worse, 0 alike or not to be weighed, 2 nothing there */
 void ns_compare_arrow(ImDrawList *dl, float x, float y, int vs, float k);   /* the shop's arrow at (x, y), game coordinates */
-/* what a potion does: how it is used, in words, the numbers that change with its grade (rows of
-   three: grade 1, 2, 3), and what stays the same (ui/nsdraw.cpp ns_potion_fx) */
+/* what a potion does: how it is used, in words, its effects as rows of three numbers (grade 1, 2,
+   3; one across the three where the grades agree), and what stays the same (ui/nsdraw.cpp ns_potion_fx) */
 enum { PFX_DRINK, PFX_THROW, PFX_USE };
-struct FxRow { std::string label, v[3]; };
+struct FxRow { std::string label, v[3]; bool same() const { return v[0] == v[1] && v[1] == v[2]; } };
 struct PotionFx { int how = -1; std::string what, after; std::vector<FxRow> rows; };
 PotionFx ns_potion_fx(int id);                          /* how -1: not a potion */
 const char *ns_potion_how_word(int how);                /* "Drunk", "Thrown", "Used by a member (P in the inventory)" */
@@ -277,6 +278,13 @@ void ns_potion_how_icon(ImDrawList *dl, ImVec2 a, float s, int how, bool dark); 
 std::string ns_potion_effect_grade(int id, int g);    /* the same in words: grade g's numbers (1..3), or the three (0) */
 int ns_potion_grade(int id, int q);                   /* a potion's grade (1..3) from its quality, 0 not known */
 #define NS_POTION_WORDS IM_COL32(26, 64, 132, 255)        /* (the game's own words for a potion: blue) */
+/* a formula's seal in a list of potions (the alchemy screen's, the sheet's Formulae): its grade (1..3) as the
+   flasks show it, green where the party's ingredients make a batch, red where they fall short, an empty ring
+   where it is not known; faint (put) for a potion put aside; a ring around it: the formula chosen (gold), the
+   one pointed at (faint gold), the one the row tells of (brown). r: the radius, game pixels */
+enum { NS_SEAL_UNKNOWN, NS_SEAL_CAN, NS_SEAL_SHORT };
+enum { NS_RING_NONE, NS_RING_CHOSEN, NS_RING_HOVER, NS_RING_SHOWN };
+void ns_grade_seal(NsDraw &P, float x, float y, float r, int grade, int state, bool put, int ring);
 float ns_potion_about(NsDraw &P, float gs, float x, float y, float w, int id, int grade, float y_max, float side_y = -1);   /* a potion: its words, what it does
                                      (its table beside them, from side_y if given, where there is room), the encounters; the height */
 float ns_potion_about_height(NsDraw &P, float gs, float w, int id, int grade);

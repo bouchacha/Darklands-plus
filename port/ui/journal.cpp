@@ -25,6 +25,7 @@
 #include "ui.h"
 #include "gamedata.h"
 #include "uiinternal.h"
+#include "libraries.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -698,8 +699,8 @@ static void journal_stock_check(int loc)
     static int have[200]; GmItem g;
     for (int i = 0; i < 200; i++) have[i] = 0;
     for (int m = 0; m < 5; m++) if (gm_member_present(m)) for (int i = 0; i < gm_item_count(m); i++) if (gm_item(m, i, &g) && g.id >= 0 && g.id < 200) have[g.id] += g.count;
-    std::string msg;
-    int nshort = 0;
+    struct Short { int id, have, want; std::string shop; };
+    std::vector<Short> sh_;
     for (int id = 72; id < 95; id++) {
         int want = stock_want(id);
         if (want <= 0 || have[id] >= want) continue;
@@ -707,10 +708,18 @@ static void journal_stock_check(int loc)
         for (const Shop &sh : towns[loc].shops) { for (const SeenItem &i : sh.items) if (i.id == id) { shop = sh.name; break; } if (!shop.empty()) break; }
         if (shop.empty()) continue;
         for (char &c : shop) c = (char)tolower((unsigned char)c);
-        msg += std::string(nshort++ ? "; " : "") + item_name(id) + " at the " + shop + " (the party has " + std::to_string(have[id]) + " of the " + std::to_string(want) + " it keeps)";
+        sh_.push_back({ id, have[id], want, shop });
     }
-    if (!nshort) return;
-    msg = "Sold in " + loc_name(loc) + ": " + msg + ".";
+    if (sh_.empty()) return;
+    /* short (a notice is read at a glance, 1.4.7: fourteen ingredients ran past its end): the three the
+       party is shortest of, how many more there are, and the shops */
+    std::stable_sort(sh_.begin(), sh_.end(), [](const Short &a, const Short &b) { return (double)a.have / a.want < (double)b.have / b.want; });
+    std::string msg = loc_name(loc) + " sells what the party keeps a stock of and is short of: ", shops;
+    for (size_t i = 0; i < sh_.size() && i < 3; i++) msg += std::string(i ? ", " : "") + item_name(sh_[i].id) + " " + std::to_string(sh_[i].have) + "/" + std::to_string(sh_[i].want);
+    if (sh_.size() > 3) msg += " and " + std::to_string(sh_.size() - 3) + " more";
+    std::set<std::string> seen_shops;
+    for (const Short &x : sh_) if (seen_shops.insert(x.shop).second) shops += std::string(shops.empty() ? "" : ", ") + "the " + x.shop;
+    msg += " (at " + shops + ").";
     ui_notice_for(msg.c_str(), 9000);
     if (getenv("DL_JOURNAL_LOG")) fprintf(stderr, "journal: stock notice: %s\n", msg.c_str());
 }
@@ -899,14 +908,17 @@ static int loc_distance(int loc, int px, int py)          /* in map tiles (rows 
    (pharmacist)", "Köln, 2 days away"), then, with "What unvisited places offer" on, the towns whose
    shops will have it (the wares are fixed for the whole game by the town's and the party's seeds:
    predict_stock), "(expected)". His ask (1.4.7): an ingredient's three nearest sellers and how far */
-std::vector<std::string> journal_where_sold_list(int id, int n)
+/* where thing id is sold, nearest first, up to n: here first (with the shop), then the towns whose
+   shops were seen, then (map.offers_unvisited) those expected to sell it; min: the minutes of travel,
+   -1 unknown */
+std::vector<WhereSold> journal_where_sold_rows(int id, int n)
 {
     ensure_game();
-    std::vector<std::string> out;
+    std::vector<WhereSold> out;
     int px = 0, py = 0; bool here = party_where(&px, &py);
     int cur = (s16)g_rw(G_CUR_LOC);
     auto far_of = [&](int loc) { int m = travel_min_to(loc); return m >= 0 ? m : (here ? loc_distance(loc, px, py) * 600 : 1 << 29); };
-    auto away = [&](int loc) { std::string t = travel_days(travel_min_to(loc)); return loc_name(loc) + (t.empty() ? "" : ", " + t + " away"); };
+    auto row = [&](int loc, bool at, bool exp, const std::string &shop) { WhereSold w; w.loc = loc; w.name = loc_name(loc); w.min = at ? 0 : travel_min_to(loc); w.here = at; w.expected = exp; w.shop = shop; return w; };
     std::vector<std::pair<int, int>> seen;                  /* (how far, town) */
     std::set<int> listed;
     for (auto &kv : towns) {
@@ -915,13 +927,13 @@ std::vector<std::string> journal_where_sold_list(int id, int n)
         if (!has) continue;
         if (kv.first == cur) {
             for (char &c : shop) c = (char)tolower((unsigned char)c);
-            out.push_back(shop.empty() ? "sold here" : "sold here (" + shop + ")"); listed.insert(kv.first);
+            out.insert(out.begin(), row(kv.first, true, false, shop)); listed.insert(kv.first);
             continue;
         }
         seen.push_back({ far_of(kv.first), kv.first });
     }
     std::sort(seen.begin(), seen.end());
-    for (const auto &d : seen) { if ((int)out.size() >= n) break; out.push_back(away(d.second)); listed.insert(d.second); }
+    for (const auto &d : seen) { if ((int)out.size() >= n) break; out.push_back(row(d.second, false, false, "")); listed.insert(d.second); }
     if ((int)out.size() >= n || !config_get_int("map.offers_unvisited", 0)) return out;
     if (id < 0 || id >= (int)gamedata.items.size()) return out;
     static int pseed = -1; static std::map<int, std::vector<int>> sold_at;      /* item -> towns */
@@ -938,11 +950,30 @@ std::vector<std::string> journal_where_sold_list(int id, int n)
     auto it = sold_at.find(id);
     if (it == sold_at.end()) return out;
     std::vector<std::pair<int, int>> exp;
-    for (int c : it->second) if (!listed.count(c)) { if (c == cur) { out.insert(out.begin(), "sold here (expected)"); listed.insert(c); } else exp.push_back({ far_of(c), c }); }
+    for (int c : it->second) if (!listed.count(c)) { if (c == cur) { out.insert(out.begin(), row(c, true, true, "")); listed.insert(c); } else exp.push_back({ far_of(c), c }); }
     std::sort(exp.begin(), exp.end());
     exp.erase(std::unique(exp.begin(), exp.end()), exp.end());
-    for (const auto &d : exp) { if ((int)out.size() >= n) break; out.push_back(away(d.second) + " (expected)"); }
+    for (const auto &d : exp) { if ((int)out.size() >= n) break; out.push_back(row(d.second, false, true, "")); }
+    if ((int)out.size() > n) out.resize(n);
     return out;
+}
+/* the same in words: "sold here (pharmacist)", "Ulm, 3 days away", "... (expected)" */
+std::vector<std::string> journal_where_sold_list(int id, int n)
+{
+    std::vector<std::string> out;
+    for (const WhereSold &w : journal_where_sold_rows(id, n)) {
+        if (w.here) out.push_back(w.expected ? "sold here (expected)" : w.shop.empty() ? "sold here" : "sold here (" + w.shop + ")");
+        else { std::string t = travel_days(w.min); out.push_back(w.name + (t.empty() ? "" : ", " + t + " away") + (w.expected ? " (expected)" : "")); }
+    }
+    return out;
+}
+/* minutes of travel in a few characters, by the hourglass: "<1" (under a day), "3"; "" unknown */
+std::string journal_days_short(int min)
+{
+    if (min < 0) return "";
+    if (min < 18 * 60) return "<1";
+    int d = (min + 12 * 60) / (24 * 60);
+    return std::to_string(d < 1 ? 1 : d);
 }
 /* the nearest town that sells it, "" when none known */
 std::string journal_where_sold(int id)

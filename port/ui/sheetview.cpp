@@ -22,11 +22,12 @@
  *   libraries the party has been to that teach it, what it does (mods/saintinfo.h; its parts, the
  *   chips: ui/saintchips.cpp), where the text says otherwise, whether encounters call on it, and
  *   the legend.
- * Formulae: the whole party's - each formula someone knows (or all), who knows it, the batches
- *   its ingredients make, "sold here"; under the list the 23 ingredients the party has, those
- *   the formula shown calls for ringed; the formula under the pointer with its effect, mystic
- *   number and risk, its ingredients against what the party carries, and each alchemist's
- *   chance with one batch, or where an alchemist the party has been to sells it. */
+ * Formulae: the whole party's - a potion a row as on the alchemy screen (its formulae, the grades,
+ *   as seals), who knows the formula pointed at, the batches its ingredients make, "sold here";
+ *   under the list the 23 ingredients the party has, those the formula shown calls for ringed with
+ *   what is at hand and needed; the formula under the pointer with its effect, mystic number and
+ *   risk, and each alchemist's chance with one batch, or where an alchemist the party has been to
+ *   sells it. */
 #include "vtrace.h"
 #include "imgui.h"
 #include "skillicons.h"
@@ -49,6 +50,7 @@
 #include "../mods/saintinfo.h"
 #include "../mods/fixes.h"
 #include "../mods/relics.h"
+#include "../mods/keep.h"
 #include "nsdraw.h"
 #include "marks.h"
 #include "libraries.h"
@@ -1114,32 +1116,12 @@ static int carried_of(const SheetModel &s, int k)
     return n;
 }
 
-/* an ingredient on the shelf: what the party has of it, who carries it, where it is sold, what uses it */
+/* an ingredient on the shelf: its tooltip as on the alchemy screen's (ns_ingredient_tip), with who carries it */
 static void ingredient_tip(const SheetModel &s, int id)
 {
-    ns_tip_begin(22);
-    ImGui::TextUnformatted(ns_item_name(id).c_str());
-    int n = s.have[id];
     std::string by;
-    for (int m = 0; m < 5; m++) if (s.present[m] && s.ingr[m][id - 72]) by += (by.empty() ? "" : "  ") + rich_member(m, std::to_string(s.ingr[m][id - 72]));
-    if (!n) ImGui::TextDisabled("The party has none.");
-    else if (s.shared) ImGui::Text("The party has %d.", n);
-    else ui_rich_textf("The party has %d: %s", n, by.c_str());
-    if (config_get_int("assist.where_sold", 1)) {       /* (the three nearest sellers and how far: his ask, 1.4.7) */
-        std::vector<std::string> w = journal_where_sold_list(id, 3);
-        if (!w.empty()) { ImGui::TextDisabled("Where to buy, nearest first:"); for (const std::string &x : w) ImGui::BulletText("%s", x.c_str()); }
-    }
-    std::string uses;                                   /* the formulae the party knows that call for it */
-    int nu = 0;
-    for (int k = 0; k < (int)gamedata.formulas.size() && k < 66; k++) {
-        bool kn = false; for (int m = 0; m < 5; m++) if (s.present[m] && s.formula[m][k]) kn = true;
-        if (!kn) continue;
-        for (const FormulaIngr &g : gamedata.formulas[k].ingr) if (g.item == id) { if (nu < 4) uses += (uses.empty() ? "" : ", ") + gamedata.formula_names[k] + " (" + std::to_string(g.count) + ")"; nu++; }
-    }
-    if (nu > 4) uses += " and " + std::to_string(nu - 4) + " more";
-    if (!uses.empty()) ImGui::TextWrapped("Used in %s.", uses.c_str());
-    ImGui::TextDisabled("%s", ns_stock_words(id).c_str());
-    ns_tip_end();
+    if (!s.shared) for (int m = 0; m < 5; m++) if (s.present[m] && s.ingr[m][id - 72]) by += (by.empty() ? "" : "  ") + rich_member(m, std::to_string(s.ingr[m][id - 72]));
+    ns_ingredient_tip(id, s.have[id], by);
 }
 
 static void formulae(NsDraw &P, const SheetModel &s)
@@ -1151,59 +1133,98 @@ static void formulae(NsDraw &P, const SheetModel &s)
     std::vector<int> al;
     for (int m = 0; m < 5; m++) { if (!s.present[m]) continue; for (int k = 0; k < nf; k++) if (s.formula[m][k]) { al.push_back(m); break; } }
     auto known = [&](int k) { for (int m : al) if (s.formula[m][k]) return true; return false; };
-    const float LX0 = 62, LX1 = 200, LY0 = 30.5f, ROWH = 7.6f; const int NROWS = 14;
+    const float LX0 = 62, LX1 = 200, LY0 = 30.5f, ROWH = 13.3f; const int NROWS = 8;
     /* the choice: the formulae the party knows, or all of them (to judge one before buying it) */
     known_or_every(P, &V.formulae_all, "Every formula in the game", TAB_FORMULAE, LX0 + 1, 22);
-    /* who knows each: their heads at the right of the row, as on the Saints page; when one member
-       alone knows formulae, none (the heading says who) */
+    /* who knows a formula: their heads at the end of its row's line, as on the Saints page; when one
+       member alone knows formulae, none (the heading says who) */
     bool tags = al.size() > 1;
     if (al.size() == 1) P.text(fo, 4.2f, 0, 24.2f, soft, "Known by " + rich_member(al[0]), LX1 - 2);
-    std::vector<int> rows;
-    for (int k = 0; k < nf; k++) if (V.formulae_all || known(k)) rows.push_back(k);
+    /* the list: a potion a row, as the alchemy screen's (his ask, 1.4.7: "why not use the same condensed
+       potion interface"): its name and how many the party carries, its three formulae - the grades -
+       as seals (ns_grade_seal: green where the ingredients make a batch, red where short, an empty
+       ring where nobody knows it), and a line about the formula pointed at or chosen; in the alchemy
+       screen's order (the starred first, those put aside last) */
+    auto def_of = [&](int p) {                                 /* the formula a click on potion p's row shows: the highest grade known that can be brewed, else known, else grade 1 */
+        int best = -1, can = -1;
+        for (int g = 0; g < 3; g++) { int fm = 3 * p + g; if (fm >= nf || !known(fm)) continue; best = fm; if (batches_of(s, fm)) can = fm; }
+        return can >= 0 ? can : best >= 0 ? best : 3 * p;
+    };
+    std::vector<int> rows;                                      /* (potions) */
+    for (int mk : { FMARK_FIRST, FMARK_NONE, FMARK_LAST })
+        for (int p = 0; p < 22 && 3 * p < nf; p++) {
+            bool any = V.formulae_all; for (int g = 0; g < 3 && !any; g++) any = 3 * p + g < nf && known(3 * p + g);
+            int m = potion_mark(p);
+            if (any && (m == mk || (mk == FMARK_NONE && m != FMARK_FIRST && m != FMARK_LAST))) rows.push_back(p);
+        }
     int n = (int)rows.size();
     int &sc = V.scroll[TAB_FORMULAE];
     if (ns_in.wheel != 0 && ns_in.x < LX1 && ns_in.y < LY0 + NROWS * ROWH) { sc -= (int)(ns_in.wheel * 2); ns_in.wheel = 0; }
     int maxs = n - NROWS; if (maxs < 0) maxs = 0;
     if (sc > maxs) sc = maxs;
     if (sc < 0) sc = 0;
+    if (V.pin_formula >= nf) V.pin_formula = -1;
     P.rect(LX0, LY0 - 0.5f, LX1, LY0 + NROWS * ROWH + 0.5f, IM_COL32(250, 242, 222, 255), 1.5f);
     if (!n) P.para(fo, NsDraw::FS_SMALL, LX0 + 3, LY0 + 2, LX1 - LX0 - 6, dim, "Nobody in the party knows a formula. Every formula in the game shows them all, their ingredients and where they are sold.");
     int hover = -1;
     int cl = (s16)g_rw(G_CUR_LOC), sold[4] = { -1, -1, -1, -1 }, price[4];
-    if (!(cl >= 0 && cl < (int)gamedata.cities.size() && alchemist_formulae(cl, sold, price))) sold[0] = sold[1] = sold[2] = sold[3] = -1;   /* (the town's alchemist: what it sells, tagged) */
+    if (!(cl >= 0 && cl < (int)gamedata.cities.size() && alchemist_formulae(cl, sold, price))) sold[0] = sold[1] = sold[2] = sold[3] = -1;   /* (the town's alchemist: what it sells) */
+    auto sold_here = [&](int fm) { return sold[0] == fm || sold[1] == fm || sold[2] == fm || sold[3] == fm; };
     for (int r = 0; r < NROWS && sc + r < n; r++) {
-        int k = rows[sc + r];
-        float ry = LY0 + r * ROWH;
-        bool h = P.over(LX0, ry, LX1, ry + ROWH), kn = known(k);
-        if (h) hover = k;
-        if (h || k == V.pin_formula) P.rect(LX0 + 0.5f, ry, LX1 - 0.5f, ry + ROWH, k == V.pin_formula ? IM_COL32(218, 196, 150, 255) : IM_COL32(226, 204, 160, 255));
-        if (P.hit(LX0, ry, LX1, ry + ROWH)) V.pin_formula = V.pin_formula == k ? -1 : k;
-        P.icon(LX0 + 4.5f, ry + ROWH * 0.5f, 5.8f, 95 + k / 3, -1, k % 3 + 1);
+        const int p = rows[sc + r], mk = potion_mark(p);
+        const float ry = LY0 + r * ROWH;
+        const bool h = P.over(LX0, ry, LX1, ry + ROWH), pinned = V.pin_formula >= 0 && V.pin_formula / 3 == p, put = mk == FMARK_LAST;
+        if (pinned) P.rect(LX0 + 0.5f, ry + 0.3f, LX1 - 0.5f, ry + ROWH - 0.3f, IM_COL32(218, 196, 150, 255));
+        else if (h) P.rect(LX0 + 0.5f, ry + 0.3f, LX1 - 0.5f, ry + ROWH - 0.3f, IM_COL32(226, 204, 160, 255));
+        const int fshow = pinned ? V.pin_formula : def_of(p);
+        P.icon(LX0 + 5, ry + ROWH * 0.5f, 7.5f, 95 + p);
+        if (put) P.dl->AddCircleFilled(NsDraw::w(LX0 + 5, ry + ROWH * 0.5f), 4.2f * P.k, IM_COL32(236, 222, 186, 150));   /* (put aside: its flask faint) */
+        bool any = false; for (int g = 0; g < 3; g++) { int fm = 3 * p + g; any |= fm < nf && known(fm) && batches_of(s, fm) > 0; }
+        int pc = 0; for (int g = 0; g < 3; g++) if (3 * p + g < nf) pc += carried_of(s, 3 * p + g);
+        std::string pcs = pc ? std::to_string(pc) + " carried" : "";
+        float pcw = pc ? P.width(fo, 4.2f, pcs) + 2 : 0;
+        P.text(f, 5.0f, LX0 + 10.5f, ry + 0.9f, any && !put ? ink : dim, ns_item_name(95 + p), -1, LX1 - 2 - pcw);
+        if (pc) P.text(fo, 4.2f, 0, ry + 1.6f, put ? dim : soft, pcs, LX1 - 2);
+        /* the seals: a grade each; pointed at, the line tells of it; a click shows it (and keeps it shown) */
+        const float SY = ry + 9.4f, SR = 2.1f;
+        bool on_seal = false; int fline = fshow;
+        for (int g = 0; g < 3; g++) {
+            const int fm = 3 * p + g;
+            if (fm >= nf) continue;
+            const float sx = LX0 + 12.6f + g * 5.2f;
+            const bool kn = known(fm), hov = P.over(sx - 2.4f, SY - 2.6f, sx + 2.4f, SY + 2.6f);
+            ns_grade_seal(P, sx, SY, SR, g + 1, !kn ? NS_SEAL_UNKNOWN : batches_of(s, fm) ? NS_SEAL_CAN : NS_SEAL_SHORT, put,
+                          fm == V.pin_formula ? NS_RING_CHOSEN : hov && (kn || V.formulae_all) ? NS_RING_HOVER : fm == fshow ? NS_RING_SHOWN : NS_RING_NONE);
+            if (hov && (kn || V.formulae_all)) {
+                on_seal = true; fline = fm;
+                if (P.hit(sx - 2.4f, SY - 2.6f, sx + 2.4f, SY + 2.6f)) V.pin_formula = V.pin_formula == fm ? -1 : fm;
+            }
+        }
+        if (h) hover = fline;
+        /* the line's end: who knows the formula it tells of (heads) */
         float end = LX1 - 2;
-        if (tags) for (int m = 4; m >= 0; m--) {              /* (who knows it: heads, as Saints) */
-            if (!s.present[m] || !s.formula[m][k]) continue;
-            end -= head_tag(P, m, end, ry, ROWH, m == s.who, false) + 0.6f;
+        if (tags && known(fline)) for (int m = 4; m >= 0; m--) {
+            if (!s.present[m] || !s.formula[m][fline]) continue;
+            end -= head_tag(P, m, end, ry + 5.4f, ROWH - 5.4f, m == s.who, false) + 0.6f;
         }
-        end -= 1;
-        int b = kn ? batches_of(s, k) : 0, have = carried_of(s, k);
-        if (kn || have) {                                /* how many carried, and how many batches the ingredients carried make */
-            std::string bs = "brew " + std::to_string(b);
-            P.text(fo, NsDraw::FS_SMALL, 0, ry + 1.5f, b ? NsDraw::GREEN : dim, bs, end);
-            end -= P.width(fo, NsDraw::FS_SMALL, bs) + 2.5f;
-            std::string hs = "have " + std::to_string(have);
-            P.text(fo, NsDraw::FS_SMALL, 0, ry + 1.5f, have ? ink : dim, hs, end);
-            end -= P.width(fo, NsDraw::FS_SMALL, hs) + 1.5f;
+        /* the line: what the ingredients make of it, what is short, or that nobody knows it (and where) */
+        std::string l2; ImU32 lc = dim;
+        const int bt = batches_of(s, fline);
+        if (!known(fline)) { l2 = sold_here(fline) ? "nobody knows it - sold here" : "nobody knows it"; lc = sold_here(fline) ? NsDraw::GREEN : dim; }
+        else if (bt) { l2 = "enough for " + std::to_string(bt) + (bt == 1 ? " batch" : " batches"); lc = NsDraw::GREEN; }
+        else {
+            int nshort = 0; std::string first;
+            for (const FormulaIngr &q : gamedata.formulas[fline].ingr) if (q.item >= 0 && q.item < 200 && s.have[q.item] < q.count) { if (!nshort) first = ns_item_name(q.item); nshort++; }
+            l2 = "needs " + first + (nshort > 1 ? " and " + std::to_string(nshort - 1) + " more" : ""); lc = NsDraw::RED;
         }
-        if (!kn && (sold[0] == k || sold[1] == k || sold[2] == k || sold[3] == k)) {
-            end -= small_tag(P, end, ry, ROWH, "sold here") + 1;
-        }
-        P.text(f, 5.4f, LX0 + 9, ry + 0.9f, kn && have ? ink : dim, gamedata.formula_names[k], -1, end);   /* (grey: none carried, or not known) */
+        P.text(fo, 4.2f, LX0 + 28.5f, ry + 7.2f, put ? dim : lc, l2, -1, end - 1);
+        if (!on_seal && P.hit(LX0, ry, LX1, ry + ROWH)) V.pin_formula = pinned ? -1 : def_of(p);
     }
     if (n > NROWS) {
         float LY1 = LY0 + NROWS * ROWH, th = (LY1 - LY0) * NROWS / n, ty = LY0 + (LY1 - LY0 - th) * sc / (float)(n - NROWS);
         P.rect(LX1 - 1.4f, ty, LX1 - 0.3f, ty + th, IM_COL32(120, 80, 36, 140), 0.5f);
     }
-    int k = V.pin_formula >= 0 ? V.pin_formula : hover >= 0 ? hover : n ? rows[sc] : -1;   /* (one clicked stays shown until clicked again; then the one under the pointer) */
+    int k = V.pin_formula >= 0 ? V.pin_formula : hover >= 0 ? hover : n ? def_of(rows[sc]) : -1;   /* (one clicked stays shown until clicked again; then the one under the pointer) */
     if (k >= nf) k = -1;
 
     /* the party's ingredients: all 23 always in the same places, those it has none of faded; what
@@ -1251,18 +1272,8 @@ static void formulae(NsDraw &P, const SheetModel &s)
         ns_tip("The mystic number: the higher, the harder the formula is to brew (set against the alchemist's {Alchemy} and {Intelligence}). The risk: how badly a failed brew can go wrong.");
     y += mh + 1;
     y += ns_potion_about(P, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW - 2.5f, 95 + k / 3, k % 3 + 1, -1);   /* (what the potion is, as everywhere, this formula's grade marked) */
-    y += 1.5f;
-    P.text(fo, 4.3f, DX0 + 2.5f, y, soft, "Ingredients: the party has / needed"); y += 6;
-    for (const FormulaIngr &g : fm.ingr) {
-        int have = g.item >= 0 && g.item < 200 ? s.have[g.item] : 0;
-        P.icon(DX0 + 5, y + 3, 5.5f, g.item);
-        P.text(fo, NsDraw::FS_SMALL, DX0 + 9.5f, y + 0.6f, ink, ns_item_name(g.item), -1, DX1 - 20);
-        char v[16]; snprintf(v, sizeof v, "%d / %d", have, g.count);
-        P.text(fo, NsDraw::FS_SMALL, 0, y + 0.6f, have >= g.count ? NsDraw::GREEN : NsDraw::RED, v, DX1 - 3);
-        y += 6.6f;
-    }
+    y += 2.0f;                                           /* (its ingredients, at hand and needed: ringed on the shelf under the list - his ask, 1.4.7, the room for the rest) */
     int b = batches_of(s, k);
-    y += 0.5f;
     if (b) { char bl[64]; snprintf(bl, sizeof bl, "Enough ingredients to make %d potion%s.", b, b == 1 ? "" : "s"); y += P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, NsDraw::GREEN, bl) + 1.5f; }
     else y += P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, dim, kn ? "The party lacks an ingredient: brewing must wait." : "The party lacks an ingredient.") + 1.5f;
     if (kn) {

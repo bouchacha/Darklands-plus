@@ -192,21 +192,20 @@ static void draw_version(void)
 }
 
 static void draw_lcd(void);
-/* short notices ("Game saved"), bottom centre, for a few seconds */
-static char notice[160]; static u32 notice_t;
-static u32 notice_ms = 3000;
-extern "C" void ui_notice_for(const char *msg, unsigned ms)
+/* short notices ("Game saved"), bottom centre, for a few seconds: up to three at once, the newest
+   at the bottom, each for its own time (one notice put the last away: the stock notice on reaching
+   a town went the moment the town's autosave said so, 1.4.7); a long one wraps */
+struct Notice { std::string msg; u32 t, ms; };
+static std::vector<Notice> notices;
+static void notice_add(const char *msg, unsigned ms)
 {
-    snprintf(notice, sizeof notice, "%s", msg);
-    notice_t = plat_ticks_ms(); notice_ms = ms < 1000 ? 1000 : ms;
+    for (size_t i = 0; i < notices.size(); ) if (notices[i].msg == msg) notices.erase(notices.begin() + i); else i++;   /* (the same again: anew, at the bottom) */
+    notices.push_back({ msg, plat_ticks_ms(), ms < 1000 ? 1000u : ms });
+    if (notices.size() > 3) notices.erase(notices.begin());
     fprintf(stderr, "notice: %s\n", rich_plain(msg).c_str());
 }
-extern "C" void ui_notice(const char *msg)
-{
-    snprintf(notice, sizeof notice, "%s", msg);
-    notice_t = plat_ticks_ms(); notice_ms = 3000;
-    fprintf(stderr, "notice: %s\n", rich_plain(msg).c_str());
-}
+extern "C" void ui_notice_for(const char *msg, unsigned ms) { notice_add(msg, ms); }
+extern "C" void ui_notice(const char *msg) { notice_add(msg, 3000); }
 /* once, soon after the start: which controller is connected, with its main buttons, or none
    (runtime/platform_sdl.c pad_hello); small, in the bottom right corner, for a few seconds */
 static int hello_kind = -1; static char hello_name[80]; static u32 hello_t;
@@ -250,18 +249,25 @@ extern "C" void ui_draw_notice(void)
 {
     draw_lcd();
     draw_hello();
-    if (!notice[0]) return;
-    u32 age = plat_ticks_ms() - notice_t;
-    if (age > notice_ms) { notice[0] = 0; return; }
-    float a = age + 600 < notice_ms ? 1.0f : (notice_ms - age) / 600.0f;
+    u32 now = plat_ticks_ms();
+    for (size_t i = 0; i < notices.size(); ) if (now - notices[i].t > notices[i].ms) notices.erase(notices.begin() + i); else i++;
+    if (notices.empty()) return;
     ImGuiIO &io = ImGui::GetIO();
     ImGui::PushFont(ui_font_overlay);
-    ImVec2 ts = rich_size(ImGui::GetFont(), ImGui::GetFontSize(), 0, notice);   /* (shields in it: ui/richtext.h) */
-    ImVec2 p((io.DisplaySize.x - ts.x) * 0.5f, io.DisplaySize.y - ts.y - 28);
     ImDrawList *dl = ImGui::GetForegroundDrawList();
-    dl->AddRectFilled(ImVec2(p.x - 14, p.y - 7), ImVec2(p.x + ts.x + 14, p.y + ts.y + 7), IM_COL32(28, 20, 12, (int)(225 * a)), 6);
-    dl->AddRect(ImVec2(p.x - 14, p.y - 7), ImVec2(p.x + ts.x + 14, p.y + ts.y + 7), IM_COL32(190, 150, 90, (int)(255 * a)), 6, 0, 1.5f);
-    rich_draw(dl, ImGui::GetFont(), ImGui::GetFontSize(), p, 0, IM_COL32(250, 232, 190, (int)(255 * a)), notice);
+    const float wrap = fmaxf(400.0f, io.DisplaySize.x * 0.5f), fs = ImGui::GetFontSize();
+    float bottom = io.DisplaySize.y - 28;
+    for (int i = (int)notices.size() - 1; i >= 0; i--) {
+        const Notice &n = notices[i];
+        u32 age = now - n.t;
+        float a = age + 600 < n.ms ? 1.0f : (n.ms - age) / 600.0f;
+        ImVec2 ts = rich_size(ImGui::GetFont(), fs, wrap, n.msg.c_str());   /* (shields in it: ui/richtext.h) */
+        ImVec2 p((io.DisplaySize.x - ts.x) * 0.5f, bottom - ts.y);
+        dl->AddRectFilled(ImVec2(p.x - 14, p.y - 7), ImVec2(p.x + ts.x + 14, p.y + ts.y + 7), IM_COL32(28, 20, 12, (int)(225 * a)), 6);
+        dl->AddRect(ImVec2(p.x - 14, p.y - 7), ImVec2(p.x + ts.x + 14, p.y + ts.y + 7), IM_COL32(190, 150, 90, (int)(255 * a)), 6, 0, 1.5f);
+        rich_draw(dl, ImGui::GetFont(), fs, p, wrap, IM_COL32(250, 232, 190, (int)(255 * a)), n.msg.c_str());
+        bottom = p.y - 7 - 8;
+    }
     ImGui::PopFont();
 }
 

@@ -37,3 +37,11 @@ bool alchemist_formulae(int town, int formula[4], int price_fl[4]);
    first (days -1: unknown) */
 struct SellerHit { int town; std::string name; double days; int price_fl; };
 std::vector<SellerHit> formula_sellers(int f);
+
+/* where a thing is sold (the journal, ui/journal.cpp): here first (shop: which, lower case), then the
+   towns whose shops the party has seen, then (map.offers_unvisited) the towns expected to sell it,
+   nearest first; min: the minutes of travel (0 here, -1 unknown) */
+struct WhereSold { int loc; std::string name; int min; bool here, expected; std::string shop; };
+std::vector<WhereSold> journal_where_sold_rows(int id, int n);
+std::vector<std::string> journal_where_sold_list(int id, int n);   /* the same in words */
+std::string journal_days_short(int min);                    /* "<1", "3": the days by the hourglass; "" unknown */

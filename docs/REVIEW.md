@@ -644,3 +644,18 @@ covered and found, and what it could not check.
   battle tray (ns_potion_effect_grade, that grade's numbers). The sheet strip's second copy of a potion's
   words went; "some risk" on the sheet's Formulae is "medium risk" as elsewhere. (3) The stock to keep:
   20, 50, 100, 200, none; Shift+click sets every ingredient. Test commands uitemtip, uformtip.
+- 2026-11-14 (structural, his asks after RC14): (1) The stock notice fired every time (his log: "Sold in
+  Lübeck: ... 14 ingredients") and was replaced at once by the autosave's: overlay.cpp held one notice in a
+  160-character buffer. Notices are now a stack (notice_add: up to three, newest at the bottom, the same
+  text again moves down), and the stock notice is short (the three shortest of, "and N more", the shops).
+  Tested on his save: the notice, then a save's under it. (2) The ingredient tooltip was built twice
+  (sheetview, alchemyview) in words; one now, nsdraw.cpp ns_ingredient_tip: the sellers as rows with the
+  map's hourglass (worldmap_draw.cpp layer_glyph 4) and journal.cpp journal_where_sold_rows /
+  journal_days_short (journal_where_sold_list now built from the rows), the potions as ns_ingredient_row
+  draws them. (3) The grade seal of the alchemy list is ns_grade_seal, used by it and by the sheet's
+  Formulae list, which is now a potion a row like the alchemy screen's (the old row a formula with "have" and
+  "brew" went; its page no longer lists the ingredients the shelf rings). (4) PotionFx rows: the clouds'
+  effects one a row with the cloud's life in the words ("hangs 3 seconds" against a row "how long (seconds)"
+  6/9/12 read as a contradiction), FxRow::same() writes a number the grades share once across the three
+  columns (native table, ImGui table, battle tray text); the attributes' shields apart, not bracketed.
+  (5) The alchemy chart: always ten bars, those past the ingredients hollow, a line where they stop.

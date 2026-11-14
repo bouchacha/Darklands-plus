@@ -163,29 +163,8 @@ extern "C" void alchemyview_draw(void)
             const int fm = 3 * k + g, rw_ = row_of[fm], bt = rw_ >= 0 ? batches_of(fm) : 0;
             const float sx = LX0 + 12.6f + g * 5.2f;
             const bool known = rw_ >= 0, cur = fm == sel_f, hov = P.over(sx - 2.4f, SY - 2.6f, sx + 2.4f, SY + 2.6f);
-            ImVec2 c = NsDraw::w(sx, SY); const float rr = SR * P.k;
-            ImU32 fill = !known ? 0 : bt ? IM_COL32(58, 118, 48, put ? 140 : 255) : IM_COL32(150, 62, 44, put ? 140 : 255);
-            if (fill) P.dl->AddCircleFilled(c, rr, fill, 16);
-            else P.dl->AddCircle(c, rr, IM_COL32(120, 96, 66, 130), 16, fmaxf(1.0f, 0.3f * P.k));
-            /* (rings: gold the formula chosen; brown the one the line tells of and a click on the row chooses) */
-            if (cur) P.dl->AddCircle(c, rr + 0.75f * P.k, IM_COL32(214, 160, 40, 255), 16, fmaxf(1.0f, 0.45f * P.k));
-            else if (hov && known) P.dl->AddCircle(c, rr + 0.7f * P.k, IM_COL32(214, 160, 40, 150), 16, fmaxf(1.0f, 0.35f * P.k));
-            else if (fm == fshow && known) P.dl->AddCircle(c, rr + 0.7f * P.k, IM_COL32(120, 80, 36, 170), 16, fmaxf(1.0f, 0.35f * P.k));
-            {   /* the grade as the flasks show it (display.potion_grade): one to three chevrons, or dots - a digit read as a count */
-                const ImU32 mc = known ? IM_COL32(246, 234, 206, 255) : IM_COL32(120, 96, 66, 170);
-                const int n = g + 1;
-                if (config_get_int("display.potion_grade", 4) >= 3) {
-                    const float hw = rr * 0.5f, hh = hw * 0.55f, th2 = fmaxf(1.0f, rr * 0.16f), st = hh + th2 * 1.2f;
-                    for (int q = 0; q < n; q++) {
-                        float yy = c.y + (n - 1) * st * 0.5f - q * st;
-                        ImVec2 pts[3] = { ImVec2(c.x - hw, yy + hh * 0.5f), ImVec2(c.x, yy - hh * 0.5f), ImVec2(c.x + hw, yy + hh * 0.5f) };
-                        P.dl->AddPolyline(pts, 3, mc, 0, th2);
-                    }
-                } else {
-                    const float dr = fmaxf(1.0f, rr * 0.17f), st = dr * 2.7f;
-                    for (int q = 0; q < n; q++) P.dl->AddCircleFilled(ImVec2(c.x + ((n - 1) * 0.5f - q) * st, c.y), dr, mc, 10);
-                }
-            }
+            ns_grade_seal(P, sx, SY, SR, g + 1, !known ? NS_SEAL_UNKNOWN : bt ? NS_SEAL_CAN : NS_SEAL_SHORT, put,
+                          cur ? NS_RING_CHOSEN : hov && known ? NS_RING_HOVER : fm == fshow && known ? NS_RING_SHOWN : NS_RING_NONE);
             if (hov) {                                    /* (no tooltip, his ask 1.4.7: "overboard": the row's line tells of the grade pointed
                                                              at, and a click puts its formula on the right page) */
                 on_seal = true;
@@ -309,22 +288,10 @@ extern "C" void alchemyview_draw(void)
             }
             ns_stock_tag(P, x0 + 0.8f, y0 + 1.2f, id);
         }
-        if (tip >= 0) {
-            std::string use = ns_item_use(tip);
-            std::vector<std::string> where;
-            if (config_get_int("assist.where_sold", 1)) where = journal_where_sold_list(tip, 3);
-            ImVec2 b0 = NsDraw::w(X0, Y0), b1 = NsDraw::w(X1, Y1);   /* (beside the chest, the roomier side first: not over the other compartments) */
+        if (tip >= 0) {                                       /* (beside the chest, the roomier side first: not over the other compartments) */
+            ImVec2 b0 = NsDraw::w(X0, Y0), b1 = NsDraw::w(X1, Y1);
             ui_tip_beside_in(b0, b1, b0.x > ImGui::GetIO().DisplaySize.x - b1.x ? "lrab" : "rlab");
-            ns_tip_begin();
-            ImGui::TextUnformatted(ns_item_name(tip).c_str());
-            ImGui::TextDisabled(have[tip] ? "The party carries %d." : "The party has none.", have[tip]);
-            if (!where.empty()) {
-                ImGui::TextDisabled("Where to buy, nearest first:");
-                for (const std::string &w : where) ImGui::BulletText("%s", w.c_str());
-            }
-            if (!use.empty()) ui_rich_text(use.c_str());
-            ImGui::TextDisabled("%s", ns_stock_words(tip).c_str());
-            ns_tip_end();
+            ns_ingredient_tip(tip, have[tip], "");               /* (as on the sheet's shelf) */
         }
     }
 
@@ -351,41 +318,60 @@ extern "C" void alchemyview_draw(void)
                                   : std::string("The party lacks the ingredients for a batch of this formula (the right page shows what is short).");
             y += 9.0f;
 
-            /* the chance by the number of batches: one roll decides them all. At most ten bars (his ask, 1.4.7: with a
-               ton of ingredients the bars got too thin to click): past ten the window follows the batches set (+), its
-               first and last numbers written under its ends */
+            /* the chance by the number of batches: one roll decides them all. Always ten bars (his asks, 1.4.7: with a
+               ton of ingredients the bars got too thin to click; the same chart whatever the party carries): those past
+               what the ingredients allow hollow, a line where they stop; past ten the window follows the batches set
+               (+), its first and last numbers written under its ends */
             const float CY0 = y, CY1 = y + 11;
             int hover_n = 0;
             if (most > 0) {
-                const int ncol = most < 10 ? most : 10;
+                const int ncol = 10, top = most > ncol ? most : ncol;   /* (top: the last number a window can show) */
                 int first = cnt > ncol ? cnt - ncol + 1 : 1;
                 if (V.drag) first = V.drag_first;                       /* (the window holds still under a drag) */
-                if (first > most - ncol + 1) first = most - ncol + 1;
+                if (first > top - ncol + 1) first = top - ncol + 1;
                 if (first < 1) first = 1;
-                const int last = first + ncol - 1;
+                const int last = first + ncol - 1, reach = most < last ? most : last;   /* (reach: the last bar the ingredients allow) */
                 float bw = (X1 - X0) / ncol;
                 bool on = P.over(X0, CY0 - 1, X1, CY1 + 1.5f);
                 if (on) {
-                    hover_n = first + (int)((P.mx - X0) / bw); if (hover_n < first) hover_n = first; if (hover_n > last) hover_n = last;
-                    tablet_tip = (most > ncol ? "The chance for " + std::to_string(first) + " to " + std::to_string(last) + " batches, of the " + std::to_string(most) +
-                                                " the ingredients allow (+ goes further). "
-                                              : "The chance for each number of batches, 1 to " + std::to_string(most) + " (what the ingredients allow). ") +
-                                 "One roll decides them all: more batches, more potions, a lower chance (1 to 3 alike, then 4 and 5, 6 and 7 ...). Click to set the batches; below, what may come of " +
-                                 std::to_string(hover_n) + (hover_n == 1 ? " batch." : " batches.");
+                    int n = first + (int)((P.mx - X0) / bw); if (n < first) n = first; if (n > last) n = last;
+                    if (n > most) {
+                        char b[200]; snprintf(b, sizeof b, "Not enough ingredients for %d batches (they make %d): a hollow bar is the chance there would be.", n, most);
+                        tablet_tip = b;
+                        n = most;
+                    } else
+                        tablet_tip = (most > ncol ? "The chance for " + std::to_string(first) + " to " + std::to_string(last) + " batches, of the " + std::to_string(most) +
+                                                    " the ingredients allow (+ goes further). "
+                                                  : most < ncol ? "The chance for each number of batches, 1 to 10; the ingredients allow " + std::to_string(most) + (most == 1 ? " (the line). " : " (to the line). ")
+                                                  : std::string("The chance for each number of batches, 1 to 10 (what the ingredients allow). ")) +
+                                     "One roll decides them all: more batches, more potions, a lower chance (1 to 3 alike, then 4 and 5, 6 and 7 ...). Click to set the batches; below, what may come of " +
+                                     std::to_string(n) + (n == 1 ? " batch." : " batches.");
+                    hover_n = n;
                 }
                 for (int n = first; n <= last; n++) {
                     int c = alchemy_chance(&a, n);
-                    float x0 = X0 + (n - first) * bw, x1 = x0 + bw - (bw > 1.6f ? 0.35f : 0), hh = (CY1 - CY0) * c / 100.0f;
+                    float x0 = X0 + (n - first) * bw, x1 = x0 + bw - 0.35f, hh = (CY1 - CY0) * c / 100.0f;
+                    if (n > most) {                                     /* (more than the ingredients make: hollow) */
+                        if (hh > 0.4f) P.dl->AddRect(NsDraw::w(x0 + 0.2f, CY1 - hh), NsDraw::w(x1 - 0.2f, CY1), IM_COL32(176, 164, 134, 110), 0, 0, 1.0f);
+                        continue;
+                    }
                     ImU32 col = n == cnt ? (c >= 50 ? wax_green : wax_red) : n == hover_n ? wax : IM_COL32(176, 164, 134, 120);
                     if (hh > 0) P.dl->AddRectFilled(NsDraw::w(x0, CY1 - hh), NsDraw::w(x1, CY1), col);
                 }
                 for (float x = X0; x < X1; x += 2.0f)                     /* (an even chance: dotted) */
                     P.dl->AddRectFilled(NsDraw::w(x, CY0 + (CY1 - CY0) * 0.5f - 0.15f), NsDraw::w(x + 0.7f, CY0 + (CY1 - CY0) * 0.5f + 0.15f), IM_COL32(222, 210, 176, 110));
                 P.rect(X0, CY1, X1, CY1 + 0.3f, wax_soft);
-                if (most > ncol) {                                      /* (which numbers the bars are) */
+                if (most < last) {                                      /* the line where the ingredients stop, their number under it */
+                    float lx = X0 + (most - first + 1) * bw - 0.17f;
+                    P.rect(lx - 0.2f, CY0 - 1.0f, lx + 0.2f, CY1 + 1.2f, wax);
+                    std::string m = std::to_string(most);
+                    P.text(fo, 3.2f, lx - P.width(fo, 3.2f, m) * 0.5f, CY1 + 1.2f, wax, m);
+                }
+                {                                                       /* (which numbers the bars are: the first and the last, where the line's leaves room) */
                     std::string a0 = std::to_string(first), a1 = std::to_string(last);
-                    P.text(fo, 3.2f, X0, CY1 + 0.5f, wax_soft, a0);
-                    P.text(fo, 3.2f, X1 - P.width(fo, 3.2f, a1), CY1 + 0.5f, wax_soft, a1);
+                    float lx = most < last ? X0 + (most - first + 1) * bw : X1 + 9;
+                    if (lx > X0 + 4.5f && most != first) P.text(fo, 3.2f, X0, CY1 + 0.5f, wax_soft, a0);   /* (the line's number says it) */
+                    if (lx < X1 - 4.5f || most >= last) P.text(fo, 3.2f, X1 - P.width(fo, 3.2f, a1), CY1 + 0.5f, wax_soft, a1);
                 }
                 if (cnt >= first && cnt <= last) {                      /* the batches set: a notch under its bar */
                     float cx = X0 + (cnt - first + 0.5f) * bw;
@@ -397,7 +383,7 @@ extern "C" void alchemyview_draw(void)
                 if (P.hit(X0, CY0 - 1, X1, CY1 + 1.5f)) V.drag = true;
                 if (V.drag && !was) V.drag_first = first;
                 if (V.drag) {
-                    int n = first + (int)((P.mx - X0) / bw); if (n < first) n = first; if (n > last) n = last;
+                    int n = first + (int)((P.mx - X0) / bw); if (n < first) n = first; if (n > reach) n = reach;
                     if (n != cnt) ns_push(AV_SET, n, 0, 0);
                     hover_n = n;
                 }
