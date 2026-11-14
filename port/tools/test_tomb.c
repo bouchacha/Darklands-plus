@@ -22,7 +22,7 @@ void hook_call_original(void)
         hook_return_far(0);
         return;
     }
-    if (finish && g_rb(0x9084) && g_rb(GV_real_combat)) {
+    if (finish && g_rb(GV_place_won) && g_rb(GV_real_combat)) {
         g_ww(GV_battle_result, 0);
         AX = 1;
     } else AX = 0;
@@ -32,16 +32,16 @@ static void reset(void)
 {
     memset(M, 0, MEM_SIZE); memset(&R, 0, sizeof R);
     original_calls = 0; finish = 1; unw_active = 0; giving = 0; awards = 0; pending = 1;
-    g_ww(0xc1f0, 0x5f);
+    g_ww(GV_battlefield_kind, 0x5f);
     g_ww(GV_battle_result, (u16)-1);
     g_wb(CBF(0, CB_STATUS), 1);
-    g_ww(0x7d3c, 0x6000);
+    g_ww(GV_activations_seg, 0x6000);
 }
 static void unchanged(void)
 {
     int before = (s16)g_rw(GV_battle_result);
     tomb_over_hook();
-    assert(!g_rb(0x9084) && !g_rb(GV_real_combat));
+    assert(!g_rb(GV_place_won) && !g_rb(GV_real_combat));
     assert((s16)g_rw(GV_battle_result) == before && original_calls == 1);
 }
 int main(void)
@@ -52,28 +52,28 @@ int main(void)
     }
     for (int kind = 0; kind < 3; kind++) {
         reset(); g_wb(GV_activation_count, 2);
-        wb(0x6000, (u16)(0x47ee + 0x1e + 0x0b + kind), 1);
+        wb(0x6000, (u16)(ACTIVATIONS_OFF + 0x1e + 0x0b + kind), 1);
         unchanged();                              /* an unexplored group of any kind */
     }
     reset(); g_wb(GV_activation_count, 31); unchanged(); /* malformed state is not a win */
     reset(); g_wb(GV_activation_count, 30);
-    wb(0x6000, 0x47ee + 29 * 0x1e + 0x0d, 1); unchanged(); /* last slot of last group */
-    reset(); g_wb(GV_activation_count, 1); g_ww(0x7d3c, 0); unchanged();
+    wb(0x6000, ACTIVATIONS_OFF + 29 * 0x1e + 0x0d, 1); unchanged(); /* last slot of last group */
+    reset(); g_wb(GV_activation_count, 1); g_ww(GV_activations_seg, 0); unchanged();
     reset(); g_wb(CBF(0, CB_STATUS), 2); unchanged(); /* nobody conscious */
     reset(); g_wb(GV_cbt_floor, (u8)-99); unchanged(); /* party already left */
     reset(); g_wb(GV_floor_shown, 1); unchanged();
-    reset(); g_ww(0xc1f0, 0x5e); unchanged();       /* another dungeon */
-    reset(); g_ww(0xc1f0, 0); unchanged();          /* generic battle resume is outside this fix */
+    reset(); g_ww(GV_battlefield_kind, 0x5e); unchanged();       /* another dungeon */
+    reset(); g_ww(GV_battlefield_kind, 0); unchanged();          /* generic battle resume is outside this fix */
     for (int result = 1; result <= 8; result++) {
         reset(); g_ww(GV_battle_result, (u16)result); unchanged(); /* fled/lost/other exit */
     }
     reset(); unw_active = 1; unchanged();
     reset(); finish = 0;                           /* game's loot/delay has not finished */
-    tomb_over_hook(); assert(!AX && g_rb(0x9084));
+    tomb_over_hook(); assert(!AX && g_rb(GV_place_won));
     reset(); g_wb(CBF(5, CB_STATUS), 2);            /* last skeleton unconscious */
     tomb_over_hook(); assert(AX == 1 && g_rw(GV_battle_result) == 0 && original_calls == 1);
     reset(); g_ww(GV_battle_result, 0);            /* victory delay already running */
-    tomb_over_hook(); assert(g_rb(0x9084) && !g_rb(GV_real_combat) && original_calls == 1);
+    tomb_over_hook(); assert(g_rb(GV_place_won) && !g_rb(GV_real_combat) && original_calls == 1);
     for (int member = 1; member < 5; member++) {
         reset(); g_wb(CBF(0, CB_STATUS), 2);       /* a surviving follower can finish it */
         g_wb(CBF(member, CB_STATUS), 1);

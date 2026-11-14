@@ -22,8 +22,7 @@
 #include "../runtime/config.h"
 #include "foesleft.h"
 
-#define ACTIVATIONS_SEG 0x7d3c                /* word: the segment of the floor's activation records */
-#define ACTIVATIONS_OFF 0x47ee
+#define ACTIVATIONS_SEG GV_activations_seg    /* word: the segment of the floor's activation records */
 
 static signed char known[FL_FLOORS];          /* this floor's list was seen */
 static int foes[FL_FLOORS], groups[FL_FLOORS];

@@ -103,7 +103,8 @@
  *  alchrisk  A failed brew's accident follows the formula's risk the right way round (below).
  *  bishop    A cathedral's errand is the bishop's, and its relic is paid once (below, bishop).
  *  altar     A pagan altar the party has purged is no errand's site any more (below, altar).
- *  tomb      Winning the fight in a tomb wins the errand's thing; losing it does not (below, tomb).
+ *  tomb      Winning the fight in a tomb wins the errand's thing; losing it does not; beating
+ *            every group of skeletons is winning it (below, tomb).
  *  lordreward The lord of a town without a council pays for his tasks (below, lordreward).
  *  armourday Hardarmor, St. Dunstan's and St. Patrick's armour, St. Crispin's armour quality, Firewall
  *            and the fire saints' protection last a day (below).
@@ -250,6 +251,7 @@
 #include "../runtime/config.h"
 #include "../runtime/hle.h"
 #include "fixes.h"
+#include "foesleft.h"
 #include "nscreen.h"
 #include "gamemodel.h"
 #include "saves.h"
@@ -575,11 +577,11 @@ static void additem_hook(void)             /* add_item_rec_impl(who, struct item
 /* ---------------------------------------------------------------- castle */
 static void castle_hook(void)              /* combat_over */
 {
-    if ((g_rb(GV_combat_flags) & 1) && g_rb(0x9084) != 1)
+    if ((g_rb(GV_combat_flags) & 1) && g_rb(GV_place_won) != 1)
         for (int i = 5; i < 13; i++)
             if (g_rb((u16)(0xc1f3 + i)) == 1 && (g_rb((u16)(GV_cbt_flags + 2 * i)) & 0x80)) {
                 if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix castle: boss %d is dead\n", i);
-                g_wb(0x9084, 1);
+                g_wb(GV_place_won, 1);
                 break;
             }
     hook_call_original();
@@ -1682,16 +1684,15 @@ static void altar_frame(void)
  * at the post-battle give call (the return AX can be changed by another wrapper), and give
  * only after a victory, with the place for the moment of the call. */
 static int tomb_loc = -1;
-/* A tomb (battlefield 0x5f) is a one-floor dungeon whose skeletons wait in
- * separate activation groups. None is a master whose fall finishes the place:
- * each fight returns to exploration, and using the stairs then returns 8 (later
- * changed to retreat, 2). Finish as victory once EVERY group is empty and no
- * enemy is standing. The existing post-battle wrapper below then awards the
- * quest item, once cards_startup has restored the world and quest records.
- * Stock tombs use keep tiles and do not permit saving inside the battle. */
+/* A tomb (battlefield 0x5f) is one floor whose skeletons wait in groups at activation spots, none of
+ * them a master whose fall ends the place: each fight goes back to exploring, and the stairs then
+ * return 8 (made a retreat, 2) - so the thing was never given (woodk123's pull request #13, 1.4.7).
+ * At combat_over, with every group met and beaten and no enemy standing, the place is won
+ * (GV_place_won, as the castle fix does); tomb_give_hook below then gives the thing once the world and
+ * the errands are back. A tomb cannot be saved in mid-battle. */
 static int tomb_cleared(void)
 {
-    if (g_rw(0xc1f0) != 0x5f || (s8)g_rb(GV_floor_shown) != 0) return 0;
+    if (g_rw(GV_battlefield_kind) != 0x5f || (s8)g_rb(GV_floor_shown) != 0) return 0;
     int standing = 0;
     for (int i = 0; i < 13; i++) {
         if (g_rb(CBF(i, CB_STATUS)) != 1) continue;
@@ -1700,11 +1701,11 @@ static int tomb_cleared(void)
     }
     if (!standing) return 0;
     int n = g_rb(GV_activation_count);
-    u16 seg = g_rw(0x7d3c);              /* activation records, +0x47ee, 0x1e bytes each */
+    u16 seg = g_rw(GV_activations_seg);  /* (a group: +0b, how many of each of its three kinds; mods/foesleft.c) */
     if (n > 30 || (n && !seg)) return 0;
     for (int k = 0; k < n; k++)
         for (int j = 0; j < 3; j++)
-            if ((s8)rb(seg, (u16)(0x47ee + k * 0x1e + 0x0b + j)) > 0) return 0;
+            if ((s8)rb(seg, (u16)(ACTIVATIONS_OFF + k * 0x1e + 0x0b + j)) > 0) return 0;
     return 1;
 }
 static void tomb_over_hook(void)
@@ -1712,9 +1713,9 @@ static void tomb_over_hook(void)
     int result = (s16)g_rw(GV_battle_result);
     int cleared = !unw_active && (result == -1 || result == 0) && tomb_cleared();
     if (cleared) {
-        if (getenv("DL_FIX_LOG") && !g_rb(0x9084)) fprintf(stderr, "fix tomb: all skeleton groups beaten, finish as victory\n");
-        g_wb(0x9084, 1);                 /* this dungeon is finished */
-        if (result == -1) g_wb(GV_real_combat, 1); /* also finish after returning to exploration */
+        if (getenv("DL_FIX_LOG") && !g_rb(GV_place_won)) fprintf(stderr, "fix tomb: every group beaten, a victory\n");
+        g_wb(GV_place_won, 1);
+        if (result == -1) g_wb(GV_real_combat, 1);   /* (back to exploring already: the battle's end runs once more, as a victory) */
     }
     hook_call_original();
 }

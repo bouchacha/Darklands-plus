@@ -125,6 +125,9 @@
 #define GV_demo_mode                    0xc21a    /* demo / tutorial mode */
 #define GV_loot_pile_count              0xc80e
 #define GV_activation_count             0xd6cc
+#define GV_activations_seg              0x7d3c    /* the segment of the floor's activation records (+0x47ee, 0x1e bytes each) */
+#define GV_place_won                    0x9084    /* 1: the place is beaten (a castle's boss, a tomb's last group): the fight ends as a victory */
+#define GV_battlefield_kind             0xc1f0    /* the battlefield fought on (0x5f a tomb) */
 #define GV_effect_clouds                0xa2eb    /* effect list 1 (10 bytes each) */
 #define GV_effect_cloud_count           0xa33d
 #define GV_effect_areas                 0xa342    /* effect list 2 */

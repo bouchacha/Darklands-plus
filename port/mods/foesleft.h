@@ -1,6 +1,7 @@
 /* foesleft.h - the foes a place still holds that the party has not met yet (mods/foesleft.c) */
 #pragma once
 #define FL_FLOORS 16
+#define ACTIVATIONS_OFF 0x47ee           /* the floor's activation records in their segment (GV_activations_seg), 0x1e bytes each */
 typedef struct {
     int floor;                   /* the floor shown */
     int floors;                  /* floors known (0 .. floors-1) */

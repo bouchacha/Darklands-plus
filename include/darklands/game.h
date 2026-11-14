@@ -468,6 +468,9 @@
 #define demo_mode                D_c21a               /* demo / tutorial mode */
 #define loot_pile_count          D_c80e
 #define activation_count         D_d6cc
+#define activations_seg          D_7d3c               /* the segment of the floor's activation records (+0x47ee, 0x1e bytes each) */
+#define place_won                D_9084               /* 1: the place is beaten (a castle's boss, a tomb's last group): the fight ends as a victory */
+#define battlefield_kind         D_c1f0               /* the battlefield fought on (0x5f a tomb) */
 #define effect_clouds            D_a2eb               /* effect list 1 (10 bytes each) */
 #define effect_cloud_count       D_a33d
 #define effect_areas             D_a342               /* effect list 2 */
