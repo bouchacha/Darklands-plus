@@ -438,9 +438,9 @@ void ui_draw_battle_info(void)
                 char state[80] = "";
                 if (lk) snprintf(state, sizeof state, " (locked)");
                 else if (tr) snprintf(state, sizeof state, " (%s)", trap);
-                if (!calm) snprintf(ct, sizeof ct, "Chest%s: open it from the orders of a member beside it", state);
-                else if (lk || tr) snprintf(ct, sizeof ct, "Chest%s: click to walk there; %s is then on the leader's orders", state, lk ? "Pick Lock" : "Disarm");
-                else snprintf(ct, sizeof ct, known ? "Chest: click to walk there and open it" : "Chest: click to walk there and open it (if it is not locked or trapped)");
+                /* (not walked to on a click, his ask, 1.5: the member to open it, by Artifice, is the player's to bring) */
+                snprintf(ct, sizeof ct, lk ? "Chest%s: Pick Lock from the orders of a member beside it" : tr ? "Chest%s: Disarm from the orders of a member beside it"
+                                                                                    : "Chest%s: open it from the orders of a member beside it", state);
                 hint = ct;
             }
             else if (levelwalk_wayout_at(gx, gy) >= 0) hint = calm ? "Way out: click to walk there; then Exit Battlefield (X) for each member" : "Way out: a member standing here can leave (Exit Battlefield, X)";

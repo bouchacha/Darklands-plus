@@ -675,3 +675,7 @@ covered and found, and what it could not check.
 - 2026-11-14 (release): 1.4.7 becomes 1.5 at his word: CHANGELOG's section "1.5", written short and by
   importance, the same text as the release notes' "New in 1.5"; the code's comments say 1.5 where they named
   the release (the release candidates keep their 1.4.7-RCn names).
+- 2026-11-14 (his ask, before publishing 1.5): a click on a chest no longer walks the party there (levelwalk.c:
+  chest_pending, chest_goal and the arrival's Open Chest / leader-chosen went; the click is the game's own move).
+  Walking in single file left the member who should open it, by Artifice, far from it. Pointing at a chest still
+  names it, locked or trapped once known, and says to open it from the orders of a member beside it.

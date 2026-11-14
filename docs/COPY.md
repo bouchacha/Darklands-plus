@@ -718,10 +718,9 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/battleoverlay.cpp:437` | a complex trap |
 | `ui/battleoverlay.cpp:437` | a moderate trap |
 | `ui/battleoverlay.cpp:437` | a simple trap |
-| `ui/battleoverlay.cpp:441` | Chest%s: open it from the orders of a member beside it |
-| `ui/battleoverlay.cpp:442` | Chest%s: click to walk there; %s is then on the leader's orders |
-| `ui/battleoverlay.cpp:443` | Chest: click to walk there and open it |
-| `ui/battleoverlay.cpp:443` | Chest: click to walk there and open it (if it is not locked or trapped) |
+| `ui/battleoverlay.cpp:442` | Chest%s: Pick Lock from the orders of a member beside it |
+| `ui/battleoverlay.cpp:442` | Chest%s: Disarm from the orders of a member beside it |
+| `ui/battleoverlay.cpp:443` | Chest%s: open it from the orders of a member beside it |
 | `ui/battleoverlay.cpp:446` | Way out: click to walk there; then Exit Battlefield (X) for each member |
 | `ui/battleoverlay.cpp:446` | Way out: a member standing here can leave (Exit Battlefield, X) |
 | `ui/battleoverlay.cpp:479` | a little hurt |
@@ -1615,7 +1614,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/margins_battle.cpp:528` | gravely wounded |
 | `ui/margins_battle.cpp:533` | The master of this place: once this one has fallen and the fight is over, the place is won. |
 | `ui/margins_battle.cpp:538` | None in sight yet. |
-| `ui/margins_battle.cpp:540` | To explore: in Single File (Q) or as a Group (G), click a passage and the party walks there. Click stairs and they take them; a shut door and they open it; a chest and they open it, unless it is locked or trapped (then the leader is chosen: Pick Lock or Disarm is yours to order); a way out and they walk to it, its orders ready%s. |
+| `ui/margins_battle.cpp:540` | To explore: in Single File (Q) or as a Group (G), click a passage and the party walks there. Click stairs and they take them; a shut door and they open it; a way out and they walk to it, its orders ready. A chest says under the pointer whether it is locked or trapped (once a member has stood at it): bring the member to open it there%s. |
 | `ui/margins_battle.cpp:541` | ; Tab shows the level map (as far as the party has seen it), and a click on it walks the party there |
 | `ui/menuview.cpp:106` | Arrows, Enter; Esc closes |
 | `ui/menuview.cpp:106` | Click to choose; Esc or a click elsewhere closes |
@@ -3021,24 +3020,22 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/keep.c:38` | formula %d %15s |
 | `mods/keep.c:57` | # potions first or last in the alchemy screen's list (potion k first\|last); an ingredient's stock to keep (stock item n)  |
 | `mods/levelwalk.c:60` | only works when you pick a tile that isn't next to a wall |
-| `mods/levelwalk.c:167` | The chest is locked: Pick Lock is on the leader's orders. |
-| `mods/levelwalk.c:167` | The chest is trapped: Disarm is on the leader's orders. |
-| `mods/levelwalk.c:179` | The party could not get into the doorway. |
-| `mods/levelwalk.c:187` | The party could get no nearer to the place chosen on the level map. |
-| `mods/levelwalk.c:225` | The party cannot get there from where it stands. |
-| `mods/levelwalk.c:233` |  in single file (press G to move as a group again) |
-| `mods/levelwalk.c:233` |  (the others as they fight) |
-| `mods/levelwalk.c:236` | The party goes in single file (press G to move as a group again). |
-| `mods/levelwalk.c:239` | The party walks there%s. |
-| `mods/levelwalk.c:240` | The party will walk there%s: Space resumes the battle. |
-| `mods/levelwalk.c:241` | The party walks there%s. |
-| `mods/levelwalk.c:323` | There are no stairs on this floor that the party has found. |
-| `mods/levelwalk.c:336` | The party walks to the stairs and takes them. |
-| `mods/levelwalk.c:336` | The party walks to the stairs. |
-| `mods/levelwalk.c:465` | near an exit |
-| `mods/levelwalk.c:562` | The party walks to the way out: then Exit Battlefield (X) for each member to leave. |
-| `mods/levelwalk.c:569` | The party walks to the door to close it. |
-| `mods/levelwalk.c:569` | The party walks to the door to open it. |
+| `mods/levelwalk.c:164` | The party could not get into the doorway. |
+| `mods/levelwalk.c:172` | The party could get no nearer to the place chosen on the level map. |
+| `mods/levelwalk.c:210` | The party cannot get there from where it stands. |
+| `mods/levelwalk.c:218` |  in single file (press G to move as a group again) |
+| `mods/levelwalk.c:218` |  (the others as they fight) |
+| `mods/levelwalk.c:221` | The party goes in single file (press G to move as a group again). |
+| `mods/levelwalk.c:224` | The party walks there%s. |
+| `mods/levelwalk.c:225` | The party will walk there%s: Space resumes the battle. |
+| `mods/levelwalk.c:226` | The party walks there%s. |
+| `mods/levelwalk.c:308` | There are no stairs on this floor that the party has found. |
+| `mods/levelwalk.c:321` | The party walks to the stairs and takes them. |
+| `mods/levelwalk.c:321` | The party walks to the stairs. |
+| `mods/levelwalk.c:450` | near an exit |
+| `mods/levelwalk.c:546` | The party walks to the way out: then Exit Battlefield (X) for each member to leave. |
+| `mods/levelwalk.c:553` | The party walks to the door to close it. |
+| `mods/levelwalk.c:553` | The party walks to the door to open it. |
 | `mods/lodgeview.c:140` | Castle Guard |
 | `mods/lodgeview.c:143` | Castle Servant |
 | `mods/lodgeview.c:144` | Castle Steward |

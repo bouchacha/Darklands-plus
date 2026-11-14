@@ -537,7 +537,7 @@ void battle_panel(float width, float fs)
     if (!shown) {
         ImGui::TextDisabled("None in sight yet.");
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-        ImGui::TextWrapped("To explore: in Single File (Q) or as a Group (G), click a passage and the party walks there. Click stairs and they take them; a shut door and they open it; a chest and they open it, unless it is locked or trapped (then the leader is chosen: Pick Lock or Disarm is yours to order); a way out and they walk to it, its orders ready%s.",
+        ImGui::TextWrapped("To explore: in Single File (Q) or as a Group (G), click a passage and the party walks there. Click stairs and they take them; a shut door and they open it; a way out and they walk to it, its orders ready. A chest says under the pointer whether it is locked or trapped (once a member has stood at it): bring the member to open it there%s.",
                            !levelmap_available() ? "" : "; Tab shows the level map (as far as the party has seen it), and a click on it walks the party there");
         ImGui::PopStyleColor();
     }

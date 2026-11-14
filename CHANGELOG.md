@@ -11,7 +11,7 @@ What changed since 1.4.6.
 - **Split potions:** Split, on a potion's row of the character sheet, shares it evenly among the members on their feet.
 - **A stock of ingredients:** a click on an ingredient keeps 20, 50, 100 or 200 of it (Shift+click: every ingredient). Arriving in a town that sells one the party is short of, a box shows what to buy. An ingredient's tooltip lists the nearest towns that sell it, with the days away.
 - **Shop wares under headings** (Weapons, Armor, Ingredients ...), each folded away with a click.
-- **Things on the field are named:** stairs, chests (locked or trapped, once a member has stood at one) and ways out. Out of a fight a click walks the party there and uses them.
+- **Things on the field are named:** stairs, doors, chests (locked or trapped, once a member has stood at one) and ways out. Out of a fight a click on stairs, a door or a way out walks the party there and uses it.
 - **The level map shows the ways out and the chests seen,** drawn on parchment as a plan.
 - **The manor rumor** (F12 > Reconstructed Content, off unless ticked): a town-news text MicroProse wrote and never showed.
 
