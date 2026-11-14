@@ -659,3 +659,13 @@ covered and found, and what it could not check.
   6/9/12 read as a contradiction), FxRow::same() writes a number the grades share once across the three
   columns (native table, ImGui table, battle tray text); the attributes' shields apart, not bracketed.
   (5) The alchemy chart: always ten bars, those past the ingredients hollow, a line where they stop.
+- 2026-11-14 (his asks after RC15): the potion block in shorthand (nsdraw.cpp ns_potion_fx/potion_table,
+  inventory.cpp ui_potion_about): PotionFx.keys, the shields a cloud's rows strike, first; FxRow.time, the
+  hourglass ("6s", "19-21 h"); the rows the same at every grade above the grades' pictures, one number,
+  those that differ under them. A rich-text token for every weapon skill, {Weapon Skills} (richtext.cpp:
+  the Saints page's three fanned shields; check_docs knows it). The stock notice is a box as the learned
+  saint's (overlay.cpp draw_stock, ui_stock_popup: the ingredients' pictures by shop, have/want; with its
+  card), not a notice. Pull request #13 (woodk123, the tomb's item after every group is beaten) merged as it
+  was, then its raw addresses named in the decompilation's header (place_won D_9084, which the castle fix
+  uses too; battlefield_kind D_c1f0; activations_seg D_7d3c) and gamevars.h regenerated, the activation
+  records' offset in foesleft.h; test_tomb.c passes.

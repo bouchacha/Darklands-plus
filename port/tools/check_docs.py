@@ -175,7 +175,7 @@ def main():
     # pictures know (ui_key_of in ui/skillicons.cpp); any other name would be printed in its braces
     gm = rd('port/mods/gamemodel.c')
     known = set(re.findall(r'"([^"]+)"', gm[gm.index('const char *gm_attr_name'):gm.index('/* the months')]))
-    known |= {'Latin', 'Reputation', 'Fame', 'Age', 'Missile Device', 'Missile Weapons', 'Edged Weapon', 'Impact Weapon', 'Flail', 'Polearm', 'Thrown Weapon', 'Bow'}
+    known |= {'Weapon Skills', 'Latin', 'Reputation', 'Fame', 'Age', 'Missile Device', 'Missile Weapons', 'Edged Weapon', 'Impact Weapon', 'Flail', 'Polearm', 'Thrown Weapon', 'Bow'}
     known |= set(re.findall(r'"([^"]+)"', gm[gm.index('const char *gm_skill_short'):][:400]))
     rt = rd('port/ui/effects.cpp')
     effects = set(re.findall(r'"([^"]+)"', rt[rt.index('EFFECT_NAME[] = {'):].split('};')[0]))

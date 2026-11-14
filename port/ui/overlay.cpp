@@ -488,8 +488,10 @@ static void watch_saints(void)
     }
     memcpy(sk_prev, cur, sizeof cur); sk_have = 1;
 }
+static float learned_top;                                       /* (the box's top this frame, 0 none: the stock box goes above it) */
 static void draw_learned(void)
 {
+    learned_top = 0;
     if (learned_saint < 0) return;
     u32 age = plat_ticks_ms() - learned_t;
     if (learned_card[0]) {                                        /* (on its card: until another card, or none) */
@@ -516,12 +518,75 @@ static void draw_learned(void)
     float bottom = card_help_top > 0 ? card_help_top - size * 0.4f : br.y;
     ImVec2 p0(br.x - w - 2 * pad, bottom - bh), p1(br.x, bottom);
     ImDrawList *dl = ovl_list();
+    learned_top = p0.y;
     dl->AddRectFilled(p0, p1, IM_COL32(28, 18, 10, (int)(228 * a)), size * 0.35f);
     dl->AddRect(p0, p1, IM_COL32(170, 130, 70, (int)(230 * a)), size * 0.35f, 0, 1.5f);
     dl->AddText(f, size * 1.05f, ImVec2(p0.x + pad, p0.y + pad * 0.8f), IM_COL32(250, 246, 236, (int)(255 * a)), head.c_str());
     float ty = p0.y + pad * 1.4f + hs.y;
     if (!lore.empty()) dl->AddText(f, size, ImVec2(p0.x + pad, ty), IM_COL32(215, 202, 180, (int)(255 * a)), lore.c_str(), 0, w);
     if (!eff.empty()) rich_draw(dl, f, size, ImVec2(p0.x + pad, ty + ls.y + gap), w, IM_COL32(255, 222, 140, (int)(255 * a)), eff.c_str());
+}
+
+/* the stock to keep, short (ui/journal.cpp journal_stock_check): in a town that sells ingredients the party keeps a
+ * stock of and has fewer of, a box as the learned saint's (his ask, 1.4.7: "the same shape/behavior as the saint
+ * learned popup"; a notice had been pushed off by the autosave's at once) - the town, then each shop with the
+ * ingredients' pictures (the alchemy screen's) and what the party has of what it keeps; on the card it came with
+ * until another card (a few seconds at least), off a card some seconds */
+void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);
+static std::vector<StockShort> stock_rows; static std::string stock_town; static u32 stock_t; static char stock_card[16];
+void ui_stock_popup(const std::string &town, const std::vector<StockShort> &rows)
+{
+    stock_town = town; stock_rows = rows; stock_t = plat_ticks_ms(); stock_card[0] = 0;
+    if (game_mode() == GM_CARD) g_str(G_DGROUP, GV_card_name, stock_card, sizeof stock_card);
+}
+static void draw_stock(void)
+{
+    if (stock_rows.empty()) return;
+    u32 age = plat_ticks_ms() - stock_t;
+    if (stock_card[0]) {
+        char cn[16] = ""; if (game_mode() == GM_CARD) g_str(G_DGROUP, GV_card_name, cn, sizeof cn);
+        if (age > 5000 && strcmp(cn, stock_card)) { stock_rows.clear(); return; }
+    } else if (age > 12500) { stock_rows.clear(); return; }
+    float a = stock_card[0] || age < 11500 ? 1.0f : (12500 - age) / 1000.0f;
+    ImFont *f = ui_font_overlay;
+    ImVec2 tl = g2w(0, 0), br = g2w(317, 197);
+    float size = (br.y - tl.y) / 197.0f * 6.8f; if (size < 15) size = 15;
+    float w = (br.x - tl.x) * 0.46f, pad = size * 0.5f, is = size * 1.7f, cell = size * 3.1f, ns = size * 0.82f;
+    std::string head = stock_town + " sells what the party keeps a stock of";
+    std::vector<std::string> shops;                                /* (the shops, in the order the rows name them) */
+    for (const StockShort &r : stock_rows) if (std::find(shops.begin(), shops.end(), r.shop) == shops.end()) shops.push_back(r.shop);
+    int per = (int)(w / cell); if (per < 1) per = 1;
+    ImVec2 hs = f->CalcTextSizeA(size * 1.05f, FLT_MAX, w, head.c_str());
+    float bh = pad * 2.2f + hs.y;
+    for (const std::string &sh : shops) {
+        int n = 0; for (const StockShort &r : stock_rows) n += r.shop == sh;
+        bh += size * 1.2f + ((n + per - 1) / per) * (is + ns * 1.3f);
+    }
+    float bottom = learned_top > 0 ? learned_top - size * 0.4f : card_help_top > 0 ? card_help_top - size * 0.4f : br.y;
+    ImVec2 p0(br.x - w - 2 * pad, bottom - bh), p1(br.x, bottom);
+    ImDrawList *dl = ovl_list();
+    dl->AddRectFilled(p0, p1, IM_COL32(28, 18, 10, (int)(228 * a)), size * 0.35f);
+    dl->AddRect(p0, p1, IM_COL32(170, 130, 70, (int)(230 * a)), size * 0.35f, 0, 1.5f);
+    dl->AddText(f, size * 1.05f, ImVec2(p0.x + pad, p0.y + pad * 0.8f), IM_COL32(250, 246, 236, (int)(255 * a)), head.c_str(), 0, w);
+    float y = p0.y + pad * 1.4f + hs.y;
+    for (const std::string &sh : shops) {
+        std::string lab = "At the " + sh;
+        dl->AddText(f, size, ImVec2(p0.x + pad, y), IM_COL32(215, 202, 180, (int)(255 * a)), lab.c_str());
+        y += size * 1.2f;
+        int k = 0;
+        for (const StockShort &r : stock_rows) {
+            if (r.shop != sh) continue;
+            float cx = p0.x + pad + (k % per) * cell + cell * 0.5f, cy = y + (k / per) * (is + ns * 1.3f) + is * 0.5f;
+            int v0 = dl->VtxBuffer.Size;
+            ui_item_icon(dl, ImVec2(cx, cy), is * 0.62f, r.id);
+            if (a < 1) ui_dim_since(dl, v0, a);
+            char c[24]; snprintf(c, sizeof c, "%d/%d", r.have, r.want);
+            ImVec2 cs = f->CalcTextSizeA(ns, FLT_MAX, 0, c);
+            dl->AddText(f, ns, ImVec2(cx - cs.x * 0.5f, cy + is * 0.5f), IM_COL32(255, 222, 140, (int)(255 * a)), c);
+            k++;
+        }
+        y += ((k + per - 1) / per) * (is + ns * 1.3f);
+    }
 }
 
 extern "C" void travel_overlay(void);
@@ -799,7 +864,8 @@ extern "C" void ui_overlay(void)
     }
     draw_chances();
     draw_card_help();
-    if (assist_card_help) { watch_saints(); draw_learned(); }
+    if (assist_card_help) { watch_saints(); draw_learned(); } else learned_top = 0;
+    draw_stock();
     travel_overlay();
     { void travel_camp_button(void); travel_camp_button(); }
     travelmap_labels();

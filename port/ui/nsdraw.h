@@ -270,8 +270,8 @@ void ns_compare_arrow(ImDrawList *dl, float x, float y, int vs, float k);   /* t
 /* what a potion does: how it is used, in words, its effects as rows of three numbers (grade 1, 2,
    3; one across the three where the grades agree), and what stays the same (ui/nsdraw.cpp ns_potion_fx) */
 enum { PFX_DRINK, PFX_THROW, PFX_USE };
-struct FxRow { std::string label, v[3]; bool same() const { return v[0] == v[1] && v[1] == v[2]; } };
-struct PotionFx { int how = -1; std::string what, after; std::vector<FxRow> rows; };
+struct FxRow { std::string label, v[3]; bool time = false; bool same() const { return v[0] == v[1] && v[1] == v[2]; } };   /* (time: how long, the hourglass before its label) */
+struct PotionFx { int how = -1; std::string what, keys, after; std::vector<FxRow> rows; };   /* (keys: the shields its rows below strike, first) */
 PotionFx ns_potion_fx(int id);                          /* how -1: not a potion */
 const char *ns_potion_how_word(int how);                /* "Drunk", "Thrown", "Used by a member (P in the inventory)" */
 void ns_potion_how_icon(ImDrawList *dl, ImVec2 a, float s, int how, bool dark);   /* its picture, an s-square at a */

@@ -559,48 +559,70 @@ void ui_potion_about(int id, int grade)
         ns_potion_how_icon(ImGui::GetWindowDrawList(), ImVec2(c.x, c.y + UIS(1)), is, f.how, true);
         ImGui::Dummy(ImVec2(is, is)); ImGui::SameLine(0, UIS(6));
         ImGui::PushStyleColor(ImGuiCol_Text, dimc); ui_rich_text(f.what.c_str()); ImGui::PopStyleColor();
+        if (!f.keys.empty()) { ImGui::PushStyleColor(ImGuiCol_Text, dimc); ui_rich_text(f.keys.c_str()); ImGui::PopStyleColor(); }   /* the shields its rows strike */
         if (!f.rows.empty()) {
-            float hs = ImGui::GetTextLineHeight() * 1.5f, pad = ImGui::GetStyle().CellPadding.x * 2, cw = hs;
-            for (const FxRow &r : f.rows) for (int g = 0; g < 3; g++) cw = fmaxf(cw, r.same() ? (ImGui::CalcTextSize(r.v[g].c_str()).x - 2 * pad) / 3 : ImGui::CalcTextSize(r.v[g].c_str()).x);
+            /* as the native screens' table (nsdraw.cpp potion_table): the rows the same at every grade first, a
+               label and one number across the three columns; then the potion at each grade over its column and
+               the rows that differ; how long, the hourglass */
+            float hs = ImGui::GetTextLineHeight() * 1.5f, pad = ImGui::GetStyle().CellPadding.x * 2, cw = hs, lh = ImGui::GetTextLineHeight();
+            bool varies = false;
+            for (const FxRow &r : f.rows) if (!r.same()) { varies = true; for (int g = 0; g < 3; g++) cw = fmaxf(cw, ImGui::CalcTextSize(r.v[g].c_str()).x); }
             cw += UIS(10);
+            float ind = f.keys.empty() ? 0 : UIS(10);
             float lw = fmaxf(UIS(80), W - 4 - 3 * (cw + pad) - pad);    /* (the labels: what the three columns leave, wrapped) */
             if (ImGui::BeginTable("##potion", 4, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoHostExtendX)) {
             ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, lw);
             for (int g = 1; g <= 3; g++) ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, cw);
             const ImU32 band = IM_COL32(214, 176, 100, 60);
-            ImGui::TableNextRow();
-            for (int g = 1; g <= 3; g++) {
-                ImGui::TableSetColumnIndex(g);
-                if (g == grade) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, band);
-                float cw = ImGui::GetContentRegionAvail().x;
-                ImVec2 q0 = ImGui::GetCursorScreenPos();
-                ui_item_icon_tier(ImGui::GetWindowDrawList(), ImVec2(q0.x + cw * 0.5f, q0.y + hs * 0.5f), hs, id, g);
-                ImGui::Dummy(ImVec2(cw, hs));
-            }
-            for (const FxRow &r : f.rows) {
-                ImGui::TableNextRow();
+            auto label = [&](const FxRow &r) {
                 ImGui::TableSetColumnIndex(0);
-                ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + lw);
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ind);
+                if (r.time) {
+                    void layer_glyph(ImDrawList *, ImVec2, float, int, ImU32);
+                    ImVec2 q = ImGui::GetCursorScreenPos();
+                    layer_glyph(ImGui::GetWindowDrawList(), ImVec2(q.x + lh * 0.45f, q.y + lh * 0.52f), lh * 0.95f, 4, ImGui::GetColorU32(dimc));
+                    ImGui::Dummy(ImVec2(lh * 0.9f, lh));
+                    if (r.label.empty()) return;
+                    ImGui::SameLine(0, UIS(3));
+                }
+                ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + lw - ind);
                 ImGui::PushStyleColor(ImGuiCol_Text, dimc); ui_rich_text(r.label.c_str()); ImGui::PopStyleColor();
                 ImGui::PopTextWrapPos();
+            };
+            for (const FxRow &r : f.rows) {                          /* the same at every grade: one number, across the three */
+                if (!r.same()) continue;
+                ImGui::TableNextRow();
+                label(r);
+                ImGui::TableSetColumnIndex(1);
+                ImVec2 q0 = ImGui::GetCursorScreenPos();
+                float span = 3 * cw + 2 * pad, tw = ImGui::CalcTextSize(r.v[0].c_str()).x;
+                ImGui::PushClipRect(ImVec2(q0.x - pad, q0.y), ImVec2(q0.x + span + pad, q0.y + lh), false);   /* (past the cell's own clip) */
+                ImGui::GetWindowDrawList()->AddText(ImVec2(q0.x + (span - tw) * 0.5f, q0.y), ImGui::GetColorU32(ImGuiCol_Text), r.v[0].c_str());
+                ImGui::PopClipRect();
+                ImGui::Dummy(ImVec2(1, lh));
+            }
+            if (varies) {
+                ImGui::TableNextRow();
                 for (int g = 1; g <= 3; g++) {
                     ImGui::TableSetColumnIndex(g);
                     if (g == grade) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, band);
-                    if (r.same()) {                                  /* (every grade alike: once, centred across the three columns) */
-                        if (g == 1) {
-                            ImVec2 q0 = ImGui::GetCursorScreenPos();
-                            float span = 3 * cw + 2 * pad, tw = ImGui::CalcTextSize(r.v[0].c_str()).x, lh = ImGui::GetTextLineHeight();
-                            ImGui::PushClipRect(ImVec2(q0.x - pad, q0.y), ImVec2(q0.x + span + pad, q0.y + lh), false);   /* (past the cell's own clip) */
-                            ImGui::GetWindowDrawList()->AddText(ImVec2(q0.x + (span - tw) * 0.5f, q0.y), ImGui::GetColorU32(ImGuiCol_Text), r.v[0].c_str());
-                            ImGui::PopClipRect();
-                            ImGui::Dummy(ImVec2(1, lh));
-                        }
-                        continue;
+                    float cw2 = ImGui::GetContentRegionAvail().x;
+                    ImVec2 q0 = ImGui::GetCursorScreenPos();
+                    ui_item_icon_tier(ImGui::GetWindowDrawList(), ImVec2(q0.x + cw2 * 0.5f, q0.y + hs * 0.5f), hs, id, g);
+                    ImGui::Dummy(ImVec2(cw2, hs));
+                }
+                for (const FxRow &r : f.rows) {                      /* those that differ: a column a grade */
+                    if (r.same()) continue;
+                    ImGui::TableNextRow();
+                    label(r);
+                    for (int g = 1; g <= 3; g++) {
+                        ImGui::TableSetColumnIndex(g);
+                        if (g == grade) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, band);
+                        float cw2 = ImGui::GetContentRegionAvail().x, tw = ImGui::CalcTextSize(r.v[g - 1].c_str()).x;
+                        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + fmaxf(0.0f, (cw2 - tw) * 0.5f));
+                        if (grade == 0 || g == grade) ImGui::TextUnformatted(r.v[g - 1].c_str());
+                        else ImGui::TextDisabled("%s", r.v[g - 1].c_str());
                     }
-                    float cw = ImGui::GetContentRegionAvail().x, tw = ImGui::CalcTextSize(r.v[g - 1].c_str()).x;
-                    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + fmaxf(0.0f, (cw - tw) * 0.5f));
-                    if (grade == 0 || g == grade) ImGui::TextUnformatted(r.v[g - 1].c_str());
-                    else ImGui::TextDisabled("%s", r.v[g - 1].c_str());
                 }
             }
             ImGui::EndTable();

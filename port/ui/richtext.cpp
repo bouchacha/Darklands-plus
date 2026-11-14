@@ -19,6 +19,7 @@
 #include <ctype.h>
 
 #include "effects.h"
+#include "../mods/gamemodel.h"
 
 namespace {
 struct Atom { int key; std::string text; bool space; bool br; };   /* key -1: words; br: a line break before it */
@@ -34,6 +35,7 @@ int token_at(const char *s, size_t i, std::string *value, size_t *end)
     int key = -1;
     if (ne == n + 2 && n[0] == '@' && n[1] >= '0' && n[1] <= '4') key = RICH_MEMBER + (n[1] - '0');
     else if (n < ne && n[0] == '*') { int k = ui_effect_of(n + 1, (int)(ne - n - 1)); if (k >= 0) key = RICH_EFFECT + k; } else if (n < ne && n[0] == '~') { key = ui_key_of(n + 1, (int)(ne - n - 1)); if (key >= 0) key |= RICH_STRUCK; }
+    else if (ne - n == 13 && !strncmp(n, "Weapon Skills", 13)) key = RICH_WEAPONS;
     else key = ui_key_of(n, (int)(ne - n));
     if (key < 0) return -1;
     *value = colon ? std::string(colon + 1, e) : std::string();
@@ -66,6 +68,7 @@ float shield_size(float fs) { return fs * 0.66f; }
 float pic_width(float fs, int key)                                  /* a head; a roundel; a shield */
 {
     key &= ~RICH_STRUCK;
+    if (key == RICH_WEAPONS) return shield_size(fs) * (UI_SHIELD_W * 0.85f + 0.7f);   /* (three shields fanned, each 0.35 of the size right of the one before) */
     return key >= RICH_EFFECT ? fs * 0.86f : key >= RICH_MEMBER ? fs * 0.92f / 1.2f : UI_SHIELD_W * shield_size(fs);
 }
 float atom_width(ImFont *f, float fs, const Atom &a)
@@ -121,6 +124,7 @@ std::string rich_effect(int ei, const std::string &value)
 std::string rich_key_name(int key)
 {
     if (key & RICH_STRUCK) return std::string(ui_key_name(key & ~RICH_STRUCK)) + ": too low";
+    if (key == RICH_WEAPONS) return "Every weapon skill";
     return key >= RICH_EFFECT ? ui_effect_say(key - RICH_EFFECT) : key >= RICH_MEMBER ? ui_member_name(key - RICH_MEMBER) : ui_key_name(key);
 }
 
@@ -145,7 +149,14 @@ ImVec2 rich_draw(ImDrawList *dl, ImFont *f, float fs, ImVec2 pos, float wrap, Im
         int v0 = dl->VtxBuffer.Size;
         ImVec2 c(p.x + sw * 0.5f, p.y + fs * 0.52f);
         int base = a.key & ~RICH_STRUCK;                          /* (struck: only a shield) */
-        if (base >= RICH_EFFECT) ui_effect_icon(dl, c, fs * 0.64f, base - RICH_EFFECT, 0);
+        if (base == RICH_WEAPONS) {                                 /* every weapon skill: three of their shields fanned, as the Saints page's chips */
+            extern int ui_icon_disc; int disc = ui_icon_disc; ui_icon_disc = 0;
+            float fw = UI_SHIELD_W * is * 0.85f;
+            static const int FAN[3] = { SKILL_BOW, SKILL_IMPACT, SKILL_EDGED };
+            for (int k = 0; k < 3; k++) ui_skill_icon(dl, ImVec2(p.x + fw * 0.5f + is * 0.35f * k, c.y), is * 0.85f, FAN[k]);
+            ui_icon_disc = disc;
+        }
+        else if (base >= RICH_EFFECT) ui_effect_icon(dl, c, fs * 0.64f, base - RICH_EFFECT, 0);
         else if (base >= RICH_MEMBER) ui_member_head(dl, base - RICH_MEMBER, ImVec2(p.x, p.y + fs * 0.04f), fs * 0.92f);
         else {
             extern int ui_icon_disc; int disc = ui_icon_disc; ui_icon_disc = 0;
@@ -182,7 +193,7 @@ std::string rich_plain(const char *s)
         int key = s[i] == '{' ? token_at(s, i, &value, &end) : -1;
         if (key < 0) { out += s[i++]; continue; }
         const char *colon = (const char *)memchr(s + i, ':', end - i), *n = s + i + 1 + (s[i + 1] == '~');
-        out += key >= RICH_MEMBER && !(key & RICH_STRUCK) ? rich_key_name(key) : std::string(n, colon ? colon : s + end - 1);   /* (the name as written) */
+        out += (key >= RICH_MEMBER || key == RICH_WEAPONS) && !(key & RICH_STRUCK) ? rich_key_name(key) : std::string(n, colon ? colon : s + end - 1);   /* (the name as written) */
         if (!value.empty()) out += " " + value;
         i = end;
     }

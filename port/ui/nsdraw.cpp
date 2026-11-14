@@ -386,81 +386,80 @@ void ns_stock_click(NsDraw &P, float x0, float y0, float x1, float y1, int id)
  * oils are the member's, not a weapon's: the game keeps them in one byte of the member (+0x34:
  * damage and penetration) that every hit the member lands uses, whatever the weapon (bows and
  * fists too), whatever the potion's label says. */
-/* what a potion does, as its parts: how it is used (drunk, thrown, put on), what it does in words,
- * the numbers that change with the grade (a table's rows: grade 1, 2, 3), and what stays the same */
+/* what a potion does, as its parts: how it is used (drunk, thrown, put on), what it does in words, its
+ * effects' shorthand (shields, roundels) and their rows: one number where the grades agree (written above
+ * the grades' pictures), three where they differ (under them); how long as the hourglass and "6s"; what
+ * stays the same. In short, as the saints' help is (his ask, 1.4.7: "-50%" for "halved", the hourglass
+ * for "how long that lasts on them (seconds of battle)", the effects first and then whom they strike) */
 PotionFx ns_potion_fx(int id)
 {
     PotionFx f;
     bool fixed = fix_is_on("potions") != 0, oilw = fix_is_on("oilweapons") != 0;
-    const std::string day = fixed ? "Lasts 19 to 21 hours." : "Lasts for good, and adds up with the next dose.";
-    const char *LASTS = "How long that lasts on them (seconds of battle)";   /* (a cloud's own life is in the words: what it does lasts longer) */
     auto row = [&f](const std::string &l, const char *a, const char *b, const char *c) { FxRow r; r.label = l; r.v[0] = a; r.v[1] = b; r.v[2] = c; f.rows.push_back(r); };
-    auto all = [&row](const std::string &l, const char *v) { row(l, v, v, v); };   /* (the same at every grade) */
-    /* (the clouds: his ask, 1.4.7 - "it says the cloud hangs for 3 seconds but then how long shows 6/9/12", and
-       who suffers what ran together in one sentence: the cloud in the words, each effect a row, how long they
-       last the last row; the attributes' shields apart, not bracketed as a group sharing one value) */
+    auto all = [&row](const std::string &l, const char *v) { row(l, v, v, v); };
+    auto lasts = [&f](const char *a, const char *b, const char *c, const std::string &l = "") { FxRow r; r.label = l; r.time = true; r.v[0] = a; r.v[1] = b; r.v[2] = c; f.rows.push_back(r); };
+    auto day = [&]() { if (fixed) lasts("19-21 h", "19-21 h", "19-21 h"); else f.what += " Permanently; each dose adds to the last."; };
+    const char *SKILLS = "{Agility} {Perception} {Weapon Skills}";
     switch (id) {
     case 95: f.how = PFX_THROW;
-        f.what = "A reeking cloud, up to 4 by 4 paces, that hangs 3 seconds. What it does to those it catches, allies too, lasts longer:";
-        all("The one it hits: {Agility} {Perception} and every weapon skill", "halved");
-        all("Everyone else in the cloud: the same", "a quarter off");
-        row(LASTS, "6", "9", "12"); break;
+        f.what = "A reeking cloud, up to 4 by 4 paces; it hangs 3 s.";
+        f.keys = SKILLS; all("Prime target", "-50%"); all("Others in the cloud (party included)", "-25%");
+        lasts("6s", "9s", "12s"); break;
     case 96: f.how = PFX_THROW;
-        f.what = "Blinding powder in a small cloud that hangs 3 seconds. What it does lasts longer:";
-        all("The one it hits: blinded (only parries: no shooting, no throwing), and {Agility} {Perception} and every weapon skill", "a third off");
-        all("Those beside them: {Agility} {Perception} and every weapon skill", "a quarter off");
-        row(LASTS, "8", "16", "24"); break;
+        f.what = "Blinding powder, a small cloud; it hangs 3 s. The prime target is blinded too: parries only, no shooting or throwing.";
+        f.keys = SKILLS; all("Prime target", "-33%"); all("Adjacent", "-25%");
+        lasts("8s", "16s", "24s"); break;
     case 97: f.how = PFX_THROW;
-        f.what = "Black smoke. Shots through any such cloud hit a fifth as often; fighting from inside one costs 15 to hit.";
-        row("How long the cloud hangs (seconds of battle)", "20", "60", "180");
+        f.what = "Black smoke. While it hangs, shots through it hit a fifth as often, and fighting from inside it costs 15 to hit.";
+        lasts("20s", "60s", "180s");
         f.after = "The battle's orders never offer it to the party: it is for the encounters, and enemies throw it."; break;
     case 98: f.how = PFX_THROW;
-        f.what = "Itching powder in a small cloud that hangs 3 seconds. What it does lasts longer:";
-        all("Every weapon skill, for each point of armor worn on the body and limbs (the heavier, the worse)", "-5%");
-        row(LASTS, "25", "40", "60"); break;
+        f.what = "Itching powder, a small cloud; it hangs 3 s.";
+        f.keys = "{Weapon Skills}"; all("For each point of armor worn on the body and limbs", "-5%");
+        lasts("25s", "40s", "60s"); break;
     case 99: f.how = PFX_THROW;
-        f.what = "Acid on the one it hits, at once and for good. Armor eaten to nothing is destroyed; with no armor (or damage left over) it wounds instead. It also dissolves locks.";
-        row("Armor quality lost", "4 to 12", "6 to 14", "8 to 16"); break;
+        f.what = "Acid on the prime target, at once and permanently: armor eaten to nothing is destroyed; with no armor (or damage left over) it wounds instead. It dissolves locks too.";
+        row("{*Armor Quality}", "-4 to 12", "-6 to 14", "-8 to 16"); break;
     case 100: f.how = PFX_THROW;
-        f.what = "A poison cloud, up to 2 by 2 paces, that hangs 2 seconds: wounds that no armor stops, at once, more on a weaker target.";
-        row("Wounds", "4 to 12", "6 to 14", "8 to 16"); break;
+        f.what = "A poison cloud, up to 2 by 2 paces; it hangs 2 s. It wounds at once, through any armor, more on a weaker target.";
+        row("{*Damage}", "4 to 12", "6 to 14", "8 to 16"); break;
     case 101: f.how = PFX_THROW;
-        f.what = "A blinding flash. The one it hits, and every enemy of the thrower on that floor who faces it, is blinded (only parries: no shooting, no throwing). The thrower's allies are spared.";
-        row("How long they stay blinded (seconds of battle)", "4", "6", "8"); break;
+        f.what = "A blinding flash: the prime target, and every enemy of the thrower on that floor who faces it, is blinded (parries only, no shooting or throwing). The thrower's allies are spared.";
+        lasts("4s", "6s", "8s"); break;
     case 102: f.how = PFX_THROW;
-        f.what = "A blast at once on the one it hits, less around it. The armor is worn down by a quarter of the damage, for good.";
+        f.what = "A blast at once on the prime target, less around it. It wears the armor down by a quarter of the damage, permanently.";
         row("{*Damage}", "4 to 12", "6 to 14", "8 to 16"); row("{*Penetration}", "6", "7", "8"); break;
     case 103: f.how = PFX_THROW;
-        f.what = "Burning pitch that no armor stops, at once, and a quarter of that further off, less a tenth of the armor's quality (and of Firewall's {*Fire} protection). The armor is worn down too, for good.";
+        f.what = "Burning pitch, at once, through any armor; a quarter of it further off, less a tenth of the armor's quality (and of Firewall's {*Fire} protection). It wears the armor down too, permanently.";
         row("{*Damage}", "4 to 10", "6 to 12", "8 to 14"); break;
     case 104: f.how = PFX_THROW;
-        f.what = "A pool of sticky sludge, up to 4 by 4 paces, for 4 minutes of battle: whoever crosses it is slowed.";
-        row("Pace while crossing it", "1/2", "3/8", "1/4"); break;
+        f.what = "A pool of sticky sludge, up to 4 by 4 paces: whoever crosses it is slowed.";
+        lasts("4 min", "4 min", "4 min"); row("Pace while crossing it", "-50%", "-63%", "-75%"); break;
     case 105: f.how = PFX_USE;
-        f.what = std::string("On every hit the member lands, ") + (oilw ? "with any weapon but an impact weapon or a flail" : "with any weapon: bows, guns, impact weapons and fists too") + "; damage only, not the chance to hit. " + day;
-        row("{*Damage}", "+3", "+4", "+5"); break;
+        f.what = std::string("On every hit the member lands, ") + (oilw ? "with any weapon but an impact weapon or a flail" : "with any weapon: bows, guns, impact weapons and fists too") + "; damage only, not the chance to hit.";
+        row("{*Damage}", "+3", "+4", "+5"); day(); break;
     case 106: f.how = PFX_USE;
         f.what = std::string("On every hit the member lands, ") + (oilw ? "with a blade or a polearm" : "with any weapon") +
-                 (fixed ? ", up to 15 in all. " : "; past 15 it starts again from 0 (a bow's 6 + 10 hits as 0). ") + day;
-        row("{*Penetration}", "+3", "+4", "+5"); break;
+                 (fixed ? ", up to 15 in all." : "; past 15 it starts again from 0 (a bow's 6 + 10 hits as 0).");
+        row("{*Penetration}", "+3", "+4", "+5"); day(); break;
     case 107: f.how = PFX_USE;
         if (fix_is_on("greatpower")) {
             f.what = std::string("The weapon in hand counts higher in quality, up to 99") + (oilw ? ", if it is an impact weapon, a flail or a handgun" : ": bows, guns and fists too") +
-                     "; each 10 points of quality add a step of damage. Lasts 19 to 21 hours; a second dose adds to the first.";
-            row("{*Weapon Quality}", "+14", "+22", "+30");
+                     "; each 10 points of quality add a step of damage. A second dose adds to the first.";
+            row("{*Weapon Quality}", "+14", "+22", "+30"); lasts("19-21 h", "19-21 h", "19-21 h");
         } else {
-            f.what = std::string("On every hit the member lands, with any weapon. ") + (fixed ? "Penetration counts up to 15 in all. " : "Penetration past 15 starts again from 0, so grades 1 and 3 lower a bow's. ") + day;
-            row("{*Damage}", "0", "+1", "+1"); row("{*Penetration}", "+14", "+6", "+14");
+            f.what = std::string("On every hit the member lands, with any weapon. ") + (fixed ? "Penetration counts up to 15 in all." : "Penetration past 15 starts again from 0, so grades 1 and 3 lower a bow's.");
+            row("{*Damage}", "0", "+1", "+1"); row("{*Penetration}", "+14", "+6", "+14"); day();
         }
         break;
     case 108: f.how = PFX_USE;
-        f.what = "Up to 99. Lasts 19 to 21 hours; a second dose adds to the first.";
-        row("{Bows}{Thrown Weapons}{Missile Devices}", "+14", "+22", "+30"); break;
+        f.what = "Up to 99. A second dose adds to the first.";
+        row("{Bows} {Thrown Weapons} {Missile Devices}", "+14", "+22", "+30"); lasts("19-21 h", "19-21 h", "19-21 h"); break;
     case 109: f.how = PFX_USE;
         if (fix_is_on("armorday")) {
-            f.what = "Against every blow and shot. Lasts 19 to 21 hours; a second dose while one runs keeps the stronger.";
-            row("{*Armor} quality", "+20", "+25", "+30"); row("{*Armor} thickness (levels)", "+1", "+2", "+2");
-        } else { f.what = "Against every blow and shot. Lasts for good; doses add up."; row("{*Armor}", "+1", "+2", "+3"); }
+            f.what = "Against every blow and shot. A second dose while one runs keeps the stronger.";
+            row("{*Armor Quality}", "+20", "+25", "+30"); row("{*Armor} (thickness levels)", "+1", "+2", "+2"); lasts("19-21 h", "19-21 h", "19-21 h");
+        } else { f.what = "Against every blow and shot. Permanently; doses add up."; row("{*Armor}", "+1", "+2", "+3"); }
         break;
     case 110: f.how = PFX_DRINK;
         f.what = "Just one florin. It is meant for the encounters, which ask for it (to purify, or to make gold)."; break;
@@ -470,18 +469,18 @@ PotionFx ns_potion_fx(int id)
                                                 { "+6 to 11", "+8 to 13", "+10 to 15" }, { "+6 to 11", "+8 to 15", "+10 to 17" } };
         int a2 = id - 111;
         f.how = PFX_DRINK;
-        f.what = "Past the maximum if need be (the maximum itself stays). Lasts 19 to 21 hours";
-        if (a2 == 1 || a2 == 2) f.what += fix_is_on("blessing") ? "; on a wounded member it heals, and the healing stays: only what is still above the maximum goes." : "; on a wounded member it heals, but all of it is taken back when it wears off.";
-        else f.what += "; then what it added goes.";
-        f.what += " A second dose while the first runs adds only what goes beyond it.";
-        row(ATT[a2], AMT[a2][0], AMT[a2][1], AMT[a2][2]);
+        f.what = "Past the maximum if need be.";
+        if (a2 == 1 || a2 == 2) f.what += fix_is_on("blessing") ? " It heals a wounded member, and the healing stays." : " It heals a wounded member, but takes it all back when it wears off.";
+        f.what += " A second dose adds only what goes beyond the first.";
+        row(ATT[a2], AMT[a2][0], AMT[a2][1], AMT[a2][2]); lasts("19-21 h", "19-21 h", "19-21 h");
         break; }
     case 115: f.how = PFX_DRINK;
-        f.what = std::string("The {Endurance} lasts 29 to 31 hours") + (fix_is_on("blessing") ? "; on a wounded member it heals, and the healing stays." : "; on a wounded member it heals, but all of it is taken back when it wears off.");
-        row("{Strength} back, for good, of what wounds took", "50%", "70%", "90%"); row("{Endurance}", "+9 to 14", "+15 to 21", "+22 to 29"); break;
+        f.what = fix_is_on("blessing") ? "The {Endurance} heals a wounded member, and the healing stays." : "The {Endurance} heals a wounded member, but takes it all back when it wears off.";
+        row("{Strength} back, permanently, of what wounds took", "50%", "70%", "90%"); row("{Endurance}", "+9 to 14", "+15 to 21", "+22 to 29");
+        lasts("29-31 h", "29-31 h", "29-31 h", "{Endurance}"); break;
     case 116: f.how = PFX_DRINK;
-        if (fix_is_on("armorday")) f.what = "Lasts 19 to 21 hours; a second dose keeps the stronger.";
-        else f.what = std::string("For good.") + (fix_is_on("fireward") ? "" : " And {*Armor} +16 to the armor, for good.");
+        if (fix_is_on("armorday")) { f.what = "A second dose keeps the stronger."; lasts("19-21 h", "19-21 h", "19-21 h"); }
+        else f.what = std::string("Permanently.") + (fix_is_on("fireward") ? "" : " And {*Armor} +16 to the armor, permanently.");
         row("{*Fire} damage from Arabian Fire", "-5", "-7", "-9"); break;
     default: f.how = -1;
     }
@@ -497,8 +496,10 @@ std::string ns_potion_effect_grade(int id, int g)
     if (f.how < 0) return "";
     std::string t = std::string(ns_potion_how_word(f.how)) + ": " + f.what;
     bool by_grade = false;
+    if (!f.keys.empty()) t += "\n" + f.keys;
     for (const FxRow &r : f.rows) {
-        t += "\n" + r.label + ": " + (g >= 1 && g <= 3 || r.same() ? r.v[g >= 1 && g <= 3 ? g - 1 : 0] : r.v[0] + ", " + r.v[1] + " or " + r.v[2]);
+        std::string l = r.time ? (r.label.empty() ? std::string("Lasts") : r.label + " lasts") : r.label;
+        t += "\n" + l + ": " + (g >= 1 && g <= 3 || r.same() ? r.v[g >= 1 && g <= 3 ? g - 1 : 0] : r.v[0] + ", " + r.v[1] + " or " + r.v[2]);
         by_grade |= !r.same();
     }
     if (!f.after.empty()) t += "\n" + f.after;
@@ -581,44 +582,70 @@ int ns_potion_grade(int id, int q)
     return ui_potion_tier(q, d->quality);
 }
 
-/* the table of a potion's numbers by grade at (x, y), w wide: a column a grade under the potion's
-   picture at that grade, the label of a row at its left; the column of the one in hand marked
-   (grade 1..3; 0 none). The height */
+/* the table of a potion's effects at (x, y), w wide: its shorthand first (the shields its rows strike),
+   then the rows that are the same at every grade, a label and one number; then, where any differ, the
+   potion's picture at each grade over a column and those rows, the column of the one in hand marked
+   (grade 1..3; 0 none). How long: the hourglass. The height */
+static float fx_label_x(const FxRow &r, float gs) { return r.time ? gs * 1.15f : 0; }      /* (the hourglass before a label) */
+static float fx_cols(NsDraw &P, float gs, const PotionFx &f)                               /* a grade's column: its widest number, with room */
+{
+    float cw = gs * 2.0f;
+    for (const FxRow &r : f.rows) if (!r.same()) for (int g = 0; g < 3; g++) cw = fmaxf(cw, P.width(P.fo, gs, r.v[g]) + gs * 1.2f);
+    return cw;
+}
 static float potion_table(NsDraw &P, float gs, float x, float y, float w, int id, int grade, const PotionFx &f, bool draw)
 {
     ImFont *fo = P.fo;
-    float cw = gs * 2.0f;                                        /* a grade's column: as wide as its widest number, with room (a number the grades share: across the three) */
-    for (const FxRow &r : f.rows) for (int g = 0; g < 3; g++) cw = fmaxf(cw, (P.width(fo, gs, r.v[g]) + gs * 1.2f) / (r.same() ? 3 : 1));
-    float cx0 = x + w - 3 * cw, lw = cx0 - x - 1.0f, hh = gs * 1.8f;
+    const float y0 = y, cw = fx_cols(P, gs, f), cx0 = x + w - 3 * cw, ind = f.keys.empty() ? 0 : gs * 0.9f, hh = gs * 1.8f;
+    auto label_h = [&](const FxRow &r, float lw) { float lx = x + ind + fx_label_x(r, gs); return r.label.empty() ? gs * 1.05f : fmaxf(P.para_height(fo, gs, lw - (lx - x), r.label), gs * 1.05f); };
+    auto label = [&](const FxRow &r, float ly, float lw) {        /* a row's label (the hourglass first); its height */
+        float lx = x + ind + fx_label_x(r, gs), h = label_h(r, lw);
+        if (draw) {
+            if (r.time) { void layer_glyph(ImDrawList *, ImVec2, float, int, ImU32); layer_glyph(P.dl, NsDraw::w(x + ind + gs * 0.45f, ly + gs * 0.55f), gs * 0.95f * P.k, 4, NsDraw::INK_SOFT); }
+            if (!r.label.empty()) P.para(fo, gs, lx, ly, lw - (lx - x), NsDraw::INK_SOFT, r.label);
+            if (r.time && P.over(x + ind, ly, x + ind + gs, ly + gs)) ns_tip("How long it lasts");
+        }
+        return h;
+    };
+    if (!f.keys.empty()) y += (draw ? P.para(fo, gs, x, y, w, NsDraw::INK_SOFT, f.keys) : P.para_height(fo, gs, w, f.keys)) + 0.6f;
+    bool any_varies = false;
+    for (const FxRow &r : f.rows) {                               /* the same at every grade: above the grades */
+        if (!r.same()) { any_varies = true; continue; }
+        float vw = P.width(fo, gs, r.v[0]), lw = cx0 + 1.5f * cw - vw * 0.5f - x - 1.5f;
+        float h = label(r, y, lw);
+        if (draw) P.text(fo, gs, cx0 + 1.5f * cw - vw * 0.5f, y, NsDraw::INK, r.v[0]);
+        y += h + 0.9f;
+    }
+    if (!any_varies) return y - y0;
+    const float ty = y;
     float rows_h = 0;
-    for (const FxRow &r : f.rows) rows_h += fmaxf(P.para_height(fo, gs, lw, r.label), gs * 1.05f) + 0.9f;
+    for (const FxRow &r : f.rows) if (!r.same()) rows_h += label_h(r, cx0 - x - 1.0f) + 0.9f;
     if (draw) {
-        if (grade >= 1 && grade <= 3) P.rect(cx0 + (grade - 1) * cw + 0.4f, y - 0.3f, cx0 + grade * cw - 0.4f, y + hh + rows_h + 0.2f, IM_COL32(214, 176, 100, 70), 1.0f);
+        if (grade >= 1 && grade <= 3) P.rect(cx0 + (grade - 1) * cw + 0.4f, ty - 0.3f, cx0 + grade * cw - 0.4f, ty + hh + 1.0f + rows_h + 0.2f, IM_COL32(214, 176, 100, 70), 1.0f);
         for (int g = 1; g <= 3; g++) {
             float cx = cx0 + (g - 0.5f) * cw;
-            P.icon(cx, y + hh * 0.48f, hh * 0.64f, id, -1, g);
-            if (P.over(cx - cw * 0.5f, y, cx + cw * 0.5f, y + hh)) { char t[32]; snprintf(t, sizeof t, "Grade %d", g); ns_tip(t); }
-        }
-        float ry = y + hh + 1.0f;
-        for (const FxRow &r : f.rows) {
-            float rh = fmaxf(P.para_height(fo, gs, lw, r.label), gs * 1.05f);
-            P.para(fo, gs, x, ry, lw, NsDraw::INK_SOFT, r.label);
-            if (r.same()) P.text(fo, gs, cx0 + 1.5f * cw - P.width(fo, gs, r.v[0]) * 0.5f, ry, NsDraw::INK, r.v[0]);   /* (every grade alike: once, across) */
-            else for (int g = 1; g <= 3; g++) {
-                const std::string &v = r.v[g - 1];
-                bool own = grade == g || grade == 0;
-                P.text(fo, gs, cx0 + (g - 0.5f) * cw - P.width(fo, gs, v) * 0.5f, ry, own ? NsDraw::INK : NsDraw::INK_DIM, v);
-            }
-            ry += rh + 0.9f;
+            P.icon(cx, ty + hh * 0.48f, hh * 0.64f, id, -1, g);
+            if (P.over(cx - cw * 0.5f, ty, cx + cw * 0.5f, ty + hh)) { char t[32]; snprintf(t, sizeof t, "Grade %d", g); ns_tip(t); }
         }
     }
-    return hh + 1.0f + rows_h;
+    y = ty + hh + 1.0f;
+    for (const FxRow &r : f.rows) {                               /* the rows that differ: a column a grade */
+        if (r.same()) continue;
+        float h = label(r, y, cx0 - x - 1.0f);
+        if (draw) for (int g = 1; g <= 3; g++) {
+            const std::string &v = r.v[g - 1];
+            bool own = grade == g || grade == 0;
+            P.text(fo, gs, cx0 + (g - 0.5f) * cw - P.width(fo, gs, v) * 0.5f, y, own ? NsDraw::INK : NsDraw::INK_DIM, v);
+        }
+        y += h + 0.9f;
+    }
+    return y - y0;
 }
 /* the width a potion's table wants beside its words: its labels on one line (to a limit) and the three columns */
 static float potion_table_w(NsDraw &P, float gs, const PotionFx &f, float most)
 {
-    float cw = gs * 2.0f, lw = 0;
-    for (const FxRow &r : f.rows) { lw = fmaxf(lw, P.width(P.fo, gs, r.label)); for (int g = 0; g < 3; g++) cw = fmaxf(cw, (P.width(P.fo, gs, r.v[g]) + gs * 1.2f) / (r.same() ? 3 : 1)); }
+    float cw = fx_cols(P, gs, f), lw = f.keys.empty() ? 0 : P.width(P.fo, gs, f.keys) - 3 * cw;
+    for (const FxRow &r : f.rows) lw = fmaxf(lw, P.width(P.fo, gs, r.label) + fx_label_x(r, gs) + (f.keys.empty() ? 0 : gs * 0.9f));
     return fminf(lw + 1.5f, most) + 3 * cw;
 }
 

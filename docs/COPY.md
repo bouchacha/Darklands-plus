@@ -1297,41 +1297,41 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/inventory.cpp:514` | Items can't change hands during a battle. |
 | `ui/inventory.cpp:515` | Close the game's current screen (sheet, shop ...) to hand items over. |
 | `ui/inventory.cpp:516` | Start or load a game first. |
-| `ui/inventory.cpp:621` | Wielded, it takes {Divine Favor:%d} off every prayer of the one wielding it, to any saint (none below 5). Wielding it asks {Virtue:%d}. |
-| `ui/inventory.cpp:623` | It takes {Divine Favor:%d} off every prayer of the one carrying it, to any saint (none below 5), if they have {Virtue:%d}. |
-| `ui/inventory.cpp:625` | Of several relics, the best counts. |
-| `ui/inventory.cpp:630` |  - too little to wield it |
-| `ui/inventory.cpp:630` |  - too little |
-| `ui/inventory.cpp:632` | Off: Relics as the manual has them (F12 > Settings > The party and its items). |
-| `ui/inventory.cpp:633` | This blessed item is immune from any quality degradation. |
-| `ui/inventory.cpp:645` | {%s} weapon, %s |
-| `ui/inventory.cpp:646` | Damage %d, penetration %d (how well it gets through armor) |
-| `ui/inventory.cpp:647` | Time per blow %d (lower is faster) |
-| `ui/inventory.cpp:648` | Time to %s %d (lower is faster) |
-| `ui/inventory.cpp:648` | draw and loose |
-| `ui/inventory.cpp:652` | Needs {%s:%d}: each point below, -2 to aim |
-| `ui/inventory.cpp:653` | Best with {Strength:%d to %d}: each point below, -1 to aim and weaker hits; above, harder hits |
-| `ui/inventory.cpp:654` | Needs {Strength:%d}: each point below, -1 to aim and weaker hits |
-| `ui/inventory.cpp:656` | Needs {%s:%d}: each point below, -2 to attack and defense hand to hand |
-| `ui/inventory.cpp:657` | Best with {Strength:%d to %d}: each point below, -3 to attack and defense and weaker blows; each point above, +2 and harder blows |
-| `ui/inventory.cpp:658` | Needs {Strength:%d}: each point below, -3 to attack and defense and weaker blows |
-| `ui/inventory.cpp:669` |  short in skill |
-| `ui/inventory.cpp:670` |  short in Strength |
-| `ui/inventory.cpp:671` | a good fit, and strong enough for harder hits |
-| `ui/inventory.cpp:671` | a good fit, and strong enough for harder blows |
-| `ui/inventory.cpp:674` | %s: {%s:%d} {Strength:%d} - %s: -%d to %s |
-| `ui/inventory.cpp:674` | attack and defense |
-| `ui/inventory.cpp:686` | Covers the vitals (body and arms) |
-| `ui/inventory.cpp:686` | Covers the legs |
-| `ui/inventory.cpp:688` | Hardness %d of 5 (%s) |
-| `ui/inventory.cpp:695` | Cuts the weapon's extra damage to an eighth (penetration below %d): |
-| `ui/inventory.cpp:695` | Halves the weapon's extra damage (penetration %d): |
-| `ui/inventory.cpp:695` | Pierced (penetration above %d): |
-| `ui/inventory.cpp:705` | A blow that pierces also wounds {Strength}; a good hit gets through more easily. |
-| `ui/inventory.cpp:706` | Quality: every 10 points take 1 off each blow's damage. |
-| `ui/inventory.cpp:710` | Adds to its bearer's defense, more the better it is made; unusable with a two-handed weapon. |
-| `ui/inventory.cpp:714` | %s shield at %dq: %d against blows, %d against shots and throws |
-| `ui/inventory.cpp:715` | No shield counts as -5, and a flail's blow passes any shield. Hand to hand, the chance to hit is 50 + 2/3 of the attacker's melee rating minus (the defender's melee rating + the shield); against a shot or throw, the defense is the shield plus twice {Agility} (less under a load). |
+| `ui/inventory.cpp:643` | Wielded, it takes {Divine Favor:%d} off every prayer of the one wielding it, to any saint (none below 5). Wielding it asks {Virtue:%d}. |
+| `ui/inventory.cpp:645` | It takes {Divine Favor:%d} off every prayer of the one carrying it, to any saint (none below 5), if they have {Virtue:%d}. |
+| `ui/inventory.cpp:647` | Of several relics, the best counts. |
+| `ui/inventory.cpp:652` |  - too little to wield it |
+| `ui/inventory.cpp:652` |  - too little |
+| `ui/inventory.cpp:654` | Off: Relics as the manual has them (F12 > Settings > The party and its items). |
+| `ui/inventory.cpp:655` | This blessed item is immune from any quality degradation. |
+| `ui/inventory.cpp:667` | {%s} weapon, %s |
+| `ui/inventory.cpp:668` | Damage %d, penetration %d (how well it gets through armor) |
+| `ui/inventory.cpp:669` | Time per blow %d (lower is faster) |
+| `ui/inventory.cpp:670` | Time to %s %d (lower is faster) |
+| `ui/inventory.cpp:670` | draw and loose |
+| `ui/inventory.cpp:674` | Needs {%s:%d}: each point below, -2 to aim |
+| `ui/inventory.cpp:675` | Best with {Strength:%d to %d}: each point below, -1 to aim and weaker hits; above, harder hits |
+| `ui/inventory.cpp:676` | Needs {Strength:%d}: each point below, -1 to aim and weaker hits |
+| `ui/inventory.cpp:678` | Needs {%s:%d}: each point below, -2 to attack and defense hand to hand |
+| `ui/inventory.cpp:679` | Best with {Strength:%d to %d}: each point below, -3 to attack and defense and weaker blows; each point above, +2 and harder blows |
+| `ui/inventory.cpp:680` | Needs {Strength:%d}: each point below, -3 to attack and defense and weaker blows |
+| `ui/inventory.cpp:691` |  short in skill |
+| `ui/inventory.cpp:692` |  short in Strength |
+| `ui/inventory.cpp:693` | a good fit, and strong enough for harder hits |
+| `ui/inventory.cpp:693` | a good fit, and strong enough for harder blows |
+| `ui/inventory.cpp:696` | %s: {%s:%d} {Strength:%d} - %s: -%d to %s |
+| `ui/inventory.cpp:696` | attack and defense |
+| `ui/inventory.cpp:708` | Covers the vitals (body and arms) |
+| `ui/inventory.cpp:708` | Covers the legs |
+| `ui/inventory.cpp:710` | Hardness %d of 5 (%s) |
+| `ui/inventory.cpp:717` | Cuts the weapon's extra damage to an eighth (penetration below %d): |
+| `ui/inventory.cpp:717` | Halves the weapon's extra damage (penetration %d): |
+| `ui/inventory.cpp:717` | Pierced (penetration above %d): |
+| `ui/inventory.cpp:727` | A blow that pierces also wounds {Strength}; a good hit gets through more easily. |
+| `ui/inventory.cpp:728` | Quality: every 10 points take 1 off each blow's damage. |
+| `ui/inventory.cpp:732` | Adds to its bearer's defense, more the better it is made; unusable with a two-handed weapon. |
+| `ui/inventory.cpp:736` | %s shield at %dq: %d against blows, %d against shots and throws |
+| `ui/inventory.cpp:737` | No shield counts as -5, and a flail's blow passes any shield. Hand to hand, the chance to hit is 50 + 2/3 of the attacker's melee rating minus (the defender's melee rating + the shield); against a shot or throw, the defense is the shield plus twice {Agility} (less under a load). |
 | `ui/itemedit.cpp:32` | Could not read DARKLAND.LST. |
 | `ui/itemedit.cpp:49` | Every item of the game. Change names, weight, quality, rarity and value here, then save the list into a mod folder; it takes effect when the game is started again with that mod ticked. |
 | `ui/itemedit.cpp:51` | Every item of the game, with its weight, usual quality, rarity and value (to change them for a mod, choose a preset other than Full Original in F12 > Settings). |
@@ -1339,57 +1339,57 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/itemedit.cpp:131` | Could not write  |
 | `ui/itemedit.cpp:132` | . Tick the mod (F12 > Mods) and start the game again. |
 | `ui/itemedit.cpp:135` | Undo all changes |
-| `ui/journal.cpp:213` | Goods merchant |
-| `ui/journal.cpp:402` | the countryside |
-| `ui/journal.cpp:471` | the countryside |
-| `ui/journal.cpp:474` | A made-up text, number , to try the chronicle's days and places. It runs on a little so that it wraps over two lines in the window....leave. |
-| `ui/journal.cpp:484` | The chronicle is off: tick both boxes above (the Full Original preset keeps it off). |
-| `ui/journal.cpp:486` | Hide the list of days |
-| `ui/journal.cpp:486` | Show the list of days |
-| `ui/journal.cpp:489` | %d text%s read in this game |
-| `ui/journal.cpp:492` | Save as a text file |
-| `ui/journal.cpp:506` | Could not write the file. |
-| `ui/journal.cpp:519` | Every text the cards show is kept here, with the date, the place and the choice you made. |
-| `ui/journal.cpp:519` | Nothing found. |
-| `ui/journal.cpp:567` | < Day before |
-| `ui/journal.cpp:571` |  (matching texts only) |
-| `ui/journal.cpp:649` | a complete idiot: worse than none |
-| `ui/journal.cpp:679` | Start or load a game first: each game has its own notes. |
-| `ui/journal.cpp:685` | Your own notes for this game: clues, plans, who wanted what. Kept as darklands_notes_%u.txt. |
-| `ui/journal.cpp:693` | a brief notification ... when you have less than X amount you set |
-| `ui/journal.cpp:717` |  sells what the party keeps a stock of and is short of:  |
-| `ui/journal.cpp:876` | %s  (%d wares, noted %s) |
-| `ui/journal.cpp:908` | ), then, with  |
-| `ui/journal.cpp:965` | sold here (expected) |
-| `ui/journal.cpp:997` | Start or load a game first. |
-| `ui/journal.cpp:998` | Available after the battle. |
-| `ui/journal.cpp:1005` | What the party has left with innkeepers ("store items with the innkeeper" at a town's inn): one store room, the same at every inn (the Darklands+ switch "One store room shared by every inn" in F12 > Settings > New screens). |
-| `ui/journal.cpp:1006` | What the party has left with innkeepers ("store items with the innkeeper" at a town's inn), and where.  |
-| `ui/journal.cpp:1006` | The original game shows a store room only while the party is in it. |
-| `ui/journal.cpp:1035` | Nothing stored anywhere. |
-| `ui/journal.cpp:1041` |  kind of item |
-| `ui/journal.cpp:1041` |  kinds of items |
-| `ui/journal.cpp:1042` | Every inn's store room  -   |
-| `ui/journal.cpp:1073` | The quests and every town (its shops, the wares noted, where to buy an item) are on the world map (M). |
-| `ui/journal.cpp:1076` | Note each town's shops and wares |
-| `ui/journal.cpp:1088` | The Honor Roll of Glory: the four most famous parties. MicroProse drew it and wrote the code for it, but never finished it (the manual mentions a Hall of Fame, the game's README says there is none). A party enters it when its journey ends, or now with the button. |
-| `ui/journal.cpp:1092` | Show the Honor Roll of Glory |
-| `ui/journal.cpp:1096` | Enter the party now |
-| `ui/journal.cpp:1096` | The party is on the roll. |
-| `ui/journal.cpp:1096` | The party is not yet famous enough to be among the four best (or the roll could not be saved). |
-| `ui/journal.cpp:1146` | Find alchemical ingredients###wtb0 |
-| `ui/journal.cpp:1146` | Find any ware###wtb1 |
-| `ui/journal.cpp:1149` | Nothing noted yet: the wares of each shop are noted as the party sees them. |
-| `ui/journal.cpp:1155` | Show %s on the world map |
-| `ui/journal.cpp:1164` | Bought ingredients are always quality 25. A click on a column's head sorts by it%s. |
-| `ui/journal.cpp:1164` |  (the nearest: not known now, the party's position is not) |
-| `ui/journal.cpp:1181` | Nearest town |
-| `ui/journal.cpp:1182` | Also sold at |
-| `ui/journal.cpp:1199` | not seen in a shop yet |
-| `ui/journal.cpp:1216` | A click on a column's head sorts by it. |
-| `ui/journal.cpp:1227` | No shop's wares noted yet. |
-| `ui/journal.cpp:1227` | Not seen in any shop yet. |
-| `ui/journal.cpp:1232` | Town (nearest first) |
+| `ui/journal.cpp:214` | Goods merchant |
+| `ui/journal.cpp:403` | the countryside |
+| `ui/journal.cpp:472` | the countryside |
+| `ui/journal.cpp:475` | A made-up text, number , to try the chronicle's days and places. It runs on a little so that it wraps over two lines in the window....leave. |
+| `ui/journal.cpp:485` | The chronicle is off: tick both boxes above (the Full Original preset keeps it off). |
+| `ui/journal.cpp:487` | Hide the list of days |
+| `ui/journal.cpp:487` | Show the list of days |
+| `ui/journal.cpp:490` | %d text%s read in this game |
+| `ui/journal.cpp:493` | Save as a text file |
+| `ui/journal.cpp:507` | Could not write the file. |
+| `ui/journal.cpp:520` | Every text the cards show is kept here, with the date, the place and the choice you made. |
+| `ui/journal.cpp:520` | Nothing found. |
+| `ui/journal.cpp:568` | < Day before |
+| `ui/journal.cpp:572` |  (matching texts only) |
+| `ui/journal.cpp:650` | a complete idiot: worse than none |
+| `ui/journal.cpp:680` | Start or load a game first: each game has its own notes. |
+| `ui/journal.cpp:686` | Your own notes for this game: clues, plans, who wanted what. Kept as darklands_notes_%u.txt. |
+| `ui/journal.cpp:694` | a brief notification ... when you have less than X amount you set |
+| `ui/journal.cpp:718` |  sells what the party keeps a stock of and is short of: |
+| `ui/journal.cpp:872` | %s  (%d wares, noted %s) |
+| `ui/journal.cpp:904` | ), then, with  |
+| `ui/journal.cpp:961` | sold here (expected) |
+| `ui/journal.cpp:993` | Start or load a game first. |
+| `ui/journal.cpp:994` | Available after the battle. |
+| `ui/journal.cpp:1001` | What the party has left with innkeepers ("store items with the innkeeper" at a town's inn): one store room, the same at every inn (the Darklands+ switch "One store room shared by every inn" in F12 > Settings > New screens). |
+| `ui/journal.cpp:1002` | What the party has left with innkeepers ("store items with the innkeeper" at a town's inn), and where.  |
+| `ui/journal.cpp:1002` | The original game shows a store room only while the party is in it. |
+| `ui/journal.cpp:1031` | Nothing stored anywhere. |
+| `ui/journal.cpp:1037` |  kind of item |
+| `ui/journal.cpp:1037` |  kinds of items |
+| `ui/journal.cpp:1038` | Every inn's store room  -   |
+| `ui/journal.cpp:1069` | The quests and every town (its shops, the wares noted, where to buy an item) are on the world map (M). |
+| `ui/journal.cpp:1072` | Note each town's shops and wares |
+| `ui/journal.cpp:1084` | The Honor Roll of Glory: the four most famous parties. MicroProse drew it and wrote the code for it, but never finished it (the manual mentions a Hall of Fame, the game's README says there is none). A party enters it when its journey ends, or now with the button. |
+| `ui/journal.cpp:1088` | Show the Honor Roll of Glory |
+| `ui/journal.cpp:1092` | Enter the party now |
+| `ui/journal.cpp:1092` | The party is on the roll. |
+| `ui/journal.cpp:1092` | The party is not yet famous enough to be among the four best (or the roll could not be saved). |
+| `ui/journal.cpp:1142` | Find alchemical ingredients###wtb0 |
+| `ui/journal.cpp:1142` | Find any ware###wtb1 |
+| `ui/journal.cpp:1145` | Nothing noted yet: the wares of each shop are noted as the party sees them. |
+| `ui/journal.cpp:1151` | Show %s on the world map |
+| `ui/journal.cpp:1160` | Bought ingredients are always quality 25. A click on a column's head sorts by it%s. |
+| `ui/journal.cpp:1160` |  (the nearest: not known now, the party's position is not) |
+| `ui/journal.cpp:1177` | Nearest town |
+| `ui/journal.cpp:1178` | Also sold at |
+| `ui/journal.cpp:1195` | not seen in a shop yet |
+| `ui/journal.cpp:1212` | A click on a column's head sorts by it. |
+| `ui/journal.cpp:1223` | No shop's wares noted yet. |
+| `ui/journal.cpp:1223` | Not seen in any shop yet. |
+| `ui/journal.cpp:1228` | Town (nearest first) |
 | `ui/levelmap.cpp:52` | does not work consistently |
 | `ui/levelmap.cpp:67` | does not work consistently |
 | `ui/levelmap.cpp:394` |  Stairs seen to floor  |
@@ -1682,80 +1682,74 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/nsdraw.cpp:367` | Stock to keep:  |
 | `ui/nsdraw.cpp:367` | . In a town that sells it, a notice while the party has fewer. A click:  |
 | `ui/nsdraw.cpp:367` | ; Shift+click: that for every ingredient. |
-| `ui/nsdraw.cpp:395` | Lasts 19 to 21 hours. |
-| `ui/nsdraw.cpp:395` | Lasts for good, and adds up with the next dose. |
-| `ui/nsdraw.cpp:396` | How long that lasts on them (seconds of battle) |
-| `ui/nsdraw.cpp:404` | A reeking cloud, up to 4 by 4 paces, that hangs 3 seconds. What it does to those it catches, allies too, lasts longer: |
-| `ui/nsdraw.cpp:405` | The one it hits: {Agility} {Perception} and every weapon skill |
-| `ui/nsdraw.cpp:406` | Everyone else in the cloud: the same |
-| `ui/nsdraw.cpp:406` | a quarter off |
-| `ui/nsdraw.cpp:409` | Blinding powder in a small cloud that hangs 3 seconds. What it does lasts longer: |
-| `ui/nsdraw.cpp:410` | The one it hits: blinded (only parries: no shooting, no throwing), and {Agility} {Perception} and every weapon skill |
-| `ui/nsdraw.cpp:411` | Those beside them: {Agility} {Perception} and every weapon skill |
-| `ui/nsdraw.cpp:411` | a quarter off |
-| `ui/nsdraw.cpp:414` | Black smoke. Shots through any such cloud hit a fifth as often; fighting from inside one costs 15 to hit. |
-| `ui/nsdraw.cpp:415` | How long the cloud hangs (seconds of battle) |
-| `ui/nsdraw.cpp:416` | The battle's orders never offer it to the party: it is for the encounters, and enemies throw it. |
-| `ui/nsdraw.cpp:418` | Itching powder in a small cloud that hangs 3 seconds. What it does lasts longer: |
-| `ui/nsdraw.cpp:419` | Every weapon skill, for each point of armor worn on the body and limbs (the heavier, the worse) |
-| `ui/nsdraw.cpp:422` | Acid on the one it hits, at once and for good. Armor eaten to nothing is destroyed; with no armor (or damage left over) it wounds instead. It also dissolves locks. |
-| `ui/nsdraw.cpp:423` | Armor quality lost |
-| `ui/nsdraw.cpp:425` | A poison cloud, up to 2 by 2 paces, that hangs 2 seconds: wounds that no armor stops, at once, more on a weaker target. |
-| `ui/nsdraw.cpp:428` | A blinding flash. The one it hits, and every enemy of the thrower on that floor who faces it, is blinded (only parries: no shooting, no throwing). The thrower's allies are spared. |
-| `ui/nsdraw.cpp:429` | How long they stay blinded (seconds of battle) |
-| `ui/nsdraw.cpp:431` | A blast at once on the one it hits, less around it. The armor is worn down by a quarter of the damage, for good. |
-| `ui/nsdraw.cpp:434` | Burning pitch that no armor stops, at once, and a quarter of that further off, less a tenth of the armor's quality (and of Firewall's {*Fire} protection). The armor is worn down too, for good. |
-| `ui/nsdraw.cpp:437` | A pool of sticky sludge, up to 4 by 4 paces, for 4 minutes of battle: whoever crosses it is slowed. |
-| `ui/nsdraw.cpp:438` | Pace while crossing it |
-| `ui/nsdraw.cpp:440` | On every hit the member lands,  |
-| `ui/nsdraw.cpp:440` | with any weapon but an impact weapon or a flail |
-| `ui/nsdraw.cpp:440` | with any weapon: bows, guns, impact weapons and fists too |
-| `ui/nsdraw.cpp:440` | ; damage only, not the chance to hit.  |
-| `ui/nsdraw.cpp:443` | On every hit the member lands,  |
-| `ui/nsdraw.cpp:443` | with a blade or a polearm |
-| `ui/nsdraw.cpp:443` | with any weapon |
-| `ui/nsdraw.cpp:444` | , up to 15 in all.  |
-| `ui/nsdraw.cpp:444` | ; past 15 it starts again from 0 (a bow's 6 + 10 hits as 0).  |
-| `ui/nsdraw.cpp:448` | The weapon in hand counts higher in quality, up to 99 |
-| `ui/nsdraw.cpp:448` | , if it is an impact weapon, a flail or a handgun |
-| `ui/nsdraw.cpp:448` | : bows, guns and fists too |
-| `ui/nsdraw.cpp:449` | ; each 10 points of quality add a step of damage. Lasts 19 to 21 hours; a second dose adds to the first. |
-| `ui/nsdraw.cpp:450` | {*Weapon Quality} |
-| `ui/nsdraw.cpp:452` | On every hit the member lands, with any weapon.  |
-| `ui/nsdraw.cpp:452` | Penetration counts up to 15 in all.  |
-| `ui/nsdraw.cpp:452` | Penetration past 15 starts again from 0, so grades 1 and 3 lower a bow's.  |
-| `ui/nsdraw.cpp:457` | Up to 99. Lasts 19 to 21 hours; a second dose adds to the first. |
-| `ui/nsdraw.cpp:458` | {Bows}{Thrown Weapons}{Missile Devices} |
-| `ui/nsdraw.cpp:461` | Against every blow and shot. Lasts 19 to 21 hours; a second dose while one runs keeps the stronger. |
-| `ui/nsdraw.cpp:462` | {*Armor} quality |
-| `ui/nsdraw.cpp:462` | {*Armor} thickness (levels) |
-| `ui/nsdraw.cpp:463` | Against every blow and shot. Lasts for good; doses add up. |
-| `ui/nsdraw.cpp:466` | Just one florin. It is meant for the encounters, which ask for it (to purify, or to make gold). |
-| `ui/nsdraw.cpp:473` | Past the maximum if need be (the maximum itself stays). Lasts 19 to 21 hours |
-| `ui/nsdraw.cpp:474` | ; on a wounded member it heals, and the healing stays: only what is still above the maximum goes. |
-| `ui/nsdraw.cpp:474` | ; on a wounded member it heals, but all of it is taken back when it wears off. |
-| `ui/nsdraw.cpp:475` | ; then what it added goes. |
-| `ui/nsdraw.cpp:476` |  A second dose while the first runs adds only what goes beyond it. |
-| `ui/nsdraw.cpp:480` | The {Endurance} lasts 29 to 31 hours |
-| `ui/nsdraw.cpp:480` | ; on a wounded member it heals, and the healing stays. |
-| `ui/nsdraw.cpp:480` | ; on a wounded member it heals, but all of it is taken back when it wears off. |
-| `ui/nsdraw.cpp:481` | {Strength} back, for good, of what wounds took |
-| `ui/nsdraw.cpp:483` | Lasts 19 to 21 hours; a second dose keeps the stronger. |
-| `ui/nsdraw.cpp:484` |  And {*Armor} +16 to the armor, for good. |
-| `ui/nsdraw.cpp:485` | {*Fire} damage from Arabian Fire |
-| `ui/nsdraw.cpp:490` | Used by a member (P in the inventory) |
-| `ui/nsdraw.cpp:505` |  The numbers by grade: 1, 2, 3. |
-| `ui/nsdraw.cpp:690` |  when equipped |
-| `ui/nsdraw.cpp:716` | a light load: no hindrance |
-| `ui/nsdraw.cpp:716` | a normal load: blows hand to hand a fifth slower |
-| `ui/nsdraw.cpp:717` | a heavy load: blows at the usual pace, dodging hampered |
-| `ui/nsdraw.cpp:717` | overloaded: blows two thirds slower, little or no dodging |
-| `ui/nsdraw.cpp:720` | Worn by %s: load %d \xc2\xbb %d of %d, %s%s |
-| `ui/nsdraw.cpp:784` | Load %d \xc2\xbb %d of %d |
-| `ui/nsdraw.cpp:785` | Load %d of %d |
-| `ui/nsdraw.cpp:841` | Spare equipment |
-| `ui/nsdraw.cpp:841` | Tools and other goods |
-| `ui/nsdraw.cpp:841` | Trophies and quest items |
+| `ui/nsdraw.cpp:401` |  Permanently; each dose adds to the last. |
+| `ui/nsdraw.cpp:402` | {Agility} {Perception} {Weapon Skills} |
+| `ui/nsdraw.cpp:405` | A reeking cloud, up to 4 by 4 paces; it hangs 3 s. |
+| `ui/nsdraw.cpp:406` | Prime target |
+| `ui/nsdraw.cpp:406` | Others in the cloud (party included) |
+| `ui/nsdraw.cpp:409` | Blinding powder, a small cloud; it hangs 3 s. The prime target is blinded too: parries only, no shooting or throwing. |
+| `ui/nsdraw.cpp:410` | Prime target |
+| `ui/nsdraw.cpp:413` | Black smoke. While it hangs, shots through it hit a fifth as often, and fighting from inside it costs 15 to hit. |
+| `ui/nsdraw.cpp:415` | The battle's orders never offer it to the party: it is for the encounters, and enemies throw it. |
+| `ui/nsdraw.cpp:417` | Itching powder, a small cloud; it hangs 3 s. |
+| `ui/nsdraw.cpp:418` | {Weapon Skills} |
+| `ui/nsdraw.cpp:418` | For each point of armor worn on the body and limbs |
+| `ui/nsdraw.cpp:421` | Acid on the prime target, at once and permanently: armor eaten to nothing is destroyed; with no armor (or damage left over) it wounds instead. It dissolves locks too. |
+| `ui/nsdraw.cpp:422` | {*Armor Quality} |
+| `ui/nsdraw.cpp:424` | A poison cloud, up to 2 by 2 paces; it hangs 2 s. It wounds at once, through any armor, more on a weaker target. |
+| `ui/nsdraw.cpp:427` | A blinding flash: the prime target, and every enemy of the thrower on that floor who faces it, is blinded (parries only, no shooting or throwing). The thrower's allies are spared. |
+| `ui/nsdraw.cpp:430` | A blast at once on the prime target, less around it. It wears the armor down by a quarter of the damage, permanently. |
+| `ui/nsdraw.cpp:433` | Burning pitch, at once, through any armor; a quarter of it further off, less a tenth of the armor's quality (and of Firewall's {*Fire} protection). It wears the armor down too, permanently. |
+| `ui/nsdraw.cpp:436` | A pool of sticky sludge, up to 4 by 4 paces: whoever crosses it is slowed. |
+| `ui/nsdraw.cpp:437` | Pace while crossing it |
+| `ui/nsdraw.cpp:439` | On every hit the member lands,  |
+| `ui/nsdraw.cpp:439` | with any weapon but an impact weapon or a flail |
+| `ui/nsdraw.cpp:439` | with any weapon: bows, guns, impact weapons and fists too |
+| `ui/nsdraw.cpp:439` | ; damage only, not the chance to hit. |
+| `ui/nsdraw.cpp:442` | On every hit the member lands,  |
+| `ui/nsdraw.cpp:442` | with a blade or a polearm |
+| `ui/nsdraw.cpp:442` | with any weapon |
+| `ui/nsdraw.cpp:443` | , up to 15 in all. |
+| `ui/nsdraw.cpp:443` | ; past 15 it starts again from 0 (a bow's 6 + 10 hits as 0). |
+| `ui/nsdraw.cpp:447` | The weapon in hand counts higher in quality, up to 99 |
+| `ui/nsdraw.cpp:447` | , if it is an impact weapon, a flail or a handgun |
+| `ui/nsdraw.cpp:447` | : bows, guns and fists too |
+| `ui/nsdraw.cpp:448` | ; each 10 points of quality add a step of damage. A second dose adds to the first. |
+| `ui/nsdraw.cpp:449` | {*Weapon Quality} |
+| `ui/nsdraw.cpp:451` | On every hit the member lands, with any weapon.  |
+| `ui/nsdraw.cpp:451` | Penetration counts up to 15 in all. |
+| `ui/nsdraw.cpp:451` | Penetration past 15 starts again from 0, so grades 1 and 3 lower a bow's. |
+| `ui/nsdraw.cpp:456` | Up to 99. A second dose adds to the first. |
+| `ui/nsdraw.cpp:457` | {Bows} {Thrown Weapons} {Missile Devices} |
+| `ui/nsdraw.cpp:460` | Against every blow and shot. A second dose while one runs keeps the stronger. |
+| `ui/nsdraw.cpp:461` | {*Armor Quality} |
+| `ui/nsdraw.cpp:461` | {*Armor} (thickness levels) |
+| `ui/nsdraw.cpp:462` | Against every blow and shot. Permanently; doses add up. |
+| `ui/nsdraw.cpp:465` | Just one florin. It is meant for the encounters, which ask for it (to purify, or to make gold). |
+| `ui/nsdraw.cpp:472` | Past the maximum if need be. |
+| `ui/nsdraw.cpp:473` |  It heals a wounded member, and the healing stays. |
+| `ui/nsdraw.cpp:473` |  It heals a wounded member, but takes it all back when it wears off. |
+| `ui/nsdraw.cpp:474` |  A second dose adds only what goes beyond the first. |
+| `ui/nsdraw.cpp:478` | The {Endurance} heals a wounded member, and the healing stays. |
+| `ui/nsdraw.cpp:478` | The {Endurance} heals a wounded member, but takes it all back when it wears off. |
+| `ui/nsdraw.cpp:479` | {Strength} back, permanently, of what wounds took |
+| `ui/nsdraw.cpp:482` | A second dose keeps the stronger. |
+| `ui/nsdraw.cpp:483` |  And {*Armor} +16 to the armor, permanently. |
+| `ui/nsdraw.cpp:484` | {*Fire} damage from Arabian Fire |
+| `ui/nsdraw.cpp:489` | Used by a member (P in the inventory) |
+| `ui/nsdraw.cpp:506` |  The numbers by grade: 1, 2, 3. |
+| `ui/nsdraw.cpp:606` | How long it lasts |
+| `ui/nsdraw.cpp:717` |  when equipped |
+| `ui/nsdraw.cpp:743` | a light load: no hindrance |
+| `ui/nsdraw.cpp:743` | a normal load: blows hand to hand a fifth slower |
+| `ui/nsdraw.cpp:744` | a heavy load: blows at the usual pace, dodging hampered |
+| `ui/nsdraw.cpp:744` | overloaded: blows two thirds slower, little or no dodging |
+| `ui/nsdraw.cpp:747` | Worn by %s: load %d \xc2\xbb %d of %d, %s%s |
+| `ui/nsdraw.cpp:811` | Load %d \xc2\xbb %d of %d |
+| `ui/nsdraw.cpp:812` | Load %d of %d |
+| `ui/nsdraw.cpp:868` | Spare equipment |
+| `ui/nsdraw.cpp:868` | Tools and other goods |
+| `ui/nsdraw.cpp:868` | Trophies and quest items |
 | `ui/optpreview.cpp:43` | The gate is barred. You... |
 | `ui/optpreview.cpp:45` | ...climb the wall |
 | `ui/optpreview.cpp:46` | ...pray to a saint |
@@ -1806,23 +1800,24 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/overlay.cpp:419` | Items that help here |
 | `ui/overlay.cpp:449` | nobody knows |
 | `ui/overlay.cpp:449` | nobody has one |
-| `ui/overlay.cpp:502` |  learned of  |
-| `ui/overlay.cpp:640` |  when equipped |
-| `ui/overlay.cpp:651` | Nobody in the party knows this saint |
-| `ui/overlay.cpp:660` | %s - mystic number %d, %s |
-| `ui/overlay.cpp:672` | %s of the three formulae for %s (the others: %s). |
-| `ui/overlay.cpp:680` | Nobody in the party knows this formula. |
-| `ui/overlay.cpp:695` | (carried: %d) |
-| `ui/overlay.cpp:697` | Enough for %d batch%s. |
-| `ui/overlay.cpp:697` | Not enough ingredients for a batch. |
-| `ui/overlay.cpp:721` |   Take all of it |
-| `ui/overlay.cpp:721` |   Share it out among the party |
-| `ui/overlay.cpp:722` |   Sell the whole stack |
-| `ui/overlay.cpp:757` | Making a character: name and gender first, then the family background, the attributes, and one profession after another, five years each, until you begin adventuring. Older characters know more, but age costs attributes. |
-| `ui/overlay.cpp:760` | The family decides the first attributes and skills. The right side shows what the background under the pointer would give; EP (top right) are the points to spend next. |
-| `ui/overlay.cpp:762` | Spend the EP on attributes: pick one, then + or -. Endurance and Strength are the hit points (and together set how much a character can carry); Agility counts in battle; Perception, Intelligence and Charisma serve many skills. |
-| `ui/overlay.cpp:763` | Choose the profession for the next five years. The right side shows the one under the pointer: the EP it gives (top), the attributes after it, and for each skill gain:room, that is, what it adds at once and how many EP that skill can still take. Some professions open only after others, or need certain attributes. |
-| `ui/overlay.cpp:764` | Spend the EP on skills: pick one, then + or -. A skill takes at most the room shown after the colon. Then choose the next profession, or begin adventuring. |
+| `ui/overlay.cpp:504` |  learned of  |
+| `ui/overlay.cpp:555` |  sells what the party keeps a stock of |
+| `ui/overlay.cpp:705` |  when equipped |
+| `ui/overlay.cpp:716` | Nobody in the party knows this saint |
+| `ui/overlay.cpp:725` | %s - mystic number %d, %s |
+| `ui/overlay.cpp:737` | %s of the three formulae for %s (the others: %s). |
+| `ui/overlay.cpp:745` | Nobody in the party knows this formula. |
+| `ui/overlay.cpp:760` | (carried: %d) |
+| `ui/overlay.cpp:762` | Enough for %d batch%s. |
+| `ui/overlay.cpp:762` | Not enough ingredients for a batch. |
+| `ui/overlay.cpp:786` |   Take all of it |
+| `ui/overlay.cpp:786` |   Share it out among the party |
+| `ui/overlay.cpp:787` |   Sell the whole stack |
+| `ui/overlay.cpp:822` | Making a character: name and gender first, then the family background, the attributes, and one profession after another, five years each, until you begin adventuring. Older characters know more, but age costs attributes. |
+| `ui/overlay.cpp:825` | The family decides the first attributes and skills. The right side shows what the background under the pointer would give; EP (top right) are the points to spend next. |
+| `ui/overlay.cpp:827` | Spend the EP on attributes: pick one, then + or -. Endurance and Strength are the hit points (and together set how much a character can carry); Agility counts in battle; Perception, Intelligence and Charisma serve many skills. |
+| `ui/overlay.cpp:828` | Choose the profession for the next five years. The right side shows the one under the pointer: the EP it gives (top), the attributes after it, and for each skill gain:room, that is, what it adds at once and how many EP that skill can still take. Some professions open only after others, or need certain attributes. |
+| `ui/overlay.cpp:829` | Spend the EP on skills: pick one, then + or -. A skill takes at most the room shown after the colon. Then choose the next profession, or begin adventuring. |
 | `ui/overlay_text.cpp:177` | This option tests %s: %s %d%% chance of success. The original game shows this number while you hold Shift over an option; it rises with the skills and attributes tested. |
 | `ui/overlay_text.cpp:178` | This option tests the whole party: %s %d%% chance of success. The original game shows this number while you hold Shift over an option; it rises with the skills and attributes tested. |
 | `ui/overlay_text.cpp:212` | Edged Weapons |
@@ -2022,7 +2017,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/report.cpp:238` | The log then tells of every journey, encounter, Go to walk and fix at work: what a report needs to show how a fault came about. It grows faster. |
 | `ui/report.cpp:248` | Darklands+ noticed a fault and made a report (F12 > About > Report a problem). Please send it with what you were doing. |
 | `ui/report.cpp:249` | Darklands+ noticed a fault: darklands_port.log in the game folder says what. |
-| `ui/richtext.cpp:196` | Missile Devices |
+| `ui/richtext.cpp:127` | Every weapon skill |
+| `ui/richtext.cpp:207` | Missile Devices |
 | `ui/rosterview.cpp:33` |  Add to the Party |
 | `ui/rosterview.cpp:67` | Who travels on |
 | `ui/rosterview.cpp:68` | Up to four travel together. Those who stay behind are kept here and can join again; new characters can join too. |

@@ -26,6 +26,7 @@
 #include "gamedata.h"
 #include "uiinternal.h"
 #include "libraries.h"
+#include "overlay.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -699,8 +700,7 @@ static void journal_stock_check(int loc)
     static int have[200]; GmItem g;
     for (int i = 0; i < 200; i++) have[i] = 0;
     for (int m = 0; m < 5; m++) if (gm_member_present(m)) for (int i = 0; i < gm_item_count(m); i++) if (gm_item(m, i, &g) && g.id >= 0 && g.id < 200) have[g.id] += g.count;
-    struct Short { int id, have, want; std::string shop; };
-    std::vector<Short> sh_;
+    std::vector<StockShort> sh_;
     for (int id = 72; id < 95; id++) {
         int want = stock_want(id);
         if (want <= 0 || have[id] >= want) continue;
@@ -711,17 +711,13 @@ static void journal_stock_check(int loc)
         sh_.push_back({ id, have[id], want, shop });
     }
     if (sh_.empty()) return;
-    /* short (a notice is read at a glance, 1.4.7: fourteen ingredients ran past its end): the three the
-       party is shortest of, how many more there are, and the shops */
-    std::stable_sort(sh_.begin(), sh_.end(), [](const Short &a, const Short &b) { return (double)a.have / a.want < (double)b.have / b.want; });
-    std::string msg = loc_name(loc) + " sells what the party keeps a stock of and is short of: ", shops;
-    for (size_t i = 0; i < sh_.size() && i < 3; i++) msg += std::string(i ? ", " : "") + item_name(sh_[i].id) + " " + std::to_string(sh_[i].have) + "/" + std::to_string(sh_[i].want);
-    if (sh_.size() > 3) msg += " and " + std::to_string(sh_.size() - 3) + " more";
-    std::set<std::string> seen_shops;
-    for (const Short &x : sh_) if (seen_shops.insert(x.shop).second) shops += std::string(shops.empty() ? "" : ", ") + "the " + x.shop;
-    msg += " (at " + shops + ").";
-    ui_notice_for(msg.c_str(), 9000);
-    if (getenv("DL_JOURNAL_LOG")) fprintf(stderr, "journal: stock notice: %s\n", msg.c_str());
+    /* shown as the learned saint's box, the ingredients as their pictures (his ask, 1.4.7: a notice read at a
+       glance ran past its end, and the autosave's pushed it off at once): those the party is shortest of first */
+    std::stable_sort(sh_.begin(), sh_.end(), [](const StockShort &a, const StockShort &b) { return (double)a.have / a.want < (double)b.have / b.want; });
+    ui_stock_popup(loc_name(loc), sh_);
+    std::string msg = loc_name(loc) + " sells what the party keeps a stock of and is short of:";
+    for (const StockShort &x : sh_) msg += " " + item_name(x.id) + " " + std::to_string(x.have) + "/" + std::to_string(x.want) + " (" + x.shop + ")";
+    fprintf(stderr, "stock: %s\n", msg.c_str());
 }
 
 extern "C" void journal_test_stock(void) { ensure_game(); journal_stock_check((s16)g_rw(G_CUR_LOC)); }   /* test (ustock): the notice here, now */

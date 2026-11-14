@@ -6,6 +6,7 @@
 //   {@2} {@2:54}           a party member's head (2: the member's place in the party, 0..4), its value after it;
 //                          the member's name under the pointer (rich_member writes one)
 //   {~Virtue} {~Virtue:12} the shield struck through in red: too little of it (a saint's or a relic's Virtue)
+//   {Weapon Skills}        every weapon skill: three of their shields fanned (as the Saints page's chips)
 //   {*Fire} {*Damage:+4}   what is at work's roundel (ui_effect_icon, the margin's "Blessings and potions"): Fire,
 //                          Armor, Armor Quality, Missile Armor, Weapon Quality, Damage, Penetration, Travel, Woods
 //                          Travel, No Death, Stays (ui/effects.cpp); its words kept beside it, its name under the pointer
@@ -21,8 +22,8 @@
 #include <string>
 
 bool rich_has(const char *s);                                   /* the text holds a shield, a head or (coins on) an amount in words */
-enum { RICH_MEMBER = 64, RICH_EFFECT = 80, RICH_STRUCK = UI_KEY_STRUCK }; /* a head's key: RICH_MEMBER + the member's place; a roundel's
-                                                                   RICH_EFFECT + EI_*; a struck shield's its key | RICH_STRUCK */
+enum { RICH_WEAPONS = 60, RICH_MEMBER = 64, RICH_EFFECT = 80, RICH_STRUCK = UI_KEY_STRUCK }; /* every weapon skill's fan; a head's key: RICH_MEMBER
+                                                                   + the member's place; a roundel's RICH_EFFECT + EI_*; a struck shield's its key | RICH_STRUCK */
 std::string rich_member(int m, const std::string &value = "");  /* "{@m}" or "{@m:value}" */
 std::string rich_effect(int ei, const std::string &value = ""); /* "{*Fire}" or "{*Fire:90}": EI_* (ui/effects.h) */
 std::string rich_key_name(int key);                             /* the shield's name or the member's */
