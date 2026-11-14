@@ -580,13 +580,13 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:1306` | The store room keeps at most 127 of one item. |
 | `mods/fixes.c:1307` | The store room is full: it keeps 100 kinds of items. |
 | `mods/fixes.c:1477` | abandon the horses |
-| `mods/fixes.c:1859` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
-| `mods/fixes.c:2117` | claim friendship |
-| `mods/fixes.c:2169` | It is $NamedOneName again |
-| `mods/fixes.c:2432` | You need a missile weapon |
-| `mods/fixes.c:2510` | Not bought: nobody in the party has room for another kind of item. |
-| `mods/fixes.c:2528` | Nobody in the party has room for another kind of item. |
-| `mods/fixes.c:3155` | a hook (or { -2 }) for each fix, in the same order |
+| `mods/fixes.c:1894` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
+| `mods/fixes.c:2152` | claim friendship |
+| `mods/fixes.c:2204` | It is $NamedOneName again |
+| `mods/fixes.c:2467` | You need a missile weapon |
+| `mods/fixes.c:2545` | Not bought: nobody in the party has room for another kind of item. |
+| `mods/fixes.c:2563` | Nobody in the party has room for another kind of item. |
+| `mods/fixes.c:3190` | a hook (or { -2 }) for each fix, in the same order |
 
 ## The interface (ui/)
 

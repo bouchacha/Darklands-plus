@@ -18,6 +18,7 @@ What changed since 1.4.6.
 
 **Fixed**
 
+- **A tomb's quest item after fighting its skeletons:** clearing every group now ends the encounter as a victory and gives the item. Previously the party stayed in exploration, and leaving by the stairs counted as retreat, so the existing tomb reward fix withheld it. Unmet groups, standing enemies and a retreat still prevent the reward.
 - **A crash selling spare gear:** the game's timer ran a small saved picture as code, most likely through one of the addresses it calls on, overwritten. It now checks them at each tick and puts back one found changed, with a line in the log; and a crash in data run as code now logs how it got there.
 - **What came of it** missed what a card gave as soon as a battle, a find or a shop it had opened was over (the caravan master's purse and another merchant's gun after the fight). The party is now noted again as each such screen closes, so the next text lists it.
 - **Parry holds, and comes by itself.** A member told to parry went back to a standard or Vulnerable attack when their foe fell or another came at them: Parry and Berserk now stay while any enemy is beside them. And with Improved combat, a member with two or more enemies attacking them parries until fewer do, unless you order otherwise.
