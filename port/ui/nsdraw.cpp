@@ -282,7 +282,7 @@ void ns_ingredient_tip(int id, int have, const std::string &holders)
     if (!have) ImGui::TextDisabled("The party has none.");
     else if (holders.empty()) ImGui::Text("The party has %d.", have);
     else ui_rich_textf("The party has %d: %s", have, holders.c_str());
-    if (config_get_int("assist.where_sold", 1)) {             /* (the three nearest sellers and how far: his ask, 1.4.7) */
+    if (config_get_int("assist.where_sold", 1)) {             /* (the three nearest sellers and how far: his ask, 1.5) */
         std::vector<WhereSold> w = journal_where_sold_rows(id, 3);
         if (!w.empty()) {
             ImGui::TextDisabled("Where to buy, nearest first");
@@ -370,14 +370,14 @@ void ns_stock_click(NsDraw &P, float x0, float y0, float x1, float y1, int id)
 {
     if (!P.hit(x0, y0, x1, y1)) return;
     int n = stock_next(stock_want(id));
-    if (P.shift) { for (int k = 72; k < 95; k++) stock_want_set(k, n); }   /* (every ingredient to this one's next step: his ask, 1.4.7) */
+    if (P.shift) { for (int k = 72; k < 95; k++) stock_want_set(k, n); }   /* (every ingredient to this one's next step: his ask, 1.5) */
     else stock_want_set(id, n);
 }
 
 /* what a potion does, as the game's code does it (use_potion s031 1462:43b2; thrown: effect_spell
  * s019; hit_damage s014 18bf), the grades 1/2/3 being the qualities 25/35/45 of a brew: an effect a
  * line, as a saint's help is written out (saint_effects_text), each with how much and for how long
- * (his ask, 1.4.7: "not just effect magnitude but also how long it lasts"), the grades' numbers in
+ * (his ask, 1.5: "not just effect magnitude but also how long it lasts"), the grades' numbers in
  * order. How long, as the game sets it: a thrown one on the battle's clock (about 60 ticks a second:
  * the cloud's own life, s019 DS:2202 [kind*3 + grade + 2]; what it does to a fighter, DS:21e6
  * [kind*3 + grade]; Stone-tar's pool, DS:221d) - Noxious Aroma 6/9/12 s, Eyeburn 8/16/24, Fleadust
@@ -389,7 +389,7 @@ void ns_stock_click(NsDraw &P, float x0, float y0, float x1, float y1, int id)
 /* what a potion does, as its parts: how it is used (drunk, thrown, put on), what it does in words, its
  * effects' shorthand (shields, roundels) and their rows: one number where the grades agree (written above
  * the grades' pictures), three where they differ (under them); how long as the hourglass and "6s"; what
- * stays the same. In short, as the saints' help is (his ask, 1.4.7: "-50%" for "halved", the hourglass
+ * stays the same. In short, as the saints' help is (his ask, 1.5: "-50%" for "halved", the hourglass
  * for "how long that lasts on them (seconds of battle)", the effects first and then whom they strike) */
 PotionFx ns_potion_fx(int id)
 {
@@ -586,7 +586,7 @@ int ns_potion_grade(int id, int q)
    strike) with a bracket down to those rows; then the rows that are the same at every grade, a label and
    one number; then, where any differ, the potion's picture at each grade over a column and those rows, the
    column of the one in hand marked (grade 1..3; 0 none). How long: the hourglass. The numbers sit by the
-   labels, not at the far side (his ask, 1.4.7: "too much white space between left and right columns").
+   labels, not at the far side (his ask, 1.5: "too much white space between left and right columns").
    The height */
 static float fx_label_x(const FxRow &r, float gs) { return r.time ? gs * 1.15f : 0; }      /* (the hourglass before a label) */
 static float fx_cols(NsDraw &P, float gs, const PotionFx &f)                               /* a grade's column: its widest number, with room */
@@ -665,7 +665,7 @@ static float potion_table_w(NsDraw &P, float gs, const PotionFx &f, float most)
     return fminf(lw + 1.5f, most) + 3 * cw;
 }
 
-/* What a potion is, the same block wherever one is shown (his ask, 1.4.7: the alchemy screen's and
+/* What a potion is, the same block wherever one is shown (his ask, 1.5: the alchemy screen's and
  * the sheet's formula pages, the sheet's items, a shop's wares; ui/inventory.cpp lays out the same in
  * its tooltip): the game's own words for it (blue); how it is used, a picture (as the battle's order
  * tray draws it; its word on the pointer), and what it does; the numbers that change with the grade

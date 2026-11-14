@@ -1140,7 +1140,7 @@ static void formulae(NsDraw &P, const SheetModel &s)
        member alone knows formulae, none (the heading says who) */
     bool tags = al.size() > 1;
     if (al.size() == 1) P.text(fo, 4.2f, 0, 24.2f, soft, "Known by " + rich_member(al[0]), LX1 - 2);
-    /* the list: a potion a row, as the alchemy screen's (his ask, 1.4.7: "why not use the same condensed
+    /* the list: a potion a row, as the alchemy screen's (his ask, 1.5: "why not use the same condensed
        potion interface"): its name and how many the party carries, its three formulae - the grades -
        as seals (ns_grade_seal: green where the ingredients make a batch, red where short, an empty
        ring where nobody knows it), and a line about the formula pointed at or chosen; in the alchemy
@@ -1272,7 +1272,7 @@ static void formulae(NsDraw &P, const SheetModel &s)
         ns_tip("The mystic number: the higher, the harder the formula is to brew (set against the alchemist's {Alchemy} and {Intelligence}). The risk: how badly a failed brew can go wrong.");
     y += mh + 1;
     y += ns_potion_about(P, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW - 2.5f, 95 + k / 3, k % 3 + 1, -1);   /* (what the potion is, as everywhere, this formula's grade marked) */
-    y += 2.0f;                                           /* (its ingredients, at hand and needed: ringed on the shelf under the list - his ask, 1.4.7, the room for the rest) */
+    y += 2.0f;                                           /* (its ingredients, at hand and needed: ringed on the shelf under the list - his ask, 1.5, the room for the rest) */
     int b = batches_of(s, k);
     if (b) { char bl[64]; snprintf(bl, sizeof bl, "Enough ingredients to make %d potion%s.", b, b == 1 ? "" : "s"); y += P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, NsDraw::GREEN, bl) + 1.5f; }
     else y += P.para(fo, NsDraw::FS_SMALL, DX0 + 2.5f, y, DW, dim, kn ? "The party lacks an ingredient: brewing must wait." : "The party lacks an ingredient.") + 1.5f;

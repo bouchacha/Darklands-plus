@@ -356,7 +356,7 @@ static int select_member(int i)
    the camp (Relax is then not offered: can[0]). On opening, after each day, as the game sets those
    done regaining Strength or praying back to relaxing, and after a sheet; a day the player chose stands.
    One set to Regain Strength or to Pray with nothing left to gain (full by a potion or a saint on a
-   sheet, which the game would see only at the day's end, after a day of nothing: his Jorg, 1.4.7) goes
+   sheet, which the game would see only at the day's end, after a day of nothing: his Jorg, 1.5) goes
    on so as well, at once (done_only: those alone, looked at on every round of the page). */
 static int rested_to_work(LodgeModel *m, int done_only)
 {

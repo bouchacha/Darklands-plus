@@ -243,7 +243,7 @@ static void first_draw_hook(void)          /* s040 1462:06e2: the loot screen dr
 
 /* ---------------------------------------------------------------- ingredients and goods of one quality
  * An ingredient's quality changes nothing but its price: alchemy takes them by kind and number
- * (s033 1462:1630), a potion's quality is the formula's. So too the goods (his ask, 1.4.7: torch,
+ * (s033 1462:1630), a potion's quality is the formula's. So too the goods (his ask, 1.5: torch,
  * candle, rope, iron spike, lantern, clock, grappling hook, harp, flute): the cards ask only whether
  * the party has rope or lock picks (count_items) or an instrument (St. Cecilia, count_items_flags),
  * and what a card lets the party use is a potion (card_items, every card); only a lock pick's

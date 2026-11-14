@@ -672,3 +672,6 @@ covered and found, and what it could not check.
 - 2026-11-14 (his ask after RC16): the potion table's number columns sit after the labels (fx_labels_w: the
   labels on one line where w allows) instead of at the far side, and a bracket runs from a cloud's shields
   down to the rows they head (native potion_table; the ImGui twin draws the same with the window's draw list).
+- 2026-11-14 (release): 1.4.7 becomes 1.5 at his word: CHANGELOG's section "1.5", written short and by
+  importance, the same text as the release notes' "New in 1.5"; the code's comments say 1.5 where they named
+  the release (the release candidates keep their 1.4.7-RCn names).

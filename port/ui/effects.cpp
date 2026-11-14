@@ -142,7 +142,7 @@ static std::vector<Eff> effects_table(int size, const std::vector<EvRec> &recs)
 }
 /* a boost to an attribute in force: with the blessing fix (mods/fixes.c) a boost that runs out takes off no more
    than what then stands above the maximum, so what a member has of their boosts is what stands above it now, the
-   lowerings running put back; the rest (Essence of Grace's Endurance drunk while wounded, his ask in 1.4.7: "+278")
+   lowerings running put back; the rest (Essence of Grace's Endurance drunk while wounded, his ask in 1.5: "+278")
    only healed. Shown so: the boosts that end last keep what is above the maximum, those that end first nothing,
    and a boost of nothing is not shown. Without the fix every point goes when its boost runs out, as recorded */
 static void boosts_in_force(std::vector<Eff> &v)

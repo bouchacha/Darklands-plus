@@ -691,7 +691,7 @@ static void notes_page(void)
 }
 
 /* in a town whose shops sell an ingredient the party keeps a stock of (mods/keep.c) and has fewer of: a notice, as
-   the town's first card loads (his ask, 1.4.7: "a brief notification ... when you have less than X amount you set").
+   the town's first card loads (his ask, 1.5: "a brief notification ... when you have less than X amount you set").
    The shops are the journal's: those seen, and those worked out for the town (record_town_stock) */
 extern "C" { int stock_want(int id); void ui_notice_for(const char *msg, unsigned ms); }
 static void journal_stock_check(int loc)
@@ -711,7 +711,7 @@ static void journal_stock_check(int loc)
         sh_.push_back({ id, have[id], want, shop });
     }
     if (sh_.empty()) return;
-    /* shown as the learned saint's box, the ingredients as their pictures (his ask, 1.4.7: a notice read at a
+    /* shown as the learned saint's box, the ingredients as their pictures (his ask, 1.5: a notice read at a
        glance ran past its end, and the autosave's pushed it off at once): those the party is shortest of first */
     std::stable_sort(sh_.begin(), sh_.end(), [](const StockShort &a, const StockShort &b) { return (double)a.have / a.want < (double)b.have / b.want; });
     ui_stock_popup(loc_name(loc), sh_);
@@ -813,7 +813,7 @@ extern "C" void journal_init(void)
 /* how long the party would travel to loc: from where it stands on the map, or from the town it is
    in (mods/travel.c's search, cached per start); -1 no way or not known */
 extern "C" { int travel_minutes_loc_from(int ox, int oy, int loc); int travel_party_at(int *x, int *y); }
-static int travel_min_to(int loc)                       /* (from a camp too, and from a screen over the map: his ask, 1.4.7) */
+static int travel_min_to(int loc)                       /* (from a camp too, and from a screen over the map: his ask, 1.5) */
 {
     int ox, oy;
     if (loc == (s16)g_rw(G_CUR_LOC)) return 0;
@@ -903,7 +903,7 @@ static int loc_distance(int loc, int px, int py)          /* in map tiles (rows 
 /* where the party can buy a thing, nearest first, up to n towns: from the shops seen ("sold here
    (pharmacist)", "Köln, 2 days away"), then, with "What unvisited places offer" on, the towns whose
    shops will have it (the wares are fixed for the whole game by the town's and the party's seeds:
-   predict_stock), "(expected)". His ask (1.4.7): an ingredient's three nearest sellers and how far */
+   predict_stock), "(expected)". His ask (1.5): an ingredient's three nearest sellers and how far */
 /* where thing id is sold, nearest first, up to n: here first (with the shop), then the towns whose
    shops were seen, then (map.offers_unvisited) those expected to sell it; min: the minutes of travel,
    -1 unknown */

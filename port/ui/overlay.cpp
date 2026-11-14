@@ -194,7 +194,7 @@ static void draw_version(void)
 static void draw_lcd(void);
 /* short notices ("Game saved"), bottom centre, for a few seconds: up to three at once, the newest
    at the bottom, each for its own time (one notice put the last away: the stock notice on reaching
-   a town went the moment the town's autosave said so, 1.4.7); a long one wraps */
+   a town went the moment the town's autosave said so, 1.5); a long one wraps */
 struct Notice { std::string msg; u32 t, ms; };
 static std::vector<Notice> notices;
 static void notice_add(const char *msg, unsigned ms)
@@ -528,7 +528,7 @@ static void draw_learned(void)
 }
 
 /* the stock to keep, short (ui/journal.cpp journal_stock_check): in a town that sells ingredients the party keeps a
- * stock of and has fewer of, a box as the learned saint's (his ask, 1.4.7: "the same shape/behavior as the saint
+ * stock of and has fewer of, a box as the learned saint's (his ask, 1.5: "the same shape/behavior as the saint
  * learned popup"; a notice had been pushed off by the autosave's at once) - the town, then each shop with the
  * ingredients' pictures (the alchemy screen's) and what the party has of what it keeps; on the card it came with
  * until another card (a few seconds at least), off a card some seconds */

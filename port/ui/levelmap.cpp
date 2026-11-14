@@ -89,7 +89,7 @@ static double recs_saved;
 static void lv_path(char *b, size_t n, int seed) { snprintf(b, n, "%s/darklands_levels_%u.bin", dlp_data_dir, (unsigned)(u16)seed); }
 /* and as it stood when each save was written: levels/darklands_levels_<seed>_<save>.bin in the same folder (1.4.6:
    loading an earlier save showed the floors as explored later on). Loading a save takes up its own (a save made
-   before 1.4.7 has none: what the game knows then stands). A save written again over its slot writes its file
+   before 1.5 has none: what the game knows then stands). A save written again over its slot writes its file
    again. */
 static void lv_side_path(char *b, size_t n, int seed, const char *save, bool make)
 {

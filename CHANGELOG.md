@@ -1,50 +1,46 @@
 # Darklands+ changelog
 
-## Next (not yet released)
+## 1.5
 
 What changed since 1.4.6.
 
 **Added**
 
-- **Potions made easier:** Split, on a potion's row of the character sheet, splits that potion (every quality of it) evenly among the members on their feet. In a battle the potions tray has two rows, what the chosen member can drink (drunk at once with a click) and what they can throw or use, each marked with its own sign; and each potion's tooltip says what it does.
-- **Ingredients: where to buy, and a stock to keep.** An ingredient's tooltip (the sheet's Formulae, the alchemy screen) names the three nearest towns that sell it with the days away by the map's hourglass, and shows the potions it goes into, a dot a grade. A click on an ingredient sets a stock to keep (20, 50, 100, 200, none), Shift+click the same for every ingredient: arriving in a town that sells it while the party has fewer, a box like the learned saint's shows those ingredients with what the party has. The days away show in a camp and on every screen too.
-- **A shop's wares under headings:** Weapons, Armor, Ingredients and the rest, each with how many, so a foreign trader's or a merchant's ingredients are not lost below their weapons. A click on a heading folds that group away, and it stays folded in every shop until clicked again.
-- **What a potion does, the same everywhere:** in the shops, the sheet's items and Formulae, the alchemy screen and the formula tooltips, a potion shows the game's words for it, a picture of how it is used (drunk, thrown or put on, as the battle's potions tray draws them), what it does in short (the attributes' and skills' shields, every weapon skill as three fanned shields, "-50%", the hourglass for how long), whom a cloud strikes and how much (bracketed under its shields), what stays the same at every grade, then the numbers that change as a column a grade under the potion at that grade, the grade in hand (or the formula's) marked.
-- **Full Original keeps your sound device:** choosing it no longer switches the sound to the original game's INSTALL setup (on GOG copies that is the Roland driver, which plays the battle sounds as stray notes without MT-32 ROMs); the Roland MT-32 stays, as Darklands was written for. A device the preset had switched is given back.
-- **What a potion is doing to an enemy:** a fighter under Fleadust, Noxious Aroma, Eyeburn or Sunburst wears its picture above the head, a dial darkening as it wears off, and the info on them says what it does and how many seconds remain. A throw wound up shows its bar as a reload does.
-- **Things to use on the field are named:** pointing at stairs, a chest or a way out says what it is, and a chest a member has stood at whether it is locked or trapped. Out of a fight a click on stairs walks the party there and takes them; on a chest, walks there and opens it if it is neither locked nor trapped, and otherwise chooses the leader, Pick Lock or Disarm on their orders (never tried by itself); on a way out, walks there and chooses the leader (Exit Battlefield).
-- **The level map shows the ways out** (a castle's are no stairs: the Templars' fortress has its way out along the graveyard hall) and the chests seen, and is drawn on parchment, as a plan.
-- **The manor rumor** (F12 > Reconstructed Content, off unless ticked): a town-news text MicroProse wrote and never showed. Asking about affairs elsewhere in the Empire, the party may hear of a powerful noblewoman whose well-guarded manor lies in such a direction from the town, until it has been there.
+- **Potions, clear everywhere:** in the shops, the character sheet, the alchemy screen and the tooltips, a potion shows how it is used (drunk, thrown or put on) and what it does in short: the shields it strikes, "-50%", the hourglass for how long, its numbers by grade.
+- **Potions in battle:** the potions tray has two rows, to drink (a click drinks it) and to throw or use. A fighter under Fleadust, Noxious Aroma, Eyeburn or Sunburst wears its picture above the head, a dial darkening as it wears off.
+- **Split potions:** Split, on a potion's row of the character sheet, shares it evenly among the members on their feet.
+- **A stock of ingredients:** a click on an ingredient keeps 20, 50, 100 or 200 of it (Shift+click: every ingredient). Arriving in a town that sells one the party is short of, a box shows what to buy. An ingredient's tooltip lists the nearest towns that sell it, with the days away.
+- **Shop wares under headings** (Weapons, Armor, Ingredients ...), each folded away with a click.
+- **Things on the field are named:** stairs, chests (locked or trapped, once a member has stood at one) and ways out. Out of a fight a click walks the party there and uses them.
+- **The level map shows the ways out and the chests seen,** drawn on parchment as a plan.
+- **The manor rumor** (F12 > Reconstructed Content, off unless ticked): a town-news text MicroProse wrote and never showed.
 
 **Fixed**
 
-- **A crash selling spare gear:** the game's timer ran a small saved picture as code, most likely through one of the addresses it calls on, overwritten. It now checks them at each tick and puts back one found changed, with a line in the log; and a crash in data run as code now logs how it got there.
-- **A tomb's quest item after beating its skeletons:** the party went back to exploring after each group, and leaving by the stairs counted as fleeing, so the item was not given. Beating every group now wins the tomb and gives it; leaving before still gives nothing. (A pull request from woodk123.)
-- **What came of it** missed what a card gave as soon as a battle, a find or a shop it had opened was over (the caravan master's purse and another merchant's gun after the fight). The party is now noted again as each such screen closes, so the next text lists it.
-- **Parry holds, and comes by itself.** A member told to parry went back to a standard or Vulnerable attack when their foe fell or another came at them: Parry and Berserk now stay while any enemy is beside them. And with Improved combat, a member with two or more enemies attacking them parries until fewer do, unless you order otherwise.
-- **A cell door in a fortress dungeon** flashed its card and went back to the level without a word. Its text is now shown (the cell is empty).
-- **A member with no path to any enemy** (friends ahead in a passage) was sent at one and another by turns and stood there as "waits": they now hold, and their box says "no path".
-- **A look at a character sheet in a battle undid the potions drunk in it:** the sheet loads the party's other records for its while and put them all away after, the battle's with them, so a Deadly Blade drunk in the fight lost its damage until the battle ended (and the margin counted the blessings twice while the sheet was open). The battle's own records now stay with the battle.
-- **One U ran the party through floor after floor** (five in a fortress): a member following in single file stepped onto the stairs the party had arrived by, and the game took the party on. In single file only the leader now takes the party to another floor.
-- **The level map showed floor beyond the walls** that could never be reached: while the party changed floors, what the view showed of one floor was put down as the next one's. It is now noted only once the floor shown has settled, and what was put down wrongly before is left out.
-- **Orders at a pause:** out of a fight every order is carried out at once (stairs, a door, a chest gave no sign and waited for Space); in a fight, the first order given in a pause says it waits for Space.
-- **A lock is picked with the best lock picks:** the game used a member's first lock picks whatever their quality, which adds to the chance; now the best the member carries (with the shared pack, the party) are used. (A new fix, on unless the original is asked for.)
-- **A potion's effects on a foe** showed twice (Eyeburn: weakened, and blinded): one picture and one line now.
-- **Boosts that only healed showed as huge bonuses:** a dose of Essence o'Grace adds Endurance for about 30 hours, and drunk while wounded that only heals; the margin added up every dose (+278 Endurance) though nothing stood above the maximum. It now shows only what is above the maximum, the part that goes when the boosts run out.
-- **At an inn, a member whose Strength filled by a potion or a saint** kept regaining it, a day for nothing, and only then went to work: one with nothing left to regain (or Divine Favor full) now goes to the day's work at once.
-- **The learned saint** stayed on the screen long after, over the town or the map: it now goes with the card it was learned on.
-- **The level map after loading an earlier save** showed a castle, mine or dungeon as explored later on. What was explored is now kept with each save (in `levels` beside the game's other Darklands+ files) and taken up when it is loaded; a save made before this version has none.
+- **A crash selling spare gear:** the game's timer ran data as code, most likely through an address overwritten. The addresses it calls are now checked at each tick and put back.
+- **A tomb's quest item** is given once every group of skeletons is beaten; leaving by the stairs had counted as fleeing. (A pull request from woodk123.)
+- **Parry holds:** Parry and Berserk no longer drop when a foe falls. With Improved combat, a member attacked by two or more parries by itself.
+- **A character sheet opened in a battle** undid the potions drunk in it.
+- **One U ran the party through floor after floor** in single file: only the leader now takes the stairs.
+- **The level map** showed floor beyond the walls, and after loading an earlier save showed what was explored later (now kept with each save).
+- **What came of it** missed what a card gave after its battle, find or shop.
+- **A fortress cell door** flashed its card without a word.
+- **A member with no path to any enemy** went back and forth; they now hold ("no path").
+- **Orders at a pause** out of a fight are carried out at once.
+- **Lock picks:** the best a member carries are used, not the first (a new fix).
+- **Potion boosts that only healed** showed as huge bonuses in the margin; a potion's effect on a foe showed twice.
+- **At an inn,** a member with nothing left to regain lost a day before going to work.
+- **The learned saint** stayed on the screen long after its card.
 
 **Changed**
 
-- **The sheet's Formulae list a potion a row,** as the alchemy screen's: its three formulae as seals (green where the ingredients make a batch, red where short, empty where nobody knows it), who knows the one pointed at, and the batches. Its page leaves the ingredients to the shelf under the list.
-- **The alchemy screen's chance by batches** always has ten bars, so they stay wide enough to click: those past what the ingredients allow are hollow, a line where they stop; past ten, the bars follow the batches set (+), their first and last numbers written under them.
-- **Notices stack:** up to three show at once, the newest at the bottom, so one no longer replaces another.
-- **Goods of one quality:** "Ingredients of one quality" now covers the goods whose quality only changes their price (torch, candle, rope, iron spike, lantern, clock, grappling hook, harp, flute): they are all quality 25 and stack. Lock picks keep theirs, which adds to the chance of picking a lock, and are the only tool whose quality is shown.
-- **Tooltips keep out of the way:** none on the alchemy screen's grade seals (the row's line tells of the grade pointed at instead), none while the wheel turns or a button is held, a list's tooltip at its side instead of over the rows below, the info on a fighter in a top corner of the field instead of beside the pointer, and "Can't walk there" said once on the click instead of following the pointer.
-- **A weapon's tooltip in plain words:** "Needs Edged 16: each point below, -2 to attack and defense", "Best with Strength 13 to 28", the times with "lower is faster", and each member "a good fit" or so many points short and what that costs.
-- **Plainer words:** "fighting style" for "way of fighting", "no path" for "no way", "permanently" for "for good", "continue" for "go on"; the load's tooltip a line per effect, with the numbers it comes to.
-- **One look across the screens:** the level map's title, floors and legend sit on parchment like the world map's panels; the battle log shows what a wound took as the Endurance and Strength shields; quests read "Robber knight at Goslar" and "Sabbat at the pagan altar near Hall", not "@ Goslar" or "@ Pagan Altar"; travel near one reads "Traveling, near a cave"; Party Info shows Fame and Reputation with their shields, as the margins do; the inn's and camp's rows read "Regains {Strength} (+2)" and "Prays for {Divine Favor} (+5)" with their shields, as the choices beside them; a Missile Devices gain in a battle shows its shield.
+- **The sheet's Formulae list a potion a row,** its three grades as seals, as on the alchemy screen.
+- **The alchemy screen's chance by batches** always has ten bars, those past the ingredients hollow.
+- **Notices stack** (up to three) instead of replacing each other.
+- **Full Original keeps your sound device** instead of switching to the original's INSTALL setup (on GOG, the Roland driver, stray notes without MT-32 ROMs).
+- **Goods of one quality:** torches, rope, lanterns and the other goods whose quality only changes their price are quality 25 and stack (with "Ingredients of one quality"). Lock picks keep theirs.
+- **Tooltips keep out of the way,** and a weapon's tooltip is in plain words ("Needs Edged 16: each point below, -2 to attack and defense").
+- **One look across the screens:** parchment panels on the level map; shields in the battle log, the inn and camp, and Party Info; plainer quest and travel words.
 
 ## 1.4.6
 

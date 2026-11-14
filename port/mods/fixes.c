@@ -1686,7 +1686,7 @@ static void altar_frame(void)
 static int tomb_loc = -1;
 /* A tomb (battlefield 0x5f) is one floor whose skeletons wait in groups at activation spots, none of
  * them a master whose fall ends the place: each fight goes back to exploring, and the stairs then
- * return 8 (made a retreat, 2) - so the thing was never given (woodk123's pull request #13, 1.4.7).
+ * return 8 (made a retreat, 2) - so the thing was never given (woodk123's pull request #13, 1.5).
  * At combat_over, with every group met and beaten and no enemy standing, the place is won
  * (GV_place_won, as the castle fix does); tomb_give_hook below then gives the thing once the world and
  * the errands are back. A tomb cannot be saved in mid-battle. */

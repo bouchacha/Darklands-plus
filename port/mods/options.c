@@ -428,7 +428,7 @@ void preset_restore_custom(void)
     if (listener) listener("preset", PRESET_CUSTOM);
 }
 
-/* until 1.4.7 the purist presets switched the sound to "As set in the original game's INSTALL program" and kept
+/* until 1.5 the purist presets switched the sound to "As set in the original game's INSTALL program" and kept
    the player's device in keep.sound.device. His choice (2026-11-11): the original's music on the MT-32, as
    Darklands was written for, whatever the preset: a device the preset set is given back (once, at the start,
    and whenever a preset is chosen) */
@@ -459,7 +459,7 @@ void preset_apply(int p)
         }
         if (pv != PRESET_KEEP && pv != v) option_set(o, pv);
     }
-    options_sound_kept();                            /* (no preset touches the sound: the MT-32 stays, his choice in 1.4.7) */
+    options_sound_kept();                            /* (no preset touches the sound: the MT-32 stays, his choice in 1.5) */
     config_set_int("original", p == PRESET_BUGGY_PURIST);
     config_set_int("preset", p);
     void datamods_scan(void), musicpack_reload(void); datamods_scan(); musicpack_reload();

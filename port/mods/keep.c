@@ -7,7 +7,7 @@
  *   - the alchemy screen's potions starred (first in its list) or put aside (last, still there):
  *     "potion k first", "potion k last" (until 1.4.6-RC12 the list had a row a formula, marked as
  *     "formula f first|last": read as its potion's mark, a star before a mark aside);
- *   - an ingredient's stock to keep (his ask, 1.4.7): in a town that sells it, a notice while the
+ *   - an ingredient's stock to keep (his ask, 1.5): in a town that sells it, a notice while the
  *     party has fewer: "stock item n". */
 #include <stdio.h>
 #include <string.h>
@@ -92,4 +92,4 @@ void potion_mark_set(int k, int mark) { sync(); if (k < 0 || k >= 22 || pmark[k]
 /* an ingredient's stock to keep (0 none); a click steps it: none, 20, 50, 100, 200, none */
 int stock_want(int id) { sync(); return id >= 72 && id < 95 ? stock[id - 72] : 0; }
 void stock_want_set(int id, int n) { sync(); if (id < 72 || id >= 95 || stock[id - 72] == n) return; stock[id - 72] = (unsigned char)(n < 0 ? 0 : n > 255 ? 255 : n); save(); }
-int stock_next(int n) { return n <= 0 ? 20 : n < 50 ? 50 : n < 100 ? 100 : n < 200 ? 200 : 0; }   /* (his steps, 1.4.7) */
+int stock_next(int n) { return n <= 0 ? 20 : n < 50 ? 50 : n < 100 ? 100 : n < 200 ? 200 : 0; }   /* (his steps, 1.5) */

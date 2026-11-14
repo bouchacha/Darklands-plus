@@ -164,7 +164,7 @@ extern "C" void barterview_draw(void)
     std::map<int, int> have_n;
     { GmItem g; for (int m = 0; m < 5; m++) if (b.present[m]) for (int i = 0; i < gm_item_count(m); i++) if (gm_item(m, i, &g)) have_n[g.id] += g.count; }
     auto ingredient = [&](int id) { const ItemDef *d = def(id); return d && d->kind == K_INGREDIENT; };
-    /* the wares under headings, a group a kind with how many (his ask, 1.4.7: "I often forget that foreign traders and
+    /* the wares under headings, a group a kind with how many (his ask, 1.5: "I often forget that foreign traders and
        regular merchants sell ingredients that pharmacists don't"), the shop's own order within each; a shop with one
        kind of thing has no heading. The quality is the shop's (above the list) and each row's own */
     static const char *const WGROUP[9] = { "Weapons", "Missile weapons", "Armor", "Shields", "Horses", "Potions", "Ingredients", "Tools and other goods", "Relics" };

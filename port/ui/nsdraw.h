@@ -252,7 +252,7 @@ std::string ns_quality_tag(int id, int qual);
    lockpicks, instruments; goods nothing asks for), "" for others */
 std::string ns_item_use(int id);
 float ns_ingredient_row(NsDraw &P, float x0, float y, float x1, int id);   /* an ingredient: the potions it goes into, as pictures; the height taken */
-/* an ingredient's stock to keep (mods/keep.c, his ask 1.4.7): its cell's tag (a blue slip with the number at x0, y0,
+/* an ingredient's stock to keep (mods/keep.c, his ask 1.5): its cell's tag (a blue slip with the number at x0, y0,
    when one is set), what the tooltip says of it, and a click on the cell (x0..x1, y0..y1) stepping it */
 void ns_stock_tag(NsDraw &P, float x0, float y0, int id);
 std::string ns_stock_words(int id);

@@ -165,7 +165,7 @@ extern "C" void alchemyview_draw(void)
             const bool known = rw_ >= 0, cur = fm == sel_f, hov = P.over(sx - 2.4f, SY - 2.6f, sx + 2.4f, SY + 2.6f);
             ns_grade_seal(P, sx, SY, SR, g + 1, !known ? NS_SEAL_UNKNOWN : bt ? NS_SEAL_CAN : NS_SEAL_SHORT, put,
                           cur ? NS_RING_CHOSEN : hov && known ? NS_RING_HOVER : fm == fshow && known ? NS_RING_SHOWN : NS_RING_NONE);
-            if (hov) {                                    /* (no tooltip, his ask 1.4.7: "overboard": the row's line tells of the grade pointed
+            if (hov) {                                    /* (no tooltip, his ask 1.5: "overboard": the row's line tells of the grade pointed
                                                              at, and a click puts its formula on the right page) */
                 on_seal = true;
                 if (known) fline = fm;
@@ -318,7 +318,7 @@ extern "C" void alchemyview_draw(void)
                                   : std::string("The party lacks the ingredients for a batch of this formula (the right page shows what is short).");
             y += 9.0f;
 
-            /* the chance by the number of batches: one roll decides them all. Always ten bars (his asks, 1.4.7: with a
+            /* the chance by the number of batches: one roll decides them all. Always ten bars (his asks, 1.5: with a
                ton of ingredients the bars got too thin to click; the same chart whatever the party carries): those past
                what the ingredients allow hollow, a line where they stop; past ten the window follows the batches set
                (+), its first and last numbers written under its ends */

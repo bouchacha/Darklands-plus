@@ -207,7 +207,7 @@ static void order_button(ImDrawList *dl, ImVec2 a, const OrderEntry &e, bool ena
         if (a.y > ImGui::GetIO().DisplaySize.y * 0.5f) { ImVec2 wp = ImGui::GetWindowPos(), ws = ImGui::GetWindowSize(); ui_tip_beside(ImVec2(a.x, wp.y), ImVec2(b.x, wp.y + ws.y)); }   /* (the strip's whole height: above it) */
         else ui_tip_beside(a, b);
         std::string t = square ? e.label + (order_tip(e.kind) ? std::string("\n") + order_tip(e.kind) : std::string()) : order_tip(e.kind);
-        if (e.pid >= 95 && e.pid <= 116) { std::string fx = ns_potion_effect_grade(e.pid, ns_potion_grade(e.pid, e.pq)); if (!fx.empty()) t += "\n" + fx; }   /* (what the potion does, its grade's numbers: his ask, RC6, 1.4.7) */
+        if (e.pid >= 95 && e.pid <= 116) { std::string fx = ns_potion_effect_grade(e.pid, ns_potion_grade(e.pid, e.pq)); if (!fx.empty()) t += "\n" + fx; }   /* (what the potion does, its grade's numbers: his ask, RC6, 1.5) */
         margin_tip(t.c_str());
     }
 }

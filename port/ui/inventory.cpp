@@ -672,7 +672,7 @@ void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's qual
             dmg = rb(G_FAR20A5, (u16)(0x76e7 + w)), minsk = rb(G_FAR20A5, (u16)(0x7726 + w)), minst = rb(G_FAR20A5, (u16)(0x7765 + w)),
             maxst = rb(G_FAR20A5, (u16)(0x77a4 + w)), reload = rb(G_FAR20A5, (u16)(0x77e3 + w));
         ImGui::Separator();
-        /* (in plain words, his ask 1.4.7: "this should probably use clearer language": the skill's and Strength's
+        /* (in plain words, his ask 1.5: "this should probably use clearer language": the skill's and Strength's
            rules as what a point short or over does to attack and defense, the times with which way is better) */
         ui_rich_textf("{%s} weapon, %s", gm_skill_name(sk), (cp >> 4) >= 2 ? "two-handed" : "one-handed");
         ImGui::Text("Damage %d, penetration %d (how well it gets through armor)", dmg, cp & 15);
