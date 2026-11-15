@@ -4,6 +4,10 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 
 **Install:** unpack the zip anywhere and start `darklands.exe`. It finds a GOG or Steam installation by itself or asks for the folder once. The first start takes about two minutes while Darklands+ translates the game program from your `DARKLAND.EXE`; after that it starts at once. Your saved games stay where they always were. `Darklands+ README.txt` in the zip has the details.
 
+**After 1.5, not yet released**
+
+- **Damaged saves** are checked before Continue, quickload, or the new Load page replaces the current game. The original title screen checks its selected save too. A refusal keeps the current game or title screen open. The original in-game Load chooser retains its existing ordering.
+
 **New in 1.5** (what changed since 1.4.6)
 
 **Added**

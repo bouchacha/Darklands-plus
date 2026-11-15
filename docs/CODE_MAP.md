@@ -64,7 +64,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/datamods.c` | 424 | mod folders: game files replaced without touching the game's own. |
 | `mods/encounters.c` | 2067 | new encounters written as data. |
 | `mods/enemyview.c` | 129 | the battle's Enemy Info as a native page (display.native_enemyinfo; the view is ui/enemyview.cpp). |
-| `mods/fixes.c` | 3268 | fixes for bugs that are still in the last official version (483.07). |
+| `mods/fixes.c` | 3270 | fixes for bugs that are still in the last official version (483.07). |
 | `mods/fixgroups.c` | 35 | the fixes (fixes.c) sorted by kind, for the settings' list: from what the game plainly gets wrong to what is open to argument, as players have talked of them over the years (the GOG and Steam forums, the old Usenet posts and the patch notes MicroProse left). |
 | `mods/foefx.c` | 91 | what a thrown potion (or a trap's) is doing to each fighter now, and for how long: the battle's own records, read for ui/battleoverlay.cpp (a picture over the fighter, the words under the pointer). |
 | `mods/foesleft.c` | 130 | the foes a place still holds that the party has not met yet (battle.foes_left, on by default): shown under the battle margin's enemies, so a castle, dungeon or mine whose fight "does not end" says where the rest still wait (the game ends it only when they are all beaten, or the party walks out and counts as fled). |
@@ -101,7 +101,8 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/rosterview.c` | 307 | the party of a new game as a native screen (display.native_roster; the view is ui/rosterview.cpp). |
 | `mods/saintinfo.c` | 518 | what each saint's help does in the game's code, beside the description the game shows (DARKLAND.SNT), for Darklands+'s screens (saintinfo.h). |
 | `mods/sainttexts.c` | 436 | the "sainttexts" fix: saints whose help, in the game's code, plainly falls short of or departs from their own description (DARKLAND.SNT) do what the description says. |
-| `mods/saves.c` | 699 | quick save and quick load, autosaves, and loading any save from the Darklands+ menu. |
+| `mods/savecheck.c` | 133 | check saved games before the game's load discards the running session. |
+| `mods/saves.c` | 761 | quick save and quick load, autosaves, and loading any save from the Darklands+ menu. |
 | `mods/savesview.c` | 170 | the game's Save and Load as native dialogs (display.native_saves; the Full Original preset keeps the game's). |
 | `mods/sfx.c` | 630 | battle sound effects. The battle driver (PSOUND.DB and the others) makes every combat sound on the FM chip or MIDI synthesizer ("random notes rather than clashing swords"). Here they are played as recorded-style sounds i |
 | `mods/sharedstore.c` | 224 | one store room for every inn (store.shared, F12 > Settings; on by default): what is left with one innkeeper (a town's inn, a village's old woman) is there at every other, like a chest that follows the party. |
@@ -109,7 +110,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/soundpreview.c` | 161 | hearing a sound device before choosing it (F12 > Settings): a piece of music, or ten seconds of a real battle's sounds, played through that device now, then the chosen one back. |
 | `mods/styles.c` | 62 | each party member's way of fighting: what they do in a battle while the player gives them no order (Improved combat, mods/ways.c carries it out; an order of the player's is carried out, then they go back to their way). |
 | `mods/teachers.c` | 267 | the teachers a town can offer, and the card options that bring them (teachers.h). |
-| `mods/titleview.c` | 134 | the start screen as a native page (display.native_title; the view is ui/titleview.cpp). |
+| `mods/titleview.c` | 133 | the start screen as a native page (display.native_title; the view is ui/titleview.cpp). |
 | `mods/travel.c` | 821 | travelling on the overland map by itself, along roads and over bridges. |
 | `mods/war.c` | 293 | cities preparing for war, and at war: coded by MicroProse and never switched on (rules.war, experimental, off in every preset; docs/cut_content.md, "Cities at war"). |
 | `mods/ways.c` | 715 | Improved combat (battle.improved): each party member fights in their way (mods/styles.c) between the player's orders, after each round of blows (melee_exchanges, s014 0e76:2a4a: melee_hook). |
@@ -230,7 +231,7 @@ Tools: tests, checks, the harness.
 | `tools/nfight.py` | 76 | nfight.py NAME [--max N]: in an nctl --x11 session on the travel map, travel about until a battle starts: on each card the option that leads to a fight is clicked (read from the crisp text runs), other cards are passed with their last option. |
 | `tools/nhunt.py` | 19 | nhunt.py NAME [--max N] [--pts x1,y1,x2,y2]: travel back and forth on the overland map of an nctl session until something other than the map shows (an encounter card). |
 | `tools/nplay.py` | 133 | run a tools/play.py-style script against the NATIVE build (headless) and save screenshots as PNG. |
-| `tools/package.py` | 151 | the Windows release of Darklands+: only our own code and the tools that make the game module on the player's machine (runtime/split.h). |
+| `tools/package.py` | 152 | the Windows release of Darklands+: only our own code and the tools that make the game module on the player's machine (runtime/split.h). |
 | `tools/perfcheck.py` | 72 | how long the interface takes to draw on each screen (run after every new feature). |
 | `tools/prepare.py` | 137 | make the game module (runtime/split.h) from the player's own DARKLAND.EXE. |
 | `tools/release_check.py` | 167 | a scripted session through the parts of Darklands+ that a release must not break, in a window (native screens are drawn only there), on your own game files. |
@@ -239,5 +240,6 @@ Tools: tests, checks, the harness.
 | `tools/soaktest.py` | 334 | a long automated playtest: plays the game for a while as a restless player would, and reports what went wrong. |
 | `tools/soundpack.py` | 324 | build the sample battle-sound pack from free recordings. |
 | `tools/switch_map.py` | 56 | docs/MERGING.md with its section 4 (every switch and the files that read it) made anew from docs/SWITCHES.md (the switches, as the game writes them) and the sources (a file reads a switch when its key is written in it, in quotes). |
+| `tools/test_save_load.py` | 194 | Test load refusal and recovery using a copied licensed game and a copied save. |
 | `tools/uitour.py` | 70 | every tooltip beside what it describes (never over it nor over the pointer), and no two of Darklands+'s panels over each other. |
 

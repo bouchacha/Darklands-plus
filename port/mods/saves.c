@@ -28,6 +28,7 @@
 #include <strings.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <errno.h>
 #include "../runtime/cpu.h"
 void ovl_changed(void);
 #include "../runtime/hle.h"
@@ -40,6 +41,8 @@ void ovl_changed(void);
 #include "assist.h"
 #include "nscreen.h"
 #include "savesview.h"
+#include "savecheck.h"
+#include "fixes.h"
 
 int saves_on = 1;                /* quick keys and autosaves (off: the original's saving only) */
 int saves_auto_arrive = 1;       /* autosave on arriving at a place */
@@ -89,6 +92,43 @@ static int real_path(const char *name, char *p, size_t n)
     dos_host_path(dn, p, n);
     struct stat st;
     return stat(p, &st) == 0;
+}
+
+/* The native chooser picks a file before load_game frees the current party and events.
+ * Validate at that point, also for Continue and queued quickloads. The original in-game
+ * chooser picks after teardown; its different ordering is deliberately left alone here. */
+static FILE *load_file(const char *name)
+{
+    char dos[64], path[1200];
+    snprintf(dos, sizeof dos, "SAVES\\%s", name);
+    dos_host_path_read(dos, path, sizeof path); /* the loader's shadow folder and mod lookup */
+    return fopen(path, "rb");
+}
+
+static int load_allowed(const char *name)
+{
+    if (!fix_is_on("savecheck")) return 1;
+    FILE *file = load_file(name);
+    const char *problem = file ? savecheck_sav(file) : "the save could not be opened";
+    if (file) fclose(file);
+    if (!problem) {
+        char companion[20];
+        snprintf(companion, sizeof companion, "%s", name);
+        char *dot = strrchr(companion, '.');
+        if (dot) {
+            strcpy(dot, ".BSV");
+            /* The original permits a missing companion, including saves made before a battle. */
+            file = load_file(companion);
+            if (file) { problem = savecheck_bsv(file); fclose(file); }
+            else if (errno != ENOENT && errno != ENOTDIR) problem = "the battle file could not be opened";
+        }
+    }
+    if (!problem) return 1;
+    char message[180];
+    snprintf(message, sizeof message, "Cannot load %.15s because %s.", name, problem);
+    fprintf(stderr, "saves: %s\n", message);
+    ui_notice(message);
+    return 0;
 }
 
 int saves_read(const char *name, SaveInfo *si)
@@ -251,7 +291,8 @@ static void menubar_hook(void)             /* menu_bar_run(menu, once): with onc
         plat_quit(0);
     }
     if (load_stage == 1) {
-        if (g_rb(D_LOAD_OK) == 1) {
+        if (!load_allowed(load_name)) load_stage = 0;
+        else if (g_rb(D_LOAD_OK) == 1) {
             load_stage = 2; load_t = plat_ticks_ms();
             if (getenv("DL_SAVES_LOG")) fprintf(stderr, "saves: loading %s\n", load_name);
             if (call_load_game()) return;                  /* back in the main loop with the save */
@@ -423,6 +464,7 @@ static void load_hook(void)                /* load_game () */
     int r = savesview_load(f, sizeof f);
     if (r < 0) { hook_call_original(); return; }
     if (r == 0) { hook_return_far(0); return; }
+    if (!load_allowed(f)) { hook_return_far(0); return; }
     snprintf(load_name, sizeof load_name, "%s", f);
     load_stage = 2; load_t = plat_ticks_ms();
     if (getenv("DL_SAVES_LOG")) fprintf(stderr, "saves: loading %s (the game's Load)\n", load_name);
@@ -553,6 +595,7 @@ int saves_load(const char *name)
        a load that fails has nothing to go back to (the game stopped: "Buffer dealloc error") */
     SaveInfo si;
     if (!saves_read(name, &si)) { ui_notice("That save could not be read."); return 0; }
+    if (!load_allowed(name)) return 0;
     snprintf(load_name, sizeof load_name, "%s", name);
     load_stage = 1; load_t = plat_ticks_ms();
     return 1;
@@ -560,11 +603,29 @@ int saves_load(const char *name)
 
 /* the start screen's Continue and Load: its load screen (title_key 0x1454, s037 1c7d:0002), about
    to open, reads this save at once (loadscreen_hook, as for a load from the menu) */
-void saves_title_load(const char *name)
+int saves_title_load(const char *name)
 {
+    if (!load_allowed(name)) return 0;
     snprintf(load_name, sizeof load_name, "%s", name);
     load_stage = 3; load_t = plat_ticks_ms();
     fprintf(stderr, "saves: loading %s (the start screen)\n", load_name);
+    return 1;
+}
+
+/* The original title's Load button reaches the reader without load_game's teardown.
+ * Returning zero from its key handler leaves that chooser open after a refusal. */
+static void title_load_key_hook(void)
+{
+    extern int title_screen_up;
+    int key = (u16)rw(SS, (u16)(SP + 4));
+    int row = (s16)g_rw(0x8c50), count = (s16)g_rw(0x8c54);
+    if (title_screen_up && fix_is_on("savecheck") && (key == 0x264c || key == 0x266c)
+        && row >= 0 && row < count && row < 9) {
+        char name[16];
+        g_str(G_FAR2E38, (u16)(0x3b2e + 15 * row), name, sizeof name);
+        if (!load_allowed(name)) { AX = 0; hook_return_far(0); return; }
+    }
+    hook_call_original();
 }
 
 void saves_quick_load(void)
@@ -655,6 +716,7 @@ static void bsv_level_hook(void)
 
 void saves_init(void)
 {
+    hook_install(37, 0x1c7d, 0x030a, title_load_key_hook);
     hook_install(3, 0x1016, 0x0d07, bsv_level_hook);
     hook_install(37, 0x1c7d, 0x0d24, loaded_hook);   /* (always: saves_on_loaded) */
     saves_restart = config_get_int("saves.restart_on_end", 1);

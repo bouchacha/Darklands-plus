@@ -576,17 +576,19 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:409` | Leaving any of the nine places near the travel map's west edge (Nancy, Elberg, Valkenberg, Tongeren, Gemert, Helmond, Limberg, Spa and Briey) put the party 2 to 5 tiles east of it, and wherever the travel map's view reached that edge, the party was drawn a tile east of where the game had it. The party now comes out beside the place, as everywhere else, and is drawn where it is. |
 | `mods/fixes.c:410` | A lock is picked with the best lock picks |
 | `mods/fixes.c:411` | Picking a lock in a castle, a mine or a dungeon, the game used the member's first lock picks, whatever their quality, though a better set lay further down the pack (or, with the shared pack, with someone else): the quality adds to the chance (Pick Locks + quality - 25). Now the best lock picks the member, or with the shared pack the party, carries are used. |
-| `mods/fixes.c:742` | if (col == 0) col = 1 |
-| `mods/fixes.c:1308` | The store room keeps at most 127 of one item. |
-| `mods/fixes.c:1309` | The store room is full: it keeps 100 kinds of items. |
-| `mods/fixes.c:1479` | abandon the horses |
-| `mods/fixes.c:1895` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
-| `mods/fixes.c:2153` | claim friendship |
-| `mods/fixes.c:2205` | It is $NamedOneName again |
-| `mods/fixes.c:2468` | You need a missile weapon |
-| `mods/fixes.c:2546` | Not bought: nobody in the party has room for another kind of item. |
-| `mods/fixes.c:2564` | Nobody in the party has room for another kind of item. |
-| `mods/fixes.c:3191` | a hook (or { -2 }) for each fix, in the same order |
+| `mods/fixes.c:412` | Damaged saves are refused before loading |
+| `mods/fixes.c:413` | A truncated save or corrupt battle file could end the game or replace the party with incomplete data. Continue, quickload, the new Load page and the original title screen now check the files before loading. The original in-game Load screen still discards the current game before the player chooses a file. |
+| `mods/fixes.c:744` | if (col == 0) col = 1 |
+| `mods/fixes.c:1310` | The store room keeps at most 127 of one item. |
+| `mods/fixes.c:1311` | The store room is full: it keeps 100 kinds of items. |
+| `mods/fixes.c:1481` | abandon the horses |
+| `mods/fixes.c:1897` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
+| `mods/fixes.c:2155` | claim friendship |
+| `mods/fixes.c:2207` | It is $NamedOneName again |
+| `mods/fixes.c:2470` | You need a missile weapon |
+| `mods/fixes.c:2548` | Not bought: nobody in the party has room for another kind of item. |
+| `mods/fixes.c:2566` | Nobody in the party has room for another kind of item. |
+| `mods/fixes.c:3193` | a hook (or { -2 }) for each fix, in the same order |
 
 ## The interface (ui/)
 
@@ -3418,32 +3420,50 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/sainttexts.c:298` | a modest increase to Charisma, a good increase to all weapons skills |
 | `mods/sainttexts.c:305` | Enhances ALL skills by a small amount plus one for every five points of virtue |
 | `mods/sainttexts.c:310` | every skill by a modest amount |
-| `mods/saves.c:75` | Ironman 3f2a |
-| `mods/saves.c:78` | An Ironman game cannot go back to a save. To load another game, quit to the start screen. |
-| `mods/saves.c:193` | Could not save. |
-| `mods/saves.c:196` | Saved (an Ironman game keeps one save, saved over as you go) |
-| `mods/saves.c:239` | The game does not allow saving while staying at an inn or camping: leave first (the days already spent are not given back). |
-| `mods/saves.c:240` | The game does not allow saving during a battle. |
-| `mods/saves.c:241` | The game does not allow saving on this screen: leave it first (saving works on a card, in the overland view or in a town). |
-| `mods/saves.c:259` | The game does not allow loading here. |
-| `mods/saves.c:268` | Difficulty is now set to ... |
-| `mods/saves.c:282` | Loading is irreversable. Proceed? |
-| `mods/saves.c:325` | That save could not be read. |
-| `mods/saves.c:344` | Loaded %s: a battle, paused (Space resumes it) |
-| `mods/saves.c:396` | Saved (an Ironman game keeps one save, saved over as you go) |
-| `mods/saves.c:412` | Saved: %s (%s), in place of the old save |
-| `mods/saves.c:413` | Saved: %s (%s) |
-| `mods/saves.c:436` | use your horses |
-| `mods/saves.c:456` | Autosave: battle |
-| `mods/saves.c:488` | Ironman %04x |
-| `mods/saves.c:490` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
-| `mods/saves.c:522` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:523` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:544` | Start or load a game first. |
-| `mods/saves.c:551` | Loading from here works once a game is running; until then, load from the start screen. |
-| `mods/saves.c:553` | Buffer dealloc error |
-| `mods/saves.c:555` | That save could not be read. |
-| `mods/saves.c:575` | No quicksave yet (Ctrl+S makes one). |
+| `mods/savecheck.c:26` | the save could not be read |
+| `mods/savecheck.c:30` | the save header is incomplete |
+| `mods/savecheck.c:36` | the saved date is outside the game's calendar |
+| `mods/savecheck.c:37` | the saved location is outside the world |
+| `mods/savecheck.c:41` | the character records are incomplete |
+| `mods/savecheck.c:43` | the event count exceeds the game's table |
+| `mods/savecheck.c:46` | the event records are incomplete |
+| `mods/savecheck.c:48` | the location count exceeds the game's table |
+| `mods/savecheck.c:49` | the location records are incomplete |
+| `mods/savecheck.c:97` | the battle-file header is incomplete |
+| `mods/savecheck.c:101` | there is not enough memory to check the battle file |
+| `mods/savecheck.c:106` | the battle variables are incomplete or corrupt |
+| `mods/savecheck.c:111` | the battle file has too many floors |
+| `mods/savecheck.c:116` | a saved battle floor is incomplete or corrupt |
+| `mods/savecheck.c:126` | a battle work file is incomplete or corrupt |
+| `mods/saves.c:78` | Ironman 3f2a |
+| `mods/saves.c:81` | An Ironman game cannot go back to a save. To load another game, quit to the start screen. |
+| `mods/saves.c:112` | the save could not be opened |
+| `mods/saves.c:123` | the battle file could not be opened |
+| `mods/saves.c:128` | Cannot load %.15s because %s. |
+| `mods/saves.c:233` | Could not save. |
+| `mods/saves.c:236` | Saved (an Ironman game keeps one save, saved over as you go) |
+| `mods/saves.c:279` | The game does not allow saving while staying at an inn or camping: leave first (the days already spent are not given back). |
+| `mods/saves.c:280` | The game does not allow saving during a battle. |
+| `mods/saves.c:281` | The game does not allow saving on this screen: leave it first (saving works on a card, in the overland view or in a town). |
+| `mods/saves.c:300` | The game does not allow loading here. |
+| `mods/saves.c:309` | Difficulty is now set to ... |
+| `mods/saves.c:323` | Loading is irreversable. Proceed? |
+| `mods/saves.c:366` | That save could not be read. |
+| `mods/saves.c:385` | Loaded %s: a battle, paused (Space resumes it) |
+| `mods/saves.c:437` | Saved (an Ironman game keeps one save, saved over as you go) |
+| `mods/saves.c:453` | Saved: %s (%s), in place of the old save |
+| `mods/saves.c:454` | Saved: %s (%s) |
+| `mods/saves.c:478` | use your horses |
+| `mods/saves.c:498` | Autosave: battle |
+| `mods/saves.c:530` | Ironman %04x |
+| `mods/saves.c:532` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
+| `mods/saves.c:564` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:565` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:586` | Start or load a game first. |
+| `mods/saves.c:593` | Loading from here works once a game is running; until then, load from the start screen. |
+| `mods/saves.c:595` | Buffer dealloc error |
+| `mods/saves.c:597` | That save could not be read. |
+| `mods/saves.c:636` | No quicksave yet (Ctrl+S makes one). |
 | `mods/savesview.c:51` | %.14s %d %.3s |
 | `mods/sfx.c:51` | an attack that misses |
 | `mods/sfx.c:51` | a parried or blocked blow |

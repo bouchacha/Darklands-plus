@@ -1,5 +1,11 @@
 # Darklands+ changelog
 
+## Next (not yet released)
+
+**Fixed**
+
+- **Damaged saves** are checked before Continue, quickload, or the new Load page replaces the current game. The original title screen checks its selected save too. A refusal keeps the current game or title screen open. The original in-game Load chooser retains its existing ordering.
+
 ## 1.5
 
 What changed since 1.4.6.

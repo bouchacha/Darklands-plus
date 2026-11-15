@@ -409,6 +409,8 @@ Fix FIXES[] = {
       "Leaving any of the nine places near the travel map's west edge (Nancy, Elberg, Valkenberg, Tongeren, Gemert, Helmond, Limberg, Spa and Briey) put the party 2 to 5 tiles east of it, and wherever the travel map's view reached that edge, the party was drawn a tile east of where the game had it. The party now comes out beside the place, as everywhere else, and is drawn where it is.", 1 },
     { "bestpick", "A lock is picked with the best lock picks",
       "Picking a lock in a castle, a mine or a dungeon, the game used the member's first lock picks, whatever their quality, though a better set lay further down the pack (or, with the shared pack, with someone else): the quality adds to the chance (Pick Locks + quality - 25). Now the best lock picks the member, or with the shared pack the party, carries are used.", 1 },
+    { "savecheck", "Damaged saves are refused before loading",
+      "A truncated save or corrupt battle file could end the game or replace the party with incomplete data. Continue, quickload, the new Load page and the original title screen now check the files before loading. The original in-game Load screen still discards the current game before the player chooses a file.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -3187,7 +3189,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook },
     { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
     { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook },
-    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook }, { 30, 0x1462, 0x1c76, westedge_hook }, { GF_lock_pick, bestpick_hook } };   /* (hitsound: mods/sfx.c) */
+    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook }, { 30, 0x1462, 0x1c76, westedge_hook }, { GF_lock_pick, bestpick_hook }, { -2, 0, 0, 0 } };   /* (hitsound: mods/sfx.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {

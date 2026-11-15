@@ -97,15 +97,14 @@ static void screen_hook(void)                 /* title_screen (), s037 1e26:0008
             case TV_CONTINUE:
                 if (!m->can_continue) break;
                 fprintf(stderr, "title: continue with %s\n", m->last.file);
-                saves_title_load(m->last.file);
-                r = choose(0x1454);
+                if (saves_title_load(m->last.file)) r = choose(0x1454);
                 break;
             case TV_LOAD: {
                 char f[16];
                 if (m->nsaves == 0) break;                                              /* (nothing to load: the choice is greyed) */
                 int k = m->nsaves > 0 && saves_on ? savesview_load(f, sizeof f) : -1;    /* (the native list: -1 off) */
                 if (ns_unwinding) break;
-                if (k == 1) { saves_title_load(f); r = choose(0x1454); }
+                if (k == 1) { if (saves_title_load(f)) r = choose(0x1454); }
                 else if (k < 0) r = choose(0x1454);
                 else build();                                                           /* (saves may have been deleted there) */
                 break; }
