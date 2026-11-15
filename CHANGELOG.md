@@ -1,5 +1,11 @@
 # Darklands+ changelog
 
+## Next (not yet released)
+
+**Fixed**
+
+- **Saving after a member was lost** could leave out a character record while still counting it in the save. Every record is now written, including an empty party slot's, so the following characters, events and locations load in their proper places.
+
 ## 1.5
 
 What changed since 1.4.6.
