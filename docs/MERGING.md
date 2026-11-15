@@ -347,6 +347,13 @@ the files where each switch's key is read.
 | `fix.westedge` | Leaving a place by the map's west edge puts the party beside it | fix | fixes.c |
 | `fix.bestpick` | A lock is picked with the best lock picks | fix | fixes.c |
 | `fix.saverecords` | Every character record is kept when saving | fix | fixes.c |
+| `fix.savecheck` | Damaged saves are refused before loading | fix | fixes.c, saves.c |
+| `fix.innroster` | The inn's roster selects the character shown | fix | fixes.c |
+| `fix.leavingrecord` | Store a departing companion's full record | fix | fixes.c |
+| `fix.cachefile` | Inn stores keep their items when saved | fix | cachefile.c, fixes.c, sharedstore.c |
+| `fix.duplicateload` | A character appears only once when loading | fix | fixes.c |
+| `fix.dissolve` | Dissolving a lock uses the acting member's Eater-Water | fix | fixes.c |
+| `fix.stairsreturn` | Stairs use the member's own floor and a safe arrival | fix | fixes.c, stairsfix.c |
 
 The fixes (`fix.<id>`) are listed with their explanations in `port/mods/fixes.c`; the built-in
 rule changes (`mod.<id>`) in `port/mods/builtin.c`.
