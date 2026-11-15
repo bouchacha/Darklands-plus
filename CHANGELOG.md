@@ -1,5 +1,9 @@
 # Darklands+ changelog
 
+## Next (not yet released)
+
+- At an inn, selecting a member on the fifth row or later could end the game, and the color keys could change another member after someone was left elsewhere. The roster now uses the character shown on each row and that member's own figure.
+
 ## 1.5
 
 What changed since 1.4.6.
