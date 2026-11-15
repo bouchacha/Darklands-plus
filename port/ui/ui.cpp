@@ -22,6 +22,7 @@
 #include "uitabs.h"
 #include "townicons.h"
 #include "libraries.h"
+#include "portraits.h"
 
 #include "ui_decls.h"
 extern "C" {
@@ -260,7 +261,7 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
         else ui_notice_for("The party's journey has ended. Load a saved game to continue: Load in the Game menu (right-click).", 20000);
     }
     halloffame_set_renderer(ren);
-    gamepics_set_renderer(ren); partypanel_set_renderer(ren); partypanel_init();
+    gamepics_set_renderer(ren); partypanel_set_renderer(ren); portraits_set_renderer(ren); partypanel_init();
     { void screenpics_set_renderer(SDL_Renderer *); screenpics_set_renderer(ren); }
     figures_set_renderer(ren);
     if (getenv("DL_HALL")) halloffame_open();     /* the party has just entered the Honor Roll of Glory */
@@ -291,7 +292,7 @@ void dl_imgui_assert(const char *expr, const char *file, int line)
     fprintf(stderr, "imgui: check failed: %s (%s:%d)\n", expr, file, line);
 }
 extern "C" void ui_show_mt32_help(void) { open_mt32 = true; }   /* (the settings' Sound: how to get the MT-32) */
-extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || tips_open() || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || ui_alert_open(); }
+extern "C" int ui_is_open(void) { return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || tips_open() || levelmap_is_open() || halloffame_is_open() || figpick_is_open() || portrait_picker_is_open() || ui_alert_open(); }
 extern "C" void ui_open_tab(int t) { open_map = false; open_goto = false; open_help = false; open_menu = true; if (t >= 0) ui_select_tab(t); }   /* (-1: the page it was on) */
 extern "C" int ui_map_open(void) { return open_map; }
 extern "C" void ui_toggle(void) { open_map = false; open_goto = false; open_help = false; open_menu = !open_menu; if (!open_menu && ui_dirty_config) { config_save(); ui_dirty_config = 0; } }
@@ -328,7 +329,7 @@ extern "C" int ui_event(const SDL_Event *e)
         ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
-    if (figpick_is_open()) {                /* the figure picker (ui/figures.cpp) takes every event until it closes */
+    if (figpick_is_open() || portrait_picker_is_open()) {   /* a picker takes every event until it closes */
         ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
@@ -432,8 +433,7 @@ static void tab_editor_all(void)
    there, and the game's hand not drawn, so the one pointer seen is where a click lands */
 static bool windows_up(void)
 {
-    return open_menu || open_map || open_goto || open_help || open_welcome || open_mt32 || tips_open() || levelmap_is_open() || halloffame_is_open() || figpick_is_open()
-           || ui_alert_open()                  /* (a notice to click through: its OK under the system's pointer, not the game's hand drawn beneath it) */
+    return ui_is_open()
            || savesview_opts_open();           /* (the Save page's saving options) */
 }
 static void ui_cursor(void)
@@ -651,6 +651,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     }
     if (open_goto) { ImGui::PushFont(font_body); if (!citynav_window()) open_goto = false; ImGui::PopFont(); }
     figpick_window();
+    portrait_picker_window();
     if (open_help) help_window();
     if (open_welcome) welcome_window();
     else if (open_mt32) mt32_window();
@@ -677,7 +678,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (!windows_up()) VT(citynav_draw_cover());
     ui_icon_styles_draw();
     { void ui_pstone_sheet_draw(void); ui_pstone_sheet_draw(); }   /* (test: DL_PSTONE_SHEET) */
-    ui_draw_notice();
+    if (!portrait_picker_is_open()) ui_draw_notice();
     if (getenv("DL_ICON_SHEET")) {                 /* test: every item's icon */
         ImDrawList *dl = ImGui::GetForegroundDrawList(); ImGuiIO &io = ImGui::GetIO();
         dl->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(40, 30, 20, 255));
