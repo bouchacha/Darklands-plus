@@ -129,6 +129,7 @@ Environment variables `DL_*` switch on traces (see the sources).
 | component | where | licence |
 |---|---|---|
 | Dear ImGui 1.91.5 | `third_party/imgui` | MIT (`LICENSE.txt`) |
+| blast 1.3 (checking compressed battle saves) | `third_party/blast` | zlib (`blast.h`) |
 | Nuked OPL3 (FM sound) | `third_party/nuked-opl3` | LGPL 2.1 or later (`LICENSE`) |
 | libmt32emu 2.8.3 (Munt; Roland MT-32) | `third_party/mt32emu` | LGPL 2.1 or later (`COPYING.LESSER.txt`) |
 | stb_image, stb_image_write, stb_vorbis | `third_party/stb` | public domain or MIT (in each file) |

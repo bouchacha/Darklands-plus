@@ -67,7 +67,7 @@ MT32     := third_party/mt32emu
 MT32_SRC := $(wildcard $(MT32)/*.cpp) $(wildcard $(MT32)/c_interface/*.cpp) $(MT32)/sha1/sha1.cpp \
             $(MT32)/srchelper/InternalResampler.cpp $(wildcard $(MT32)/srchelper/srctools/src/*.cpp)
 MT32_OBJS := $(patsubst $(MT32)/%.cpp,$(OUT)/mt32emu/%.o,$(MT32_SRC))
-OBJS     := $(patsubst runtime/%.c,$(OUT)/rt_%.o,$(RT_C)) $(OUT)/opl3.o $(MT32_OBJS) $(UI_OBJS) $(GEN_OBJS) \
+OBJS     := $(patsubst runtime/%.c,$(OUT)/rt_%.o,$(RT_C)) $(OUT)/opl3.o $(OUT)/blast.o $(MT32_OBJS) $(UI_OBJS) $(GEN_OBJS) \
             $(OUT)/version.o $(if $(filter win64,$(TARGET)),$(OUT)/res.o)
 # the build's name: commits so far and the commit ("152-3815c0f"), shown in F12 > Settings > About and the log
 RELEASE  ?=
@@ -98,6 +98,8 @@ $(OUT)/rt_%.o: runtime/%.c runtime/*.h mods/*.h ui/*.h | $(OUT)
 	$(CC) $(RTFLAGS) -c -o $@ $<
 $(OUT)/opl3.o: third_party/nuked-opl3/opl3.c | $(OUT)
 	$(CC) -O2 -c -o $@ $<
+$(OUT)/blast.o: third_party/blast/blast.c third_party/blast/blast.h | $(OUT)
+	$(CC) $(RTFLAGS) -c -o $@ $<
 $(OUT)/mt32emu/%.o: $(MT32)/%.cpp | $(OUT)
 	@mkdir -p $(dir $@)
 	$(CXX) $(SANFL) -O2 -DMT32EMU_WITH_INTERNAL_RESAMPLER -DMT32EMU_WITH_STD_SNPRINTF -I$(MT32) -c -o $@ $<
