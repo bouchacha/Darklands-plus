@@ -9,6 +9,7 @@
 - **Orders with nobody chosen** in a battle (the party travelling one by one) wrote over the byte that pauses the battle and the last enemy's orders; now they change nothing.
 - **Calling off a brew** at an inn or in camp (another task for the brewer) left most brews going, their ingredients spent. Every brew of that member is now called off and its ingredients given back.
 - **The travel map after moving north** kept rows in the wrong places (most of them at the map's north edge): the map was drawn from them, and steps and camps took their terrain from them.
+- **A camp's risk** counted villages read from the wrong squares where its search passed the edge of the map's view (a village far away, or none at all); and a place's icon at that edge was written over the next row's first square.
 - **Doors in battle** could flip back when an enemy planned its way.
 - **The last javelin or axe thrown** trained Edged Weapons; it now trains Thrown Weapons.
 - **Enemy casters** judged whether they could see each member from the member counted before, not from where they stood.

@@ -600,25 +600,27 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:433` | Choosing whom to cast a spell at, an enemy checks whether he can see each member, but from the second member on the line was drawn from the member counted before, not from himself: a member behind a wall could count as seen, and the spell go elsewhere than the caster could see. Now every line starts at the caster. |
 | `mods/fixes.c:434` | Doors stay as they were left when an enemy plans its way |
 | `mods/fixes.c:435` | In a battle, an enemy planning its way could set the level's doors back to how they stood when an earlier enemy planned: a door the party had opened or shut since then flipped back. Now a plan leaves the doors as they are. |
-| `mods/fixes.c:436` | The travel map shows the land as it is after moving north |
-| `mods/fixes.c:437` | When the travel map's view moved north, the game shifted only part of the rows of the map it keeps in memory: some stayed where rows further south belonged, until the view moved south again. At the map's north edge most of them were wrong: the map was drawn from them, and a step or a camp took its terrain from them. Now the rows are read anew. |
+| `mods/fixes.c:436` | The travel map keeps the land in its place |
+| `mods/fixes.c:437` | When the travel map's view moved north, the game shifted only part of the rows of the map it keeps in memory: some stayed where rows further south belonged, until the view moved south again. At the map's north edge most of them were wrong: the map was drawn from them, and a step or a camp took its terrain from them. Now the rows are read anew. And a place's icon at the view's right or bottom edge was written over the first square of the next row, or past the end of the view's squares. Now it is left out. |
 | `mods/fixes.c:438` | The schrat's fruit makes a member stronger once |
 | `mods/fixes.c:439` | The schrat's magic fruit gave its Strength before its last text, and a game saved at that text began the card again when loaded, the Strength kept: the fruit could be eaten again and again. Now the Strength comes once the text has been read. |
 | `mods/fixes.c:440` | A fight with footpads is fought once |
 | `mods/fixes.c:441` | After a fight with footpads, a game saved at the text that follows began the card again when loaded, the fight's standing, loot and practice kept: the fight could be repeated at will. Now such a save resumes where the party goes next. |
-| `mods/fixes.c:825` | if (col == 0) col = 1 |
-| `mods/fixes.c:1418` | The store room keeps at most 127 of one item. |
-| `mods/fixes.c:1419` | The store room is full: it keeps 100 kinds of items. |
-| `mods/fixes.c:1589` | abandon the horses |
-| `mods/fixes.c:2031` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
-| `mods/fixes.c:2307` | claim friendship |
-| `mods/fixes.c:2359` | It is $NamedOneName again |
-| `mods/fixes.c:2622` | You need a missile weapon |
-| `mods/fixes.c:2717` | if the argument was won |
-| `mods/fixes.c:2780` | Not bought: nobody in the party has room for another kind of item. |
-| `mods/fixes.c:2798` | Nobody in the party has room for another kind of item. |
-| `mods/fixes.c:3896` | Dissolve Lock needs Eater-Water in this member's pack. |
-| `mods/fixes.c:3958` | a hook (or { -2 }) for each fix, in the same order |
+| `mods/fixes.c:442` | A camp's risk counts only the villages beside it |
+| `mods/fixes.c:443` | Making camp, the game raises the daily risk of being found for a village in a block of cells by the party. Where that block passed the right edge of the map's view it read the next row's left side instead, and past the bottom whatever followed in memory: a village far away, or no village at all, could count. Now only the cells of the block count. |
+| `mods/fixes.c:888` | if (col == 0) col = 1 |
+| `mods/fixes.c:1481` | The store room keeps at most 127 of one item. |
+| `mods/fixes.c:1482` | The store room is full: it keeps 100 kinds of items. |
+| `mods/fixes.c:1652` | abandon the horses |
+| `mods/fixes.c:2094` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
+| `mods/fixes.c:2370` | claim friendship |
+| `mods/fixes.c:2422` | It is $NamedOneName again |
+| `mods/fixes.c:2685` | You need a missile weapon |
+| `mods/fixes.c:2780` | if the argument was won |
+| `mods/fixes.c:2843` | Not bought: nobody in the party has room for another kind of item. |
+| `mods/fixes.c:2861` | Nobody in the party has room for another kind of item. |
+| `mods/fixes.c:3959` | Dissolve Lock needs Eater-Water in this member's pack. |
+| `mods/fixes.c:4021` | a hook (or { -2 }) for each fix, in the same order |
 
 ## The interface (ui/)
 

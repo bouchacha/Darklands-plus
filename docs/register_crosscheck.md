@@ -221,8 +221,8 @@ fixes are described in `port/mods/fixes.c` (its header and each hook), the saint
 | B-72e8eb | 1838:0296; 1838:02E8 | SpiderWarehousePoster.Run | fixed | fix.cardslips |
 | B-d8f504 | 0E76:324C | EventLog.Next | fixed where the season reads it (experimental) | rules.politics |
 | B-65b0bf | 0E76:3144 | EventLog.FreeSlot | fixed (its main source) | fix.alertonce |
-| B-c42c01 | 2E38:2838 | CellBuffer.Fill | open |  |
-| B-a993d7 | 1462:25BE | CellBuffer.CampWatch | open |  |
+| B-c42c01 | 2E38:2838 | CellBuffer.Fill | fixed now | fix.maprows |
+| B-a993d7 | 1462:25BE | CellBuffer.CampWatch | fixed now | fix.campwatch |
 | B-79b8e3 | 1462:2AC8 | OverlandTravel.Step | fixed | fix.ownplace |
 | B-b69cb8 | 06A1:12DC; 1462:1DD4 | RowBuffer.Load | fixed now | fix.maprows |
 | B-dd3d33 | 1462:0C22 | BattleEnd.LootSkips | not reached: Darklands+'s own loot screen skips a member who left |  |

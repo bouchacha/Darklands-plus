@@ -697,7 +697,8 @@ covered and found, and what it could not check.
   by copying the card. Five are bugs of screens Darklands+ draws itself (loot, party information, cards, the
   saint list; the map's Alt-Q did not reproduce): marked "not reached" with the display switch that brings the
   original back. Left open, said so in register_crosscheck.md: the party split across a battle's floors (21: the
-  battle holds only the floor on screen, a rework rather than a fix), the travel map's cell buffer bounds (2,
-  small: an icon at the window's west edge, the camp watch's block) and the mine's gap to its own floor.
+  battle holds only the floor on screen, a rework rather than a fix), the U key paused with nobody chosen, and
+  the mine's gap to its own floor. Then the cell buffer's two (campwatch: the camp's count over the cells held,
+  checked equal to the original's at 16 places of the view; maprows: the edge icons left out while drawing).
   Tested in a session: famine, the sneak hall's card (its own texts; the old one read the gate's), the night
   street by day, the fruit's Strength after its text, footpads' resume card after the fight, quicksave there.

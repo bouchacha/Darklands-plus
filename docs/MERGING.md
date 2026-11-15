@@ -276,7 +276,7 @@ the files where each switch's key is read.
 | `fix.nullitem` | No "(null)" or empty items | fix | fixes.c |
 | `fix.castle` | Castle battles end when the knight dies | fix | fixes.c, worldmap_draw.cpp |
 | `fix.bounty` | A merchant's robber-knight bounty pays once, without garbled names | fix | fixes.c |
-| `fix.alchemy` | Brewing uses up all the ingredients | fix | encounters.c, fixes.c, screenpics.cpp, sheetview.cpp |
+| `fix.alchemy` | Brewing takes all its ingredients, and calling it off gives them back | fix | encounters.c, fixes.c, screenpics.cpp, sheetview.cpp |
 | `fix.fullpack` | No more items lost to a member with no room | fix | fixes.c |
 | `fix.innsave` | Saving and loading stay possible after the inn | fix | fixes.c |
 | `fix.colors` | Members keep their colors (the "neon hair" bug) | fix | fixes.c |
@@ -297,7 +297,7 @@ the files where each switch's key is read.
 | `fix.bishop` | Quests from a cathedral are the bishop's, not the merchants' | fix | fixes.c |
 | `fix.altar` | No quests to a purged pagan altar | fix | fixes.c |
 | `fix.tomb` | The item taken from a tomb goes to the winner of the fight | fix | fixes.c, worldmap_draw.cpp |
-| `fix.lordreward` | The lord pays for his quests | fix | fixes.c, citynav.cpp |
+| `fix.lordreward` | The lord and the council pay for their quests | fix | fixes.c, citynav.cpp |
 | `fix.armorday` | Armor and fire protection from potions and saints last a day; Hardarmor works as the manual says | fix | fixes.c, saintinfo.c, sainttexts.c, nsdraw.cpp, saintchips.cpp |
 | `fix.greatpower` | Great Power raises the weapon's quality | fix | fixes.c, effects.cpp, nsdraw.cpp |
 | `fix.standings` | Saved games keep the party's standing with the Fugger, the Medici and the Hanse | fix | fixes.c |
@@ -316,7 +316,7 @@ the files where each switch's key is read.
 | `fix.university` | A failed search for formulae at a university shuts that search, not the saints' | fix | fixes.c, cardhints.cpp, citynav.cpp |
 | `fix.partyitems` | An item given to the whole party is given once | fix | fixes.c |
 | `fix.itemflags` | Fleeing on horseback counts the poorest rider's mount | fix | fixes.c |
-| `fix.membervalue` | A church tithe blesses the member best at Religion | fix | fixes.c |
+| `fix.membervalue` | Cards pick the member they mean | fix | fixes.c |
 | `fix.cardslips` | Small mistakes in single cards | fix | fixes.c |
 | `fix.nightwall` | Climbing a city wall at night uses the climbers' own chances | fix | fixes.c |
 | `fix.campguard` | A guard skilled with impact weapons keeps the camp safer | fix | fixes.c, lodgeview.c |
@@ -354,6 +354,14 @@ the files where each switch's key is read.
 | `fix.duplicateload` | A character appears only once when loading | fix | fixes.c |
 | `fix.dissolve` | Dissolving a lock uses the acting member's Eater-Water | fix | fixes.c |
 | `fix.stairsreturn` | Stairs use the member's own floor and a safe arrival | fix | fixes.c, stairsfix.c |
+| `fix.thrownskill` | The last weapon thrown trains Thrown Weapons | fix | fixes.c |
+| `fix.noselection` | Orders with nobody chosen change nothing | fix | fixes.c |
+| `fix.castsight` | An enemy caster sees each target from where he stands | fix | fixes.c |
+| `fix.doorplan` | Doors stay as they were left when an enemy plans its way | fix | fixes.c |
+| `fix.maprows` | The travel map keeps the land in its place | fix | fixes.c |
+| `fix.fruitonce` | The schrat's fruit makes a member stronger once | fix | fixes.c |
+| `fix.footpadsonce` | A fight with footpads is fought once | fix | fixes.c |
+| `fix.campwatch` | A camp's risk counts only the villages beside it | fix | fixes.c |
 
 The fixes (`fix.<id>`) are listed with their explanations in `port/mods/fixes.c`; the built-in
 rule changes (`mod.<id>`) in `port/mods/builtin.c`.

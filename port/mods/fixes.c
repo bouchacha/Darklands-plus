@@ -433,12 +433,14 @@ Fix FIXES[] = {
       "Choosing whom to cast a spell at, an enemy checks whether he can see each member, but from the second member on the line was drawn from the member counted before, not from himself: a member behind a wall could count as seen, and the spell go elsewhere than the caster could see. Now every line starts at the caster.", 1 },
     { "doorplan", "Doors stay as they were left when an enemy plans its way",
       "In a battle, an enemy planning its way could set the level's doors back to how they stood when an earlier enemy planned: a door the party had opened or shut since then flipped back. Now a plan leaves the doors as they are.", 1 },
-    { "maprows", "The travel map shows the land as it is after moving north",
-      "When the travel map's view moved north, the game shifted only part of the rows of the map it keeps in memory: some stayed where rows further south belonged, until the view moved south again. At the map's north edge most of them were wrong: the map was drawn from them, and a step or a camp took its terrain from them. Now the rows are read anew.", 1 },
+    { "maprows", "The travel map keeps the land in its place",
+      "When the travel map's view moved north, the game shifted only part of the rows of the map it keeps in memory: some stayed where rows further south belonged, until the view moved south again. At the map's north edge most of them were wrong: the map was drawn from them, and a step or a camp took its terrain from them. Now the rows are read anew. And a place's icon at the view's right or bottom edge was written over the first square of the next row, or past the end of the view's squares. Now it is left out.", 1 },
     { "fruitonce", "The schrat's fruit makes a member stronger once",
       "The schrat's magic fruit gave its Strength before its last text, and a game saved at that text began the card again when loaded, the Strength kept: the fruit could be eaten again and again. Now the Strength comes once the text has been read.", 1 },
     { "footpadsonce", "A fight with footpads is fought once",
       "After a fight with footpads, a game saved at the text that follows began the card again when loaded, the fight's standing, loot and practice kept: the fight could be repeated at will. Now such a save resumes where the party goes next.", 1 },
+    { "campwatch", "A camp's risk counts only the villages beside it",
+      "Making camp, the game raises the daily risk of being found for a village in a block of cells by the party. Where that block passed the right edge of the map's view it read the next row's left side instead, and past the bottom whatever followed in memory: a village far away, or no village at all, could count. Now only the cells of the block count.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -809,6 +811,67 @@ static void maprows_hook(void)              /* s030 1462:1dd4 (file, top, old) *
         ww(SS, (u16)(SP + 8), 0xffff);
     }
     hook_call_original();
+}
+/* The view's cells (far 2e38:239c, 50 rows of 19) are filled with the land, then with the places' icons (the list
+ * far 2e38:2838: y, x, icon, frame, flag; -1 ends it) that fall in the view (1462:20d2 (col, row)): those with
+ * x from col - 1 to col + 18 and y from the top to top + 50 - a column and a row too many. An icon in the last
+ * column went into the next row's first cell, over its land, and one in the row after the last past the buffer,
+ * where nothing clears it and the camp's count read it (Darklands Restoration's register, B-c42c01). Here those
+ * icons are left out of the view's cells while it is drawn (their x put out of reach, then back). */
+static void mapicons_hook(void)             /* s030 1462:20d2 (col, row) */
+{
+    int col = (s16)rw(SS, (u16)(SP + 4)), row = (s16)rw(SS, (u16)(SP + 6));
+    if (!col) col = 1;
+    if (!row) row = 1;
+    u16 top = (u16)((s16)g_rw(GV_map_buf_row) + row - 1), at[16], was[16];
+    int n = 0;
+    for (int k = 0; k < 500 && n < 16; k++) {
+        u16 o = (u16)(0x2838 + 10 * k);
+        if ((s16)rw(G_FAR2E38, (u16)(o + 8)) == -1) break;
+        u16 y = rw(G_FAR2E38, o), x = rw(G_FAR2E38, (u16)(o + 2));
+        if (y < top || y > (u16)(top + 50) || x < (u16)(col - 1) || x > (u16)(col + 18)) continue;
+        if (x != (u16)(col + 18) && y != (u16)(top + 50)) continue;
+        at[n] = o; was[n++] = x;
+        ww(G_FAR2E38, (u16)(o + 2), 0xffff);
+    }
+    hook_call_original();
+    for (int i = 0; i < n; i++) ww(G_FAR2E38, (u16)(at[i] + 2), was[i]);
+}
+/* ---------------------------------------------------------------- campwatch
+ * Making camp on the travel map (C), the camp's daily risk (s030 1462:25be, the base of s036 1462:1b80's growth:
+ * party size x 3, more near a village, less on rough land) looks for a village (cell 0x1d, places of type 8 and
+ * 10) in the ten by ten cells from the party's (row (y + 11) / 4,
+ * column by the row's half-step) down and to the right, in the view's cell buffer (far 2e38:239c, 50 rows of
+ * 19). It read them by the buffer's flat layout without bounds: a column past 18 was the next row's west side,
+ * a row past 49 the bytes after the buffer (the icons left there, the party icon table): a village there
+ * counted, or what was no village (Darklands Restoration's register, B-a993d7). Here the same count, the same
+ * numbers, over the cells the buffer holds. */
+static void campwatch_hook(void)            /* s030 1462:25be () */
+{
+    int row = ((s16)g_rw(GV_map_marker_y) + 11) / 4;
+    int col = ((row + (s16)g_rw(GV_map_buf_row) + (s16)g_rw(GV_map_view_row) - 1) % 2 ? (s16)g_rw(GV_map_marker_x) + 16 : (s16)g_rw(GV_map_marker_x) + 24) / 16;
+    if (row < 0 || row > 49 || col < 0 || col > 18) { hook_call_original(); return; }
+    int speed = (s16)g_rw(G_PARTY_SIZE) * 3, res = 0;
+#define CELL(r, c) rb(G_FAR2E38, (u16)(0x239c + (r) * 19 + (c)))
+    for (int i = 0; i < 10; i++)
+        for (int j = 0; j < 10; j++) {
+            if (row + j > 49 || col + i > 18 || CELL(row + j, col + i) != 0x1d) continue;
+            int di = abs(i - 5), dj = abs(j - 5);
+            res = dj > di ? di : dj;
+            i = j = 99;
+        }
+    if (res) speed += abs(res - 6);
+    int t = CELL(row, col);
+#undef CELL
+    if (t == 5 || t == 4 || t == 15 || t == 19) speed--;
+    else if (t == 16 || t == 20) speed -= 2;
+    else if (t == 17 || t == 21) speed -= 3;
+    else if (t == 22) speed -= 5;
+    else if (t == 23) speed -= 6;
+    if (t == 24) speed++;
+    if (t == 8 || t == 9) speed += 2;
+    AX = (u16)speed;
+    hook_return_far(0);
 }
 /* ---------------------------------------------------------------- westedge */
 static void westedge_hook(void)                /* s030 1462:1c76, right after overland_open placed the view and the marker */
@@ -3954,7 +4017,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook },
     { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook }, { 30, 0x1462, 0x1c76, westedge_hook }, { GF_lock_pick, bestpick_hook },
     { 37, 0x1462, 0x2ace, save_records_hook }, { -2, 0, 0, 0 }, { 38, 0x1462, 0x02f8, innroster_key_hook }, { GF_party_remove, leaving_record_hook }, { -2, 0, 0, 0 }, { 37, 0x1c7d, 0x0d24, duplicate_load_hook }, { 16, 0x1ef8, 0x0f76, dissolve_key_hook }, { -2, 0, 0, 0 },
-    { 14, 0x0e76, 0x0694, thrown_end_hook }, { 14, 0x19cd, 0x0738, nosel_leave_hook }, { 18, 0x1f43, 0x0256, castsight_hook }, { GF_path_find, doorplan_hook }, { 30, 0x1462, 0x1dd4, maprows_hook }, { 87, 0x1986, 0x01e6, fruitonce_hook }, { 53, 0x1838, 0x02d6, footpadsonce_hook } };   /* (hitsound: mods/sfx.c; savecheck: mods/saves.c; cachefile: mods/cachefile.c; stairsreturn: mods/stairsfix.c) */
+    { 14, 0x0e76, 0x0694, thrown_end_hook }, { 14, 0x19cd, 0x0738, nosel_leave_hook }, { 18, 0x1f43, 0x0256, castsight_hook }, { GF_path_find, doorplan_hook }, { 30, 0x1462, 0x1dd4, maprows_hook }, { 87, 0x1986, 0x01e6, fruitonce_hook }, { 53, 0x1838, 0x02d6, footpadsonce_hook }, { 30, 0x1462, 0x25be, campwatch_hook } };   /* (hitsound: mods/sfx.c; savecheck: mods/saves.c; cachefile: mods/cachefile.c; stairsreturn: mods/stairsfix.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
@@ -3997,7 +4060,7 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "cardslips", 67, 0x1869, 0x06e6, sneak_hook },
     { "patronsaint", 39, 0x165c, 0x17a4, teach_saint_hook }, { "patronsaint", 39, 0x165c, 0x1988, teach_saint_hook },
     { "fullpack", GF_barter_key, buy_room_hook }, { "fullpack", 35, 0x1462, 0x0a46, store_get_room_hook },
-    { "westedge", 30, 0x1462, 0x20d2, westedge_view_hook }, { "cardslips", 134, 0x1a25, 0x000a, celldoor_hook },
+    { "westedge", 30, 0x1462, 0x20d2, westedge_view_hook }, { "maprows", 30, 0x1462, 0x20d2, mapicons_hook }, { "cardslips", 134, 0x1a25, 0x000a, celldoor_hook },
     { "knightdead", 81, 0x1838, 0x01b8, knightpaid_hook }, { "knightdead", 81, 0x18bb, 0x01a0, knightpaid_hook },
     { "lordreward", 54, 0x19df, 0x0b56, councilsaint_hook },
     { "membervalue", 67, 0x1954, 0x059a, mvmin_wrap_hook }, { "membervalue", 67, 0x1954, 0x06a8, mvmin_wrap_hook }, { "membervalue", 67, 0x1954, 0x07a2, mvmin_wrap_hook },
