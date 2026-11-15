@@ -1,5 +1,9 @@
 # Darklands+ changelog
 
+## Next (not yet released)
+
+- A member taking stairs from another floor could use the floor being viewed, or arrive in a mine's void. Stairs now use the member's own floor and check a landing first, using the return stairs if the usual arrival fails. A stair record with no safe destination leaves the member on the current floor.
+
 ## 1.5
 
 What changed since 1.4.6.

@@ -576,17 +576,19 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:409` | Leaving any of the nine places near the travel map's west edge (Nancy, Elberg, Valkenberg, Tongeren, Gemert, Helmond, Limberg, Spa and Briey) put the party 2 to 5 tiles east of it, and wherever the travel map's view reached that edge, the party was drawn a tile east of where the game had it. The party now comes out beside the place, as everywhere else, and is drawn where it is. |
 | `mods/fixes.c:410` | A lock is picked with the best lock picks |
 | `mods/fixes.c:411` | Picking a lock in a castle, a mine or a dungeon, the game used the member's first lock picks, whatever their quality, though a better set lay further down the pack (or, with the shared pack, with someone else): the quality adds to the chance (Pick Locks + quality - 25). Now the best lock picks the member, or with the shared pack the party, carries are used. |
-| `mods/fixes.c:742` | if (col == 0) col = 1 |
-| `mods/fixes.c:1308` | The store room keeps at most 127 of one item. |
-| `mods/fixes.c:1309` | The store room is full: it keeps 100 kinds of items. |
-| `mods/fixes.c:1479` | abandon the horses |
-| `mods/fixes.c:1895` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
-| `mods/fixes.c:2153` | claim friendship |
-| `mods/fixes.c:2205` | It is $NamedOneName again |
-| `mods/fixes.c:2468` | You need a missile weapon |
-| `mods/fixes.c:2546` | Not bought: nobody in the party has room for another kind of item. |
-| `mods/fixes.c:2564` | Nobody in the party has room for another kind of item. |
-| `mods/fixes.c:3191` | a hook (or { -2 }) for each fix, in the same order |
+| `mods/fixes.c:412` | Stairs use the member's own floor and a safe arrival |
+| `mods/fixes.c:413` | A member on another floor could take stairs from the floor being viewed, or arrive in a wall when a mine's arrival point was blocked. Stairs now use the member's own floor and check a safe landing first, using the return stairs when needed. An unusable stair record leaves the member where they are. |
+| `mods/fixes.c:744` | if (col == 0) col = 1 |
+| `mods/fixes.c:1310` | The store room keeps at most 127 of one item. |
+| `mods/fixes.c:1311` | The store room is full: it keeps 100 kinds of items. |
+| `mods/fixes.c:1481` | abandon the horses |
+| `mods/fixes.c:1897` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
+| `mods/fixes.c:2155` | claim friendship |
+| `mods/fixes.c:2207` | It is $NamedOneName again |
+| `mods/fixes.c:2470` | You need a missile weapon |
+| `mods/fixes.c:2548` | Not bought: nobody in the party has room for another kind of item. |
+| `mods/fixes.c:2566` | Nobody in the party has room for another kind of item. |
+| `mods/fixes.c:3194` | a hook (or { -2 }) for each fix, in the same order |
 
 ## The interface (ui/)
 
@@ -3491,6 +3493,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/sheetview.c:514` | Left behind: the %s (%d). Undo takes them back. |
 | `mods/sheetview.c:514` | Left behind: a %s. Undo takes it back. |
 | `mods/sheetview.c:521` | %s drinks the %s. |
+| `mods/stairsfix.c:155` | These stairs have no safe arrival. The member stays on this floor. |
 | `mods/styles.c:18` | Skirmisher, hand to hand |
 | `mods/styles.c:20` | As in the original game: they wait for your orders. |
 | `mods/styles.c:21` | Shoots throughout the fight, each archer at a different enemy; fights hand to hand only when reached, then shoots again. |

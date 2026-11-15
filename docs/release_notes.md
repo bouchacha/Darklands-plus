@@ -4,6 +4,10 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 
 **Install:** unpack the zip anywhere and start `darklands.exe`. It finds a GOG or Steam installation by itself or asks for the folder once. The first start takes about two minutes while Darklands+ translates the game program from your `DARKLAND.EXE`; after that it starts at once. Your saved games stay where they always were. `Darklands+ README.txt` in the zip has the details.
 
+**Unreleased fixes**
+
+- A member taking stairs from another floor could use the floor being viewed, or arrive in a mine's void. Stairs now use the member's own floor and check a landing first, using the return stairs if the usual arrival fails. A stair record with no safe destination leaves the member on the current floor.
+
 **New in 1.5** (what changed since 1.4.6)
 
 **Added**
