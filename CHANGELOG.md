@@ -1,5 +1,9 @@
 # Darklands+ changelog
 
+## Next (not yet released)
+
+- A departing companion's newly learned saints, formulas and current belongings are now kept in their stored character record. Spare items still go to the shared pack before departure.
+
 ## 1.5
 
 What changed since 1.4.6.

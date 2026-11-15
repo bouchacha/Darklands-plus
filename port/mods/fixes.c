@@ -409,6 +409,8 @@ Fix FIXES[] = {
       "Leaving any of the nine places near the travel map's west edge (Nancy, Elberg, Valkenberg, Tongeren, Gemert, Helmond, Limberg, Spa and Briey) put the party 2 to 5 tiles east of it, and wherever the travel map's view reached that edge, the party was drawn a tile east of where the game had it. The party now comes out beside the place, as everywhere else, and is drawn where it is.", 1 },
     { "bestpick", "A lock is picked with the best lock picks",
       "Picking a lock in a castle, a mine or a dungeon, the game used the member's first lock picks, whatever their quality, though a better set lay further down the pack (or, with the shared pack, with someone else): the quality adds to the chance (Pick Locks + quality - 25). Now the best lock picks the member, or with the shared pack the party, carries are used.", 1 },
+    { "leavingrecord", "Store a departing companion's full record",
+      "When the game stored a departing companion, it saved their current attributes and item count but kept old saints, formulas and item entries. It now stores all of those together, after spare items are handed to the shared pack.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -3168,6 +3170,48 @@ static void bestpick_hook(void)                 /* lock_pick (lock) */
     AX = ax;
 }
 
+/* ---------------------------------------------------------------- leavingrecord
+ * party_remove (s037 1462:3b58) writes only the 0x80-byte member at its roster position.
+ * The saints, formulas and inventory after it stay stale (Restoration B-c48d94).
+ * Extend that one _dos_write to the full record, using its existing file handle and
+ * position. The original has already set the location and departing status, and pack.c
+ * has handed spare items to the remaining party. Its card text buffer is borrowed only
+ * for this synchronous write and restored before the game continues. */
+static int departing_member = -1;
+
+static void leaving_record_write_hook(void)      /* _dos_write(handle, far buffer, count, bytes-written) */
+{
+    int member = departing_member;
+    u16 stack = SP;
+    if (member < 0 || member >= 5 || rw(SS, (u16)(stack + 6)) != CB_REC(member)
+        || rw(SS, (u16)(stack + 8)) != G_DGROUP || rw(SS, (u16)(stack + 10)) != 0x80) {
+        hook_call_original();
+        return;
+    }
+    u8 saved_text[0x22a];
+    u8 *record = M + LIN(G_DGROUP, GV_msg_buf);
+    memcpy(saved_text, record, sizeof saved_text);
+    memcpy(record, M + LIN(G_DGROUP, CB_REC(member)), 0x80);
+    memcpy(record + 0x80, M + LIN(G_FAR2E38, 0x082c + member * 0x14), 0x14);
+    memcpy(record + 0x94, M + LIN(G_FAR2E38, 0x07be + member * 0x16), 0x16);
+    memcpy(record + 0xaa, M + LIN(G_FAR2E38, G_ITEM(member, 0)), 0x180);
+    ww(SS, (u16)(stack + 6), GV_msg_buf);
+    ww(SS, (u16)(stack + 10), sizeof saved_text);
+    hook_call_original();
+    memcpy(record, saved_text, sizeof saved_text);
+    ww(SS, (u16)(stack + 6), CB_REC(member));
+    ww(SS, (u16)(stack + 10), 0x80);
+}
+
+static void leaving_record_hook(void)            /* party_remove(member) */
+{
+    if (config_get_int("original", 0)) { hook_call_original(); return; }
+    int previous = departing_member;
+    departing_member = (s16)rw(SS, (u16)(SP + 4));
+    hook_call_original();
+    departing_member = previous;
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -3187,10 +3231,12 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook },
     { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
     { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook },
-    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook }, { 30, 0x1462, 0x1c76, westedge_hook }, { GF_lock_pick, bestpick_hook } };   /* (hitsound: mods/sfx.c) */
+    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook }, { 30, 0x1462, 0x1c76, westedge_hook }, { GF_lock_pick, bestpick_hook },
+    { GF_party_remove, leaving_record_hook } };   /* (hitsound: mods/sfx.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
+    { "leavingrecord", -1, 0x06a1, 0x2cbd, leaving_record_write_hook },
     { "tomb", GF_combat_over, tomb_over_hook },
     { "dwarfrelic", GF_event_new, dwarfrelic_event_hook }, { "dwarfrelic", GF_chest_open, dwarfrelic_chest_hook }, { "dwarfrelic", 40, 0x1462, 0x0000, dwarfrelic_screen_hook },
     { "carditems", GF_add_items_impl, carditems_n_hook }, { "carditems", 31, 0x18e7, 0x0128, carditems_one_hook }, { "carditems", GF_add_item_q, carditems_q_hook },
