@@ -4,6 +4,21 @@
 
 **Fixed**
 
+- **A robber knight slain is paid for:** when he fell in a fight that did not end as a plain victory (after sneaking up on his tower, or let in by a saint), his keep burnt but no patron ever paid. The quest is now done however he fell.
+- **A council's reward** was never paid to a party that prayed its way into the hall: it got a new robber knight instead. The saint's way now pays.
+- **Orders with nobody chosen** in a battle (the party travelling one by one) wrote over the byte that pauses the battle and the last enemy's orders; now they change nothing.
+- **Calling off a brew** at an inn or in camp (another task for the brewer) left most brews going, their ingredients spent. Every brew of that member is now called off and its ingredients given back.
+- **The travel map after moving north** kept rows in the wrong places (most of them at the map's north edge): the map was drawn from them, and steps and camps took their terrain from them.
+- **Doors in battle** could flip back when an enemy planned its way.
+- **The last javelin or axe thrown** trained Edged Weapons; it now trains Thrown Weapons.
+- **Enemy casters** judged whether they could see each member from the member counted before, not from where they stood.
+- **The jewelers' guild at night** made the member numbered by the lowest Stealth practise, not the clumsiest member.
+- **Single cards:** a Rope now works in the peat bog; the horseman of famine takes the small coins too; sneaking through a guild's hall shows its own picture and texts; the night streets give way to the day's once day has come; fleeing the bridge's devil no longer makes a ghost member.
+- **Two old tricks closed** (under "Old tricks closed"): a won fight with footpads, and the schrat's fruit, could be had again and again by saving at the text after them.
+- **Politics (experimental):** a pact with the government or the rebels now counts when the season ends.
+
+These are from Arkana Mechanika's Darklands Restoration register.
+
 - **Saving after a member was lost** to the Wild Hunt could leave a character's record out of the save while still counting it, so the save loaded the rest in the wrong places. Every record is now written.
 - **Inn stores lost items:** going back to one inn's store could wipe what was left at another. Each store now keeps its own, and an item whose move cannot be saved stays where it was.
 - **Damaged saves** are refused before loading, instead of ending the game or replacing the party with half a save.

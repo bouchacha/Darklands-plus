@@ -269,8 +269,8 @@ Fix FIXES[] = {
       "In a castle battle only the knight's death ends the fight, but the original did not save it: after saving and loading during the battle, the knight was dead yet leaving always counted as fleeing. His death now counts after loading too.", 1 },
     { "bounty", "A merchant's robber-knight bounty pays once, without garbled names",
       "The original looked up the wrong quest giver, which garbled names, corrupted memory and let the reward be claimed again and again. It now finds the right one.", 1 },
-    { "alchemy", "Brewing uses up all the ingredients",
-      "The original took only part of them when an ingredient was spread over several stacks; now it takes them all.", 1 },
+    { "alchemy", "Brewing takes all its ingredients, and calling it off gives them back",
+      "The original took only part of them when an ingredient was spread over several stacks; now it takes them all. And at an inn or in camp, giving a brewing member something else to do called off only the brews the game happened to keep late in its list of notes: the others went on, their ingredients spent. Now every brew of that member is called off and its ingredients given back.", 1 },
     { "fullpack", "No more items lost to a member with no room",
       "A member carries at most 64 kinds of items; in the original, what the game gave to a member who already had 64 simply vanished (quest items too). It now goes to a member who already carries one, else to the one carrying the fewest kinds (with no room anywhere, it is still lost). Buying when nobody had room took the money for nothing, and taking an item from a store room for a member with no room lost it: both are now refused.", 1 },
     { "innsave", "Saving and loading stay possible after the inn",
@@ -311,8 +311,8 @@ Fix FIXES[] = {
       "A pagan altar the party has destroyed vanishes from the overland view, but quests could still send the party there, and could then never be done (nor could their giver offer another). Such altars are no longer chosen; quests already sent to one go to the nearest altar still standing.", 1 },
     { "tomb", "The item taken from a tomb goes to the winner of the fight",
       "Taking the item a quest seeks from a tomb wakes its dead: winning that fight gave nothing (though the text says the party scrambles out with it) and losing it gave the item. Now the party gets the item when it wins.", 1 },
-    { "lordreward", "The lord pays for his quests",
-      "In a town without a council, the lord of the fortress gives robber knights to hunt, but the game pays such a quest's reward only at a council's hall, so in such a town it could never be collected. The lord now pays it at an audience, as a council does.", 1 },
+    { "lordreward", "The lord and the council pay for their quests",
+      "In a town without a council, the lord of the fortress gives robber knights to hunt, but the game pays such a quest's reward only at a council's hall, so in such a town it could never be collected. The lord now pays it at an audience, as a council does. And at a council's hall, calling on a saint to be let in gave the party a new robber knight to hunt instead of the reward waiting for it; now the saint's way pays it, as an audience does.", 1 },
     { "armorday", "Armor and fire protection from potions and saints last a day; Hardarmor works as the manual says",
       "Hardarmor (+1 to +3 armor), St. Dunstan's (+1) and St. Patrick's (+2) blessings, St. Crispin's (+10 to the quality of everyone's armor) and the protection against fire of Firewall and St. Polycarp never wore off, and each new one added to the last. They now last about a day, as the manual says, and what piled up this way in a saved game is dropped: only the ones still running count. St. Charity, St. Erasmus and St. Pantaleon (and St. Polycarp) gave their protection against fire as armor instead: +32 or +48 armor permanently (or nothing, with the fix \"No invulnerability from fire protection\" on); now the member gets fire protection 90 for a day, the same as St. Polycarp's. Hardarmor also does what the manual says: armor 20, 25 or 30 points better in quality and one or two levels thicker (the game gave 1 to 3 levels and no quality); a second used while one is still working keeps the stronger of the two.", 1 },
     { "greatpower", "Great Power raises the weapon's quality",
@@ -349,10 +349,10 @@ Fix FIXES[] = {
       "Where a card gives every member something (out of a dungeon, from footpads), each member who had one already got it twice: added to his stack, and again as a new stack. Now each gets it once.", 1 },
     { "itemflags", "Fleeing on horseback counts the poorest rider's mount",
       "Fleeing the Wild Hunt or a wolf pack on horseback adds the quality of the poorest rider's mount to the chance, but the game looked in the wrong place for the mounts and so added nothing. It now finds the mounts.", 1 },
-    { "membervalue", "A church tithe blesses the member best at Religion",
-      "When the party gave a tenth in a town church, the Divine Favor meant first for the member best at Religion went to no member at all (the game took the skill's value for a member's number); and sneaking into a guild leader's house at night showed a garbled name instead of the member with the lowest Agility. Both now use the right member.", 1 },
+    { "membervalue", "Cards pick the member they mean",
+      "When the party gave a tenth in a town church, the Divine Favor meant first for the member best at Religion went to no member at all (the game took the skill's value for a member's number); and sneaking into a guild leader's house at night showed a garbled name instead of the member with the lowest Agility. Failing to get into the jewelers' guild at night likewise made the member whose number was the lowest Stealth's value practise Stealth, not the clumsiest member (or, with no such member, wrote the practice into the game's memory). All now use the right member.", 1 },
     { "cardslips", "Small mistakes in single cards",
-      "Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said \"Please accept this florin\" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both its options were switched off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armor, and clearing the spider warehouse, healed the party, though their texts say it is hurt; and the warehouse's owner had no name of his own (\"I am . Are ye hardy adventurers?\"), nor had the dwarf king when met again with his red hat (\"It is  again, king of the dwarfs\"). When the party was paid for a robber knight, the Hanse's guide or the village's Schulz who had come along was said to leave by the toss of a coin (or even when he had never come), and then stayed on. A second fight with a town's gate guards cost no standing (the card kept the standing it had found on arrival), the docks said \"You need a missile weapon\" to a party short of the fare, trouble on the way to a town's grove at night led to the grove's night card even after day had come, sneaking into a guild's quarters made the whole party practice once for each member, and a cell door in a fortress dungeon flashed its card and went back to the level without a word, though its text was written (\"This door is solid oak, with a rusty iron grating in the center...\"). Each now does what its text says.", 1 },
+      "Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said \"Please accept this florin\" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both its options were switched off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armor, and clearing the spider warehouse, healed the party, though their texts say it is hurt; and the warehouse's owner had no name of his own (\"I am . Are ye hardy adventurers?\"), nor had the dwarf king when met again with his red hat (\"It is  again, king of the dwarfs\"). When the party was paid for a robber knight, the Hanse's guide or the village's Schulz who had come along was said to leave by the toss of a coin (or even when he had never come), and then stayed on. A second fight with a town's gate guards cost no standing (the card kept the standing it had found on arrival), the docks said \"You need a missile weapon\" to a party short of the fare, trouble on the way to a town's grove at night led to the grove's night card even after day had come, sneaking into a guild's quarters made the whole party practice once for each member, and a cell door in a fortress dungeon flashed its card and went back to the level without a word, though its text was written (\"This door is solid oak, with a rusty iron grating in the center...\"). In the peat bog a Rope did not switch on the line to throw one (a polearm, a bow or metal armour did). The horseman of famine took all the party's florins but left its groschen and pfennigs. Sneaking through a guild's hall kept the last card's picture and read its texts from the last card. Walking between a town's streets at night kept the party in the night's streets, and their encounters, after day had come. And fleeing the bridge's devil after winning the argument could make an empty party slot a member again, with no character behind it. Each now does what its text says.", 1 },
     { "nightwall", "Climbing a city wall at night uses the climbers' own chances",
       "Along a city's walls at night, the best climber's chance with a rope was a number left over from the last failed climb by everyone (0 the first time: he always fell), and the chance of everyone climbing without one compared each member with that number instead of taking the weakest (certain the first time). The first member was never chosen as the climber. Now the climber is the best of all, his chance is his own, and the chance of everyone climbing is the weakest member's.", 1 },
     { "campguard", "A guard skilled with impact weapons keeps the camp safer",
@@ -392,7 +392,7 @@ Fix FIXES[] = {
     { "dragonhide", "Hiding from a dragon takes Stealth and Woodwise",
       "When a dragon flies over (or crawls out of the earth), the chance to hide and follow it to its lair came from the leader's Charisma and Speak Latin, a pair no other check in the game uses, and nothing in the code says why: most likely a slip. A guess at what was meant, since the game does not say: the party's average Stealth (all of them must stay hidden) and its best Woodwise (to follow the beast), half of their sum.", 1 },
     { "knightdead", "A robber knight killed stays dead",
-      "Every way of killing a robber knight burns his keep and sends the party on its way, but his tower's card could come round again before the party left the place, the knight alive in it: he could be killed again and again, a bounty each time (GitHub issue 7). Now, once his keep has burnt, the burnt-out keep is what the party finds there.", 1 },
+      "Every way of killing a robber knight burns his keep and sends the party on its way, but his tower's card could come round again before the party left the place, the knight alive in it: he could be killed again and again, a bounty each time (GitHub issue 7). Now, once his keep has burnt, the burnt-out keep is what the party finds there. And when he fell in a fight that did not end as a plain victory (after sneaking up on his tower, or with a saint's help to get in), his keep burnt but the quest to kill him was never done, so no patron ever paid; now it is done however he fell.", 1 },
     { "alertonce", "A castle on its guard is one note, not hundreds",
       "At a robber knight's tower, challenging him, sneaking up and other tries each leave word that the castle is on its guard for 270 days, a new note each time beside the last. Enough tries filled the game's table of 300 notes, and then nothing new could be noted: \"EVENT Failure\" at every turn (GitHub issue 8). Now a new note replaces the last, and a saved game's extra copies are dropped as it loads.", 1 },
     { "kingdoor", "The dwarf king waits behind his own door",
@@ -425,6 +425,20 @@ Fix FIXES[] = {
       "The Dissolve Lock shortcut could take another member's item, and an order given before items moved could use up the wrong stack. Dissolving now uses the acting member's weakest Eater-Water. If that member has none left, the order is canceled.", 1 },
     { "stairsreturn", "Stairs use the member's own floor and a safe arrival",
       "A member on another floor could take stairs from the floor being viewed, or arrive in a wall when a mine's arrival point was blocked. Stairs now use the member's own floor and check a safe landing first, using the return stairs when needed. An unusable stair record leaves the member where they are.", 1 },
+    { "thrownskill", "The last weapon thrown trains Thrown Weapons",
+      "At the end of a battle each member who shot or threw practises the skill of his missile weapon. One who had thrown his last javelin or throwing axe had no missile weapon left, and the game trained Edged Weapons instead. Now he practises Thrown Weapons (or the skill of whatever he last threw).", 1 },
+    { "noselection", "Orders with nobody chosen change nothing",
+      "In a battle with nobody chosen to give orders to (as when the party travels one by one), choosing or cancelling an order, and Enter, still acted for member \"-1\": they wrote over the byte that pauses the battle (which could leave it taken neither for paused nor for running) and over the last enemy's orders. Now, with nobody chosen, they leave those alone.", 1 },
+    { "castsight", "An enemy caster sees each target from where he stands",
+      "Choosing whom to cast a spell at, an enemy checks whether he can see each member, but from the second member on the line was drawn from the member counted before, not from himself: a member behind a wall could count as seen, and the spell go elsewhere than the caster could see. Now every line starts at the caster.", 1 },
+    { "doorplan", "Doors stay as they were left when an enemy plans its way",
+      "In a battle, an enemy planning its way could set the level's doors back to how they stood when an earlier enemy planned: a door the party had opened or shut since then flipped back. Now a plan leaves the doors as they are.", 1 },
+    { "maprows", "The travel map shows the land as it is after moving north",
+      "When the travel map's view moved north, the game shifted only part of the rows of the map it keeps in memory: some stayed where rows further south belonged, until the view moved south again. At the map's north edge most of them were wrong: the map was drawn from them, and a step or a camp took its terrain from them. Now the rows are read anew.", 1 },
+    { "fruitonce", "The schrat's fruit makes a member stronger once",
+      "The schrat's magic fruit gave its Strength before its last text, and a game saved at that text began the card again when loaded, the Strength kept: the fruit could be eaten again and again. Now the Strength comes once the text has been read.", 1 },
+    { "footpadsonce", "A fight with footpads is fought once",
+      "After a fight with footpads, a game saved at the text that follows began the card again when loaded, the fight's standing, loot and practice kept: the fight could be repeated at will. Now such a save resumes where the party goes next.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -657,6 +671,42 @@ static void alchemy_hook(void)             /* s033 1462:1630 (first, id, n): tak
         if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix alchemy: item %d: %d needed, %d still missing\n", id, n, left);
     }
 }
+/* At an inn or a camp (s036), giving a member something else to do calls his brews off first (1462:1ec2 (who)):
+ * it loads DARKLAND.ALC (the formulae's pointers, far 2e38:35e4), then looks for his brews (kind 0x1d, owner who,
+ * the formula +0, the batches +0x20) to free them and give back each batch's ingredients. But its scan starts at
+ * the event numbered as many as there are formulae (66: the loading loop's counter, never reset), so a brew kept
+ * in a lower slot was never called off: it went on, its ingredients kept; and a formula's empty fifth slot gave
+ * back an item of count 0 (Darklands Restoration's register, B-9d82a1). Here the rest are called off too, and
+ * no empty slot is given. */
+static void unbrew_rec_hook(void)           /* add_item_rec_impl (who, id, type | quality << 8, count | weight << 8) */
+{
+    if (!(rw(SS, (u16)(SP + 10)) & 0xff)) { AX = 0; hook_return_far(0); return; }
+    hook_call_original();
+}
+static void unbrew_hook(void)               /* s036 1462:1ec2 (who) */
+{
+    int who = (s16)rw(SS, (u16)(SP + 4));
+    hook_install(GF_add_item_rec_impl, unbrew_rec_hook);
+    hook_call_original();
+    for (int i = 0; i < G_NEVENTS && !unw_active && who >= 0 && who < 5; i++) {
+        u32 e = g_event(i);
+        if (!e || g_ev(e, G_EV_KIND) != 0x1d || g_ev(e, G_EV_OWNER) != who) continue;
+        int k = g_ev(e, G_EV_TYPE0), q = g_ev(e, 0x20);
+        ns_call(GF_event_free, 1, i);
+        if (k < 0 || k >= 66) continue;
+        u16 fs = rw(G_FAR2E38, (u16)(0x35e4 + 4 * k + 2)), fo = rw(G_FAR2E38, (u16)(0x35e4 + 4 * k));
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix alchemy: member %d's brew of formula %d (%d batches, event %d) called off\n", who, k, q, i);
+        for (int b = 0; b < q && b < 100 && !unw_active; b++)
+            for (int j = 0; j < 5; j++) {
+                int item = (s16)rw(fs, (u16)(fo + 0x56 + 4 * j)), n = rb(fs, (u16)(fo + 0x54 + 4 * j));
+                u32 d = n && item >= 0 && item < 200 ? g_itemdef(item) : 0;      /* (200 items in DARKLAND.LST) */
+                if (!d) continue;
+                int type = rb((u16)(d >> 16), (u16)((u16)d + 0x1e)), wt = rb((u16)(d >> 16), (u16)((u16)d + 0x25));
+                ns_call(GF_add_item_rec_impl, 4, who, item, type | 25 << 8, n | wt << 8);
+            }
+    }
+    hook_remove(GF_add_item_rec_impl, unbrew_rec_hook);
+}
 
 /* ---------------------------------------------------------------- colours
  * member_palette (far 20a5:33fc, 24 bytes per party slot) and the figure codes (DS:a668, 4
@@ -741,6 +791,23 @@ static void offmap_hook(void)                  /* s030 1462:1c76 (f): the overla
                                                   places (k 92..413) - where a step looks for them: moved first, so they are right from the start */
 {
     offmap_move();
+    hook_call_original();
+}
+/* ---------------------------------------------------------------- maprows
+ * The travel map keeps 0x83 rows of DARKLAND.MAP in memory (far D_866c, 0xd2 bytes a row), its top row the
+ * map's D_286e; moving the view a long way (1462:1dd4 (file, top, old)) shifts the rows kept and reads the new
+ * ones. Moving north it shifted d rows down where 0x83 - d had to move, then read the d new ones: the rows from
+ * slot 2d on stayed where they were, d rows south of their place, until the view moved south again. At the
+ * map's north edge (the top clamped to row 0, d = 0x18 or 0x30) most of the rows kept were wrong: the map was
+ * drawn with them, and a step or a camp read its terrain from them (Darklands Restoration's register,
+ * B-b69cb8). Here a move north reads all the rows again, as the first read does (old = -1). */
+static void maprows_hook(void)              /* s030 1462:1dd4 (file, top, old) */
+{
+    int top = (s16)rw(SS, (u16)(SP + 6)), old = (s16)rw(SS, (u16)(SP + 8));
+    if (old != -1 && old > top) {
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix maprows: the view moved north (rows from %d to %d): all read again\n", old, top);
+        ww(SS, (u16)(SP + 8), 0xffff);
+    }
     hook_call_original();
 }
 /* ---------------------------------------------------------------- westedge */
@@ -1298,6 +1365,33 @@ static void bestweapon_hook(void)          /* member_best_skill(who), s029 0e76:
     g_wb(GV_best_skill, (u8)best);                    /* best_skill */
 }
 
+/* ---------------------------------------------------------------- thrownskill
+ * At a battle's end (s014 0e76:0694) each member who shot or threw practises the skill of his missile weapon
+ * (practice flags DS:d68d + 2m, 0x10 or 2; the weapon's skill from the type table far 20a5:75ac by G_M_MISSILE).
+ * A member who threw his last javelin or axe has no missile weapon left (use_ammo made it -1), and the byte
+ * before the table is 0: Edged Weapons practised instead of Thrown Weapons (Darklands Restoration's register,
+ * B-f19453). Here the weapon each member last spent is kept, and stands in for the missing one at the end. */
+static int thrown_last[5] = { -1, -1, -1, -1, -1 };
+static void thrown_ammo_hook(void)          /* use_ammo (i), s014 18bf:0c48 */
+{
+    int i = (s16)rw(SS, (u16)(SP + 4));
+    if (i >= 0 && i < 5 && (s8)g_rb((u16)(G_MEMBER(i) + G_M_MISSILE)) >= 0) thrown_last[i] = (s8)g_rb((u16)(G_MEMBER(i) + G_M_MISSILE));
+    hook_call_original();
+}
+static void thrown_end_hook(void)           /* the battle's end, s014 0e76:0694 */
+{
+    int put = 0;
+    for (int m = 0; m < 5; m++)
+        if (thrown_last[m] >= 0 && (s8)g_rb((u16)(G_MEMBER(m) + G_M_MISSILE)) == -1 && (g_rb((u16)(0xd68d + 2 * m)) & 0x12)) {
+            g_wb((u16)(G_MEMBER(m) + G_M_MISSILE), (u8)thrown_last[m]);
+            put |= 1 << m;
+            if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix thrownskill: member %d practises with the weapon he threw last (type %d)\n", m, thrown_last[m]);
+        }
+    hook_call_original();
+    int over = (s16)g_rw(GV_battle_result) != 6;    /* (6: no practice yet, the fight goes on) */
+    for (int m = 0; m < 5; m++) { if (put >> m & 1) g_wb((u16)(G_MEMBER(m) + G_M_MISSILE), 0xff); if (over) thrown_last[m] = -1; }
+}
+
 /* ---------------------------------------------------------------- switching */
 /* ---------------------------------------------------------------- storeroom
  * The store rooms (s035): the open store is a table at far 2e38:37f4, 4 bytes an entry {item,
@@ -1782,6 +1876,32 @@ static void lord_hook(void)                 /* $CityF00 option 0, s050 1a06:026c
     ns_call(54, 0x19df, 0x0298, 1, 0);
     hook_return_far(0);
 }
+/* ---------------------------------------------------------------- councilsaint
+ * $Counc00's audience (option 0, s054 19df:05a8, and 1, 0888) goes to the council's routine (0298), which first
+ * asks whether a task given by the council is done (ev24_at_owner(3 or 10, 10, the town)) and pays it. Calling
+ * on a saint to be let in (option 2, 19df:0b56) never asks: it names a robber knight at once (s039 1462:10b6),
+ * so a party that prayed its way in to be paid got a new task instead, and could never be paid that way
+ * (Darklands Restoration's register, B-8af2a7). Here, with a reward waiting, the saint's way leads to the
+ * council's routine as the audience does: the knight it was about to name is not named, and the reward paid. */
+static int council_named;
+static void council_name_hook(void)         /* the knight named (who, castle, ...), s039 1462:10b6, while the saint's way runs */
+{
+    council_named = 1;
+    AX = 1;
+    hook_return_far(0);
+}
+static void councilsaint_hook(void)         /* $Counc00 option 2 (pray), s054 19df:0b56 */
+{
+    int loc = (s16)g_rw(G_CUR_LOC);
+    if (!ns_call(GF_ev24_at_owner, 3, 3, 10, loc) && !ns_call(GF_ev24_at_owner, 3, 10, 10, loc)) { if (!ns_unwinding) hook_call_original(); return; }
+    council_named = 0;
+    hook_install(39, 0x1462, 0x10b6, council_name_hook);
+    hook_call_original();
+    hook_remove(39, 0x1462, 0x10b6, council_name_hook);
+    if (unw_active || !council_named) return;
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix councilsaint: the saint let the party in at %d: the reward waiting is paid\n", loc);
+    ns_call(54, 0x19df, 0x0298, 1, 0);
+}
 
 /* ---------------------------------------------------------------- standings
  * The party's standing with the Fugger, the Medici and the Hanse (standing_fugger .. _hanse,
@@ -2119,6 +2239,24 @@ static void mv_wrap_hook(void)              /* $CityC00's tenth (s057 1838:067c)
     mv_active = 1; mv_done = 0;
     hook_call_original();
     mv_active = was; mv_done = done;
+}
+/* The jewelers' guild at night ($Jewel's options 059a, 06a8 and 07a2, s067 1954) makes the clumsiest member
+ * practise Stealth when getting in fails: var_chosen1 = party_min_skill(Stealth), the lowest Stealth (1..99)
+ * taken for a member's number, so another member practised (below 5), or the practice went to records past
+ * the party's in the game's memory (Darklands Restoration's register, B-751be8). In those options every
+ * party_min_skill gives the member it found (they ask it for nothing else). */
+static void mvmin_query_hook(void)          /* party_min_skill (k) while a jewelers' option runs */
+{
+    hook_call_original();
+    if (unw_active) return;
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix membervalue: lowest skill %d taken for member %d\n", (s16)AX, g_rb(GV_best_member));
+    AX = (u16)g_rb(GV_best_member);
+}
+static void mvmin_wrap_hook(void)           /* $Jewel's failures, s067 1954:059a, 06a8, 07a2 */
+{
+    hook_install(GF_party_min_skill, mvmin_query_hook);
+    hook_call_original();
+    hook_remove(GF_party_min_skill, mvmin_query_hook);
 }
 
 /* ---------------------------------------------------------------- cardslips
@@ -2521,6 +2659,86 @@ static void grove_hook(void)
     u16 ax = AX, dx = DX;
     if (g_rw(GV_next_card) == 0x3c && g_rw(GV_saved_card) == 0x22 && ns_call(GF_is_daylight, 0)) g_ww(GV_saved_card, 0x21);
     AX = ax; DX = dx;
+}
+/* A town's streets at night (the main street, card 8, s046 1838:0000; a side street, 0x0a, 194b:0002) lead to
+   each other by their numbers, without asking the hour (only the gate and the inn ask), no time passes on the way,
+   and an encounter there returns to the night street it came from after its hours: once in the night's streets the
+   party stayed in them, with their encounters, at any hour of the day (B-ae3eba, B-bdd6a8). Here a night street
+   asked for by day is the day's (the main street 6, a side street 9). */
+static void night_to_day(int day)
+{
+    int light = ns_call(GF_is_daylight, 0);
+    if (unw_active) return;
+    if (!light) { hook_call_original(); return; }
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix cardslips: a night street by day: card %#x\n", day);
+    g_ww(GV_next_card, (u16)day); AX = (u16)day;
+    hook_return_far(0);
+}
+static void nightmain_hook(void) { night_to_day(6); }
+static void nightside_hook(void) { night_to_day(9); }
+/* $MeetP02, the peat bog (s113 18f0:000c): "throw him an improvised rope" is switched on by count_items_flags
+   (-2, 0x64): 0x64 is the Rope's item type (its first word in the item list), passed as a mask of item flags,
+   so a polearm, a bow or metal armour switched it on and a Rope did not (B-03246c). Here a Rope does too. */
+static void peat_flags_hook(void)           /* count_items_flags (who, long mask) while the peat bog's card starts */
+{
+    int lo = (s16)rw(SS, (u16)(SP + 6)), hi = (s16)rw(SS, (u16)(SP + 8));
+    hook_call_original();
+    if (unw_active || lo != 0x64 || hi != 0 || (s16)AX) return;
+    int rope = ns_call(GF_count_items, 2, -2, 0x3b);
+    if (rope > 0 && getenv("DL_FIX_LOG")) fprintf(stderr, "fix cardslips: the peat bog's rope line, %d rope\n", rope);
+    AX = (u16)(rope > 0 ? rope : 0);
+}
+static void peatbog_hook(void)
+{
+    hook_install(GF_count_items_flags, peat_flags_hook);
+    hook_call_original();
+    hook_remove(GF_count_items_flags, peat_flags_hook);
+}
+/* The horseman of famine (s133 1838:049c, all the party's money given) empties the florins of the purse and
+   of the notes (DS:906b, 9072), but leaves their groschen and pfennigs (B-676369). */
+static void famine_hook(void)
+{
+    hook_call_original();
+    if (unw_active) return;
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix cardslips: famine takes %d groschen, %d pfennigs too\n", (s16)g_rw(G_MONEY + 2), (s16)g_rw(G_MONEY + 4));
+    g_ww(G_MONEY + 2, 0); g_ww(G_MONEY + 4, 0); g_ww(GV_party_notes + 2, 0); g_ww(GV_party_notes + 4, 0);
+}
+/* $Sneak00, sneaking through a guild's hall (s067 1a24:000e), names its card and picture but never loads them
+   (card_load): the screen kept the last card's picture, and its texts were read from the last card's
+   message file (the guild's) until something loaded the card again (B-f40b26). Its options' reset (1a24:08ca),
+   called next, loads it first. */
+static void sneakhall_hook(void)
+{
+    ns_call(GF_card_load, 3, GV_card_name, GV_pic_buf, G_DGROUP);
+    if (unw_active) return;
+    hook_call_original();
+}
+/* $Devil01, arguing with the bridge's devil (s088 1859:0230): when the fight is fled (results 1, 2), the members
+   left behind go (party_drop_away), then party[var_chosen2] is made able again "if the argument was won" (the
+   test the wrong way round: then nobody was seized, and var_chosen2 is whoever an earlier card named). A slot
+   party_drop_away had just emptied came back as a ghost member without a character, a dead or away one came
+   back to life, and an empty slot became a member (B-ad9d9e). Here, when the argument was won, that byte is
+   put back as it was after party_drop_away. */
+static int devil_won, devil_vc2, devil_saved = -1;
+static void devil_text_hook(void)           /* card_text (block, how): block 2, the argument won */
+{
+    if ((s16)rw(SS, (u16)(SP + 4)) == 2) devil_won = 1;
+    hook_call_original();
+}
+static void devil_drop_hook(void)           /* party_drop_away () */
+{
+    hook_call_original();
+    if (!unw_active) devil_saved = g_rb(G_MEMBER(devil_vc2));
+}
+static void devil_hook(void)
+{
+    devil_won = 0; devil_saved = -1; devil_vc2 = (s16)g_rw(GV_var_chosen2);
+    hook_install(GF_card_text, devil_text_hook); hook_install(GF_party_drop_away, devil_drop_hook);
+    hook_call_original();
+    hook_remove(GF_card_text, devil_text_hook); hook_remove(GF_party_drop_away, devil_drop_hook);
+    if (unw_active || !devil_won || devil_saved < 0 || g_rb(G_MEMBER(devil_vc2)) == devil_saved) return;
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix cardslips: the devil's bridge left slot %d as it was (%d, not 1)\n", devil_vc2, devil_saved);
+    g_wb(G_MEMBER(devil_vc2), (u8)devil_saved);
 }
 /* St. Cosmas (s039 165c:17a4) and St. Damian (1988) teach each other (saints_known[who][3] |= 2,
    0x10), with who -1 from the prayer screen's P (s034 saints.c): row -1 is the fifth member's
@@ -3032,6 +3250,36 @@ static void knightcard_hook(void)
     hook_return_far(0);
 }
 
+/* ---------------------------------------------------------------- knightpaid
+ * The fights of sneaking up on the robber knight ($Raubi04, s081 1838:01b8) and of the saint's way in ($Raubi05,
+ * 18bb:01a0) burn his keep when he falls: on a fight won (result 0), and also when the fight ends otherwise with
+ * him slain (place_won; $Raubi04's leader-alone fight burns it on any such ending). Only the won fight resolves
+ * the task (ev8_resolve(3, the place): the patron's reward waits, kind 0x24 tag 3 at the patron's town, its +0x2c
+ * the keep), so on the other endings the knight was dead and his keep a ruin, and nobody ever paid (Darklands
+ * Restoration's register, B-0ea525 and B-881dd6). Here a keep burnt by either fight with no reward waiting for it
+ * resolves the task as the won fight does; with no task for that knight it does nothing. */
+static int knight_reward_waits(int loc)
+{
+    for (int i = 0; i < G_NEVENTS; i++) {
+        u32 e = g_event(i);
+        if (e && g_ev(e, G_EV_KIND) == 0x24 && g_ev(e, G_EV_TAG) == 3 && g_ev(e, G_EV_AUX2) == loc) return 1;
+    }
+    return 0;
+}
+static int keep_burnt(int loc)
+{
+    u32 r = loc >= 0 && loc < 414 ? g_location(loc) : 0;
+    return r && (s16)rw((u16)(r >> 16), (u16)r) == 0x1a;
+}
+static void knightpaid_hook(void)              /* $Raubi04's fight (kind), s081 1838:01b8; $Raubi05's, 18bb:01a0 */
+{
+    int loc = (s16)g_rw(G_CUR_LOC), before = keep_burnt(loc);
+    hook_call_original();
+    if (unw_active || before || !keep_burnt(loc) || knight_reward_waits(loc)) return;
+    ns_call(GF_ev8_resolve, 2, 3, loc);
+    fprintf(stderr, "fix knightpaid: the knight of %d fell and his keep burnt: the task %s\n", loc, knight_reward_waits(loc) ? "is done, the reward waits" : "was nobody's");
+}
+
 /* ---------------------------------------------------------------- alertonce
  * At the robber knight's tower, challenging him, sneaking up and other tries each leave word that the castle
  * is on its guard (event_here(0x26, 6480 hours): 270 days, "ask politely" greyed), a new event each time
@@ -3501,6 +3749,120 @@ static void duplicate_load_hook(void)           /* s037 1c7d:0d24(file) */
     if (!unw_active && load.main_read && load.roster_read) duplicate_slots_clear(&load);
 }
 
+/* ---------------------------------------------------------------- noselection
+ * In a battle the member given orders is DS:a6b2 (-1: nobody, as when the party travels one by one and none is
+ * chosen). The routines of the order keys use it as an index without asking: choosing an order (s016 1ef8:156e,
+ * a place 1590, a stance 152e) or cancelling it (13d4) with nobody chosen wrote flags[-1] and selected[-1]: the
+ * byte that pauses the battle (DS:a695, its bit 0x10; a pause byte of 0x11 is taken neither for paused nor for
+ * running) and the byte before the chosen flags (DS:9063); and leaving order mode (s014 19cd:0738, which Enter
+ * calls when travelling one by one) gave the cursor's order to record -1, over the pause byte and the last
+ * enemy's orders (Darklands Restoration's register, B-dce381, B-8f3e7c, B-2eb386 and B-8d32e1). The game's own
+ * resume (1ef8:1436) leaves order mode only with someone chosen: so here, with nobody chosen, leaving order mode
+ * does nothing, and the order routines keep their hands off those two bytes. */
+static int nobody_chosen(void) { return (s8)g_rb(GV_selected_member) == -1; }
+static void nosel_leave_hook(void)          /* order_mode_leave (), s014 19cd:0738 */
+{
+    if (!nobody_chosen()) { hook_call_original(); return; }
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix noselection: order mode left with nobody chosen: nothing to apply\n");
+    hook_return_far(0);
+}
+static void nosel_order_hook(void)          /* s016 1ef8:156e (order), 1590 (place), 152e (stance), 13d4 (cancel) */
+{
+    if (!nobody_chosen()) { hook_call_original(); return; }
+    u8 pause = g_rb(GV_ai_paused), before = g_rb((u16)(GV_cbt_selected - 1));
+    hook_call_original();
+    if (g_rb(GV_ai_paused) != pause && getenv("DL_FIX_LOG")) fprintf(stderr, "fix noselection: pause byte kept %#x (not %#x)\n", pause, g_rb(GV_ai_paused));
+    g_wb(GV_ai_paused, pause); g_wb((u16)(GV_cbt_selected - 1), before);
+}
+
+/* ---------------------------------------------------------------- fruitonce
+ * $WildH03, the schrat's magic fruit (s087 1986: a member eats it, options 01e6, 0258, 02ca, 033c): Strength +4
+ * (add_attr_max, add_attr), then the last text. A game saved at that text holds only the card (DS:a772 = 0xaf),
+ * so loading it ran the card again from its menu, the Strength kept: the fruit could be eaten again and again
+ * (Darklands Restoration's register, B-905fee). Here the Strength comes when the text has been read. */
+static struct { int fn, who, k, d; } fruit_gain[4];
+static int fruit_n, fruit_on;
+static void fruit_attr_hook(void)           /* add_attr / add_attr_max (who, k, d) while a member eats the fruit */
+{
+    if (fruit_n < 4) {
+        fruit_gain[fruit_n].who = (s16)rw(SS, (u16)(SP + 4)); fruit_gain[fruit_n].k = (s16)rw(SS, (u16)(SP + 6)); fruit_gain[fruit_n].d = (s16)rw(SS, (u16)(SP + 8));
+        fruit_gain[fruit_n++].fn = fruit_on;
+        hook_return_far(0);
+        return;
+    }
+    hook_call_original();
+}
+static void fruit_max_hook(void) { fruit_on = 1; fruit_attr_hook(); }
+static void fruit_cur_hook(void) { fruit_on = 0; fruit_attr_hook(); }
+static void fruitonce_hook(void)            /* $WildH03, a member eats the fruit */
+{
+    fruit_n = 0;
+    hook_install(GF_add_attr_max, fruit_max_hook); hook_install(GF_add_attr, fruit_cur_hook);
+    hook_call_original();
+    hook_remove(GF_add_attr_max, fruit_max_hook); hook_remove(GF_add_attr, fruit_cur_hook);
+    for (int i = 0; i < fruit_n && !unw_active; i++) {
+        if (fruit_gain[i].fn) ns_call(GF_add_attr_max, 3, fruit_gain[i].who, fruit_gain[i].k, fruit_gain[i].d);
+        else ns_call(GF_add_attr, 3, fruit_gain[i].who, fruit_gain[i].k, fruit_gain[i].d);
+    }
+    if (fruit_n && getenv("DL_FIX_LOG")) fprintf(stderr, "fix fruitonce: the fruit's Strength given after its text (%d)\n", fruit_n);
+    fruit_n = 0;
+}
+
+/* ---------------------------------------------------------------- footpadsonce
+ * Footpads ($CityT00, card 0x24, s053): the fight (1838:02d6) gives its standing, loot and practice, then the
+ * thanks. A game saved at that text holds only this card (DS:a772 = 0x24), so loading it began the card again
+ * (an hour, the ambush or the menu) with the gains kept: the fight could be repeated at will (Darklands
+ * Restoration's register, B-9ddbde). Here, once the fight is over, the card to resume is the one the party goes
+ * to next (the place it came from in a town, the map on the road, as the card itself ends). */
+static void footpads_battle_hook(void)      /* run_battle while the footpads' fight runs */
+{
+    hook_call_original();
+    if (unw_active) return;
+    int road = (s16)g_rw(0xa891) == 3, next = road ? 0x0c : (s16)g_rw(GV_saved_card);
+    if ((road && (s16)g_rw(G_CUR_LOC) != -1) || next <= 0) return;
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix footpadsonce: the fight is over: a save now resumes at card %#x\n", next);
+    g_ww(0xa772, (u16)next);
+}
+static void footpadsonce_hook(void)         /* the footpads' fight, s053 1838:02d6 */
+{
+    hook_install(GF_run_battle, footpads_battle_hook);
+    hook_call_original();
+    hook_remove(GF_run_battle, footpads_battle_hook);
+}
+
+/* ---------------------------------------------------------------- castsight
+ * An enemy choosing a target for a spell (s018 1f43:0256) checks each member: the line from the caster
+ * (start DS:e0a5/e0a3, set once to the caster) to the member (end e0a9/e0a7, set for each), then, when it is
+ * clear, the foes around that member (s014 0e76:469e), which sets the line's start to the member as its centre
+ * and leaves it there: from the second member on, the line started at the member counted before (Darklands
+ * Restoration's register, B-a2387d). Here, while a caster chooses, that count gives the line's start back. */
+static void castsight_area_hook(void)       /* the foes around a point, s014 0e76:469e, while a caster chooses */
+{
+    u16 x = g_rw(0xe0a5), y = g_rw(0xe0a3);
+    hook_call_original();
+    g_ww(0xe0a5, x); g_ww(0xe0a3, y);
+}
+static void castsight_hook(void)            /* an enemy's spell, its target chosen, s018 1f43:0256 */
+{
+    hook_install(14, 0x0e76, 0x469e, castsight_area_hook);
+    hook_call_original();
+    hook_remove(14, 0x0e76, 0x469e, castsight_area_hook);
+}
+
+/* ---------------------------------------------------------------- doorplan
+ * The battle's own planner (path_find (i), s014 12f7:000a), for an enemy, keeps the level's door flags (far
+ * 20a5:33d3, 40 bytes) in DS:e0c0 before it opens doors to plan through them, and on its way out puts them back
+ * (every door but the twins). But the keeping comes after the early ways out, which also pass the putting back:
+ * a plan that ended early set the doors back to the flags kept at an earlier enemy's plan, and a door opened or
+ * shut since then flipped back (Darklands Restoration's register, B-e1ca2c). Here every enemy's plan starts
+ * with the flags kept as they are. */
+static void doorplan_hook(void)
+{
+    int i = (s16)rw(SS, (u16)(SP + 4));
+    if (i >= 5 && i < 13) for (int k = 0; k < 40; k++) g_wb((u16)(0xe0c0 + k), rb(G_FAR20A5, (u16)(0x33d3 + k)));
+    hook_call_original();
+}
+
 /* ---------------------------------------------------------------- dissolve
  * The running D key (s016 1ef8:0f76) acts for the leader but consumes the selected member's
  * stack at member 0's cached index. A queued order (s014 0e76:2170, special action 7) uses
@@ -3591,7 +3953,8 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
     { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook },
     { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook }, { 30, 0x1462, 0x1c76, westedge_hook }, { GF_lock_pick, bestpick_hook },
-    { 37, 0x1462, 0x2ace, save_records_hook }, { -2, 0, 0, 0 }, { 38, 0x1462, 0x02f8, innroster_key_hook }, { GF_party_remove, leaving_record_hook }, { -2, 0, 0, 0 }, { 37, 0x1c7d, 0x0d24, duplicate_load_hook }, { 16, 0x1ef8, 0x0f76, dissolve_key_hook }, { -2, 0, 0, 0 } };   /* (hitsound: mods/sfx.c; savecheck: mods/saves.c; cachefile: mods/cachefile.c; stairsreturn: mods/stairsfix.c) */
+    { 37, 0x1462, 0x2ace, save_records_hook }, { -2, 0, 0, 0 }, { 38, 0x1462, 0x02f8, innroster_key_hook }, { GF_party_remove, leaving_record_hook }, { -2, 0, 0, 0 }, { 37, 0x1c7d, 0x0d24, duplicate_load_hook }, { 16, 0x1ef8, 0x0f76, dissolve_key_hook }, { -2, 0, 0, 0 },
+    { 14, 0x0e76, 0x0694, thrown_end_hook }, { 14, 0x19cd, 0x0738, nosel_leave_hook }, { 18, 0x1f43, 0x0256, castsight_hook }, { GF_path_find, doorplan_hook }, { 30, 0x1462, 0x1dd4, maprows_hook }, { 87, 0x1986, 0x01e6, fruitonce_hook }, { 53, 0x1838, 0x02d6, footpadsonce_hook } };   /* (hitsound: mods/sfx.c; savecheck: mods/saves.c; cachefile: mods/cachefile.c; stairsreturn: mods/stairsfix.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
@@ -3634,7 +3997,17 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "cardslips", 67, 0x1869, 0x06e6, sneak_hook },
     { "patronsaint", 39, 0x165c, 0x17a4, teach_saint_hook }, { "patronsaint", 39, 0x165c, 0x1988, teach_saint_hook },
     { "fullpack", GF_barter_key, buy_room_hook }, { "fullpack", 35, 0x1462, 0x0a46, store_get_room_hook },
-    { "westedge", 30, 0x1462, 0x20d2, westedge_view_hook }, { "cardslips", 134, 0x1a25, 0x000a, celldoor_hook } };
+    { "westedge", 30, 0x1462, 0x20d2, westedge_view_hook }, { "cardslips", 134, 0x1a25, 0x000a, celldoor_hook },
+    { "knightdead", 81, 0x1838, 0x01b8, knightpaid_hook }, { "knightdead", 81, 0x18bb, 0x01a0, knightpaid_hook },
+    { "lordreward", 54, 0x19df, 0x0b56, councilsaint_hook },
+    { "membervalue", 67, 0x1954, 0x059a, mvmin_wrap_hook }, { "membervalue", 67, 0x1954, 0x06a8, mvmin_wrap_hook }, { "membervalue", 67, 0x1954, 0x07a2, mvmin_wrap_hook },
+    { "cardslips", 113, 0x18f0, 0x000c, peatbog_hook }, { "cardslips", 133, 0x1838, 0x049c, famine_hook },
+    { "cardslips", 67, 0x1a24, 0x08ca, sneakhall_hook }, { "cardslips", 88, 0x1859, 0x0230, devil_hook },
+    { "cardslips", 46, 0x1838, 0x0000, nightmain_hook }, { "cardslips", 46, 0x194b, 0x0002, nightside_hook },
+    { "fruitonce", 87, 0x1986, 0x0258, fruitonce_hook }, { "fruitonce", 87, 0x1986, 0x02ca, fruitonce_hook }, { "fruitonce", 87, 0x1986, 0x033c, fruitonce_hook },
+    { "alchemy", 36, 0x1462, 0x1ec2, unbrew_hook }, { "thrownskill", GF_use_ammo, thrown_ammo_hook },
+    { "noselection", 16, 0x1ef8, 0x156e, nosel_order_hook }, { "noselection", 16, 0x1ef8, 0x1590, nosel_order_hook },
+    { "noselection", 16, 0x1ef8, 0x152e, nosel_order_hook }, { "noselection", 16, 0x1ef8, 0x13d4, nosel_order_hook } };
 
 void fix_enable(int i, int on)
 {

@@ -509,11 +509,29 @@ static void gossip(int who)
 static void gossip_govt_hook(void) { if (!politics_on()) { hook_call_original(); return; } gossip(GOVT); if (!ns_unwinding) hook_return_far(0); }
 static void gossip_rebels_hook(void) { if (!politics_on()) { hook_call_original(); return; } gossip(REBELS); if (!ns_unwinding) hook_return_far(0); }
 
-/* conflict_outcome (acting, party, winner): the news afterwards */
+/* conflict_outcome (acting, party, winner): the news afterwards; and the pacts. It resolves the season's task
+ * first (ev8_resolve(2, here), 1462:0f3e), which clears the season's facts, the pacts (0x24 with the government,
+ * 0x25 with the rebels) among them, before its branches ask for them: with the task under way they were never
+ * found, and a party that had made a pact was paid and praised as if it had none (Darklands Restoration's
+ * register, B-af3f91). Here its branches see the pacts as they stood when it began. */
+static int pact_loc = -1, pact_had[2];
+static void pact_fact_hook(void)            /* loc_fact (tag, type, loc) while conflict_outcome runs */
+{
+    int tag = (s16)rw(SS, (u16)(SP + 4)), type = (s16)rw(SS, (u16)(SP + 6)), loc = (s16)rw(SS, (u16)(SP + 8));
+    if (tag == TAG && loc == pact_loc && (type == 0x24 || type == 0x25)) { AX = (u16)pact_had[type - 0x24]; hook_return_far(0); return; }
+    hook_call_original();
+}
 static void outcome_hook(void)
 {
     int a = (s16)rw(SS, (u16)(SP + 4)), c = (s16)rw(SS, (u16)(SP + 8)), loc = cur_loc();
+    int pacts = politics_on() && loc >= 0;
+    if (pacts) {
+        pact_had[0] = fact(0x24); pact_had[1] = fact(0x25); pact_loc = loc;
+        if (ns_unwinding) return;
+        hook_install(GF_loc_fact, pact_fact_hook);
+    }
     hook_call_original();
+    if (pacts) { hook_remove(GF_loc_fact, pact_fact_hook); pact_loc = -1; }
     if (!politics_on() || ns_unwinding || loc < 0) return;
     int winner = c ? c : a;
     LOG("outcome at %d: %s won\n", loc, winner == REBELS ? "the rebels" : "the government");

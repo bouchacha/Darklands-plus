@@ -436,8 +436,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:269` | In a castle battle only the knight's death ends the fight, but the original did not save it: after saving and loading during the battle, the knight was dead yet leaving always counted as fleeing. His death now counts after loading too. |
 | `mods/fixes.c:270` | A merchant's robber-knight bounty pays once, without garbled names |
 | `mods/fixes.c:271` | The original looked up the wrong quest giver, which garbled names, corrupted memory and let the reward be claimed again and again. It now finds the right one. |
-| `mods/fixes.c:272` | Brewing uses up all the ingredients |
-| `mods/fixes.c:273` | The original took only part of them when an ingredient was spread over several stacks; now it takes them all. |
+| `mods/fixes.c:272` | Brewing takes all its ingredients, and calling it off gives them back |
+| `mods/fixes.c:273` | The original took only part of them when an ingredient was spread over several stacks; now it takes them all. And at an inn or in camp, giving a brewing member something else to do called off only the brews the game happened to keep late in its list of notes: the others went on, their ingredients spent. Now every brew of that member is called off and its ingredients given back. |
 | `mods/fixes.c:274` | No more items lost to a member with no room |
 | `mods/fixes.c:275` | A member carries at most 64 kinds of items; in the original, what the game gave to a member who already had 64 simply vanished (quest items too). It now goes to a member who already carries one, else to the one carrying the fewest kinds (with no room anywhere, it is still lost). Buying when nobody had room took the money for nothing, and taking an item from a store room for a member with no room lost it: both are now refused. |
 | `mods/fixes.c:276` | Saving and loading stay possible after the inn |
@@ -478,8 +478,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:311` | A pagan altar the party has destroyed vanishes from the overland view, but quests could still send the party there, and could then never be done (nor could their giver offer another). Such altars are no longer chosen; quests already sent to one go to the nearest altar still standing. |
 | `mods/fixes.c:312` | The item taken from a tomb goes to the winner of the fight |
 | `mods/fixes.c:313` | Taking the item a quest seeks from a tomb wakes its dead: winning that fight gave nothing (though the text says the party scrambles out with it) and losing it gave the item. Now the party gets the item when it wins. |
-| `mods/fixes.c:314` | The lord pays for his quests |
-| `mods/fixes.c:315` | In a town without a council, the lord of the fortress gives robber knights to hunt, but the game pays such a quest's reward only at a council's hall, so in such a town it could never be collected. The lord now pays it at an audience, as a council does. |
+| `mods/fixes.c:314` | The lord and the council pay for their quests |
+| `mods/fixes.c:315` | In a town without a council, the lord of the fortress gives robber knights to hunt, but the game pays such a quest's reward only at a council's hall, so in such a town it could never be collected. The lord now pays it at an audience, as a council does. And at a council's hall, calling on a saint to be let in gave the party a new robber knight to hunt instead of the reward waiting for it; now the saint's way pays it, as an audience does. |
 | `mods/fixes.c:316` | Armor and fire protection from potions and saints last a day; Hardarmor works as the manual says |
 | `mods/fixes.c:317` | Hardarmor (+1 to +3 armor), St. Dunstan's (+1) and St. Patrick's (+2) blessings, St. Crispin's (+10 to the quality of everyone's armor) and the protection against fire of Firewall and St. Polycarp never wore off, and each new one added to the last. They now last about a day, as the manual says, and what piled up this way in a saved game is dropped: only the ones still running count. St. Charity, St. Erasmus and St. Pantaleon (and St. Polycarp) gave their protection against fire as armor instead: +32 or +48 armor permanently (or nothing, with the fix "No invulnerability from fire protection" on); now the member gets fire protection 90 for a day, the same as St. Polycarp's. Hardarmor also does what the manual says: armor 20, 25 or 30 points better in quality and one or two levels thicker (the game gave 1 to 3 levels and no quality); a second used while one is still working keeps the stronger of the two. |
 | `mods/fixes.c:318` | Great Power raises the weapon's quality |
@@ -516,10 +516,10 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:349` | Where a card gives every member something (out of a dungeon, from footpads), each member who had one already got it twice: added to his stack, and again as a new stack. Now each gets it once. |
 | `mods/fixes.c:350` | Fleeing on horseback counts the poorest rider's mount |
 | `mods/fixes.c:351` | Fleeing the Wild Hunt or a wolf pack on horseback adds the quality of the poorest rider's mount to the chance, but the game looked in the wrong place for the mounts and so added nothing. It now finds the mounts. |
-| `mods/fixes.c:352` | A church tithe blesses the member best at Religion |
-| `mods/fixes.c:353` | When the party gave a tenth in a town church, the Divine Favor meant first for the member best at Religion went to no member at all (the game took the skill's value for a member's number); and sneaking into a guild leader's house at night showed a garbled name instead of the member with the lowest Agility. Both now use the right member. |
+| `mods/fixes.c:352` | Cards pick the member they mean |
+| `mods/fixes.c:353` | When the party gave a tenth in a town church, the Divine Favor meant first for the member best at Religion went to no member at all (the game took the skill's value for a member's number); and sneaking into a guild leader's house at night showed a garbled name instead of the member with the lowest Agility. Failing to get into the jewelers' guild at night likewise made the member whose number was the lowest Stealth's value practise Stealth, not the clumsiest member (or, with no such member, wrote the practice into the game's memory). All now use the right member. |
 | `mods/fixes.c:354` | Small mistakes in single cards |
-| `mods/fixes.c:355` | Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said "Please accept this florin" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both its options were switched off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armor, and clearing the spider warehouse, healed the party, though their texts say it is hurt; and the warehouse's owner had no name of his own ("I am . Are ye hardy adventurers?"), nor had the dwarf king when met again with his red hat ("It is  again, king of the dwarfs"). When the party was paid for a robber knight, the Hanse's guide or the village's Schulz who had come along was said to leave by the toss of a coin (or even when he had never come), and then stayed on. A second fight with a town's gate guards cost no standing (the card kept the standing it had found on arrival), the docks said "You need a missile weapon" to a party short of the fare, trouble on the way to a town's grove at night led to the grove's night card even after day had come, sneaking into a guild's quarters made the whole party practice once for each member, and a cell door in a fortress dungeon flashed its card and went back to the level without a word, though its text was written ("This door is solid oak, with a rusty iron grating in the center..."). Each now does what its text says. |
+| `mods/fixes.c:355` | Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said "Please accept this florin" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both its options were switched off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armor, and clearing the spider warehouse, healed the party, though their texts say it is hurt; and the warehouse's owner had no name of his own ("I am . Are ye hardy adventurers?"), nor had the dwarf king when met again with his red hat ("It is  again, king of the dwarfs"). When the party was paid for a robber knight, the Hanse's guide or the village's Schulz who had come along was said to leave by the toss of a coin (or even when he had never come), and then stayed on. A second fight with a town's gate guards cost no standing (the card kept the standing it had found on arrival), the docks said "You need a missile weapon" to a party short of the fare, trouble on the way to a town's grove at night led to the grove's night card even after day had come, sneaking into a guild's quarters made the whole party practice once for each member, and a cell door in a fortress dungeon flashed its card and went back to the level without a word, though its text was written ("This door is solid oak, with a rusty iron grating in the center..."). In the peat bog a Rope did not switch on the line to throw one (a polearm, a bow or metal armour did). The horseman of famine took all the party's florins but left its groschen and pfennigs. Sneaking through a guild's hall kept the last card's picture and read its texts from the last card. Walking between a town's streets at night kept the party in the night's streets, and their encounters, after day had come. And fleeing the bridge's devil after winning the argument could make an empty party slot a member again, with no character behind it. Each now does what its text says. |
 | `mods/fixes.c:356` | Climbing a city wall at night uses the climbers' own chances |
 | `mods/fixes.c:357` | Along a city's walls at night, the best climber's chance with a rope was a number left over from the last failed climb by everyone (0 the first time: he always fell), and the chance of everyone climbing without one compared each member with that number instead of taking the weakest (certain the first time). The first member was never chosen as the climber. Now the climber is the best of all, his chance is his own, and the chance of everyone climbing is the weakest member's. |
 | `mods/fixes.c:358` | A guard skilled with impact weapons keeps the camp safer |
@@ -559,7 +559,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:392` | Hiding from a dragon takes Stealth and Woodwise |
 | `mods/fixes.c:393` | When a dragon flies over (or crawls out of the earth), the chance to hide and follow it to its lair came from the leader's Charisma and Speak Latin, a pair no other check in the game uses, and nothing in the code says why: most likely a slip. A guess at what was meant, since the game does not say: the party's average Stealth (all of them must stay hidden) and its best Woodwise (to follow the beast), half of their sum. |
 | `mods/fixes.c:394` | A robber knight killed stays dead |
-| `mods/fixes.c:395` | Every way of killing a robber knight burns his keep and sends the party on its way, but his tower's card could come round again before the party left the place, the knight alive in it: he could be killed again and again, a bounty each time (GitHub issue 7). Now, once his keep has burnt, the burnt-out keep is what the party finds there. |
+| `mods/fixes.c:395` | Every way of killing a robber knight burns his keep and sends the party on its way, but his tower's card could come round again before the party left the place, the knight alive in it: he could be killed again and again, a bounty each time (GitHub issue 7). Now, once his keep has burnt, the burnt-out keep is what the party finds there. And when he fell in a fight that did not end as a plain victory (after sneaking up on his tower, or with a saint's help to get in), his keep burnt but the quest to kill him was never done, so no patron ever paid; now it is done however he fell. |
 | `mods/fixes.c:396` | A castle on its guard is one note, not hundreds |
 | `mods/fixes.c:397` | At a robber knight's tower, challenging him, sneaking up and other tries each leave word that the castle is on its guard for 270 days, a new note each time beside the last. Enough tries filled the game's table of 300 notes, and then nothing new could be noted: "EVENT Failure" at every turn (GitHub issue 8). Now a new note replaces the last, and a saved game's extra copies are dropped as it loads. |
 | `mods/fixes.c:398` | The dwarf king waits behind his own door |
@@ -592,18 +592,33 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:425` | The Dissolve Lock shortcut could take another member's item, and an order given before items moved could use up the wrong stack. Dissolving now uses the acting member's weakest Eater-Water. If that member has none left, the order is canceled. |
 | `mods/fixes.c:426` | Stairs use the member's own floor and a safe arrival |
 | `mods/fixes.c:427` | A member on another floor could take stairs from the floor being viewed, or arrive in a wall when a mine's arrival point was blocked. Stairs now use the member's own floor and check a safe landing first, using the return stairs when needed. An unusable stair record leaves the member where they are. |
-| `mods/fixes.c:758` | if (col == 0) col = 1 |
-| `mods/fixes.c:1324` | The store room keeps at most 127 of one item. |
-| `mods/fixes.c:1325` | The store room is full: it keeps 100 kinds of items. |
-| `mods/fixes.c:1495` | abandon the horses |
-| `mods/fixes.c:1911` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
-| `mods/fixes.c:2169` | claim friendship |
-| `mods/fixes.c:2221` | It is $NamedOneName again |
-| `mods/fixes.c:2484` | You need a missile weapon |
-| `mods/fixes.c:2562` | Not bought: nobody in the party has room for another kind of item. |
-| `mods/fixes.c:2580` | Nobody in the party has room for another kind of item. |
-| `mods/fixes.c:3534` | Dissolve Lock needs Eater-Water in this member's pack. |
-| `mods/fixes.c:3595` | a hook (or { -2 }) for each fix, in the same order |
+| `mods/fixes.c:428` | The last weapon thrown trains Thrown Weapons |
+| `mods/fixes.c:429` | At the end of a battle each member who shot or threw practises the skill of his missile weapon. One who had thrown his last javelin or throwing axe had no missile weapon left, and the game trained Edged Weapons instead. Now he practises Thrown Weapons (or the skill of whatever he last threw). |
+| `mods/fixes.c:430` | Orders with nobody chosen change nothing |
+| `mods/fixes.c:431` | In a battle with nobody chosen to give orders to (as when the party travels one by one), choosing or cancelling an order, and Enter, still acted for member "-1": they wrote over the byte that pauses the battle (which could leave it taken neither for paused nor for running) and over the last enemy's orders. Now, with nobody chosen, they leave those alone. |
+| `mods/fixes.c:432` | An enemy caster sees each target from where he stands |
+| `mods/fixes.c:433` | Choosing whom to cast a spell at, an enemy checks whether he can see each member, but from the second member on the line was drawn from the member counted before, not from himself: a member behind a wall could count as seen, and the spell go elsewhere than the caster could see. Now every line starts at the caster. |
+| `mods/fixes.c:434` | Doors stay as they were left when an enemy plans its way |
+| `mods/fixes.c:435` | In a battle, an enemy planning its way could set the level's doors back to how they stood when an earlier enemy planned: a door the party had opened or shut since then flipped back. Now a plan leaves the doors as they are. |
+| `mods/fixes.c:436` | The travel map shows the land as it is after moving north |
+| `mods/fixes.c:437` | When the travel map's view moved north, the game shifted only part of the rows of the map it keeps in memory: some stayed where rows further south belonged, until the view moved south again. At the map's north edge most of them were wrong: the map was drawn from them, and a step or a camp took its terrain from them. Now the rows are read anew. |
+| `mods/fixes.c:438` | The schrat's fruit makes a member stronger once |
+| `mods/fixes.c:439` | The schrat's magic fruit gave its Strength before its last text, and a game saved at that text began the card again when loaded, the Strength kept: the fruit could be eaten again and again. Now the Strength comes once the text has been read. |
+| `mods/fixes.c:440` | A fight with footpads is fought once |
+| `mods/fixes.c:441` | After a fight with footpads, a game saved at the text that follows began the card again when loaded, the fight's standing, loot and practice kept: the fight could be repeated at will. Now such a save resumes where the party goes next. |
+| `mods/fixes.c:825` | if (col == 0) col = 1 |
+| `mods/fixes.c:1418` | The store room keeps at most 127 of one item. |
+| `mods/fixes.c:1419` | The store room is full: it keeps 100 kinds of items. |
+| `mods/fixes.c:1589` | abandon the horses |
+| `mods/fixes.c:2031` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
+| `mods/fixes.c:2307` | claim friendship |
+| `mods/fixes.c:2359` | It is $NamedOneName again |
+| `mods/fixes.c:2622` | You need a missile weapon |
+| `mods/fixes.c:2717` | if the argument was won |
+| `mods/fixes.c:2780` | Not bought: nobody in the party has room for another kind of item. |
+| `mods/fixes.c:2798` | Nobody in the party has room for another kind of item. |
+| `mods/fixes.c:3896` | Dissolve Lock needs Eater-Water in this member's pack. |
+| `mods/fixes.c:3958` | a hook (or { -2 }) for each fix, in the same order |
 
 ## The interface (ui/)
 
@@ -3203,7 +3218,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/politics.c:347` | the exiled heir |
 | `mods/politics.c:389` | there are some interesting rumours flying around |
 | `mods/politics.c:468` | Plans in place |
-| `mods/politics.c:522` | the rebellion was put down |
+| `mods/politics.c:540` | the rebellion was put down |
 | `mods/relics.c:198` | donate one of your relics |
 | `mods/relics.c:213` | %sprayers cost {Divine Favor:%d} less, with {Virtue:%d}%s |
 | `mods/relics.c:220` | Which relic do you lay on the altar? |

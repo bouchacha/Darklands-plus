@@ -4,7 +4,10 @@ Arkana Mechanika keep a register of the bugs of 483.07 that their C# rewrite rep
 (`docs/faithfulness/original_bugs.csv` in github.com/Arkana-Mechanika-Studios/darklands-restoration;
 155 entries in October 2026, 277 by their commit 8d5740c of 14 November 2026; ids B-xxxxxx). Each was checked
 against the decompiled code here; "fixed now (woodk123)" are the fixes of woodk123's pull requests #14 to #21, and
-"open" what Darklands+ does not fix yet. This
+"open" what Darklands+ does not fix yet, "not reached" a bug of a screen Darklands+ draws itself (the original's
+screen comes back only with that display switch off). Most of what stays open is one thing: a party split across a
+battle's floors (the battle keeps only the floor on screen in memory, so whatever the members on another floor do is
+read from it). This
 is where Darklands+ stands on each: "fixed now" means fixed after the cross-check, "experimental"
 that it is fixed but only reachable inside the experimental city politics or cities at war. The
 fixes are described in `port/mods/fixes.c` (its header and each hook), the saints in `docs/SAINTS.md`.
@@ -170,9 +173,9 @@ fixes are described in `port/mods/fixes.c` (its header and each hook), the saint
 | B-85e0e4 | 1462:04BC; 1462:1468 | ItemStores.Close | fixed now (woodk123) | fix.cachefile |
 | B-3de49c | 1462:04BC; 1462:1468 | ItemStores.Close | fixed now (woodk123) | fix.cachefile |
 | B-cf6bdb | 1462:04BC; 1462:1468 | ItemStores.Rewrite | fixed now (woodk123) | fix.cachefile |
-| B-9d82a1 | 1462:1EC2 | Brewing.CallOff | open |  |
+| B-9d82a1 | 1462:1EC2 | Brewing.CallOff | fixed now | fix.alchemy |
 | B-630527 | 1462:08EC; 1462:1858; 1462:147A | CampStay.Teacher | fixed | fix.bestteacher |
-| B-af3f91 | 1462:0EBE | CityPolitics.ConflictOutcome | open (experimental: the desertion test) | rules.politics |
+| B-af3f91 | 1462:0EBE | CityPolitics.ConflictOutcome | fixed now (experimental) | rules.politics |
 | B-032561 | 1462:0558 | CityPolitics.SetUpCity | fixed (experimental) | rules.politics |
 | B-ae5599 | 1462:0558 | CityPolitics.SetUpCity | fixed (experimental) | rules.politics |
 | B-8bb85e | 0E76:4180 | CityPolitics.DailyPolitics | fixed (experimental) | rules.politics |
@@ -188,47 +191,47 @@ fixes are described in `port/mods/fixes.c` (its header and each hook), the saint
 | B-7b1d83 | 165C:3934 | SaintBook.new | fixed | fix.sainttexts |
 | B-57b386 | 165C:50CC | SaintBook.new | fixed | fix.sainttexts |
 | B-67091e | 165C:6E62 | SaintBook.new | fixed | fix.sainttexts |
-| B-a186ab | 0E76:4626 | SaintPrayer.Listed | open |  |
+| B-a186ab | 0E76:4626 | SaintPrayer.Listed | not reached: Darklands+'s own character sheet offers only the saints known |  |
 | B-2ac4c7 | 1462:022C; 1462:06E2 | SaintPrayer.Pray | fixed | fix.prayfor |
-| B-ad9d9e | 1859:0230 | CardContext.SetStatusAbleStale | open |  |
-| B-ae3eba | 1838:0422; 1838:0466; 1838:04AA; 1838:04EE; 1838:053A; 1838:057E | MainStreetAtNight.Walk | open |  |
-| B-bdd6a8 | 194B:0330; 194B:0302 | SideStreetAtNight.Run | open |  |
-| B-9ddbde | 1838:02D6 | Footpads.Fight | open (an exploit: saving at the text) |  |
-| B-8af2a7 | 19DF:0B56 | CouncilHall.CallUponASaint | open |  |
+| B-ad9d9e | 1859:0230 | CardContext.SetStatusAbleStale | fixed now | fix.cardslips |
+| B-ae3eba | 1838:0422; 1838:0466; 1838:04AA; 1838:04EE; 1838:053A; 1838:057E | MainStreetAtNight.Walk | fixed now | fix.cardslips |
+| B-bdd6a8 | 194B:0330; 194B:0302 | SideStreetAtNight.Run | fixed now | fix.cardslips |
+| B-9ddbde | 1838:02D6 | Footpads.Fight | fixed now (an exploit) | fix.footpadsonce |
+| B-8af2a7 | 19DF:0B56 | CouncilHall.CallUponASaint | fixed now | fix.lordreward |
 | B-ca9994 | 1A02:053C | HandbillThugs_Polit01.EatTheHandbills | fixed (experimental) | rules.politics |
-| B-751be8 | 1954:07A2; 0E76:1396; 1462:0132 | JewelersGuildAtNight.FailedToGetIn | open |  |
-| B-f40b26 | 1A24:08CA | SneakingThroughTheHall.Run | open |  |
+| B-751be8 | 1954:07A2; 0E76:1396; 1462:0132 | JewelersGuildAtNight.FailedToGetIn | fixed now | fix.membervalue |
+| B-f40b26 | 1A24:08CA | SneakingThroughTheHall.Run | fixed now | fix.cardslips |
 | B-8a4d61 | 195D:0358 | CityNews.Run | fixed (experimental) | rules.politics |
 | B-37826f | 1981:057E | BeforeTheCityWalls.Run | fixed (experimental) | rules.war |
 | B-083b8c | 0E76:2930 | RobberKnightsTower.Run | fixed | fix.alertonce |
 | B-5e7a72 | 19BC:0A38; 19BC:0A40 | DragonBlightedLand.Run | fixed | fix.dragonhide |
-| B-0ea525 | 1838:01B8 | InsideTheRobberKnightsTower.Fight | open |  |
+| B-0ea525 | 1838:01B8 | InsideTheRobberKnightsTower.Fight | fixed now | fix.knightdead |
 | B-a015b0 | 1838:05D0 | InsideTheRobberKnightsTower.SetTheTowerOnFire | fixed | fix.knightdead |
-| B-881dd6 | 18BB:01A0 | RobberKnightsAudience.Fight | open |  |
+| B-881dd6 | 18BB:01A0 | RobberKnightsAudience.Fight | fixed now | fix.knightdead |
 | B-3a767e | 1838:0536 | WolfPackOnTheTrail.RidingChance | fixed | fix.itemflags |
-| B-905fee | 1986:03AE; 1986:03C8 | SchratsMagicFruit.EatTheFruit | open (an exploit: saving at the text) |  |
+| B-905fee | 1986:03AE; 1986:03C8 | SchratsMagicFruit.EatTheFruit | fixed now (an exploit) | fix.fruitonce |
 | B-f4d25e | 1838:0000 | RebelsRallyTheCrowd.Run | fixed (experimental) | rules.politics |
 | B-2eabd4 | 18F2:0008 | CityPoliticsGossip.Run | fixed (experimental) | rules.politics |
 | B-7ec55a | 18E8:0196; 18E8:0458 | RiddleDoor_MineT24.override | fixed | fix.kingdoor |
 | B-a194c2 | 18BD:0000 | DwarfKingsRedCap_MineB03.Run | fixed | fix.cardslips |
 | B-95c21f | 1957:0004 | FriendlyDwarf_MineH00.Run | fixed | fix.dwarfrelic |
-| B-03246c | 18F0:08A8; 18F0:0982 | PeatBog.Run | open |  |
+| B-03246c | 18F0:08A8; 18F0:0982 | PeatBog.Run | fixed now | fix.cardslips |
 | B-34e50b | 1942:021C; 1942:0234 | BurntOutKeep.Run | fixed | fix.ruinkeep |
-| B-676369 | 1838:049C; 1838:050E | FamineHorseman.Run | open |  |
+| B-676369 | 1838:049C; 1838:050E | FamineHorseman.Run | fixed now | fix.cardslips |
 | B-72e8eb | 1838:0296; 1838:02E8 | SpiderWarehousePoster.Run | fixed | fix.cardslips |
 | B-d8f504 | 0E76:324C | EventLog.Next | fixed where the season reads it (experimental) | rules.politics |
 | B-65b0bf | 0E76:3144 | EventLog.FreeSlot | fixed (its main source) | fix.alertonce |
 | B-c42c01 | 2E38:2838 | CellBuffer.Fill | open |  |
 | B-a993d7 | 1462:25BE | CellBuffer.CampWatch | open |  |
 | B-79b8e3 | 1462:2AC8 | OverlandTravel.Step | fixed | fix.ownplace |
-| B-b69cb8 | 06A1:12DC; 1462:1DD4 | RowBuffer.Load | open |  |
-| B-dd3d33 | 1462:0C22 | BattleEnd.LootSkips | open |  |
+| B-b69cb8 | 06A1:12DC; 1462:1DD4 | RowBuffer.Load | fixed now | fix.maprows |
+| B-dd3d33 | 1462:0C22 | BattleEnd.LootSkips | not reached: Darklands+'s own loot screen skips a member who left |  |
 | B-9d748e | 0E76:08FE | BattleEnd.IsOver | open (a party split across floors) |  |
-| B-f19453 | 0E76:0694 | BattleEnd.ImproveSkills | open |  |
+| B-f19453 | 0E76:0694 | BattleEnd.ImproveSkills | fixed now | fix.thrownskill |
 | B-219beb | 1432:2C98 | MineBuilder.CarveGap | open |  |
 | B-f20e47 | 182C:0DB6 | MineBuilder.SetPiece | fixed | fix.minerelic |
 | B-85e0a9 | 1462:000A | BattleMap.Collides | open (a party split across floors) |  |
-| B-e1ca2c | 12F7:000A | PathFinder.Find | open |  |
+| B-e1ca2c | 12F7:000A | PathFinder.Find | fixed now | fix.doorplan |
 | B-c0fd6c | 1DB7:0E22 | TacticalBattle.Rethink | confirmed, kept |  |
 | B-70431c | 1EF8:1242; 1EF8:138E | TacticalBattle.ExitKey | open (a party split across floors) |  |
 | B-69078f | 1EF8:1242; 1EF8:138E | TacticalBattle.LeaveField | open |  |
@@ -255,17 +258,17 @@ fixes are described in `port/mods/fixes.c` (its header and each hook), the saint
 | B-3f56bf | 19CD:216A | TacticalBattle.Triggers | open (a party split across floors) |  |
 | B-71d98a | 1EF8:0000 | EffectField.EffectLevel | open (a party split across floors) |  |
 | B-de34f4 | 1F43:0006 | TacticalBattle.EnemySees | open (a party split across floors) |  |
-| B-a2387d | 1F43:0256; 0E76:469E; 1D69:0354 | TacticalBattle.Cast | open |  |
+| B-a2387d | 1F43:0256; 0E76:469E; 1D69:0354 | TacticalBattle.Cast | fixed now | fix.castsight |
 | B-43d98d | 0E76:2CCA | TacticalBattle.Approach | fixed | fix.pathfinding |
 | B-fd2ef4 | 0E76:2324 | TacticalBattle.LeavePile | open (a party split across floors) |  |
 | B-7b43c9 | 19CD:28A2 | TacticalBattle.ResetOrderMenu | confirmed, kept |  |
 | B-5eea75 | 19CD:29B8 | TacticalBattle.BuildOrderMenu | confirmed, harmless |  |
 | B-a3cd1d | 1EF8:0000 | TacticalBattle.LaunchMissile | open (a party split across floors) |  |
-| B-dce381 | 1EF8:156E; 1EF8:1332; 1EF8:133E | TacticalBattle.ChooseOrder | open |  |
-| B-8f3e7c | 1EF8:1590 | TacticalBattle.ChoosePlace | open |  |
+| B-dce381 | 1EF8:156E; 1EF8:1332; 1EF8:133E | TacticalBattle.ChooseOrder | fixed now | fix.noselection |
+| B-8f3e7c | 1EF8:1590 | TacticalBattle.ChoosePlace | fixed now | fix.noselection |
 | B-92ec65 | 19CD:0DCC | TacticalBattle.OrderClick | confirmed, kept |  |
-| B-8d32e1 | 19CD:0738 | TacticalBattle.LeaveWithNobodySelected | open |  |
-| B-2eb386 | 1EF8:13D4 | TacticalBattle.CancelOrder | open |  |
+| B-8d32e1 | 19CD:0738 | TacticalBattle.LeaveWithNobodySelected | fixed now | fix.noselection |
+| B-2eb386 | 1EF8:13D4 | TacticalBattle.CancelOrder | fixed now | fix.noselection |
 | B-e9dc75 | 1EF8:0CFC | TacticalBattle.PlaceInitialEnemies | open (a party split across floors) |  |
 | B-7ac4d6 | 0E76:4442 | TacticalBattle.CheckActivations | open (a party split across floors) |  |
 | B-6212cc | 1EF8:0000 | TacticalBattle.PlaceEnemies | open (a party split across floors) |  |
@@ -281,9 +284,9 @@ fixes are described in `port/mods/fixes.c` (its header and each hook), the saint
 | B-e60d2a | 1C7D:0D24 | DarklandsGame.LoadSavedGame | fixed now (woodk123) | fix.savecheck |
 | B-f523d4 | 1C7D:0D24 | DarklandsGame.LoadSavedGame | fixed now (woodk123) | fix.savecheck |
 | B-7c20ca | 03A1:000A | DarklandsGame.LoadShieldPictures | fixed now (woodk123) | fix.duplicateload |
-| B-587744 | 1550:0006 | GameScreens2.WithoutBattleCycles | open |  |
-| B-fe596a | 0265:0134 | CardTextLayout.Draw | open |  |
-| B-983895 | 05BA:00C2; 0000:13A0; 0000:0CAA; 1462:0C44; 1462:02C0 | OverlandScreen.FreeBuffer | open |  |
+| B-587744 | 1550:0006 | GameScreens2.WithoutBattleCycles | not reached: Darklands+'s own party information page (the original's with display.native_info off) | display.native_info |
+| B-fe596a | 0265:0134 | CardTextLayout.Draw | not reached: Darklands+'s own card screen reads to the text's end (the original's with display.native_cards off) | display.native_cards |
+| B-983895 | 05BA:00C2; 0000:13A0; 0000:0CAA; 1462:0C44; 1462:02C0 | OverlandScreen.FreeBuffer | not reproduced: Alt-Q on the travel map, answered no twice, then the camp and the map again: no buffer freed |  |
 | B-ae98e8 | 1462:00A8 | OverlandScreen.PlaceParty | fixed | fix.westedge |
 | B-adc5a4 | 1462:0C44 | OverlandScreen.Scroll | fixed | fix.mapfoot |
 | B-0fd1d5 | 1462:02F8 | PartyRosterScreen.Arrow | fixed now (woodk123) | fix.innroster |
@@ -307,7 +310,7 @@ Bugs of 483.07 that Darklands+ fixes and the register does not list (also as CSV
 | s039 1462:0558 | rules | The season's own record (kind 8) doubles as fact 0 (loc_fact matches kind 8 too) and the setup fills it with the city's number instead of 0: the agitators' guild master never offers the job (except in city 0). | Set to 0 after the setup. | rules.politics |
 | s039 1462:0558 | rules | No guild leader is ever given a secret: the setup never fills fact 8, only the cards clear it. | About one in three gets one. | rules.politics |
 | s039 1462:0558 | rules | The agitators' guild (fact 0x17) can be the local merchants, who have no guild card; and the setup loops for ever in a city without a guild street. | Moved to a guild with a street; such cities get no season. | rules.politics |
-| s039 1462:conflict_outcome_impl | rules | conflict_outcome marks the city overthrown (+0x14 /= 0x80) whoever won, and checks whether the party deserted (facts 0x24, 0x25) after clearing the season's facts. | The first put right; the second left. | rules.politics |
+| s039 1462:conflict_outcome_impl | rules | conflict_outcome marks the city overthrown (+0x14 /= 0x80) whoever won, and checks whether the party deserted (facts 0x24, 0x25) after clearing the season's facts. | Both put right: it sees the pacts as they stood when it began. | rules.politics |
 | $Revol04 (0xbf), $Revol09 (0xb8), $Snuck00 | cards | $Revol04 never sets option 0, shows four unwritten lines ('5' to '8') and does nothing for 'government activities' and 'rebel activities'; $Revol09 shows lines '2' to '5'; $Snuck00 a blank line whose handler is empty. | Hidden or written. | rules.politics |
 | $Consi00 (s072 1838) | cards | The war council never shows its first text (the tally) and fills the option table with stubs ('Sorry, this option isn't working yet.'). | Written from its texts. | rules.politics |
 | $CityN00 (s069 195d:0358) | cards | 'Discuss the political situation here' goes to the general news, like 'gossip about the situation': the street gossip ($Revol04) has no way in. | Leads to $Revol04 during a season. | rules.politics |

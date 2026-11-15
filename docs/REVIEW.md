@@ -689,3 +689,15 @@ covered and found, and what it could not check.
   changelog entry instead of release notes and for how a player meets the bug. register_crosscheck.md
   brought to the register's 277 entries (121 new: 36 fixed already, 19 by the pull requests, 54 open, most
   of those the party split across floors). Credit: README, the About screen (and blast's licence there).
+- 2026-11-15 (his ask: "fix every bug you can", the register's 54 open): 27 fixed or settled. New switches
+  thrownskill, noselection, castsight, doorplan, maprows (plain or game-breaking) and fruitonce, footpadsonce
+  (old tricks closed); the rest joined the switch they belong to (knightdead, lordreward, membervalue, alchemy,
+  cardslips; politics in politics.c). The pattern kept throughout: a card's slip is put right by wrapping its
+  routine and, while it runs, the one call it gets wrong (hook_install/remove around hook_call_original), never
+  by copying the card. Five are bugs of screens Darklands+ draws itself (loot, party information, cards, the
+  saint list; the map's Alt-Q did not reproduce): marked "not reached" with the display switch that brings the
+  original back. Left open, said so in register_crosscheck.md: the party split across a battle's floors (21: the
+  battle holds only the floor on screen, a rework rather than a fix), the travel map's cell buffer bounds (2,
+  small: an icon at the window's west edge, the camp watch's block) and the mine's gap to its own floor.
+  Tested in a session: famine, the sneak hall's card (its own texts; the old one read the gate's), the night
+  street by day, the fruit's Strength after its text, footpads' resume card after the fight, quicksave there.
