@@ -107,6 +107,13 @@ static const char *art_for(const char *key)
 }
 
 int hdart_count(void) { return narts; }
+const char *hdart_art_file(const char *key)
+{
+    char k[16]; int i = 0;
+    for (; key[i] && i < 15; i++) k[i] = (char)toupper((unsigned char)key[i]);
+    k[i] = 0;
+    return art_for(k);
+}
 int hdart_generation;
 
 void hdart_rescan(void)

@@ -26,6 +26,7 @@
 #include "skillicons.h"
 #include "overlay.h"
 #include "overlay_parts.h"
+#include "gamepics.h"
 extern "C" const char *gm_a_an(int n);   /* mods/gamemodel.c */
 extern "C" {
 #include "../runtime/cpu.h"
@@ -483,6 +484,17 @@ extern "C" void hdtext_draw_cursor(void)
     }
     ptr_lo = g2w(fx, fy); ptr_hi = g2w(fx + w, fy + h); ptr_frame = ImGui::GetFrameCount();
     ImDrawList *dl = ImGui::GetForegroundDrawList();
+    /* the gauntlet's replacement (art\GAUNTLET.png, or a mod's art; any size, with transparency): drawn at window
+       resolution in the gauntlet's own square, its top left (the fingertip) at the click; other pointers as the game's */
+    if (hdart_on && g_rw(0x6ef4) == g_rw(GV_cursor_default)) {
+        if (const GamePic *g = gamepic_art("GAUNTLET")) {
+            float side = (float)(w > h ? w : h);
+            ImVec2 a = g2w(fx, fy), b = g2w(fx + side, fy + side);
+            float sw = b.x - a.x, sh = b.y - a.y, k = fminf(sw / g->w, sh / g->h);
+            dl->AddImage((ImTextureID)(intptr_t)g->tex, a, ImVec2(a.x + g->w * k, a.y + g->h * k));
+            return;
+        }
+    }
     for (int r = 0; r < h; r++) {
         if (fy + r < 0 || fy + r >= 200) continue;
         for (int c = 0; c < w; c++) {

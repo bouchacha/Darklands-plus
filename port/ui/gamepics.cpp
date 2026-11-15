@@ -8,12 +8,33 @@ extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/hle.h"
 u8 *hdart_decode_pic(const char *dosname, int *w, int *h, u32 *pal, u8 *mask);
+const char *hdart_art_file(const char *key);
+extern int hdart_generation;
+unsigned char *stbi_load(char const *filename, int *x, int *y, int *comp, int req_comp);
+void stbi_image_free(void *retval_from_stbi_load);
 }
 
 static SDL_Renderer *gp_ren;
 static std::map<std::string, GamePic> cache;
 
 void gamepics_set_renderer(SDL_Renderer *r) { gp_ren = r; }
+const GamePic *gamepic_art(const char *key)
+{
+    struct Art { int gen = -1; GamePic pic; };
+    static std::map<std::string, Art> arts;
+    Art &a = arts[key];
+    if (a.gen == hdart_generation) return a.pic.tex ? &a.pic : nullptr;
+    if (a.pic.tex) SDL_DestroyTexture(a.pic.tex);
+    a = Art(); a.gen = hdart_generation;
+    const char *f = hdart_art_file(key);
+    if (!f || !gp_ren) return nullptr;
+    int n; unsigned char *px = stbi_load(f, &a.pic.w, &a.pic.h, &n, 4);
+    if (!px) return nullptr;
+    a.pic.tex = SDL_CreateTexture(gp_ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STATIC, a.pic.w, a.pic.h);
+    if (a.pic.tex) { SDL_UpdateTexture(a.pic.tex, 0, px, a.pic.w * 4); SDL_SetTextureBlendMode(a.pic.tex, SDL_BLENDMODE_BLEND); SDL_SetTextureScaleMode(a.pic.tex, SDL_ScaleModeLinear); }
+    stbi_image_free(px);
+    return a.pic.tex ? &a.pic : nullptr;
+}
 void gamepics_flush(void)
 {
     for (auto &e : cache) if (e.second.tex) SDL_DestroyTexture(e.second.tex);

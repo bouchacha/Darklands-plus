@@ -24,6 +24,9 @@ const GamePic *gamepic_part(const std::string &dosname, int x, int y, int w, int
 /* a part with its greys left out (see-through), for a word painted on grey stone: the colours
    whose channels differ by more than grey_tol stay, and the dark greys (its outline) */
 const GamePic *gamepic_cutout(const std::string &dosname, int x, int y, int w, int h, int grey_tol);
+/* a replacement picture of the art folder by its name (art\KEY.png, or a mod's art; hdart.c), true colour,
+   made again when the art folder is looked at again; nullptr when there is none */
+const GamePic *gamepic_art(const char *key);
 /* forget them all (the game's palette changed for good: another game loaded) */
 void gamepics_flush(void);
 

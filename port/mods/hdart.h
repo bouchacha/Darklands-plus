@@ -21,6 +21,7 @@ void hdart_set(int on);
 int hdart_pick(int x, int y, int *px, int *py, int *pw, int *ph);   /* picture under a screen pixel, -1 none */
 int hdart_on_screen(const char *name);   /* that picture is on the screen (tracked pictures only) */
 int hdart_has_art(int pic);
+const char *hdart_art_file(const char *key);   /* the replacement file named key (art\KEY.png, a mod's art too), 0 if none */
 extern int hdart_show_names;
 long hdart_pic_encode(const unsigned char *px, int w, int h, unsigned char **out);   /* a PIC file of the pixels (malloc'd) */
 #ifdef __cplusplus

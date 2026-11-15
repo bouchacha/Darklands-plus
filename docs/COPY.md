@@ -1854,24 +1854,24 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/overlay.cpp:827` | Spend the EP on attributes: pick one, then + or -. Endurance and Strength are the hit points (and together set how much a character can carry); Agility counts in battle; Perception, Intelligence and Charisma serve many skills. |
 | `ui/overlay.cpp:828` | Choose the profession for the next five years. The right side shows the one under the pointer: the EP it gives (top), the attributes after it, and for each skill gain:room, that is, what it adds at once and how many EP that skill can still take. Some professions open only after others, or need certain attributes. |
 | `ui/overlay.cpp:829` | Spend the EP on skills: pick one, then + or -. A skill takes at most the room shown after the colon. Then choose the next profession, or begin adventuring. |
-| `ui/overlay_text.cpp:177` | This option tests %s: %s %d%% chance of success. The original game shows this number while you hold Shift over an option; it rises with the skills and attributes tested. |
-| `ui/overlay_text.cpp:178` | This option tests the whole party: %s %d%% chance of success. The original game shows this number while you hold Shift over an option; it rises with the skills and attributes tested. |
-| `ui/overlay_text.cpp:212` | Edged Weapons |
-| `ui/overlay_text.cpp:212` | Impact Weapons |
-| `ui/overlay_text.cpp:212` | Flail Weapons |
-| `ui/overlay_text.cpp:213` | Polearm Weapons |
-| `ui/overlay_text.cpp:213` | Polearm Wpns |
-| `ui/overlay_text.cpp:213` | Thrown Weapons |
-| `ui/overlay_text.cpp:214` | Missile Devices |
-| `ui/overlay_text.cpp:214` | Missile Dev. |
-| `ui/overlay_text.cpp:215` | Speak Common |
-| `ui/overlay_text.cpp:215` | Read & Write |
-| `ui/overlay_text.cpp:217` | No Missile Weapon |
-| `ui/overlay_text.cpp:217` | No Missile Wpn |
-| `ui/overlay_text.cpp:218` | No Vitals Armor |
-| `ui/overlay_text.cpp:218` | No Limb Armor |
-| `ui/overlay_text.cpp:220` | Divine Favor |
-| `ui/overlay_text.cpp:220` | Divine Favor |
+| `ui/overlay_text.cpp:178` | This option tests %s: %s %d%% chance of success. The original game shows this number while you hold Shift over an option; it rises with the skills and attributes tested. |
+| `ui/overlay_text.cpp:179` | This option tests the whole party: %s %d%% chance of success. The original game shows this number while you hold Shift over an option; it rises with the skills and attributes tested. |
+| `ui/overlay_text.cpp:213` | Edged Weapons |
+| `ui/overlay_text.cpp:213` | Impact Weapons |
+| `ui/overlay_text.cpp:213` | Flail Weapons |
+| `ui/overlay_text.cpp:214` | Polearm Weapons |
+| `ui/overlay_text.cpp:214` | Polearm Wpns |
+| `ui/overlay_text.cpp:214` | Thrown Weapons |
+| `ui/overlay_text.cpp:215` | Missile Devices |
+| `ui/overlay_text.cpp:215` | Missile Dev. |
+| `ui/overlay_text.cpp:216` | Speak Common |
+| `ui/overlay_text.cpp:216` | Read & Write |
+| `ui/overlay_text.cpp:218` | No Missile Weapon |
+| `ui/overlay_text.cpp:218` | No Missile Wpn |
+| `ui/overlay_text.cpp:219` | No Vitals Armor |
+| `ui/overlay_text.cpp:219` | No Limb Armor |
+| `ui/overlay_text.cpp:221` | Divine Favor |
+| `ui/overlay_text.cpp:221` | Divine Favor |
 | `ui/panelcheck.cpp:59` | the game's hand over a window: NAME |
 | `ui/party.cpp:4` | Health and stamina. Wounds take it away; at 0 the character falls unconscious. Rest brings it back. |
 | `ui/party.cpp:5` | Bodily strength. Weapons and armor need a minimum {Strength} (shown in the shops' tooltips), and {Endurance} and {Strength} together set how much a character can carry. Bad wounds take Strength too; at 0 the character dies. |
@@ -3038,40 +3038,40 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/gamemodel.c:378` | Speak Common |
 | `mods/gamemodel.c:378` | Read & Write |
 | `mods/gamemodel.c:397` | Missile Devices |
-| `mods/hdart.c:779` | Create a New World |
-| `mods/hdart.c:780` | The Story Continues |
-| `mods/hdart.c:956` | Replacement art for Darklands+\r  |
-| `mods/hdart.c:956` | WHAT TO MAKE\r  |
-| `mods/hdart.c:956` | - One image per picture of the game, named as it: art\\NAME.png replaces the game's picture NAME.\r  |
-| `mods/hdart.c:956` |   PNG, JPG, BMP and TGA files are read (PNG and TGA keep transparency).\r  |
-| `mods/hdart.c:956` | - To find a picture's name: F12 > Mods > Replacement art (for artists) > "Show the name of the picture\r  |
-| `mods/hdart.c:956` |   under the mouse".\r  |
-| `mods/hdart.c:956` | - This folder (art\\original) holds every original picture as a PNG in the game's own colors, as a\r  |
-| `mods/hdart.c:956` |   template. Nothing in it is used as a replacement.\r  |
-| `mods/hdart.c:956` | SIZE AND SHAPE\r  |
-| `mods/hdart.c:956` | - Any size: your image is stretched over the place of the original picture and drawn at the window's\r  |
-| `mods/hdart.c:956` |   resolution.\r  |
-| `mods/hdart.c:956` | - Darklands was made for 4:3 screens, which showed each of its pixels 1.2 times as tall as it is wide,\r  |
-| `mods/hdart.c:956` |   and Darklands+ shows them that way. So draw at that shape: a picture of 320 x 200 (most of them)\r  |
-| `mods/hdart.c:956` |   becomes a 4:3 image, such as 1600 x 1200 (each original pixel 5 wide and 6 tall), 2400 x 1800 or\r  |
-| `mods/hdart.c:956` |   1280 x 960. Any other picture: its width times 5 by its height times 6, or the same proportions.\r  |
-| `mods/hdart.c:956` |   An image in the original's own proportions (320 x 200, 1600 x 1000) comes out 1.2 times too tall.\r  |
-| `mods/hdart.c:956` | - To trace over an original: resize it to 1600 x 1200 with the proportions unlocked.\r  |
-| `mods/hdart.c:956` | ON THE CARDS (the pictures behind the game's texts and choices)\r  |
-| `mods/hdart.c:956` | - The left fifth of the picture lies under the party's panel, and a frame covers its edges. What shows\r  |
-| `mods/hdart.c:956` |   is about x 66 to 312 and y 6 to 194 of the 320 x 200 picture: x 330 to 1560 and y 36 to 1164 of a\r  |
-| `mods/hdart.c:956` |   1600 x 1200 image. card-guide-1600x1200.png in this folder marks it: lay it over your image.\r  |
-| `mods/hdart.c:956` | - The card's text and its choices are written over the picture, which is dimmed while the choices\r  |
-| `mods/hdart.c:956` |   are up.\r  |
-| `mods/hdart.c:956` | TRANSPARENCY\r  |
-| `mods/hdart.c:956` | - Where the game draws a picture as a sprite (an item, a figure), its color 0 is transparent, as in\r  |
-| `mods/hdart.c:956` |   the templates here; the transparent parts of your PNG are transparent too.\r  |
-| `mods/hdart.c:956` | WHERE TO PUT THEM\r  |
-| `mods/hdart.c:956` | - In the art folder that holds this one (art\\NAME.png; subfolders of art are read too), or in a mod:\r  |
-| `mods/hdart.c:956` |   mods\\My art\\art\\NAME.png beside a mod.txt, turned on in F12 > Mods.\r  |
-| `mods/hdart.c:956` | - F12 > Mods > Replacement art > "Look again" picks up new files without a restart.\r  |
-| `mods/hdart.c:1055` | %d pictures written to %s, with README.txt (the sizes to draw at) and a guide for the cards%s |
-| `mods/hdart.c:1055` |  (some could not be written) |
+| `mods/hdart.c:786` | Create a New World |
+| `mods/hdart.c:787` | The Story Continues |
+| `mods/hdart.c:963` | Replacement art for Darklands+\r  |
+| `mods/hdart.c:963` | WHAT TO MAKE\r  |
+| `mods/hdart.c:963` | - One image per picture of the game, named as it: art\\NAME.png replaces the game's picture NAME.\r  |
+| `mods/hdart.c:963` |   PNG, JPG, BMP and TGA files are read (PNG and TGA keep transparency).\r  |
+| `mods/hdart.c:963` | - To find a picture's name: F12 > Mods > Replacement art (for artists) > "Show the name of the picture\r  |
+| `mods/hdart.c:963` |   under the mouse".\r  |
+| `mods/hdart.c:963` | - This folder (art\\original) holds every original picture as a PNG in the game's own colors, as a\r  |
+| `mods/hdart.c:963` |   template. Nothing in it is used as a replacement.\r  |
+| `mods/hdart.c:963` | SIZE AND SHAPE\r  |
+| `mods/hdart.c:963` | - Any size: your image is stretched over the place of the original picture and drawn at the window's\r  |
+| `mods/hdart.c:963` |   resolution.\r  |
+| `mods/hdart.c:963` | - Darklands was made for 4:3 screens, which showed each of its pixels 1.2 times as tall as it is wide,\r  |
+| `mods/hdart.c:963` |   and Darklands+ shows them that way. So draw at that shape: a picture of 320 x 200 (most of them)\r  |
+| `mods/hdart.c:963` |   becomes a 4:3 image, such as 1600 x 1200 (each original pixel 5 wide and 6 tall), 2400 x 1800 or\r  |
+| `mods/hdart.c:963` |   1280 x 960. Any other picture: its width times 5 by its height times 6, or the same proportions.\r  |
+| `mods/hdart.c:963` |   An image in the original's own proportions (320 x 200, 1600 x 1000) comes out 1.2 times too tall.\r  |
+| `mods/hdart.c:963` | - To trace over an original: resize it to 1600 x 1200 with the proportions unlocked.\r  |
+| `mods/hdart.c:963` | ON THE CARDS (the pictures behind the game's texts and choices)\r  |
+| `mods/hdart.c:963` | - The left fifth of the picture lies under the party's panel, and a frame covers its edges. What shows\r  |
+| `mods/hdart.c:963` |   is about x 66 to 312 and y 6 to 194 of the 320 x 200 picture: x 330 to 1560 and y 36 to 1164 of a\r  |
+| `mods/hdart.c:963` |   1600 x 1200 image. card-guide-1600x1200.png in this folder marks it: lay it over your image.\r  |
+| `mods/hdart.c:963` | - The card's text and its choices are written over the picture, which is dimmed while the choices\r  |
+| `mods/hdart.c:963` |   are up.\r  |
+| `mods/hdart.c:963` | TRANSPARENCY\r  |
+| `mods/hdart.c:963` | - Where the game draws a picture as a sprite (an item, a figure), its color 0 is transparent, as in\r  |
+| `mods/hdart.c:963` |   the templates here; the transparent parts of your PNG are transparent too.\r  |
+| `mods/hdart.c:963` | WHERE TO PUT THEM\r  |
+| `mods/hdart.c:963` | - In the art folder that holds this one (art\\NAME.png; subfolders of art are read too), or in a mod:\r  |
+| `mods/hdart.c:963` |   mods\\My art\\art\\NAME.png beside a mod.txt, turned on in F12 > Mods.\r  |
+| `mods/hdart.c:963` | - F12 > Mods > Replacement art > "Look again" picks up new files without a restart.\r  |
+| `mods/hdart.c:1062` | %d pictures written to %s, with README.txt (the sizes to draw at) and a guide for the cards%s |
+| `mods/hdart.c:1062` |  (some could not be written) |
 | `mods/hdtext.c:457` | cursor: shown %d page %d save %d,%d %dx%d at %d,%d |
 | `mods/keep.c:38` | formula %d %15s |
 | `mods/keep.c:57` | # potions first or last in the alchemy screen's list (potion k first\|last); an ingredient's stock to keep (stock item n)  |

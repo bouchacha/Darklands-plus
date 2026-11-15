@@ -294,7 +294,11 @@ a pixel), and any other picture its width x 5 by its height x 6. On a card, the 
 the picture's left fifth and the frame its edges: what shows is about x 66 to 312 and y 6 to 194 of
 320 x 200 (x 330 to 1560, y 36 to 1164 of 1600 x 1200). The export writes these specs as
 `art/original/README.txt`, with `card-guide-1600x1200.png`, a layer that marks what a card covers.
-PNG, JPG, BMP and TGA are read; files under `art/original` are never used. `sounds/NAME.wav` (or `.ogg`, `NAME2.wav` ...
+PNG, JPG, BMP and TGA are read; files under `art/original` are never used. `art/GAUNTLET.png`
+replaces the gauntlet pointer: drawn with transparency at window resolution, as wide as the
+gauntlet (26 of the game's 320 pixels; a picture taller than wide fits a square that wide), with its
+top left corner, the fingertip, at the point that is clicked; the other pointers (an item carried,
+the map's) stay the game's. `sounds/NAME.wav` (or `.ogg`, `NAME2.wav` ...
 for variations) replaces a battle sound; the names are listed in F12 > Settings > Sound, under
 "Custom sound packs". Mods can carry both folders; a mod's files win over the game folder's.
 

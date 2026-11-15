@@ -4,6 +4,7 @@
 
 **Added**
 
+- **A sharp pointer for art packs:** `art\GAUNTLET.png` (or the same in a mod's art folder) replaces the gauntlet pointer, drawn at the window's resolution. Asked for by Seb-Zee (issue #22).
 - **Quest givers** in the world map's Find panel lists the quest givers of the towns the party knows, nearest first by land: today's chance of a quest, when one will have quests again, a quest under way or a reward waiting. A click on a town shows it on the map, to travel there. By woodk123 (pull request #23).
 
 **Fixed**
