@@ -240,39 +240,16 @@ static std::vector<NearbyTownWork> nearby_work_towns(const std::vector<Place> &p
 
 static void nearby_work_status(const TownOffice &office)
 {
-    const OfficeStatus &status = office.status;
-    const bool trade = office.icon == TI_MARKET || office.icon == TI_FOREIGN || office.icon == TI_PHARMACY;
-    const bool audience = office.icon == TI_TOWNHALL || office.icon == TI_FORTRESS;
-    ImVec4 ink = ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled);
     char label[96];
-    switch (status.state) {
-    case OFS_ASK:
-        if (status.chance < 0) snprintf(label, sizeof label, "May offer work");
-        else snprintf(label, sizeof label, "%d%% %s", status.chance,
-                      trade ? "after trading" : audience ? "audience" : "quest chance");
-        if (status.chance != 0) ink = ImVec4(0.15f, 0.39f, 0.13f, 1);
-        break;
-    case OFS_SHUT: {
-        char end[48];
-        snprintf(end, sizeof end, "%d %s %d, %02d:00", status.day, gm_month_short(status.month), status.year, status.hour);
-        if (status.chance >= 0) snprintf(label, sizeof label, "%d%% until %s", status.chance, end);
-        else snprintf(label, sizeof label, "No work until %s", end);
-        break;
-    }
-    case OFS_ON_TASK: snprintf(label, sizeof label, "Quest under way"); break;
-    case OFS_REWARD:
-        snprintf(label, sizeof label, "Reward waiting");
-        ink = ImVec4(0.56f, 0.32f, 0.03f, 1);
-        break;
-    case OFS_BARRED: snprintf(label, sizeof label, "Reputation too low"); break;
-    default: return;
-    }
+    ImU32 ink = citynav_office_line(office.status, office.giver, label, sizeof label);   /* (as Go to says it) */
+    if (!label[0]) return;
     ImGui::PushStyleColor(ImGuiCol_Text, ink);
     ImGui::TextWrapped("%s", label);
     ImGui::PopStyleColor();
-    if (status.note[0] && ImGui::BeginItemTooltip()) {
+    std::string tip = citynav_office_tip(office.status);
+    if (!tip.empty() && ImGui::BeginItemTooltip()) {
         ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + UIS(360));
-        ui_rich_text(status.note);
+        ui_rich_text(tip.c_str());
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
@@ -287,19 +264,21 @@ static void nearby_work_window(const std::vector<NearbyTownWork> &towns, float s
     ImGui::SetNextWindowPos(ImVec2(margin, (size.y - max_height) * 0.5f), ImGuiCond_Appearing);
     ImGui::SetNextWindowSizeConstraints(ImVec2(width, 0), ImVec2(width, max_height));
     ImGui::SetNextWindowBgAlpha(0.97f);
-    if (ImGui::Begin("Nearby work", &nearby_work_open, ImGuiWindowFlags_NoCollapse |
+    if (ImGui::Begin("Find quest givers###nearbywork", &nearby_work_open, ImGuiWindowFlags_NoCollapse |
                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar)) {
         ImGui::SetWindowFontScale(scale);
         if (towns.empty()) {
-            ImGui::TextWrapped("No quest givers are known yet. Visit a town to see who offers work there.");
+            ImGui::TextWrapped("No quest givers known yet: visit a town to learn who gives quests there.");
         } else {
-            ImGui::TextWrapped("Closest by land. Current daytime odds may change before you arrive.");
+            ImGui::TextWrapped("Nearest first, by land. The chances are today's: they may change before you arrive.");
             ImGui::Spacing();
             float rows_height = fmaxf(1.0f, max_height - ImGui::GetCursorPosY() - ImGui::GetStyle().WindowPadding.y);
             ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, rows_height));
             if (ImGui::BeginChild("##work_results", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY)) {
                 if (ImGui::IsWindowAppearing()) ImGui::SetScrollY(0);
-                if (ImGui::BeginTable("##work", 2, ImGuiTableFlags_SizingStretchSame)) {
+                if (ImGui::BeginTable("##work", 2, ImGuiTableFlags_SizingStretchProp)) {
+                    ImGui::TableSetupColumn("##giver", ImGuiTableColumnFlags_WidthStretch, 0.4f);   /* (the state's words get the room) */
+                    ImGui::TableSetupColumn("##state", ImGuiTableColumnFlags_WidthStretch, 0.6f);
                     for (const NearbyTownWork &town : towns) {
                         ImGui::PushID(town.place.loc);
                         ImGui::TableNextRow();
@@ -1003,8 +982,11 @@ extern "C" void worldmap_draw(void)
             if (hits.size() > 8) ImGui::TextDisabled("and %d more: type more of the name to narrow the list", (int)hits.size() - 8);
             if (hits.empty()) ImGui::TextDisabled("No place of that name.");
         }
-        if (find_open && work_enabled && pic_button("Nearby work", nearby_work_open,
-                [&](ImVec2 c) { ui_draw_quest_icon(fdl, c, fis * 1.1f, QC_RETRIEVE); })) {
+        if (find_open && work_enabled && pic_button("Quest givers", nearby_work_open,
+                [&](ImVec2 c) {                                     /* (the three kinds of quest fanned: quests of any kind) */
+                    const int K[3] = { QC_PAPERS, QC_RETRIEVE, QC_ROBBER };
+                    for (int k = 0; k < 3; k++) ui_draw_quest_icon(fdl, ImVec2(c.x + (k - 1) * fis * 0.32f, c.y), fis * 0.82f, K[k]);
+                })) {
             nearby_work_open = !nearby_work_open;
             /* The map holds the game clock. Read the party, events and routes when opening the list. */
             if (nearby_work_open) work_towns = nearby_work_towns(P);

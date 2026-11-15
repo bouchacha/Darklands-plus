@@ -4,7 +4,7 @@
 
 **Added**
 
-- **Nearby work** in the world map's Find panel shows quest givers in known towns, sorted by land travel time. See current quest odds and when cooldowns end. Select a town to see its map details and travel options.
+- **Quest givers** in the world map's Find panel lists the quest givers of the towns the party knows, nearest first by land: today's chance of a quest, when one will have quests again, a quest under way or a reward waiting. A click on a town shows it on the map, to travel there. By woodk123 (pull request #23).
 
 **Fixed**
 

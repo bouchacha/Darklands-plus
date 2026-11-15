@@ -826,6 +826,35 @@ static int work_giver(int d, int town)
     }
 }
 
+static const ImU32 OF_GREEN = IM_COL32(38, 100, 34, 255), OF_BROWN = IM_COL32(104, 82, 58, 255), OF_BLUE = IM_COL32(40, 70, 140, 255),
+                   OF_GOLD = IM_COL32(150, 96, 0, 255), OF_RED = IM_COL32(150, 40, 25, 255);
+ImU32 citynav_office_line(const OfficeStatus &os, int giver, char *b, size_t n)
+{
+    bool trade = giver == 0 || giver == 4 || giver == 5, audience = giver == 10;
+    b[0] = 0;
+    switch (os.state) {
+    case OFS_ASK:
+        if (os.chance < 0) snprintf(b, n, "May offer a quest");
+        else if (audience) snprintf(b, n, "Audience chance %d%%", os.chance);
+        else snprintf(b, n, "Quest chance %d%%%s", os.chance, trade ? " after trading" : "");
+        return os.chance ? OF_GREEN : OF_BROWN;
+    case OFS_SHUT:
+        if (os.chance >= 0) snprintf(b, n, "Audience chance %d%% until %d %s", os.chance, os.day, gm_month_short(os.month));
+        else snprintf(b, n, "No quests until %d %s", os.day, gm_month_short(os.month));
+        return OF_BROWN;
+    case OFS_ON_TASK: snprintf(b, n, "On a quest for them"); return OF_BLUE;
+    case OFS_REWARD: snprintf(b, n, "Your reward is waiting"); return OF_GOLD;
+    case OFS_BARRED: snprintf(b, n, "No quests: reputation too low"); return OF_RED;
+    default: return OF_BROWN;
+    }
+}
+std::string citynav_office_tip(const OfficeStatus &os)
+{
+    std::string t = os.note;
+    if (os.state == OFS_SHUT) { char u[64]; snprintf(u, sizeof u, " Until %d %s, %d:00.", os.day, gm_month_short(os.month), os.hour); t += u; }
+    return t;
+}
+
 bool citynav_work_enabled(void)
 {
     return config_get_int("assist.goto_work", 1) && !config_get_int("original", 0);
@@ -840,7 +869,7 @@ std::vector<TownOffice> citynav_town_offices(int town)
         if (giver < 0 || !present_at(d, town)) continue;
         OfficeStatus status;
         if (office_status(town, giver, d == D_TOWNHALL, &status) && status.state != OFS_NONE)
-            offices.push_back({ DEST[d].label, DEST[d].icon, status });
+            offices.push_back({ DEST[d].label, DEST[d].icon, giver, status });
     }
     return offices;
 }
@@ -1096,22 +1125,11 @@ extern "C" int citynav_window(void)
             int giver = work_giver(d, cur);
             OfficeStatus os;
             if (giver >= 0 && work_on && office_status(cur, giver, d == D_TOWNHALL, &os)) {
-                char b[64]; ImU32 c = BROWN;
-                switch (os.state) {
-                case OFS_ASK: snprintf(b, sizeof b, "Quest chance %d%%", os.chance); c = GREEN;
-                    if (giver == 0 || giver == 4 || giver == 5) T.tip.push_back({ "Quests", "A merchant may offer a quest after you have bought or sold something." }); break;
-                case OFS_SHUT:
-                    if (os.chance >= 0) snprintf(b, sizeof b, "%d%% audience until %d %s", os.chance, os.day, gm_month_short(os.month));
-                    else snprintf(b, sizeof b, "No quests until %d %s", os.day, gm_month_short(os.month));
-                    break;
-                case OFS_ON_TASK: snprintf(b, sizeof b, "On a quest for them"); c = BLUE; break;
-                case OFS_REWARD: snprintf(b, sizeof b, "Your reward is waiting"); c = GOLDD; break;
-                case OFS_BARRED: snprintf(b, sizeof b, "No quests: reputation too low"); c = REDD; break;
-                default: b[0] = 0; break;
-                }
+                char b[64];
+                ImU32 c = citynav_office_line(os, giver, b, sizeof b);
                 if (b[0]) T.lines.push_back({ b, c });
-                std::string n = os.note;
-                if (os.state == OFS_SHUT) { char u[64]; snprintf(u, sizeof u, " Until %d %s, %d:00.", os.day, gm_month_short((os.month % 12 + 12) % 12), os.hour); n += u; }
+                if (os.state == OFS_ASK && (giver == 0 || giver == 4 || giver == 5)) T.tip.push_back({ "Quests", "A merchant may offer a quest after you have bought or sold something." });
+                std::string n = citynav_office_tip(os);
                 if (!n.empty()) T.tip.push_back({ "Quests", n });
             }
             /* the party's own tasks that lead here */

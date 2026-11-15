@@ -87,7 +87,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:143` | Number keys for card options |
 | `mods/options.c:143` | 1 to 9 choose a card's options. |
 | `mods/options.c:144` | Who has work |
-| `mods/options.c:144` | in the Go to list, beside the Fugger, the Medici, the Hanse, the cathedral, the council, the lord and the market stalls: the chance that asking brings a quest, the date they will have one again, or a note that their quest is under way or its reward is waiting. |
+| `mods/options.c:144` | in Go to and the world map's list of quest givers (Find): the chance that asking brings a quest, the date they will have one again, or a note that their quest is under way or its reward is waiting. |
 | `mods/options.c:145` | a lectern beside each card option that brings a teacher to the inn, with the skill, the teacher's level and the fee; the margin and the world map (M) show which teachers each town can offer. |
 | `mods/options.c:146` | G on a town's card lists its places; pick one and the party goes there, clicking through the menus for you. |
 | `mods/options.c:147` | Map at the docks |
@@ -195,7 +195,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:204` | Quest markers in the overland view |
 | `mods/options.c:204` | each quest's icon above its place in the overland view, and a sign beside a town that bars the party or where the watch is after it. |
 | `mods/options.c:205` | What unvisited places offer |
-| `mods/options.c:205` | the saints a library teaches, the formulae an alchemist sells and a shop's goods, also in towns and monasteries the party has not visited: on the world map, on the character sheet and beside an ingredient that runs short. When off: only what the party has seen. (How good each town's smiths and shops are is shown either way.) |
+| `mods/options.c:205` | the saints a library teaches, the formulae an alchemist sells, a shop's goods and a town's quest givers, also in towns and monasteries the party has not visited: on the world map, on the character sheet and beside an ingredient that runs short. When off: only what the party has seen. (How good each town's smiths and shops are is shown either way.) |
 | `mods/options.c:206` | Encounters on the road |
 | `mods/options.c:206` | how often travel brings an encounter. |
 | `mods/options.c:206` | a quarter\|half\|as the original\|double |
@@ -873,129 +873,131 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/cardview.cpp:881` | (click to choose who learns one; point at a formula there for its details) |
 | `ui/cardview.cpp:882` | (click to choose who) |
 | `ui/cardview.cpp:898` | ..., for 3 groschen. |
-| `ui/citynav.cpp:188` | Market stalls: everyday goods to buy and sell. |
-| `ui/citynav.cpp:189` | Foreign trader |
-| `ui/citynav.cpp:189` | Pavilions of traders from distant lands: goods to buy and sell. |
-| `ui/citynav.cpp:190` | Swordsmith's Lane: weapons, and the swordsmiths' guild. |
-| `ui/citynav.cpp:191` | Armorer's Way: armor and shields, and the armorers' guild. |
-| `ui/citynav.cpp:192` | The Square of Bowyers and Gunsmiths: bows, crossbows and guns, and their guild. |
-| `ui/citynav.cpp:193` | The Street of the Blacksmiths: weapons, and the blacksmiths' guild. |
-| `ui/citynav.cpp:194` | Soldiers' Road |
-| `ui/citynav.cpp:194` | Shops and push-carts crowded with soldiers and camp followers, and the street's leaders. |
-| `ui/citynav.cpp:196` | Tinkers' Square: hammers, maces, flails and polearms, and the artisans' guild. |
-| `ui/citynav.cpp:197` | Clothmakers' Street: clothing and soft armor (padded, leather, studded leather, cuir bouilli), and the clothmakers' guild. |
-| `ui/citynav.cpp:198` | Astrologists' Lane: formulae to buy or trade, a better Philosopher's Stone, lessons in Alchemy. |
-| `ui/citynav.cpp:200` | Stalls with herbs and rare materials: alchemical ingredients. |
-| `ui/citynav.cpp:201` | Wounds treated for a fee, lessons in Healing, alchemical ingredients bought and sold. |
-| `ui/citynav.cpp:202` | Heavy coin changed into bank notes that weigh nothing, and back, for a fee. |
-| `ui/citynav.cpp:203` | The Medici representative: bank notes, as at the Fugger bank. |
-| `ui/citynav.cpp:204` | Hanseatic League |
-| `ui/citynav.cpp:204` | The offices of the league of northern merchant towns: quests for pay. Asked politely, they judge the party by its standing with the Hanse; asked boldly, by its reputation here and its fame. Collecting a reward politely also raises that standing. |
-| `ui/citynav.cpp:205` | The Fuggers' Leihhaus: a wide choice of everyday goods, and money for almost anything you sell. |
-| `ui/citynav.cpp:206` | Mass (Divine Favor for everyone, more with Religion and Latin); a donation of a third of the purse (the leader's Divine Favor); the patron saint's story; an errand for the canon (a relic); sanctuary. |
-| `ui/citynav.cpp:207` | Mass at set hours (Divine Favor for everyone, more with Religion and Latin); confession (the leader's Divine Favor, a few hours); a tithe of a tenth of the purse (everyone's Divine Favor filled); sanctuary when the town is against you. |
-| `ui/citynav.cpp:208` | The monks' library (Religion, Latin) and prayers for Divine Favor. |
-| `ui/citynav.cpp:209` | New saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone. The staff expect Latin and a sharp mind. |
-| `ui/citynav.cpp:210` | Nuns tend the sick: alms, a day's work beside them (Healing), wounds tended for a fee, or free of charge if they accept you. Open by day only. |
-| `ui/citynav.cpp:211` | Meals and a bed, news and rumors, the stables, a store room; stay to study or train. |
-| `ui/citynav.cpp:212` | Notices, gossip and news. |
-| `ui/citynav.cpp:213` | The city council: an audience with the lord, prisoners in the dungeons. |
-| `ui/citynav.cpp:214` | The city's prison. |
-| `ui/citynav.cpp:215` | The city guard's headquarters: people to join the party, weapons training. |
-| `ui/citynav.cpp:216` | The lord's fortress: an audience with the lord, prisoners in the dungeons. |
-| `ui/citynav.cpp:217` | Boats to other towns, for a fee (each leaves on its own day). |
-| `ui/citynav.cpp:218` | A dangerous slum: rumors, and a room for next to nothing. |
-| `ui/citynav.cpp:219` | A quiet corner where the party can wait: an hour, three hours, or until nightfall. |
-| `ui/citynav.cpp:220` | An alley to a stretch of the wall: a way out when you cannot use the gates. |
-| `ui/citynav.cpp:221` | Leave the city by one of its gates. |
-| `ui/citynav.cpp:223` | Quest givers |
-| `ui/citynav.cpp:223` | Learning and healing |
-| `ui/citynav.cpp:246` | arms and armor |
-| `ui/citynav.cpp:246` | less violent |
-| `ui/citynav.cpp:251` | other crafts |
-| `ui/citynav.cpp:259` | city marketplace |
-| `ui/citynav.cpp:259` | central city square |
-| `ui/citynav.cpp:260` | crafts district |
-| `ui/citynav.cpp:260` | central fortress |
-| `ui/citynav.cpp:261` | crafts district |
-| `ui/citynav.cpp:261` | side streets and alleys |
-| `ui/citynav.cpp:264` | not found in this city |
-| `ui/citynav.cpp:265` | alchemical symbols |
+| `ui/citynav.cpp:186` | Market stalls: everyday goods to buy and sell. |
+| `ui/citynav.cpp:187` | Foreign trader |
+| `ui/citynav.cpp:187` | Pavilions of traders from distant lands: goods to buy and sell. |
+| `ui/citynav.cpp:188` | Swordsmith's Lane: weapons, and the swordsmiths' guild. |
+| `ui/citynav.cpp:189` | Armorer's Way: armor and shields, and the armorers' guild. |
+| `ui/citynav.cpp:190` | The Square of Bowyers and Gunsmiths: bows, crossbows and guns, and their guild. |
+| `ui/citynav.cpp:191` | The Street of the Blacksmiths: weapons, and the blacksmiths' guild. |
+| `ui/citynav.cpp:192` | Soldiers' Road |
+| `ui/citynav.cpp:192` | Shops and push-carts crowded with soldiers and camp followers, and the street's leaders. |
+| `ui/citynav.cpp:194` | Tinkers' Square: hammers, maces, flails and polearms, and the artisans' guild. |
+| `ui/citynav.cpp:195` | Clothmakers' Street: clothing and soft armor (padded, leather, studded leather, cuir bouilli), and the clothmakers' guild. |
+| `ui/citynav.cpp:196` | Astrologists' Lane: formulae to buy or trade, a better Philosopher's Stone, lessons in Alchemy. |
+| `ui/citynav.cpp:198` | Stalls with herbs and rare materials: alchemical ingredients. |
+| `ui/citynav.cpp:199` | Wounds treated for a fee, lessons in Healing, alchemical ingredients bought and sold. |
+| `ui/citynav.cpp:200` | Heavy coin changed into bank notes that weigh nothing, and back, for a fee. |
+| `ui/citynav.cpp:201` | The Medici representative: bank notes, as at the Fugger bank. |
+| `ui/citynav.cpp:202` | Hanseatic League |
+| `ui/citynav.cpp:202` | The offices of the league of northern merchant towns: quests for pay. Asked politely, they judge the party by its standing with the Hanse; asked boldly, by its reputation here and its fame. Collecting a reward politely also raises that standing. |
+| `ui/citynav.cpp:203` | The Fuggers' Leihhaus: a wide choice of everyday goods, and money for almost anything you sell. |
+| `ui/citynav.cpp:204` | Mass (Divine Favor for everyone, more with Religion and Latin); a donation of a third of the purse (the leader's Divine Favor); the patron saint's story; an errand for the canon (a relic); sanctuary. |
+| `ui/citynav.cpp:205` | Mass at set hours (Divine Favor for everyone, more with Religion and Latin); confession (the leader's Divine Favor, a few hours); a tithe of a tenth of the purse (everyone's Divine Favor filled); sanctuary when the town is against you. |
+| `ui/citynav.cpp:206` | The monks' library (Religion, Latin) and prayers for Divine Favor. |
+| `ui/citynav.cpp:207` | New saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone. The staff expect Latin and a sharp mind. |
+| `ui/citynav.cpp:208` | Nuns tend the sick: alms, a day's work beside them (Healing), wounds tended for a fee, or free of charge if they accept you. Open by day only. |
+| `ui/citynav.cpp:209` | Meals and a bed, news and rumors, the stables, a store room; stay to study or train. |
+| `ui/citynav.cpp:210` | Notices, gossip and news. |
+| `ui/citynav.cpp:211` | The city council: an audience with the lord, prisoners in the dungeons. |
+| `ui/citynav.cpp:212` | The city's prison. |
+| `ui/citynav.cpp:213` | The city guard's headquarters: people to join the party, weapons training. |
+| `ui/citynav.cpp:214` | The lord's fortress: an audience with the lord, prisoners in the dungeons. |
+| `ui/citynav.cpp:215` | Boats to other towns, for a fee (each leaves on its own day). |
+| `ui/citynav.cpp:216` | A dangerous slum: rumors, and a room for next to nothing. |
+| `ui/citynav.cpp:217` | A quiet corner where the party can wait: an hour, three hours, or until nightfall. |
+| `ui/citynav.cpp:218` | An alley to a stretch of the wall: a way out when you cannot use the gates. |
+| `ui/citynav.cpp:219` | Leave the city by one of its gates. |
+| `ui/citynav.cpp:221` | Quest givers |
+| `ui/citynav.cpp:221` | Learning and healing |
+| `ui/citynav.cpp:244` | arms and armor |
+| `ui/citynav.cpp:244` | less violent |
+| `ui/citynav.cpp:249` | other crafts |
+| `ui/citynav.cpp:257` | city marketplace |
+| `ui/citynav.cpp:257` | central city square |
+| `ui/citynav.cpp:258` | crafts district |
+| `ui/citynav.cpp:258` | central fortress |
+| `ui/citynav.cpp:259` | crafts district |
+| `ui/citynav.cpp:259` | side streets and alleys |
+| `ui/citynav.cpp:262` | not found in this city |
+| `ui/citynav.cpp:263` | alchemical symbols |
+| `ui/citynav.cpp:263` | great churches |
 | `ui/citynav.cpp:265` | great churches |
-| `ui/citynav.cpp:267` | great churches |
-| `ui/citynav.cpp:267` | common districts |
-| `ui/citynav.cpp:267` | merchant and craft districts |
-| `ui/citynav.cpp:268` | gates leading out |
-| `ui/citynav.cpp:269` | posted notices |
-| `ui/citynav.cpp:275` | avoiding them |
-| `ui/citynav.cpp:275` | attack the guards |
-| `ui/citynav.cpp:276` | other locations you remember |
-| `ui/citynav.cpp:277` | connecting to important districts |
-| `ui/citynav.cpp:277` | to be determined |
-| `ui/citynav.cpp:442` | : the list follows the cards |
-| `ui/citynav.cpp:464` | a walk there found no path |
-| `ui/citynav.cpp:466` | Go to %s: %s |
-| `ui/citynav.cpp:514` | think better of it |
-| `ui/citynav.cpp:514` | apologizes for disturbing |
-| `ui/citynav.cpp:514` | not to get involved |
-| `ui/citynav.cpp:514` | come back in the morning |
-| `ui/citynav.cpp:533` | simply walk out |
-| `ui/citynav.cpp:541` | leave the city |
-| `ui/citynav.cpp:542` | out of the city |
-| `ui/citynav.cpp:564` | The gate: choose how to get out, and the journey begins in the overland view. |
-| `ui/citynav.cpp:604` | left the city. |
-| `ui/citynav.cpp:605` | too many steps; stopped. |
-| `ui/citynav.cpp:614` | something happened on the way. |
-| `ui/citynav.cpp:614` | leave this place first. |
-| `ui/citynav.cpp:622` | the way is blocked. |
-| `ui/citynav.cpp:628` | cannot find the way from this card. |
-| `ui/citynav.cpp:638` | leading merchant |
+| `ui/citynav.cpp:265` | common districts |
+| `ui/citynav.cpp:265` | merchant and craft districts |
+| `ui/citynav.cpp:266` | gates leading out |
+| `ui/citynav.cpp:267` | posted notices |
+| `ui/citynav.cpp:273` | avoiding them |
+| `ui/citynav.cpp:273` | attack the guards |
+| `ui/citynav.cpp:274` | other locations you remember |
+| `ui/citynav.cpp:275` | connecting to important districts |
+| `ui/citynav.cpp:275` | to be determined |
+| `ui/citynav.cpp:440` | : the list follows the cards |
+| `ui/citynav.cpp:462` | a walk there found no path |
+| `ui/citynav.cpp:464` | Go to %s: %s |
+| `ui/citynav.cpp:512` | think better of it |
+| `ui/citynav.cpp:512` | apologizes for disturbing |
+| `ui/citynav.cpp:512` | not to get involved |
+| `ui/citynav.cpp:512` | come back in the morning |
+| `ui/citynav.cpp:531` | simply walk out |
+| `ui/citynav.cpp:539` | leave the city |
+| `ui/citynav.cpp:540` | out of the city |
+| `ui/citynav.cpp:562` | The gate: choose how to get out, and the journey begins in the overland view. |
+| `ui/citynav.cpp:602` | left the city. |
+| `ui/citynav.cpp:603` | too many steps; stopped. |
+| `ui/citynav.cpp:612` | something happened on the way. |
+| `ui/citynav.cpp:612` | leave this place first. |
+| `ui/citynav.cpp:620` | the way is blocked. |
+| `ui/citynav.cpp:626` | cannot find the way from this card. |
+| `ui/citynav.cpp:636` | leading merchant |
+| `ui/citynav.cpp:641` | something happened on the way. |
 | `ui/citynav.cpp:643` | something happened on the way. |
-| `ui/citynav.cpp:645` | something happened on the way. |
-| `ui/citynav.cpp:645` | leave this place first. |
-| `ui/citynav.cpp:655` | the marketplace by night: choose how to get past the guards to the offices upstairs (press G again there for the office). |
-| `ui/citynav.cpp:656` | the marketplace by night: its stalls are shut until 5:00. |
-| `ui/citynav.cpp:677` | not found in this city. |
-| `ui/citynav.cpp:687` | Going to: %s. Press any key or click to stop. |
-| `ui/citynav.cpp:717` | Walking to the city gate |
-| `ui/citynav.cpp:717` | Walking to: %s |
-| `ui/citynav.cpp:730` | Any key or click stops the walk. |
-| `ui/citynav.cpp:902` | leading merchant |
-| `ui/citynav.cpp:913` | avoiding them |
-| `ui/citynav.cpp:917` | request an audience |
-| `ui/citynav.cpp:961` | Point at a place to read about it here: what it offers, its quests, its teachers. |
-| `ui/citynav.cpp:972` | Click the tile and the party walks there. |
-| `ui/citynav.cpp:1011` | Pick a place and the party walks there through the streets. Press any key or click to stop them. |
-| `ui/citynav.cpp:1013` | Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out. |
-| `ui/citynav.cpp:1041` | Closed until 5:00 |
-| `ui/citynav.cpp:1041` | Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same. |
-| `ui/citynav.cpp:1045` | Turned away until %d %s |
-| `ui/citynav.cpp:1045` | The alchemists turned the party away; they will see you again from %d %s, %d:00. |
-| `ui/citynav.cpp:1046` | Library shut until %d %s |
-| `ui/citynav.cpp:1046` | The monks' library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:1047` | Prayers again from %d %s |
-| `ui/citynav.cpp:1047` | The party prayed with the monks; they may again from %d %s, %d:00. |
-| `ui/citynav.cpp:1048` | Library shut until %d %s |
-| `ui/citynav.cpp:1048` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:1066` | Quest chance %d%% |
-| `ui/citynav.cpp:1067` | A merchant may offer a quest after you have bought or sold something. |
-| `ui/citynav.cpp:1068` | No quests until %d %s |
-| `ui/citynav.cpp:1069` | On a quest for them |
-| `ui/citynav.cpp:1070` | Your reward is waiting |
-| `ui/citynav.cpp:1071` | No quests: reputation too low |
-| `ui/citynav.cpp:1076` |  Until %d %s, %d:00. |
-| `ui/citynav.cpp:1084` | Your quest:  |
-| `ui/citynav.cpp:1084` | see the world map (M) |
-| `ui/citynav.cpp:1106` | Wares %dq, better than most |
-| `ui/citynav.cpp:1108` | Wares of %dq (most shops sell about 25q). |
-| `ui/citynav.cpp:1120` | What you learned |
-| `ui/citynav.cpp:1120` | The physician:  |
-| `ui/citynav.cpp:1126` | Philosopher's Stone %dq |
-| `ui/citynav.cpp:1126` | Stone %dq, no better |
-| `ui/citynav.cpp:1128` | A Philosopher's Stone of quality %d; the party's is %d. |
-| `ui/citynav.cpp:1128` | A Philosopher's Stone of quality %d; the party has none. |
-| `ui/citynav.cpp:1204` | A teacher to hire (faint: not available now) |
-| `ui/citynav.cpp:1205` | A quest of yours leads here |
+| `ui/citynav.cpp:643` | leave this place first. |
+| `ui/citynav.cpp:653` | the marketplace by night: choose how to get past the guards to the offices upstairs (press G again there for the office). |
+| `ui/citynav.cpp:654` | the marketplace by night: its stalls are shut until 5:00. |
+| `ui/citynav.cpp:675` | not found in this city. |
+| `ui/citynav.cpp:685` | Going to: %s. Press any key or click to stop. |
+| `ui/citynav.cpp:715` | Walking to the city gate |
+| `ui/citynav.cpp:715` | Walking to: %s |
+| `ui/citynav.cpp:728` | Any key or click stops the walk. |
+| `ui/citynav.cpp:837` | May offer a quest |
+| `ui/citynav.cpp:838` | Audience chance %d%% |
+| `ui/citynav.cpp:839` |  after trading |
+| `ui/citynav.cpp:843` | No quests until %d %s |
+| `ui/citynav.cpp:845` | On a quest for them |
+| `ui/citynav.cpp:846` | Your reward is waiting |
+| `ui/citynav.cpp:847` | No quests: reputation too low |
+| `ui/citynav.cpp:854` |  Until %d %s, %d:00. |
+| `ui/citynav.cpp:968` | leading merchant |
+| `ui/citynav.cpp:979` | avoiding them |
+| `ui/citynav.cpp:983` | request an audience |
+| `ui/citynav.cpp:1027` | Point at a place to read about it here: what it offers, its quests, its teachers. |
+| `ui/citynav.cpp:1038` | Click the tile and the party walks there. |
+| `ui/citynav.cpp:1077` | Pick a place and the party walks there through the streets. Press any key or click to stop them. |
+| `ui/citynav.cpp:1079` | Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out. |
+| `ui/citynav.cpp:1107` | Closed until 5:00 |
+| `ui/citynav.cpp:1107` | Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same. |
+| `ui/citynav.cpp:1111` | Turned away until %d %s |
+| `ui/citynav.cpp:1111` | The alchemists turned the party away; they will see you again from %d %s, %d:00. |
+| `ui/citynav.cpp:1112` | Library shut until %d %s |
+| `ui/citynav.cpp:1112` | The monks' library (where saints are learned) is shut to the party until %d %s, %d:00. |
+| `ui/citynav.cpp:1113` | Prayers again from %d %s |
+| `ui/citynav.cpp:1113` | The party prayed with the monks; they may again from %d %s, %d:00. |
+| `ui/citynav.cpp:1114` | Library shut until %d %s |
+| `ui/citynav.cpp:1114` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
+| `ui/citynav.cpp:1131` | A merchant may offer a quest after you have bought or sold something. |
+| `ui/citynav.cpp:1140` | Your quest:  |
+| `ui/citynav.cpp:1140` | see the world map (M) |
+| `ui/citynav.cpp:1162` | Wares %dq, better than most |
+| `ui/citynav.cpp:1164` | Wares of %dq (most shops sell about 25q). |
+| `ui/citynav.cpp:1176` | What you learned |
+| `ui/citynav.cpp:1176` | The physician:  |
+| `ui/citynav.cpp:1182` | Philosopher's Stone %dq |
+| `ui/citynav.cpp:1182` | Stone %dq, no better |
+| `ui/citynav.cpp:1184` | A Philosopher's Stone of quality %d; the party's is %d. |
+| `ui/citynav.cpp:1184` | A Philosopher's Stone of quality %d; the party has none. |
+| `ui/citynav.cpp:1260` | A teacher to hire (faint: not available now) |
+| `ui/citynav.cpp:1261` | A quest of yours leads here |
 | `ui/createview.cpp:109` | A new character |
 | `ui/createview.cpp:110` | %s, called %s, age %d |
 | `ui/createview.cpp:111` | %s, called %s |
@@ -2753,75 +2755,81 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui_windows.cpp:389` | held: Ctrl (in the overland view: Ctrl+click travels there) |
 | `ui/ui_windows.cpp:390` | pressed: F11 (this list) |
 | `ui/ui_windows.cpp:392` | F11, Esc or a click closes this. |
-| `ui/worldmap.cpp:74` | Unwelcome here |
-| `ui/worldmap.cpp:74` | The watch on alert here |
-| `ui/worldmap.cpp:74` | Wanted by the watch here |
-| `ui/worldmap.cpp:89` | a university |
-| `ui/worldmap.cpp:89` | an alchemist |
-| `ui/worldmap.cpp:90` | docks (boats) |
-| `ui/worldmap.cpp:91` | a swordsmith of 30q+ |
-| `ui/worldmap.cpp:91` | Weapons 30q+ |
-| `ui/worldmap.cpp:91` | an armorer of 30q+ |
-| `ui/worldmap.cpp:91` | a bowyer of 30q+ |
-| `ui/worldmap.cpp:92` | an artificer of 30q+ |
-| `ui/worldmap.cpp:92` | Artificer 30q+ |
-| `ui/worldmap.cpp:110` | everyone knows the swordsmiths of Nuremberg |
-| `ui/worldmap.cpp:146` | Route planned: the party sets off once it is in the overland view. |
-| `ui/worldmap.cpp:211` | Its saints, formulae and teachers: known once the party has been there. |
-| `ui/worldmap.cpp:213` | The saints its library teaches: known once the party has been there. |
-| `ui/worldmap.cpp:221` | Not visited yet |
-| `ui/worldmap.cpp:233` | Quest markers |
-| `ui/worldmap.cpp:233` | Boat routes between the towns' docks |
-| `ui/worldmap.cpp:233` | Each place as an icon of its kind (else a dot) |
-| `ui/worldmap.cpp:234` | The days of travel from the party to every town, under its name (off at first: it crowds the map) |
-| `ui/worldmap.cpp:450` | Towns with ... |
-| `ui/worldmap.cpp:539` | the marked spot |
-| `ui/worldmap.cpp:556` | Click for what it offers, and to travel there |
-| `ui/worldmap.cpp:592` | No route there from here |
-| `ui/worldmap.cpp:593` | Travel there |
-| `ui/worldmap.cpp:598` | Travel there |
-| `ui/worldmap.cpp:601` | Leave town and travel there |
-| `ui/worldmap.cpp:610` | No land route there from here. |
-| `ui/worldmap.cpp:612` | To travel, be in the overland view or in a town's streets |
-| `ui/worldmap.cpp:618` | Walk out of %s's gate and travel to %s? |
-| `ui/worldmap.cpp:619` | The party walks through the streets to a gate and out; in the overland view the journey begins. |
-| `ui/worldmap.cpp:620` | Leave and travel |
-| `ui/worldmap.cpp:639` | The wares noted here (%d shop%s) |
-| `ui/worldmap.cpp:656` | Boats leave here for these towns (not every day: the docks say which leave today). |
-| `ui/worldmap.cpp:657` | Boats from these towns call here; none sail back to them from here. |
-| `ui/worldmap.cpp:658` | Boats sail both ways between here and these towns (not every day: the docks say which leave today). |
-| `ui/worldmap.cpp:680` | Its docks have no boats leaving (the original game has none either). |
-| `ui/worldmap.cpp:722` | Collect your reward |
-| `ui/worldmap.cpp:722` | Robber knights |
-| `ui/worldmap.cpp:722` | Treasures to fetch |
-| `ui/worldmap.cpp:722` | Papers to get in a town |
-| `ui/worldmap.cpp:722` | City politics |
-| `ui/worldmap.cpp:722` | Cities at war |
-| `ui/worldmap.cpp:722` | The Wild Hunt |
-| `ui/worldmap.cpp:722` | Other quests |
-| `ui/worldmap.cpp:740` | %s (%d)###qg |
-| `ui/worldmap.cpp:746` | Sorted %s first: click for %s first. |
-| `ui/worldmap.cpp:746` | the soonest due |
-| `ui/worldmap.cpp:755` | No quests or rumors yet. |
-| `ui/worldmap.cpp:851` | cave near Köln |
-| `ui/worldmap.cpp:857` | and %d more: type more of the name to narrow the list |
-| `ui/worldmap.cpp:858` | No place of that name. |
-| `ui/worldmap.cpp:862` | Alchemical ingredients |
-| `ui/worldmap.cpp:878` | Click one to circle those towns on the map. |
-| `ui/worldmap.cpp:890` |  the party has been to: |
-| `ui/worldmap.cpp:894` | ... and %d more (circled on the map) |
-| `ui/worldmap.cpp:895` | %s %dq##tl%d |
-| `ui/worldmap.cpp:905` | Show on the map |
-| `ui/worldmap.cpp:922` | shown (click to hide) |
-| `ui/worldmap.cpp:922` | hidden (click to show) |
-| `ui/worldmap.cpp:937` | Places: click a kind to show or hide it. |
-| `ui/worldmap.cpp:966` | The party: a click shows it on the map. |
-| `ui/worldmap.cpp:970` | Map of Greater Germany |
-| `ui/worldmap.cpp:976` | {LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes. |
-| `ui/worldmap.cpp:977` | Drag to move, wheel to zoom. M or Esc closes. |
-| `ui/worldmap.cpp:979` | Traveling to %s |
-| `ui/worldmap.cpp:1042` | faded: leaves later this week |
-| `ui/worldmap.cpp:1107` | Click to take the boat. |
+| `ui/worldmap.cpp:78` | Unwelcome here |
+| `ui/worldmap.cpp:78` | The watch on alert here |
+| `ui/worldmap.cpp:78` | Wanted by the watch here |
+| `ui/worldmap.cpp:94` | a university |
+| `ui/worldmap.cpp:94` | an alchemist |
+| `ui/worldmap.cpp:95` | docks (boats) |
+| `ui/worldmap.cpp:96` | a swordsmith of 30q+ |
+| `ui/worldmap.cpp:96` | Weapons 30q+ |
+| `ui/worldmap.cpp:96` | an armorer of 30q+ |
+| `ui/worldmap.cpp:96` | a bowyer of 30q+ |
+| `ui/worldmap.cpp:97` | an artificer of 30q+ |
+| `ui/worldmap.cpp:97` | Artificer 30q+ |
+| `ui/worldmap.cpp:115` | everyone knows the swordsmiths of Nuremberg |
+| `ui/worldmap.cpp:151` | Route planned: the party sets off once it is in the overland view. |
+| `ui/worldmap.cpp:267` | Find quest givers###nearbywork |
+| `ui/worldmap.cpp:271` | No quest givers known yet: visit a town to learn who gives quests there. |
+| `ui/worldmap.cpp:273` | Nearest first, by land. The chances are today's: they may change before you arrive. |
+| `ui/worldmap.cpp:293` | Show %s on the map |
+| `ui/worldmap.cpp:295` | Land route unavailable |
+| `ui/worldmap.cpp:334` | Its saints, formulae and teachers: known once the party has been there. |
+| `ui/worldmap.cpp:336` | The saints its library teaches: known once the party has been there. |
+| `ui/worldmap.cpp:344` | Not visited yet |
+| `ui/worldmap.cpp:356` | Quest markers |
+| `ui/worldmap.cpp:356` | Boat routes between the towns' docks |
+| `ui/worldmap.cpp:356` | Each place as an icon of its kind (else a dot) |
+| `ui/worldmap.cpp:357` | The days of travel from the party to every town, under its name (off at first: it crowds the map) |
+| `ui/worldmap.cpp:573` | Towns with ... |
+| `ui/worldmap.cpp:662` | the marked spot |
+| `ui/worldmap.cpp:679` | Click for what it offers, and to travel there |
+| `ui/worldmap.cpp:715` | No route there from here |
+| `ui/worldmap.cpp:716` | Travel there |
+| `ui/worldmap.cpp:721` | Travel there |
+| `ui/worldmap.cpp:724` | Leave town and travel there |
+| `ui/worldmap.cpp:733` | No land route there from here. |
+| `ui/worldmap.cpp:735` | To travel, be in the overland view or in a town's streets |
+| `ui/worldmap.cpp:741` | Walk out of %s's gate and travel to %s? |
+| `ui/worldmap.cpp:742` | The party walks through the streets to a gate and out; in the overland view the journey begins. |
+| `ui/worldmap.cpp:743` | Leave and travel |
+| `ui/worldmap.cpp:762` | The wares noted here (%d shop%s) |
+| `ui/worldmap.cpp:779` | Boats leave here for these towns (not every day: the docks say which leave today). |
+| `ui/worldmap.cpp:780` | Boats from these towns call here; none sail back to them from here. |
+| `ui/worldmap.cpp:781` | Boats sail both ways between here and these towns (not every day: the docks say which leave today). |
+| `ui/worldmap.cpp:803` | Its docks have no boats leaving (the original game has none either). |
+| `ui/worldmap.cpp:845` | Collect your reward |
+| `ui/worldmap.cpp:845` | Robber knights |
+| `ui/worldmap.cpp:845` | Treasures to fetch |
+| `ui/worldmap.cpp:845` | Papers to get in a town |
+| `ui/worldmap.cpp:845` | City politics |
+| `ui/worldmap.cpp:845` | Cities at war |
+| `ui/worldmap.cpp:845` | The Wild Hunt |
+| `ui/worldmap.cpp:845` | Other quests |
+| `ui/worldmap.cpp:863` | %s (%d)###qg |
+| `ui/worldmap.cpp:869` | Sorted %s first: click for %s first. |
+| `ui/worldmap.cpp:869` | the soonest due |
+| `ui/worldmap.cpp:878` | No quests or rumors yet. |
+| `ui/worldmap.cpp:976` | cave near Köln |
+| `ui/worldmap.cpp:982` | and %d more: type more of the name to narrow the list |
+| `ui/worldmap.cpp:983` | No place of that name. |
+| `ui/worldmap.cpp:985` | Quest givers |
+| `ui/worldmap.cpp:996` | Alchemical ingredients |
+| `ui/worldmap.cpp:1012` | Click one to circle those towns on the map. |
+| `ui/worldmap.cpp:1024` |  the party has been to: |
+| `ui/worldmap.cpp:1028` | ... and %d more (circled on the map) |
+| `ui/worldmap.cpp:1029` | %s %dq##tl%d |
+| `ui/worldmap.cpp:1039` | Show on the map |
+| `ui/worldmap.cpp:1056` | shown (click to hide) |
+| `ui/worldmap.cpp:1056` | hidden (click to show) |
+| `ui/worldmap.cpp:1071` | Places: click a kind to show or hide it. |
+| `ui/worldmap.cpp:1102` | The party: a click shows it on the map. |
+| `ui/worldmap.cpp:1106` | Map of Greater Germany |
+| `ui/worldmap.cpp:1112` | {LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes. |
+| `ui/worldmap.cpp:1113` | Drag to move, wheel to zoom. M or Esc closes. |
+| `ui/worldmap.cpp:1115` | Traveling to %s |
+| `ui/worldmap.cpp:1178` | faded: leaves later this week |
+| `ui/worldmap.cpp:1243` | Click to take the boat. |
 | `ui/worldmap_draw.cpp:105` | ruined castle |
 | `ui/worldmap_draw.cpp:107` | ruined village |
 | `ui/worldmap_draw.cpp:108` | standing stone |
@@ -3184,14 +3192,14 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/offices.c:77` | This cathedral keeps no relic, so its canon has no quests. |
 | `mods/offices.c:78` | You asked lately: the canon will offer no quest for three days. |
 | `mods/offices.c:81` | Each time you ask the canon (by day), there is %s %d%% chance of a quest (your reputation in this town minus 50): a robber knight to hunt or an item to fetch. If none comes, or you turn it down, there is no new quest for three days. |
-| `mods/offices.c:84` | You asked for an audience lately: for a week the chance is only 1%. |
-| `mods/offices.c:85` | The lord grants no audience while your reputation in this town is -40 or lower. |
-| `mods/offices.c:88` | You finished a quest for the lord: your reward is waiting (an audience is certain). |
-| `mods/offices.c:90` | You finished a quest for the lord. In a town without a council the original game never pays this reward; with the fix "The lord pays for his quests" on, he pays it at an audience. |
-| `mods/offices.c:91` | Each request for an audience with the council has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's {Charisma} and {Speak Common}). An audience brings a robber knight to hunt or an item to fetch, half and half. After a request the chance is 1%% for a week. |
-| `mods/offices.c:92` | Each request for an audience with the lord has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's {Charisma} and {Speak Common}). An audience brings a robber knight to hunt. After a request the chance is 1%% for a week. |
-| `mods/offices.c:95` | No quests for three days: at your last visit none came, one was turned down, or a reward was paid. |
-| `mods/offices.c:97` | The offer comes after shopping: as the party leaves the stalls, 14 times in 100 a trader takes it aside with a purse and a job (mostly an item to fetch, sometimes a robber knight to hunt). If none comes, there is no other offer for three days. |
+| `mods/offices.c:84` | The lord grants no audience while your reputation in this town is -40 or lower. |
+| `mods/offices.c:86` | You finished a quest for the lord: your reward is waiting (an audience is certain). |
+| `mods/offices.c:89` | You asked for an audience lately: for a week the chance is only 1%. |
+| `mods/offices.c:94` | You finished a quest for the lord. In a town without a council the original game never pays this reward; with the fix "The lord pays for his quests" on, he pays it at an audience. |
+| `mods/offices.c:95` | Each request for an audience with the council has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's {Charisma} and {Speak Common}). An audience brings a robber knight to hunt or an item to fetch, half and half. After a request the chance is 1%% for a week. |
+| `mods/offices.c:96` | Each request for an audience with the lord has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's {Charisma} and {Speak Common}). An audience brings a robber knight to hunt. After a request the chance is 1%% for a week. |
+| `mods/offices.c:99` | No quests for three days: at your last visit none came, one was turned down, or a reward was paid. |
+| `mods/offices.c:101` | The offer comes after shopping: as the party leaves the stalls, 14 times in 100 a trader takes it aside with a purse and a job (mostly an item to fetch, sometimes a robber knight to hunt). If none comes, there is no other offer for three days. |
 | `mods/orders.c:194` | Click: throw here |
 | `mods/orders.c:194` | Click: flee here |
 | `mods/orders.c:197` | No clear throw |
