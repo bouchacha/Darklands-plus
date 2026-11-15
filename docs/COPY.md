@@ -608,19 +608,21 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:441` | After a fight with footpads, a game saved at the text that follows began the card again when loaded, the fight's standing, loot and practice kept: the fight could be repeated at will. Now such a save resumes where the party goes next. |
 | `mods/fixes.c:442` | A camp's risk counts only the villages beside it |
 | `mods/fixes.c:443` | Making camp, the game raises the daily risk of being found for a village in a block of cells by the party. Where that block passed the right edge of the map's view it read the next row's left side instead, and past the bottom whatever followed in memory: a village far away, or no village at all, could count. Now only the cells of the block count. |
-| `mods/fixes.c:888` | if (col == 0) col = 1 |
-| `mods/fixes.c:1481` | The store room keeps at most 127 of one item. |
-| `mods/fixes.c:1482` | The store room is full: it keeps 100 kinds of items. |
-| `mods/fixes.c:1652` | abandon the horses |
-| `mods/fixes.c:2094` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
-| `mods/fixes.c:2370` | claim friendship |
-| `mods/fixes.c:2422` | It is $NamedOneName again |
-| `mods/fixes.c:2685` | You need a missile weapon |
-| `mods/fixes.c:2780` | if the argument was won |
-| `mods/fixes.c:2843` | Not bought: nobody in the party has room for another kind of item. |
-| `mods/fixes.c:2861` | Nobody in the party has room for another kind of item. |
-| `mods/fixes.c:3959` | Dissolve Lock needs Eater-Water in this member's pack. |
-| `mods/fixes.c:4021` | a hook (or { -2 }) for each fix, in the same order |
+| `mods/fixes.c:444` | A member gone out by the way out no longer holds the others back |
+| `mods/fixes.c:445` | A member who left the battlefield by its way out still counted as one of the party on another floor. If the others then stood on another floor than the enemies (up or down the stairs), the battle ended as fled and they were left behind; the party never came together on one floor again; and Group and Single file stayed greyed for the rest of the fight. Now only the members still on the field count. |
+| `mods/fixes.c:890` | if (col == 0) col = 1 |
+| `mods/fixes.c:1483` | The store room keeps at most 127 of one item. |
+| `mods/fixes.c:1484` | The store room is full: it keeps 100 kinds of items. |
+| `mods/fixes.c:1654` | abandon the horses |
+| `mods/fixes.c:2096` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
+| `mods/fixes.c:2372` | claim friendship |
+| `mods/fixes.c:2424` | It is $NamedOneName again |
+| `mods/fixes.c:2687` | You need a missile weapon |
+| `mods/fixes.c:2782` | if the argument was won |
+| `mods/fixes.c:2845` | Not bought: nobody in the party has room for another kind of item. |
+| `mods/fixes.c:2863` | Nobody in the party has room for another kind of item. |
+| `mods/fixes.c:4049` | Dissolve Lock needs Eater-Water in this member's pack. |
+| `mods/fixes.c:4111` | a hook (or { -2 }) for each fix, in the same order |
 
 ## The interface (ui/)
 

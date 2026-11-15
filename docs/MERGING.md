@@ -362,6 +362,7 @@ the files where each switch's key is read.
 | `fix.fruitonce` | The schrat's fruit makes a member stronger once | fix | fixes.c |
 | `fix.footpadsonce` | A fight with footpads is fought once | fix | fixes.c |
 | `fix.campwatch` | A camp's risk counts only the villages beside it | fix | fixes.c |
+| `fix.exitleft` | A member gone out by the way out no longer holds the others back | fix | fixes.c |
 
 The fixes (`fix.<id>`) are listed with their explanations in `port/mods/fixes.c`; the built-in
 rule changes (`mod.<id>`) in `port/mods/builtin.c`.

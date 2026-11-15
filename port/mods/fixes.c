@@ -441,6 +441,8 @@ Fix FIXES[] = {
       "After a fight with footpads, a game saved at the text that follows began the card again when loaded, the fight's standing, loot and practice kept: the fight could be repeated at will. Now such a save resumes where the party goes next.", 1 },
     { "campwatch", "A camp's risk counts only the villages beside it",
       "Making camp, the game raises the daily risk of being found for a village in a block of cells by the party. Where that block passed the right edge of the map's view it read the next row's left side instead, and past the bottom whatever followed in memory: a village far away, or no village at all, could count. Now only the cells of the block count.", 1 },
+    { "exitleft", "A member gone out by the way out no longer holds the others back",
+      "A member who left the battlefield by its way out still counted as one of the party on another floor. If the others then stood on another floor than the enemies (up or down the stairs), the battle ended as fled and they were left behind; the party never came together on one floor again; and Group and Single file stayed greyed for the rest of the fight. Now only the members still on the field count.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -3829,6 +3831,23 @@ static void nosel_leave_hook(void)          /* order_mode_leave (), s014 19cd:07
     if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix noselection: order mode left with nobody chosen: nothing to apply\n");
     hook_return_far(0);
 }
+/* U paused (the battle's keys, s016 1ef8:0000, at +0x165) copies the chosen member's stairs-back record into his
+   order (DS:c77e[chosen] = c8b2[chosen]) and gives it (1ef8:1384), without asking whether anyone is chosen: with
+   nobody, the byte before the order table (DS:c77d) took c8b2[-1] (B-afe397). The menu's Use Stairs (1ef8:1182)
+   asks first; so a stairs order with nobody chosen comes only from U: the byte is put back, no order given. */
+static u8 nosel_c77d;
+static void nosel_keys_hook(void)           /* the battle's keys, s016 1ef8:0000 */
+{
+    nosel_c77d = g_rb(0xc77d);
+    hook_call_original();
+}
+static void nosel_stairs_hook(void)         /* the stairs order for the chosen member, s016 1ef8:1384 */
+{
+    if (!nobody_chosen()) { hook_call_original(); return; }
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix noselection: U with nobody chosen: no stairs order (DS:c77d %#x kept)\n", nosel_c77d);
+    g_wb(0xc77d, nosel_c77d);
+    hook_return_far(0);
+}
 static void nosel_order_hook(void)          /* s016 1ef8:156e (order), 1590 (place), 152e (stance), 13d4 (cancel) */
 {
     if (!nobody_chosen()) { hook_call_original(); return; }
@@ -3891,6 +3910,77 @@ static void footpadsonce_hook(void)         /* the footpads' fight, s053 1838:02
     hook_install(GF_run_battle, footpads_battle_hook);
     hook_call_original();
     hook_remove(GF_run_battle, footpads_battle_hook);
+}
+
+/* ---------------------------------------------------------------- exitleft
+ * A member who went out by the battlefield's way out stays standing (status 1) with floor -99. Each tick
+ * (s014 0e76:0f58) the game allows the party's group movement (Group, Single file: DS:9681, 9695, 1 on, 2 off)
+ * only while every standing member is on one floor (DS:d610): once one had left, the others were never all on
+ * one floor and the two stayed greyed (Darklands Restoration's register, B-d94fc5). Here a member who left is
+ * not counted, after each tick: those still on the field on one floor, out of a fight, may move as a group. */
+static void exitleft_tick_hook(void)        /* the battle's tick, s014 0e76:0f58 */
+{
+    hook_call_original();
+    if (unw_active || g_rb(0xd610) == 1 || g_rb(GV_real_combat) == 1) return;
+    int floor = -100, left = 0;
+    for (int m = 0; m < 5; m++) {
+        if (g_rb(G_MEMBER(m)) != 1) continue;
+        int f = (s8)g_rb((u16)(GV_cbt_floor + m));
+        if (f == -99) { left = 1; continue; }
+        if (floor == -100) floor = f;
+        else if (f != floor) return;
+    }
+    if (!left || floor == -100) return;
+    g_wb(0xd610, 1); g_wb(0x9681, 1); g_wb(0x9695, 1);
+}
+/* The battle's end test (combat_over, s014 0e76:08fe) first asks whether every member still on the battlefield has
+ * gone out by the way out: it counts the members on floor -99, and calls the battle fled (2, or left 8) when none
+ * stands on the enemies' floor - so with one member gone out and the others standing on another floor (the
+ * stairs), the battle ended as fled and those others were made Away (status 5), to be left behind (B-9d748e). And
+ * a member taking the stairs (take_exit, s023 1ef8:1618) brings the party together on the new floor (the old
+ * floor's foes left behind, out of the fight) only when every standing member is there: one gone out was never
+ * there, so the party never came together again (B-d4d9e6). Here, in those two, the members gone out are set
+ * aside for the call (status 0, off every floor) and put back after: the game then does what it does when nobody
+ * has gone out - at the end test, the party carries on on the floor of the members still standing. */
+static int exit_aside(u8 st[5], u8 fl[5])
+{
+    int n = 0;
+    for (int m = 0; m < 5; m++) {
+        st[m] = g_rb(G_MEMBER(m)); fl[m] = g_rb((u16)(GV_cbt_floor + m));
+        if ((s8)fl[m] == -99 && st[m] == 1) { g_wb(G_MEMBER(m), 0); g_wb((u16)(GV_cbt_floor + m), 0x7f); n++; }
+    }
+    return n;
+}
+static void exit_back(const u8 st[5], const u8 fl[5])
+{
+    for (int m = 0; m < 5; m++) if ((s8)fl[m] == -99 && st[m] == 1) { g_wb(G_MEMBER(m), st[m]); g_wb((u16)(GV_cbt_floor + m), fl[m]); }
+}
+static void exitleft_over_hook(void)        /* combat_over (), s014 0e76:08fe */
+{
+    int foes = (s8)g_rb(GV_floor_shown), gone = 0, here = 0, elsewhere = 0;
+    int result = (s16)g_rw(GV_battle_result);
+    for (int i = 5; i < 13; i++) if (g_rb(CBF(i, CB_STATUS)) == 1) { foes = (s8)g_rb((u16)(GV_cbt_floor + i)); break; }
+    for (int m = 0; m < 5; m++) {
+        int f = (s8)g_rb((u16)(GV_cbt_floor + m)), st = g_rb(G_MEMBER(m));
+        if (f == -99) gone++;
+        else if (st == 1 && f == foes) here++;
+        else if (st == 1) elsewhere++;
+    }
+    if (result == 4 || result == 6 || !gone || here || !elsewhere) { hook_call_original(); return; }
+    u8 st[5], fl[5];
+    exit_aside(st, fl);
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix exitleft: %d gone out, %d standing on another floor than the foes': not fled\n", gone, elsewhere);
+    hook_call_original();
+    exit_back(st, fl);
+}
+static void exitleft_stairs_hook(void)      /* take_exit (n, who), s023 1ef8:1618 */
+{
+    u8 st[5], fl[5];
+    int who = (s16)rw(SS, (u16)(SP + 6));
+    if (who < 0 || who > 4 || (s8)g_rb((u16)(GV_cbt_floor + who)) == -99) { hook_call_original(); return; }
+    int n = exit_aside(st, fl);
+    hook_call_original();
+    if (n) exit_back(st, fl);
 }
 
 /* ---------------------------------------------------------------- castsight
@@ -4017,7 +4107,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook },
     { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook }, { 30, 0x1462, 0x1c76, westedge_hook }, { GF_lock_pick, bestpick_hook },
     { 37, 0x1462, 0x2ace, save_records_hook }, { -2, 0, 0, 0 }, { 38, 0x1462, 0x02f8, innroster_key_hook }, { GF_party_remove, leaving_record_hook }, { -2, 0, 0, 0 }, { 37, 0x1c7d, 0x0d24, duplicate_load_hook }, { 16, 0x1ef8, 0x0f76, dissolve_key_hook }, { -2, 0, 0, 0 },
-    { 14, 0x0e76, 0x0694, thrown_end_hook }, { 14, 0x19cd, 0x0738, nosel_leave_hook }, { 18, 0x1f43, 0x0256, castsight_hook }, { GF_path_find, doorplan_hook }, { 30, 0x1462, 0x1dd4, maprows_hook }, { 87, 0x1986, 0x01e6, fruitonce_hook }, { 53, 0x1838, 0x02d6, footpadsonce_hook }, { 30, 0x1462, 0x25be, campwatch_hook } };   /* (hitsound: mods/sfx.c; savecheck: mods/saves.c; cachefile: mods/cachefile.c; stairsreturn: mods/stairsfix.c) */
+    { 14, 0x0e76, 0x0694, thrown_end_hook }, { 14, 0x19cd, 0x0738, nosel_leave_hook }, { 18, 0x1f43, 0x0256, castsight_hook }, { GF_path_find, doorplan_hook }, { 30, 0x1462, 0x1dd4, maprows_hook }, { 87, 0x1986, 0x01e6, fruitonce_hook }, { 53, 0x1838, 0x02d6, footpadsonce_hook }, { 30, 0x1462, 0x25be, campwatch_hook }, { 14, 0x0e76, 0x0f58, exitleft_tick_hook } };   /* (hitsound: mods/sfx.c; savecheck: mods/saves.c; cachefile: mods/cachefile.c; stairsreturn: mods/stairsfix.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
@@ -4070,7 +4160,9 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "fruitonce", 87, 0x1986, 0x0258, fruitonce_hook }, { "fruitonce", 87, 0x1986, 0x02ca, fruitonce_hook }, { "fruitonce", 87, 0x1986, 0x033c, fruitonce_hook },
     { "alchemy", 36, 0x1462, 0x1ec2, unbrew_hook }, { "thrownskill", GF_use_ammo, thrown_ammo_hook },
     { "noselection", 16, 0x1ef8, 0x156e, nosel_order_hook }, { "noselection", 16, 0x1ef8, 0x1590, nosel_order_hook },
-    { "noselection", 16, 0x1ef8, 0x152e, nosel_order_hook }, { "noselection", 16, 0x1ef8, 0x13d4, nosel_order_hook } };
+    { "noselection", 16, 0x1ef8, 0x152e, nosel_order_hook }, { "noselection", 16, 0x1ef8, 0x13d4, nosel_order_hook },
+    { "noselection", 16, 0x1ef8, 0x0000, nosel_keys_hook }, { "noselection", 16, 0x1ef8, 0x1384, nosel_stairs_hook },
+    { "exitleft", GF_combat_over, exitleft_over_hook }, { "exitleft", GF_take_exit, exitleft_stairs_hook } };
 
 void fix_enable(int i, int on)
 {

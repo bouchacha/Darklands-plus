@@ -702,3 +702,13 @@ covered and found, and what it could not check.
   checked equal to the original's at 16 places of the view; maprows: the edge icons left out while drawing).
   Tested in a session: famine, the sneak hall's card (its own texts; the old one read the gate's), the night
   street by day, the fruit's Strength after its text, footpads' resume card after the fight, quicksave there.
+- 2026-11-15 (his ask: "work on whatever is still open, easiest to hardest; address pull requests and issues"):
+  pull request #23 (woodk123, Nearby work) merged, then made one with Go to: a giver's state in one function
+  (citynav_office_line/_tip) for both lists, the list called Quest givers like the other finders, its picture
+  the three kinds of quest fanned (the chest alone is the treasure quests'). Issue #22 (Seb-Zee, an HD pointer)
+  done inside the existing replacement art (art\GAUNTLET.png, a mod's art too; gamepic_art), closed. Register:
+  exitleft (a member gone out by the way out set aside for the end test and the stairs' coming together, not
+  counted for the group modes), U with nobody chosen (noselection), three found covered by woodk123's
+  stairsreturn, two confirmed harmless. Left: 16 entries of one kind, members and enemies on a floor not shown
+  (the battle holds one floor): a design decision (keep a fight on one floor, or hold the floors not shown),
+  put to him rather than made.
