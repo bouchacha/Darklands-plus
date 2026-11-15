@@ -346,6 +346,7 @@ the files where each switch's key is read.
 | `fix.prayfor` | Every prayer asks who it is for | fix | fixes.c, prayview.c |
 | `fix.westedge` | Leaving a place by the map's west edge puts the party beside it | fix | fixes.c |
 | `fix.bestpick` | A lock is picked with the best lock picks | fix | fixes.c |
+| `fix.duplicateload` | A character appears only once when loading | fix | fixes.c |
 
 The fixes (`fix.<id>`) are listed with their explanations in `port/mods/fixes.c`; the built-in
 rule changes (`mod.<id>`) in `port/mods/builtin.c`.

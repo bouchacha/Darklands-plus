@@ -409,6 +409,8 @@ Fix FIXES[] = {
       "Leaving any of the nine places near the travel map's west edge (Nancy, Elberg, Valkenberg, Tongeren, Gemert, Helmond, Limberg, Spa and Briey) put the party 2 to 5 tiles east of it, and wherever the travel map's view reached that edge, the party was drawn a tile east of where the game had it. The party now comes out beside the place, as everywhere else, and is drawn where it is.", 1 },
     { "bestpick", "A lock is picked with the best lock picks",
       "Picking a lock in a castle, a mine or a dungeon, the game used the member's first lock picks, whatever their quality, though a better set lay further down the pack (or, with the shared pack, with someone else): the quality adds to the chance (Pick Locks + quality - 25). Now the best lock picks the member, or with the shared pack the party, carries are used.", 1 },
+    { "duplicateload", "A character appears only once when loading",
+      "A save that names the same character in two party slots could end the game while loading a missing shield picture. Loading now keeps that character in the first slot and empties the repeated slots. The roster keeps every character record, and the next save records the corrected party.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -3168,6 +3170,108 @@ static void bestpick_hook(void)                 /* lock_pick (lock) */
     AX = ax;
 }
 
+/* ---------------------------------------------------------------- duplicateload
+ * The reader (s037 1c7d:0d24) fills only the first slot naming each roster record.
+ * The load screen then asks for a shield for the unfilled duplicate (030a), which
+ * ends a fresh game with exit 99. A warm load can use that slot's old shield instead.
+ * Normalize the IDs in the reader and in its roster-file reconstruction (1462:4184).
+ * Both consume the saved header through these two I/O calls. The source save and
+ * all roster records are kept. Restoration documents this as B-7c20ca. */
+typedef struct {
+    u8 original[10], normalized[10];
+    unsigned duplicates;
+    int first[5], main_read, roster_read;
+} DuplicateLoad;
+static DuplicateLoad *duplicate_load;
+
+static unsigned duplicate_ids(DuplicateLoad *load, unsigned records)
+{
+    memcpy(load->normalized, load->original, sizeof load->original);
+    load->duplicates = 0;
+    for (int slot = 0; slot < 5; slot++) {
+        unsigned id = load->original[2 * slot] | (unsigned)load->original[2 * slot + 1] << 8;
+        load->first[slot] = slot;
+        if (id >= records || id >= 0x8000) continue;
+        for (int first = 0; first < slot; first++) {
+            unsigned previous = load->original[2 * first] | (unsigned)load->original[2 * first + 1] << 8;
+            if (previous != id) continue;
+            load->normalized[2 * slot] = load->normalized[2 * slot + 1] = 0xff;
+            load->duplicates |= 1u << slot;
+            load->first[slot] = first;
+            break;
+        }
+    }
+    return load->duplicates;
+}
+
+static void duplicate_fread_hook(void)          /* fread(near buffer, size, count, stream) */
+{
+    DuplicateLoad *load = duplicate_load;
+    u16 offset = rw(SS, (u16)(SP + 4)), segment = DS;
+    int ids = load && !load->main_read && rw(SS, (u16)(SP + 2)) == LOADSEG + 0x1c7d
+        && rw(SS, SP) >= 0x0d24 && rw(SS, SP) < 0x19c6
+        && rw(SS, (u16)(SP + 6)) == 10 && rw(SS, (u16)(SP + 8)) == 1;
+    hook_call_original();
+    if (ids && !unw_active && AX == 1 && !memcmp(M + LIN(segment, offset), load->original, 10)) {
+        memcpy(M + LIN(segment, offset), load->normalized, 10);
+        load->main_read = 1;
+    }
+}
+
+static void duplicate_dos_read_hook(void)       /* _dos_read(handle, far buffer, count, bytes-read) */
+{
+    DuplicateLoad *load = duplicate_load;
+    u16 offset = rw(SS, (u16)(SP + 6)), segment = rw(SS, (u16)(SP + 8));
+    u16 bytes_read = rw(SS, (u16)(SP + 12)), data_segment = DS;
+    int ids = load && !load->roster_read && rw(SS, (u16)(SP + 2)) == LOADSEG + 0x1462
+        && rw(SS, SP) >= 0x4184 && rw(SS, SP) < 0x43e6
+        && rw(SS, (u16)(SP + 10)) == 10;
+    hook_call_original();
+    if (ids && !unw_active && AX == 0 && rw(data_segment, bytes_read) == 10
+        && !memcmp(M + LIN(segment, offset), load->original, 10)) {
+        memcpy(M + LIN(segment, offset), load->normalized, 10);
+        load->roster_read = 1;
+    }
+}
+
+static void duplicate_slots_clear(const DuplicateLoad *load)
+{
+    for (int slot = 0; slot < 5; slot++) {
+        if (!(load->duplicates & (1u << slot))) continue;
+        memset(M + LIN(G_DGROUP, CB_REC(slot)), 0, 0x80);
+        memset(M + LIN(G_FAR2E38, 0x082c + slot * 0x14), 0, 0x14);
+        memset(M + LIN(G_FAR2E38, 0x07be + slot * 0x16), 0, 0x16);
+        memset(M + LIN(G_FAR2E38, G_ITEM(slot, 0)), 0, 0x180);
+    }
+    int leader = (s8)g_rb(G_LEADER), size = 0;
+    if (leader >= 0 && leader < 5 && (load->duplicates & (1u << leader)))
+        g_wb(G_LEADER, (u8)load->first[leader]);
+    for (int slot = 0; slot < 5; slot++) if (g_rb(G_MEMBER(slot))) size = slot + 1;
+    g_ww(G_PARTY_SIZE, (u16)size);
+}
+
+static void duplicate_load_hook(void)           /* s037 1c7d:0d24(file) */
+{
+    if (config_get_int("original", 0)) { hook_call_original(); return; }
+    char name[16], path[1200], dos[40];
+    g_str(rw(SS, (u16)(SP + 6)), rw(SS, (u16)(SP + 4)), name, sizeof name);
+    snprintf(dos, sizeof dos, "SAVES\\%s", name);
+    void dos_host_path_read(const char *, char *, size_t);
+    dos_host_path_read(dos, path, sizeof path);
+    u8 header[12];
+    FILE *file = fopen(path, "rb");
+    int read = file && !fseek(file, 0xf1, SEEK_SET) && fread(header, 1, sizeof header, file) == sizeof header;
+    if (file) fclose(file);
+    DuplicateLoad load = { 0 };
+    if (read) memcpy(load.original, header + 2, 10);
+    if (!read || !duplicate_ids(&load, header[0] | (unsigned)header[1] << 8)) { hook_call_original(); return; }
+    DuplicateLoad *previous = duplicate_load;
+    duplicate_load = &load;
+    hook_call_original();
+    duplicate_load = previous;
+    if (!unw_active && load.main_read && load.roster_read) duplicate_slots_clear(&load);
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -3187,10 +3291,13 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook },
     { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
     { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook },
-    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook }, { 30, 0x1462, 0x1c76, westedge_hook }, { GF_lock_pick, bestpick_hook } };   /* (hitsound: mods/sfx.c) */
+    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook }, { 30, 0x1462, 0x1c76, westedge_hook }, { GF_lock_pick, bestpick_hook },
+    { 37, 0x1c7d, 0x0d24, duplicate_load_hook } };   /* (hitsound: mods/sfx.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
+    { "duplicateload", -1, 0x06a1, 0x0716, duplicate_fread_hook },
+    { "duplicateload", -1, 0x06a1, 0x2cb6, duplicate_dos_read_hook },
     { "tomb", GF_combat_over, tomb_over_hook },
     { "dwarfrelic", GF_event_new, dwarfrelic_event_hook }, { "dwarfrelic", GF_chest_open, dwarfrelic_chest_hook }, { "dwarfrelic", 40, 0x1462, 0x0000, dwarfrelic_screen_hook },
     { "carditems", GF_add_items_impl, carditems_n_hook }, { "carditems", 31, 0x18e7, 0x0128, carditems_one_hook }, { "carditems", GF_add_item_q, carditems_q_hook },

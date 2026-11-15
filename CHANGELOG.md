@@ -1,5 +1,9 @@
 # Darklands+ changelog
 
+## Next (not yet released)
+
+- A save naming one character in multiple party slots could end the game while loading a missing shield. Loading now keeps the character in the first slot and empties the repeats, which are also corrected in the next save.
+
 ## 1.5
 
 What changed since 1.4.6.
