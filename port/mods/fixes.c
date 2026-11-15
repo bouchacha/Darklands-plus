@@ -413,6 +413,8 @@ Fix FIXES[] = {
       "After losing a member to the Wild Hunt, a party slot can be empty while its character is still in the roster. Saving skipped that character's record but counted it in the header, so loading read the rest of the file in the wrong places. Every roster record is now written, including an empty member's, with its status kept.", 1 },
     { "savecheck", "Damaged saves are refused before loading",
       "A truncated save or corrupt battle file could end the game or replace the party with incomplete data. Continue, quickload, the new Load page and the original title screen now check the files before loading. The original in-game Load screen still discards the current game before the player chooses a file.", 1 },
+    { "innroster", "The inn's roster selects the character shown",
+      "At an inn, a character left elsewhere shifts the visible rows. The color keys then changed another member, and selecting a party member on the fifth row or later could end the game while loading a missing portrait. The roster now follows the character on each visible row and shows that member's own figure.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -3238,6 +3240,113 @@ static void save_records_hook(void)              /* s037 1462:2ace (comment) */
     saving_records = previous;
 }
 
+/* ---------------------------------------------------------------- innroster
+ * The inn's list (s038 1462:23ec) maps visible rows through DS:8d06, but its key handler
+ * (02f8) compares the row itself with the roster ids for arrows and colours. Arrows also
+ * index the figure catalogue by that row, so row 4 can load the nonexistent small.pic.
+ * Keep the list's actual row count, draw the selected member's stored figure, and give
+ * the original colour tables (and looks.c's dyes) the corresponding roster id.
+ * Original bugs B-0fd1d5 and B-9db08d were documented by Darklands Restoration. */
+#define INN_ROWS 0x8d06                     /* int[20]: visible row -> charactr.tmp record */
+#define INN_ROW_LIMIT 20
+#define INN_PORTRAIT_COLOURS 0xe753         /* palette entries 0xeb..0xf2 */
+
+static void innroster_list_hook(void)
+{
+    if (config_get_int("original", 0)) { hook_call_original(); return; }
+    for (int row = 0; row < INN_ROW_LIMIT; row++) g_ww((u16)(INN_ROWS + 2 * row), 0xffff);
+    hook_call_original();
+    if (ns_unwinding) return;
+    int shown = 0;
+    while (shown < INN_ROW_LIMIT && (s16)g_rw((u16)(INN_ROWS + 2 * shown)) >= 0) shown++;
+    g_ww(GV_roster_n, (u16)shown);
+    int row = (s16)g_rw(GV_roster_sel);
+    if (row < 0 || row >= shown) g_ww(GV_roster_sel, shown ? 0 : 0xffff);
+}
+
+static int innroster_member(int row, char figure[4])
+{
+    if (row < 0 || row >= INN_ROW_LIMIT || row >= (s16)g_rw(GV_roster_n)) return -1;
+    int record = (s16)g_rw((u16)(INN_ROWS + 2 * row));
+    if (record < 0) return -1;
+    char path[1200];
+    void dos_host_path_read(const char *, char *, size_t);
+    dos_host_path_read("charactr.tmp", path, sizeof path);
+    FILE *file = fopen(path, "rb");
+    if (!file) return -1;
+    u8 header[32];
+    size_t got = fread(header, 1, sizeof header, file);
+    fclose(file);
+    if (got != sizeof header || record >= (s16)(header[0] | header[1] << 8)) return -1;
+    for (int member = 0; member < 5; member++) {
+        int id = (s16)(header[2 + 2 * member] | header[3 + 2 * member] << 8);
+        if (id == record && g_rb(G_MEMBER(member))) {
+            memcpy(figure, header + 12 + 4 * member, 3); figure[3] = 0;
+            return member;
+        }
+    }
+    return -1;
+}
+
+static void innroster_arrow(int key)
+{
+    int count = (s16)g_rw(GV_roster_n), before = (s16)g_rw(GV_roster_sel);
+    if (count <= 0 || count > INN_ROW_LIMIT) { g_ww(GV_roster_sel, 0xffff); return; }
+    int row = before;
+    if (row < 0 || row >= count) row = 0;
+    else if (key == 0x5000) row = (row + 1) % count;
+    else row = row ? row - 1 : count - 1;
+    if (before >= 0 && before < count)
+        ns_call(GF_gfx_recolor_rect, 7, GV_screen_win, 0xc6, before * 8 + 0x16, 0x71, 8, 0x12, 0x10);
+    if (ns_unwinding) return;
+    g_ww(GV_roster_sel, (u16)row);
+    ns_call(GF_gfx_recolor_rect, 7, GV_screen_win, 0xc6, row * 8 + 0x16, 0x71, 8, 0x10, 0x12);
+    if (ns_unwinding) return;
+    ns_call(GF_gfx_copy_rect, 8, GV_back_win, 0x46, 0xa5, 0x23, 0x23, GV_screen_win, 0x46, 0xa5);
+    if (ns_unwinding) return;
+    char figure[4];
+    int member = innroster_member(row, figure);
+    if (member < 0) return;
+    u16 portrait = g_rw(GV_roster_portrait);
+    if (portrait) ns_call(GF_dos_free, 1, portrait);
+    if (ns_unwinding) return;
+    g_ww(GV_roster_portrait, 0);
+    ns_call(-1, 0x047c, 0x0545, 0);          /* the picture loader's palette scope */
+    if (ns_unwinding) return;
+    char name[24]; snprintf(name, sizeof name, "pics\\%.3ssmall.pic", figure);
+    u16 sp = SP, name_at = ns_stack_str(name);
+    portrait = (u16)ns_call(GF_pic_load, 1, name_at);
+    if (ns_unwinding) return;
+    ns_stack_free(sp);
+    g_ww(GV_roster_portrait, portrait);
+    ns_call(-1, 0x047c, 0x04f8, 0);
+    if (ns_unwinding) return;
+    for (int k = 0; k < 24; k++)
+        g_wb((u16)(INN_PORTRAIT_COLOURS + k), rb(G_FAR20A5, (u16)(0x33fc + 24 * member + k)));
+    ns_call(GF_set_palette, 1, GV_cur_palette);
+    if (ns_unwinding) return;
+    ns_call(GF_gfx_draw_pic, 4, GV_screen_win, 0x46, 0xa5, portrait);
+}
+
+static void innroster_key_hook(void)
+{
+    if (config_get_int("original", 0)) { hook_call_original(); return; }
+    int key = rw(SS, (u16)(SP + 4));
+    if (key == 0x4800 || key == 0x4b00 || key == 0x4d00 || key == 0x5000) {
+        innroster_arrow(key);
+        if (!ns_unwinding) { AX = 0; hook_return_far(0); }
+        return;
+    }
+    int colour = key == 0x231 || key == 0x4f31 || key == 0x332 || key == 0x5032 || key == 0x433 || key == 0x5133;
+    int changes_look = colour || key == 0x2348 || key == 0x2368 || key == 0x1f53 || key == 0x1f73;
+    int row = (s16)g_rw(GV_roster_sel);
+    char figure[4];
+    if (changes_look && innroster_member(row, figure) < 0) { AX = 0; hook_return_far(0); return; }
+    if (colour) g_ww(GV_roster_sel, g_rw((u16)(INN_ROWS + 2 * row)));
+    hook_call_original();
+    if (colour && !ns_unwinding) g_ww(GV_roster_sel, (u16)row);
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -3258,12 +3367,13 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
     { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook },
     { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook }, { 30, 0x1462, 0x1c76, westedge_hook }, { GF_lock_pick, bestpick_hook },
-    { 37, 0x1462, 0x2ace, save_records_hook }, { -2, 0, 0, 0 } };   /* (hitsound: mods/sfx.c) */
+    { 37, 0x1462, 0x2ace, save_records_hook }, { -2, 0, 0, 0 }, { 38, 0x1462, 0x02f8, innroster_key_hook } };   /* (hitsound: mods/sfx.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
     { "saverecords", -1, 0x06a1, 0x07fa, save_records_header_hook },
     { "saverecords", -1, 0x06a1, 0x2cb6, save_records_read_hook },
+    { "innroster", 38, 0x1462, 0x23ec, innroster_list_hook },
     { "tomb", GF_combat_over, tomb_over_hook },
     { "dwarfrelic", GF_event_new, dwarfrelic_event_hook }, { "dwarfrelic", GF_chest_open, dwarfrelic_chest_hook }, { "dwarfrelic", 40, 0x1462, 0x0000, dwarfrelic_screen_hook },
     { "carditems", GF_add_items_impl, carditems_n_hook }, { "carditems", 31, 0x18e7, 0x0128, carditems_one_hook }, { "carditems", GF_add_item_q, carditems_q_hook },
