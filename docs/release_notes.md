@@ -4,6 +4,10 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 
 **Install:** unpack the zip anywhere and start `darklands.exe`. It finds a GOG or Steam installation by itself or asks for the folder once. The first start takes about two minutes while Darklands+ translates the game program from your `DARKLAND.EXE`; after that it starts at once. Your saved games stay where they always were. `Darklands+ README.txt` in the zip has the details.
 
+**Unreleased fixes**
+
+- Dissolve Lock uses the acting member's Eater-Water and checks the pack again when an order is carried out. It could previously consume another member's item or a stack that moved into the potion's old slot. An order with no potion left is now canceled.
+
 **New in 1.5** (what changed since 1.4.6)
 
 **Added**

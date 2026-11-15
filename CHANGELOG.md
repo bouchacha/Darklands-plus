@@ -1,5 +1,9 @@
 # Darklands+ changelog
 
+## Next (not yet released)
+
+- Dissolve Lock uses the acting member's Eater-Water and checks the pack again when an order is carried out. It could previously consume another member's item or a stack that moved into the potion's old slot. An order with no potion left is now canceled.
+
 ## 1.5
 
 What changed since 1.4.6.

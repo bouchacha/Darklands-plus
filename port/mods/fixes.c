@@ -409,6 +409,8 @@ Fix FIXES[] = {
       "Leaving any of the nine places near the travel map's west edge (Nancy, Elberg, Valkenberg, Tongeren, Gemert, Helmond, Limberg, Spa and Briey) put the party 2 to 5 tiles east of it, and wherever the travel map's view reached that edge, the party was drawn a tile east of where the game had it. The party now comes out beside the place, as everywhere else, and is drawn where it is.", 1 },
     { "bestpick", "A lock is picked with the best lock picks",
       "Picking a lock in a castle, a mine or a dungeon, the game used the member's first lock picks, whatever their quality, though a better set lay further down the pack (or, with the shared pack, with someone else): the quality adds to the chance (Pick Locks + quality - 25). Now the best lock picks the member, or with the shared pack the party, carries are used.", 1 },
+    { "dissolve", "Dissolving a lock uses the acting member's Eater-Water",
+      "The Dissolve Lock shortcut could take another member's item, and an order given before items moved could use up the wrong stack. Dissolving now uses the acting member's weakest Eater-Water. If that member has none left, the order is canceled.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -3168,6 +3170,76 @@ static void bestpick_hook(void)                 /* lock_pick (lock) */
     AX = ax;
 }
 
+/* ---------------------------------------------------------------- dissolve
+ * The running D key (s016 1ef8:0f76) acts for the leader but consumes the selected member's
+ * stack at member 0's cached index. A queued order (s014 0e76:2170, special action 7) uses
+ * the index found before the sheet could move or drop items. These are Restoration's
+ * B-d71b85 and B-dce22a. Select the weakest Eater-Water as the game's menu does, at the
+ * time it is used. Without one, cancel before opening the door or chest. */
+#define DISSOLVE_SLOT 0xc7cd                 /* byte[5], 0xff when none was found */
+#define DISSOLVE_ENABLED 0x96f9             /* menu state, 1 enabled */
+#define DISSOLVE_DOOR 0xca99                /* 1 door, 0 chest */
+#define MEMBER_DOOR 0xc64c                  /* byte[5] */
+
+static int dissolve_potion(int member)
+{
+    if (member < 0 || member >= 5 || g_rb(G_MEMBER(member)) != 1) return -1;
+    int count = (s8)g_rb((u16)(G_MEMBER(member) + G_M_NITEMS));
+    int best = -1, quality = 100;
+    for (int slot = 0; slot < count && slot < 64; slot++) {
+        u16 item = G_ITEM(member, slot);
+        int q = rb(G_FAR2E38, (u16)(item + 3));
+        if (rw(G_FAR2E38, item) == 0x63 && rb(G_FAR2E38, (u16)(item + 4)) && q < quality) {
+            best = slot;
+            quality = q;
+        }
+    }
+    g_wb((u16)(DISSOLVE_SLOT + member), (u8)best);
+    return best;
+}
+
+static void dissolve_missing(int member)
+{
+    ui_notice("Dissolve Lock needs Eater-Water in this member's pack.");
+    if (member >= 0 && member < 5) ns_call(GF_cbt_cancel_action, 1, member);
+}
+
+static void dissolve_order_hook(void)       /* cbt_location_action (member), near */
+{
+    int member = (s16)rw(SS, (u16)(SP + 2));
+    if (config_get_int("original", 0) || member < 0 || member >= 5
+        || g_rb((u16)(GV_cbt_special + member)) != 7) { hook_call_original(); return; }
+    if (dissolve_potion(member) < 0) {
+        dissolve_missing(member);
+        if (!ns_unwinding) hook_return_near(0);
+        return;
+    }
+    hook_call_original();
+}
+
+static void dissolve_key_hook(void)         /* s016 1ef8:0f76 (), D or Disarm Trap */
+{
+    if (config_get_int("original", 0) || g_rb(GV_ai_paused) == 1
+        || g_rb(DISSOLVE_ENABLED) != 1) { hook_call_original(); return; }
+    int member = (s8)g_rb(G_LEADER), slot = dissolve_potion(member);
+    if (slot < 0) {
+        dissolve_missing(member);
+        if (!ns_unwinding) hook_return_far(0);
+        return;
+    }
+    ns_call(GF_show_message, 2, 0x590, 150);   /* the game's dissolve message */
+    if (ns_unwinding) return;
+    ns_call(GF_consume_slot, 2, member, slot);
+    if (ns_unwinding) return;
+    if (g_rb(DISSOLVE_DOOR)) ns_call(GF_door_toggle, 2, g_rb((u16)(MEMBER_DOOR + member)), member);
+    else ns_call(GF_chest_open, 1, member);
+    if (ns_unwinding) return;
+    ns_call(GF_floor_view_draw, 1, -1);
+    if (ns_unwinding) return;
+    ns_call(GF_cbt_cancel_action, 1, member);
+    if (!ns_unwinding) hook_return_far(0);
+}
+
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
@@ -3187,10 +3259,12 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook },
     { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
     { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook },
-    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook }, { 30, 0x1462, 0x1c76, westedge_hook }, { GF_lock_pick, bestpick_hook } };   /* (hitsound: mods/sfx.c) */
+    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook }, { 30, 0x1462, 0x1c76, westedge_hook }, { GF_lock_pick, bestpick_hook },
+    { 16, 0x1ef8, 0x0f76, dissolve_key_hook } };   /* (hitsound: mods/sfx.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
+    { "dissolve", GF_cbt_location_action, dissolve_order_hook },
     { "tomb", GF_combat_over, tomb_over_hook },
     { "dwarfrelic", GF_event_new, dwarfrelic_event_hook }, { "dwarfrelic", GF_chest_open, dwarfrelic_chest_hook }, { "dwarfrelic", 40, 0x1462, 0x0000, dwarfrelic_screen_hook },
     { "carditems", GF_add_items_impl, carditems_n_hook }, { "carditems", 31, 0x18e7, 0x0128, carditems_one_hook }, { "carditems", GF_add_item_q, carditems_q_hook },
