@@ -2,6 +2,10 @@
 
 ## Next (not yet released)
 
+**Added**
+
+- **Nearby work** in the world map's Find panel shows quest givers in known towns, sorted by land travel time. See current quest odds and when cooldowns end. Select a town to see its map details and travel options.
+
 **Fixed**
 
 - **A robber knight slain is paid for:** when he fell in a fight that did not end as a plain victory (after sneaking up on his tower, or let in by a saint), his keep burnt but no patron ever paid. The quest is now done however he fell.

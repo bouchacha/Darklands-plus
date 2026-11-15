@@ -26,7 +26,7 @@ extern "C" {
 enum { OFS_NONE, OFS_ASK, OFS_SHUT, OFS_ON_TASK, OFS_REWARD, OFS_BARRED };
 typedef struct {
     int state;                       /* OFS_* */
-    int chance;                      /* OFS_ASK: percent that asking brings a task (-1: per visit, see note) */
+    int chance;                      /* percent for OFS_ASK or a reduced audience chance during OFS_SHUT, -1 if absent */
     int hour, day, month, year;      /* OFS_SHUT: until (the end of the lock) */
     char note[320];                  /* what, and why, in words */
 } OfficeStatus;
