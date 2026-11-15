@@ -423,6 +423,8 @@ Fix FIXES[] = {
       "A save that names the same character in two party slots could end the game while loading a missing shield picture. Loading now keeps that character in the first slot and empties the repeated slots. The roster keeps every character record, and the next save records the corrected party.", 1 },
     { "dissolve", "Dissolving a lock uses the acting member's Eater-Water",
       "The Dissolve Lock shortcut could take another member's item, and an order given before items moved could use up the wrong stack. Dissolving now uses the acting member's weakest Eater-Water. If that member has none left, the order is canceled.", 1 },
+    { "stairsreturn", "Stairs use the member's own floor and a safe arrival",
+      "A member on another floor could take stairs from the floor being viewed, or arrive in a wall when a mine's arrival point was blocked. Stairs now use the member's own floor and check a safe landing first, using the return stairs when needed. An unusable stair record leaves the member where they are.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -3589,7 +3591,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
     { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook },
     { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook }, { 30, 0x1462, 0x1c76, westedge_hook }, { GF_lock_pick, bestpick_hook },
-    { 37, 0x1462, 0x2ace, save_records_hook }, { -2, 0, 0, 0 }, { 38, 0x1462, 0x02f8, innroster_key_hook }, { GF_party_remove, leaving_record_hook }, { -2, 0, 0, 0 }, { 37, 0x1c7d, 0x0d24, duplicate_load_hook }, { 16, 0x1ef8, 0x0f76, dissolve_key_hook } };   /* (hitsound: mods/sfx.c) */
+    { 37, 0x1462, 0x2ace, save_records_hook }, { -2, 0, 0, 0 }, { 38, 0x1462, 0x02f8, innroster_key_hook }, { GF_party_remove, leaving_record_hook }, { -2, 0, 0, 0 }, { 37, 0x1c7d, 0x0d24, duplicate_load_hook }, { 16, 0x1ef8, 0x0f76, dissolve_key_hook }, { -2, 0, 0, 0 } };   /* (hitsound: mods/sfx.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {

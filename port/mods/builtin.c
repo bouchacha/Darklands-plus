@@ -181,6 +181,7 @@ void mods_init(void)
     { void orders_init(void); orders_init(); }
     { void battlescroll_init(void); battlescroll_init(); }
     { void levelwalk_init(void); levelwalk_init(); }
+    { void stairsfix_init(void); stairsfix_init(); }
     { void pack_init(void); pack_init(); }
     { void battlerules_init(void); battlerules_init(); }
     { void battleend_init(void); battleend_init(); }
