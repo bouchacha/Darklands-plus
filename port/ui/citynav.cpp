@@ -27,9 +27,7 @@
 #include "ui.h"
 #include "gamedata.h"
 #include "teachersui.h"
-extern "C" {
-#include "../mods/offices.h"
-}
+#include "citynav.h"
 #include "townicons.h"
 #include "quests.h"
 extern "C" {
@@ -808,6 +806,45 @@ extern "C" void citynav_test_places(void)                  /* (test ugotoplaces:
     for (int d = 0; d < D_N; d++) if (present(d)) fprintf(stderr, " %d", d);
     fprintf(stderr, "\n");
 }
+/* Which destinations offer quests in the game's cards. In a town with a council the lord
+   gives quests at the hall. */
+static int work_giver(int d, int town)
+{
+    switch (d) {
+    case D_MERCHANT: return 0;
+    case D_FOREIGN: return 4;
+    case D_PHARMACIST: return 5;
+    case D_MEDICI: return 6;
+    case D_HANSE: return 7;
+    case D_FUGGER: return 8;
+    case D_CATHEDRAL: return 3;
+    case D_TOWNHALL: return 10;
+    case D_FORTRESS:
+        if (town >= 0 && town < (int)gamedata.cities.size() && (gamedata.cities[town].buildings & 2)) return -1;
+        return 10;
+    default: return -1;
+    }
+}
+
+bool citynav_work_enabled(void)
+{
+    return config_get_int("assist.goto_work", 1) && !config_get_int("original", 0);
+}
+
+std::vector<TownOffice> citynav_town_offices(int town)
+{
+    std::vector<TownOffice> offices;
+    if (town < 0 || town >= (int)gamedata.cities.size()) return offices;
+    for (int d = 0; d < D_N; d++) {
+        int giver = work_giver(d, town);
+        if (giver < 0 || !present_at(d, town)) continue;
+        OfficeStatus status;
+        if (office_status(town, giver, d == D_TOWNHALL, &status) && status.state != OFS_NONE)
+            offices.push_back({ DEST[d].label, DEST[d].icon, status });
+    }
+    return offices;
+}
+
 /* the marketplace by night ($Marke01, is_daylight: 5:00 to 18:59) offers no stall or office, only a
    sneak upstairs: the places reached through it are shut until 5:00 */
 static bool is_night(void) { int h = (s16)g_rw(GV_cur_hour); return h >= 19 || h < 5; }
@@ -1018,7 +1055,7 @@ extern "C" int citynav_window(void)
             tasks = dest_tasks(cur); tasks_frame = ImGui::GetFrameCount();   /* (read twice a second) */
             nteach = ui_teachers_on() ? ui_town_teachers(cur, teach, 12) : 0;
         }
-        bool work_on = config_get_int("assist.goto_work", 1) && !config_get_int("original", 0);
+        bool work_on = citynav_work_enabled();
         float lh = ImGui::GetFontSize(), sfs = lh * 0.8f, slh = sfs * 1.18f, pad = 6 * scale, rnd = 6 * scale;
         float is = floorf(lh * 2.1f);                              /* the place's picture */
         float gap = ImGui::GetStyle().ItemSpacing.x;
@@ -1056,16 +1093,17 @@ extern "C" int citynav_window(void)
                 }
             }
             /* a task giver: whether it has a task now, or until when none (mods/offices.h) */
-            int giver = d == D_MERCHANT ? 0 : d == D_FOREIGN ? 4 : d == D_PHARMACIST ? 5 : d == D_MEDICI ? 6 : d == D_HANSE ? 7 : d == D_FUGGER ? 8
-                      : d == D_CATHEDRAL ? 3 : d == D_TOWNHALL || d == D_FORTRESS ? 10 : -1;
-            if (d == D_FORTRESS && city && (gamedata.cities[cur].buildings & 2)) giver = -1;   /* (a town with a council: the lord gives none at the fortress) */
+            int giver = work_giver(d, cur);
             OfficeStatus os;
             if (giver >= 0 && work_on && office_status(cur, giver, d == D_TOWNHALL, &os)) {
                 char b[64]; ImU32 c = BROWN;
                 switch (os.state) {
                 case OFS_ASK: snprintf(b, sizeof b, "Quest chance %d%%", os.chance); c = GREEN;
                     if (giver == 0 || giver == 4 || giver == 5) T.tip.push_back({ "Quests", "A merchant may offer a quest after you have bought or sold something." }); break;
-                case OFS_SHUT: snprintf(b, sizeof b, "No quests until %d %s", os.day, gm_month_short((os.month % 12 + 12) % 12)); break;
+                case OFS_SHUT:
+                    if (os.chance >= 0) snprintf(b, sizeof b, "%d%% audience until %d %s", os.chance, os.day, gm_month_short(os.month));
+                    else snprintf(b, sizeof b, "No quests until %d %s", os.day, gm_month_short(os.month));
+                    break;
                 case OFS_ON_TASK: snprintf(b, sizeof b, "On a quest for them"); c = BLUE; break;
                 case OFS_REWARD: snprintf(b, sizeof b, "Your reward is waiting"); c = GOLDD; break;
                 case OFS_BARRED: snprintf(b, sizeof b, "No quests: reputation too low"); c = REDD; break;

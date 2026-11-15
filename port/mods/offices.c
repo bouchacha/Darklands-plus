@@ -81,13 +81,17 @@ int office_status(int loc, int g, int hall, OfficeStatus *o)
         snprintf(o->note, sizeof o->note, "Each time you ask the canon (by day), there is %s %d%% chance of a quest (your reputation in this town minus 50): a robber knight to hunt or an item to fetch. If none comes, or you turn it down, there is no new quest for three days.", gm_a_an(p + 1), p + 1);
         return 1; }
     case 10: {
-        if (lock) return shut(o, lock, "You asked for an audience lately: for a week the chance is only 1%.");
         if (rep <= -40) { o->state = OFS_BARRED; snprintf(o->note, sizeof o->note, "The lord grants no audience while your reputation in this town is -40 or lower."); return 1; }
+        int reward = reward_waiting(10, loc);
+        if (hall && reward) { o->state = OFS_REWARD; snprintf(o->note, sizeof o->note, "You finished a quest for the lord: your reward is waiting (an audience is certain)."); return 1; }
+        if (lock) {
+            o->chance = 1;
+            return shut(o, lock, "You asked for an audience lately: for a week the chance is only 1%.");
+        }
         int p = (rep + speaker() / 2) / 2;
         p = hall ? clampi(1, 70, p) : clampi(0, 99, p);
-        if (hall && reward_waiting(10, loc)) { o->state = OFS_REWARD; snprintf(o->note, sizeof o->note, "You finished a quest for the lord: your reward is waiting (an audience is certain)."); return 1; }
         o->state = OFS_ASK; o->chance = p;               /* (the number the card itself shows on the option: the same) */
-        if (!hall && reward_waiting(10, loc)) { snprintf(o->note, sizeof o->note, "You finished a quest for the lord. In a town without a council the original game never pays this reward; with the fix \"The lord pays for his quests\" on, he pays it at an audience."); return 1; }
+        if (reward) { snprintf(o->note, sizeof o->note, "You finished a quest for the lord. In a town without a council the original game never pays this reward; with the fix \"The lord pays for his quests\" on, he pays it at an audience."); return 1; }
         snprintf(o->note, sizeof o->note, hall ? "Each request for an audience with the council has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's {Charisma} and {Speak Common}). An audience brings a robber knight to hunt or an item to fetch, half and half. After a request the chance is 1%% for a week."
                                                : "Each request for an audience with the lord has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's {Charisma} and {Speak Common}). An audience brings a robber knight to hunt. After a request the chance is 1%% for a week.", gm_a_an(p), p);
         return 1; }

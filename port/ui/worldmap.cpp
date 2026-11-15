@@ -15,6 +15,7 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <utility>
 #include <SDL.h>
 #include "padglyphs.h"
 #include "imgui.h"
@@ -23,6 +24,8 @@ extern "C" int ns_showing(void);
 #include "teachersui.h"
 #include "quests.h"
 #include "townicons.h"
+#include "citynav.h"
+#include "richtext.h"
 #include "libraries.h"
 #include "ui.h"
 #include "ornament.h"
@@ -34,6 +37,7 @@ extern "C" {
 #include "../runtime/config.h"
 #include "../mods/worldmap.h"
 #include "../mods/travel.h"
+#include "../mods/gamemodel.h"
 int journal_visited(int loc);
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
@@ -76,6 +80,7 @@ std::string journal_travel_days(int loc);
 void ui_town_lists_panel(int loc);                /* ui/margins.cpp */   /* ui/journal.cpp: "3 days" */
 extern "C" int journal_buy_window(bool *open, int what), journal_town_noted(int loc); extern "C" void journal_town_wares(int loc);   /* ui/journal.cpp */
 static int selected = -1;
+static bool nearby_work_open;
 static int dock_hover = -1, dock_hover_next = -1;          /* the place panel's boat destination under the pointer (last frame): ringed on the map */
 static bool show_names = true, show_quests = true, show_icons = true, show_boats = true, show_days = false;
 static bool show_kind[16] = { true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true };   /* by icon kind (the legend's entries switch them) */
@@ -150,6 +155,7 @@ extern "C" int worldmap_open(void)
     if (game_mode() == GM_OTHER || game_mode() == GM_BATTLE) return 0;
     if (!worldmap_build()) return 0;
     upload();
+    nearby_work_open = false;
     int px, py; party_tile(&px, &py);
     if (cx < 0 || px >= 0) tile_px(px, py, &cx, &cy);
     if (getenv("DL_WM_ZOOM")) zoom = (float)atof(getenv("DL_WM_ZOOM"));   /* test */
@@ -193,6 +199,144 @@ extern "C" int worldmap_find_escape(int typing)
     if (!wm_find[0]) return 0;
     if (!typing) wm_find[0] = 0;
     return 1;
+}
+
+/* Finding a town uses the same map selection as clicking its marker. */
+static void focus_place(const Place &place)
+{
+    tile_px(place.x, place.y, &cx, &cy);
+    if (zoom < 0.6f) zoom = 0.6f;
+    selected = place.loc;
+}
+
+struct NearbyTownWork {
+    Place place;
+    int minutes;
+    std::vector<TownOffice> offices;
+};
+
+static std::vector<NearbyTownWork> nearby_work_towns(const std::vector<Place> &places)
+{
+    const bool overland = game_mode() == GM_MAP;
+    const int current_town = overland ? -1 : (s16)g_rw(G_CUR_LOC);
+    int ox = 0, oy = 0;
+    const bool has_origin = overland || travel_party_at(&ox, &oy);
+    std::vector<NearbyTownWork> towns;
+    for (const Place &place : places) {
+        if (place.loc >= (int)gamedata.cities.size() || !place_offers_known(place.loc)) continue;
+        auto offices = citynav_town_offices(place.loc);
+        if (offices.empty()) continue;
+        int minutes = -1;
+        if (place.loc == current_town) minutes = 0;
+        else if (overland) minutes = travel_minutes_loc(place.loc, nullptr, nullptr);
+        else if (has_origin) minutes = travel_minutes_loc_from(ox, oy, place.loc);
+        towns.push_back({ place, minutes, std::move(offices) });
+    }
+    std::stable_sort(towns.begin(), towns.end(), [](const NearbyTownWork &a, const NearbyTownWork &b) {
+        return (a.minutes < 0 ? INT_MAX : a.minutes) < (b.minutes < 0 ? INT_MAX : b.minutes);
+    });
+    return towns;
+}
+
+static void nearby_work_status(const TownOffice &office)
+{
+    const OfficeStatus &status = office.status;
+    const bool trade = office.icon == TI_MARKET || office.icon == TI_FOREIGN || office.icon == TI_PHARMACY;
+    const bool audience = office.icon == TI_TOWNHALL || office.icon == TI_FORTRESS;
+    ImVec4 ink = ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled);
+    char label[96];
+    switch (status.state) {
+    case OFS_ASK:
+        if (status.chance < 0) snprintf(label, sizeof label, "May offer work");
+        else snprintf(label, sizeof label, "%d%% %s", status.chance,
+                      trade ? "after trading" : audience ? "audience" : "quest chance");
+        if (status.chance != 0) ink = ImVec4(0.15f, 0.39f, 0.13f, 1);
+        break;
+    case OFS_SHUT: {
+        char end[48];
+        snprintf(end, sizeof end, "%d %s %d, %02d:00", status.day, gm_month_short(status.month), status.year, status.hour);
+        if (status.chance >= 0) snprintf(label, sizeof label, "%d%% until %s", status.chance, end);
+        else snprintf(label, sizeof label, "No work until %s", end);
+        break;
+    }
+    case OFS_ON_TASK: snprintf(label, sizeof label, "Quest under way"); break;
+    case OFS_REWARD:
+        snprintf(label, sizeof label, "Reward waiting");
+        ink = ImVec4(0.56f, 0.32f, 0.03f, 1);
+        break;
+    case OFS_BARRED: snprintf(label, sizeof label, "Reputation too low"); break;
+    default: return;
+    }
+    ImGui::PushStyleColor(ImGuiCol_Text, ink);
+    ImGui::TextWrapped("%s", label);
+    ImGui::PopStyleColor();
+    if (status.note[0] && ImGui::BeginItemTooltip()) {
+        ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + UIS(360));
+        ui_rich_text(status.note);
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
+}
+
+static void nearby_work_window(const std::vector<NearbyTownWork> &towns, float scale, float pad)
+{
+    const ImVec2 size = ImGui::GetIO().DisplaySize;
+    const float margin = 2 * pad;
+    const float width = fminf(size.x - 2 * margin, UIS(470) * scale);
+    const float max_height = fminf(size.y * 0.76f, UIS(540) * scale);
+    ImGui::SetNextWindowPos(ImVec2(margin, size.y * 0.5f), ImGuiCond_Always, ImVec2(0, 0.5f));
+    ImGui::SetNextWindowSizeConstraints(ImVec2(width, 0), ImVec2(width, max_height));
+    ImGui::SetNextWindowBgAlpha(0.97f);
+    if (ImGui::Begin("Nearby work", &nearby_work_open, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove |
+                     ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar)) {
+        ImGui::SetWindowFontScale(scale);
+        if (towns.empty()) {
+            ImGui::TextWrapped("No quest givers are known yet. Visit a town to see who offers work there.");
+        } else {
+            ImGui::TextWrapped("Closest by land. Current daytime odds may change before you arrive.");
+            ImGui::Spacing();
+            float rows_height = fmaxf(1.0f, max_height - ImGui::GetCursorPosY() - ImGui::GetStyle().WindowPadding.y);
+            ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, rows_height));
+            if (ImGui::BeginChild("##work_results", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY)) {
+                if (ImGui::IsWindowAppearing()) ImGui::SetScrollY(0);
+                if (ImGui::BeginTable("##work", 2, ImGuiTableFlags_SizingStretchSame)) {
+                    for (const NearbyTownWork &town : towns) {
+                        ImGui::PushID(town.place.loc);
+                        ImGui::TableNextRow();
+                        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, ImGui::GetColorU32(ImGuiCol_Header));
+                        ImGui::TableNextColumn();
+                        if (ui_font_bold) ImGui::PushFont(ui_font_bold);
+                        if (ImGui::Selectable(town.place.name.c_str(), false, ImGuiSelectableFlags_SpanAllColumns)) {
+                            focus_place(town.place);
+                            nearby_work_open = false;
+                        }
+                        if (ui_font_bold) ImGui::PopFont();
+                        ImGui::SetItemTooltip("Show %s on the map", town.place.name.c_str());
+                        ImGui::TableNextColumn();
+                        const std::string time = town.minutes < 0 ? "Land route unavailable" : town.minutes == 0 ? "Here" : hhmm(town.minutes);
+                        ImGui::TextWrapped("%s", time.c_str());
+                        for (const TownOffice &office : town.offices) {
+                            ImGui::TableNextRow();
+                            ImGui::TableNextColumn();
+                            float icon = ImGui::GetTextLineHeight();
+                            ImVec2 p = ImGui::GetCursorScreenPos();
+                            ImGui::Dummy(ImVec2(icon, icon));
+                            if (ImGui::IsItemVisible())
+                                ui_draw_town_icon(ImGui::GetWindowDrawList(), ImVec2(p.x + icon * 0.5f, p.y + icon * 0.5f), icon, office.icon);
+                            ImGui::SameLine();
+                            ImGui::TextWrapped("%s", office.name);
+                            ImGui::TableNextColumn();
+                            nearby_work_status(office);
+                        }
+                        ImGui::PopID();
+                    }
+                    ImGui::EndTable();
+                }
+            }
+            ImGui::EndChild();
+        }
+    }
+    ImGui::End();
 }
 
 /* what a place has, for the pointer on it and for the place picked in the panel: its offers, the
@@ -793,6 +937,8 @@ extern "C" void worldmap_draw(void)
         return click;
     };
     bool find_open = fold_head("Find...", FOLD_FIND);
+    bool work_enabled = citynav_work_enabled();
+    static std::vector<NearbyTownWork> work_towns;
     if (find_open || wm_test_enter) {
         /* a place by its name, then the finders: each a field or a button with its picture inside at the left */
         const float fh = ImGui::GetFrameHeight(), fis = fh * 0.78f;
@@ -837,7 +983,7 @@ extern "C" void worldmap_draw(void)
                 const Place &p = *hits[i].second;
                 ImGui::PushID(p.loc);
                 ImVec2 a = ImGui::GetCursorScreenPos();
-                if (ImGui::Selectable("##hit", false, 0, ImVec2(rw, 0)) || (enter && i == 0)) {   /* (Enter: the first) */ fprintf(stderr, "world map: found %s\n", p.name.c_str()); tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; selected = p.loc; find[0] = 0; }
+                if (ImGui::Selectable("##hit", false, 0, ImVec2(rw, 0)) || (enter && i == 0)) {   /* (Enter: the first) */ fprintf(stderr, "world map: found %s\n", p.name.c_str()); focus_place(p); find[0] = 0; }
                 ImGui::PopID();
                 draw_icon(pdl, ImVec2(a.x + isz * 0.5f, a.y + lh * 0.5f), isz, icon_kind(p.kind));
                 std::string t = hits[i].first >= 0 ? hhmm(hits[i].first) : std::string();
@@ -857,13 +1003,19 @@ extern "C" void worldmap_draw(void)
             if (hits.size() > 8) ImGui::TextDisabled("and %d more: type more of the name to narrow the list", (int)hits.size() - 8);
             if (hits.empty()) ImGui::TextDisabled("No place of that name.");
         }
+        if (find_open && work_enabled && pic_button("Nearby work", nearby_work_open,
+                [&](ImVec2 c) { ui_draw_quest_icon(fdl, c, fis * 1.1f, QC_RETRIEVE); })) {
+            nearby_work_open = !nearby_work_open;
+            /* The map holds the game clock. Read the party, events and routes when opening the list. */
+            if (nearby_work_open) work_towns = nearby_work_towns(P);
+        }
         {   /* the two finders: windows of their own (ui/journal.cpp); a click on a town there shows it here */
             static bool buy_open[2];
             if (pic_button("Alchemical ingredients", buy_open[0], [&](ImVec2 c) { ui_draw_town_icon(fdl, c, fis * 1.1f, TI_PHARMACY); })) buy_open[0] = !buy_open[0];   /* (sold by the apothecaries) */
             if (pic_button("Any ware", buy_open[1], [&](ImVec2 c) { ui_draw_town_icon(fdl, c, fis * 1.1f, TI_MARKET); })) buy_open[1] = !buy_open[1];
             for (int w = 0; w < 2; w++) if (buy_open[w]) {
                 int pick = journal_buy_window(&buy_open[w], w);
-                if (pick >= 0) for (const Place &p : P) if (p.loc == pick) { tile_px(p.x, p.y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; selected = pick; }
+                if (pick >= 0) for (const Place &p : P) if (p.loc == pick) { focus_place(p); break; }
             }
         }
         int fo = config_get_int("map.folded", FOLD_LEGEND | FOLD_TOWNS | FOLD_BUY);   /* (the towns' kinds: shown or not, kept) */
@@ -897,7 +1049,7 @@ extern "C" void worldmap_draw(void)
                     float w = ImGui::CalcTextSize(lb, nullptr, true).x + ImGui::GetStyle().FramePadding.x * 2;
                     if (linew > 0 && linew + sp + w <= wmax) { ImGui::SameLine(); linew += sp + w; }   /* (a row of buttons, wrapped) */
                     else linew = w;
-                    if (ImGui::SmallButton(lb)) { tile_px(e.second->x, e.second->y, &cx, &cy); if (zoom < 0.6f) zoom = 0.6f; selected = e.second->loc; }
+                    if (ImGui::SmallButton(lb)) focus_place(*e.second);
                 }
             }
         }
@@ -943,6 +1095,8 @@ extern "C" void worldmap_draw(void)
         if (ui_font_small) ImGui::PopFont();
     }
     ImGui::End();
+    if (find_open && work_enabled && nearby_work_open) nearby_work_window(work_towns, pk, pad);
+    else nearby_work_open = false;
     {   /* the lower right: the party's mark, pulsing as on the map; a click centres the map on it */
         int px = -1, py = -1; party_tile(&px, &py);
         if (px >= 0) {
