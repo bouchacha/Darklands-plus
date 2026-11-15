@@ -15,6 +15,12 @@ static char roster_path[] = "/tmp/dl-inn-roster-XXXXXX";
 static int listing, original_calls, original_row, last_picture, expected_record;
 static int list_entries[20], listed;
 static char picture_name[64];
+static int original_mode;
+
+int config_get_int(const char *key, int def)
+{
+    return !strcmp(key, "original") ? original_mode : def;
+}
 
 void dos_host_path_read(const char *name, char *out, size_t n)
 {
@@ -65,7 +71,7 @@ static void fixture(void)
     memset(M, 0, MEM_SIZE); memset(&R, 0, sizeof R);
     SS = DS = G_DGROUP; SP = 0x8000;
     original_calls = 0; original_row = -1; last_picture = 0; picture_name[0] = 0;
-    listing = 0; ns_unwinding = 0;
+    listing = 0; ns_unwinding = 0; original_mode = 0;
     u8 header[32] = { 30, 0, 7, 0, 21, 0, 9, 0, 0xff, 0xff, 0xff, 0xff };
     memcpy(header + 12, "F01\0F60\0C00\0", 12);
     FILE *file = fopen(roster_path, "wb"); assert(file);
@@ -132,6 +138,13 @@ int main(void)
     listing = 0; expected_record = -1;
     press(0x1352);                         /* Return still reaches the screen's normal exit with no rows */
     assert(original_row == -1);
+
+    fixture(); original_mode = 1; listing = 1; listed = 2;
+    g_ww(GV_roster_sel, 4); innroster_list_hook();
+    assert(g_rw(GV_roster_n) == 30 && g_rw(GV_roster_sel) == 4);
+    listing = 0; expected_record = 4;
+    press(0x5000); press(0x231);
+    assert(original_row == 4 && original_calls == 3 && !picture_name[0]);
 
     unlink(roster_path); free(M);
     puts("inn roster regression checks: PASS");

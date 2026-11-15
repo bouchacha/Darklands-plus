@@ -588,7 +588,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:2470` | You need a missile weapon |
 | `mods/fixes.c:2548` | Not bought: nobody in the party has room for another kind of item. |
 | `mods/fixes.c:2566` | Nobody in the party has room for another kind of item. |
-| `mods/fixes.c:3299` | a hook (or { -2 }) for each fix, in the same order |
+| `mods/fixes.c:3301` | a hook (or { -2 }) for each fix, in the same order |
 
 ## The interface (ui/)
 

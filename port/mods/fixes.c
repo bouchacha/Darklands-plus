@@ -3183,6 +3183,7 @@ static void bestpick_hook(void)                 /* lock_pick (lock) */
 
 static void innroster_list_hook(void)
 {
+    if (config_get_int("original", 0)) { hook_call_original(); return; }
     for (int row = 0; row < INN_ROW_LIMIT; row++) g_ww((u16)(INN_ROWS + 2 * row), 0xffff);
     hook_call_original();
     if (ns_unwinding) return;
@@ -3259,6 +3260,7 @@ static void innroster_arrow(int key)
 
 static void innroster_key_hook(void)
 {
+    if (config_get_int("original", 0)) { hook_call_original(); return; }
     int key = rw(SS, (u16)(SP + 4));
     if (key == 0x4800 || key == 0x4b00 || key == 0x4d00 || key == 0x5000) {
         innroster_arrow(key);
