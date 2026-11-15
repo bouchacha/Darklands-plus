@@ -284,10 +284,10 @@ static void nearby_work_window(const std::vector<NearbyTownWork> &towns, float s
     const float margin = 2 * pad;
     const float width = fminf(size.x - 2 * margin, UIS(470) * scale);
     const float max_height = fminf(size.y * 0.76f, UIS(540) * scale);
-    ImGui::SetNextWindowPos(ImVec2(margin, size.y * 0.5f), ImGuiCond_Always, ImVec2(0, 0.5f));
+    ImGui::SetNextWindowPos(ImVec2(margin, (size.y - max_height) * 0.5f), ImGuiCond_Appearing);
     ImGui::SetNextWindowSizeConstraints(ImVec2(width, 0), ImVec2(width, max_height));
     ImGui::SetNextWindowBgAlpha(0.97f);
-    if (ImGui::Begin("Nearby work", &nearby_work_open, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove |
+    if (ImGui::Begin("Nearby work", &nearby_work_open, ImGuiWindowFlags_NoCollapse |
                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar)) {
         ImGui::SetWindowFontScale(scale);
         if (towns.empty()) {
