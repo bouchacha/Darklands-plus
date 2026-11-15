@@ -4,6 +4,8 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 
 **Install:** unpack the zip anywhere and start `darklands.exe`. It finds a GOG or Steam installation by itself or asks for the folder once. The first start takes about two minutes while Darklands+ translates the game program from your `DARKLAND.EXE`; after that it starts at once. Your saved games stay where they always were. `Darklands+ README.txt` in the zip has the details.
 
+The next release fixes saving after a member was lost, when an empty party slot could make the save omit a character record and load the following data in the wrong places.
+
 **New in 1.5** (what changed since 1.4.6)
 
 **Added**
