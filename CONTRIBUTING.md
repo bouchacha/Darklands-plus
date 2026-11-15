@@ -75,8 +75,24 @@ All tests copy the game folder; it is never changed.
    `rb(G_FAR2E38, ...)`; layouts in `docs/ENGINE.md`, `port/runtime/game.h` and the comments).
 3. Give the change a switch (`config_get_int("...", default)`, shown in the F12 menu), and make
    it stay off with "Play the original game" (`config_get_int("original", 0)`).
-4. Write a line about it in `docs/release_notes.md` (and `docs/MODDING.md` for modders), test
-   it with the tools above, and keep comments to what the code does and why.
+4. Write a short entry under "Next" at the top of `CHANGELOG.md` (and `docs/MODDING.md` for
+   modders), test it with the tools above, and keep comments to what the code does and why.
+   Leave `docs/release_notes.md`, the README's count of fixes and the generated documents
+   (`docs/CODE_MAP.md`, `docs/COPY.md`, `docs/SWITCHES.md`, `docs/MERGING.md`) alone: the
+   maintainer writes the notes at a release and `port/tools/check_docs.py --fix` regenerates
+   the rest, so pull requests made side by side do not clash there.
+
+## Pull requests
+
+Thank you for them. To make them quick to take:
+
+* One fix or feature a pull request, from the latest `master`.
+* Say how a player meets the bug in the game (what to do, or a save that shows it), besides how
+  it was found; a fix tested only in a made-up state is still welcome, but say so.
+* Send a few at a time: each is tested in the game before it is merged, and a change to saving
+  or loading most carefully, since a mistake there can cost a player a campaign.
+* A fix to the original game's code gets a switch in `port/mods/fixes.c` (on by default, off
+  with "Play the original game"), as the others do.
 
 ## Where to find things
 

@@ -103,11 +103,12 @@ void tab_about(void)
     { void ui_report_section(void); ui_report_section(); }   /* (ui/report.cpp) */
     ImGui::PushFont(font_head); orn_septext("Made with"); ImGui::PopFont();
     ui_hint("Dear ImGui (MIT license); Nuked OPL3, the Sound Blaster FM synthesis (LGPL 2.1); Munt's libmt32emu, the Roland MT-32 (LGPL 2.1); stb_image, stb_image_write, "
-         "stb_vorbis (public domain); SDL2 (zlib license); fonts EB Garamond, Alegreya, Atkinson Hyperlegible, IM Fell English, "
+         "stb_vorbis (public domain); SDL2 and Mark Adler's blast (zlib license); fonts EB Garamond, Alegreya, Atkinson Hyperlegible, IM Fell English, "
          "MedievalSharp, UnifrakturMaguntia, Grenze Gotisch and Comic Neue (SIL Open Font License 1.1).");
     ui_hint("Darklands was designed by Arnold Hendrick and made by MicroProse; everything here stands on their game.");
     ui_hint("With thanks to the Darklands community: vvendigo's tools, Merle's and Joel \"Quadko\" McIntyre's documentation "
-         "of the file formats, the Darklands Companion, and Arkana Mechanika (Darklands Restoration) for bug reports.");
+         "of the file formats, the Darklands Companion, Arkana Mechanika (Darklands Restoration) for its register of the original's bugs, "
+         "and woodk123 for fixes.");
 }
 
 /* F11: the keys and clicks of the moment (F1 ... F5 are the game's: a member's sheet) (the game's own and Darklands+'s) */

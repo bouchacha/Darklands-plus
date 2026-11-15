@@ -4,7 +4,16 @@
 
 **Fixed**
 
-- **Saving after a member was lost** could leave out a character record while still counting it in the save. Every record is now written, including an empty party slot's, so the following characters, events and locations load in their proper places.
+- **Saving after a member was lost** to the Wild Hunt could leave a character's record out of the save while still counting it, so the save loaded the rest in the wrong places. Every record is now written.
+- **Inn stores lost items:** going back to one inn's store could wipe what was left at another. Each store now keeps its own, and an item whose move cannot be saved stays where it was.
+- **Damaged saves** are refused before loading, instead of ending the game or replacing the party with half a save.
+- **A save naming one character twice** ended the game while loading; the character is now kept once.
+- **A companion who left** was stored with old saints, formulae and items; now with what they had.
+- **The inn's roster:** choosing a member on the fifth row or lower could end the game, and the color keys could change another member.
+- **Stairs taken by a member on another floor** used the floor on screen, or left them in a mine's wall; they now use the member's own floor and a safe landing.
+- **Dissolve Lock** could use up another member's Eater-Water; it now uses the acting member's.
+
+All eight are woodk123's pull requests (#14 to #21), from bugs listed by Arkana Mechanika's Darklands Restoration.
 
 ## 1.5
 

@@ -679,3 +679,13 @@ covered and found, and what it could not check.
   chest_pending, chest_goal and the arrival's Open Chest / leader-chosen went; the click is the game's own move).
   Walking in single file left the member who should open it, by Artifice, far from it. Pointing at a chest still
   names it, locked or trapped once known, and says to open it from the orders of a member beside it.
+- 2026-11-15 (his ask: "address the pull requests as you see fit", then "check Darklands Restoration for
+  issues you missed and credit"): woodk123's eight pull requests #14 to #21 merged, each by its own merge
+  commit; they all added at the same places of fixes.c (FIXES, the HOOKS tail, MORE, fixgroups), resolved
+  in order, the HOOKS order matching FIXES (the _Static_assert holds). Their release-notes lines dropped,
+  the changelog written as one "Next" section, README count and the generated documents by check_docs.
+  Tested: their nine C tests on the merged code (all pass), the save check against the 172 saves we hold
+  (none refused), the build without warnings, the full release check. CONTRIBUTING.md now asks for the
+  changelog entry instead of release notes and for how a player meets the bug. register_crosscheck.md
+  brought to the register's 277 entries (121 new: 36 fixed already, 19 by the pull requests, 54 open, most
+  of those the party split across floors). Credit: README, the About screen (and blast's licence there).
