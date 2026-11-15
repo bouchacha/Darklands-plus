@@ -576,17 +576,19 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:409` | Leaving any of the nine places near the travel map's west edge (Nancy, Elberg, Valkenberg, Tongeren, Gemert, Helmond, Limberg, Spa and Briey) put the party 2 to 5 tiles east of it, and wherever the travel map's view reached that edge, the party was drawn a tile east of where the game had it. The party now comes out beside the place, as everywhere else, and is drawn where it is. |
 | `mods/fixes.c:410` | A lock is picked with the best lock picks |
 | `mods/fixes.c:411` | Picking a lock in a castle, a mine or a dungeon, the game used the member's first lock picks, whatever their quality, though a better set lay further down the pack (or, with the shared pack, with someone else): the quality adds to the chance (Pick Locks + quality - 25). Now the best lock picks the member, or with the shared pack the party, carries are used. |
-| `mods/fixes.c:742` | if (col == 0) col = 1 |
-| `mods/fixes.c:1308` | The store room keeps at most 127 of one item. |
-| `mods/fixes.c:1309` | The store room is full: it keeps 100 kinds of items. |
-| `mods/fixes.c:1479` | abandon the horses |
-| `mods/fixes.c:1895` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
-| `mods/fixes.c:2153` | claim friendship |
-| `mods/fixes.c:2205` | It is $NamedOneName again |
-| `mods/fixes.c:2468` | You need a missile weapon |
-| `mods/fixes.c:2546` | Not bought: nobody in the party has room for another kind of item. |
-| `mods/fixes.c:2564` | Nobody in the party has room for another kind of item. |
-| `mods/fixes.c:3191` | a hook (or { -2 }) for each fix, in the same order |
+| `mods/fixes.c:412` | Inn stores keep their items when saved |
+| `mods/fixes.c:413` | Revisiting an inn's store could erase items stored at another inn because the cache file was rewritten from the wrong offsets. Each store is now kept under its own handle. If an item transfer cannot be saved, the item stays where it was; combining shared stores writes both stores together. |
+| `mods/fixes.c:744` | if (col == 0) col = 1 |
+| `mods/fixes.c:1310` | The store room keeps at most 127 of one item. |
+| `mods/fixes.c:1311` | The store room is full: it keeps 100 kinds of items. |
+| `mods/fixes.c:1481` | abandon the horses |
+| `mods/fixes.c:1897` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
+| `mods/fixes.c:2155` | claim friendship |
+| `mods/fixes.c:2207` | It is $NamedOneName again |
+| `mods/fixes.c:2470` | You need a missile weapon |
+| `mods/fixes.c:2548` | Not bought: nobody in the party has room for another kind of item. |
+| `mods/fixes.c:2566` | Nobody in the party has room for another kind of item. |
+| `mods/fixes.c:3193` | a hook (or { -2 }) for each fix, in the same order |
 
 ## The interface (ui/)
 
@@ -2840,6 +2842,20 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/builtin.c:108` | Strong Quickstart party |
 | `mods/builtin.c:108` | The four members of the Quickstart party start with 60 in every attribute and 75 in every skill. |
 | `mods/builtin.c:109` | A party made with Create a New World starts with 5000 florins instead of 200. |
+| `mods/cachefile.c:48` | the store file is incomplete |
+| `mods/cachefile.c:50` | the store offset table is incomplete |
+| `mods/cachefile.c:53` | a store has an invalid offset |
+| `mods/cachefile.c:55` | a stored item list is incomplete |
+| `mods/cachefile.c:59` | the file already holds 98 stores |
+| `mods/cachefile.c:61` | this inn has no valid store handle |
+| `mods/cachefile.c:63` | the stores to combine are invalid |
+| `mods/cachefile.c:72` | the store file has no room for another item |
+| `mods/cachefile.c:105` | the inn has no location |
+| `mods/cachefile.c:107` | the store exceeds its 100-entry working table |
+| `mods/cachefile.c:109` | there is not enough memory |
+| `mods/cachefile.c:115` | the store file could not be read |
+| `mods/cachefile.c:128` | the store file could not be written |
+| `mods/cachefile.c:138` | The items stay where they were because %s. |
 | `mods/cacheview.c:115` | %d %s to %s (to give it to another member, drag it from the character sheet onto them in the party panel). |
 | `mods/cacheview.c:116` | %d %s into the party's pack. |
 | `mods/cacheview.c:117` | No room: every member already carries 64 kinds of items. |
@@ -3458,7 +3474,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/sfx.c:53` | "cannot go there" |
 | `mods/sfx.c:53` | a beast's or a monster's death (a wolf, a spider, a demon: not a man's cry) |
 | `mods/sfx.c:614` | %d sounds written to %s |
-| `mods/sharedstore.c:121` | This inn's own store room holds too many kinds of items to join the store room shared by every inn (Darklands+): its items stay at this inn until some are taken out. |
+| `mods/sharedstore.c:127` | This inn's own store room holds too many kinds of items to join the store room shared by every inn (Darklands+): its items stay at this inn until some are taken out. |
 | `mods/sheetview.c:266` | No %s is left in the party's pack. |
 | `mods/sheetview.c:268` | %s cannot carry another kind of item. |
 | `mods/sheetview.c:273` | The %s could not be handed to %s. |

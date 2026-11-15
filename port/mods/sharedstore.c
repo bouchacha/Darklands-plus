@@ -30,6 +30,8 @@
 #include "../runtime/config.h"
 #include "nscreen.h"
 #include "../runtime/hle.h"
+#include "cachefile.h"
+#include "fixes.h"
 
 #define F_STORE 0x37f4                       /* cache_items, far 2e38: { int id; char quality; char count; } */
 #define STORE_MAX 100                        /* (the next table starts at 3984) */
@@ -111,10 +113,14 @@ static int merge(int cur)
         if (na < 0 || nt < 0) { if (h == mine) stuck = 1; fprintf(stderr, "store: cache %d or %d holds more than %d kinds: not merged\n", h, H, STORE_MAX); continue; }
         if (!add_into(t, &nt, a, na)) { if (h == mine) stuck = 1; fprintf(stderr, "store: cache %d (%d kinds) does not fit into the shared %d\n", h, na, H); continue; }
         store_write(t, nt);
-        ns_call(GF_cache_save, 1, H); if (ns_unwinding) return mine;
-        ns_call(GF_cache_load, 1, h); if (ns_unwinding) return mine;
-        store_write(t, 0);
-        ns_call(GF_cache_save, 1, h); if (ns_unwinding) return mine;      /* (emptied: no place points at it any more) */
+        int saved = cachefile_merge(H, h);
+        if (saved < 0) return mine;
+        if (!saved) {
+            ns_call(GF_cache_save, 1, H); if (ns_unwinding) return mine;
+            ns_call(GF_cache_load, 1, h); if (ns_unwinding) return mine;
+            store_write(t, 0);
+            ns_call(GF_cache_save, 1, h); if (ns_unwinding) return mine;
+        }
         for (int k = 0; k < G_NLOC; k++) if (loc_cache(k) == h) loc_set_cache(k, H);
         fprintf(stderr, "store: cache %d (%d kinds) joined the shared %d (%d kinds)\n", h, na, H, nt);
     }
@@ -143,6 +149,7 @@ static void close_hook(void)                  /* cache_close(r), s035 1462:04bc 
     hook_call_original();
     if (busy || cur < 0 || cur >= G_NLOC) return;
     int after = loc_cache(cur);
+    if (after >= 1 && fix_is_on("cachefile")) point_towns();  /* a successful P may already have created this store */
     if (before < 1) { if (after >= 1) point_towns(); return; }     /* (the first store: every town's) */
     if (after == before) return;
     u16 ax = AX;

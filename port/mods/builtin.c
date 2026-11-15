@@ -160,6 +160,7 @@ void mods_init(void)
     { void loot_init(void); loot_init(); }
     { void cacheview_init(void); cacheview_init(); }
     { void sharedstore_init(void); sharedstore_init(); }
+    { void cachefile_init(void); cachefile_init(); }
     { void prayview_init(void); prayview_init(); }
     { void createview_init(void); createview_init(); }
     { void rosterview_init(void); rosterview_init(); }

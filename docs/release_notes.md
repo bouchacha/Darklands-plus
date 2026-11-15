@@ -4,6 +4,10 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 
 **Install:** unpack the zip anywhere and start `darklands.exe`. It finds a GOG or Steam installation by itself or asks for the folder once. The first start takes about two minutes while Darklands+ translates the game program from your `DARKLAND.EXE`; after that it starts at once. Your saved games stay where they always were. `Darklands+ README.txt` in the zip has the details.
 
+**Unreleased fixes**
+
+- Revisiting an inn's store could erase items left at another inn. Store files now keep every store under its own handle, and a transfer that cannot be written leaves the item where it was. Shared stores are combined in one write.
+
 **New in 1.5** (what changed since 1.4.6)
 
 **Added**

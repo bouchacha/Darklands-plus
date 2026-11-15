@@ -1,5 +1,9 @@
 # Darklands+ changelog
 
+## Next (not yet released)
+
+- Revisiting an inn's store could erase items left at another inn. Store files now keep every store under its own handle, and a transfer that cannot be written leaves the item where it was. Shared stores are combined in one write.
+
 ## 1.5
 
 What changed since 1.4.6.
