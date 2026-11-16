@@ -411,7 +411,23 @@ static long camp_done, camp_due = -1;
 /* a game loaded (saves_on_loaded): its journey, its camp at 20:00 and a trip waiting to start were the old
    game's (a camp that night already made, a camp due, a journey to take up after it) */
 static int forced_x = -1, forced_y = -1;      /* the tile the last step made certain was taken from (encounter_weight_hook) */
-static void travel_after_load(void) { travel.active = 0; camp_done = 0; camp_due = -1; camp_resume = 0; pend_loc = -1; forced_x = forced_y = -1; }
+static int altar_met = -1;                     /* fix altarroad: the pagan altar whose surroundings brought an encounter */
+static void travel_after_load(void) { travel.active = 0; camp_done = 0; camp_due = -1; camp_resume = 0; pend_loc = -1; forced_x = forced_y = -1; altar_met = -1; }
+/* a place adding far more than any other to the chance of an encounter beside it: the pagan altars (99) */
+static int altar_heavy(int l)
+{
+    u32 a = g_location(l);
+    return a && (s16)rw((u16)(a >> 16), (u16)((a & 0xffff) + 0x0a)) >= 50;
+}
+/* the party more than two tiles from place l */
+static int altar_away(int l)
+{
+    u32 a = g_location(l); int px = -1, py = -1;
+    if (!a) return 1;
+    travel_party_tile(&px, &py);
+    int dx = px - (s16)rw((u16)(a >> 16), (u16)((a & 0xffff) + 4)), dy = py - (s16)rw((u16)(a >> 16), (u16)((a & 0xffff) + 6));
+    return dx > 2 || dx < -2 || dy > 2 || dy < -2;
+}
 static long today(void) { return (long)(s16)g_rw(GV_cur_year) * 400 + (s16)g_rw(GV_cur_month) * 32 + (s16)g_rw(GV_cur_day); }
 /* a member needs rest: short of Strength, or of more Divine Favor than a night brings back. What comes back
    without a camp, from the game's hourly update of the party (hours_pass, s029 0e76:255a, on the road and in
@@ -543,6 +559,10 @@ static void step_hook(void)                 /* s030 1462:0c44 (key): one step of
     int r = (s16)AX;
     foot_fix(e0, c0, y0);
     travel_step_result = r;
+    if (r == 1000 || r == 2000) {                            /* (fix altarroad: an encounter beside a pagan altar) */
+        int l = (s16)g_rw(G_CUR_LOC);
+        if (altar_heavy(l) && altar_met != l) { altar_met = l; if (getenv("DL_TRAVEL_LOG")) fprintf(stderr, "travel: an encounter by place %d: it adds no more to the chance until reached or left (fix altarroad %d)\n", l, fix_is_on("altarroad")); }
+    } else if (r >= 0 && r < G_NLOC) altar_met = -1;
     {   /* travel.camp_at_8: on the move, the clock strikes 20:00 */
         int moved = e0 != (s16)g_rw(GV_map_buf_row) || c0 != (s16)g_rw(GV_map_view_row) || y0 != (s16)g_rw(GV_map_marker_y)
                     || x0 != (s16)g_rw(GV_map_marker_x) || v0 != (s16)g_rw(GV_map_view_col);
@@ -586,8 +606,17 @@ void travel_set(int on, int fast)
  * 100 % a step's weight is 0 (no encounter) that often, above it the weight grows. */
 static void encounter_weight_hook(void)
 {
-    int t = (s16)rw(SS, (u16)(SP + 4));                         /* (type, loc): the terrain stepped on */
-    hook_call_original();
+    int t = (s16)rw(SS, (u16)(SP + 4)), loc = (s16)rw(SS, (u16)(SP + 6));   /* (type, loc): the terrain stepped on, the nearest place */
+    /* fix altarroad: the six pagan altars add 99 to the weight (DARKLAND.LOC +0x0a; no other place more than 5), a tenth
+       of a chance at each of the marker's pixel steps beside one, and the step that brings an encounter puts the marker
+       back where it was: the party met encounter after encounter on the same tile (his report 2026-11-16, six in a row
+       before the Pagan Altar near Frankfurt an der Oder). After one there, the altar adds nothing until the party has
+       left its surroundings or reached it: the terrain's own weight only. (Its surroundings: the game counts the altar
+       only on the cells beside it, and after a card the marker sets off again from the middle of its tile, outside
+       them: walked away means more than two tiles off) */
+    if (altar_met >= 0 && loc != altar_met && altar_away(altar_met)) altar_met = -1;
+    if (altar_met >= 0 && fix_is_on("altarroad")) { ww(SS, (u16)(SP + 6), 0xffff); hook_call_original(); ww(SS, (u16)(SP + 6), (u16)loc); }
+    else hook_call_original();
     /* an encounter due (a night in camp brought one; a test's uenc) makes this step's encounter certain - but
        only where the game has encounter cards: on a river (terrain 3; 1 and 2 are not stepped on) its step with
        an encounter brings none (s030 1462:02c0 draws no card there) and goes nowhere, and a party camped by the

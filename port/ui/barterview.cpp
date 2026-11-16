@@ -35,6 +35,7 @@ extern "C" {
 bool ui_item_tidy_less(int ida, int qa, int idb, int qb);    /* (inventory.cpp) */
 
 extern "C" u32 plat_ticks_ms(void);
+extern "C" int stock_want(int id);                           /* (mods/keep.c: the stock to keep, set on the shelves) */
 void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);
 
 namespace {
@@ -285,13 +286,15 @@ extern "C" void barterview_draw(void)
             }
             if (eq) R(x0 + 0.5f, y + 1, x0 + 1.8f, y + ROWH - 1, NsDraw::RED);     /* equipped: a red mark at its left (said in the strip) */
             char haves[24] = "";
-            if (!L && ingredient(id)) snprintf(haves, sizeof haves, "have %d", have_n.count(id) ? have_n[id] : 0);
+            int have = have_n.count(id) ? have_n[id] : 0;
+            bool short_ = !L && ingredient(id) && have < stock_want(id);  /* (fewer than the stock to keep: red, as the stock notice warns) */
+            if (!L && ingredient(id)) snprintf(haves, sizeof haves, "have %d", have);
             const char *tag = eq == 2 ? "rides it" : kept ? "kept" : haves[0] ? haves : nullptr;
             float tagw = tag ? P.tag_width(tag) : 0;
             T(f, NsDraw::FS_NAME, x0 + 12, y + 1.3f, ink, nm, -1, name_end - tagw);
             if (tag) {
                 float nx = fminf(x0 + 12 + W(f, NsDraw::FS_NAME, nm) + 2, name_end - tagw);
-                P.tag(nx, y, ROWH, tag, haves[0] ? (have_n.count(id) ? NsDraw::TAG_OWNER : NsDraw::INK_DIM) : NsDraw::TAG_KEPT);
+                P.tag(nx, y, ROWH, tag, haves[0] ? (short_ ? NsDraw::RED : have ? NsDraw::TAG_OWNER : NsDraw::INK_DIM) : NsDraw::TAG_KEPT);
             }
             T(fo, NsDraw::FS_BODY, 0, y + 2.2f, ink_soft, qs, x1 - 2 - pw - 5);
             bool cant = !L && price > b.total_pf;
@@ -433,6 +436,10 @@ extern "C" void barterview_draw(void)
             NsStripThing t;
             t.id = id; t.qual = qual; t.weight = wt; t.count = L ? b.item[i].count : 1;
             t.status = L && b.item[i].equipped == 2 ? "the mount this member rides" : L && b.item[i].equipped ? "equipped" : "";
+            if (!L && ingredient(id)) {                            /* (the red "have" tag explained) */
+                int have = have_n.count(id) ? have_n[id] : 0, want = stock_want(id);
+                if (have < want) t.status = "fewer than the stock to keep (" + std::to_string(have) + " of " + std::to_string(want) + ")";
+            }
             t.cmp_who = L ? -1 : b.who;
             t.right = L ? (price > 0 ? "The merchant pays " + money_with_total(price) : "The merchant will not buy this")
                         : "Costs " + money_with_total(price) + (price > b.total_pf ? " - more than the purse holds" : "");

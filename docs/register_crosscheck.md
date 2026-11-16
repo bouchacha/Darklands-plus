@@ -5,9 +5,11 @@ Arkana Mechanika keep a register of the bugs of 483.07 that their C# rewrite rep
 155 entries in October 2026, 277 by their commit 8d5740c of 14 November 2026; ids B-xxxxxx). Each was checked
 against the decompiled code here; "fixed now (woodk123)" are the fixes of woodk123's pull requests #14 to #21, and
 "open" what Darklands+ does not fix yet, "not reached" a bug of a screen Darklands+ draws itself (the original's
-screen comes back only with that display switch off). What stays open is one thing: members on a floor that is not on
-screen (the battle keeps only the floor on screen in memory, so whatever happens to the members and enemies on another
-floor is worked out with the floor on screen: its walls, doors, chests, triggers and piles). This
+screen comes back only with that display switch off). The last 16 open were one thing: members on a floor that is not
+on screen (the battle keeps only the floor on screen in memory, so whatever happens to the members and enemies on another
+floor is worked out with the floor on screen: its walls, doors, chests, triggers and piles). They are closed by not
+letting the party split: stairs take everyone on that floor along, in a fight too (fix.onefloor; outside a fight
+Darklands+'s walk on the stairs already did). This
 is where Darklands+ stands on each: "fixed now" means fixed after the cross-check, "experimental"
 that it is fixed but only reachable inside the experimental city politics or cities at war. The
 fixes are described in `port/mods/fixes.c` (its header and each hook), the saints in `docs/SAINTS.md`.
@@ -230,7 +232,7 @@ fixes are described in `port/mods/fixes.c` (its header and each hook), the saint
 | B-f19453 | 0E76:0694 | BattleEnd.ImproveSkills | fixed now | fix.thrownskill |
 | B-219beb | 1432:2C98 | MineBuilder.CarveGap | confirmed, harmless (a ladder back to the spot it stands on; changing it would change how mines are built) |  |
 | B-f20e47 | 182C:0DB6 | MineBuilder.SetPiece | fixed | fix.minerelic |
-| B-85e0a9 | 1462:000A | BattleMap.Collides | open (a party split across floors) |  |
+| B-85e0a9 | 1462:000A | BattleMap.Collides | fixed now (the party no longer splits across floors) | fix.onefloor |
 | B-e1ca2c | 12F7:000A | PathFinder.Find | fixed now | fix.doorplan |
 | B-c0fd6c | 1DB7:0E22 | TacticalBattle.Rethink | confirmed, kept |  |
 | B-70431c | 1EF8:1242; 1EF8:138E | TacticalBattle.ExitKey | partly fixed (stairsreturn: U no longer brings back a member gone out); X sending out members on other floors kept | fix.stairsreturn |
@@ -238,42 +240,42 @@ fixes are described in `port/mods/fixes.c` (its header and each hook), the saint
 | B-71b924 | 19CD:11EC | TacticalBattle.PlanGroupMove | confirmed, harmless |  |
 | B-a0bf7c | 1EF8:12C0 | TacticalBattle.PickLock | confirmed, kept |  |
 | B-9bc071 | 1EF8:12C0 | TacticalBattle.PickLock | fixed | fix.bestpick |
-| B-25f2a4 | 0E76:2170 | TacticalBattle.DoPlaceAction | open (a party split across floors) |  |
+| B-25f2a4 | 0E76:2170 | TacticalBattle.DoPlaceAction | fixed now (the party no longer splits across floors) | fix.onefloor |
 | B-afe397 | 1EF8:1182; 1EF8:0000 | TacticalBattle.UseKey | fixed now | fix.noselection |
 | B-cbc59a | 1EF8:1182; 1EF8:0000 | TacticalBattle.UseKey | fixed (woodk123's stairsreturn: the stairs record is read on the member's own floor) | fix.stairsreturn |
-| B-b02169 | 1EF8:137A; 1EF8:1590 | TacticalBattle.UseKey | open (a party split across floors) |  |
+| B-b02169 | 1EF8:137A; 1EF8:1590 | TacticalBattle.UseKey | fixed now (the party no longer splits across floors) | fix.onefloor |
 | B-d71b85 | 1EF8:0F76; 18BF:0FA4 | TacticalBattle.DissolveKey | fixed now (woodk123) | fix.dissolve |
 | B-bdd7dd | 0E76:2170; 0E76:116E | TacticalBattle.TakeStairsOrder | fixed now (woodk123) | fix.stairsreturn |
-| B-2a15e1 | 0E76:2170; 0E76:116E | TacticalBattle.LeaderAway | open (a party split across floors) |  |
+| B-2a15e1 | 0E76:2170; 0E76:116E | TacticalBattle.LeaderAway | fixed now (the party no longer splits across floors) | fix.onefloor |
 | B-5e9887 | 0E76:2170; 0E76:116E | TacticalBattle.StaleStairsRecord | fixed now (woodk123) | fix.stairsreturn |
 | B-e7ca8e | 1EF8:1618 | TacticalBattle.TakeStairs | confirmed, harmless (the stairs uncover their walls again, which are uncovered already) |  |
 | B-d4d9e6 | 1EF8:1618 | TacticalBattle.TakeStairs | fixed now | fix.exitleft |
 | B-fcc034 | 1EF8:1618 | TacticalBattle.TakeStairs | fixed now (woodk123) | fix.stairsreturn |
 | B-4595d9 | 1EF8:17D2 | TacticalBattle.LeaveLevel | confirmed, kept |  |
-| B-b2de46 | 1EF8:0000 | TacticalBattle.LockIsDoor | open (a party split across floors) |  |
-| B-55c416 | 19CD:26A4 | TacticalBattle.PartyLocations | open (a party split across floors) |  |
+| B-b2de46 | 1EF8:0000 | TacticalBattle.LockIsDoor | fixed now (the party no longer splits across floors) | fix.onefloor |
+| B-55c416 | 19CD:26A4 | TacticalBattle.PartyLocations | fixed now (the party no longer splits across floors) | fix.onefloor |
 | B-9116a9 | 19CD:26A4 | TacticalBattle.PartyLocations | confirmed, kept |  |
 | B-dce22a | 0E76:2170; 18BF:0FA4; 19CD:29B8; 19CD:1ADE; 1EF8:0000 | TacticalBattle.UseUpDissolveSlot | fixed now (woodk123) | fix.dissolve |
 | B-bf6904 | 18BF:0FA4 | TacticalBattle.ConsumeSlotAsOriginal | fixed now (woodk123) | fix.dissolve |
-| B-3f56bf | 19CD:216A | TacticalBattle.Triggers | open (a party split across floors) |  |
-| B-71d98a | 1EF8:0000 | EffectField.EffectLevel | open (a party split across floors) |  |
-| B-de34f4 | 1F43:0006 | TacticalBattle.EnemySees | open (a party split across floors) |  |
+| B-3f56bf | 19CD:216A | TacticalBattle.Triggers | fixed now (the party no longer splits across floors) | fix.onefloor |
+| B-71d98a | 1EF8:0000 | EffectField.EffectLevel | fixed now (the party no longer splits across floors) | fix.onefloor |
+| B-de34f4 | 1F43:0006 | TacticalBattle.EnemySees | fixed now (the party no longer splits across floors) | fix.onefloor |
 | B-a2387d | 1F43:0256; 0E76:469E; 1D69:0354 | TacticalBattle.Cast | fixed now | fix.castsight |
 | B-43d98d | 0E76:2CCA | TacticalBattle.Approach | fixed | fix.pathfinding |
-| B-fd2ef4 | 0E76:2324 | TacticalBattle.LeavePile | open (a party split across floors) |  |
+| B-fd2ef4 | 0E76:2324 | TacticalBattle.LeavePile | fixed now (the party no longer splits across floors) | fix.onefloor |
 | B-7b43c9 | 19CD:28A2 | TacticalBattle.ResetOrderMenu | confirmed, kept |  |
 | B-5eea75 | 19CD:29B8 | TacticalBattle.BuildOrderMenu | confirmed, harmless |  |
-| B-a3cd1d | 1EF8:0000 | TacticalBattle.LaunchMissile | open (a party split across floors) |  |
+| B-a3cd1d | 1EF8:0000 | TacticalBattle.LaunchMissile | fixed now (the party no longer splits across floors) | fix.onefloor |
 | B-dce381 | 1EF8:156E; 1EF8:1332; 1EF8:133E | TacticalBattle.ChooseOrder | fixed now | fix.noselection |
 | B-8f3e7c | 1EF8:1590 | TacticalBattle.ChoosePlace | fixed now | fix.noselection |
 | B-92ec65 | 19CD:0DCC | TacticalBattle.OrderClick | confirmed, kept |  |
 | B-8d32e1 | 19CD:0738 | TacticalBattle.LeaveWithNobodySelected | fixed now | fix.noselection |
 | B-2eb386 | 1EF8:13D4 | TacticalBattle.CancelOrder | fixed now | fix.noselection |
-| B-e9dc75 | 1EF8:0CFC | TacticalBattle.PlaceInitialEnemies | open (a party split across floors) |  |
-| B-7ac4d6 | 0E76:4442 | TacticalBattle.CheckActivations | open (a party split across floors) |  |
-| B-6212cc | 1EF8:0000 | TacticalBattle.PlaceEnemies | open (a party split across floors) |  |
-| B-fd4e71 | 0E76:0DEE | TacticalBattle.PlaceWoken | open (a party split across floors) |  |
-| B-b189d0 | 14F7:343C | TacticalBattle.KeepPlaces | open (a party split across floors) |  |
+| B-e9dc75 | 1EF8:0CFC | TacticalBattle.PlaceInitialEnemies | fixed now (the party no longer splits across floors) | fix.onefloor |
+| B-7ac4d6 | 0E76:4442 | TacticalBattle.CheckActivations | fixed now (the party no longer splits across floors) | fix.onefloor |
+| B-6212cc | 1EF8:0000 | TacticalBattle.PlaceEnemies | fixed now (the party no longer splits across floors) | fix.onefloor |
+| B-fd4e71 | 0E76:0DEE | TacticalBattle.PlaceWoken | fixed now (the party no longer splits across floors) | fix.onefloor |
+| B-b189d0 | 14F7:343C | TacticalBattle.KeepPlaces | fixed now (the party no longer splits across floors) | fix.onefloor |
 | B-d94fc5 | 0E76:0F58 | TacticalBattle.Tick | fixed now | fix.exitleft |
 | B-6737a3 | 0E76:0F58 | TacticalBattle.Tick | confirmed, kept |  |
 | B-1cec30 | 1462:2ACE | OriginalSaves.static | fixed now (woodk123) | fix.saverecords |

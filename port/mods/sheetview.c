@@ -344,7 +344,8 @@ static void act(const NsAction *a, int *who)
     GmItem g; char nm[32] = "", t[160];
     if (a->type == SV_PREADY || a->type == SV_PDRINK || a->type == SV_PDROP || a->type == SV_KEEP || a->type == SV_PTAKE || a->type == SV_SHARE) {
         int id = a->a, q = a->b;
-        item_name(id, nm, sizeof nm);
+        if (id >= 0) item_name(id, nm, sizeof nm);
+        else snprintf(nm, sizeof nm, "Every potion");
         switch (a->type) {
         case SV_PTAKE: {                                 /* a spare mount of the pack to member a->c, to ride (each rides the best they carry) */
             int to = a->c, h, i;
@@ -361,23 +362,27 @@ static void act(const NsAction *a, int *who)
                    snprintf(t, sizeof t, "%s carries the %s, but rides the better %s.", sheet_model.names[to], nm, bn); }
             break; }
         case SV_SHARE: {                                 /* a potion split evenly among the members on their feet, every quality of it (his ask, RC9:
-                                                            "split all potions of one type") */
+                                                            "split all potions of one type"); id -1: every potion, one after another (his
+                                                            ask, 1.5.1: pool and share out all potions) */
             int ms[5], n = 0;
             for (int m = 0; m < gm_party_size(); m++)
                 if (gm_member_present(m) && gm_member_status(m) == 1 && !(g_rb(GV_in_battle) == 1 && (u8)g_rb((u16)(GV_cbt_floor + m)) == 0x9d)) ms[n++] = m;   /* (not one on another floor of a battle) */
             if (n < 2) return;
-            int kinds[64][2], nk = 0;
+            int kinds[128][2], nk = 0;
             for (int k = 0; k < n; k++) for (int r = 0; r < gm_item_count(ms[k]); r++) {
-                GmItem x; if (!gm_item(ms[k], r, &x) || x.id != id) continue;
+                GmItem x; if (!gm_item(ms[k], r, &x) || (id >= 0 ? x.id != id : !gm_is_potion(x.id))) continue;
                 int seen = 0; for (int j = 0; j < nk; j++) seen |= kinds[j][0] == x.id && kinds[j][1] == x.qual;
-                if (!seen && nk < 64) { kinds[nk][0] = x.id; kinds[nk][1] = x.qual; nk++; }
+                if (!seen && nk < 128) { kinds[nk][0] = x.id; kinds[nk][1] = x.qual; nk++; }
             }
-            for (int a2 = 1; a2 < nk; a2++)              /* (in one order, by quality: a second click finds it done) */
-                for (int b2 = a2; b2 > 0 && kinds[b2][1] < kinds[b2 - 1][1]; b2--) {
+            for (int a2 = 1; a2 < nk; a2++)              /* (in one order, by potion and quality: a second click finds it done) */
+                for (int b2 = a2; b2 > 0 && (kinds[b2][0] < kinds[b2 - 1][0] || (kinds[b2][0] == kinds[b2 - 1][0] && kinds[b2][1] < kinds[b2 - 1][1])); b2--) {
                     int t0 = kinds[b2][0], t1 = kinds[b2][1]; kinds[b2][0] = kinds[b2 - 1][0]; kinds[b2][1] = kinds[b2 - 1][1]; kinds[b2 - 1][0] = t0; kinds[b2 - 1][1] = t1;
                 }
             int moved = 0, tally[5] = { 0 };
-            for (int j = 0; j < nk && !ns_unwinding; j++) moved += split_evenly(ms, n, kinds[j][0], kinds[j][1], tally);
+            for (int j = 0; j < nk && !ns_unwinding; j++) {
+                if (j && kinds[j][0] != kinds[j - 1][0]) memset(tally, 0, sizeof tally);   /* (the odd ones evened over each potion's qualities) */
+                moved += split_evenly(ms, n, kinds[j][0], kinds[j][1], tally);
+            }
             if (ns_unwinding) return;
             const char *what = nm;
             if (!nk) return;

@@ -4,11 +4,26 @@
 
 **Added**
 
+- **New encounters on by default:** the mod of 160 new encounters that comes with Darklands+ is now ticked unless you untick it, and a note at the start screen says so once, with a button to turn it off.
+- **Share all potions:** the Potions heading of the character sheet pools every member's potions and splits each evenly among the members on their feet.
+- **Shops warn of a short stock:** in For sale, an ingredient's "have" tag turns red while the party has fewer than the stock to keep, and the line under the list says how many of how many.
+- **The member's own sections fold** on the character sheet beside the shared pack, as the pack's do (Potions among them).
+- **No papers to steal** (F12 > Settings > Cards and towns, off at first): quest givers no longer send the party for papers held in a town, which means breaking into an office at night; they give one of their other errands.
+- **Mounts explained:** a mount's tooltip says what its quality does (it is added to the chance of a chase or a flight on horseback) and lists every mount's quality. Mounts are drawn as a horse's head, a mule with its long ears; the horseshoe stays the Riding skill's.
+- **The world map's place card** uses its width: the boats in a row under what the town offers, its saints, formulae and teachers side by side, and "Scroll for more" while more is below.
 - **A sharp pointer for art packs:** `art\GAUNTLET.png` (or the same in a mod's art folder) replaces the gauntlet pointer, drawn at the window's resolution. Asked for by Seb-Zee (issue #22).
 - **Quest givers** in the world map's Find panel lists the quest givers of the towns the party knows, nearest first by land: today's chance of a quest, when one will have quests again, a quest under way or a reward waiting. A click on a town shows it on the map, to travel there. By woodk123 (pull request #23).
 
 **Fixed**
 
+- **Encounters by a pagan altar come one at a time:** beside an altar the chance of an encounter is up to a hundred times the usual, and the step that brings one leaves the party where it was, so encounter followed encounter on the tile before it. After one there, the altar now adds nothing until the party reaches it or walks away.
+
+- **A mishap in a new encounter** (the ferry's rope, a fall in the river) no longer loses the horse a member rides.
+- **The place card's boats** no longer list a town twice (Schleswig's Flensburg).
+
+From Arkana Mechanika's Darklands Restoration register:
+
+- **Stairs in a fight take the whole floor's party along,** the knocked-out carried, as outside a fight. A member who went alone left the others on a floor the game no longer kept in memory: they walked through walls that were not there, opened the wrong doors and chests, set off the wrong traps and were seen by enemies who were not there.
 - **A robber knight slain is paid for:** when he fell in a fight that did not end as a plain victory (after sneaking up on his tower, or let in by a saint), his keep burnt but no patron ever paid. The quest is now done however he fell.
 - **A council's reward** was never paid to a party that prayed its way into the hall: it got a new robber knight instead. The saint's way now pays.
 - **A member gone out by the way out** no longer holds the others back: if the rest stood on another floor than the enemies, the battle ended as fled and they were left behind; the party could never come together on one floor again; and Group and Single file stayed greyed.
@@ -23,8 +38,6 @@
 - **Single cards:** a Rope now works in the peat bog; the horseman of famine takes the small coins too; sneaking through a guild's hall shows its own picture and texts; the night streets give way to the day's once day has come; fleeing the bridge's devil no longer makes a ghost member.
 - **Two old tricks closed** (under "Old tricks closed"): a won fight with footpads, and the schrat's fruit, could be had again and again by saving at the text after them.
 - **Politics (experimental):** a pact with the government or the rebels now counts when the season ends.
-
-These are from Arkana Mechanika's Darklands Restoration register.
 
 - **Saving after a member was lost** to the Wild Hunt could leave a character's record out of the save while still counting it, so the save loaded the rest in the wrong places. Every record is now written.
 - **Inn stores lost items:** going back to one inn's store could wipe what was left at another. Each store now keeps its own, and an item whose move cannot be saved stays where it was.

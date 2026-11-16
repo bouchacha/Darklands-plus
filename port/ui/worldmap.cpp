@@ -77,7 +77,8 @@ static float wm_find_left = 1e9f, wm_find_bottom, wm_foot_top = 1e9f;   // the t
 static int wm_panel_run, wm_panel_frame = -10;    // frames the panel has been drawn in a row (its size settles after the first), the last
 static const char *town_mark_label(int cat) { return cat == QC_UNWELCOME ? "Unwelcome here" : cat == QC_ALERT ? "The watch on alert here" : "Wanted by the watch here"; }
 std::string journal_travel_days(int loc);
-void ui_town_lists_panel(int loc);                /* ui/margins.cpp */   /* ui/journal.cpp: "3 days" */
+void ui_town_lists_panel(int loc);                /* ui/margins.cpp */
+bool ui_town_list_has(int loc, int which); void ui_town_list_part(int loc, int which);   /* ui/margins.cpp: 0 saints, 1 formulae, 2 teachers */   /* ui/journal.cpp: "3 days" */
 extern "C" int journal_buy_window(bool *open, int what), journal_town_noted(int loc); extern "C" void journal_town_wares(int loc);   /* ui/journal.cpp */
 static int selected = -1;
 static bool nearby_work_open;
@@ -752,60 +753,95 @@ extern "C" void worldmap_draw(void)
         }
         ImGui::SameLine(); ImGui::Dummy(ImVec2(0, 0));
         ImGui::Separator();
-        /* the rest */
-        float colw = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) * 0.5f;
-        if (ImGui::BeginTable("##wmpt", 2, ImGuiTableFlags_SizingStretchSame)) {
-            ImGui::TableNextColumn();
-            place_details(p, colw - 8);
-            {   /* the wares noted in its shops (ui/journal.cpp) */
-                int ns = journal_town_noted(p.loc);
-                if (ns) { char lb[64]; snprintf(lb, sizeof lb, "The wares noted here (%d shop%s)", ns, ns == 1 ? "" : "s");
-                          if (ImGui::TreeNode(lb)) { journal_town_wares(p.loc); ImGui::TreePop(); } }
+        /* the rest, the width used across (his ask, 1.5.1: the boats had a column of their own, half of it empty): what
+           it offers and its boats; then its saints, formulae and teachers side by side; then the wares noted, whether
+           visited, and the party's marks. A fade and "Scroll for more" at the foot while more is below */
+        if (p.loc < 92) ui_town_offers(p.loc, true, ImGui::GetFontSize() * 16, true);
+        ImGui::PushTextWrapPos(0);
+        if (p.loc >= 0 && p.loc < (int)gamedata.cities.size()) {        /* its docks: the towns its boats go to (a click shows one) */
+            const City &town = gamedata.cities[p.loc];
+            /* the towns its boats go to and come from, a row each way: a dock, a boat and an arrow, then
+               the towns (a click picks one); a town with boats both ways once, on the row of two arrows */
+            bool first_row = true;
+            auto boat_row = [&](int kind, const std::vector<int> &to) {
+                if (to.empty()) return;
+                float h = ImGui::GetFrameHeight();
+                if (first_row) { ImGui::TextDisabled("Boats"); ImGui::SameLine(); first_row = false; }
+                else ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::CalcTextSize("Boats").x + ImGui::GetStyle().ItemSpacing.x);
+                float x0 = ImGui::GetCursorPosX();
+                ImVec2 a = ImGui::GetCursorScreenPos();
+                boat_way_icon(ImGui::GetWindowDrawList(), a, h, kind);
+                ImGui::Dummy(ImVec2(BOAT_WAY_W(h), h));
+                if (ImGui::IsItemHovered()) {
+                    static const char *const TIP[3] = { "Boats leave here for these towns (not every day: the docks say which leave today).",
+                                                        "Boats from these towns call here; none sail back to them from here.",
+                                                        "Boats sail both ways between here and these towns (not every day: the docks say which leave today)." };
+                    ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 20); ImGui::TextUnformatted(TIP[kind]); ImGui::PopTextWrapPos(); ImGui::EndTooltip();
+                }
+                for (size_t k = 0; k < to.size(); k++) {
+                    const City &d2 = gamedata.cities[to[k]];
+                    char lb[64]; snprintf(lb, sizeof lb, "%s##boat%d_%d", d2.name.c_str(), kind, (int)k);
+                    float bw2 = ImGui::CalcTextSize(lb, nullptr, true).x + ImGui::GetStyle().FramePadding.x * 2;
+                    if (ImGui::GetItemRectMax().x + ImGui::GetStyle().ItemSpacing.x + bw2 <= ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x) ImGui::SameLine();
+                    else ImGui::SetCursorPosX(x0 + BOAT_WAY_W(h) + ImGui::GetStyle().ItemSpacing.x);
+                    bool clk = ImGui::SmallButton(lb);
+                    if (ImGui::IsItemHovered()) dock_hover_next = to[k];
+                    if (clk) { selected = to[k]; for (const Place &q : P) if (q.loc == selected) { tile_px(q.x, q.y, &cx, &cy); } }
+                }
+            };
+            std::vector<int> out, in, both;
+            for (int k = 0; k < 5; k++) {                        /* (Groningen's lists itself; Schleswig's Flensburg twice) */
+                int t = town.docks[k];
+                if (t >= 0 && t < (int)gamedata.cities.size() && t != p.loc && std::find(out.begin(), out.end(), t) == out.end()) out.push_back(t);
             }
-            ImGui::TableNextColumn();
-            ImGui::PushTextWrapPos(0);
-            if (p.loc >= 0 && p.loc < (int)gamedata.cities.size()) {        /* its docks: the towns its boats go to (a click shows one) */
-                const City &town = gamedata.cities[p.loc];
-                /* a row of town buttons, wrapped to the column: pointed at, the route lights; a click shows the town */
-                /* the towns its boats go to and come from, a row each way: a dock, a boat and an arrow, then
-                   the towns (a click picks one); a town with boats both ways once, on the row of two arrows */
-                auto boat_row = [&](int kind, const std::vector<int> &to) {
-                    if (to.empty()) return;
-                    float h = ImGui::GetFrameHeight();
-                    ImVec2 a = ImGui::GetCursorScreenPos();
-                    boat_way_icon(ImGui::GetWindowDrawList(), a, h, kind);
-                    ImGui::Dummy(ImVec2(BOAT_WAY_W(h), h));
-                    if (ImGui::IsItemHovered()) {
-                        static const char *const TIP[3] = { "Boats leave here for these towns (not every day: the docks say which leave today).",
-                                                            "Boats from these towns call here; none sail back to them from here.",
-                                                            "Boats sail both ways between here and these towns (not every day: the docks say which leave today)." };
-                        ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 20); ImGui::TextUnformatted(TIP[kind]); ImGui::PopTextWrapPos(); ImGui::EndTooltip();
-                    }
-                    for (size_t k = 0; k < to.size(); k++) {
-                        const City &d2 = gamedata.cities[to[k]];
-                        char lb[64]; snprintf(lb, sizeof lb, "%s##boat%d_%d", d2.name.c_str(), kind, (int)k);
-                        float bw2 = ImGui::CalcTextSize(lb, nullptr, true).x + ImGui::GetStyle().FramePadding.x * 2;
-                        if (ImGui::GetItemRectMax().x + ImGui::GetStyle().ItemSpacing.x + bw2 <= ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x) ImGui::SameLine();
-                        else ImGui::SetCursorPosX(ImGui::GetCursorPosX() + BOAT_WAY_W(h) + ImGui::GetStyle().ItemSpacing.x);
-                        bool clk = ImGui::SmallButton(lb);
-                        if (ImGui::IsItemHovered()) dock_hover_next = to[k];
-                        if (clk) { selected = to[k]; for (const Place &q : P) if (q.loc == selected) { tile_px(q.x, q.y, &cx, &cy); } }
-                    }
-                };
-                std::vector<int> out, in, both;
-                for (int k = 0; k < 5; k++) if (town.docks[k] >= 0 && town.docks[k] < (int)gamedata.cities.size() && town.docks[k] != p.loc) out.push_back(town.docks[k]);   /* (Groningen's lists itself) */
-                for (int o = 0; o < (int)gamedata.cities.size(); o++) if (o != p.loc) for (int k = 0; k < 5; k++) if (gamedata.cities[o].docks[k] == p.loc) { in.push_back(o); break; }
-                for (int t : out) if (std::find(in.begin(), in.end(), t) != in.end()) both.push_back(t);
-                auto drop = [&](std::vector<int> &v) { v.erase(std::remove_if(v.begin(), v.end(), [&](int t) { return std::find(both.begin(), both.end(), t) != both.end(); }), v.end()); };
-                drop(out); drop(in);
-                if (!out.empty() || !in.empty() || !both.empty()) ImGui::TextDisabled("Boats");
-                boat_row(2, both); boat_row(0, out); boat_row(1, in);
-                if (out.empty() && both.empty() && citynav_town_offers(p.loc, TI_DOCKS)) ImGui::TextDisabled("Its docks have no boats leaving (the original game has none either).");
+            for (int o = 0; o < (int)gamedata.cities.size(); o++) if (o != p.loc) for (int k = 0; k < 5; k++) if (gamedata.cities[o].docks[k] == p.loc) { in.push_back(o); break; }
+            for (int t : out) if (std::find(in.begin(), in.end(), t) != in.end()) both.push_back(t);
+            auto drop = [&](std::vector<int> &v) { v.erase(std::remove_if(v.begin(), v.end(), [&](int t) { return std::find(both.begin(), both.end(), t) != both.end(); }), v.end()); };
+            drop(out); drop(in);
+            boat_row(2, both); boat_row(0, out); boat_row(1, in);
+            if (out.empty() && both.empty() && citynav_town_offers(p.loc, TI_DOCKS)) ImGui::TextDisabled("Its docks have no boats leaving (the original game has none either).");
+        }
+        {   /* its saints, formulae and teachers, side by side (once the party has been there) */
+            bool known_here = place_offers_known(p.loc);
+            if (!known_here && p.loc < 92) ImGui::TextDisabled("Its saints, formulae and teachers: known once the party has been there.");
+            else if (!known_here && library_at(p.loc)) ImGui::TextDisabled("The saints its library teaches: known once the party has been there.");
+            int parts[3], np = 0;
+            for (int k = 0; known_here && k < 3; k++) if (ui_town_list_has(p.loc, k)) parts[np++] = k;
+            if (np && ImGui::BeginTable("##wmlists", np, ImGuiTableFlags_SizingStretchProp)) {
+                static const float W[3] = { 1.0f, 0.9f, 1.4f };
+                for (int k = 0; k < np; k++) ImGui::TableSetupColumn(nullptr, 0, W[parts[k]]);
+                ImGui::TableNextRow();
+                for (int k = 0; k < np; k++) { ImGui::TableNextColumn(); ui_town_list_part(p.loc, parts[k]); }
+                ImGui::EndTable();
             }
-            for (auto &m : marks) if (m.first == p.loc) ImGui::TextWrapped("%s", m.second.c_str());
-            for (const TownMark &t : tmarks) if (t.loc == p.loc) ImGui::TextColored(ImVec4(0.75f, 0.25f, 0.15f, 1), "%s %s.", town_mark_label(t.cat), t.until.c_str());
-            ImGui::PopTextWrapPos();
-            ImGui::EndTable();
+        }
+        {   /* the wares noted in its shops (ui/journal.cpp) */
+            int ns = journal_town_noted(p.loc);
+            if (ns) { char lb[64]; snprintf(lb, sizeof lb, "The wares noted here (%d shop%s)", ns, ns == 1 ? "" : "s");
+                      if (ImGui::TreeNode(lb)) { journal_town_wares(p.loc); ImGui::TreePop(); } }
+        }
+        if (p.loc < 92) ImGui::TextDisabled(journal_visited(p.loc) ? "Visited" : "Not visited yet");
+        for (auto &m : marks) if (m.first == p.loc) ImGui::TextWrapped("%s", m.second.c_str());
+        for (const TownMark &t : tmarks) if (t.loc == p.loc) ImGui::TextColored(ImVec4(0.75f, 0.25f, 0.15f, 1), "%s %s.", town_mark_label(t.cat), t.until.c_str());
+        ImGui::PopTextWrapPos();
+        if (ImGui::GetScrollMaxY() > 0 && ImGui::GetScrollY() < ImGui::GetScrollMaxY() - 1) {   /* more below: a fade at the foot and the words */
+            ImDrawList *dl = ImGui::GetWindowDrawList();
+            ImVec2 wp = ImGui::GetWindowPos(), ws = ImGui::GetWindowSize();
+            float fh2 = ImGui::GetTextLineHeight() * 2.2f, bot = wp.y + ws.y - ImGui::GetStyle().WindowPadding.y * 0.5f;
+            ImVec4 bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg); bg.w = 1;
+            ImU32 b1 = ImGui::ColorConvertFloat4ToU32(bg); bg.w = 0; ImU32 b0 = ImGui::ColorConvertFloat4ToU32(bg);
+            dl->PushClipRect(wp, ImVec2(wp.x + ws.x, wp.y + ws.y), false);
+            dl->AddRectFilledMultiColor(ImVec2(wp.x + 4, bot - fh2), ImVec2(wp.x + ws.x - 4, bot), b0, b0, b1, b1);
+            const char *more = "Scroll for more";
+            ImVec2 ts = ImGui::CalcTextSize(more); float r = ImGui::GetTextLineHeight() * 0.28f;
+            float tx = wp.x + (ws.x - ts.x) * 0.5f, ty = bot - ts.y - 1;
+            ImU32 ink = ImGui::GetColorU32(ImGuiCol_TextDisabled);
+            dl->AddText(ImVec2(tx, ty), ink, more);
+            for (int sd = -1; sd <= 1; sd += 2) {               /* a chevron each side */
+                float cx2 = sd < 0 ? tx - r * 3 : tx + ts.x + r * 3, cy2 = ty + ts.y * 0.5f;
+                dl->AddTriangleFilled(ImVec2(cx2 - r * 1.3f, cy2 - r * 0.6f), ImVec2(cx2 + r * 1.3f, cy2 - r * 0.6f), ImVec2(cx2, cy2 + r * 0.9f), ink);
+            }
+            dl->PopClipRect();
         }
         ImGui::End();
     }

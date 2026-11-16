@@ -276,6 +276,26 @@ static void g_add_item(int w, int code) { G(VEC, 0, 0x2067, 2, w, code); }
 static void g_add_item_q(int w, int code, int q) { G(VEC, 0, 0x1f8b, 3, w, code, q); }
 static int g_item_quality(int w, int code) { return G(VEC, 0, 0x205d, 2, w, code); }
 static void g_keep_items(int w, int p) { G(VEC, 0, 0x2021, 2, w, p); }
+/* keepitems: the game's loss, each thing kept with p %, but not the mount a member rides: it is not carried, and
+   a fall in the river or a stumble in the dark does not lose a horse (his report 2026-11-16: the ferry's rope lost
+   a Superb Horse with the potions). The game's routine takes mounts like any stack: one lost is given back */
+static void keep_items(int w, int p)
+{
+    int ms[5], n = 0, id[5], q[5];
+    if (w == -2) { for (int m = 0; m < 5; m++) if (gm_member_present(m)) ms[n++] = m; }
+    else if (w >= 0 && w < 5) ms[n++] = w;
+    for (int k = 0; k < n; k++) {
+        id[k] = -1; q[k] = -1; GmItem x;                    /* (the one ridden: the best, as the game has it) */
+        for (int r = 0; r < gm_item_count(ms[k]); r++) if (gm_item(ms[k], r, &x) && x.type == 108 && x.qual > q[k]) { id[k] = x.id; q[k] = x.qual; }
+    }
+    g_keep_items(w, p);
+    for (int k = 0; k < n && !ns_unwinding; k++) {
+        if (id[k] < 0) continue;
+        int has = 0; GmItem x;
+        for (int r = 0; r < gm_item_count(ms[k]); r++) if (gm_item(ms[k], r, &x) && x.id == id[k] && x.qual == q[k]) has = 1;
+        if (!has) { g_add_item_q(ms[k], id[k], q[k]); LOG("keepitems: member %d keeps the mount %d (q %d)\n", ms[k], id[k], q[k]); }
+    }
+}
 static void g_remove_flags(int w, long mask) { G(VEC, 0, 0x202b, 3, w, (int)(mask & 0xffff), (int)((mask >> 16) & 0xffff)); }
 static void g_party_delete(int m) { G(VEC, 0, 0x18b5, 1, m); }
 
@@ -1077,7 +1097,7 @@ static int exec_stmt(P *p)
     else if (!strcasecmp(w, "additem")) { int m = resolve_who((int)a[0]); if (n > 2) g_add_item_q(m, (int)a[1], (int)a[2]); else g_add_item(m, (int)a[1]); g_ww(V_ITEM, (u16)a[1]); }
     else if (!strcasecmp(w, "takeitem")) g_take_item(resolve_who((int)a[0]), (int)a[1]);
     else if (!strcasecmp(w, "loseitems")) { g_lose_items((int)a[0] == -1 ? leader() : (int)a[0]); fixes_clamp_party_items(); }   /* (the game's loss routines can leave -1 items) */
-    else if (!strcasecmp(w, "keepitems")) { g_keep_items((int)a[0] == -1 ? leader() : (int)a[0], (int)a[1]); fixes_clamp_party_items(); }
+    else if (!strcasecmp(w, "keepitems")) { keep_items((int)a[0] == -1 ? leader() : (int)a[0], (int)a[1]); fixes_clamp_party_items(); }
     else if (!strcasecmp(w, "removeitems")) g_remove_flags((int)a[0] == -1 ? leader() : (int)a[0], a[1]);
     else if (!strcasecmp(w, "kill")) {          /* a member is lost (taken, dead): as the game's own cards do it */
         int m = resolve_who((int)a[0]);

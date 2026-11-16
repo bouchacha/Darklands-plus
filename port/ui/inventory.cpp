@@ -448,9 +448,29 @@ static void draw_icon(ImDrawList *dl, ImVec2 c, float s, const ItemDef *d, int i
         dl->AddRectFilled(P(-1.2f, -8), P(1.2f, 10), col(0.85f, 0.65f, 0.15f));
         dl->AddRectFilled(P(-5, -4), P(5, -1.6f), col(0.85f, 0.65f, 0.15f));
         break;
-    case K_HORSE:
-        dl->PathArcTo(P(0, 1), 8 * u, -3.6f, 0.45f, 20); dl->PathStroke(steel, 0, 3 * u);
-        break;
+    case K_HORSE: {
+        /* a mount: its head in profile (the horseshoe is the Riding skill's; his ask, 1.5.1: the arc read as a
+           half circle). The coat by the mount's quality, as the list sorts them (Superb 70: a dark bay, Fast 40:
+           chestnut, Average 25: bay, Pack 15: dun); a mule grey, with its long ears and a short mane */
+        int q = d ? d->quality : 25;
+        bool mule = d && d->name.find("Mule") != std::string::npos;
+        ImU32 coat = mule ? col(0.55f, 0.52f, 0.50f) : q >= 60 ? col(0.36f, 0.20f, 0.11f) : q >= 40 ? col(0.68f, 0.36f, 0.16f)
+                   : q >= 25 ? col(0.52f, 0.32f, 0.18f) : col(0.66f, 0.56f, 0.40f);
+        ImU32 mane = mule ? col(0.30f, 0.27f, 0.25f) : q >= 40 && q < 60 ? col(0.55f, 0.26f, 0.10f) : col(0.12f, 0.08f, 0.05f);
+        ImVec2 neck[4] = { P(0.5f, -3), P(4, -7.5f), P(8.5f, 9), P(0, 9) };
+        dl->AddConvexPolyFilled(neck, 4, coat);
+        ImVec2 head[8] = { P(-1, -9), P(3, -8), P(4, -4), P(0, 2), P(-6, 3.2f), P(-8.6f, 1.6f), P(-8.4f, -0.6f), P(-5, -5) };
+        dl->AddConvexPolyFilled(head, 8, coat);
+        if (mule) { dl->AddTriangleFilled(P(0.6f, -8.6f), P(3, -8.2f), P(2.4f, -15), coat); dl->AddTriangleFilled(P(2, -8.2f), P(4, -7.4f), P(5.4f, -14), coat); }
+        else dl->AddTriangleFilled(P(1.2f, -8.6f), P(3.4f, -8), P(3, -12), coat);
+        dl->AddLine(P(3.6f, -8.6f), P(8.6f, 8), mane, (mule ? 1.4f : 2.4f) * u);            /* the mane down the neck */
+        if (!mule) dl->AddTriangleFilled(P(-1.5f, -9.4f), P(1.4f, -8.8f), P(-0.6f, -6.8f), mane);   /* the forelock */
+        dl->AddCircleFilled(P(-1.4f, -5), 0.9f * u, ink);                                       /* the eye */
+        dl->AddCircleFilled(P(-7.6f, 0.4f), 0.55f * u, ink);                                    /* the nostril */
+        dl->AddLine(P(-6.2f, 2.6f), P(-0.2f, -4.2f), dark, 0.7f * u);                           /* the halter */
+        dl->AddLine(P(-2.6f, -6.6f), P(-0.2f, -4.2f), dark, 0.7f * u);
+        dl->AddPolyline(head, 8, ink, ImDrawFlags_Closed, 0.6f * u);
+        break; }
     case K_DOCUMENT: case K_QUEST:
         dl->AddRectFilled(P(-7, -9), P(7, 9), col(0.95f, 0.90f, 0.75f));
         dl->AddRect(P(-7, -9), P(7, 9), ink, 0, 0, 0.8f * u);
@@ -647,6 +667,7 @@ void ui_potion_about(int id, int grade)
 
 void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's quality, -1 unknown: its usual one) */
 {
+    if (d && d->kind == K_HORSE) { ImGui::Separator(); ImGui::TextWrapped("%s", ns_mount_words(id).c_str()); }
     if (d && d->kind == K_RELIC && d->relic_df > 0) {      /* a relic: what it takes off a prayer, and who could bear it (mods/relics.c) */
         bool weapon = relic_is_weapon(id);
         ImGui::Separator();

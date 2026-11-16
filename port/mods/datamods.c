@@ -153,13 +153,18 @@ void datamods_scan(void)
             }
         }
         char key[200]; snprintf(key, sizeof key, "datamod.%s", m->folder);
-        m->on = config_get_int(key, 0);
+        m->on = config_get_int(key, datamod_default_on(m->folder));
     }
     closedir(d);
     }
     qsort(datamods, (size_t)datamods_n, sizeof datamods[0], cmp_mod);
     generation++;
 }
+
+/* the mods ticked until a player unticks them: New encounters, which comes with Darklands+ (his ask, 1.5.1: on by
+   default, a note at the start saying so with the choice to turn it off, ui/tips.cpp) */
+int datamod_default_on(const char *folder) { return !strcmp(folder, DATAMOD_ENCOUNTERS); }
+int datamods_find(const char *folder) { for (int i = 0; i < datamods_n; i++) if (!strcmp(datamods[i].folder, folder)) return i; return -1; }
 
 void datamods_set(int i, int on)
 {

@@ -146,6 +146,7 @@ the files where each switch's key is read.
 | `assist.fast_fades` | Cards without the fade-in | show | hdtext.c |
 | `assist.card_keys` | Number keys for card options | show | assist.c |
 | `assist.goto_work` | Who has work | show | citynav.cpp |
+| `quests.no_papers` | No papers to steal | taste | builtin.c |
 | `assist.teachers` | Teachers | show | teachersui.cpp |
 | `assist.city_goto` | Go to (G) | ease | margins.cpp, ui.cpp |
 | `assist.docks_map` | Map at the docks | ease | cardview.cpp |
@@ -363,6 +364,8 @@ the files where each switch's key is read.
 | `fix.footpadsonce` | A fight with footpads is fought once | fix | fixes.c |
 | `fix.campwatch` | A camp's risk counts only the villages beside it | fix | fixes.c |
 | `fix.exitleft` | A member gone out by the way out no longer holds the others back | fix | fixes.c |
+| `fix.onefloor` | The party keeps to one floor in a fight | fix | fixes.c, levelwalk.c |
+| `fix.altarroad` | Encounters by a pagan altar come one at a time | fix | fixes.c, travel.c |
 
 The fixes (`fix.<id>`) are listed with their explanations in `port/mods/fixes.c`; the built-in
 rule changes (`mod.<id>`) in `port/mods/builtin.c`.

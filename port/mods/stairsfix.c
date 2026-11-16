@@ -129,12 +129,15 @@ static void placement_hook(void)             /* place_around(who, near stairs re
     AX = 1;
 }
 
+int stairsfix_carrying;                      /* (levelwalk: a knocked-out member carried along by the others) */
 static void take_exit_hook(void)             /* take_exit(record, who), outside levelwalk's group helper */
 {
     if (!fix_is_on("stairsreturn")) { hook_call_original(); return; }
     int n = (s16)rw(SS, (u16)(SP + 4)), who = (s16)rw(SS, (u16)(SP + 6));
     int levels = g_rb(LEVEL_COUNT), shown = (s8)g_rb(GV_floor_shown);
-    if (who < 0 || who >= 5 || g_rb(CBF(who, CB_STATUS)) != 1) { hook_return_far(0); return; }
+    if (who < 0 || who >= 5) { hook_return_far(0); return; }
+    int st = g_rb(CBF(who, CB_STATUS));
+    if (st != 1 && !(stairsfix_carrying && st == 2)) { hook_return_far(0); return; }
     int from = (s8)g_rb((u16)(GV_cbt_floor + who));
     if (levels < 1 || levels > 16 || from < 0 || from >= levels || shown < 0 || shown >= levels) {
         hook_return_far(0); return;

@@ -485,6 +485,24 @@ void ui_town_lists_panel(int loc)
     if (loc >= 0 && loc < (int)gamedata.cities.size()) { formulae_line(loc); teacher_rows(loc); }
     lists_panel = false;
 }
+/* the same one at a time, for the world map's place card, side by side (his ask, 1.5.1): 0 the saints taught,
+   1 the formulae sold, 2 the teachers. ui_town_list_has: whether the place has that list */
+bool ui_town_list_has(int loc, int which)
+{
+    if (which == 0) return library_at(loc) != nullptr;
+    if (loc < 0 || loc >= (int)gamedata.cities.size()) return false;
+    if (which == 1) { int fo[4], pr[4]; return alchemist_formulae(loc, fo, pr) != 0; }
+    TchSource ts[12];
+    return which == 2 && ui_teachers_on() && ui_town_teachers(loc, ts, 12) > 0;
+}
+void ui_town_list_part(int loc, int which)
+{
+    lists_panel = true;
+    if (which == 0) library_line(loc);
+    else if (which == 1) formulae_line(loc);
+    else teacher_rows(loc);
+    lists_panel = false;
+}
 extern "C" int ui_nearest_town(void);
 /* the right margin names the place (a town, or near one on the map, or the place of a card) */
 static bool right_shows_place(void)

@@ -12,6 +12,9 @@ extern int datamods_n;
 void datamods_init(void);
 void datamods_scan(void);
 void datamods_set(int i, int on);
+#define DATAMOD_ENCOUNTERS "New encounters"   /* (the mod that comes with Darklands+: ticked until unticked) */
+int datamod_default_on(const char *folder);
+int datamods_find(const char *folder);  /* its place in the list, -1 not there */
 void datamods_move(int i, int j);     /* to place j of the list (the later wins where two change a file) */
 int datamods_active(void);
 int datamods_enabled(void);          /* not in the Full Original preset */

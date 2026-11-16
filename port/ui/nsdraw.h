@@ -256,6 +256,7 @@ float ns_ingredient_row(NsDraw &P, float x0, float y, float x1, int id);   /* an
    when one is set), what the tooltip says of it, and a click on the cell (x0..x1, y0..y1) stepping it */
 void ns_stock_tag(NsDraw &P, float x0, float y0, int id);
 std::string ns_stock_words(int id);
+std::string ns_mount_words(int id);   /* a mount: what its quality does, the mounts' qualities listed ("" not a mount) */
 void ns_ingredient_tip(int id, int have, const std::string &holders);   /* an ingredient's tooltip, the same on both shelves (holders: "" or the members' heads with counts) */
 void ns_stock_click(NsDraw &P, float x0, float y0, float x1, float y1, int id);
 int ns_item_section(int id);              /* the section of the items list: 1 potions, 2 spare equipment, 3 utility, 4 trophies and quest things, 5 ingredients, 6 relics */

@@ -22,6 +22,7 @@ extern "C" {
 #include "../runtime/config.h"
 #include "../mods/battlerules.h"
 #include "../mods/nscreen.h"
+#include "../mods/datamods.h"
 #include "ui.h"
 int levelmap_available(void);
 u32 plat_ticks_ms(void);
@@ -30,8 +31,8 @@ void ui_open_tab(int t);
 extern ImFont *font_body, *font_head;
 extern bool open_welcome;
 
-enum { TIP_NONE, TIP_GUIDE, TIP_BATTLE };
-static int open_tip, launches, battle_seen, title_seen;
+enum { TIP_NONE, TIP_GUIDE, TIP_BATTLE, TIP_ENCOUNTERS };
+static int open_tip, launches, battle_seen, title_seen, encounters_due;
 static u32 title_at;            /* the start screen came: its note a moment later, once it is drawn (the game waits while a window is open) */
 
 static bool quiet(void) { return (getenv("DL_CTL") || getenv("DL_SCRIPT") || getenv("DL_RESTARTED")) && !getenv("DL_TIPS"); }
@@ -73,6 +74,7 @@ static void title_check(void)
     if (!title_at || plat_ticks_ms() - title_at < 700) return;
     title_at = 0;
     fprintf(stderr, "tips: the start screen's note\n");
+    encounters_due = !config_get_int("ui.encounters_note_seen", 0);   /* (once, after the welcome if it comes: encounters_tip) */
     if (!config_get_int("ui.welcome_seen", 0)) { open_welcome = true; return; }   /* (the first start: the welcome, which says it too) */
     /* (the note pointing to the New Player Guide: withdrawn with the guide, ui/ui.cpp tab_guide_all) */
 }
@@ -147,10 +149,41 @@ static void battle_tip(void)
     if (done) { open_tip = TIP_NONE; if (never) config_set_int("tips.battle", 0); config_save(); }
 }
 
+/* New encounters, the mod that comes with Darklands+, ticked until unticked (mods/datamods.c): said once, at the
+   start screen after the welcome, with the choice to turn it off (his ask, 1.5.1). The complaint: Dragon magazine's
+   review found "the repetitiveness of some encounters", and the CRPG Addict's (2019) that they become repetitive */
+static void encounters_tip(void)
+{
+    int i = datamods_find(DATAMOD_ENCOUNTERS);
+    bool done = false, off = false;
+    if (i >= 0 && begin_tip("New encounters", 600)) {
+        ImGui::TextWrapped("A frequent complaint about Darklands, in reviews and among players, is that its random encounters soon repeat.");
+        ImGui::Spacing();
+        ImGui::TextWrapped("Darklands+ comes with a mod of 160 new ones in the spirit of the original: 90 in the wild, 18 on the river boats, "
+                           "34 in the towns' streets and 18 in camp. They come up among the game's own; a small seal in the corner of the card marks a new one.");
+        ImGui::Spacing();
+        if (ImGui::Button(datamods[i].on ? "  Play with them  " : "  Turn them on  ") || ImGui::IsKeyPressed(ImGuiKey_Enter)) done = true;
+        ImGui::SameLine();
+        if (ImGui::Button(datamods[i].on ? "  Turn them off  " : "  Leave them off  ")) done = off = true;
+        if (ImGui::IsKeyPressed(ImGuiKey_Escape)) { done = true; off = !datamods[i].on; }   /* (as it stands) */
+        ui_hint("Change it at any time: F12 > Mods.");
+    }
+    if (i >= 0) end_tip();
+    if (i < 0 || done) {
+        if (i >= 0 && datamods[i].on == off) { datamods_set(i, !off); fprintf(stderr, "tips: New encounters %s\n", off ? "off" : "on"); }
+        open_tip = TIP_NONE; config_set_int("ui.encounters_note_seen", 1); config_save();
+    }
+}
+
 /* every frame, from ui/ui.cpp */
 void tips_frame(void)
 {
     title_check();
     battle_check();
+    if (encounters_due && !open_welcome && open_tip == TIP_NONE && !quiet()) {
+        encounters_due = 0;
+        if (datamods_enabled() && datamods_find(DATAMOD_ENCOUNTERS) >= 0) { open_tip = TIP_ENCOUNTERS; fprintf(stderr, "tips: the New encounters note\n"); }
+    }
     if (open_tip == TIP_BATTLE) battle_tip();
+    else if (open_tip == TIP_ENCOUNTERS) encounters_tip();
 }

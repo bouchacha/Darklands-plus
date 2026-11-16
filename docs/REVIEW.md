@@ -712,3 +712,17 @@ covered and found, and what it could not check.
   stairsreturn, two confirmed harmless. Left: 16 entries of one kind, members and enemies on a floor not shown
   (the battle holds one floor): a design decision (keep a fight on one floor, or hold the floors not shown),
   put to him rather than made.
+- 2026-11-16 (his answers and asks, 1.5.1-RC4): the 16 split-floor entries closed by keeping the party on one floor
+  (fix.onefloor: levelwalk's following in a fight too, the knocked-out carried through stairsfix_carrying), tested
+  in a castle fight: everyone on the new floor, the fight paused until the foes who saw follow. His report of six
+  encounters in a row by a pagan altar: the six altars add 99 to the weight (DARKLAND.LOC +0x0a; no other place
+  more than 5), tried at each pixel step, and the step with an encounter stays put: fix.altarroad (an encounter
+  there spends the altar's weight until reached or left two tiles behind), tested at ten times the rate. Style:
+  the mounts drawn as a head in profile, coat by quality, a mule with its ears (the horseshoe stays the Riding
+  skill's: one picture, one meaning), their words from the code (quality added in chases and flights); the
+  shop's "have" tag red under the stock to keep, as the stock notice; the place card on the world map one flow
+  (offers, boats in a row, saints, formulae and teachers side by side) with "Scroll for more" while more is
+  below; Share all on the Potions heading beside each row's Split; the member's own sections fold as the pack's.
+  New encounters on by default with a note once at the start (worded on what can be checked: Dragon's review
+  and the CRPG Addict on repetitive encounters; "most common" not claimed); keepitems spares the ridden mount;
+  quests.no_papers (Cards and towns, off as in the game) draws a merchant's errand again while it is papers.

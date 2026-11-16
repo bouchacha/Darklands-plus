@@ -25,6 +25,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "nscreen.h"
+#include "fixes.h"
 #include "saves.h"
 #include "../runtime/hle.h"
 
@@ -235,7 +236,15 @@ static void input_hook(void)                 /* s014 0e76:3166 combat_input () *
  * - U with nobody on the stairs did nothing (a party placed beside them at a castle's start):
  *   now, outside a fight, the party walks to the nearest stairs of the floor and takes them;
  * - the leader walking onto the stairs went alone, the others stayed below: outside a fight
- *   (real_combat 0) the members still on the floor the leader left follow at once. */
+ *   (real_combat 0) the members still on the floor the leader left follow at once.
+ * In a fight too with fix onefloor: there the party moves one by one (Group and Single file are off), and a
+ * member who stepped onto stairs went alone - but the battle holds only the floor on screen in memory, and
+ * whoever was on a floor not shown walked, fought, opened, set off and dropped things with the shown floor's
+ * walls, doors, chests, triggers and piles (16 of Darklands Restoration's register, B-85e0a9 and the rest, put
+ * in register_crosscheck.md). With it, whoever takes stairs takes the floor's party along, the knocked-out
+ * carried (stairsfix_carrying lets stairsfix move them); take_exit then does what it does when the party moves
+ * together: the last to arrive brings the party together on the new floor, the foes who saw it follow later. */
+extern int stairsfix_carrying;
 #define FLR_NSTAIRS 0x2fb6
 #define FLR_STAIRS  0x2fb8                 /* rect14[6]: x, y (map pixels), w, h (bytes) */
 static int following;
@@ -243,7 +252,8 @@ static void take_exit_hook(void)           /* take_exit (n, who) */
 {
     int n = (s16)rw(SS, (u16)(SP + 4)), who = (s16)rw(SS, (u16)(SP + 6));
     int from = (s8)g_rb((u16)(GV_cbt_floor + (who >= 0 && who < 13 ? who : 0)));
-    int explore = !g_rb(GV_real_combat) && who >= 0 && who < 5 && !following && !config_get_int("original", 0);
+    int carry = fix_is_on("onefloor");
+    int explore = (!g_rb(GV_real_combat) || carry) && who >= 0 && who < 5 && !following && !config_get_int("original", 0);
     /* in single file only the leader takes the party to another floor: a follower steps onto stairs only on the leader's
        trail, which a floor change leaves on the floor left, and the game took it through them - the party ran through
        floor after floor on one U, five in his save (1.4.7-RC6, found testing his report of floor shown beyond the walls).
@@ -257,11 +267,16 @@ static void take_exit_hook(void)           /* take_exit (n, who) */
     hook_call_original();
     if (ns_unwinding || !explore) return;
     following = 1;
-    for (int i = 0; i < 5 && !ns_unwinding; i++) {
-        if (i == who || g_rb(CBF(i, CB_STATUS)) != 1 || (s8)g_rb((u16)(GV_cbt_floor + i)) != from) continue;
-        ns_call(GF_take_exit, 2, n, i);
-        if (!ns_unwinding) ns_call(GF_cbt_cancel_action, 1, i);
-    }
+    for (int pass = 1; pass <= 2; pass++)                   /* (those standing, then the knocked-out, carried) */
+        for (int i = 0; i < 5 && !ns_unwinding; i++) {
+            if (i == who || g_rb(CBF(i, CB_STATUS)) != pass || (s8)g_rb((u16)(GV_cbt_floor + i)) != from) continue;
+            if (pass == 2 && !carry) continue;
+            stairsfix_carrying = pass == 2;
+            ns_call(GF_take_exit, 2, n, i);
+            stairsfix_carrying = 0;
+            if (!ns_unwinding) ns_call(GF_cbt_cancel_action, 1, i);
+            if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: member %d %s along the stairs with %d\n", i, pass == 2 ? "carried" : "goes", who);
+        }
     following = 0;
     if (!ns_unwinding) ns_call(GF_cbt_cancel_action, 1, who);
 }

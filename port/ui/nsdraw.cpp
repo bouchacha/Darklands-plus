@@ -174,11 +174,29 @@ std::string ns_item_encounters(int id, ImU32 *col)
 /* what a thing is good for, where that is not plain from its kind (ingredients: the potions made
  * with it; the general goods: what in the game asks for them, mods/saintinfo.h item_unasked_game;
  * the cards count the party's, so one is enough) */
+/* a mount: what its quality does (his ask, 1.5.1: what the difference between them is). The game adds a mount's
+   quality (DARKLAND.LST +38) to the chance of a chase or a flight on horseback: the best rider's to catch up
+   (party_max_eff_attr2_bonus, s029 0e76:072e: the thief caught "because of his horse's quality and his own riding
+   skill", $Drago08), the poorest rider's when everyone must get away (0e76:088e: the Wild Hunt, a wolf pack) */
+std::string ns_mount_words(int id)
+{
+    const ItemDef *d = ns_itemdef(id);
+    if (!d || d->kind != K_HORSE) return "";
+    std::vector<const ItemDef *> all;
+    for (const ItemDef &x : gamedata.items) if (x.kind == K_HORSE) all.push_back(&x);
+    std::stable_sort(all.begin(), all.end(), [](const ItemDef *a, const ItemDef *b) { return a->quality > b->quality; });
+    std::string list;
+    for (const ItemDef *x : all) list += (list.empty() ? "" : ", ") + x->name + " " + std::to_string(x->quality);
+    return "Its quality, " + std::to_string(d->quality) + ", is added to the chance of a chase or a flight on horseback: the best rider's mount "
+           "when one must catch up, the poorest rider's when everyone must get away (" + list + ").";
+}
+
 std::string ns_item_use(int id)
 {
     const ItemDef *d = ns_itemdef(id);
     if (!d) return "";
     if (d->kind == K_INGREDIENT) return "";                 /* (the potions it goes into are pictures: ns_ingredient_row) */
+    if (d->kind == K_HORSE) return ns_mount_words(id);
     if (id >= 95 && id <= 116) return ns_potion_effect(id);
     switch (id) {
     case 0x3b: return "For climbing: over a town's walls at night, into a castle and the like, the best climber goes up first and lets it down for the others (without one, each climbs alone). One in the party is enough.";

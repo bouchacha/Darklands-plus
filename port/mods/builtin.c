@@ -10,6 +10,7 @@
 #include "mods.h"
 #include "assist.h"
 #include "options.h"
+#include "nscreen.h"
 
 /* ---- heavy blows: every hit on an enemy does double damage (s014 18bf:08ca rolls the
  * damage of one hit on combatant t and queues it in D_d70c[t]; enemies are 5..12) */
@@ -100,6 +101,27 @@ static void quick_learning(int on)
     else { hook_remove(GF_practice_skill_impl, quick_learn_cards_hook); hook_remove(GF_skill_try_improve, quick_learn_battle_hook); }
 }
 
+/* ---- no papers to steal (his ask, 1.5.1): a merchant's errand (s039 1462:1712 (t): kind 8, tag 10) sends the party
+ * for papers (Treason Plan 0x78, Sworn Statement 0x7f, Debt Note 0x89, Love Letters 0x8a, at +0x2e) held in a town
+ * office, reached at night by breaking in ($Marke01, then $Insid00). With this the errand is drawn again until it is
+ * one of the others (every kind of giver has some): what was drawn is freed (event_free). The switch quests.no_papers,
+ * on F12 > Settings > Cards and towns (off as in the game); the hook always in place, asking it */
+static int papers_item(int v) { v &= 0xfff; return v == 0x78 || v == 0x7f || v == 0x89 || v == 0x8a; }
+static void no_papers_hook(void)
+{
+    if (!config_get_int("quests.no_papers", 0) || config_get_int("original", 0)) { hook_call_original(); return; }
+    for (int tries = 0; ; tries++) {
+        hook_call_original();
+        if (ns_unwinding) return;
+        int ev = (s16)AX;
+        u32 e = ev >= 0 && ev < G_NEVENTS ? g_event(ev) : 0;
+        if (!e || !papers_item(g_ev(e, 0x2e)) || tries >= 30) return;
+        if (getenv("DL_QUEST_LOG")) fprintf(stderr, "no papers: errand %d for item %#x drawn again\n", ev, g_ev(e, 0x2e));
+        ns_call(GF_event_free, 1, ev);
+        if (ns_unwinding) return;
+    }
+}
+
 Mod MODS[] = {
     { "swift_travel", "Faster overland travel", "Travel", "Overland travel takes a third of the time.", swift_travel, 0, 0 },
     { "cheap_inn", "Half-price inns", "Towns", "Lodging costs half as much.", cheap_inn, 0, 0 },
@@ -138,6 +160,7 @@ static void restored_migrate(void)
 }
 void mods_init(void)
 {
+    hook_install(39, 0x1462, 0x1712, no_papers_hook);
     restored_migrate();
     options_sound_kept();
     /* first of the hooks on menu_bar_run, so that it runs last, after the others' (the saves', the

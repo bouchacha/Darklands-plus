@@ -508,20 +508,22 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
     auto tidy = [&](size_t from) { std::stable_sort(rows.begin() + from, rows.end(), [&](int a, int b) { return ui_item_tidy_less(s.item[a].id, s.item[a].qual, s.item[b].id, s.item[b].qual); }); };
     /* with the shared pack: what is in use, then the member's own things not in use (the potions
        kept with them: SvItem.potion) in their sections, then the pack under its own heading */
-    /* the pack's sections (all of them without the shared pack) fold away: a click on the heading (sheet.folded, kept;
-       the ingredients folded at first: a long list, rarely looked through) */
+    /* the sections not in use fold away: a click on the heading (sheet.folded, kept; the pack's in bits 0-6, the
+       member's own beside the shared pack in bits 8-14 (his ask, 1.5.1: his potions as the pack's); the ingredients
+       folded at first: a long list, rarely looked through) */
     const int folded = config_get_int("sheet.folded", 1 << 5);
-    std::vector<int> nsec(NS_NSECT, 0);                    /* (a folded section: how many things in it) */
+    std::vector<int> nsec(2 * NS_NSECT, 0);                /* (a folded section: how many things in it; the member's own after the pack's) */
     auto section = [&](int sec, int part) {               /* part 0 in use, 1 the member's own, 2 the pack (or all the rest) */
-        bool fold = part == 2 && (folded >> sec & 1);
-        size_t head = rows.size(); rows.push_back(part == 2 ? -20 - sec : -1 - sec);
+        int bit = part == 1 ? 8 + sec : sec, cnt = part == 1 ? NS_NSECT + sec : sec;
+        bool fold = part != 0 && (folded >> bit & 1);
+        size_t head = rows.size(); rows.push_back(part == 2 ? -20 - sec : part == 1 ? -30 - sec : -1 - sec);
         for (int i = 0; i < s.nitems; i++) {
             const SvItem &it = s.item[i];
             bool in = part == 0 ? it.equipped != 0
                     : it.equipped == 0 && ns_item_section(it.id) == sec && (!s.shared || (part == 1) == (it.holder >= 0));
-            if (in) { if (fold) nsec[sec] += it.count > 1 ? it.count : 1; else rows.push_back(i); }
+            if (in) { if (fold) nsec[cnt] += it.count > 1 ? it.count : 1; else rows.push_back(i); }
         }
-        if (rows.size() == head + 1 && !(fold && nsec[sec])) rows.pop_back(); else tidy(head + 1);
+        if (rows.size() == head + 1 && !(fold && nsec[cnt])) rows.pop_back(); else tidy(head + 1);
     };
     section(0, 0);
     if (s.shared) {
@@ -569,8 +571,8 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
         int i = rows[sc + r];
         float y = LY0 + r * ROWH;
         if (i < 0) {                                       /* a heading */
-            bool foldable = i <= -20;                         /* (the pack's: -20 - its section) */
-            int sec = foldable ? -20 - i : -1 - i;
+            bool foldable = i <= -20, own = i <= -30;         /* (the pack's: -20 - its section; the member's own: -30 - it) */
+            int sec = own ? -30 - i : foldable ? -20 - i : -1 - i, bit = own ? 8 + sec : sec, cnt = own ? NS_NSECT + sec : sec;
             std::string hds = ns_item_section_name(sec);
             if (i == -10) {                                   /* the shared pack's own heading, once, above its sections: a band across, a pack and the words in the middle */
                 const char *pk = "The party's pack";
@@ -584,16 +586,20 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
                 continue;
             }
             float hx = RX0 + 3;
+            /* the Potions heading: Share all, every potion of every member split evenly among those on their feet (his ask,
+               1.5.1: pool and share out all potions; each potion as its own row's Split does it) */
+            const bool share_all = sec == 1 && i != -2 && share_n >= 2;
+            const float fx1 = share_all ? RX1 - 28 : RX1;      /* (the heading's fold click stops short of the button) */
             if (foldable) {                                   /* a triangle, pointing down when open; folded: how many under it */
-                bool fold = folded >> sec & 1, hv = P.over(RX0, y, RX1, y + ROWH);
+                bool fold = folded >> bit & 1, hv = P.over(RX0, y, fx1, y + ROWH);
                 ImU32 tc = hv ? NsDraw::INK : soft;
                 ImVec2 c = NsDraw::w(RX0 + 4.6f, y + 4.4f); float r = 1.5f * P.k;
                 if (fold) P.dl->AddTriangleFilled(ImVec2(c.x - r * 0.6f, c.y - r), ImVec2(c.x + r * 0.9f, c.y), ImVec2(c.x - r * 0.6f, c.y + r), tc);
                 else P.dl->AddTriangleFilled(ImVec2(c.x - r, c.y - r * 0.6f), ImVec2(c.x + r, c.y - r * 0.6f), ImVec2(c.x, c.y + r * 0.9f), tc);
                 hx += 4.5f;
-                if (fold) hds += " (" + std::to_string(nsec[sec]) + ")";
+                if (fold) hds += " (" + std::to_string(nsec[cnt]) + ")";
                 if (hv) ns_tip(fold ? "Click to show them." : "Click to fold them away.");
-                if (P.hit(RX0, y, RX1, y + ROWH)) { config_set_int("sheet.folded", folded ^ (1 << sec)); extern int ui_dirty_config; ui_dirty_config = 1; }
+                if (P.hit(RX0, y, fx1, y + ROWH)) { config_set_int("sheet.folded", folded ^ (1 << bit)); extern int ui_dirty_config; ui_dirty_config = 1; }
             }
             const char *hd = hds.c_str();
             P.text(fo, NsDraw::FS_SMALL, hx, y + 2.2f, soft, hd);
@@ -601,6 +607,11 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
             if (sec == 0) {                                 /* Equipped: the load, and what the thing pointed at would make it */
                 int after = cmp_hover >= 0 && cmp_hover < s.nitems && !s.item[cmp_hover].equipped ? ns_load_with(s.item[cmp_hover].id, s.who) : -1;
                 lw = ns_load_note(P, RX1 - 3, y + 2.2f, s.who, after) + 3;
+            }
+            if (share_all) {
+                if (P.button(fx1, y + 1, RX1 - 2, y + ROWH - 1, "Share all", IM_COL32(40, 92, 34, 235), 4.4f)) ns_push(SV_SHARE, -1, 0, 0);
+                if (P.over(fx1, y + 1, RX1 - 2, y + ROWH - 1)) ns_tip("Split every potion of every member evenly among the members on their feet, as each potion's Split does. The odd ones stay with whoever holds them, where they can.");
+                lw = RX1 - fx1 + 1;
             }
             P.rect(hx + P.width(fo, NsDraw::FS_SMALL, hd) + 2, y + 4.8f, RX1 - 3 - lw, y + 5.1f, IM_COL32(120, 80, 36, 90));
             continue;
