@@ -4,6 +4,7 @@
 
 **Added**
 
+- **Battle aftermath on the loot screen:** see who went down, what skills changed, and any lasting losses, including armor quality lost to acid or fire. New temporary effects still in force are shown separately.
 - **New encounters on by default:** the mod of 160 new encounters that comes with Darklands+ is now ticked unless you untick it, and a note at the start screen says so once, with a button to turn it off.
 - **Share all potions:** the Potions heading of the character sheet pools every member's potions and splits each evenly among the members on their feet.
 - **Shops warn of a short stock:** in For sale, an ingredient's "have" tag turns red while the party has fewer than the stock to keep, and the line under the list says how many of how many.

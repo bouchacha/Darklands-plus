@@ -19,6 +19,7 @@
 #include "gamemodel.h"
 #include "saves.h"
 #include "fixes.h"
+#include "aftermath.h"
 
 #include "../ui/alerts.h"
 void ui_text_utf8(const char *game, char *out, int n);
@@ -60,8 +61,10 @@ void losses_retake(int m) { if (m >= 0 && m < 5) take(m); }
    no longer says "battle" - the watch waits, then starts afresh */
 static void battle_hook(void)
 {
+    aftermath_begin();
     in_battle++;
     hook_call_original();
+    aftermath_end();
     if (in_battle > 0) in_battle--;                   /* (a load in a battle: after_load set it to 0, then the unwinding came back through here) */
     for (int m = 0; m < 5; m++) take(m);
 }
@@ -112,21 +115,41 @@ void losses_frame(void)
 
 /* ---------------------------------------------------------------- armour worn down */
 static char worn[1200]; static size_t worn_len;
+
+static int armor_count(int m, int id, int type, int quality)
+{
+    int count = 0;
+    for (int k = 0; k < gm_item_count(m); k++) {
+        GmItem item;
+        if (gm_item(m, k, &item) && item.id == id && item.type == type && item.qual == quality)
+            count += item.count;
+    }
+    return count;
+}
+
 static void wear_hook(void)                  /* s019 1ef8:0968 (i, type, quality, amount): wear an armour down */
 {
     int i = (s16)rw(SS, (u16)(SP + 4)), type = rw(SS, (u16)(SP + 6)) & 0xff, q = rw(SS, (u16)(SP + 8)) & 0xff, amt = (s16)rw(SS, (u16)(SP + 10));
     int id = -1;
-    if (i >= 0 && i < 5) {
-        int n = gm_item_count(i);
-        for (int k = 0; k < n && k < 64; k++) { GmItem g; if (gm_item(i, k, &g) && g.type == type && g.qual == q) { id = g.id; break; } }   /* (the id: its low 12 bits; the high ones are flags) */
+    if (i >= 0 && i < 5 && q > 0 && q <= 127 && amt > 0) {
+        for (int k = 0; k < gm_item_count(i); k++) {
+            GmItem item;
+            if (gm_item(i, k, &item) && item.type == type && item.qual == q) { id = item.id; break; }
+        }
     }
+    int before = id < 0 ? 0 : armor_count(i, id, type, q);
     hook_call_original();
-    if (id < 0 || amt <= 0 || !losses_on()) return;
+    if (!before || unw_active) return;
+    /* The wear fix can move one item out of a stack, and relics can prevent wear. */
+    int count = before - armor_count(i, id, type, q);
+    if (count <= 0) return;
+    int nq = q > amt ? q - amt : 0;
+    aftermath_armor_worn(i, id, q, nq, count);
+    if (!losses_on()) return;
     char nm[24], nu[80], it[40], iu[80];
     gm_member_name(i, nm, sizeof nm); ui_text_utf8(nm, nu, sizeof nu);
     gm_itemdef_name(id, it, sizeof it); ui_text_utf8(it, iu, sizeof iu);
     if (!iu[0]) snprintf(iu, sizeof iu, "armor");
-    int nq = q - amt;
     worn_len += (size_t)snprintf(worn + worn_len, sizeof worn - worn_len, "%s%s's %s: ", worn_len ? "\n" : "", nu, iu);
     if (worn_len >= sizeof worn) worn_len = sizeof worn - 1;
     if (nq <= 0) worn_len += (size_t)snprintf(worn + worn_len, sizeof worn - worn_len, "worn to nothing and gone (it was %dq).", q);

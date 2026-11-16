@@ -19,6 +19,7 @@
 void plat_hold(int ms);
 #include "gamemodel.h"
 #include "lootview.h"
+#include "aftermath.h"
 #include "keep.h"
 
 LootModel loot_model;
@@ -213,6 +214,7 @@ static void loop_hook(void)                  /* loot_loop(items far, count near,
     if (ns_unwinding) return;
     memset(loot_model.note, 0, sizeof loot_model.note);
     build();
+    aftermath_open();
     loot_model.open = 1;
     fprintf(stderr, "loot screen: open (%d in the pile)\n", loot_model.npile);
     if (getenv("DL_LOOT_LOG")) {                              /* the pile's records as the game gave them (item, type, quality, count, +5) */
@@ -273,4 +275,5 @@ void lootview_init(void)
 {
     lv_on = config_get_int("display.native_loot", 1);
     hook_install(40, 0x1462, 0x01c8, loop_hook);
+    aftermath_init();
 }
