@@ -290,6 +290,9 @@ static void art_draw(void)
     art_frame++;
     if (!hdart_ndraws) return;
     float kx = dest.w / 320.0f, ky = dest.h / 200.0f;
+    int transformed = overland_zoom_active(), clipped = 0;
+    int map_x = (int)roundf(OVERLAND_MAP_X * kx), map_y = (int)roundf(OVERLAND_MAP_Y * ky);
+    SDL_Rect map_clip = { dest.x + map_x, dest.y + map_y, dest.w - map_x, dest.h - map_y };
     for (int i = 0; i < hdart_ndraws; i++) {
         HdDraw *d = &hdart_draws[i];
         int tw, th, pw, ph;
@@ -299,14 +302,20 @@ static void art_draw(void)
         float fx = (float)tw / pw, fy = (float)th / ph;
         SDL_Rect src = { (int)(d->sx * fx + 0.5f), (int)(d->sy * fy + 0.5f), (int)(d->w * fx + 0.5f), (int)(d->h * fy + 0.5f) };
         float x0 = d->x, y0 = d->y, x1 = x0 + d->w, y1 = y0 + d->h;
-        if (d->x >= OVERLAND_MAP_X && d->y >= OVERLAND_MAP_Y) {   /* the map's tile and sprite blits */
+        int map_art = transformed && d->x >= OVERLAND_MAP_X && d->y >= OVERLAND_MAP_Y;
+        if (map_art) {                                       /* the map's tile and sprite blits */
             overland_zoom_project(&x0, &y0);
             overland_zoom_project(&x1, &y1);
+        }
+        if (map_art != clipped) {
+            SDL_RenderSetClipRect(ren, map_art ? &map_clip : NULL);
+            clipped = map_art;
         }
         SDL_FRect dst = { dest.x + x0 * kx, dest.y + y0 * ky, (x1 - x0) * kx, (y1 - y0) * ky };
         SDL_SetTextureColorMod(t, d->mod[0], d->mod[1], d->mod[2]);
         SDL_RenderCopyF(ren, t, &src, &dst);
     }
+    if (clipped) SDL_RenderSetClipRect(ren, NULL);
 }
 
 /* EPX / Scale2x: each pixel P becomes four; a corner takes the colour of the two neighbours
@@ -748,6 +757,29 @@ static int drag_filter(SDL_Event *e)
         }
     }
     return 0;
+}
+
+/* A middle press on the overland terrain starts a drag, or recentres on release if it stayed put. */
+enum { PAN_IDLE, PAN_PRESSED, PAN_DRAGGING };
+static int overland_drag, overland_drag_x, overland_drag_y;
+
+static void overland_drag_motion(int wx, int wy)
+{
+    int dx = wx - overland_drag_x, dy = wy - overland_drag_y;
+    if ((!dx && !dy) || (overland_drag == PAN_PRESSED && abs(dx) + abs(dy) <= 6)) return;
+    float ax, ay, bx, by;
+    plat_game_to_win(0, 0, &ax, &ay);
+    plat_game_to_win(320, 200, &bx, &by);
+    if (bx > ax && by > ay) overland_pan_by(dx * 320.0f / (bx - ax), dy * 200.0f / (by - ay));
+    overland_drag = PAN_DRAGGING;
+    overland_drag_x = wx;
+    overland_drag_y = wy;
+}
+
+static void overland_drag_end(void)
+{
+    overland_drag = PAN_IDLE;
+    SDL_CaptureMouse(SDL_FALSE);
 }
 
 static float dpi_k = 1.0f;      /* Windows' display scale (1.5 at 150 %): window sizes are saved divided by it */
@@ -1231,6 +1263,14 @@ void plat_events(void)
             swallow_click = 0;
             continue;
         }
+        if (overland_drag && e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_MIDDLE) {
+            if (overland_unobstructed()) {
+                overland_drag_motion(e.button.x, e.button.y);
+                if (overland_drag == PAN_PRESSED) overland_pan_recentre();
+            }
+            overland_drag_end();
+            continue;
+        }
         if (!headless && ui_event(&e)) { if (e.type == SDL_MOUSEBUTTONUP) swallow_click = 0; continue; }   /* (a release taken by the interface ends the swallowing too) */
         if (swallow_click && (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP)) { if (e.type == SDL_MOUSEBUTTONUP) swallow_click = 0; continue; }
         if (drag_filter(&e)) continue;
@@ -1238,6 +1278,7 @@ void plat_events(void)
         case SDL_QUIT: { int saves_close_requested(void); if (saves_close_requested()) break; }   /* (an Ironman game: saved first) */
             fprintf(stderr, "program exit: window closed\n"); plat_quit(0); break;
         case SDL_WINDOWEVENT:
+            if (e.window.event == SDL_WINDOWEVENT_FOCUS_LOST && overland_drag) overland_drag_end();
             if (e.window.event == SDL_WINDOWEVENT_FOCUS_LOST && !getenv("DL_SCRIPT") && !getenv("DL_CTL") && config_get_int("display.pause_unfocused", 1)) {
                 bg_paused = 1; fprintf(stderr, "window in the background: the game waits\n");
                 menu_escape();                      /* a menu left open by a click closes, choosing nothing */
@@ -1320,6 +1361,7 @@ void plat_events(void)
             }
             break;
         case SDL_MOUSEMOTION:
+            if (overland_drag && overland_unobstructed()) overland_drag_motion(e.motion.x, e.motion.y);
             if (e.motion.x > mouse_far_x) mouse_far_x = e.motion.x; if (e.motion.y > mouse_far_y) mouse_far_y = e.motion.y;
             to_game(e.motion.x, e.motion.y, &mouse_x, &mouse_y);
             ptr_out = plat_win_outside(e.motion.x, e.motion.y);
@@ -1337,6 +1379,18 @@ void plat_events(void)
                 int citynav_busy(void); void citynav_user_input(void);
                 if (e.type == SDL_MOUSEBUTTONDOWN && citynav_busy()) { citynav_user_input(); swallow_button |= 1 << e.button.button; break; }
                 if (e.type == SDL_MOUSEBUTTONUP && (swallow_button & (1 << e.button.button))) { swallow_button &= ~(1 << e.button.button); break; }
+            }
+            if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_MIDDLE && overland_unobstructed()
+                && !plat_win_outside(e.button.x, e.button.y)) {
+                int gx, gy;
+                to_game(e.button.x, e.button.y, &gx, &gy);
+                if (overland_camera_at(gx, gy)) {
+                    overland_drag = PAN_PRESSED;
+                    overland_drag_x = e.button.x;
+                    overland_drag_y = e.button.y;
+                    SDL_CaptureMouse(SDL_TRUE);
+                    break;
+                }
             }
             if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
                 int ctrl = SDL_GetModState() & KMOD_CTRL;
