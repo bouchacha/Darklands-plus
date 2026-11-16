@@ -828,7 +828,7 @@ static int work_giver(int d, int town)
 
 static const ImU32 OF_GREEN = IM_COL32(38, 100, 34, 255), OF_BROWN = IM_COL32(104, 82, 58, 255), OF_BLUE = IM_COL32(40, 70, 140, 255),
                    OF_GOLD = IM_COL32(150, 96, 0, 255), OF_RED = IM_COL32(150, 40, 25, 255);
-ImU32 citynav_office_line(const OfficeStatus &os, int giver, char *b, size_t n, bool tile)
+ImU32 citynav_office_line(const OfficeStatus &os, int giver, char *b, size_t n)
 {
     bool trade = giver == 0 || giver == 4 || giver == 5, audience = giver == 10;
     b[0] = 0;
@@ -836,8 +836,7 @@ ImU32 citynav_office_line(const OfficeStatus &os, int giver, char *b, size_t n, 
     case OFS_ASK:
         if (os.chance < 0) snprintf(b, n, "May offer a quest");
         else if (audience) snprintf(b, n, "Audience chance %d%%", os.chance);
-        else if (trade && tile) snprintf(b, n, "%d%% quest chance", os.chance);
-        else snprintf(b, n, "Quest chance %d%%%s", os.chance, trade ? " after trading" : "");
+        else snprintf(b, n, "Quest chance %d%%", os.chance);   /* (the same words everywhere; after trading: the note says so) */
         return os.chance ? OF_GREEN : OF_BROWN;
     case OFS_SHUT:
         if (os.chance >= 0) snprintf(b, n, "Audience chance %d%% until %d %s", os.chance, os.day, gm_month_short(os.month));
@@ -1127,11 +1126,11 @@ extern "C" int citynav_window(void)
             OfficeStatus os;
             if (giver >= 0 && work_on && office_status(cur, giver, d == D_TOWNHALL, &os)) {
                 char b[64];
-                ImU32 c = citynav_office_line(os, giver, b, sizeof b, /*tile=*/true);
+                ImU32 c = citynav_office_line(os, giver, b, sizeof b);
                 if (b[0]) T.lines.push_back({ b, c });
-                if (os.factors[0]) T.tip.push_back({ "Chance factors", os.factors });
                 std::string n = citynav_office_tip(os);
                 if (!n.empty()) T.tip.push_back({ "Quests", n });
+                if (os.factors[0]) T.tip.push_back({ "", os.factors });   /* (what the chance rests on, as a card's chance says it) */
             }
             /* the party's own tasks that lead here */
             auto tk = tasks.find(d);

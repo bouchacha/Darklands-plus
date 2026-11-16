@@ -30,7 +30,7 @@ typedef struct {
     int chance;                      /* percent for OFS_ASK or a reduced audience chance during OFS_SHUT, -1 if absent */
     int hour, day, month, year;      /* OFS_SHUT: until (the end of the lock) */
     char note[320];                  /* what, and why, in words */
-    char factors[192];               /* the inputs to the displayed chance, with shield markup */
+    char factors[384];               /* what the chance rests on, a line each with its shield and value (rich text: ui/richtext.h) */
 } OfficeStatus;
 
 /* giver g (as above; 10 the lord: hall 1 at the town hall, 0 at the fortress) in town loc, now */

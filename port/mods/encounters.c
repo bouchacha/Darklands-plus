@@ -275,25 +275,23 @@ static int g_take_item(int w, int code) { return G(VEC, 0, 0x2085, 2, w, code); 
 static void g_add_item(int w, int code) { G(VEC, 0, 0x2067, 2, w, code); }
 static void g_add_item_q(int w, int code, int q) { G(VEC, 0, 0x1f8b, 3, w, code, q); }
 static int g_item_quality(int w, int code) { return G(VEC, 0, 0x205d, 2, w, code); }
-static void g_keep_items(int w, int p) { G(VEC, 0, 0x2021, 2, w, p); }
-/* keepitems: the game's loss, each thing kept with p %, but not the mount a member rides: it is not carried, and
-   a fall in the river or a stumble in the dark does not lose a horse (his report 2026-11-16: the ferry's rope lost
-   a Superb Horse with the potions). The game's routine takes mounts like any stack: one lost is given back */
+/* keepitems: the game's loss (keep_items_pct, s031 18e7:0ab8: each stack kept with p %, from the last one down,
+   item_remove_stack), but not what a member has in use: the things equipped and the mount ridden (his asks
+   2026-11-16: the ferry's rope lost a Superb Horse with the potions; "don't lose horses but also nothing
+   equipped": a fall in the river or a stumble in the dark loses what is carried, not what is worn or ridden).
+   The same rolls, the same removal, here so the things in use can be passed over */
 static void keep_items(int w, int p)
 {
-    int ms[5], n = 0, id[5], q[5];
+    int ms[5], n = 0;
     if (w == -2) { for (int m = 0; m < 5; m++) if (gm_member_present(m)) ms[n++] = m; }
     else if (w >= 0 && w < 5) ms[n++] = w;
-    for (int k = 0; k < n; k++) {
-        id[k] = -1; q[k] = -1; GmItem x;                    /* (the one ridden: the best, as the game has it) */
-        for (int r = 0; r < gm_item_count(ms[k]); r++) if (gm_item(ms[k], r, &x) && x.type == 108 && x.qual > q[k]) { id[k] = x.id; q[k] = x.qual; }
-    }
-    g_keep_items(w, p);
-    for (int k = 0; k < n && !aborting; k++) {           /* (aborting: the game call unwound, gcall) */
-        if (id[k] < 0) continue;
-        int has = 0; GmItem x;
-        for (int r = 0; r < gm_item_count(ms[k]); r++) if (gm_item(ms[k], r, &x) && x.id == id[k] && x.qual == q[k]) has = 1;
-        if (!has) { g_add_item_q(ms[k], id[k], q[k]); LOG("keepitems: member %d keeps the mount %d (q %d)\n", ms[k], id[k], q[k]); }
+    for (int k = 0; k < n && !aborting; k++) {
+        int m = ms[k], ride = -1, rq = -1; GmItem x;      /* (the mount ridden: the best, as the game has it) */
+        for (int r = 0; r < gm_item_count(m); r++) if (gm_item(m, r, &x) && x.type == 108 && x.qual > rq) { ride = r; rq = x.qual; }
+        for (int r = gm_item_count(m) - 1; r >= 0 && !aborting; r--) {
+            if (r == ride || gm_item_equipped(m, r)) continue;
+            if (g_rand(100) > p) G(GF_item_remove_stack, 2, m, r);
+        }
     }
 }
 static void g_remove_flags(int w, long mask) { G(VEC, 0, 0x202b, 3, w, (int)(mask & 0xffff), (int)((mask >> 16) & 0xffff)); }

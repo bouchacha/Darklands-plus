@@ -63,7 +63,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/createview.c` | 199 | making a character as a native screen (display.native_create; the view is ui/createview.cpp). |
 | `mods/cutcards.c` | 214 | encounters MicroProse wrote and never used, put back (rules.fehde, rules.hospice, rules.manor_rumor: F12 > Reconstructed Content, experimental, off by default; the catalogue of what the game holds unused is docs/cut_content.md). |
 | `mods/datamods.c` | 429 | mod folders: game files replaced without touching the game's own. |
-| `mods/encounters.c` | 2087 | new encounters written as data. |
+| `mods/encounters.c` | 2085 | new encounters written as data. |
 | `mods/enemyview.c` | 129 | the battle's Enemy Info as a native page (display.native_enemyinfo; the view is ui/enemyview.cpp). |
 | `mods/fixes.c` | 4211 | fixes for bugs that are still in the last official version (483.07). |
 | `mods/fixgroups.c` | 35 | the fixes (fixes.c) sorted by kind, for the settings' list: from what the game plainly gets wrong to what is open to argument, as players have talked of them over the years (the GOG and Steam forums, the old Usenet posts and the patch notes MicroProse left). |
@@ -88,7 +88,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/menuview.c` | 358 | the game's menu bar (Game, Orders, Attack, Party on the battle field; the menus of the map and the cards) drawn and used by Darklands+ (display.native_menu; the Full Original preset keeps the game's). |
 | `mods/musicpack.c` | 438 | music packs: recordings played in place of the game's synthesizer music. |
 | `mods/nscreen.c` | 235 | the frame for native screens (see nscreen.h). |
-| `mods/offices.c` | 106 | whether a town's task givers have work now, or when again (offices.h). |
+| `mods/offices.c` | 150 | whether a town's task givers have work now, or when again (offices.h). |
 | `mods/opening.c` | 117 | the opening (the MicroProse logo, the animations, the music and the digitized speech), F12 > Settings > "At start": the whole opening (the default), its last scene alone (the lady of the Darklands and her welcome), or nothing. |
 | `mods/options.c` | 520 | the table of Darklands+'s switches and the presets (options.h). |
 | `mods/optwhy.c` | 161 | why each switch exists, one line each: beside what it does (the table's description, mods/options.c), the reason for it, for whoever carries a feature into another engine (the list docs/SWITCHES.md is made from both: DL_DUMP_SWITCHES, runtime/main.c). |
@@ -207,7 +207,7 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/travel.cpp` | 143 | the route of auto-travel drawn over the overland map (mods/travel.c walks it; the world map, ui/worldmap.cpp, is where a journey is chosen), and the campfire under the clock that makes the party stop to camp at 20:00 (travel.camp_at_8). |
 | `ui/ui.cpp` | 784 | the native port's own interface, drawn over the game: the Darklands+ window (F12) and its pages (the settings pages in settings.cpp), help, notices. |
 | `ui/ui_windows.cpp` | 398 | the interface's side windows: About, the welcome on the first start, getting the MT-32 working, and F11's keys and clicks for the screen in view. |
-| `ui/worldmap.cpp` | 1297 | the world map: the whole of the Holy Roman Empire as the travel screen draws it (mods/worldmap.c), to pan and zoom, with towns and places named, the party, the route of auto-travel and the places the quest log points to. |
+| `ui/worldmap.cpp` | 1298 | the world map: the whole of the Holy Roman Empire as the travel screen draws it (mods/worldmap.c), to pan and zoom, with towns and places named, the party, the route of auto-travel and the places the quest log points to. |
 | `ui/worldmap_draw.cpp` | 651 | the world map's pictures (the places' seals and painted icons, the frame, the compass rose, the boats' red ink and ships, the layer buttons' glyphs, a quest's halo), its list of places, the names over the game's own travel map, and a test sheet of the pictures. |
 
 ## tools

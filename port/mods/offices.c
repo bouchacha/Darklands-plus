@@ -42,11 +42,11 @@ static int barred(OfficeStatus *o, const char *why)
     snprintf(o->note, sizeof o->note, "%s", why);
     return 1;
 }
-/* twice the speaker's Charisma plus Speak Common, with the contributing values */
-static int speaker(int *charisma, int *speak_common)
+/* twice the speaker's Charisma plus Speak Common, with the contributing values and who speaks */
+static int speaker(int *charisma, int *speak_common, int *who)
 {
     int best = -1, lead = gm_leader();
-    *charisma = *speak_common = 0;
+    *charisma = *speak_common = 0; *who = lead;
     for (int m = 0; m < 5; m++) {
         if (gm_member_status(m) != 1) continue;
         if (!assist_best_leader && m != lead) continue;
@@ -57,6 +57,7 @@ static int speaker(int *charisma, int *speak_common)
             best = v;
             *charisma = chr;
             *speak_common = speak;
+            *who = m;
         }
     }
     return best < 0 ? 0 : best;
@@ -95,11 +96,12 @@ int office_status(int loc, int g, int hall, OfficeStatus *o)
         int p = g == 8 ? rep + fugger_bonus : g == 6 ? rep + standing : (rep > hanse_rep ? rep : hanse_rep);
         enum { MIN_ROLL = 10, MAX_ROLL = 50 };
         o->state = OFS_ASK; o->chance = clampi(MIN_ROLL, MAX_ROLL, p + fame) + 1;
-        char standing_detail[80];
-        if (g == 8) snprintf(standing_detail, sizeof standing_detail, "Fugger branch bonus %+d", fugger_bonus);
-        else if (g == 6) snprintf(standing_detail, sizeof standing_detail, "Medici standing %d", standing);
-        else snprintf(standing_detail, sizeof standing_detail, "Hanse standing %d (used if it improves the odds)", standing);
-        snprintf(o->factors, sizeof o->factors, "{Reputation:Town reputation %d} {Fame:Party fame %d}\n%s",
+        /* (as a card's chance says what it rests on, cardview.cpp: each its shield and name, here with its value) */
+        char standing_detail[120];
+        if (g == 8) snprintf(standing_detail, sizeof standing_detail, "%+d: the Fugger branch in this town", fugger_bonus);
+        else if (g == 6) snprintf(standing_detail, sizeof standing_detail, "%d: the party's standing with the Medici", standing);
+        else snprintf(standing_detail, sizeof standing_detail, "%d: the party's standing with the Hanse (half of it and half the town's opinion, when that is more)", standing);
+        snprintf(o->factors, sizeof o->factors, "It rests on:\n{Reputation:%d} the town's opinion of the party (its reputation here)\n{Fame:%d} the party's fame\n%s",
                  rep, fame, standing_detail);
         snprintf(o->note, sizeof o->note, "Quest chances range from %d%% to %d%%. A daytime request has %s %d%% chance of a quest. %s "
                                          "If no quest comes or you turn one down, there is no new quest for three days.",
@@ -112,7 +114,7 @@ int office_status(int loc, int g, int hall, OfficeStatus *o)
         if (lock) return shut(o, lock, "You asked lately: the canon will offer no quest for three days.");
         int p = clampi(1, 99, rep - 50);
         o->state = OFS_ASK; o->chance = p + 1;
-        snprintf(o->factors, sizeof o->factors, "{Reputation:Town reputation %d}", rep);
+        snprintf(o->factors, sizeof o->factors, "It rests on:\n{Reputation:%d} the town's opinion of the party (its reputation here)", rep);
         snprintf(o->note, sizeof o->note, "The canon may offer a robber knight to hunt or an item to fetch by day. The chance starts at 2%% and rises with town reputation from 52 onward. If no quest comes, or you turn it down, there is no new quest for three days.");
         return 1; }
     case 10: {
@@ -123,20 +125,19 @@ int office_status(int loc, int g, int hall, OfficeStatus *o)
             o->chance = 1;
             return shut(o, lock, "You asked for an audience lately: for a week the chance is only 1%.");
         }
-        int charisma, speak_common;
-        int p = (rep + speaker(&charisma, &speak_common) / 2) / 2;
+        int charisma, speak_common, who;
+        int p = (rep + speaker(&charisma, &speak_common, &who) / 2) / 2;
         p = hall ? clampi(1, 70, p) : clampi(0, 99, p);
         o->state = OFS_ASK; o->chance = p;               /* (the number the card itself shows on the option: the same) */
-        snprintf(o->factors, sizeof o->factors, "{Reputation:Town reputation %d}\n{Charisma:Speaker's Charisma %d}\n{Speak Common:Speak Common %d}",
-                 rep, charisma, speak_common);
-        const char *speak_weight = "Each point of the speaker's Speak Common counts half as much as a point of Charisma.";
+        snprintf(o->factors, sizeof o->factors, "It rests on:\n{Reputation:%d} the town's opinion of the party (its reputation here)\n{Charisma:%d} the speaker's Charisma ({@%d})\n{Speak Common:%d} the speaker's Speak Common, counted half",
+                 rep, charisma, who < 0 || who > 4 ? 0 : who, speak_common);
         if (reward) {
-            snprintf(o->note, sizeof o->note, "You finished a quest for the lord. In a town without a council, the fix \"The lord pays for his quests\" lets him pay at an audience. %s", speak_weight);
+            snprintf(o->note, sizeof o->note, "You finished a quest for the lord. In a town without a council, the fix \"The lord pays for his quests\" lets him pay at an audience.");
             return 1;
         }
-        snprintf(o->note, sizeof o->note, "An ordinary audience request has %s %d%% chance of success. %s "
+        snprintf(o->note, sizeof o->note, "An ordinary audience request has %s %d%% chance of success. "
                                          "An audience brings %s. After a request the chance is 1%% for a week.",
-                 gm_a_an(p), p, speak_weight,
+                 gm_a_an(p), p,
                  hall ? "a robber knight to hunt or an item to fetch, half and half" : "a robber knight to hunt");
         return 1; }
     case 0: case 4: case 5: {

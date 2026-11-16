@@ -250,12 +250,8 @@ static void nearby_work_status(const TownOffice &office)
     std::string tip = citynav_office_tip(office.status);
     if (!tip.empty() && ImGui::BeginItemTooltip()) {
         ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + UIS(360));
-        if (office.status.factors[0]) {
-            ImGui::TextDisabled("Chance factors");
-            ui_rich_text(office.status.factors);
-            ImGui::Spacing();
-        }
         ui_rich_text(tip.c_str());
+        if (office.status.factors[0]) { ImGui::Spacing(); ui_rich_text(office.status.factors); }   /* (as Go to's pane) */
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }

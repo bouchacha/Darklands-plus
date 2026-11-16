@@ -13,14 +13,14 @@
 - **The world map's place card** uses its width: the boats in a row under what the town offers, its saints, formulae and teachers side by side, and "Scroll for more" while more is below.
 - **A sharp pointer for art packs:** `art\GAUNTLET.png` (or the same in a mod's art folder) replaces the gauntlet pointer, drawn at the window's resolution. Asked for by Seb-Zee (issue #22).
 - **Quest givers** in the world map's Find panel lists the quest givers of the towns the party knows, nearest first by land: today's chance of a quest, when one will have quests again, a quest under way or a reward waiting. A click on a town shows it on the map, to travel there. By woodk123 (pull request #23).
-- **Quest chance details** show the current values that affect the odds, with shields for reputation, fame, Charisma and Speak Common. The world map's quest giver list and Go to also explain why a giver turns the party away.
+- **What a quest chance rests on:** under the pointer in Go to (G) and in the world map's Quest givers, as a card's chance says it, each with its shield and today's value (the town's opinion, fame, the speaker's Charisma and Speak Common, a bank's standing), and why a giver turns the party away. By woodk123 (pull request #26).
 - **Custom character portraits:** choose a PNG or JPEG on the character sheet, drag or zoom the preview to frame it, and apply it to the sheet and party panel. By woodk123 (pull request #24).
 
 **Fixed**
 
 - **Encounters by a pagan altar come one at a time:** beside an altar the chance of an encounter is up to a hundred times the usual, and the step that brings one leaves the party where it was, so encounter followed encounter on the tile before it. After one there, the altar now adds nothing until the party reaches it or walks away.
 
-- **A mishap in a new encounter** (the ferry's rope, a fall in the river) no longer loses the horse a member rides.
+- **A mishap in a new encounter** (the ferry's rope, a fall in the river) loses only what is carried, not what a member has equipped or the horse they ride.
 - **The place card's boats** no longer list a town twice (Schleswig's Flensburg).
 
 From Arkana Mechanika's Darklands Restoration register:

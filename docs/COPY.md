@@ -971,11 +971,10 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/citynav.cpp:728` | Any key or click stops the walk. |
 | `ui/citynav.cpp:837` | May offer a quest |
 | `ui/citynav.cpp:838` | Audience chance %d%% |
-| `ui/citynav.cpp:839` |  after trading |
+| `ui/citynav.cpp:839` | Quest chance %d%% |
 | `ui/citynav.cpp:843` | No quests until %d %s |
 | `ui/citynav.cpp:845` | On a quest for them |
 | `ui/citynav.cpp:846` | Your reward is waiting |
-| `ui/citynav.cpp:847` | No quests: reputation too low |
 | `ui/citynav.cpp:854` |  Until %d %s, %d:00. |
 | `ui/citynav.cpp:968` | leading merchant |
 | `ui/citynav.cpp:979` | avoiding them |
@@ -994,7 +993,6 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/citynav.cpp:1113` | The party prayed with the monks; they may again from %d %s, %d:00. |
 | `ui/citynav.cpp:1114` | Library shut until %d %s |
 | `ui/citynav.cpp:1114` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:1131` | A merchant may offer a quest after you have bought or sold something. |
 | `ui/citynav.cpp:1140` | Your quest:  |
 | `ui/citynav.cpp:1140` | see the world map (M) |
 | `ui/citynav.cpp:1162` | Wares %dq, better than most |
@@ -2820,72 +2818,72 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/worldmap.cpp:98` | Artificer 30q+ |
 | `ui/worldmap.cpp:116` | everyone knows the swordsmiths of Nuremberg |
 | `ui/worldmap.cpp:152` | Route planned: the party sets off once it is in the overland view. |
-| `ui/worldmap.cpp:268` | Find quest givers###nearbywork |
-| `ui/worldmap.cpp:272` | No quest givers known yet: visit a town to learn who gives quests there. |
-| `ui/worldmap.cpp:274` | Nearest first, by land. The chances are today's: they may change before you arrive. |
-| `ui/worldmap.cpp:294` | Show %s on the map |
-| `ui/worldmap.cpp:296` | Land route unavailable |
-| `ui/worldmap.cpp:335` | Its saints, formulae and teachers: known once the party has been there. |
-| `ui/worldmap.cpp:337` | The saints its library teaches: known once the party has been there. |
-| `ui/worldmap.cpp:345` | Not visited yet |
-| `ui/worldmap.cpp:357` | Quest markers |
-| `ui/worldmap.cpp:357` | Boat routes between the towns' docks |
-| `ui/worldmap.cpp:357` | Each place as an icon of its kind (else a dot) |
-| `ui/worldmap.cpp:358` | The days of travel from the party to every town, under its name (off at first: it crowds the map) |
-| `ui/worldmap.cpp:574` | Towns with ... |
-| `ui/worldmap.cpp:663` | the marked spot |
-| `ui/worldmap.cpp:680` | Click for what it offers, and to travel there |
-| `ui/worldmap.cpp:716` | No route there from here |
-| `ui/worldmap.cpp:717` | Travel there |
-| `ui/worldmap.cpp:722` | Travel there |
-| `ui/worldmap.cpp:725` | Leave town and travel there |
-| `ui/worldmap.cpp:734` | No land route there from here. |
-| `ui/worldmap.cpp:736` | To travel, be in the overland view or in a town's streets |
-| `ui/worldmap.cpp:742` | Walk out of %s's gate and travel to %s? |
-| `ui/worldmap.cpp:743` | The party walks through the streets to a gate and out; in the overland view the journey begins. |
-| `ui/worldmap.cpp:744` | Leave and travel |
-| `ui/worldmap.cpp:758` | Scroll for more |
-| `ui/worldmap.cpp:776` | Boats leave here for these towns (not every day: the docks say which leave today). |
-| `ui/worldmap.cpp:777` | Boats from these towns call here; none sail back to them from here. |
-| `ui/worldmap.cpp:778` | Boats sail both ways between here and these towns (not every day: the docks say which leave today). |
-| `ui/worldmap.cpp:802` | Its docks have no boats leaving (the original game has none either). |
-| `ui/worldmap.cpp:806` | Its saints, formulae and teachers: known once the party has been there. |
-| `ui/worldmap.cpp:807` | The saints its library teaches: known once the party has been there. |
-| `ui/worldmap.cpp:820` | The wares noted here (%d shop%s) |
-| `ui/worldmap.cpp:823` | Not visited yet |
-| `ui/worldmap.cpp:835` | Scroll for more |
-| `ui/worldmap.cpp:881` | Collect your reward |
-| `ui/worldmap.cpp:881` | Robber knights |
-| `ui/worldmap.cpp:881` | Treasures to fetch |
-| `ui/worldmap.cpp:881` | Papers to get in a town |
-| `ui/worldmap.cpp:881` | City politics |
-| `ui/worldmap.cpp:881` | Cities at war |
-| `ui/worldmap.cpp:881` | The Wild Hunt |
-| `ui/worldmap.cpp:881` | Other quests |
-| `ui/worldmap.cpp:899` | %s (%d)###qg |
-| `ui/worldmap.cpp:905` | Sorted %s first: click for %s first. |
-| `ui/worldmap.cpp:905` | the soonest due |
-| `ui/worldmap.cpp:914` | No quests or rumors yet. |
-| `ui/worldmap.cpp:1012` | cave near Köln |
-| `ui/worldmap.cpp:1018` | and %d more: type more of the name to narrow the list |
-| `ui/worldmap.cpp:1019` | No place of that name. |
-| `ui/worldmap.cpp:1021` | Quest givers |
-| `ui/worldmap.cpp:1032` | Alchemical ingredients |
-| `ui/worldmap.cpp:1048` | Click one to circle those towns on the map. |
-| `ui/worldmap.cpp:1060` |  the party has been to: |
-| `ui/worldmap.cpp:1064` | ... and %d more (circled on the map) |
-| `ui/worldmap.cpp:1065` | %s %dq##tl%d |
-| `ui/worldmap.cpp:1075` | Show on the map |
-| `ui/worldmap.cpp:1092` | shown (click to hide) |
-| `ui/worldmap.cpp:1092` | hidden (click to show) |
-| `ui/worldmap.cpp:1107` | Places: click a kind to show or hide it. |
-| `ui/worldmap.cpp:1138` | The party: a click shows it on the map. |
-| `ui/worldmap.cpp:1142` | Map of Greater Germany |
-| `ui/worldmap.cpp:1148` | {LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes. |
-| `ui/worldmap.cpp:1149` | Drag to move, wheel to zoom. M or Esc closes. |
-| `ui/worldmap.cpp:1151` | Traveling to %s |
-| `ui/worldmap.cpp:1214` | faded: leaves later this week |
-| `ui/worldmap.cpp:1279` | Click to take the boat. |
+| `ui/worldmap.cpp:269` | Find quest givers###nearbywork |
+| `ui/worldmap.cpp:273` | No quest givers known yet: visit a town to learn who gives quests there. |
+| `ui/worldmap.cpp:275` | Nearest first, by land. Chances may change before you arrive. Hover the chance or status for details. |
+| `ui/worldmap.cpp:295` | Show %s on the map |
+| `ui/worldmap.cpp:297` | Land route unavailable |
+| `ui/worldmap.cpp:336` | Its saints, formulae and teachers: known once the party has been there. |
+| `ui/worldmap.cpp:338` | The saints its library teaches: known once the party has been there. |
+| `ui/worldmap.cpp:346` | Not visited yet |
+| `ui/worldmap.cpp:358` | Quest markers |
+| `ui/worldmap.cpp:358` | Boat routes between the towns' docks |
+| `ui/worldmap.cpp:358` | Each place as an icon of its kind (else a dot) |
+| `ui/worldmap.cpp:359` | The days of travel from the party to every town, under its name (off at first: it crowds the map) |
+| `ui/worldmap.cpp:575` | Towns with ... |
+| `ui/worldmap.cpp:664` | the marked spot |
+| `ui/worldmap.cpp:681` | Click for what it offers, and to travel there |
+| `ui/worldmap.cpp:717` | No route there from here |
+| `ui/worldmap.cpp:718` | Travel there |
+| `ui/worldmap.cpp:723` | Travel there |
+| `ui/worldmap.cpp:726` | Leave town and travel there |
+| `ui/worldmap.cpp:735` | No land route there from here. |
+| `ui/worldmap.cpp:737` | To travel, be in the overland view or in a town's streets |
+| `ui/worldmap.cpp:743` | Walk out of %s's gate and travel to %s? |
+| `ui/worldmap.cpp:744` | The party walks through the streets to a gate and out; in the overland view the journey begins. |
+| `ui/worldmap.cpp:745` | Leave and travel |
+| `ui/worldmap.cpp:759` | Scroll for more |
+| `ui/worldmap.cpp:777` | Boats leave here for these towns (not every day: the docks say which leave today). |
+| `ui/worldmap.cpp:778` | Boats from these towns call here; none sail back to them from here. |
+| `ui/worldmap.cpp:779` | Boats sail both ways between here and these towns (not every day: the docks say which leave today). |
+| `ui/worldmap.cpp:803` | Its docks have no boats leaving (the original game has none either). |
+| `ui/worldmap.cpp:807` | Its saints, formulae and teachers: known once the party has been there. |
+| `ui/worldmap.cpp:808` | The saints its library teaches: known once the party has been there. |
+| `ui/worldmap.cpp:821` | The wares noted here (%d shop%s) |
+| `ui/worldmap.cpp:824` | Not visited yet |
+| `ui/worldmap.cpp:836` | Scroll for more |
+| `ui/worldmap.cpp:882` | Collect your reward |
+| `ui/worldmap.cpp:882` | Robber knights |
+| `ui/worldmap.cpp:882` | Treasures to fetch |
+| `ui/worldmap.cpp:882` | Papers to get in a town |
+| `ui/worldmap.cpp:882` | City politics |
+| `ui/worldmap.cpp:882` | Cities at war |
+| `ui/worldmap.cpp:882` | The Wild Hunt |
+| `ui/worldmap.cpp:882` | Other quests |
+| `ui/worldmap.cpp:900` | %s (%d)###qg |
+| `ui/worldmap.cpp:906` | Sorted %s first: click for %s first. |
+| `ui/worldmap.cpp:906` | the soonest due |
+| `ui/worldmap.cpp:915` | No quests or rumors yet. |
+| `ui/worldmap.cpp:1013` | cave near Köln |
+| `ui/worldmap.cpp:1019` | and %d more: type more of the name to narrow the list |
+| `ui/worldmap.cpp:1020` | No place of that name. |
+| `ui/worldmap.cpp:1022` | Quest givers |
+| `ui/worldmap.cpp:1033` | Alchemical ingredients |
+| `ui/worldmap.cpp:1049` | Click one to circle those towns on the map. |
+| `ui/worldmap.cpp:1061` |  the party has been to: |
+| `ui/worldmap.cpp:1065` | ... and %d more (circled on the map) |
+| `ui/worldmap.cpp:1066` | %s %dq##tl%d |
+| `ui/worldmap.cpp:1076` | Show on the map |
+| `ui/worldmap.cpp:1093` | shown (click to hide) |
+| `ui/worldmap.cpp:1093` | hidden (click to show) |
+| `ui/worldmap.cpp:1108` | Places: click a kind to show or hide it. |
+| `ui/worldmap.cpp:1139` | The party: a click shows it on the map. |
+| `ui/worldmap.cpp:1143` | Map of Greater Germany |
+| `ui/worldmap.cpp:1149` | {LSTICK} moves the pointer, hold {A} to drag, {RSTICK} zooms. {BACK} or {Y} closes. |
+| `ui/worldmap.cpp:1150` | Drag to move, wheel to zoom. M or Esc closes. |
+| `ui/worldmap.cpp:1152` | Traveling to %s |
+| `ui/worldmap.cpp:1215` | faded: leaves later this week |
+| `ui/worldmap.cpp:1280` | Click to take the boat. |
 | `ui/worldmap_draw.cpp:105` | ruined castle |
 | `ui/worldmap_draw.cpp:107` | ruined village |
 | `ui/worldmap_draw.cpp:108` | standing stone |
@@ -3012,71 +3010,71 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/datamods.c:417` | Describe your mod here (these lines show in F12 > Mods).  Put files into this folder laid out like the game folder; while the mod is on, the game reads them instead of its own: DARKLAND.LST, DARKLAND.ENM, PICS/NAME.PIC, a folder MSGFILES/ with single card files (.MSG, or .TXT as written by "Export the card texts"), art/ and sounds/ as in the game folder, music/ with recordings named by the piece's number (10.ogg, "11 market.ogg"; see F12 > Settings > Sound).  |
 | `mods/encounters.c:240` | he will tell every market in Kuttenberg |
 | `mods/encounters.c:242` | Stop, thief! |
-| `mods/encounters.c:563` | A new encounter stopped because of a mistake in its file (see darklands_port.log); the party is back in the overland view. |
-| `mods/encounters.c:613` | '%s' expected |
-| `mods/encounters.c:673` | %s: %s out of range |
-| `mods/encounters.c:673` | an attribute |
-| `mods/encounters.c:734` | %s takes %d argument%s |
-| `mods/encounters.c:770` | %s: who, then an item (0 to 199) |
-| `mods/encounters.c:778` | wounds: an attribute |
-| `mods/encounters.c:785` | unknown function %s |
-| `mods/encounters.c:804` | unknown name %s |
-| `mods/encounters.c:807` | a value expected |
-| `mods/encounters.c:813` | nested too deeply |
-| `mods/encounters.c:871` | unexpected "%s" |
-| `mods/encounters.c:885` | %s takes %d to %d values |
-| `mods/encounters.c:896` | nested too deeply |
-| `mods/encounters.c:909` | no section [%s] |
-| `mods/encounters.c:937` | %s: %s expected |
-| `mods/encounters.c:943` | an action expected |
-| `mods/encounters.c:962` | 'then' or 'goto' expected |
-| `mods/encounters.c:972` | card: one of the game's cards, 1 to 0x16d |
-| `mods/encounters.c:989` | unknown variable %s |
-| `mods/encounters.c:995` | picture names have at most 8 letters |
-| `mods/encounters.c:1004` | options are numbered 0 to 9 |
-| `mods/encounters.c:1010` | battle: a battlefield, then enemy, quality, count for each group |
-| `mods/encounters.c:1015` | battle: a wilderness battlefield (Wilds, Surrounded, Clearing, Cave, or 0x2e-0x55, 0x61-0x63, 0x6f-0x79), or in a town's streets MainStreet, SideStreet |
-| `mods/encounters.c:1017` | battle: MainStreet and SideStreet only in a town (where street) |
-| `mods/encounters.c:1044` | %s: who, then a %s |
-| `mods/encounters.c:1044` | skill (0 to 18) |
-| `mods/encounters.c:1044` | attribute (0 to 6) |
-| `mods/encounters.c:1066` | unknown action %s |
-| `mods/encounters.c:1070` | text %ld: %s has blocks 0 to %d |
-| `mods/encounters.c:1071` | text %ld: a card holds blocks 0 to 24 |
-| `mods/encounters.c:1124` | ';' expected |
-| `mods/encounters.c:1134` | unexpected "%s" |
-| `mods/encounters.c:1266` | where: wild, boat, street or camp |
-| `mods/encounters.c:1272` | unknown setting %s |
-| `mods/encounters.c:1278` | option: a number 0 to 9 |
-| `mods/encounters.c:1280` | option %d twice |
-| `mods/encounters.c:1283` | option %d: potion or saint |
-| `mods/encounters.c:1296` | at most 4 potions |
-| `mods/encounters.c:1298` | potion CODE, CHANCE |
-| `mods/encounters.c:1320` | unknown key %s |
-| `mods/encounters.c:1322` | no card (the MSGFILES text) given |
-| `mods/encounters.c:1323` | no picture given |
-| `mods/encounters.c:1324` | no [section] |
-| `mods/encounters.c:1427` | %s has %d text blocks: the game holds 25 |
-| `mods/encounters.c:1428` | %s is too long: %ld bytes as the game loads it, under 6000 fit |
-| `mods/encounters.c:1429` | %s has a block with %d option lines: at most %d |
-| `mods/encounters.c:1434` | %s block %d is too long: up to %d characters with its $variables filled in (%d as written), at most 899 fit |
-| `mods/encounters.c:1448` | [%s] has options but no block |
-| `mods/encounters.c:1451` | [%s] option %d: block %d of %s has %d option line%s |
-| `mods/encounters.c:1454` | [%s] option %d: %s |
-| `mods/encounters.c:1454` | its line (\\16) opens the saints: write option N saint |
-| `mods/encounters.c:1454` | a saint option needs a \\16 line |
-| `mods/encounters.c:1455` | [%s] option %d: %s |
-| `mods/encounters.c:1455` | its line (\\10) opens the potions: write option N potion |
-| `mods/encounters.c:1455` | a potion option needs a \\10 line |
-| `mods/encounters.c:1464` | [%s] option %d is a saint option, but there are no saints |
-| `mods/encounters.c:1465` | [%s] option %d is a potion option, but there are no items |
-| `mods/encounters.c:1467` | [%s] has a block but no options |
-| `mods/encounters.c:1469` | [%s] saints: numbers 0 to 135 (DARKLAND.LST), or -1 |
-| `mods/encounters.c:1470` | [%s] items: numbers 0 to 199 (DARKLAND.LST), or -1 |
-| `mods/encounters.c:1472` | [%s] block %d: the game holds 25 blocks (0 to 24) |
-| `mods/encounters.c:1519` | (Darklands+ %s) |
-| `mods/encounters.c:1545` | New encounters: %d file%s with errors left out (see darklands_port.log). |
-| `mods/encounters.c:2040` | on the screen |
+| `mods/encounters.c:561` | A new encounter stopped because of a mistake in its file (see darklands_port.log); the party is back in the overland view. |
+| `mods/encounters.c:611` | '%s' expected |
+| `mods/encounters.c:671` | %s: %s out of range |
+| `mods/encounters.c:671` | an attribute |
+| `mods/encounters.c:732` | %s takes %d argument%s |
+| `mods/encounters.c:768` | %s: who, then an item (0 to 199) |
+| `mods/encounters.c:776` | wounds: an attribute |
+| `mods/encounters.c:783` | unknown function %s |
+| `mods/encounters.c:802` | unknown name %s |
+| `mods/encounters.c:805` | a value expected |
+| `mods/encounters.c:811` | nested too deeply |
+| `mods/encounters.c:869` | unexpected "%s" |
+| `mods/encounters.c:883` | %s takes %d to %d values |
+| `mods/encounters.c:894` | nested too deeply |
+| `mods/encounters.c:907` | no section [%s] |
+| `mods/encounters.c:935` | %s: %s expected |
+| `mods/encounters.c:941` | an action expected |
+| `mods/encounters.c:960` | 'then' or 'goto' expected |
+| `mods/encounters.c:970` | card: one of the game's cards, 1 to 0x16d |
+| `mods/encounters.c:987` | unknown variable %s |
+| `mods/encounters.c:993` | picture names have at most 8 letters |
+| `mods/encounters.c:1002` | options are numbered 0 to 9 |
+| `mods/encounters.c:1008` | battle: a battlefield, then enemy, quality, count for each group |
+| `mods/encounters.c:1013` | battle: a wilderness battlefield (Wilds, Surrounded, Clearing, Cave, or 0x2e-0x55, 0x61-0x63, 0x6f-0x79), or in a town's streets MainStreet, SideStreet |
+| `mods/encounters.c:1015` | battle: MainStreet and SideStreet only in a town (where street) |
+| `mods/encounters.c:1042` | %s: who, then a %s |
+| `mods/encounters.c:1042` | skill (0 to 18) |
+| `mods/encounters.c:1042` | attribute (0 to 6) |
+| `mods/encounters.c:1064` | unknown action %s |
+| `mods/encounters.c:1068` | text %ld: %s has blocks 0 to %d |
+| `mods/encounters.c:1069` | text %ld: a card holds blocks 0 to 24 |
+| `mods/encounters.c:1122` | ';' expected |
+| `mods/encounters.c:1132` | unexpected "%s" |
+| `mods/encounters.c:1264` | where: wild, boat, street or camp |
+| `mods/encounters.c:1270` | unknown setting %s |
+| `mods/encounters.c:1276` | option: a number 0 to 9 |
+| `mods/encounters.c:1278` | option %d twice |
+| `mods/encounters.c:1281` | option %d: potion or saint |
+| `mods/encounters.c:1294` | at most 4 potions |
+| `mods/encounters.c:1296` | potion CODE, CHANCE |
+| `mods/encounters.c:1318` | unknown key %s |
+| `mods/encounters.c:1320` | no card (the MSGFILES text) given |
+| `mods/encounters.c:1321` | no picture given |
+| `mods/encounters.c:1322` | no [section] |
+| `mods/encounters.c:1425` | %s has %d text blocks: the game holds 25 |
+| `mods/encounters.c:1426` | %s is too long: %ld bytes as the game loads it, under 6000 fit |
+| `mods/encounters.c:1427` | %s has a block with %d option lines: at most %d |
+| `mods/encounters.c:1432` | %s block %d is too long: up to %d characters with its $variables filled in (%d as written), at most 899 fit |
+| `mods/encounters.c:1446` | [%s] has options but no block |
+| `mods/encounters.c:1449` | [%s] option %d: block %d of %s has %d option line%s |
+| `mods/encounters.c:1452` | [%s] option %d: %s |
+| `mods/encounters.c:1452` | its line (\\16) opens the saints: write option N saint |
+| `mods/encounters.c:1452` | a saint option needs a \\16 line |
+| `mods/encounters.c:1453` | [%s] option %d: %s |
+| `mods/encounters.c:1453` | its line (\\10) opens the potions: write option N potion |
+| `mods/encounters.c:1453` | a potion option needs a \\10 line |
+| `mods/encounters.c:1462` | [%s] option %d is a saint option, but there are no saints |
+| `mods/encounters.c:1463` | [%s] option %d is a potion option, but there are no items |
+| `mods/encounters.c:1465` | [%s] has a block but no options |
+| `mods/encounters.c:1467` | [%s] saints: numbers 0 to 135 (DARKLAND.LST), or -1 |
+| `mods/encounters.c:1468` | [%s] items: numbers 0 to 199 (DARKLAND.LST), or -1 |
+| `mods/encounters.c:1470` | [%s] block %d: the game holds 25 blocks (0 to 24) |
+| `mods/encounters.c:1517` | (Darklands+ %s) |
+| `mods/encounters.c:1543` | New encounters: %d file%s with errors left out (see darklands_port.log). |
+| `mods/encounters.c:2038` | on the screen |
 | `mods/fixgroups.c:10` | Crashes, freezes, items or progress lost, saved games spoiled, quests that can never be finished. Nobody wants these. |
 | `mods/fixgroups.c:11` | Plain mistakes |
 | `mods/fixgroups.c:11` | Something the game sets out to do and gets wrong: the wrong member, the wrong town, a check on the wrong option, a number lost on the way. |
@@ -3237,25 +3235,35 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/musicpack.c:148` | the Templars |
 | `mods/musicpack.c:152` | a short sound played over the current piece |
 | `mods/musicpack.c:286` | RLND DrkLand03-16-93 |
-| `mods/offices.c:60` | You finished a quest for them: your reward is waiting. |
-| `mods/offices.c:61` | You are on a quest for them. They offer no other until it is done. |
-| `mods/offices.c:65` | You asked lately, or were paid a reward: no new quest for three days. |
-| `mods/offices.c:67` | The Hanse will not deal with you: your reputation in this town is too low. |
-| `mods/offices.c:68` | No quests while your reputation in this town, or your standing with the bank, is below zero. |
-| `mods/offices.c:73` | Each time you ask (by day), there is %s %d%% chance of a quest: %s. If none comes, or you turn it down, there is no new quest for three days. |
-| `mods/offices.c:74` | 3 in 10 are robber knights to hunt, the rest items to fetch |
-| `mods/offices.c:74` | a robber knight to hunt or an item to fetch, half and half |
-| `mods/offices.c:77` | This cathedral keeps no relic, so its canon has no quests. |
-| `mods/offices.c:78` | You asked lately: the canon will offer no quest for three days. |
-| `mods/offices.c:81` | Each time you ask the canon (by day), there is %s %d%% chance of a quest (your reputation in this town minus 50): a robber knight to hunt or an item to fetch. If none comes, or you turn it down, there is no new quest for three days. |
-| `mods/offices.c:84` | The lord grants no audience while your reputation in this town is -40 or lower. |
-| `mods/offices.c:86` | You finished a quest for the lord: your reward is waiting (an audience is certain). |
-| `mods/offices.c:89` | You asked for an audience lately: for a week the chance is only 1%. |
-| `mods/offices.c:94` | You finished a quest for the lord. In a town without a council the original game never pays this reward; with the fix "The lord pays for his quests" on, he pays it at an audience. |
-| `mods/offices.c:95` | Each request for an audience with the council has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's {Charisma} and {Speak Common}). An audience brings a robber knight to hunt or an item to fetch, half and half. After a request the chance is 1%% for a week. |
-| `mods/offices.c:96` | Each request for an audience with the lord has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's {Charisma} and {Speak Common}). An audience brings a robber knight to hunt. After a request the chance is 1%% for a week. |
-| `mods/offices.c:99` | No quests for three days: at your last visit none came, one was turned down, or a reward was paid. |
-| `mods/offices.c:101` | The offer comes after shopping: as the party leaves the stalls, 14 times in 100 a trader takes it aside with a purse and a job (mostly an item to fetch, sometimes a robber knight to hunt). If none comes, there is no other offer for three days. |
+| `mods/offices.c:74` | You finished a quest for them: your reward is waiting. |
+| `mods/offices.c:75` | You are on a quest for them. They offer no other until it is done. |
+| `mods/offices.c:79` | You asked lately, or were paid a reward: no new quest for three days. |
+| `mods/offices.c:82` | The Hanse turns you away when your reputation in this town is -75 or lower. |
+| `mods/offices.c:83` | Your town reputation and standing with the Hanse are too low together. |
+| `mods/offices.c:88` | Your town reputation and your standing with %s are both too low. |
+| `mods/offices.c:89` | Your standing with %s is too low. |
+| `mods/offices.c:92` | Your reputation in this town is below zero. |
+| `mods/offices.c:101` | %+d: the Fugger branch in this town |
+| `mods/offices.c:102` | %d: the party's standing with the Medici |
+| `mods/offices.c:103` | %d: the party's standing with the Hanse (half of it and half the town's opinion, when that is more) |
+| `mods/offices.c:104` | It rests on: {Reputation:%d} the town's opinion of the party (its reputation here) {Fame:%d} the party's fame %s |
+| `mods/offices.c:106` | Quest chances range from %d%% to %d%%. A daytime request has %s %d%% chance of a quest. %s If no quest comes or you turn one down, there is no new quest for three days. |
+| `mods/offices.c:109` | Three in ten offers are to hunt a robber knight. The rest are to fetch an item. |
+| `mods/offices.c:110` | Robber knight hunts and fetch quests are equally likely. |
+| `mods/offices.c:113` | This cathedral keeps no relic, so its canon has no quests. |
+| `mods/offices.c:114` | You asked lately: the canon will offer no quest for three days. |
+| `mods/offices.c:117` | It rests on: {Reputation:%d} the town's opinion of the party (its reputation here) |
+| `mods/offices.c:118` | The canon may offer a robber knight to hunt or an item to fetch by day. The chance starts at 2%% and rises with town reputation from 52 onward. If no quest comes, or you turn it down, there is no new quest for three days. |
+| `mods/offices.c:121` | Your town reputation is -40 or lower, so you cannot request an audience. |
+| `mods/offices.c:123` | You finished a quest for the lord: your reward is waiting (an audience is certain). |
+| `mods/offices.c:126` | You asked for an audience lately: for a week the chance is only 1%. |
+| `mods/offices.c:132` | It rests on: {Reputation:%d} the town's opinion of the party (its reputation here) {Charisma:%d} the speaker's Charisma ({@%d}) {Speak Common:%d} the speaker's Speak Common, counted half |
+| `mods/offices.c:135` | You finished a quest for the lord. In a town without a council, the fix "The lord pays for his quests" lets him pay at an audience. |
+| `mods/offices.c:138` | An ordinary audience request has %s %d%% chance of success. An audience brings %s. After a request the chance is 1%% for a week. |
+| `mods/offices.c:141` | a robber knight to hunt or an item to fetch, half and half |
+| `mods/offices.c:141` | a robber knight to hunt |
+| `mods/offices.c:144` | No quests for three days: at your last visit none came, one was turned down, or a reward was paid. |
+| `mods/offices.c:146` | There is a fixed %d%% chance of a quest when you leave the trading screen. Most offers are to fetch an item, with the occasional robber knight. If none comes, there is no other offer for three days. |
 | `mods/orders.c:194` | Click: throw here |
 | `mods/orders.c:194` | Click: flee here |
 | `mods/orders.c:197` | No clear throw |
