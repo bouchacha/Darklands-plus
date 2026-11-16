@@ -13,6 +13,7 @@
 - **The world map's place card** uses its width: the boats in a row under what the town offers, its saints, formulae and teachers side by side, and "Scroll for more" while more is below.
 - **A sharp pointer for art packs:** `art\GAUNTLET.png` (or the same in a mod's art folder) replaces the gauntlet pointer, drawn at the window's resolution. Asked for by Seb-Zee (issue #22).
 - **Quest givers** in the world map's Find panel lists the quest givers of the towns the party knows, nearest first by land: today's chance of a quest, when one will have quests again, a quest under way or a reward waiting. A click on a town shows it on the map, to travel there. By woodk123 (pull request #23).
+- **Quest chance details** show the current values that affect the odds, with shields for reputation, fame, Charisma and Speak Common. The world map's quest giver list and Go to also explain why a giver turns the party away.
 - **Custom character portraits:** choose a PNG or JPEG on the character sheet, drag or zoom the preview to frame it, and apply it to the sheet and party panel. By woodk123 (pull request #24).
 
 **Fixed**
