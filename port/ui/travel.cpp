@@ -14,6 +14,7 @@ extern "C" {
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
+#include "../mods/overland_zoom.h"
 #include "../mods/travel.h"
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 void ui_notice(const char *msg);
@@ -28,15 +29,22 @@ extern "C" void travel_overlay(void)
     if (!travel_map_live()) return;            /* a card is up over the map (a village, an encounter); the option
                                                   count of the last card stays set after it closes */
     ImDrawList *dl = ImGui::GetForegroundDrawList();
-    int vx = (s16)g_rw(GV_map_view_col), vr = (s16)g_rw(GV_map_buf_row) + (s16)g_rw(GV_map_view_row);
+    int vx, vr;
+    overland_zoom_view(&vx, &vr);
     /* the route ahead in straight legs (route_ahead, tile_px pixels: a tile 16 x 4, odd rows half a tile to the
        right), on the game's screen (the map's window from x 65, y 21: tile_px less 16 a column and 4 a row of the
        view, + 56, + 9), the part in the map's window */
     std::vector<ImVec2> pts;
     route_ahead(travel.rx, travel.ry, travel.n, travel.i - 1, pts);
-    for (ImVec2 &q : pts) q = ImVec2(q.x + 56 - 16.0f * vx, q.y + 9 - 4.0f * vr);
-    auto inside = [](ImVec2 q) { return q.x >= 62 && q.x <= 318 && q.y >= 16 && q.y <= 198; };
-    ImVec2 c0, c1; plat_game_to_win(62, 16, &c0.x, &c0.y); plat_game_to_win(318, 198, &c1.x, &c1.y);
+    for (ImVec2 &q : pts) {
+        q.x += 56 - 16.0f * vx;
+        q.y += 9 - 4.0f * vr;
+        overland_zoom_project(&q.x, &q.y);
+    }
+    bool zoomed = overland_zoom_active();
+    float left = zoomed ? OVERLAND_MAP_X : 62, right = zoomed ? 320 : 318, bottom = zoomed ? 200 : 198;
+    auto inside = [&](ImVec2 q) { return q.x >= left && q.x <= right && q.y >= OVERLAND_MAP_Y && q.y <= bottom; };
+    ImVec2 c0, c1; plat_game_to_win(left, OVERLAND_MAP_Y, &c0.x, &c0.y); plat_game_to_win(right, bottom, &c1.x, &c1.y);
     dl->PushClipRect(c0, c1, true);                             /* (a leg may run out of the map's window: cut at its edge) */
     for (size_t k = 0; k < pts.size(); k++) {
         ImVec2 p; plat_game_to_win(pts[k].x, pts[k].y, &p.x, &p.y);

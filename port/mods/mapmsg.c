@@ -21,8 +21,10 @@ void dl_poll(void);
 
 MapMsgModel mapmsg_model;
 static int mm_on = 1;
+static int legacy_open;
 
 int mapmsg_is_on(void) { return mm_on; }
+int mapmsg_showing(void) { return legacy_open || mapmsg_model.open; }
 void mapmsg_set(int on) { mm_on = on; config_set_int("display.native_mapmsg", on); }
 
 static int read_msg(int msg, char *out, int n)
@@ -40,7 +42,12 @@ static void msg_hook(void)                   /* map_message (msg), s030 1462:2bb
 {
     int msg = (s16)rw(SS, (u16)(SP + 4));
     MapMsgModel *m = &mapmsg_model;
-    if (!mm_on || !ns_active() || msg < 0 || !read_msg(msg, m->text, sizeof m->text) || !m->text[0]) { hook_call_original(); return; }
+    if (!mm_on || !ns_active() || msg < 0 || !read_msg(msg, m->text, sizeof m->text) || !m->text[0]) {
+        legacy_open++;
+        hook_call_original();
+        legacy_open--;
+        return;
+    }
     ns_unwinding = 0;
     while (g_rb(GV_mouse_buttons) & 3) { dl_poll(); plat_sleep_ms(3); }     /* (as the original: the button let go first) */
     m->open = 1; m->seq++;

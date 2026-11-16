@@ -832,6 +832,7 @@
 #define conflict_outcome_impl    sub_s039_1462_0ebe   /* the function behind conflict_outcome (card.h) */
 #define side2_strength_impl      sub_s039_1462_0bf6   /* the function behind side2_strength (card.h) */
 /* overland map (s030) */
+#define map_ground               D_2860               /* int: the overland view's ground colour index */
 #define map_marker_x             D_2866               /* int: the party marker's x on the map view (pixels) */
 #define map_marker_y             D_2868               /* int: its y */
 #define map_view_col             D_286a               /* int: the map view's left column (tiles) */

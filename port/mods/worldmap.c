@@ -1,4 +1,4 @@
-/* worldmap.c - the whole overland map in one picture (for the world map: M on the travel map or a card).
+/* worldmap.c - the whole overland map in one picture, shared by the world map and travel zoom.
  * Drawn the way the travel screen draws its view (s030 1462:20d2), for every tile at once:
  * DARKLAND.MAP terrain, tiles of 16x12 from MAPICONS.PIC rows 1-15 (terrain 1-15) and
  * MAPICON2.PIC rows 0-15 (terrain 16-31) at (column*16 + 8 on odd rows, row*4), colour 0
@@ -10,9 +10,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdlib.h>
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
+#include "../runtime/gamevars.h"
+#include "datamods.h"
 #include "worldmap.h"
 
 const unsigned char *travel_map(int *w, int *h);
@@ -23,10 +24,13 @@ WorldMap worldmap;
 static u8 *sheet[2]; static int sw[2], sh[2];
 static u32 sheetpal[256]; static u8 sheetmask[256];
 static u32 mappal[256]; static int have_mappal;
+static int terrain_generation;
 
 static int load_sheets(void)
 {
-    if (sheet[0] && sheet[1]) return 1;
+    static int sheets_generation = -1;
+    int generation = datamods_generation();
+    if (sheet[0] && sheet[1] && sheets_generation == generation) return 1;
     memset(sheetmask, 0, sizeof sheetmask);
     for (int b = 0; b < 2; b++) {
         u32 pal[256]; u8 mask[256];
@@ -35,6 +39,7 @@ static int load_sheets(void)
         if (!sheet[b]) return 0;
         for (int i = 0; i < 256; i++) if (mask[i] && !sheetmask[i]) { sheetpal[i] = pal[i]; sheetmask[i] = 1; }
     }
+    sheets_generation = generation;
     return 1;
 }
 
@@ -51,8 +56,6 @@ static void take_palette(void)
     for (int i = 0; i < 256; i++) mappal[i] = dac_rgb(i);
     have_mappal = 1;
 }
-void worldmap_watch_palette(void) { }
-
 static int loc_icon(int kind)
 {
     switch (kind) {
@@ -87,38 +90,39 @@ static const u8 *icon(int lin, int *stride)
     return sheet[b] + sr * 12 * sw[b] + c * 16;
 }
 
-int worldmap_build(void)
+int worldmap_prepare_terrain(int ground)
 {
     int mw, mh;
     const unsigned char *terr = travel_map(&mw, &mh);
     if (!terr || !load_sheets()) return 0;
-    u8 *g = malloc((size_t)mw * mh);
-    memcpy(g, terr, (size_t)mw * mh);
+    /* Indexed terrain keeps the same colours as the live view when drawn with its current
+       palette. Rebuild it only if the ground, terrain data or the visible sites change. */
+    struct { int cell, icon; } sites[G_NLOC - 92];
+    int nsites = 0;
+    static u32 last_sig;
+    u32 sig = 2166136261u;
+    #define MIX(v) (sig = (sig ^ (u32)(v)) * 16777619u)
+    MIX(ground); MIX(datamods_generation()); MIX(mw); MIX(mh);
     for (int k = 92; k < G_NLOC; k++) {
         u32 r = g_location(k);
         if (!r) continue;
         u16 s = (u16)(r >> 16), o = (u16)r;
         int kind = (s16)rw(s, o), x = (s16)rw(s, (u16)(o + 4)), y = (s16)rw(s, (u16)(o + 6)), menu = (s16)rw(s, (u16)(o + 0x0c));
         if (menu == 0x62 || kind == 15 || x < 0 || y < 0 || x >= mw || y >= mh) continue;
-        g[y * mw + x] = (u8)loc_icon(kind);
+        sites[nsites].cell = y * mw + x;
+        sites[nsites].icon = loc_icon(kind);
+        MIX(sites[nsites].cell); MIX(sites[nsites].icon);
+        nsites++;
     }
+    #undef MIX
+    if (worldmap.idx && sig == last_sig) return 1;
+
     int W = mw * 16 + 8, H = (mh - 1) * 4 + 12;
-    int month = (s16)g_rw(G_CUR_MONTH);
-    if (game_mode() == GM_MAP) take_palette();
-    int ground = (month <= 2 || month >= 10) ? 0x0f : (month == 3 || month == 8 || month == 9) ? 6 : 0x68;
-    {   /* nothing changed since the last (the season's ground, the colours, the places): kept, so the
-           map opens at once (the build and the upload took a good part of a second) */
-        static u32 last_sig; static int have_sig;
-        u32 sig = 2166136261u;
-        #define MIX(v) (sig = (sig ^ (u32)(v)) * 16777619u)
-        MIX(ground); MIX(have_mappal); MIX(mw); MIX(mh);
-        for (int i = 0; i < 256; i++) MIX(have_mappal ? mappal[i] : sheetmask[i] ? sheetpal[i] : dac_rgb(i));
-        for (size_t i = 0; i < (size_t)mw * mh; i++) if (g[i] != terr[i]) { MIX(i); MIX(g[i]); }
-        #undef MIX
-        if (have_sig && sig == last_sig && worldmap.px[0]) { free(g); return 1; }
-        last_sig = sig; have_sig = 1;
-    }
+    u8 *g = malloc((size_t)mw * mh);
     u8 *c = malloc((size_t)W * H);
+    if (!g || !c) { free(g); free(c); return 0; }
+    memcpy(g, terr, (size_t)mw * mh);
+    for (int i = 0; i < nsites; i++) g[sites[i].cell] = (u8)sites[i].icon;
     memset(c, ground, (size_t)W * H);
     #define G(yy, xx) (((yy) < 0 || (yy) >= mh || (xx) < 0 || (xx) >= mw) ? 0 : g[(yy) * mw + (xx)])
     for (int y = 0; y < mh; y++) {
@@ -144,13 +148,37 @@ int worldmap_build(void)
     }
     #undef G
     free(g);
+    free(worldmap.idx);
+    worldmap.idx = c;
+    worldmap.full_w = W; worldmap.full_h = H; worldmap.tiles_w = mw; worldmap.tiles_h = mh;
+    last_sig = sig;
+    terrain_generation++;
+    return 1;
+}
+
+int worldmap_build(void)
+{
+    int month = (s16)g_rw(G_CUR_MONTH);
+    int ground = (month <= 2 || month >= 10) ? 0x0f : (month == 3 || month == 8 || month == 9) ? 6 : 0x68;
+    if (game_mode() == GM_MAP) {
+        ground = (u8)g_rw(GV_map_ground);
+        take_palette();
+    }
+    if (!worldmap_prepare_terrain(ground)) return 0;
     /* colours: the travel screen's own when it has been seen in daylight, else the sheets' */
     u32 pal[256];
     for (int i = 0; i < 256; i++) pal[i] = have_mappal ? mappal[i] : sheetmask[i] ? sheetpal[i] : dac_rgb(i);
+    static int painted_generation;
+    if (worldmap.px[0] && painted_generation == terrain_generation && !memcmp(worldmap.pal, pal, sizeof pal)) return 1;
+
     /* level 0 is half size (2x2 averaged), each further level half again */
-    for (int l = 0; l < WM_LEVELS; l++) { free(worldmap.px[l]); worldmap.px[l] = 0; }
+    const u8 *c = worldmap.idx;
+    int W = worldmap.full_w, H = worldmap.full_h;
+    u32 *levels[WM_LEVELS];
+    int width[WM_LEVELS], height[WM_LEVELS];
     int w = (W + 1) / 2, h = (H + 1) / 2;
     u32 *L = malloc(sizeof(u32) * (size_t)w * h);
+    if (!L) return 0;
     for (int y = 0; y < h; y++)
         for (int x = 0; x < w; x++) {
             unsigned r = 0, gg = 0, b = 0, n = 0;
@@ -162,12 +190,12 @@ int worldmap_build(void)
             }
             L[y * w + x] = 0xff000000u | (r / n) << 16 | (gg / n) << 8 | (b / n);
         }
-    free(worldmap.idx); worldmap.idx = c;              /* kept for the full-scale view */
-    memcpy(worldmap.pal, pal, sizeof pal);
-    worldmap.px[0] = L; worldmap.w[0] = w; worldmap.h[0] = h;
+    levels[0] = L; width[0] = w; height[0] = h;
     for (int l = 1; l < WM_LEVELS; l++) {
-        int pw = worldmap.w[l - 1], ph = worldmap.h[l - 1], nw = (pw + 1) / 2, nh = (ph + 1) / 2;
-        u32 *P = worldmap.px[l - 1], *N = malloc(sizeof(u32) * (size_t)nw * nh);
+        int pw = width[l - 1], ph = height[l - 1], nw = (pw + 1) / 2, nh = (ph + 1) / 2;
+        const u32 *P = levels[l - 1];
+        u32 *N = malloc(sizeof(u32) * (size_t)nw * nh);
+        if (!N) { for (int i = 0; i < l; i++) free(levels[i]); return 0; }
         for (int y = 0; y < nh; y++)
             for (int x = 0; x < nw; x++) {
                 unsigned r = 0, gg = 0, b = 0, n = 0;
@@ -179,9 +207,14 @@ int worldmap_build(void)
                 }
                 N[y * nw + x] = 0xff000000u | (r / n) << 16 | (gg / n) << 8 | (b / n);
             }
-        worldmap.px[l] = N; worldmap.w[l] = nw; worldmap.h[l] = nh;
+        levels[l] = N; width[l] = nw; height[l] = nh;
     }
-    worldmap.full_w = W; worldmap.full_h = H; worldmap.tiles_w = mw; worldmap.tiles_h = mh;
+    for (int l = 0; l < WM_LEVELS; l++) {
+        free(worldmap.px[l]);
+        worldmap.px[l] = levels[l]; worldmap.w[l] = width[l]; worldmap.h[l] = height[l];
+    }
+    memcpy(worldmap.pal, pal, sizeof pal);
+    painted_generation = terrain_generation;
     worldmap.month = month;
     worldmap.stale = 0;
     worldmap.generation++;

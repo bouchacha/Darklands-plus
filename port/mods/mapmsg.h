@@ -16,6 +16,7 @@ extern MapMsgModel mapmsg_model;
 
 void mapmsg_init(void);
 int mapmsg_is_on(void);
+int mapmsg_showing(void);             /* a native or original message over the map */
 void mapmsg_set(int on);
 
 #ifdef __cplusplus

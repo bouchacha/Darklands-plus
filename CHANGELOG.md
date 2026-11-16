@@ -15,6 +15,7 @@
 - **Quest givers** in the world map's Find panel lists the quest givers of the towns the party knows, nearest first by land: today's chance of a quest, when one will have quests again, a quest under way or a reward waiting. A click on a town shows it on the map, to travel there. By woodk123 (pull request #23).
 - **What a quest chance rests on:** under the pointer in Go to (G) and in the world map's Quest givers, as a card's chance says it, each with its shield and today's value (the town's opinion, fame, the speaker's Charisma and Speak Common, a bank's standing), and why a giver turns the party away. By woodk123 (pull request #26).
 - **Custom character portraits:** choose a PNG or JPEG on the character sheet, drag or zoom the preview to frame it, and apply it to the sheet and party panel. By woodk123 (pull request #24).
+- **Overland zoom** shows more terrain while the party walks. Scroll down over the terrain to zoom out and up to return to the usual view.
 
 **Fixed**
 

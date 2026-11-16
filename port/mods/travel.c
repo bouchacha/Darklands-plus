@@ -33,6 +33,7 @@
 #include "fixes.h"
 #include "gamemodel.h"
 #include "lodgeview.h"
+#include "mapmsg.h"
 #include "checks.h"
 
 extern char game_dir[1024];
@@ -44,6 +45,11 @@ int travel_enabled = 1, travel_fast = 1;          /* fast: 0 normal, 1 4x, 2 ins
 int travel_step_result = -1;                      /* what the last step on the map led to (1000: a random encounter) */
 static int travel_min_left = -1, travel_stall;    /* the journey's progress: the least time left yet, the steps since it last fell */
 static int camp_resume, camp_seen, camp_tx, camp_ty, camp_loc; static char camp_name[48];   /* after a camp at 20:00 (travel.camp_at_8): the journey taken up again */
+static struct {
+    int active, x, y, best, stall;
+    unsigned order;
+} walk;
+enum { TRAVEL_IDLE_KEY = 0x4c35 };
 
 /* minutes per one-pixel step by terrain (s030 1462:2ac8; with a saint's speed, mods/sainttexts.h) */
 static int minutes_base(int t);
@@ -265,6 +271,7 @@ int travel_to_tile(int x, int y, int loc, const char *name)
     int px, py; travel_party_tile(&px, &py);
     field(px, py);
     if (!plan(x, y)) return 0;
+    travel_walk_stop();
     travel.active = 1; travel.loc = loc; travel.tx = x; travel.ty = y; camp_resume = 0;
     snprintf(travel.name, sizeof travel.name, "%s", name ? name : "");
     travel.replan = 0; travel_min_left = -1; travel_stall = 0;
@@ -274,6 +281,7 @@ int travel_to_tile(int x, int y, int loc, const char *name)
 }
 
 void travel_stop(void) { travel.active = 0; }
+void travel_walk_stop(void) { walk.active = 0; }
 static void travel_after_load(void);
 
 /* a journey asked for from inside a town (the world map's "Leave and travel there"): set off as
@@ -370,6 +378,65 @@ static int marker_target(int tx, int ty, int *mx, int *my)
     return 1;
 }
 
+static void world_marker(int *x, int *y)
+{
+    *x = (s16)g_rw(GV_map_marker_x) + 16 * (s16)g_rw(GV_map_view_col);
+    *y = (s16)g_rw(GV_map_marker_y) + 4 * ((s16)g_rw(GV_map_buf_row) + (s16)g_rw(GV_map_view_row));
+}
+
+/* The game walks straight towards an ordinary click by comparing its two coordinates with
+   the marker's. Keep the target in world pixels so a shift of the legacy view does not move it. */
+static u16 direction_towards(int x, int y, int target_x, int target_y)
+{
+    static const u16 keys[3][3] = {
+        { 0x4700, 0x4800, 0x4900 },
+        { 0x4b00, TRAVEL_IDLE_KEY, 0x4d00 },
+        { 0x4f00, 0x5000, 0x5100 }
+    };
+    int dx = (target_x > x) - (target_x < x);
+    int dy = (target_y > y) - (target_y < y);
+    return keys[dy + 1][dx + 1];
+}
+
+void travel_walk_to_pixel(int wx, int wy)
+{
+    if (!map_ready() || wx < 0 || wy < 0 || wx >= mw * 16 + 8 || wy >= (mh - 1) * 4 + 12) return;
+    int x, y;
+    world_marker(&x, &y);
+    /* The original subtracts (65, 21) from the click. Terrain starts at (52, 8)
+       relative to the view's tile origin, leaving a (13, 13) offset in world pixels. */
+    walk.x = wx - 13;
+    walk.y = wy - 13;
+    walk.best = abs(walk.x - x) + abs(walk.y - y);
+    walk.stall = 0;
+    walk.order++;
+    walk.active = walk.best != 0;
+    travel_stop();
+    camp_resume = 0;
+    /* A key clears the original loop's retained mouse target. Keypad 5 stands still. */
+    bios_kbd_inject(TRAVEL_IDLE_KEY);
+    if (getenv("DL_TRAVEL_LOG")) fprintf(stderr, "travel: direct walk to world pixel (%d,%d)\n", wx, wy);
+}
+
+static int direct_walk_step(void)
+{
+    if (!walk.active) return 0;
+    u16 arg = (u16)(SP + 4);
+    if (rw(SS, arg) != TRAVEL_IDLE_KEY || config_get_int("original", 0)) {
+        travel_walk_stop();
+        return 0;
+    }
+    int x, y;
+    world_marker(&x, &y);
+    u16 key = direction_towards(x, y, walk.x, walk.y);
+    if (key == TRAVEL_IDLE_KEY) {
+        travel_walk_stop();
+        return 0;
+    }
+    ww(SS, arg, key);
+    return 1;
+}
+
 u32 plat_ticks_ms(void);
 static u32 map_polled;                      /* when the overland loop last took a step (it does while the map is up) */
 /* the overland loop asks for a key at least every 250 ms or so while the party walks (more
@@ -377,6 +444,7 @@ static u32 map_polled;                      /* when the overland loop last took 
  * other screens end the map mode anyway (game_mode), the limit only covers the map's own
  * message boxes */
 int travel_map_live(void) { return travel_enabled && plat_ticks_ms() - map_polled < 1200; }
+int travel_view_live(void) { return !mapmsg_showing() && map_polled && plat_ticks_ms() - map_polled < 1200; }
 
 /* (fix mapfoot) when the step pulls the view down to the map's last rows (s030 1462:0c44, the clamp at the
    foot) the original
@@ -412,7 +480,7 @@ static long camp_done, camp_due = -1;
    game's (a camp that night already made, a camp due, a journey to take up after it) */
 static int forced_x = -1, forced_y = -1;      /* the tile the last step made certain was taken from (encounter_weight_hook) */
 static int altar_met = -1;                     /* fix altarroad: the pagan altar whose surroundings brought an encounter */
-static void travel_after_load(void) { travel.active = 0; camp_done = 0; camp_due = -1; camp_resume = 0; pend_loc = -1; forced_x = forced_y = -1; altar_met = -1; }
+static void travel_after_load(void) { travel_stop(); travel_walk_stop(); camp_done = 0; camp_due = -1; camp_resume = 0; pend_loc = -1; forced_x = forced_y = -1; altar_met = -1; }
 /* a place adding far more than any other to the chance of an encounter beside it: the pagan altars (99) */
 static int altar_heavy(int l)
 {
@@ -461,6 +529,7 @@ static int camp_now(const char *why)
         snprintf(camp_name, sizeof camp_name, "%s", travel.name);
     }
     travel.active = 0;
+    travel_walk_stop();                                  /* an ordinary walk stops for camp */
     plat_press_key(6);                                   /* (SDL_SCANCODE_C: the game's camp) */
     fprintf(stderr, "travel: camp at %d:00 (%s, travel.camp_at_8 %d%s%s)\n", (s16)g_rw(GV_cur_hour), why, mode, mode == 1 ? ", " : "", mode == 1 ? camp_why : "");
     ui_notice((s16)g_rw(GV_cur_hour) == 20 ? "20:00: the party makes camp (the campfire under the clock). A night in camp lasts until 5:00."
@@ -485,7 +554,7 @@ static void step_hook(void)                 /* s030 1462:0c44 (key): one step of
     }
     if (travel.active) {
         u16 key = rw(SS, (u16)(SP + 4));
-        if (key != 0x4c35 && !started) { travel.active = 0; fprintf(stderr, "travel: stopped by key %04x (the player took over)\n", key); }   /* the player took over */
+        if (key != TRAVEL_IDLE_KEY && !started) { travel.active = 0; fprintf(stderr, "travel: stopped by key %04x (the player took over)\n", key); }   /* the player took over */
         else {
             int px, py; travel_party_tile(&px, &py);
             if (travel.replan) { travel.replan = 0; field(px, py); if (!plan(travel.tx, travel.ty)) travel.active = 0; }
@@ -509,7 +578,7 @@ static void step_hook(void)                 /* s030 1462:0c44 (key): one step of
                  * centre while every position it can lead to stays on this tile or the next. */
                 static const u16 KEYS[8] = { 0x4700, 0x4800, 0x4900, 0x4b00, 0x4d00, 0x4f00, 0x5000, 0x5100 };
                 static const int KX[8] = { -1, 0, 1, -1, 1, -1, 0, 1 }, KY[8] = { -1, -1, -1, 0, 0, 1, 1, 1 };
-                u16 k = 0x4c35; long bestd = -1;
+                u16 k = TRAVEL_IDLE_KEY; long bestd = -1;
                 int nx = travel.rx[travel.i], ny = travel.ry[travel.i];
                 for (int c = 0; c < 8; c++) {
                     int ok = 1;
@@ -523,12 +592,7 @@ static void step_hook(void)                 /* s030 1462:0c44 (key): one step of
                     long d = ddx * ddx + 4 * ddy * ddy;
                     if (bestd < 0 || d < bestd) { bestd = d; k = KEYS[c]; }
                 }
-                if (bestd < 0) {                                       /* no safe key: head straight for it */
-                    if (x > mx && y > my) k = 0x4700; else if (x > mx && y < my) k = 0x4f00;
-                    else if (x < mx && y > my) k = 0x4900; else if (x < mx && y < my) k = 0x5100;
-                    else if (x > mx) k = 0x4b00; else if (x < mx) k = 0x4d00;
-                    else if (y > my) k = 0x4800; else if (y < my) k = 0x5000;
-                }
+                if (bestd < 0) k = direction_towards(x, y, mx, my);       /* no safe key: head straight for it */
                 ww(SS, (u16)(SP + 4), k);
                 { static int lg = -1; if (lg < 0) lg = getenv("DL_TRAVEL_STEPS") != 0;
                   if (lg) fprintf(stderr, "travel step: tile (%d,%d) next (%d,%d) marker %d,%d target %d,%d view %d+%d col %d key %04x\n", px, py, nx, ny, x, y, mx, my,
@@ -552,12 +616,23 @@ static void step_hook(void)                 /* s030 1462:0c44 (key): one step of
             }
         }
     }
+    unsigned walk_order = walk.order;
+    int walked = direct_walk_step();
     int e0 = (s16)g_rw(GV_map_buf_row), c0 = (s16)g_rw(GV_map_view_row), y0 = (s16)g_rw(GV_map_marker_y);
     int x0 = (s16)g_rw(GV_map_marker_x), v0 = (s16)g_rw(GV_map_view_col), h0 = (s16)g_rw(GV_cur_hour);
     hook_call_original();
     if (unw_active) return;                                  /* (a load from the map's menu bar: AX is not this step's) */
     int r = (s16)AX;
     foot_fix(e0, c0, y0);
+    if (r >= 0 && r != 9999) travel_walk_stop();                /* the original loop closes for a place or encounter */
+    if (walked && walk.active && walk_order == walk.order) {
+        int x, y;
+        world_marker(&x, &y);
+        int left = abs(walk.x - x) + abs(walk.y - y);
+        if (r == 9999 || !left) travel_walk_stop();
+        else if (left < walk.best) { walk.best = left; walk.stall = 0; }
+        else if (++walk.stall == 2) travel_walk_stop();          /* vertical moves advance every other step */
+    }
     travel_step_result = r;
     if (r == 1000 || r == 2000) {                            /* (fix altarroad: an encounter beside a pagan altar) */
         int l = (s16)g_rw(G_CUR_LOC);
@@ -685,14 +760,8 @@ void travel_init(void)
     hook_install(29, 0x1367, 0x0066, clamp_hook);
 }
 
-/* Ctrl+click at game pixel (gx, gy) on the travel map */
-void travel_click(int gx, int gy)
+static int route_click(int tx, int ty)
 {
-    if (!travel_enabled || !map_ready() || gx < 62) return;
-    int mx = gx - 0x41, my = gy - 0x15;                       /* marker coordinates, as the game takes a click */
-    int rowk = (my + 11) / 4;
-    int ty = rowk + (s16)g_rw(GV_map_buf_row) + (s16)g_rw(GV_map_view_row) - 1;
-    int tx = (s16)g_rw(GV_map_view_col) + ((ty & 1) ? mx + 16 : mx + 24) / 16 - 1;
     /* a location there? then travel to it */
     for (int i = 0; i < G_NLOC; i++) {
         u32 r = g_location(i);
@@ -700,11 +769,29 @@ void travel_click(int gx, int gy)
         int lx = (s16)rw((u16)(r >> 16), (u16)(r + 4)), ly = (s16)rw((u16)(r >> 16), (u16)(r + 6));
         if (abs(lx - tx) <= 1 && abs(ly - ty) <= 1) {
             char b[24]; g_str((u16)(r >> 16), (u16)(r + 0x26), b, sizeof b);
-            if (travel_to_loc(i, b)) return;
+            if (travel_to_loc(i, b)) return 1;
         }
     }
-    if (blocked(travel_terrain(tx, ty))) return;
-    travel_to_tile(tx, ty, -1, "the marked place");
+    return !blocked(travel_terrain(tx, ty)) && travel_to_tile(tx, ty, -1, "the marked place");
+}
+
+/* Ctrl+click at a game pixel on the ordinary travel map. */
+void travel_click(int gx, int gy)
+{
+    if (!travel_enabled || !map_ready() || gx < 62) return;
+    int tx, ty;
+    tile_of(gx - 0x41, gy - 0x15, &tx, &ty);
+    route_click(tx, ty);
+}
+
+/* Same tile selection in world pixels, including pixels beyond the legacy view. */
+void travel_route_to_pixel(int wx, int wy)
+{
+    if (!travel_enabled || !map_ready() || wy < 6) return;
+    int ty = (wy - 6) / 4;
+    int x = wx - ((ty & 1) ? 13 : 5);
+    if (ty >= mh || x < 0 || x / 16 >= mw) return;
+    if (route_click(x / 16, ty)) bios_kbd_inject(TRAVEL_IDLE_KEY);   /* clear a retained 1x click */
 }
 
 /* tests: travel to the nearest location of a type (6 = mine ...) */

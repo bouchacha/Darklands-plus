@@ -2580,17 +2580,17 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/titleview.cpp:107` | Darklands+ %s (build %s) |
 | `ui/titleview.cpp:107` | Darklands+ build %s%s |
 | `ui/townicons.cpp:229` | von der Lilie |
-| `ui/travel.cpp:111` | Keep the campfire shown. |
-| `ui/travel.cpp:111` | Hide the campfire under the clock (point at the clock to see it again). |
-| `ui/travel.cpp:114` | Stop to camp at 20:00: off. |
-| `ui/travel.cpp:115` | At 20:00 the party stops and makes camp when someone is short of {Strength}, or of more {Divine Favor} than a night brings back ({Endurance} comes back on the road by itself). |
-| `ui/travel.cpp:116` | At 20:00 the party stops and makes camp every night (to brew potions on the road, say). |
-| `ui/travel.cpp:117` | Click: stop at 20:00 when someone needs rest. |
-| `ui/travel.cpp:117` | Click: stop at 20:00 every night. |
-| `ui/travel.cpp:121` | A day in camp or at an inn lasts until 5:00: from 20:00 that is a night of 9 hours, from 21:00 it is 5:00 the day after (32 hours). |
-| `ui/travel.cpp:139` | Stop to camp at 20:00: off |
-| `ui/travel.cpp:139` | Stop to camp at 20:00: when someone needs rest |
-| `ui/travel.cpp:139` | Stop to camp at 20:00: every night |
+| `ui/travel.cpp:119` | Keep the campfire shown. |
+| `ui/travel.cpp:119` | Hide the campfire under the clock (point at the clock to see it again). |
+| `ui/travel.cpp:122` | Stop to camp at 20:00: off. |
+| `ui/travel.cpp:123` | At 20:00 the party stops and makes camp when someone is short of {Strength}, or of more {Divine Favor} than a night brings back ({Endurance} comes back on the road by itself). |
+| `ui/travel.cpp:124` | At 20:00 the party stops and makes camp every night (to brew potions on the road, say). |
+| `ui/travel.cpp:125` | Click: stop at 20:00 when someone needs rest. |
+| `ui/travel.cpp:125` | Click: stop at 20:00 every night. |
+| `ui/travel.cpp:129` | A day in camp or at an inn lasts until 5:00: from 20:00 that is a night of 9 hours, from 21:00 it is 5:00 the day after (32 hours). |
+| `ui/travel.cpp:147` | Stop to camp at 20:00: off |
+| `ui/travel.cpp:147` | Stop to camp at 20:00: when someone needs rest |
+| `ui/travel.cpp:147` | Stop to camp at 20:00: every night |
 | `ui/ui.cpp:86` |              |
 | `ui/ui.cpp:99` | EB Garamond (book face) |
 | `ui/ui.cpp:99` | Alegreya (calligraphic) |
@@ -2695,115 +2695,117 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui_windows.cpp:286` | Now: the overland view |
 | `ui/ui_windows.cpp:287` | walk towards that spot |
 | `ui/ui_windows.cpp:288` | travel there along the roads (Darklands+; any key or click stops) |
-| `ui/ui_windows.cpp:289` | the world map (Darklands+): find a place, double-click to travel there |
-| `ui/ui_windows.cpp:290` | Point at a quest's icon |
-| `ui/ui_windows.cpp:290` | the quest that leads there (a portcullis or a pillory beside a town: the town bars the party, or its watch wants the party) |
-| `ui/ui_windows.cpp:291` | A quest in the left margin |
-| `ui/ui_windows.cpp:291` | click to open it, then Travel there |
-| `ui/ui_windows.cpp:292` | (in the right margin, near a town) what that town has that most towns lack, and its notable shops (point at one to see what it offers) |
-| `ui/ui_windows.cpp:294` | Now: a battle |
-| `ui/ui_windows.cpp:295` | pause / resume; orders can be given while paused |
-| `ui/ui_windows.cpp:297` | Click a member |
-| `ui/ui_windows.cpp:297` | then click an enemy (attack) or a spot (walk there): that click gives the order |
-| `ui/ui_windows.cpp:298` | select a member; Esc: cancel the order being given |
-| `ui/ui_windows.cpp:301` | The buttons at the foot of the field |
-| `ui/ui_windows.cpp:301` | the selected member's orders, each in the same place for everyone, its key on it (an order not open to them dimmed); their potions and items to throw or use in a grid just above. For a member already fighting, an attack is given against that enemy at once. Fast forward and Resume stand at the top of the right margin |
-| `ui/ui_windows.cpp:303` | Click a member |
-| `ui/ui_windows.cpp:303` | then click an enemy, a spot or a menu choice; Enter gives the order |
-| `ui/ui_windows.cpp:304` | Ctrl+click a member |
-| `ui/ui_windows.cpp:304` | make that member the active one: the view follows them (scrolling at an edge stops it) |
-| `ui/ui_windows.cpp:305` | Point at anyone |
-| `ui/ui_windows.cpp:305` | who it is and how badly hurt |
-| `ui/ui_windows.cpp:306` | a map of the level as far as the party has seen it; a click on its floor walks the party there (Darklands+) |
-| `ui/ui_windows.cpp:307` | Click a shut door |
-| `ui/ui_windows.cpp:307` | out of a fight: the party walks to it and opens it (Darklands+) |
-| `ui/ui_windows.cpp:309` | The battle log |
-| `ui/ui_windows.cpp:309` | every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal > Battle log keeps it all |
-| `ui/ui_windows.cpp:311` | Now: the loot |
-| `ui/ui_windows.cpp:312` | Take / Put back |
-| `ui/ui_windows.cpp:312` | on the row under the pointer: the whole stack (1: just one) |
-| `ui/ui_windows.cpp:313` | everything into the party's pack |
-| `ui/ui_windows.cpp:313` | go to the member shown above the right list (each member's own); the rest into the party's pack |
-| `ui/ui_windows.cpp:314` | Take all / Share out |
-| `ui/ui_windows.cpp:314` | everything to the member shown / to whoever has some already, else whoever has the most room (A / S) |
-| `ui/ui_windows.cpp:315` | Names above the right list, D |
-| `ui/ui_windows.cpp:315` | switch to another member |
-| `ui/ui_windows.cpp:316` | L, Esc or Leave |
-| `ui/ui_windows.cpp:316` | leave (what is left stays behind) |
-| `ui/ui_windows.cpp:318` | Now: the loot |
-| `ui/ui_windows.cpp:319` | get the chosen item from the pile / put one back (the cursor's list) |
-| `ui/ui_windows.cpp:320` | switch to the next member (the one who gets what you take) |
-| `ui/ui_windows.cpp:321` | take the whole pile for the member shown |
-| `ui/ui_windows.cpp:321` | share the pile out: each item to whoever has some already, else whoever has the most room |
-| `ui/ui_windows.cpp:322` | leave (what is left stays behind) |
-| `ui/ui_windows.cpp:325` | on the row under the pointer; with Shift: ten / the whole stack |
-| `ui/ui_windows.cpp:326` | Names above your list |
-| `ui/ui_windows.cpp:326` | whose items are listed (B: the next member); right-click a name: that member holds the purse |
-| `ui/ui_windows.cpp:327` | Wheel, Up, Down |
-| `ui/ui_windows.cpp:327` | scroll the list under the pointer |
-| `ui/ui_windows.cpp:328` | L, Esc or Leave |
-| `ui/ui_windows.cpp:331` | buy the merchant's chosen item / sell your chosen item (one at a time) |
-| `ui/ui_windows.cpp:332` | buy ten of the merchant's chosen item (while the money lasts) |
-| `ui/ui_windows.cpp:332` | sell the whole stack of your chosen item |
-| `ui/ui_windows.cpp:333` | barter for the next member |
-| `ui/ui_windows.cpp:336` | Now: the store room |
-| `ui/ui_windows.cpp:337` | on the row under the pointer: the whole stack (1: just one) |
-| `ui/ui_windows.cpp:338` | every item not equipped (with the party's pack, Darklands+: except kept items and potions) |
-| `ui/ui_windows.cpp:339` | a potion taken goes to the member shown above the right list; the rest into the party's pack |
-| `ui/ui_windows.cpp:340` | The store room |
-| `ui/ui_windows.cpp:340` | the same at every inn (Darklands+; F12 > Settings > New screens) |
-| `ui/ui_windows.cpp:341` | L, Esc or Leave |
-| `ui/ui_windows.cpp:343` | Now: a character sheet |
-| `ui/ui_windows.cpp:344` | Equip / Unequip / Drink / Keep / Drop |
-| `ui/ui_windows.cpp:344` | on the row under the pointer on the Items page: with the shared pack (Darklands+) the spare items are in the party's pack, and Equip moves the item from the pack to this member and equips it (Drop with Shift: all of them) |
-| `ui/ui_windows.cpp:345` | each member's own: drag one onto someone at the left to give it |
-| `ui/ui_windows.cpp:346` | marks an item never to be sold or dropped (a small seal on its row) |
-| `ui/ui_windows.cpp:347` | only equipped items count toward the load, as in the original |
-| `ui/ui_windows.cpp:348` | Equip / Unequip / Drink / Give / Drop |
-| `ui/ui_windows.cpp:348` | on the row under the pointer on the Items page (Give and Drop with Shift: the whole stack) |
-| `ui/ui_windows.cpp:349` | Items, Skills, Saints, Formulae |
-| `ui/ui_windows.cpp:349` | the pages at the top (Tab or Right: next page; Shift+Tab or Left: previous page) |
-| `ui/ui_windows.cpp:350` | Choose Portrait |
-| `ui/ui_windows.cpp:350` | pick a PNG or JPEG, drag or zoom to adjust its framing, then choose Use Portrait |
-| `ui/ui_windows.cpp:351` | Party panel, F1 ... F5 |
-| `ui/ui_windows.cpp:351` | another member's sheet; this member's picture, Esc or Close: back |
-| `ui/ui_windows.cpp:352` | Ctrl+F1 ... Ctrl+F5 |
-| `ui/ui_windows.cpp:352` | make member 1 ... 5 the leader (or Make leader) |
-| `ui/ui_windows.cpp:353` | Wheel, Up, Down |
-| `ui/ui_windows.cpp:353` | scroll the list |
-| `ui/ui_windows.cpp:355` | Now: a character sheet |
-| `ui/ui_windows.cpp:356` | Ctrl+F1 ... Ctrl+F5 |
-| `ui/ui_windows.cpp:356` | make member 1 ... 5 the leader (or Make leader at the top) |
-| `ui/ui_windows.cpp:357` | Up, Down, PgUp, PgDn |
-| `ui/ui_windows.cpp:357` | move in a list (the mouse wheel too) |
-| `ui/ui_windows.cpp:358` | in the equipment list: give the chosen item to member 1 ... 5 (with Shift: all of them) |
-| `ui/ui_windows.cpp:359` | in the equipment list: ready or wear the chosen item |
-| `ui/ui_windows.cpp:360` | in the equipment list: drop the chosen item (with Shift: all of them) |
-| `ui/ui_windows.cpp:362` | Keys of the original game |
-| `ui/ui_windows.cpp:363` | the menu bar: click an entry (or hold the button and release it on one); a click elsewhere or any key closes it; F10 with the keyboard |
-| `ui/ui_windows.cpp:364` | Right mouse button |
-| `ui/ui_windows.cpp:364` | the menu bar, while it is held: release it on an entry (F10 with the keyboard) |
-| `ui/ui_windows.cpp:365` | Alt+S / Alt+L |
-| `ui/ui_windows.cpp:365` | save / load, with a comment (the original's screens list nine saves) |
-| `ui/ui_windows.cpp:366` | the marching order |
-| `ui/ui_windows.cpp:367` | difficulty    Alt+M music    Alt+F sound effects |
-| `ui/ui_windows.cpp:368` | messages about saints' changes on / off |
-| `ui/ui_windows.cpp:370` | quit to the desktop |
-| `ui/ui_windows.cpp:372` | the Darklands+ window (pauses the game) |
-| `ui/ui_windows.cpp:373` | Ctrl+S / F9 or Ctrl+L |
-| `ui/ui_windows.cpp:373` | quick save / quick load |
-| `ui/ui_windows.cpp:374` | full screen    Ctrl+F12 screenshot |
-| `ui/ui_windows.cpp:377` | The controller |
-| `ui/ui_windows.cpp:383` | moves the pointer (slowly while the left trigger is held) |
-| `ui/ui_windows.cpp:384` | the mouse wheel; pressed: Z (fast forward in a battle) |
-| `ui/ui_windows.cpp:385` | click / right-click (the menu bar) |
-| `ui/ui_windows.cpp:387` | the arrow keys |
-| `ui/ui_windows.cpp:388` | Tab (the level map) / Space (pause) |
-| `ui/ui_windows.cpp:389` | {START} {BACK} |
-| `ui/ui_windows.cpp:389` | F12 (the Darklands+ window) / M (the world map) |
-| `ui/ui_windows.cpp:390` | held: Ctrl (in the overland view: Ctrl+click travels there) |
-| `ui/ui_windows.cpp:391` | pressed: F11 (this list) |
-| `ui/ui_windows.cpp:393` | F11, Esc or a click closes this. |
+| `ui/ui_windows.cpp:289` | Mouse wheel over terrain |
+| `ui/ui_windows.cpp:289` | scroll down to see more terrain, up to zoom back in (Darklands+) |
+| `ui/ui_windows.cpp:290` | the world map (Darklands+): find a place, double-click to travel there |
+| `ui/ui_windows.cpp:291` | Point at a quest's icon |
+| `ui/ui_windows.cpp:291` | the quest that leads there (a portcullis or a pillory beside a town: the town bars the party, or its watch wants the party) |
+| `ui/ui_windows.cpp:292` | A quest in the left margin |
+| `ui/ui_windows.cpp:292` | click to open it, then Travel there |
+| `ui/ui_windows.cpp:293` | (in the right margin, near a town) what that town has that most towns lack, and its notable shops (point at one to see what it offers) |
+| `ui/ui_windows.cpp:295` | Now: a battle |
+| `ui/ui_windows.cpp:296` | pause / resume; orders can be given while paused |
+| `ui/ui_windows.cpp:298` | Click a member |
+| `ui/ui_windows.cpp:298` | then click an enemy (attack) or a spot (walk there): that click gives the order |
+| `ui/ui_windows.cpp:299` | select a member; Esc: cancel the order being given |
+| `ui/ui_windows.cpp:302` | The buttons at the foot of the field |
+| `ui/ui_windows.cpp:302` | the selected member's orders, each in the same place for everyone, its key on it (an order not open to them dimmed); their potions and items to throw or use in a grid just above. For a member already fighting, an attack is given against that enemy at once. Fast forward and Resume stand at the top of the right margin |
+| `ui/ui_windows.cpp:304` | Click a member |
+| `ui/ui_windows.cpp:304` | then click an enemy, a spot or a menu choice; Enter gives the order |
+| `ui/ui_windows.cpp:305` | Ctrl+click a member |
+| `ui/ui_windows.cpp:305` | make that member the active one: the view follows them (scrolling at an edge stops it) |
+| `ui/ui_windows.cpp:306` | Point at anyone |
+| `ui/ui_windows.cpp:306` | who it is and how badly hurt |
+| `ui/ui_windows.cpp:307` | a map of the level as far as the party has seen it; a click on its floor walks the party there (Darklands+) |
+| `ui/ui_windows.cpp:308` | Click a shut door |
+| `ui/ui_windows.cpp:308` | out of a fight: the party walks to it and opens it (Darklands+) |
+| `ui/ui_windows.cpp:310` | The battle log |
+| `ui/ui_windows.cpp:310` | every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal > Battle log keeps it all |
+| `ui/ui_windows.cpp:312` | Now: the loot |
+| `ui/ui_windows.cpp:313` | Take / Put back |
+| `ui/ui_windows.cpp:313` | on the row under the pointer: the whole stack (1: just one) |
+| `ui/ui_windows.cpp:314` | everything into the party's pack |
+| `ui/ui_windows.cpp:314` | go to the member shown above the right list (each member's own); the rest into the party's pack |
+| `ui/ui_windows.cpp:315` | Take all / Share out |
+| `ui/ui_windows.cpp:315` | everything to the member shown / to whoever has some already, else whoever has the most room (A / S) |
+| `ui/ui_windows.cpp:316` | Names above the right list, D |
+| `ui/ui_windows.cpp:316` | switch to another member |
+| `ui/ui_windows.cpp:317` | L, Esc or Leave |
+| `ui/ui_windows.cpp:317` | leave (what is left stays behind) |
+| `ui/ui_windows.cpp:319` | Now: the loot |
+| `ui/ui_windows.cpp:320` | get the chosen item from the pile / put one back (the cursor's list) |
+| `ui/ui_windows.cpp:321` | switch to the next member (the one who gets what you take) |
+| `ui/ui_windows.cpp:322` | take the whole pile for the member shown |
+| `ui/ui_windows.cpp:322` | share the pile out: each item to whoever has some already, else whoever has the most room |
+| `ui/ui_windows.cpp:323` | leave (what is left stays behind) |
+| `ui/ui_windows.cpp:326` | on the row under the pointer; with Shift: ten / the whole stack |
+| `ui/ui_windows.cpp:327` | Names above your list |
+| `ui/ui_windows.cpp:327` | whose items are listed (B: the next member); right-click a name: that member holds the purse |
+| `ui/ui_windows.cpp:328` | Wheel, Up, Down |
+| `ui/ui_windows.cpp:328` | scroll the list under the pointer |
+| `ui/ui_windows.cpp:329` | L, Esc or Leave |
+| `ui/ui_windows.cpp:332` | buy the merchant's chosen item / sell your chosen item (one at a time) |
+| `ui/ui_windows.cpp:333` | buy ten of the merchant's chosen item (while the money lasts) |
+| `ui/ui_windows.cpp:333` | sell the whole stack of your chosen item |
+| `ui/ui_windows.cpp:334` | barter for the next member |
+| `ui/ui_windows.cpp:337` | Now: the store room |
+| `ui/ui_windows.cpp:338` | on the row under the pointer: the whole stack (1: just one) |
+| `ui/ui_windows.cpp:339` | every item not equipped (with the party's pack, Darklands+: except kept items and potions) |
+| `ui/ui_windows.cpp:340` | a potion taken goes to the member shown above the right list; the rest into the party's pack |
+| `ui/ui_windows.cpp:341` | The store room |
+| `ui/ui_windows.cpp:341` | the same at every inn (Darklands+; F12 > Settings > New screens) |
+| `ui/ui_windows.cpp:342` | L, Esc or Leave |
+| `ui/ui_windows.cpp:344` | Now: a character sheet |
+| `ui/ui_windows.cpp:345` | Equip / Unequip / Drink / Keep / Drop |
+| `ui/ui_windows.cpp:345` | on the row under the pointer on the Items page: with the shared pack (Darklands+) the spare items are in the party's pack, and Equip moves the item from the pack to this member and equips it (Drop with Shift: all of them) |
+| `ui/ui_windows.cpp:346` | each member's own: drag one onto someone at the left to give it |
+| `ui/ui_windows.cpp:347` | marks an item never to be sold or dropped (a small seal on its row) |
+| `ui/ui_windows.cpp:348` | only equipped items count toward the load, as in the original |
+| `ui/ui_windows.cpp:349` | Equip / Unequip / Drink / Give / Drop |
+| `ui/ui_windows.cpp:349` | on the row under the pointer on the Items page (Give and Drop with Shift: the whole stack) |
+| `ui/ui_windows.cpp:350` | Items, Skills, Saints, Formulae |
+| `ui/ui_windows.cpp:350` | the pages at the top (Tab or Right: next page; Shift+Tab or Left: previous page) |
+| `ui/ui_windows.cpp:351` | Choose Portrait |
+| `ui/ui_windows.cpp:351` | pick a PNG or JPEG, drag or zoom to adjust its framing, then choose Use Portrait |
+| `ui/ui_windows.cpp:352` | Party panel, F1 ... F5 |
+| `ui/ui_windows.cpp:352` | another member's sheet; this member's picture, Esc or Close: back |
+| `ui/ui_windows.cpp:353` | Ctrl+F1 ... Ctrl+F5 |
+| `ui/ui_windows.cpp:353` | make member 1 ... 5 the leader (or Make leader) |
+| `ui/ui_windows.cpp:354` | Wheel, Up, Down |
+| `ui/ui_windows.cpp:354` | scroll the list |
+| `ui/ui_windows.cpp:356` | Now: a character sheet |
+| `ui/ui_windows.cpp:357` | Ctrl+F1 ... Ctrl+F5 |
+| `ui/ui_windows.cpp:357` | make member 1 ... 5 the leader (or Make leader at the top) |
+| `ui/ui_windows.cpp:358` | Up, Down, PgUp, PgDn |
+| `ui/ui_windows.cpp:358` | move in a list (the mouse wheel too) |
+| `ui/ui_windows.cpp:359` | in the equipment list: give the chosen item to member 1 ... 5 (with Shift: all of them) |
+| `ui/ui_windows.cpp:360` | in the equipment list: ready or wear the chosen item |
+| `ui/ui_windows.cpp:361` | in the equipment list: drop the chosen item (with Shift: all of them) |
+| `ui/ui_windows.cpp:363` | Keys of the original game |
+| `ui/ui_windows.cpp:364` | the menu bar: click an entry (or hold the button and release it on one); a click elsewhere or any key closes it; F10 with the keyboard |
+| `ui/ui_windows.cpp:365` | Right mouse button |
+| `ui/ui_windows.cpp:365` | the menu bar, while it is held: release it on an entry (F10 with the keyboard) |
+| `ui/ui_windows.cpp:366` | Alt+S / Alt+L |
+| `ui/ui_windows.cpp:366` | save / load, with a comment (the original's screens list nine saves) |
+| `ui/ui_windows.cpp:367` | the marching order |
+| `ui/ui_windows.cpp:368` | difficulty    Alt+M music    Alt+F sound effects |
+| `ui/ui_windows.cpp:369` | messages about saints' changes on / off |
+| `ui/ui_windows.cpp:371` | quit to the desktop |
+| `ui/ui_windows.cpp:373` | the Darklands+ window (pauses the game) |
+| `ui/ui_windows.cpp:374` | Ctrl+S / F9 or Ctrl+L |
+| `ui/ui_windows.cpp:374` | quick save / quick load |
+| `ui/ui_windows.cpp:375` | full screen    Ctrl+F12 screenshot |
+| `ui/ui_windows.cpp:378` | The controller |
+| `ui/ui_windows.cpp:384` | moves the pointer (slowly while the left trigger is held) |
+| `ui/ui_windows.cpp:385` | the mouse wheel; pressed: Z (fast forward in a battle) |
+| `ui/ui_windows.cpp:386` | click / right-click (the menu bar) |
+| `ui/ui_windows.cpp:388` | the arrow keys |
+| `ui/ui_windows.cpp:389` | Tab (the level map) / Space (pause) |
+| `ui/ui_windows.cpp:390` | {START} {BACK} |
+| `ui/ui_windows.cpp:390` | F12 (the Darklands+ window) / M (the world map) |
+| `ui/ui_windows.cpp:391` | held: Ctrl (in the overland view: Ctrl+click travels there) |
+| `ui/ui_windows.cpp:392` | pressed: F11 (this list) |
+| `ui/ui_windows.cpp:394` | F11, Esc or a click closes this. |
 | `ui/worldmap.cpp:78` | Unwelcome here |
 | `ui/worldmap.cpp:78` | The watch on alert here |
 | `ui/worldmap.cpp:78` | Wanted by the watch here |
@@ -2884,13 +2886,13 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/worldmap.cpp:1152` | Traveling to %s |
 | `ui/worldmap.cpp:1215` | faded: leaves later this week |
 | `ui/worldmap.cpp:1280` | Click to take the boat. |
-| `ui/worldmap_draw.cpp:105` | ruined castle |
-| `ui/worldmap_draw.cpp:107` | ruined village |
-| `ui/worldmap_draw.cpp:108` | standing stone |
-| `ui/worldmap_draw.cpp:108` | witches' meeting place |
-| `ui/worldmap_draw.cpp:137` | Spring or lake |
-| `ui/worldmap_draw.cpp:424` | Map of Greater Germany |
-| `ui/worldmap_draw.cpp:589` | About %s of travel |
+| `ui/worldmap_draw.cpp:106` | ruined castle |
+| `ui/worldmap_draw.cpp:108` | ruined village |
+| `ui/worldmap_draw.cpp:109` | standing stone |
+| `ui/worldmap_draw.cpp:109` | witches' meeting place |
+| `ui/worldmap_draw.cpp:138` | Spring or lake |
+| `ui/worldmap_draw.cpp:425` | Map of Greater Germany |
+| `ui/worldmap_draw.cpp:610` | About %s of travel |
 
 ## The game side (mods/)
 
@@ -3675,17 +3677,17 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/teachers.c:225` | Here: choose "inquire about special training". |
 | `mods/teachers.c:226` | They may say no (it depends on {Charisma}, reputation here and fame); they always agree if the guild owes the party a favor. |
 | `mods/teachers.c:229` | A bug in the original game: this guild's teacher teaches no skill at all. |
-| `mods/travel.c:290` | No route there from here. |
-| `mods/travel.c:316` | how far is it |
-| `mods/travel.c:444` | member %d: Strength %d of %d |
-| `mods/travel.c:447` | member %d: Divine Favor %d of %d, a night brings back %d |
-| `mods/travel.c:449` | nobody needs rest |
-| `mods/travel.c:466` | 20:00: the party makes camp (the campfire under the clock). A night in camp lasts until 5:00. |
-| `mods/travel.c:467` | The party makes camp before 20:00 (the campfire under the clock): the journey ahead would run past it. |
-| `mods/travel.c:502` | a long step ahead |
-| `mods/travel.c:550` | Travel stopped: the party could get no further along this route. |
-| `mods/travel.c:623` | the river acted as a wall |
-| `mods/travel.c:707` | the marked place |
+| `mods/travel.c:298` | No route there from here. |
+| `mods/travel.c:324` | how far is it |
+| `mods/travel.c:512` | member %d: Strength %d of %d |
+| `mods/travel.c:515` | member %d: Divine Favor %d of %d, a night brings back %d |
+| `mods/travel.c:517` | nobody needs rest |
+| `mods/travel.c:535` | 20:00: the party makes camp (the campfire under the clock). A night in camp lasts until 5:00. |
+| `mods/travel.c:536` | The party makes camp before 20:00 (the campfire under the clock): the journey ahead would run past it. |
+| `mods/travel.c:571` | a long step ahead |
+| `mods/travel.c:614` | Travel stopped: the party could get no further along this route. |
+| `mods/travel.c:698` | the river acted as a wall |
+| `mods/travel.c:775` | the marked place |
 | `mods/war.c:98` | pics\gate4.pic: No such file |
 | `mods/war.c:147` | ...hidden option |
 | `mods/ways.c:111` | often change to vulnerable |

@@ -21,6 +21,9 @@
 #include "../ui/ui.h"
 #include "../mods/hdart.h"
 #include "../mods/hdtext.h"
+#include "../mods/nscreen.h"
+#include "../mods/overland_zoom.h"
+#include "../mods/travel.h"
 #include "game.h"
 #include "gamevars.h"
 #include "config.h"
@@ -28,6 +31,7 @@
 static SDL_Window *win;
 static SDL_Renderer *ren;
 static SDL_Texture *tex;
+static int menu_bar_up(void);
 static u32 frame[320 * 200];
 static int headless;
 static int mouse_x = 160, mouse_y = 100, mouse_b;
@@ -294,7 +298,12 @@ static void art_draw(void)
         hdart_size(d->pic, &pw, &ph);
         float fx = (float)tw / pw, fy = (float)th / ph;
         SDL_Rect src = { (int)(d->sx * fx + 0.5f), (int)(d->sy * fy + 0.5f), (int)(d->w * fx + 0.5f), (int)(d->h * fy + 0.5f) };
-        SDL_FRect dst = { dest.x + d->x * kx, dest.y + d->y * ky, d->w * kx, d->h * ky };
+        float x0 = d->x, y0 = d->y, x1 = x0 + d->w, y1 = y0 + d->h;
+        if (d->x >= OVERLAND_MAP_X && d->y >= OVERLAND_MAP_Y) {   /* the map's tile and sprite blits */
+            overland_zoom_project(&x0, &y0);
+            overland_zoom_project(&x1, &y1);
+        }
+        SDL_FRect dst = { dest.x + x0 * kx, dest.y + y0 * ky, (x1 - x0) * kx, (y1 - y0) * ky };
         SDL_SetTextureColorMod(t, d->mod[0], d->mod[1], d->mod[2]);
         SDL_RenderCopyF(ren, t, &src, &dst);
     }
@@ -471,6 +480,24 @@ static u32 drawing_t; static int drawing;
 static u8 whole_vga[320 * 200], whole_pal[768]; static int whole_ok;
 static const u8 *live_vga, *live_pal;     /* (what plat_present is given: the game's screen and palette) */
 static void keep_whole(const u8 *vga, const u8 *pal) { memcpy(whole_vga, vga, sizeof whole_vga); memcpy(whole_pal, pal, sizeof whole_pal); whole_ok = 1; }
+static int overland_unobstructed(void)
+{
+    extern char game_dialog_text[600];
+    return !headless && game_mode() == GM_MAP && !ns_showing() && !ui_is_open() && !menu_bar_up() && !game_dialog_text[0];
+}
+static void restore_game_cursor(void)
+{
+    int x, y, w, h, stride;
+    const u32 *pixels = hdtext_cursor(&x, &y, &w, &h, &stride);
+    if (!pixels) return;
+    for (int row = 0; row < h; row++) {
+        if (y + row < 0 || y + row >= 200) continue;
+        for (int col = 0; col < w; col++) {
+            u32 pixel = pixels[row * stride + col];
+            if (pixel && x + col >= 0 && x + col < 320) frame[(y + row) * 320 + x + col] = pixel;
+        }
+    }
+}
 void plat_drawing(int on)
 {
     drawing = on; drawing_t = SDL_GetTicks();
@@ -497,14 +524,22 @@ void plat_present(const u8 *vga, const u8 *pal)
     int held = !whole;                    /* (none yet in this battle: the window's last picture) */
     static int ptime = -1; if (ptime < 0) ptime = getenv("DL_PRESENT_TIME") != 0;
     uint64_t pt0 = ptime ? plat_ticks_us() : 0;
+    overland_zoom_frame(!held && overland_unobstructed());
     if (!held) {
         to_rgb(vga, pal);
         static u8 idx[320 * 200];
         memcpy(idx, vga, sizeof idx);
+        /* Remove the cursor from the terrain before zooming. When the live pointer is off,
+           put the game's cursor back at its original position and scale. */
+        int live_pointer = hdtext_live_pointer;
+        int zoomed = overland_zoom_active();
+        if (zoomed) hdtext_live_pointer = 1;
         { void hdtext_prepare(u32 *, const u32 *, u8 *); hdtext_prepare(frame, lut, idx); }   /* crisp text: wipe the glyphs it redraws */
         hdart_prepare(frame, idx, lut);                 /* replacement art: clear the pixels it covers */
         { void hdart_labels(u32 *, const u8 *, const u32 *); hdart_labels(frame, idx, lut); }   /* words painted into pictures */
-        { void worldmap_watch_palette(void); worldmap_watch_palette(); }
+        hdtext_live_pointer = live_pointer;
+        overland_zoom_draw(frame, lut);
+        if (zoomed && !live_pointer) restore_game_cursor();
     }
     uint64_t pt1 = ptime ? plat_ticks_us() : 0;
     int nt = frame_textures();
@@ -964,6 +999,7 @@ static int menu_escape(void)
 }
 
 static SDL_Scancode swallow_key; static int swallow_button;   /* the key or click that stopped "go to" */
+static int zoom_click_taken;                                 /* the release of a zoomed terrain click */
 /* ---------------------------------------------------------------- game controllers
  * A controller (Xbox / PlayStation / Switch pads, the Steam Deck in gamepad mode) plays the game
  * as a mouse and a few keys, made into the same events, so the game, the menus and everything of
@@ -1189,6 +1225,12 @@ void plat_events(void)
             else if (e.type == SDL_KEYDOWN || e.type == SDL_MOUSEBUTTONDOWN) input_pad = 0;
         } else if (e.type == SDL_MOUSEMOTION && input_pad && (abs(e.motion.x - pad_warp_x) > 2 || abs(e.motion.y - pad_warp_y) > 2)
                    && (abs(e.motion.xrel) > 3 || abs(e.motion.yrel) > 3)) input_pad = 0;
+        if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) zoom_click_taken = 0;
+        if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT && zoom_click_taken) {
+            zoom_click_taken = 0;
+            swallow_click = 0;
+            continue;
+        }
         if (!headless && ui_event(&e)) { if (e.type == SDL_MOUSEBUTTONUP) swallow_click = 0; continue; }   /* (a release taken by the interface ends the swallowing too) */
         if (swallow_click && (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP)) { if (e.type == SDL_MOUSEBUTTONUP) swallow_click = 0; continue; }
         if (drag_filter(&e)) continue;
@@ -1249,11 +1291,26 @@ void plat_events(void)
                 int gx, gy, assist_card_key(int, int *, int *);
                 if (d && !e.key.repeat && !(e.key.keysym.mod & (KMOD_CTRL | KMOD_ALT)) && assist_card_key(d, &gx, &gy)) { click_at(gx, gy); break; }
             }
+            if (e.key.keysym.scancode == SDL_SCANCODE_KP_5) travel_walk_stop();
             key(e.key.keysym.scancode, 0);
             break;
         case SDL_KEYUP: if (swallow_key && e.key.keysym.scancode == swallow_key) { swallow_key = 0; break; } key(e.key.keysym.scancode, 1); break;
         case SDL_MOUSEWHEEL:
             if (menu_escape()) break;
+            if (overland_unobstructed()) {
+                int wx, wy;
+                SDL_GetMouseState(&wx, &wy);
+                if (!plat_win_outside(wx, wy)) {
+                    int gx, gy;
+                    to_game(wx, wy, &gx, &gy);
+                    float notches = (float)e.wheel.y;
+#if SDL_VERSION_ATLEAST(2, 0, 18)
+                    if (e.wheel.preciseY) notches = e.wheel.preciseY;
+#endif
+                    overland_zoom_wheel(gx, gy, e.wheel.direction == SDL_MOUSEWHEEL_FLIPPED ? -notches : notches);
+                }
+                break;
+            }
             /* the wheel in the game's lists (the character sheet's equipment, formulae and saints,
                the shops' wares): Up / Down, the keys those lists answer; only on such screens, not
                on cards, the map or in battles, where the arrow keys do other things */
@@ -1281,10 +1338,18 @@ void plat_events(void)
                 if (e.type == SDL_MOUSEBUTTONDOWN && citynav_busy()) { citynav_user_input(); swallow_button |= 1 << e.button.button; break; }
                 if (e.type == SDL_MOUSEBUTTONUP && (swallow_button & (1 << e.button.button))) { swallow_button &= ~(1 << e.button.button); break; }
             }
-            if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT && (SDL_GetModState() & KMOD_CTRL)) {
-                int gx, gy; to_game(e.button.x, e.button.y, &gx, &gy);
-                void travel_click(int, int); travel_click(gx, gy);       /* Ctrl+click on the map: travel there */
-                break;
+            if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
+                int ctrl = SDL_GetModState() & KMOD_CTRL;
+                if (overland_unobstructed() && overland_zoom_active()) {
+                    int gx, gy; to_game(e.button.x, e.button.y, &gx, &gy);
+                    if (overland_zoom_click(gx, gy, ctrl)) { zoom_click_taken = 1; break; }
+                }
+                if (game_mode() == GM_MAP) travel_walk_stop();
+                if (ctrl) {
+                    int gx, gy; to_game(e.button.x, e.button.y, &gx, &gy);
+                    void travel_click(int, int); travel_click(gx, gy);       /* Ctrl+click on the map: travel there */
+                    break;
+                }
             }
             int b = e.button.button == SDL_BUTTON_LEFT ? 1 : e.button.button == SDL_BUTTON_RIGHT ? 2 : 4;
             if (e.type == SDL_MOUSEBUTTONDOWN) mouse_b |= b; else mouse_b &= ~b;

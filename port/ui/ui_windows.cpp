@@ -286,6 +286,7 @@ void help_window(void)
             orn_septext("Now: the overland view");
             row("Click", "walk towards that spot");
             row("Ctrl+click", "travel there along the roads (Darklands+; any key or click stops)");
+            if (!ui_original_mode()) row("Mouse wheel over terrain", "scroll down to see more terrain, up to zoom back in (Darklands+)");
             row("M", "the world map (Darklands+): find a place, double-click to travel there");
             row("Point at a quest's icon", "the quest that leads there (a portcullis or a pillory beside a town: the town bars the party, or its watch wants the party)");
             row("A quest in the left margin", "click to open it, then Travel there");

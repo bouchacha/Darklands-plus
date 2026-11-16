@@ -31,6 +31,7 @@ extern "C" {
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
+#include "../mods/overland_zoom.h"
 #include "../mods/worldmap.h"
 #include "../mods/travel.h"
 int journal_visited(int loc);
@@ -548,10 +549,27 @@ void layer_struck(ImDrawList *dl, ImVec2 c, float s)
 extern "C" void travelmap_labels(void)
 {
     bool names = config_get_int("map.names", 1) != 0, signs = config_get_int("map.quest_marks", 1) != 0;   /* (names; the quests' and towns' signs) */
-    if ((!names && !signs) || config_get_int("original", 0) || game_mode() != GM_MAP || !travel_map_live() || !ui_font_overlay) return;
+    bool zoomed = overland_zoom_active();
+    if ((!names && !signs) || config_get_int("original", 0) || game_mode() != GM_MAP || !ui_font_overlay) return;
+    if (!(zoomed ? travel_view_live() : travel_map_live())) return;
     if (ns_showing()) return;                                   /* (a native box over the map: a map message) */
-    int vx = (s16)g_rw(GV_map_view_col), vr = (s16)g_rw(GV_map_buf_row) + (s16)g_rw(GV_map_view_row);
+    int vx, vr;
+    overland_zoom_view(&vx, &vr);
     ImDrawList *dl = ImGui::GetBackgroundDrawList();
+    auto to_window = [](float gx, float gy) {
+        overland_zoom_project(&gx, &gy);
+        ImVec2 p; plat_game_to_win(gx, gy, &p.x, &p.y);
+        return p;
+    };
+    ImVec2 terrain_min, terrain_max;
+    if (zoomed) {
+        plat_game_to_win(OVERLAND_MAP_X, OVERLAND_MAP_Y, &terrain_min.x, &terrain_min.y);
+        plat_game_to_win(320, 200, &terrain_max.x, &terrain_max.y);
+        dl->PushClipRect(terrain_min, terrain_max, true);
+    }
+    ImVec2 m = ImGui::GetIO().MousePos;
+    bool pointer_ok = !ImGui::GetIO().WantCaptureMouse && (!zoomed ||
+        (m.x >= terrain_min.x && m.x < terrain_max.x && m.y >= terrain_min.y && m.y < terrain_max.y));
     ImFont *f = ui_font_overlay;
     float base = ui_text_px();
     static std::vector<TownMark> tmarks; static int tf = -1000;
@@ -565,20 +583,23 @@ extern "C" void travelmap_labels(void)
         if (k >= 92 && (menu == 0x62 || kind == 15)) continue;             /* not shown on the map */
         if (loc_is_twin(k)) continue;
         float sx = (float)(16 * (x - vx) + ((y & 1) ? 7 : -1) + 65), sy = (float)(4 * (y - vr) - 6 + 21);
-        if (sx < 66 || sx > 314 || sy < 18 || sy > 190) continue;
+        if (zoomed) {
+            float zx = sx, zy = sy;
+            overland_zoom_project(&zx, &zy);
+            if (zx < OVERLAND_MAP_X || zx >= 320 || zy < OVERLAND_MAP_Y || zy >= 200) continue;
+        } else if (sx < 66 || sx > 314 || sy < 18 || sy > 190) continue;
         std::string name = loc_display_name(k);
         if (name.empty()) continue;
         bool town = k < 92;
         float size = base * (town ? 1.1f : 0.88f);
-        ImVec2 at; plat_game_to_win(sx, sy + 5, &at.x, &at.y);
+        ImVec2 at = to_window(sx, sy + 5);
         ImVec2 ts = f->CalcTextSizeA(size, FLT_MAX, 0, name.c_str());
         ImVec2 tp(at.x - ts.x * 0.5f, at.y);
         {   /* the pointer on the place or its name: what it is, the journey, and that Ctrl+click goes there */
-            ImVec2 m = ImGui::GetIO().MousePos, i0, i1;
-            plat_game_to_win(sx - 7, sy - 5, &i0.x, &i0.y); plat_game_to_win(sx + 7, sy + 4, &i1.x, &i1.y);
+            ImVec2 i0 = to_window(sx - 7, sy - 5), i1 = to_window(sx + 7, sy + 4);
             bool on_icon = m.x >= i0.x && m.x < i1.x && m.y >= i0.y && m.y < i1.y;
             bool on_name = names && m.x >= tp.x && m.x < tp.x + ts.x && m.y >= tp.y && m.y < tp.y + ts.y;
-            if ((on_icon || on_name) && !ImGui::GetIO().WantCaptureMouse) {
+            if ((on_icon || on_name) && pointer_ok) {
                 static int tip_loc = -1, tip_min = -1, tip_frame = -1000;
                 if (tip_loc != k || ImGui::GetFrameCount() - tip_frame > 120) { tip_loc = k; tip_min = travel_minutes_loc(k, nullptr, nullptr); }   /* (a route search: once, while the pointer stays) */
                 tip_frame = ImGui::GetFrameCount();
@@ -607,14 +628,12 @@ extern "C" void travelmap_labels(void)
             for (size_t i = 0; i < qmarks.size(); i++) if (qmarks[i].first == k) qs.push_back(i);
             if (!qs.empty()) {
                 float is = base * 1.3f;
-                ImVec2 top; plat_game_to_win(sx, sy - 6, &top.x, &top.y);
-                ImVec2 mid; plat_game_to_win(sx, sy, &mid.x, &mid.y);
+                ImVec2 top = to_window(sx, sy - 6), mid = to_window(sx, sy);
                 int nq = (int)qs.size();
                 std::vector<ImVec2> at;
-                quest_ring(at, nq, mid, top, is, !ImGui::GetIO().WantCaptureMouse);
-                ImVec2 m = ImGui::GetIO().MousePos;              /* (the pointer on one: the topmost, the last drawn) */
+                quest_ring(at, nq, mid, top, is, pointer_ok);
                 int hov = -1;
-                if (!ImGui::GetIO().WantCaptureMouse)
+                if (pointer_ok)
                     for (int j = nq - 1; j >= 0 && hov < 0; j--) if (fabsf(m.x - at[j].x) < is * 0.5f && fabsf(m.y - at[j].y) < is * 0.5f) hov = j;
                 for (int j = 0; j < nq; j++) quest_glow(dl, at[j], is);   /* (the halos under all the pictures) */
                 for (int j = 0; j < nq; j++) if (j != hov) ui_draw_quest_icon(dl, at[j], is, qs[j] < qcats.size() ? qcats[qs[j]] : 0);
@@ -626,6 +645,7 @@ extern "C" void travelmap_labels(void)
             }
         }
     }
+    if (zoomed) dl->PopClipRect();
 }
 
 float ui_face_k(ImFont *f);                                  /* overlay.cpp */

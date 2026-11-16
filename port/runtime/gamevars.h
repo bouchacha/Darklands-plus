@@ -238,6 +238,7 @@
 #define GV_swap_allowed                 0x08d6    /* low byte: stores allowed, 0xff00 = initialisation failed */
 #define GV_swap_dir_store               0x08d4    /* store holding the directory */
 #define GV_swap_stores                  0xc09b    /* store table [type] {handle, size, base} */
+#define GV_map_ground                   0x2860    /* int: the overland view's ground colour index */
 #define GV_map_marker_x                 0x2866    /* int: the party marker's x on the map view (pixels) */
 #define GV_map_marker_y                 0x2868    /* int: its y */
 #define GV_map_view_col                 0x286a    /* int: the map view's left column (tiles) */

@@ -14,8 +14,8 @@ typedef struct {
     unsigned pal[256];                /* ARGB */
 } WorldMap;
 extern WorldMap worldmap;
+int worldmap_prepare_terrain(int ground);          /* build only the indices, with this ground colour */
 int worldmap_build(void);
-void worldmap_watch_palette(void);
 #ifdef __cplusplus
 }
 #endif
