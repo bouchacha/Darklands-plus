@@ -15,7 +15,6 @@ struct TownOffice {
 
 bool citynav_work_enabled(void);
 std::vector<TownOffice> citynav_town_offices(int town);
-/* a giver's state in a line ("Quest chance 51%", "No quests until 3 Mar" ...) and its colour, the same in Go to
-   and in the world map's list; and the tooltip's words (the note, with the hour a lock ends) */
-ImU32 citynav_office_line(const OfficeStatus &os, int giver, char *out, size_t n);
+/* a giver's state and its colour (the tile shortens the trading line), and its tooltip's words */
+ImU32 citynav_office_line(const OfficeStatus &os, int giver, char *out, size_t n, bool tile = false);
 std::string citynav_office_tip(const OfficeStatus &os);

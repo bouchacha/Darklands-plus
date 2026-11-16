@@ -8,9 +8,10 @@
  * door for 72 hours (kind 7, type0 the giver, the town); at the town hall and the fortress an
  * audience tried shuts it for a week (kind 0x3c: the chance then 1 in 100). Whether a task comes is
  * a roll each time (the game reseeds rand() every hour): known in advance is only the chance.
- *   Fugger ($fugge00 option 2): clamp(10, 50, rep + the company's standing here + fame), not below
- *     0 regard; half robber knights, half errands. Medici ($Medic00 option 2) alike. Hanse
- *     ($Hanse00 options 0 / 1): clamp(10, 50, rep / 2 + its liking / 2 + fame) or (rep + fame);
+ *   Fugger ($fugge00 option 2): clamp(10, 50, rep + the office's local bonus + fame), not below
+ *     0 regard; half robber knights, half errands.
+ *   Medici ($Medic00 option 2): clamp(10, 50, rep + company standing + fame).
+ *   Hanse ($Hanse00 options 0 / 1): clamp(10, 50, rep / 2 + its liking / 2 + fame) or (rep + fame);
  *     three in ten robber knights.
  *   Cathedral ($Cathe00 option 4, by day; only where the town keeps a relic): clamp(1, 99, rep - 50).
  *   Town hall ($Counc00 option 0, a town with a council) / fortress ($CityF00, else): the speaker's
@@ -29,6 +30,7 @@ typedef struct {
     int chance;                      /* percent for OFS_ASK or a reduced audience chance during OFS_SHUT, -1 if absent */
     int hour, day, month, year;      /* OFS_SHUT: until (the end of the lock) */
     char note[320];                  /* what, and why, in words */
+    char factors[192];               /* the inputs to the displayed chance, with shield markup */
 } OfficeStatus;
 
 /* giver g (as above; 10 the lord: hall 1 at the town hall, 0 at the fortress) in town loc, now */

@@ -242,7 +242,7 @@ static std::vector<NearbyTownWork> nearby_work_towns(const std::vector<Place> &p
 static void nearby_work_status(const TownOffice &office)
 {
     char label[96];
-    ImU32 ink = citynav_office_line(office.status, office.giver, label, sizeof label);   /* (as Go to says it) */
+    ImU32 ink = citynav_office_line(office.status, office.giver, label, sizeof label);
     if (!label[0]) return;
     ImGui::PushStyleColor(ImGuiCol_Text, ink);
     ImGui::TextWrapped("%s", label);
@@ -250,6 +250,11 @@ static void nearby_work_status(const TownOffice &office)
     std::string tip = citynav_office_tip(office.status);
     if (!tip.empty() && ImGui::BeginItemTooltip()) {
         ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + UIS(360));
+        if (office.status.factors[0]) {
+            ImGui::TextDisabled("Chance factors");
+            ui_rich_text(office.status.factors);
+            ImGui::Spacing();
+        }
         ui_rich_text(tip.c_str());
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
@@ -271,7 +276,7 @@ static void nearby_work_window(const std::vector<NearbyTownWork> &towns, float s
         if (towns.empty()) {
             ImGui::TextWrapped("No quest givers known yet: visit a town to learn who gives quests there.");
         } else {
-            ImGui::TextWrapped("Nearest first, by land. The chances are today's: they may change before you arrive.");
+            ImGui::TextWrapped("Nearest first, by land. Chances may change before you arrive. Hover the chance or status for details.");
             ImGui::Spacing();
             float rows_height = fmaxf(1.0f, max_height - ImGui::GetCursorPosY() - ImGui::GetStyle().WindowPadding.y);
             ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, rows_height));

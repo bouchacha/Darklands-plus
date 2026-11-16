@@ -36,17 +36,30 @@ static int shut(OfficeStatus *o, u32 e, const char *why)
     snprintf(o->note, sizeof o->note, "%s", why);
     return 1;
 }
-/* the speaker's (Charisma + Speak Common / 2): the best able member's with "the best speaks", else the leader's */
-static int speaker(void)
+static int barred(OfficeStatus *o, const char *why)
 {
-    int best = -1, lead = (s8)g_rb(G_LEADER);
+    o->state = OFS_BARRED;
+    snprintf(o->note, sizeof o->note, "%s", why);
+    return 1;
+}
+/* twice the speaker's Charisma plus Speak Common, with the contributing values */
+static int speaker(int *charisma, int *speak_common)
+{
+    int best = -1, lead = gm_leader();
+    *charisma = *speak_common = 0;
     for (int m = 0; m < 5; m++) {
-        if (g_rb((u16)(G_MEMBER(m) + G_M_STATUS)) != 1) continue;
+        if (gm_member_status(m) != 1) continue;
         if (!assist_best_leader && m != lead) continue;
-        int v = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + 5)) * 2 + (s8)g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + 10));
-        if (v > best) best = v;
+        int chr = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + ATTR_CHR));
+        int speak = gm_member_skill(m, SKILL_SPEAK);
+        int v = chr * 2 + speak;
+        if (v > best) {
+            best = v;
+            *charisma = chr;
+            *speak_common = speak;
+        }
     }
-    return best < 0 ? 0 : best;     /* (twice Charisma + Speak Common) */
+    return best < 0 ? 0 : best;
 }
 
 int office_status(int loc, int g, int hall, OfficeStatus *o)
@@ -64,42 +77,72 @@ int office_status(int loc, int g, int hall, OfficeStatus *o)
     case 8: case 6: case 7: {
         if (lock) return shut(o, lock, "You asked lately, or were paid a reward: no new quest for three days.");
         int standing = (s16)g_rw(g == 8 ? GV_standing_fugger : g == 6 ? GV_standing_medici : GV_standing_hanse);
-        if (g == 7 && (rep <= -75 || standing + rep <= -50)) { o->state = OFS_BARRED; snprintf(o->note, sizeof o->note, "The Hanse will not deal with you: your reputation in this town is too low."); return 1; }
-        if (g != 7 && (rep < 0 || standing + (g == 8 && standing <= 0 ? 1 : 0) < 0)) { o->state = OFS_BARRED; snprintf(o->note, sizeof o->note, "No quests while your reputation in this town, or your standing with the bank, is below zero."); return 1; }
-        int p = g == 8 ? clampi(10, 50, rep + (s8)rb(ls, (u16)(lo + 0x15)) + fame)
-              : g == 6 ? clampi(10, 50, fame + standing + rep)
-              : clampi(10, 50, rep + fame > rep / 2 + standing / 2 + fame ? rep + fame : rep / 2 + standing / 2 + fame);
-        o->state = OFS_ASK; o->chance = p + 1;
-        snprintf(o->note, sizeof o->note, "Each time you ask (by day), there is %s %d%% chance of a quest: %s. If none comes, or you turn it down, there is no new quest for three days.", gm_a_an(p + 1), p + 1,
-                 g == 7 ? "3 in 10 are robber knights to hunt, the rest items to fetch" : "a robber knight to hunt or an item to fetch, half and half");
+        if (g == 7) {
+            if (rep <= -75) return barred(o, "The Hanse turns you away when your reputation in this town is -75 or lower.");
+            if (standing + rep <= -50) return barred(o, "Your town reputation and standing with the Hanse are too low together.");
+        } else {
+            if (standing < (g == 8 ? -1 : 0)) {
+                const char *bank = g == 8 ? "the Fugger" : "the Medici";
+                o->state = OFS_BARRED;
+                snprintf(o->note, sizeof o->note, rep < 0 ? "Your town reputation and your standing with %s are both too low."
+                                                          : "Your standing with %s is too low.", bank);
+                return 1;
+            }
+            if (rep < 0) return barred(o, "Your reputation in this town is below zero.");
+        }
+        int fugger_bonus = g == 8 ? (s8)rb(ls, (u16)(lo + 0x15)) : 0;
+        int hanse_rep = rep / 2 + standing / 2;
+        int p = g == 8 ? rep + fugger_bonus : g == 6 ? rep + standing : (rep > hanse_rep ? rep : hanse_rep);
+        enum { MIN_ROLL = 10, MAX_ROLL = 50 };
+        o->state = OFS_ASK; o->chance = clampi(MIN_ROLL, MAX_ROLL, p + fame) + 1;
+        char standing_detail[80];
+        if (g == 8) snprintf(standing_detail, sizeof standing_detail, "Fugger branch bonus %+d", fugger_bonus);
+        else if (g == 6) snprintf(standing_detail, sizeof standing_detail, "Medici standing %d", standing);
+        else snprintf(standing_detail, sizeof standing_detail, "Hanse standing %d (used if it improves the odds)", standing);
+        snprintf(o->factors, sizeof o->factors, "{Reputation:Town reputation %d} {Fame:Party fame %d}\n%s",
+                 rep, fame, standing_detail);
+        snprintf(o->note, sizeof o->note, "Quest chances range from %d%% to %d%%. A daytime request has %s %d%% chance of a quest. %s "
+                                         "If no quest comes or you turn one down, there is no new quest for three days.",
+                 MIN_ROLL + 1, MAX_ROLL + 1, gm_a_an(o->chance), o->chance,
+                 g == 7 ? "Three in ten offers are to hunt a robber knight. The rest are to fetch an item."
+                        : "Robber knight hunts and fetch quests are equally likely.");
         return 1; }
     case 3: {
         if (!(s16)rw(ls, (u16)(lo + 0x1c))) { snprintf(o->note, sizeof o->note, "This cathedral keeps no relic, so its canon has no quests."); return 1; }
         if (lock) return shut(o, lock, "You asked lately: the canon will offer no quest for three days.");
         int p = clampi(1, 99, rep - 50);
         o->state = OFS_ASK; o->chance = p + 1;
-        snprintf(o->note, sizeof o->note, "Each time you ask the canon (by day), there is %s %d%% chance of a quest (your reputation in this town minus 50): a robber knight to hunt or an item to fetch. If none comes, or you turn it down, there is no new quest for three days.", gm_a_an(p + 1), p + 1);
+        snprintf(o->factors, sizeof o->factors, "{Reputation:Town reputation %d}", rep);
+        snprintf(o->note, sizeof o->note, "The canon may offer a robber knight to hunt or an item to fetch by day. The chance starts at 2%% and rises with town reputation from 52 onward. If no quest comes, or you turn it down, there is no new quest for three days.");
         return 1; }
     case 10: {
-        if (rep <= -40) { o->state = OFS_BARRED; snprintf(o->note, sizeof o->note, "The lord grants no audience while your reputation in this town is -40 or lower."); return 1; }
+        if (rep <= -40) return barred(o, "Your town reputation is -40 or lower, so you cannot request an audience.");
         int reward = reward_waiting(10, loc);
         if (hall && reward) { o->state = OFS_REWARD; snprintf(o->note, sizeof o->note, "You finished a quest for the lord: your reward is waiting (an audience is certain)."); return 1; }
         if (lock) {
             o->chance = 1;
             return shut(o, lock, "You asked for an audience lately: for a week the chance is only 1%.");
         }
-        int p = (rep + speaker() / 2) / 2;
+        int charisma, speak_common;
+        int p = (rep + speaker(&charisma, &speak_common) / 2) / 2;
         p = hall ? clampi(1, 70, p) : clampi(0, 99, p);
         o->state = OFS_ASK; o->chance = p;               /* (the number the card itself shows on the option: the same) */
-        if (reward) { snprintf(o->note, sizeof o->note, "You finished a quest for the lord. In a town without a council the original game never pays this reward; with the fix \"The lord pays for his quests\" on, he pays it at an audience."); return 1; }
-        snprintf(o->note, sizeof o->note, hall ? "Each request for an audience with the council has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's {Charisma} and {Speak Common}). An audience brings a robber knight to hunt or an item to fetch, half and half. After a request the chance is 1%% for a week."
-                                               : "Each request for an audience with the lord has %s %d%% chance of success (it depends on your reputation in this town, and the speaker's {Charisma} and {Speak Common}). An audience brings a robber knight to hunt. After a request the chance is 1%% for a week.", gm_a_an(p), p);
+        snprintf(o->factors, sizeof o->factors, "{Reputation:Town reputation %d}\n{Charisma:Speaker's Charisma %d}\n{Speak Common:Speak Common %d}",
+                 rep, charisma, speak_common);
+        const char *speak_weight = "Each point of the speaker's Speak Common counts half as much as a point of Charisma.";
+        if (reward) {
+            snprintf(o->note, sizeof o->note, "You finished a quest for the lord. In a town without a council, the fix \"The lord pays for his quests\" lets him pay at an audience. %s", speak_weight);
+            return 1;
+        }
+        snprintf(o->note, sizeof o->note, "An ordinary audience request has %s %d%% chance of success. %s "
+                                         "An audience brings %s. After a request the chance is 1%% for a week.",
+                 gm_a_an(p), p, speak_weight,
+                 hall ? "a robber knight to hunt or an item to fetch, half and half" : "a robber knight to hunt");
         return 1; }
     case 0: case 4: case 5: {
         if (lock) return shut(o, lock, "No quests for three days: at your last visit none came, one was turned down, or a reward was paid.");
         o->state = OFS_ASK; o->chance = 14;
-        snprintf(o->note, sizeof o->note, "The offer comes after shopping: as the party leaves the stalls, 14 times in 100 a trader takes it aside with a purse and a job "
-                                          "(mostly an item to fetch, sometimes a robber knight to hunt). If none comes, there is no other offer for three days.");
+        snprintf(o->note, sizeof o->note, "There is a fixed %d%% chance of a quest when you leave the trading screen. Most offers are to fetch an item, with the occasional robber knight. If none comes, there is no other offer for three days.", o->chance);
         return 1; }
     }
     return 0;
