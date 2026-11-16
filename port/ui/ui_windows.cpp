@@ -347,7 +347,8 @@ void help_window(void)
                                       row("The load", "only equipped items count toward the load, as in the original"); }
             else row("Equip / Unequip / Drink / Give / Drop", "on the row under the pointer on the Items page (Give and Drop with Shift: the whole stack)");
             row("Items, Skills, Saints, Formulae", "the pages at the top (Tab or Right: next page; Shift+Tab or Left: previous page)");
-            row("Portraits, F1 ... F5", "another member's sheet; this member's own portrait, Esc or Close: back");
+            row("Choose Portrait", "pick a PNG or JPEG, drag or zoom to adjust its framing, then choose Use Portrait");
+            row("Party panel, F1 ... F5", "another member's sheet; this member's picture, Esc or Close: back");
             row("Ctrl+F1 ... Ctrl+F5", "make member 1 ... 5 the leader (or Make leader)");
             row("Wheel, Up, Down", "scroll the list");
         } else if (hdart_on_screen("ARMBACK")) {        /* the character sheet (s031's keys) */

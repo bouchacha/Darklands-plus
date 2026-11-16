@@ -1,7 +1,7 @@
 /* sheetview.cpp - draws a member's sheet (mods/sheetview.c runs it; docs/NATIVE_SCREENS.md),
  * the whole page anew beside the party panel.
  *
- * Top: the member's name, sex and age, the leader, the tabs, Close.
+ * Top: the member's name, portrait, sex and age, the leader, the tabs, Close.
  * The one place for the party's things, skills, saints and formulae (the F12 window has no pages
  * of its own for them).
  * Things: the paper doll on its column (put together from the game's own pictures, as the
@@ -57,6 +57,7 @@
 #include "money.h"
 #include "effects.h"
 #include "saintchips.h"
+#include "portraits.h"
 bool ui_item_tidy_less(int ida, int qa, int idb, int qb);    /* (inventory.cpp) */
 #include "gamepics.h"
 
@@ -203,9 +204,20 @@ extern "C" void aging_forecast(int m, char *out, int n);         /* mods/aging.c
 static void header(NsDraw &P, const SheetModel &s)
 {
     ImFont *f = P.f, *fo = P.fo;
-    P.text(f, NsDraw::FS_HEAD, 63.5f, 2.2f, NsDraw::INK, ns_gtext(s.fullname), -1, 290);
-    if (P.button(296, 2.5f, 318, 10.2f, "Close", IM_COL32(112, 40, 22, 235), NsDraw::FS_SMALL, PB_Y)) ns_push(SV_CLOSE, 0, 0, 0);
+    const char *short_name = s.names[s.who];
     float x = 63.5f;
+    if (const GamePic *pic = member_portrait(short_name, s.fullname)) {
+        const float top = 1.4f, bottom = 19.6f;
+        const float width = (bottom - top) * PORTRAIT_ASPECT * P.k / P.kx;
+        P.rect(x, top, x + width, bottom, IM_COL32(64, 46, 29, 255), 1.2f);
+        draw_portrait(P.dl, *pic, NsDraw::w(x, top), NsDraw::w(x + width, bottom), 1.2f * P.k);
+        x += width + 3;
+    }
+    bool named = *short_name || *s.fullname;
+    P.text(f, NsDraw::FS_HEAD, x, 2.2f, NsDraw::INK, ns_gtext(s.fullname), -1, named ? 233 : 290);
+    if (named && P.button(236, 2.5f, 293, 10.2f, "Choose Portrait...", IM_COL32(110, 78, 41, 235)))
+        portrait_picker_open(short_name, s.fullname);
+    if (P.button(296, 2.5f, 318, 10.2f, "Close", IM_COL32(112, 40, 22, 235), NsDraw::FS_SMALL, PB_Y)) ns_push(SV_CLOSE, 0, 0, 0);
     {   /* the sex: a plain sign (its word under the pointer), a little smaller than the age's shield beside it */
         ImU32 c = NsDraw::INK_SOFT; float t = fmaxf(1.1f, 0.45f * P.k), r = 1.4f * P.k;
         ImVec2 o = NsDraw::w(x + 1.8f, s.female ? 14.4f : 15.9f);
@@ -1327,6 +1339,7 @@ extern "C" void sheetview_draw(void)
     if (!sheetview_showing()) { if (sheetview_dragging) { sheetview_dragging = 0; V.dragging = false; } return; }
     NsDraw P;
     if (!P.begin()) return;
+    if (portrait_picker_is_open()) { P.click = P.rclick = false; P.mx = P.my = -1; }
     partypanel_focus = s.who;
     static int drawn_frame = -10, last_tab = -1;           /* (the lists open at their top: the sheet opened again, another page) */
     if (ImGui::GetFrameCount() - drawn_frame > 1 || V.tab != last_tab) for (int &sc : V.scroll) sc = 0;

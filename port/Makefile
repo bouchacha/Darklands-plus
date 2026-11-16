@@ -78,6 +78,7 @@ TRANSLATOR_ID := $(shell python3 -I tools/prepare.py --id 2>/dev/null || echo un
 all: $(BIN)
 $(BIN): $(OBJS)
 	$(CXX) $(LDEXTRA) -o $@ $^ $(SDL_LIBS)
+$(OUT)/ui_portraits.o: CXXFLAGS += -std=c++17
 $(OUT)/ui_%.o: ui/%.cpp ui/*.h runtime/*.h mods/*.h | $(OUT)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 $(OUT)/imgui_%.o: $(IMGUI)/%.cpp | $(OUT)

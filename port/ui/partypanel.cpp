@@ -14,11 +14,11 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <sys/stat.h>
 #include <ctype.h>
 #include <SDL.h>
 #include "nsdraw.h"
 #include "gamepics.h"
+#include "portraits.h"
 #include "effects.h"
 #include "ordericons.h"
 extern "C" {
@@ -32,11 +32,8 @@ extern "C" {
 extern "C" int combat_improved(void);
 extern "C" int ways_blocked(int m);
 #include "../runtime/gamevars.h"
-#include "../third_party/stb/stb_image.h"
 u8 *hdart_decode_pic(const char *dosname, int *w, int *h, u32 *pal, u8 *mask);
-extern char dlp_user_dir[], game_dir[];
 }
-static std::string user_folder(void) { return dlp_user_dir[0] ? dlp_user_dir : game_dir; }
 
 static int pp_on = 1, pp_pic = 0;
 int partypanel_focus = -1;                       /* the member a native screen is about */
@@ -124,35 +121,8 @@ static bool game_panel_shown(void)
     return rows >= 3;
 }
 
-/* a member's own portrait, from the portraits folder (by short or full name) */
-struct Portrait { SDL_Texture *tex = nullptr; int w = 0, h = 0; long mtime = -1; Uint32 looked = 0; bool seen = false; };
-static std::map<std::string, Portrait> portraits;
 static SDL_Renderer *pp_ren;
 extern "C" void partypanel_set_renderer(SDL_Renderer *r) { pp_ren = r; }
-static const Portrait *portrait(const std::string &name)
-{
-    if (name.empty() || !pp_ren) return nullptr;
-    Portrait &p = portraits[name];
-    Uint32 now = SDL_GetTicks();                     /* (the folder looked at again every two seconds, not at each drawing: five names in five spellings each, several times a second) */
-    if (p.seen && now - p.looked < 2000) return p.tex ? &p : nullptr;
-    p.seen = true; p.looked = now;
-    static const char *EXT[] = { ".png", ".jpg", ".jpeg", ".PNG", ".JPG" };
-    std::string path; struct stat st; long mt = -1;
-    for (const char *e : EXT) {
-        path = user_folder() + "/portraits/" + name + e;
-        if (stat(path.c_str(), &st) == 0) { mt = (long)st.st_mtime; break; }
-    }
-    if (mt < 0) { if (p.tex) SDL_DestroyTexture(p.tex); p = Portrait(); p.seen = true; p.looked = now; return nullptr; }
-    if (p.mtime == mt) return p.tex ? &p : nullptr;
-    if (p.tex) SDL_DestroyTexture(p.tex);
-    p = Portrait(); p.mtime = mt; p.seen = true; p.looked = now;
-    int n; unsigned char *px = stbi_load(path.c_str(), &p.w, &p.h, &n, 4);
-    if (!px) return nullptr;
-    p.tex = SDL_CreateTexture(pp_ren, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STATIC, p.w, p.h);
-    if (p.tex) { SDL_UpdateTexture(p.tex, 0, px, p.w * 4); SDL_SetTextureBlendMode(p.tex, SDL_BLENDMODE_BLEND); SDL_SetTextureScaleMode(p.tex, SDL_ScaleModeLinear); }
-    stbi_image_free(px);
-    return p.tex ? &p : nullptr;
-}
 
 /* a figure as the game shows it (PICS\<code><suffix>.PIC: SHORT beside a battle, SMALL the creation
  * menus' portrait): its colours 0xeb..0xf2 are the member's own (the colour keys, member_palette),
@@ -429,18 +399,15 @@ extern "C" void partypanel_draw(void)
         }
         P.text(P.f, NsDraw::FS_NAME, 3.2f, y0 + 1.8f, out ? GREY : m == lead ? GOLD : CREAM, name, -1, name_end);
         /* the picture */
-        float px0 = 2.6f, py0 = y0 + 9.6f, px1 = 17.4f, py1 = y0 + 37.0f;
+        float px0 = 2.6f, py0 = y0 + 9.6f, py1 = y0 + 37.0f;
+        float px1 = px0 + (py1 - py0) * PORTRAIT_ASPECT * P.k / P.kx;
         if (orn_on()) P.dl->AddRectFilledMultiColor(NsDraw::w(px0, py0), NsDraw::w(px1, py1), IM_COL32(40, 50, 120, 255), IM_COL32(30, 40, 104, 255), IM_COL32(10, 14, 44, 255), IM_COL32(14, 18, 56, 255));   /* (blue velvet, as the original's) */
         else P.rect(px0, py0, px1, py1, IM_COL32(24, 20, 30, 255), 1.2f);
         bool drawn = false;
         if (pp_pic == 0) {
             char full[40]; gm_member_fullname(m, full, sizeof full);
-            const Portrait *pt = portrait(nm); if (!pt) pt = portrait(full);
-            if (pt) {
-                ImVec2 a = NsDraw::w(px0, py0), b = NsDraw::w(px1, py1);
-                float bw = b.x - a.x, bh = b.y - a.y, s = fmaxf(bw / pt->w, bh / pt->h);
-                float uw = bw / (pt->w * s), uh = bh / (pt->h * s);     /* the middle of it, filling the box */
-                P.dl->AddImageRounded((ImTextureID)(intptr_t)pt->tex, a, b, ImVec2(0.5f - uw * 0.5f, 0.5f - uh * 0.5f), ImVec2(0.5f + uw * 0.5f, 0.5f + uh * 0.5f), IM_COL32_WHITE, 1.2f * P.k);
+            if (const GamePic *pic = member_portrait(nm, full)) {
+                draw_portrait(P.dl, *pic, NsDraw::w(px0, py0), NsDraw::w(px1, py1), 1.2f * P.k);
                 drawn = true;
             }
         }
