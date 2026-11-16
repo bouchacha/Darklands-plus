@@ -118,8 +118,8 @@ layout is in `formats/dlformats/enm.py`.
 
 A mod can add encounters of its own: cards like the game's, with a picture, text and options
 that test the party's skills, run by Darklands+ from a plain text script
-(`port/mods/encounters.c`). Darklands+ comes with one such mod, **New encounters** (tick it in
-F12 > Mods). Its folder is the best place to start reading:
+(`port/mods/encounters.c`). Darklands+ comes with one such mod, **New encounters** (ticked
+unless you untick it, in F12 > Mods). Its folder is the best place to start reading:
 `mods/New encounters/ENCOUNTERS/*.TXT` and `MSGFILES/$NW*.TXT`.
 
 An encounter's `where` says where it comes up:
