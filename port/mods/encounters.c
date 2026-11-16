@@ -289,7 +289,7 @@ static void keep_items(int w, int p)
         for (int r = 0; r < gm_item_count(ms[k]); r++) if (gm_item(ms[k], r, &x) && x.type == 108 && x.qual > q[k]) { id[k] = x.id; q[k] = x.qual; }
     }
     g_keep_items(w, p);
-    for (int k = 0; k < n && !ns_unwinding; k++) {
+    for (int k = 0; k < n && !aborting; k++) {           /* (aborting: the game call unwound, gcall) */
         if (id[k] < 0) continue;
         int has = 0; GmItem x;
         for (int r = 0; r < gm_item_count(ms[k]); r++) if (gm_item(ms[k], r, &x) && x.id == id[k] && x.qual == q[k]) has = 1;

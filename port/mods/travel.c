@@ -615,7 +615,7 @@ static void encounter_weight_hook(void)
        only on the cells beside it, and after a card the marker sets off again from the middle of its tile, outside
        them: walked away means more than two tiles off) */
     if (altar_met >= 0 && loc != altar_met && altar_away(altar_met)) altar_met = -1;
-    if (altar_met >= 0 && fix_is_on("altarroad")) { ww(SS, (u16)(SP + 6), 0xffff); hook_call_original(); ww(SS, (u16)(SP + 6), (u16)loc); }
+    if (altar_met >= 0 && fix_is_on("altarroad")) { u16 at = (u16)(SP + 6); ww(SS, at, 0xffff); hook_call_original(); ww(SS, at, (u16)loc); }
     else hook_call_original();
     /* an encounter due (a night in camp brought one; a test's uenc) makes this step's encounter certain - but
        only where the game has encounter cards: on a river (terrain 3; 1 and 2 are not stepped on) its step with
