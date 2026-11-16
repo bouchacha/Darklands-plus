@@ -476,7 +476,7 @@ void portrait_picker_open(const char *short_name, const char *full_name)
     picker.error.clear();
     picker.expanded = false;
     const char *name = *full_name ? full_name : short_name;
-    picker.title = "Choose Portrait for " + game_text(name, strlen(name)) + PICKER_ID;
+    picker.title = "Choose a portrait for " + game_text(name, strlen(name)) + PICKER_ID;
     std::error_code ec;
 #ifdef _WIN32
     const wchar_t *home = _wgetenv(L"USERPROFILE");
@@ -604,14 +604,14 @@ void portrait_picker_window(void)
 
     bool apply = false;
     if (showing_current) {
-        if (ImGui::Button("Revert to Original")) {
+        if (ImGui::Button("Back to the original")) {
             apply = revert_portrait();
             if (!apply) picker.error = "Could not revert the portrait. Check that the portraits folder is writable.";
         }
-        ImGui::SetItemTooltip("Restore the game portrait for this character.");
+        ImGui::SetItemTooltip("The game's own figure for this character again.");
     } else {
         ImGui::BeginDisabled(!picker.preview.tex);
-        apply = ImGui::Button("Use Portrait");
+        apply = ImGui::Button("Use this portrait");
         ImGui::EndDisabled();
         if (apply && !apply_portrait()) {
             picker.error = "Could not save the portrait. Check that the portraits folder is writable.";
@@ -623,7 +623,7 @@ void portrait_picker_window(void)
     if (picker.preview.tex) {
         ImGui::SameLine();
         const float reset_width = ImGui::CalcTextSize("Reset").x + ImGui::GetStyle().FramePadding.x * 2;
-        const float readout_width = ImGui::CalcTextSize("Zoom 300%").x;
+        const float readout_width = ImGui::CalcTextSize("Zoom: 300%").x;
         ImGui::SetNextItemWidth(-reset_width - readout_width - ImGui::GetStyle().ItemSpacing.x * 2);
         Framing cover = portrait_framing(picker.preview.w, picker.preview.h, {});
         const float fit_zoom = 1.0f / std::max(cover.x.extent, cover.y.extent);
@@ -632,8 +632,8 @@ void portrait_picker_window(void)
         ImGui::SetItemTooltip("Zoom out to fit the whole image, or zoom in for a closer crop.");
         ImGui::SameLine();
         ImGui::AlignTextToFramePadding();
-        if (picker.crop.zoom == fit_zoom) ImGui::TextUnformatted("Zoom Fit");
-        else ImGui::Text("Zoom %.0f%%", picker.crop.zoom * 100.0f);
+        if (picker.crop.zoom == fit_zoom) ImGui::TextUnformatted("Zoom: fit");
+        else ImGui::Text("Zoom: %.0f%%", picker.crop.zoom * 100.0f);
         ImGui::SameLine();
         if (ImGui::Button("Reset")) picker.crop = {};
     }

@@ -215,7 +215,7 @@ static void header(NsDraw &P, const SheetModel &s)
     }
     bool named = *short_name || *s.fullname;
     P.text(f, NsDraw::FS_HEAD, x, 2.2f, NsDraw::INK, ns_gtext(s.fullname), -1, named ? 233 : 290);
-    if (named && P.button(236, 2.5f, 293, 10.2f, "Choose Portrait...", IM_COL32(110, 78, 41, 235)))
+    if (named && P.button(236, 2.5f, 293, 10.2f, "Choose portrait...", IM_COL32(110, 78, 41, 235)))
         portrait_picker_open(short_name, s.fullname);
     if (P.button(296, 2.5f, 318, 10.2f, "Close", IM_COL32(112, 40, 22, 235), NsDraw::FS_SMALL, PB_Y)) ns_push(SV_CLOSE, 0, 0, 0);
     {   /* the sex: a plain sign (its word under the pointer), a little smaller than the age's shield beside it */

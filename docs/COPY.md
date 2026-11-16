@@ -1904,37 +1904,63 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/party.cpp:24` | The ways of the city streets and their underworld. |
 | `ui/party.cpp:25` | Handling horses. |
 | `ui/party.cpp:26` | Life in the wild: finding the way, hunting, reading tracks. |
-| `ui/partypanel.cpp:258` | attacks (Std Attack, a standard attack) |
-| `ui/partypanel.cpp:259` | attacks with Vulnerable: aims at the gaps in the armor (1 to 4 more penetration), slower and a little less likely to land |
-| `ui/partypanel.cpp:260` | is berserk: attacks without thought of defense |
-| `ui/partypanel.cpp:262` | picks the lock of the door given |
-| `ui/partypanel.cpp:263` | picks the lock of the chest given |
-| `ui/partypanel.cpp:264` | parries: mostly defends, hard to hit, striking back slower and less surely |
-| `ui/partypanel.cpp:265` | shoots at the target given |
-| `ui/partypanel.cpp:266` | throws a potion at the target given |
-| `ui/partypanel.cpp:267` | walks to the spot given |
-| `ui/partypanel.cpp:268` | flees to the spot given: does not stop to fight or strike back |
-| `ui/partypanel.cpp:269` | takes the stairs given |
-| `ui/partypanel.cpp:269` | opens or shuts the door given |
-| `ui/partypanel.cpp:270` | dissolves the lock given |
-| `ui/partypanel.cpp:271` | opens the chest given |
-| `ui/partypanel.cpp:272` | leaves the battlefield by the chosen exit |
-| `ui/partypanel.cpp:273` | halts and stands where they are |
-| `ui/partypanel.cpp:276` | no clear shot |
-| `ui/partypanel.cpp:276` | has no clear line of fire to the target: steps aside or nearer until there is one |
-| `ui/partypanel.cpp:277` | no clear shot |
-| `ui/partypanel.cpp:277` | has no clear line of fire to the target and waits for one (or give another order) |
-| `ui/partypanel.cpp:278` | has nothing left to shoot or throw: give another order |
-| `ui/partypanel.cpp:279` | finds no path to an enemy: friends or walls stand in the way. Move someone aside, or give an order (a shot, a spot to walk to) |
-| `ui/partypanel.cpp:280` | waits for an order: click them here or on the battlefield, then an enemy, a spot or a choice from the Orders menu |
-| `ui/partypanel.cpp:472` | %s  %s: open the sheet. |
-| `ui/partypanel.cpp:494` | In effect on %s:%s |
-| `ui/partypanel.cpp:499` | Click: give %s orders (double-click: and move the view there). Right-click: %s's character sheet (F%d). |
-| `ui/partypanel.cpp:500` | Click: %s's character sheet (F%d). |
-| `ui/partypanel.cpp:515` | %s is on Manual: %s Click to choose a fighting style. |
-| `ui/partypanel.cpp:516` | %s fights as %s until you give them an order: %s Click to choose another fighting style. |
-| `ui/partypanel.cpp:526` | Divine Favor |
-| `ui/partypanel.cpp:564` | 's fighting style |
+| `ui/partypanel.cpp:228` | attacks (Std Attack, a standard attack) |
+| `ui/partypanel.cpp:229` | attacks with Vulnerable: aims at the gaps in the armor (1 to 4 more penetration), slower and a little less likely to land |
+| `ui/partypanel.cpp:230` | is berserk: attacks without thought of defense |
+| `ui/partypanel.cpp:232` | picks the lock of the door given |
+| `ui/partypanel.cpp:233` | picks the lock of the chest given |
+| `ui/partypanel.cpp:234` | parries: mostly defends, hard to hit, striking back slower and less surely |
+| `ui/partypanel.cpp:235` | shoots at the target given |
+| `ui/partypanel.cpp:236` | throws a potion at the target given |
+| `ui/partypanel.cpp:237` | walks to the spot given |
+| `ui/partypanel.cpp:238` | flees to the spot given: does not stop to fight or strike back |
+| `ui/partypanel.cpp:239` | takes the stairs given |
+| `ui/partypanel.cpp:239` | opens or shuts the door given |
+| `ui/partypanel.cpp:240` | dissolves the lock given |
+| `ui/partypanel.cpp:241` | opens the chest given |
+| `ui/partypanel.cpp:242` | leaves the battlefield by the chosen exit |
+| `ui/partypanel.cpp:243` | halts and stands where they are |
+| `ui/partypanel.cpp:246` | no clear shot |
+| `ui/partypanel.cpp:246` | has no clear line of fire to the target: steps aside or nearer until there is one |
+| `ui/partypanel.cpp:247` | no clear shot |
+| `ui/partypanel.cpp:247` | has no clear line of fire to the target and waits for one (or give another order) |
+| `ui/partypanel.cpp:248` | has nothing left to shoot or throw: give another order |
+| `ui/partypanel.cpp:249` | finds no path to an enemy: friends or walls stand in the way. Move someone aside, or give an order (a shot, a spot to walk to) |
+| `ui/partypanel.cpp:250` | waits for an order: click them here or on the battlefield, then an enemy, a spot or a choice from the Orders menu |
+| `ui/partypanel.cpp:439` | %s  %s: open the sheet. |
+| `ui/partypanel.cpp:461` | In effect on %s:%s |
+| `ui/partypanel.cpp:466` | Click: give %s orders (double-click: and move the view there). Right-click: %s's character sheet (F%d). |
+| `ui/partypanel.cpp:467` | Click: %s's character sheet (F%d). |
+| `ui/partypanel.cpp:482` | %s is on Manual: %s Click to choose a fighting style. |
+| `ui/partypanel.cpp:483` | %s fights as %s until you give them an order: %s Click to choose another fighting style. |
+| `ui/partypanel.cpp:493` | Divine Favor |
+| `ui/partypanel.cpp:531` | 's fighting style |
+| `ui/portraits.cpp:228` | Could not open this folder. |
+| `ui/portraits.cpp:241` | Could not read the whole folder. |
+| `ui/portraits.cpp:269` | Could not preview that image. |
+| `ui/portraits.cpp:283` | ' && input.back() == ' |
+| `ui/portraits.cpp:289` | This path could not be read. |
+| `ui/portraits.cpp:297` | Could not open that path. |
+| `ui/portraits.cpp:479` | Choose a portrait for  |
+| `ui/portraits.cpp:548` | PNG/JPEG. Max 4096 px per side. Try 360 x 800 px. |
+| `ui/portraits.cpp:559` | No folders or images here. |
+| `ui/portraits.cpp:586` | New portrait |
+| `ui/portraits.cpp:586` | Current portrait |
+| `ui/portraits.cpp:589` | Back to files |
+| `ui/portraits.cpp:589` | Enlarge preview |
+| `ui/portraits.cpp:601` | Select a PNG or JPEG to preview it. |
+| `ui/portraits.cpp:607` | Back to the original |
+| `ui/portraits.cpp:609` | Could not revert the portrait. Check that the portraits folder is writable. |
+| `ui/portraits.cpp:611` | The game's own figure for this character again. |
+| `ui/portraits.cpp:614` | Use this portrait |
+| `ui/portraits.cpp:617` | Could not save the portrait. Check that the portraits folder is writable. |
+| `ui/portraits.cpp:632` | Zoom out to fit the whole image, or zoom in for a closer crop. |
+| `ui/portraits.cpp:636` | Zoom: %.0f%% |
+| `ui/portraits.cpp:644` |  Framing kept. |
+| `ui/portraits.cpp:648` | Margins show the panel background. Source:  |
+| `ui/portraits.cpp:649` | Drag to reposition. Source:  |
+| `ui/portraits.cpp:649` | Zoom in to reposition. Source:  |
+| `ui/portraits.cpp:651` | Select the original image to adjust framing. |
 | `ui/prayview.cpp:38` |  calls on the saint for the whole party: |
 | `ui/prayview.cpp:38` |  calls on the saint: |
 | `ui/prayview.cpp:52` | This saint asks a {Virtue} of %d of the one who prays. %s%s |
@@ -2374,114 +2400,115 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/settings_setup.cpp:429` | File names for a sound pack |
 | `ui/settings_setup.cpp:430` | %s.wav or .ogg: %s |
 | `ui/settings_setup.cpp:431` | Several versions of one sound (parry1.wav, parry2.wav ...) are played in turn at random. |
-| `ui/sheetview.cpp:169` | Light load: up to half of {Endurance} + {Strength}. No hindrance. Only equipped weapons, armor and shield count. |
-| `ui/sheetview.cpp:170` | Normal load: up to {Endurance} + {Strength}. Melee blows: a little slower. {Agility} for dodging: two thirds, once past 5/8 of it. |
-| `ui/sheetview.cpp:171` | Heavy load: up to 1 1/2 times {Endurance} + {Strength}. Melee blows: at the usual speed (an oversight in the original game). {Agility} for dodging: two thirds, then a third past 1 1/4 times. |
-| `ui/sheetview.cpp:172` | Overloaded: more than 1 1/2 times {Endurance} + {Strength}. Melee blows: much slower. {Agility} for dodging: a third, then none past 1 7/8 times. |
-| `ui/sheetview.cpp:227` | ; leaves the party in %s |
-| `ui/sheetview.cpp:247` | Darklands+ ("The best member speaks for the party", F12 > Settings > Cards and towns): on cards, each test is made by the member best at it, and shops set prices by the best bargainer, whoever leads. The leader is still the one meant by "the leader" on a card (a mine's traps, a church's favor, an item handed over), and in battles and dungeons (when not paused) deals with doors, chests, locks and traps and leads the group's movement. |
-| `ui/sheetview.cpp:250` | The leader speaks and acts for the party on the cards and bargains in the shops. |
-| `ui/sheetview.cpp:251` | The party's leader.  |
-| `ui/sheetview.cpp:251` | Click: make  |
-| `ui/sheetview.cpp:251` |  the leader.  |
-| `ui/sheetview.cpp:272` | very difficult to understand |
-| `ui/sheetview.cpp:278` | a little slower |
-| `ui/sheetview.cpp:278` | at the usual speed |
-| `ui/sheetview.cpp:281` | %s: carrying %d, against {Endurance} + {Strength} %d. Only equipped weapons, armor and shield count.  Melee blows: %s. {Agility} for dodging: %d of %d. {Agility} for tests on cards (climbing, running, traps): %d of %d. Travel, walking and shooting: not slowed.  Light up to %d, normal up to %d, heavy up to %d, overloaded above. |
-| `ui/sheetview.cpp:388` |  when equipped |
-| `ui/sheetview.cpp:390` | ; this member's mount |
-| `ui/sheetview.cpp:392` |  in the party's pack |
-| `ui/sheetview.cpp:392` | ; in the party's pack |
-| `ui/sheetview.cpp:393` | ; kept (not sold or dropped) |
-| `ui/sheetview.cpp:394` | ; marked to sell (Sell spare gear sells it) |
-| `ui/sheetview.cpp:399` | To give the lot, drag it onto a member at the left, or press their number (1 to 5); Shift: just one. |
-| `ui/sheetview.cpp:399` | To give it, drag it onto a member at the left, or press their number (1 to 5). |
-| `ui/sheetview.cpp:412` | Wielded, it takes {Divine Favor:%d} off every prayer of the one wielding it, to any saint (none below 5); wielding it asks {Virtue:%d}. |
-| `ui/sheetview.cpp:413` | It takes {Divine Favor:%d} off every prayer of the one carrying it, to any saint (none below 5), if they have {Virtue:%d}. Of several relics, the best counts. |
-| `ui/sheetview.cpp:417` | %s has {Virtue:%d}: too little, it does nothing for them. |
-| `ui/sheetview.cpp:422` | Each member rides the best horse or mule they carry; the party travels mounted only when every member has one. |
-| `ui/sheetview.cpp:423` |  A member without one is given the best spare one when the game needs it (setting out on the road, a chase). |
-| `ui/sheetview.cpp:426` | For a member to ride it, drag it onto them, or press their number (1 to 5). |
-| `ui/sheetview.cpp:427` | For another member to ride it, drag it onto them, or press their number (1 to 5). |
-| `ui/sheetview.cpp:434` | too weak by  |
-| `ui/sheetview.cpp:436` | }, too little to wield it |
-| `ui/sheetview.cpp:437` |  can use it well |
-| `ui/sheetview.cpp:441` | %s's defense with it: against a blow, %d + their melee rating; against a shot or throw, %d + twice the {Agility:%d} = %d%s |
-| `ui/sheetview.cpp:442` |  (the load lowers Agility) |
-| `ui/sheetview.cpp:447` | Attack and defense hand to hand with  |
-| `ui/sheetview.cpp:447` | these weapons |
-| `ui/sheetview.cpp:458` | Point at an item to see it here; F11 shows what you can do. |
-| `ui/sheetview.cpp:460` | Point at an item to see it here. Drag an item onto a member at the left to give it to them (Shift: just one of a stack). Click another member at the left to see their sheet; Esc or Close goes back. |
-| `ui/sheetview.cpp:462` | Point at an attribute or a skill to see what it does and the whole party's values. Gold dot: the party's best at it; blue: raised by a saint for a while. |
-| `ui/sheetview.cpp:463` | Point at an attribute or a skill to see what it does. Blue: raised by a saint for a while. |
-| `ui/sheetview.cpp:467` | In effect now:  |
-| `ui/sheetview.cpp:469` |  more (see "Blessings and potions" in the margin). |
-| `ui/sheetview.cpp:494` | Worth about %s |
-| `ui/sheetview.cpp:542` | Carries nothing. |
-| `ui/sheetview.cpp:578` | The party's pack |
-| `ui/sheetview.cpp:601` | Click to show them. |
-| `ui/sheetview.cpp:601` | Click to fold them away. |
-| `ui/sheetview.cpp:613` | Split every potion of every member evenly among the members on their feet, as each potion's Split does. The odd ones stay with whoever holds them, where they can. |
-| `ui/sheetview.cpp:664` | %s has {Virtue:%d}, less than the {Virtue:%d} this relic asks: %s |
-| `ui/sheetview.cpp:665` | it cannot be wielded, and does nothing for their prayers. |
-| `ui/sheetview.cpp:665` | it does nothing for their prayers. |
-| `ui/sheetview.cpp:679` | Split this potion evenly among the members on their feet, every quality of it. The odd ones stay with whoever holds them, where they can. |
-| `ui/sheetview.cpp:690` | Wielding it asks {Virtue:%d}. |
-| `ui/sheetview.cpp:701` | Kept: never sold or dropped (Sell spare gear skips it). Click to stop keeping it. |
-| `ui/sheetview.cpp:702` | Kept: never sold or dropped (Sell spare gear skips it). Click to mark it to sell instead. |
-| `ui/sheetview.cpp:703` | Marked to sell: Sell spare gear in a shop sells it with the spare weapons and armor. Click to clear the mark. |
-| `ui/sheetview.cpp:704` | Keep it: Darklands+ will not sell it (one by one or with Sell spare gear) or drop it until you click again. |
-| `ui/sheetview.cpp:737` | ; hold Shift for one) |
-| `ui/sheetview.cpp:738` | : the party's pack is everyone's already |
-| `ui/sheetview.cpp:739` | : drop it on a member at the left (hold Shift: just one) |
-| `ui/sheetview.cpp:739` | : drop it on a member at the left |
-| `ui/sheetview.cpp:807` | : Virtue too low for this saint |
-| `ui/sheetview.cpp:885` | Known by the party |
-| `ui/sheetview.cpp:902` | Every saint in the game |
-| `ui/sheetview.cpp:916` | Or what it raises: |
-| `ui/sheetview.cpp:916` | Or what it raises: |
-| `ui/sheetview.cpp:930` | %s: the %d saint%s whose help %s it, the most first%s |
-| `ui/sheetview.cpp:930` | The town's opinion of the party (its reputation) |
-| `ui/sheetview.cpp:931` | raises or heals |
-| `ui/sheetview.cpp:931` |  (click again for all) |
-| `ui/sheetview.cpp:957` | No saint helps with that. |
-| `ui/sheetview.cpp:957` | Nobody in the party knows a saint that helps with that. (Every saint in the game shows the others too.) |
-| `ui/sheetview.cpp:997` | This saint asks a {Virtue} of %d of the one who prays%s. Each member's {Virtue}: %s |
-| `ui/sheetview.cpp:998` | , more than anyone who knows it has |
-| `ui/sheetview.cpp:998` | , more than anyone in the party has |
-| `ui/sheetview.cpp:1024` | No library the party has been to teaches this saint. |
-| `ui/sheetview.cpp:1026` | Taught in the library of  |
-| `ui/sheetview.cpp:1049` | Nobody in the party knows this saint. |
-| `ui/sheetview.cpp:1058` | Asks a {%s} of %d%s. |
-| `ui/sheetview.cpp:1058` | Asks a {%s} of %d: too low for %s to call on this saint. |
-| `ui/sheetview.cpp:1059` | , more than anyone in the party has |
-| `ui/sheetview.cpp:1074` | {~Virtue:%d} too low (it asks %d) |
-| `ui/sheetview.cpp:1074` | This saint asks a {Virtue} of %d: no prayer is heard below it. |
-| `ui/sheetview.cpp:1076` | {Divine Favor:%d} needed for a 99%% chance |
-| `ui/sheetview.cpp:1077` | The least Divine Favor that gives the best chance of being heard (of the %d they have): more is spent for nothing. The prayer screen sets the favor. |
-| `ui/sheetview.cpp:1080` | All their Divine Favor gives this chance; a 99%% chance takes {Divine Favor:%d}. The prayer screen sets the favor. |
-| `ui/sheetview.cpp:1081` | All their Divine Favor gives this chance. The prayer screen sets the favor. |
-| `ui/sheetview.cpp:1083` | {Divine Favor:%d} needed at least, has %d |
-| `ui/sheetview.cpp:1084` | This saint hears no prayer of less than %d Divine Favor. |
-| `ui/sheetview.cpp:1088` |  With the %s, it costs them {Divine Favor:%d} less (counted here). |
-| `ui/sheetview.cpp:1093` | Call on this saint now: the prayer screen, where you choose how much Divine Favor to spend. |
-| `ui/sheetview.cpp:1100` | Differs from the description:  |
-| `ui/sheetview.cpp:1149` | Every formula in the game |
-| `ui/sheetview.cpp:1179` | Nobody in the party knows a formula. Every formula in the game shows them all, their ingredients and where they are sold. |
-| `ui/sheetview.cpp:1224` | nobody knows it - sold here |
-| `ui/sheetview.cpp:1224` | nobody knows it |
-| `ui/sheetview.cpp:1244` | The party's ingredients |
-| `ui/sheetview.cpp:1280` | Mystic number %d, %s. |
-| `ui/sheetview.cpp:1280` | risk unknown |
-| `ui/sheetview.cpp:1283` | The mystic number: the higher, the harder the formula is to brew (set against the alchemist's {Alchemy} and {Intelligence}). The risk: how badly a failed brew can go wrong. |
-| `ui/sheetview.cpp:1288` | Enough ingredients to make %d potion%s. |
-| `ui/sheetview.cpp:1289` | The party lacks an ingredient: brewing must wait. |
-| `ui/sheetview.cpp:1289` | The party lacks an ingredient. |
-| `ui/sheetview.cpp:1291` | Chance of brewing one batch |
-| `ui/sheetview.cpp:1301` | Nobody in the party knows it. |
-| `ui/sheetview.cpp:1304` | No alchemist sells it: it is traded for or found. |
-| `ui/sheetview.cpp:1305` | No alchemist the party has been to sells it. |
-| `ui/sheetview.cpp:1310` | Sold by the alchemist of  |
+| `ui/sheetview.cpp:170` | Light load: up to half of {Endurance} + {Strength}. No hindrance. Only equipped weapons, armor and shield count. |
+| `ui/sheetview.cpp:171` | Normal load: up to {Endurance} + {Strength}. Melee blows: a little slower. {Agility} for dodging: two thirds, once past 5/8 of it. |
+| `ui/sheetview.cpp:172` | Heavy load: up to 1 1/2 times {Endurance} + {Strength}. Melee blows: at the usual speed (an oversight in the original game). {Agility} for dodging: two thirds, then a third past 1 1/4 times. |
+| `ui/sheetview.cpp:173` | Overloaded: more than 1 1/2 times {Endurance} + {Strength}. Melee blows: much slower. {Agility} for dodging: a third, then none past 1 7/8 times. |
+| `ui/sheetview.cpp:218` | Choose portrait... |
+| `ui/sheetview.cpp:239` | ; leaves the party in %s |
+| `ui/sheetview.cpp:259` | Darklands+ ("The best member speaks for the party", F12 > Settings > Cards and towns): on cards, each test is made by the member best at it, and shops set prices by the best bargainer, whoever leads. The leader is still the one meant by "the leader" on a card (a mine's traps, a church's favor, an item handed over), and in battles and dungeons (when not paused) deals with doors, chests, locks and traps and leads the group's movement. |
+| `ui/sheetview.cpp:262` | The leader speaks and acts for the party on the cards and bargains in the shops. |
+| `ui/sheetview.cpp:263` | The party's leader.  |
+| `ui/sheetview.cpp:263` | Click: make  |
+| `ui/sheetview.cpp:263` |  the leader.  |
+| `ui/sheetview.cpp:284` | very difficult to understand |
+| `ui/sheetview.cpp:290` | a little slower |
+| `ui/sheetview.cpp:290` | at the usual speed |
+| `ui/sheetview.cpp:293` | %s: carrying %d, against {Endurance} + {Strength} %d. Only equipped weapons, armor and shield count.  Melee blows: %s. {Agility} for dodging: %d of %d. {Agility} for tests on cards (climbing, running, traps): %d of %d. Travel, walking and shooting: not slowed.  Light up to %d, normal up to %d, heavy up to %d, overloaded above. |
+| `ui/sheetview.cpp:400` |  when equipped |
+| `ui/sheetview.cpp:402` | ; this member's mount |
+| `ui/sheetview.cpp:404` |  in the party's pack |
+| `ui/sheetview.cpp:404` | ; in the party's pack |
+| `ui/sheetview.cpp:405` | ; kept (not sold or dropped) |
+| `ui/sheetview.cpp:406` | ; marked to sell (Sell spare gear sells it) |
+| `ui/sheetview.cpp:411` | To give the lot, drag it onto a member at the left, or press their number (1 to 5); Shift: just one. |
+| `ui/sheetview.cpp:411` | To give it, drag it onto a member at the left, or press their number (1 to 5). |
+| `ui/sheetview.cpp:424` | Wielded, it takes {Divine Favor:%d} off every prayer of the one wielding it, to any saint (none below 5); wielding it asks {Virtue:%d}. |
+| `ui/sheetview.cpp:425` | It takes {Divine Favor:%d} off every prayer of the one carrying it, to any saint (none below 5), if they have {Virtue:%d}. Of several relics, the best counts. |
+| `ui/sheetview.cpp:429` | %s has {Virtue:%d}: too little, it does nothing for them. |
+| `ui/sheetview.cpp:434` | Each member rides the best horse or mule they carry; the party travels mounted only when every member has one. |
+| `ui/sheetview.cpp:435` |  A member without one is given the best spare one when the game needs it (setting out on the road, a chase). |
+| `ui/sheetview.cpp:438` | For a member to ride it, drag it onto them, or press their number (1 to 5). |
+| `ui/sheetview.cpp:439` | For another member to ride it, drag it onto them, or press their number (1 to 5). |
+| `ui/sheetview.cpp:446` | too weak by  |
+| `ui/sheetview.cpp:448` | }, too little to wield it |
+| `ui/sheetview.cpp:449` |  can use it well |
+| `ui/sheetview.cpp:453` | %s's defense with it: against a blow, %d + their melee rating; against a shot or throw, %d + twice the {Agility:%d} = %d%s |
+| `ui/sheetview.cpp:454` |  (the load lowers Agility) |
+| `ui/sheetview.cpp:459` | Attack and defense hand to hand with  |
+| `ui/sheetview.cpp:459` | these weapons |
+| `ui/sheetview.cpp:470` | Point at an item to see it here; F11 shows what you can do. |
+| `ui/sheetview.cpp:472` | Point at an item to see it here. Drag an item onto a member at the left to give it to them (Shift: just one of a stack). Click another member at the left to see their sheet; Esc or Close goes back. |
+| `ui/sheetview.cpp:474` | Point at an attribute or a skill to see what it does and the whole party's values. Gold dot: the party's best at it; blue: raised by a saint for a while. |
+| `ui/sheetview.cpp:475` | Point at an attribute or a skill to see what it does. Blue: raised by a saint for a while. |
+| `ui/sheetview.cpp:479` | In effect now:  |
+| `ui/sheetview.cpp:481` |  more (see "Blessings and potions" in the margin). |
+| `ui/sheetview.cpp:506` | Worth about %s |
+| `ui/sheetview.cpp:554` | Carries nothing. |
+| `ui/sheetview.cpp:590` | The party's pack |
+| `ui/sheetview.cpp:613` | Click to show them. |
+| `ui/sheetview.cpp:613` | Click to fold them away. |
+| `ui/sheetview.cpp:625` | Split every potion of every member evenly among the members on their feet, as each potion's Split does. The odd ones stay with whoever holds them, where they can. |
+| `ui/sheetview.cpp:676` | %s has {Virtue:%d}, less than the {Virtue:%d} this relic asks: %s |
+| `ui/sheetview.cpp:677` | it cannot be wielded, and does nothing for their prayers. |
+| `ui/sheetview.cpp:677` | it does nothing for their prayers. |
+| `ui/sheetview.cpp:691` | Split this potion evenly among the members on their feet, every quality of it. The odd ones stay with whoever holds them, where they can. |
+| `ui/sheetview.cpp:702` | Wielding it asks {Virtue:%d}. |
+| `ui/sheetview.cpp:713` | Kept: never sold or dropped (Sell spare gear skips it). Click to stop keeping it. |
+| `ui/sheetview.cpp:714` | Kept: never sold or dropped (Sell spare gear skips it). Click to mark it to sell instead. |
+| `ui/sheetview.cpp:715` | Marked to sell: Sell spare gear in a shop sells it with the spare weapons and armor. Click to clear the mark. |
+| `ui/sheetview.cpp:716` | Keep it: Darklands+ will not sell it (one by one or with Sell spare gear) or drop it until you click again. |
+| `ui/sheetview.cpp:749` | ; hold Shift for one) |
+| `ui/sheetview.cpp:750` | : the party's pack is everyone's already |
+| `ui/sheetview.cpp:751` | : drop it on a member at the left (hold Shift: just one) |
+| `ui/sheetview.cpp:751` | : drop it on a member at the left |
+| `ui/sheetview.cpp:819` | : Virtue too low for this saint |
+| `ui/sheetview.cpp:897` | Known by the party |
+| `ui/sheetview.cpp:914` | Every saint in the game |
+| `ui/sheetview.cpp:928` | Or what it raises: |
+| `ui/sheetview.cpp:928` | Or what it raises: |
+| `ui/sheetview.cpp:942` | %s: the %d saint%s whose help %s it, the most first%s |
+| `ui/sheetview.cpp:942` | The town's opinion of the party (its reputation) |
+| `ui/sheetview.cpp:943` | raises or heals |
+| `ui/sheetview.cpp:943` |  (click again for all) |
+| `ui/sheetview.cpp:969` | No saint helps with that. |
+| `ui/sheetview.cpp:969` | Nobody in the party knows a saint that helps with that. (Every saint in the game shows the others too.) |
+| `ui/sheetview.cpp:1009` | This saint asks a {Virtue} of %d of the one who prays%s. Each member's {Virtue}: %s |
+| `ui/sheetview.cpp:1010` | , more than anyone who knows it has |
+| `ui/sheetview.cpp:1010` | , more than anyone in the party has |
+| `ui/sheetview.cpp:1036` | No library the party has been to teaches this saint. |
+| `ui/sheetview.cpp:1038` | Taught in the library of  |
+| `ui/sheetview.cpp:1061` | Nobody in the party knows this saint. |
+| `ui/sheetview.cpp:1070` | Asks a {%s} of %d%s. |
+| `ui/sheetview.cpp:1070` | Asks a {%s} of %d: too low for %s to call on this saint. |
+| `ui/sheetview.cpp:1071` | , more than anyone in the party has |
+| `ui/sheetview.cpp:1086` | {~Virtue:%d} too low (it asks %d) |
+| `ui/sheetview.cpp:1086` | This saint asks a {Virtue} of %d: no prayer is heard below it. |
+| `ui/sheetview.cpp:1088` | {Divine Favor:%d} needed for a 99%% chance |
+| `ui/sheetview.cpp:1089` | The least Divine Favor that gives the best chance of being heard (of the %d they have): more is spent for nothing. The prayer screen sets the favor. |
+| `ui/sheetview.cpp:1092` | All their Divine Favor gives this chance; a 99%% chance takes {Divine Favor:%d}. The prayer screen sets the favor. |
+| `ui/sheetview.cpp:1093` | All their Divine Favor gives this chance. The prayer screen sets the favor. |
+| `ui/sheetview.cpp:1095` | {Divine Favor:%d} needed at least, has %d |
+| `ui/sheetview.cpp:1096` | This saint hears no prayer of less than %d Divine Favor. |
+| `ui/sheetview.cpp:1100` |  With the %s, it costs them {Divine Favor:%d} less (counted here). |
+| `ui/sheetview.cpp:1105` | Call on this saint now: the prayer screen, where you choose how much Divine Favor to spend. |
+| `ui/sheetview.cpp:1112` | Differs from the description:  |
+| `ui/sheetview.cpp:1161` | Every formula in the game |
+| `ui/sheetview.cpp:1191` | Nobody in the party knows a formula. Every formula in the game shows them all, their ingredients and where they are sold. |
+| `ui/sheetview.cpp:1236` | nobody knows it - sold here |
+| `ui/sheetview.cpp:1236` | nobody knows it |
+| `ui/sheetview.cpp:1256` | The party's ingredients |
+| `ui/sheetview.cpp:1292` | Mystic number %d, %s. |
+| `ui/sheetview.cpp:1292` | risk unknown |
+| `ui/sheetview.cpp:1295` | The mystic number: the higher, the harder the formula is to brew (set against the alchemist's {Alchemy} and {Intelligence}). The risk: how badly a failed brew can go wrong. |
+| `ui/sheetview.cpp:1300` | Enough ingredients to make %d potion%s. |
+| `ui/sheetview.cpp:1301` | The party lacks an ingredient: brewing must wait. |
+| `ui/sheetview.cpp:1301` | The party lacks an ingredient. |
+| `ui/sheetview.cpp:1303` | Chance of brewing one batch |
+| `ui/sheetview.cpp:1313` | Nobody in the party knows it. |
+| `ui/sheetview.cpp:1316` | No alchemist sells it: it is traded for or found. |
+| `ui/sheetview.cpp:1317` | No alchemist the party has been to sells it. |
+| `ui/sheetview.cpp:1322` | Sold by the alchemist of  |
 | `ui/skillicons.cpp:462` | Missile Device |
 | `ui/skillicons.cpp:462` | Missile Weapons |
 | `ui/skillicons.cpp:463` | Speak Common |
@@ -2566,36 +2593,36 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/travel.cpp:139` | Stop to camp at 20:00: off |
 | `ui/travel.cpp:139` | Stop to camp at 20:00: when someone needs rest |
 | `ui/travel.cpp:139` | Stop to camp at 20:00: every night |
-| `ui/ui.cpp:85` |              |
-| `ui/ui.cpp:98` | EB Garamond (book face) |
-| `ui/ui.cpp:98` | Alegreya (calligraphic) |
-| `ui/ui.cpp:98` | IM Fell English (old print) |
-| `ui/ui.cpp:99` | Atkinson Hyperlegible (easiest to read) |
-| `ui/ui.cpp:99` | MedievalSharp (medieval hand) |
-| `ui/ui.cpp:99` | Fraktur (blackletter, for the brave) |
-| `ui/ui.cpp:100` | Grenze Gotisch (gothic, still readable) |
-| `ui/ui.cpp:100` | Comic Sans (we are so sorry) |
-| `ui/ui.cpp:225` | Comic Neue (a Comic Sans look-alike, we are so sorry) |
-| `ui/ui.cpp:240` | don't remind me |
-| `ui/ui.cpp:259` | Darklands stopped because of an error. Your saves are safe: Load is in the Game menu (right-click). F12 > About > Report a problem makes a report of it. |
-| `ui/ui.cpp:260` | The party's journey has ended. Load a saved game to continue: Load in the Game menu (right-click). |
-| `ui/ui.cpp:304` | The world map can only be opened from the overland view or a card, not in a battle. |
-| `ui/ui.cpp:305` | The world map can only be opened from the overland view or a card: close this screen first. |
-| `ui/ui.cpp:306` | The world map can only be opened from the overland view or a card, once a game is under way. |
-| `ui/ui.cpp:407` | How Darklands works |
-| `ui/ui.cpp:419` | A deep editor, for fixing and modding: |
-| `ui/ui.cpp:421` | it changes the saved game's own data directly, as the community's save editors do (to repair a character hit by an old bug, to cheat, or to make a mod). Nothing here is needed to play. |
-| `ui/ui.cpp:425` | Items (for a mod) |
+| `ui/ui.cpp:86` |              |
+| `ui/ui.cpp:99` | EB Garamond (book face) |
+| `ui/ui.cpp:99` | Alegreya (calligraphic) |
+| `ui/ui.cpp:99` | IM Fell English (old print) |
+| `ui/ui.cpp:100` | Atkinson Hyperlegible (easiest to read) |
+| `ui/ui.cpp:100` | MedievalSharp (medieval hand) |
+| `ui/ui.cpp:100` | Fraktur (blackletter, for the brave) |
+| `ui/ui.cpp:101` | Grenze Gotisch (gothic, still readable) |
+| `ui/ui.cpp:101` | Comic Sans (we are so sorry) |
+| `ui/ui.cpp:226` | Comic Neue (a Comic Sans look-alike, we are so sorry) |
+| `ui/ui.cpp:241` | don't remind me |
+| `ui/ui.cpp:260` | Darklands stopped because of an error. Your saves are safe: Load is in the Game menu (right-click). F12 > About > Report a problem makes a report of it. |
+| `ui/ui.cpp:261` | The party's journey has ended. Load a saved game to continue: Load in the Game menu (right-click). |
+| `ui/ui.cpp:305` | The world map can only be opened from the overland view or a card, not in a battle. |
+| `ui/ui.cpp:306` | The world map can only be opened from the overland view or a card: close this screen first. |
+| `ui/ui.cpp:307` | The world map can only be opened from the overland view or a card, once a game is under way. |
+| `ui/ui.cpp:408` | How Darklands works |
+| `ui/ui.cpp:420` | A deep editor, for fixing and modding: |
+| `ui/ui.cpp:422` | it changes the saved game's own data directly, as the community's save editors do (to repair a character hit by an old bug, to cheat, or to make a mod). Nothing here is needed to play. |
+| `ui/ui.cpp:426` | Items (for a mod) |
 | `ui/ui.cpp:478` | Darklands+: the potions and the alchemical ingredients |
 | `ui/ui.cpp:480` | Potions, grades 1, 2 and 3 (the gold dots on the neck) |
 | `ui/ui.cpp:597` | Reconstructed Content |
 | `ui/ui.cpp:601` | Reconstructed Content |
 | `ui/ui.cpp:623` |              |
-| `ui/ui.cpp:735` | an index past the vertices |
-| `ui/ui.cpp:735` | not a number |
-| `ui/ui.cpp:735` | far past the window |
-| `ui/ui.cpp:768` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
-| `ui/ui.cpp:774` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
+| `ui/ui.cpp:736` | an index past the vertices |
+| `ui/ui.cpp:736` | not a number |
+| `ui/ui.cpp:736` | far past the window |
+| `ui/ui.cpp:769` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
+| `ui/ui.cpp:775` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
 | `ui/ui_windows.cpp:74` | Darklands+ is made by Yassine Meskhout. |
 | `ui/ui_windows.cpp:75` | Darklands (c) 1992 MicroProse. This is the original game, rebuilt to run directly on today's computers, with the game files of your own copy. F12 > Settings has the Full Original preset, the game as it played, and switches for most of what Darklands+ adds. |
 | `ui/ui_windows.cpp:78` | F11: the keys for the current screen.  F12: this window (the game waits while it is open).  Alt+Enter: full screen.  Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities). |
@@ -2738,45 +2765,47 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui_windows.cpp:348` | on the row under the pointer on the Items page (Give and Drop with Shift: the whole stack) |
 | `ui/ui_windows.cpp:349` | Items, Skills, Saints, Formulae |
 | `ui/ui_windows.cpp:349` | the pages at the top (Tab or Right: next page; Shift+Tab or Left: previous page) |
-| `ui/ui_windows.cpp:350` | Portraits, F1 ... F5 |
-| `ui/ui_windows.cpp:350` | another member's sheet; this member's own portrait, Esc or Close: back |
-| `ui/ui_windows.cpp:351` | Ctrl+F1 ... Ctrl+F5 |
-| `ui/ui_windows.cpp:351` | make member 1 ... 5 the leader (or Make leader) |
-| `ui/ui_windows.cpp:352` | Wheel, Up, Down |
-| `ui/ui_windows.cpp:352` | scroll the list |
-| `ui/ui_windows.cpp:354` | Now: a character sheet |
-| `ui/ui_windows.cpp:355` | Ctrl+F1 ... Ctrl+F5 |
-| `ui/ui_windows.cpp:355` | make member 1 ... 5 the leader (or Make leader at the top) |
-| `ui/ui_windows.cpp:356` | Up, Down, PgUp, PgDn |
-| `ui/ui_windows.cpp:356` | move in a list (the mouse wheel too) |
-| `ui/ui_windows.cpp:357` | in the equipment list: give the chosen item to member 1 ... 5 (with Shift: all of them) |
-| `ui/ui_windows.cpp:358` | in the equipment list: ready or wear the chosen item |
-| `ui/ui_windows.cpp:359` | in the equipment list: drop the chosen item (with Shift: all of them) |
-| `ui/ui_windows.cpp:361` | Keys of the original game |
-| `ui/ui_windows.cpp:362` | the menu bar: click an entry (or hold the button and release it on one); a click elsewhere or any key closes it; F10 with the keyboard |
-| `ui/ui_windows.cpp:363` | Right mouse button |
-| `ui/ui_windows.cpp:363` | the menu bar, while it is held: release it on an entry (F10 with the keyboard) |
-| `ui/ui_windows.cpp:364` | Alt+S / Alt+L |
-| `ui/ui_windows.cpp:364` | save / load, with a comment (the original's screens list nine saves) |
-| `ui/ui_windows.cpp:365` | the marching order |
-| `ui/ui_windows.cpp:366` | difficulty    Alt+M music    Alt+F sound effects |
-| `ui/ui_windows.cpp:367` | messages about saints' changes on / off |
-| `ui/ui_windows.cpp:369` | quit to the desktop |
-| `ui/ui_windows.cpp:371` | the Darklands+ window (pauses the game) |
-| `ui/ui_windows.cpp:372` | Ctrl+S / F9 or Ctrl+L |
-| `ui/ui_windows.cpp:372` | quick save / quick load |
-| `ui/ui_windows.cpp:373` | full screen    Ctrl+F12 screenshot |
-| `ui/ui_windows.cpp:376` | The controller |
-| `ui/ui_windows.cpp:382` | moves the pointer (slowly while the left trigger is held) |
-| `ui/ui_windows.cpp:383` | the mouse wheel; pressed: Z (fast forward in a battle) |
-| `ui/ui_windows.cpp:384` | click / right-click (the menu bar) |
-| `ui/ui_windows.cpp:386` | the arrow keys |
-| `ui/ui_windows.cpp:387` | Tab (the level map) / Space (pause) |
-| `ui/ui_windows.cpp:388` | {START} {BACK} |
-| `ui/ui_windows.cpp:388` | F12 (the Darklands+ window) / M (the world map) |
-| `ui/ui_windows.cpp:389` | held: Ctrl (in the overland view: Ctrl+click travels there) |
-| `ui/ui_windows.cpp:390` | pressed: F11 (this list) |
-| `ui/ui_windows.cpp:392` | F11, Esc or a click closes this. |
+| `ui/ui_windows.cpp:350` | Choose Portrait |
+| `ui/ui_windows.cpp:350` | pick a PNG or JPEG, drag or zoom to adjust its framing, then choose Use Portrait |
+| `ui/ui_windows.cpp:351` | Party panel, F1 ... F5 |
+| `ui/ui_windows.cpp:351` | another member's sheet; this member's picture, Esc or Close: back |
+| `ui/ui_windows.cpp:352` | Ctrl+F1 ... Ctrl+F5 |
+| `ui/ui_windows.cpp:352` | make member 1 ... 5 the leader (or Make leader) |
+| `ui/ui_windows.cpp:353` | Wheel, Up, Down |
+| `ui/ui_windows.cpp:353` | scroll the list |
+| `ui/ui_windows.cpp:355` | Now: a character sheet |
+| `ui/ui_windows.cpp:356` | Ctrl+F1 ... Ctrl+F5 |
+| `ui/ui_windows.cpp:356` | make member 1 ... 5 the leader (or Make leader at the top) |
+| `ui/ui_windows.cpp:357` | Up, Down, PgUp, PgDn |
+| `ui/ui_windows.cpp:357` | move in a list (the mouse wheel too) |
+| `ui/ui_windows.cpp:358` | in the equipment list: give the chosen item to member 1 ... 5 (with Shift: all of them) |
+| `ui/ui_windows.cpp:359` | in the equipment list: ready or wear the chosen item |
+| `ui/ui_windows.cpp:360` | in the equipment list: drop the chosen item (with Shift: all of them) |
+| `ui/ui_windows.cpp:362` | Keys of the original game |
+| `ui/ui_windows.cpp:363` | the menu bar: click an entry (or hold the button and release it on one); a click elsewhere or any key closes it; F10 with the keyboard |
+| `ui/ui_windows.cpp:364` | Right mouse button |
+| `ui/ui_windows.cpp:364` | the menu bar, while it is held: release it on an entry (F10 with the keyboard) |
+| `ui/ui_windows.cpp:365` | Alt+S / Alt+L |
+| `ui/ui_windows.cpp:365` | save / load, with a comment (the original's screens list nine saves) |
+| `ui/ui_windows.cpp:366` | the marching order |
+| `ui/ui_windows.cpp:367` | difficulty    Alt+M music    Alt+F sound effects |
+| `ui/ui_windows.cpp:368` | messages about saints' changes on / off |
+| `ui/ui_windows.cpp:370` | quit to the desktop |
+| `ui/ui_windows.cpp:372` | the Darklands+ window (pauses the game) |
+| `ui/ui_windows.cpp:373` | Ctrl+S / F9 or Ctrl+L |
+| `ui/ui_windows.cpp:373` | quick save / quick load |
+| `ui/ui_windows.cpp:374` | full screen    Ctrl+F12 screenshot |
+| `ui/ui_windows.cpp:377` | The controller |
+| `ui/ui_windows.cpp:383` | moves the pointer (slowly while the left trigger is held) |
+| `ui/ui_windows.cpp:384` | the mouse wheel; pressed: Z (fast forward in a battle) |
+| `ui/ui_windows.cpp:385` | click / right-click (the menu bar) |
+| `ui/ui_windows.cpp:387` | the arrow keys |
+| `ui/ui_windows.cpp:388` | Tab (the level map) / Space (pause) |
+| `ui/ui_windows.cpp:389` | {START} {BACK} |
+| `ui/ui_windows.cpp:389` | F12 (the Darklands+ window) / M (the world map) |
+| `ui/ui_windows.cpp:390` | held: Ctrl (in the overland view: Ctrl+click travels there) |
+| `ui/ui_windows.cpp:391` | pressed: F11 (this list) |
+| `ui/ui_windows.cpp:393` | F11, Esc or a click closes this. |
 | `ui/worldmap.cpp:78` | Unwelcome here |
 | `ui/worldmap.cpp:78` | The watch on alert here |
 | `ui/worldmap.cpp:78` | Wanted by the watch here |

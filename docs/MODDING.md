@@ -275,13 +275,13 @@ are cut down, and qualities are kept within 0 to 9. For testing, the `uenc:N` st
 
 ## Character portraits
 
-Use **Choose Portrait** on a Darklands+ character sheet to preview and import a PNG or JPEG.
+Use **Choose portrait** on a Darklands+ character sheet to preview and import a PNG or JPEG.
 Images can be up to 4096 pixels per side. A 360 × 800 image matches the portrait frame.
 Drag the preview to reposition the image and use **Zoom** to fit more of it or crop closer.
 Use **Enlarge preview** for finer adjustments. When zooming out leaves margins, they show the
 background of the sheet or party panel.
 Applying saves the framing with the portrait. Choose the source image again to reframe it later.
-Use **Revert to Original** when viewing the current portrait to restore the game artwork.
+Use **Back to the original** when viewing the current portrait to restore the game artwork.
 This also takes precedence over hand-installed portraits for that character until you import an image again.
 Imported portraits are stored by character name in `portraits/assigned` in the Darklands+ data
 folder. Hand-installed portraits in `portraits/NAME.png` or `portraits/NAME.jpg` are the fallback
