@@ -1967,12 +1967,64 @@ static void tomb_give_hook(void)            /* s039 1462:1ab0 (loc), during the 
     hook_call_original();
     g_ww(G_CUR_LOC, cur);
 }
+static int started_ev(u32 e);
+static char tomb_item[48];
+static int tomb_leave_agreed;
+
+/* X can take the whole group out immediately. A paused fighter instead gets an
+ * exit order through 138e. Ask before either operation changes the party. */
+static void tomb_exit(int can_leave)
+{
+    if (can_leave && !tomb_leave_agreed && config_get_int("battle.warn_tomb_exit", 1)
+        && g_rw(GV_battlefield_kind) == 0x5f && !g_rb(GV_place_won) && !tomb_cleared()) {
+        char question[112];
+        snprintf(question, sizeof question, "Skeletons still guard the %s. Leave without it?", tomb_item);
+        u16 sp = SP, msg = ns_stack_str(question);
+        int yes = ns_call(GF_ask_yes_no, 1, msg);
+        if (ns_unwinding) return;
+        ns_stack_free(sp);
+        if (yes != 1) { hook_return_far(0); return; }
+        tomb_leave_agreed = 1;
+    }
+    hook_call_original();
+}
+static void tomb_exit_now(void)
+{
+    tomb_exit(g_rb(0x9749) == 1 && !g_rb(GV_ai_paused)
+              && (!g_rb(GV_move_mode) || !g_rb(GV_real_combat)));
+}
+static void tomb_exit_order(void)
+{
+    tomb_exit(g_rb(0x9749) == 1 && g_rb(GV_selected_member) < 5);
+}
+
 static void tomb_hook(void)                 /* $McGuf08 option, s108 1838:07ca */
 {
     tomb_loc = (s16)g_rw(G_CUR_LOC);
+    /* The world event table is available here, before the battle borrows its memory. */
+    int quest = 0;
+    for (int i = 0; i < G_NEVENTS; i++) {
+        u32 e = g_event(i);
+        if (e && g_ev(e, G_EV_KIND) == 8 && g_ev(e, G_EV_TAG) == 10
+            && g_ev(e, G_EV_LOC) == tomb_loc && started_ev(e)) {
+            gm_itemdef_name(g_ev(e, G_EV_ITEM) & 0xfff, tomb_item, sizeof tomb_item);
+            if (!tomb_item[0]) strcpy(tomb_item, "quest item");
+            quest = 1;
+            break;
+        }
+    }
+    tomb_leave_agreed = 0;
+    if (quest) {
+        hook_install(16, 0x1ef8, 0x1242, tomb_exit_now);
+        hook_install(16, 0x1ef8, 0x138e, tomb_exit_order);
+    }
     hook_install(39, 0x1462, 0x1ab0, tomb_give_hook);
     hook_call_original();
     hook_remove(39, 0x1462, 0x1ab0, tomb_give_hook);
+    if (quest) {
+        hook_remove(16, 0x1ef8, 0x1242, tomb_exit_now);
+        hook_remove(16, 0x1ef8, 0x138e, tomb_exit_order);
+    }
     tomb_loc = -1;
 }
 

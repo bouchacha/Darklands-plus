@@ -69,6 +69,7 @@ static const struct { const char *key, *why; } WHY[] = {
     { "battle.pause_down", "(part of Pauses in battle)" },
     { "battle.pause_hurt", "(part of Pauses in battle)" },
     { "battle.pause_foes", "(part of Pauses in battle)" },
+    { "battle.warn_tomb_exit", "A quiet tomb can still hold sleeping skeletons. Leaving it early means returning for the item and fighting again." },
     { "battle.improved", "Between orders the original's members stand idle or fight poorly (shooters walk into melee, freeze without a line of fire); this is what a player would order each time, in the style chosen for each member." },
     { "battle.click_attack", "(part of Easier battle controls)" },
     { "battle.volley_toggle", "The fighting styles apply whether shown or not; the picture says what each member will do, and is where to change it." },
