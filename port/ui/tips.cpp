@@ -38,8 +38,9 @@ static int open_tip, launches, battle_seen, title_seen, encounters_due, version_
    the version it was shown for). Each release sets its own, or "" for none (his ask, 1.5.1: stairs in a fight) */
 static const char VERSION_NOTE_FOR[] = "1.5.1";
 static const char VERSION_NOTE[] =
-    "Stairs work differently in a fight: everyone on that floor now goes along, the knocked-out carried, "
-    "instead of one member alone.\n\nIf anything goes wrong on stairs or after a change of floor (someone left behind, "
+    "Stairs and ladders now work differently in a fight: instead of one member going through at a time, the whole "
+    "party comes along, wherever they stand on the floor, the knocked-out carried. A party split across floors caused "
+    "many bugs in the original game (16 known ones), and keeping it together was the cleanest fix.\n\nIf anything goes wrong on stairs or after a change of floor (someone left behind, "
     "walking through a wall, a fight that will not end), please make a report: F12 > About > Report a problem, and say what you were doing.";
 static u32 title_at;            /* the start screen came: its note a moment later, once it is drawn (the game waits while a window is open) */
 
