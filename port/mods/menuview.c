@@ -107,9 +107,11 @@ static void item_name(u16 p, MvItem *it)
     it->tick = 0;
     if (n && (s[0] == 1 || s[0] == 2)) { it->tick = s[0] == 1; t++; }
     snprintf(it->name, sizeof it->name, "%s", t);
-    if (!strcmp(it->name, "Pick Lock(Ldr)") && ns_active() && config_get_int("battle.choose_lockpicker", 1))
-        snprintf(it->name, sizeof it->name, "Pick Lock...");
     for (int k = (int)strlen(it->name) - 1; k >= 0 && it->name[k] == ' '; k--) it->name[k] = 0;
+    if ((!strcmp(it->name, "Pick Lock(Ldr)") || !strcmp(it->name, "Pick Lock"))
+        && game_mode() == GM_BATTLE && g_rb(GV_ai_paused) != 1 && ns_active()
+        && config_get_int("battle.choose_lockpicker", 1))
+        snprintf(it->name, sizeof it->name, "Pick Lock...");
 }
 
 static void build_into(u16 mp, MenuModel *M, MvFn *fn)
