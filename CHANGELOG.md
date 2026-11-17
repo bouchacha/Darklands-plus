@@ -25,7 +25,7 @@
 
 From Arkana Mechanika's Darklands Restoration register:
 
-- **Stairs in a fight take the whole floor's party along,** the knocked-out carried, as outside a fight. A member who went alone left the others on a floor the game no longer kept in memory: they walked through walls that were not there, opened the wrong doors and chests, set off the wrong traps and were seen by enemies who were not there.
+- **Stairs in a fight take the whole floor's party along,** the knocked-out carried, as outside a fight. A member who went alone left the others on a floor the game no longer kept in memory: they walked through walls that were not there, opened the wrong doors and chests, set off the wrong traps and were seen by enemies who were not there. A note at the first start of this version says so and asks for a report if anything goes wrong on stairs.
 - **A robber knight slain is paid for:** when he fell in a fight that did not end as a plain victory (after sneaking up on his tower, or let in by a saint), his keep burnt but no patron ever paid. The quest is now done however he fell.
 - **A council's reward** was never paid to a party that prayed its way into the hall: it got a new robber knight instead. The saint's way now pays.
 - **A member gone out by the way out** no longer holds the others back: if the rest stood on another floor than the enemies, the battle ended as fled and they were left behind; the party could never come together on one floor again; and Group and Single file stayed greyed.

@@ -2533,35 +2533,40 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/teachersui.cpp:99` | {%s} (until %d %s) |
 | `ui/tipplace.cpp:127` | tooltip over ... |
 | `ui/tipplace.cpp:145` | what it describes |
-| `ui/tips.cpp:58` | Never show again (this will nag you %d more time%s) |
-| `ui/tips.cpp:59` | Never show again |
-| `ui/tips.cpp:121` | Battles, with Improved combat |
-| `ui/tips.cpp:122` | Your people fight on between orders |
-| `ui/tips.cpp:123` | A member with a bow, crossbow, gun or thrown weapon keeps shooting; when the target falls, at the nearest enemy in sight. |
-| `ui/tips.cpp:124` | With no clear line (a wall, a tree or a friend in the way), a shooter steps a few paces aside to find one. |
-| `ui/tips.cpp:125` | Shooters draw a melee weapon once an enemy is close, when nothing is left to shoot, or to help a friend nearby who is set upon or badly hurt. |
-| `ui/tips.cpp:126` | A member whose enemy falls turns on another close by; one with no orders joins a fight beside it, unless told to hold. |
-| `ui/tips.cpp:128` | F11 on a keyboard lists the keys. |
-| `ui/tips.cpp:129` | Space pauses and resumes. Orders can be given while paused. |
-| `ui/tips.cpp:131` | Click a member, then an enemy, a spot or a menu choice; Enter gives the order. |
-| `ui/tips.cpp:132` | A click on an enemy lets your member choose the attack: a Vulnerable one, aimed at the gaps, when only that gets through the enemy's armor; else a standard one. An attack you pick from the orders yourself (Std Attack, Vulnerable, Berserk, Parry) is kept. |
-| `ui/tips.cpp:133` | F11 lists every key |
-| `ui/tips.cpp:134` | ; Tab, the level map |
-| `ui/tips.cpp:138` | Std Attack: blows and guard in balance. |
-| `ui/tips.cpp:139` | Vulnerable: slow blows aimed at the gaps in the armor; they pierce more (1 to 4 more penetration), but come far less often and land a little less. For armor the weapon cannot get through. |
-| `ui/tips.cpp:140` | Berserk: quick, sure blows, without thought of defense. To finish a foe fast. |
-| `ui/tips.cpp:141` | Parry: mostly defends; hard to hit, striking back slower and less surely. To hold a foe off while help comes, or to spare a wounded member. |
-| `ui/tips.cpp:143` | Improved combat can be switched off in F12 > Settings > Battles. |
-| `ui/tips.cpp:145` |   To battle   |
-| `ui/tips.cpp:154` | the repetitiveness of some encounters |
-| `ui/tips.cpp:159` | New encounters |
-| `ui/tips.cpp:160` | A frequent complaint about Darklands, in reviews and among players, is that its random encounters soon repeat. |
-| `ui/tips.cpp:162` | Darklands+ comes with a mod of 160 new ones in the spirit of the original: 90 in the wild, 18 on the river boats, 34 in the towns' streets and 18 in camp. They come up among the game's own; a small seal in the corner of the card marks a new one. |
-| `ui/tips.cpp:165` |   Play with them   |
-| `ui/tips.cpp:165` |   Turn them on   |
-| `ui/tips.cpp:167` |   Turn them off   |
-| `ui/tips.cpp:167` |   Leave them off   |
-| `ui/tips.cpp:169` | Change it at any time: F12 > Mods. |
+| `ui/tips.cpp:41` | Stairs work differently in a fight: everyone on that floor now goes along, the knocked-out carried,  |
+| `ui/tips.cpp:41` | instead of one member alone.  If anything goes wrong on stairs or after a change of floor (someone left behind,  |
+| `ui/tips.cpp:41` | walking through a wall, a fight that will not end), please make a report: F12 > About > Report a problem, and say what you were doing. |
+| `ui/tips.cpp:66` | Never show again (this will nag you %d more time%s) |
+| `ui/tips.cpp:67` | Never show again |
+| `ui/tips.cpp:133` | Battles, with Improved combat |
+| `ui/tips.cpp:134` | Your people fight on between orders |
+| `ui/tips.cpp:135` | A member with a bow, crossbow, gun or thrown weapon keeps shooting; when the target falls, at the nearest enemy in sight. |
+| `ui/tips.cpp:136` | With no clear line (a wall, a tree or a friend in the way), a shooter steps a few paces aside to find one. |
+| `ui/tips.cpp:137` | Shooters draw a melee weapon once an enemy is close, when nothing is left to shoot, or to help a friend nearby who is set upon or badly hurt. |
+| `ui/tips.cpp:138` | A member whose enemy falls turns on another close by; one with no orders joins a fight beside it, unless told to hold. |
+| `ui/tips.cpp:140` | F11 on a keyboard lists the keys. |
+| `ui/tips.cpp:141` | Space pauses and resumes. Orders can be given while paused. |
+| `ui/tips.cpp:143` | Click a member, then an enemy, a spot or a menu choice; Enter gives the order. |
+| `ui/tips.cpp:144` | A click on an enemy lets your member choose the attack: a Vulnerable one, aimed at the gaps, when only that gets through the enemy's armor; else a standard one. An attack you pick from the orders yourself (Std Attack, Vulnerable, Berserk, Parry) is kept. |
+| `ui/tips.cpp:145` | F11 lists every key |
+| `ui/tips.cpp:146` | ; Tab, the level map |
+| `ui/tips.cpp:150` | Std Attack: blows and guard in balance. |
+| `ui/tips.cpp:151` | Vulnerable: slow blows aimed at the gaps in the armor; they pierce more (1 to 4 more penetration), but come far less often and land a little less. For armor the weapon cannot get through. |
+| `ui/tips.cpp:152` | Berserk: quick, sure blows, without thought of defense. To finish a foe fast. |
+| `ui/tips.cpp:153` | Parry: mostly defends; hard to hit, striking back slower and less surely. To hold a foe off while help comes, or to spare a wounded member. |
+| `ui/tips.cpp:155` | Improved combat can be switched off in F12 > Settings > Battles. |
+| `ui/tips.cpp:157` |   To battle   |
+| `ui/tips.cpp:166` | the repetitiveness of some encounters |
+| `ui/tips.cpp:171` | New encounters |
+| `ui/tips.cpp:172` | A frequent complaint about Darklands, in reviews and among players, is that its random encounters soon repeat. |
+| `ui/tips.cpp:174` | Darklands+ comes with a mod of 160 new ones in the spirit of the original: 90 in the wild, 18 on the river boats, 34 in the towns' streets and 18 in camp. They come up among the game's own; a small seal in the corner of the card marks a new one. |
+| `ui/tips.cpp:177` |   Play with them   |
+| `ui/tips.cpp:177` |   Turn them on   |
+| `ui/tips.cpp:179` |   Turn them off   |
+| `ui/tips.cpp:179` |   Leave them off   |
+| `ui/tips.cpp:181` | Change it at any time: F12 > Mods. |
+| `ui/tips.cpp:193` | In Darklands+ %s |
+| `ui/tips.cpp:197` |   Understood   |
 | `ui/titleview.cpp:26` | saved today at %d:%02d |
 | `ui/titleview.cpp:27` | saved yesterday at %d:%02d |
 | `ui/titleview.cpp:28` | saved %d %s %d |
