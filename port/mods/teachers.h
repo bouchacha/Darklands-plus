@@ -54,12 +54,14 @@ void teach_town_here(TchTown *t);                                   /* the curre
 int teach_card_option(const char *card, int opt, TchSource *out);
 
 /* the teachers hired in town loc now (begun, not ended): skill, strength, fee, last day */
-typedef struct { int skill, strength, fee, day, month, year; } TchHired;
+typedef struct { int skill, strength, fee, day, month, year, event; } TchHired;
 int teach_hired(int loc, TchHired *out, int max);
 
 /* the town's teacher of skill now (the first begun, as the inn takes it): ability, or -1 */
 int teach_ability_here(int skill);
 int teach_best_here(int skill);               /* the event index of the teacher used for a skill here (-1 none) */
+int teach_best_at(int loc, int skill);        /* the same choice at another town's inn */
+int teach_skill_offered(int skill);           /* a skill taught by one of the game's town sources */
 /* lessons stop at the teacher's ability (the "teachcap" fix): member m's skill has reached the
    teacher's ability a (>= 0) - nothing more to learn from that teacher */
 int teach_capped(int m, int skill, int a);

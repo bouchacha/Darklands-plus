@@ -90,6 +90,7 @@ int teach_hired(int loc, TchHired *out, int max)
         u16 s = (u16)(e >> 16), o = (u16)e;
         if ((s16)rw(s, (u16)(o + 0x22)) != 0x28 || (s16)rw(s, (u16)(o + 0x1c)) != loc || !started(s, o)) continue;
         TchHired *h = &out[n++];
+        h->event = i;
         h->skill = (s16)rw(s, o); h->fee = (s16)rw(s, (u16)(o + 0x1e)); h->strength = (s16)rw(s, (u16)(o + 0x20));
         h->day = (s16)rw(s, (u16)(o + 0x14)); h->month = (s16)rw(s, (u16)(o + 0x16)); h->year = (s16)rw(s, (u16)(o + 0x18));
     }
@@ -239,9 +240,9 @@ int teach_card_option(const char *card, int opt, TchSource *out)
 
 /* the teacher of a skill here who teaches best (the highest ability; the lower fee between equals):
    the one the inn uses with the "bestteacher" fix (several hired for one skill), else the first */
-int teach_best_here(int skill)
+int teach_best_at(int loc, int skill)
 {
-    int loc = (s16)g_rw(GV_cur_loc), best = -1, bs = -1, bf = 0;
+    int best = -1, bs = -1, bf = 0;
     if (!fix_is_on("bestteacher")) return event_at(0x28, loc, skill);
     for (int i = 0; i < G_NEVENTS; i++) {
         u32 e = g_event(i); if (!e) continue;
@@ -251,6 +252,17 @@ int teach_best_here(int skill)
         if (best < 0 || a > bs || (a == bs && f < bf)) { best = i; bs = a; bf = f; }
     }
     return best;
+}
+int teach_best_here(int skill) { return teach_best_at((s16)g_rw(GV_cur_loc), skill); }
+
+int teach_skill_offered(int skill)
+{
+    switch (skill) {
+    case SKILL_EDGED: case SKILL_IMPACT: case SKILL_THROWN: case SKILL_BOW: case SKILL_MISSILE:
+    case SKILL_ALCHEMY: case SKILL_RELIGION: case SKILL_LATIN: case SKILL_RW: case SKILL_HEALING:
+    case SKILL_ARTIFICE: return 1;
+    default: return 0;
+    }
 }
 int teach_ability_here(int skill)
 {

@@ -22,6 +22,7 @@
 extern "C" int ns_showing(void);
 #include "gamedata.h"
 #include "teachersui.h"
+#include "teacherfinder.h"
 #include "quests.h"
 #include "townicons.h"
 #include "citynav.h"
@@ -81,7 +82,7 @@ void ui_town_lists_panel(int loc);                /* ui/margins.cpp */
 bool ui_town_list_has(int loc, int which); void ui_town_list_part(int loc, int which);   /* ui/margins.cpp: 0 saints, 1 formulae, 2 teachers */   /* ui/journal.cpp: "3 days" */
 extern "C" int journal_buy_window(bool *open, int what), journal_town_noted(int loc); extern "C" void journal_town_wares(int loc);   /* ui/journal.cpp */
 static int selected = -1;
-static bool nearby_work_open;
+static bool nearby_work_open, teachers_open;
 static int dock_hover = -1, dock_hover_next = -1;          /* the place panel's boat destination under the pointer (last frame): ringed on the map */
 static bool show_names = true, show_quests = true, show_icons = true, show_boats = true, show_days = false;
 static bool show_kind[16] = { true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true };   /* by icon kind (the legend's entries switch them) */
@@ -157,6 +158,7 @@ extern "C" int worldmap_open(void)
     if (!worldmap_build()) return 0;
     upload();
     nearby_work_open = false;
+    teachers_open = false;
     int px, py; party_tile(&px, &py);
     if (cx < 0 || px >= 0) tile_px(px, py, &cx, &cy);
     if (getenv("DL_WM_ZOOM")) zoom = (float)atof(getenv("DL_WM_ZOOM"));   /* test */
@@ -188,6 +190,18 @@ static std::string fold_name(const std::string &s, bool umlaut_e)
 }
 
 extern "C" void ui_toggle_map(void);
+extern "C" int ui_map_open(void);
+
+/* The sheet has returned to its caller before this request runs. A battle's places belong to
+   the battlefield, so enter only through the same map/card gate as the map key. */
+extern "C" void worldmap_teachers_from_sheet(int member, int skill, int, int)
+{
+    if (!ui_teachers_on() || !gm_member_present(member)) return;
+    if (!ui_map_open()) ui_toggle_map();
+    if (!ui_map_open()) return;
+    teacher_finder_start(member, skill);
+    teachers_open = true;
+}
 
 static char wm_find[48];                                   /* the Find box's text */
 static int wm_test_enter;
@@ -197,6 +211,10 @@ extern "C" void worldmap_test_find(const char *t) { snprintf(wm_find, sizeof wm_
    it), the map closed only then */
 extern "C" int worldmap_find_escape(int typing)
 {
+    if (teachers_open) {
+        if (!teacher_finder_close_combo()) teachers_open = false;
+        return 1;
+    }
     if (!wm_find[0]) return 0;
     if (!typing) wm_find[0] = 0;
     return 1;
@@ -216,22 +234,22 @@ struct NearbyTownWork {
     std::vector<TownOffice> offices;
 };
 
+int worldmap_land_minutes(int loc)
+{
+    if (game_mode() == GM_MAP) return travel_minutes_loc(loc, nullptr, nullptr);
+    if (loc == (s16)g_rw(G_CUR_LOC)) return 0;
+    int ox = 0, oy = 0;
+    return travel_party_at(&ox, &oy) ? travel_minutes_loc_from(ox, oy, loc) : -1;
+}
+
 static std::vector<NearbyTownWork> nearby_work_towns(const std::vector<Place> &places)
 {
-    const bool overland = game_mode() == GM_MAP;
-    const int current_town = overland ? -1 : (s16)g_rw(G_CUR_LOC);
-    int ox = 0, oy = 0;
-    const bool has_origin = overland || travel_party_at(&ox, &oy);
     std::vector<NearbyTownWork> towns;
     for (const Place &place : places) {
         if (place.loc >= (int)gamedata.cities.size() || !place_offers_known(place.loc)) continue;
         auto offices = citynav_town_offices(place.loc);
         if (offices.empty()) continue;
-        int minutes = -1;
-        if (place.loc == current_town) minutes = 0;
-        else if (overland) minutes = travel_minutes_loc(place.loc, nullptr, nullptr);
-        else if (has_origin) minutes = travel_minutes_loc_from(ox, oy, place.loc);
-        towns.push_back({ place, minutes, std::move(offices) });
+        towns.push_back({ place, worldmap_land_minutes(place.loc), std::move(offices) });
     }
     std::stable_sort(towns.begin(), towns.end(), [](const NearbyTownWork &a, const NearbyTownWork &b) {
         return (a.minutes < 0 ? INT_MAX : a.minutes) < (b.minutes < 0 ? INT_MAX : b.minutes);
@@ -1026,7 +1044,13 @@ extern "C" void worldmap_draw(void)
                 })) {
             nearby_work_open = !nearby_work_open;
             /* The map holds the game clock. Read the party, events and routes when opening the list. */
-            if (nearby_work_open) work_towns = nearby_work_towns(P);
+            if (nearby_work_open) { teachers_open = false; work_towns = nearby_work_towns(P); }
+        }
+        if (find_open && ui_teachers_on() && pic_button("Teachers", teachers_open, [&](ImVec2 c) {
+                ui_draw_teach_mark(fdl, c, fis, IM_COL32(80, 50, 24, 255), IM_COL32(252, 234, 184, 255));
+            })) {
+            teachers_open = !teachers_open;
+            if (teachers_open) { nearby_work_open = false; teacher_finder_start(-1, -1); }
         }
         {   /* the two finders: windows of their own (ui/journal.cpp); a click on a town there shows it here */
             static bool buy_open[2];
@@ -1116,6 +1140,10 @@ extern "C" void worldmap_draw(void)
     ImGui::End();
     if (find_open && work_enabled && nearby_work_open) nearby_work_window(work_towns, pk, pad);
     else nearby_work_open = false;
+    if (teachers_open) {
+        int loc = teacher_finder_window(teachers_open, P, pk, pad);
+        if (loc >= 0) for (const Place &p : P) if (p.loc == loc) { focus_place(p); break; }
+    }
     {   /* the lower right: the party's mark, pulsing as on the map; a click centres the map on it */
         int px = -1, py = -1; party_tile(&px, &py);
         if (px >= 0) {

@@ -21,6 +21,7 @@ typedef struct { int id, qual, count; char name[24]; } SvDrop;
 typedef struct {
     int open;
     int who, leader, npar;
+    int find_teachers;                 /* the sheet will return to the overland view or a card */
     int present[5], able[5];
     char names[5][24];
     char fullname[32];
@@ -62,7 +63,7 @@ typedef struct {
 extern SheetModel sheet_model;
 
 enum { SV_WHO = 1, SV_READY, SV_PUTAWAY, SV_GIVE, SV_DROP, SV_DRINK, SV_LEADER, SV_CLOSE, SV_UNDO,
-       SV_PREADY, SV_PDRINK, SV_PDROP, SV_KEEP, SV_PRAY, SV_PTAKE, SV_SHARE };
+       SV_PREADY, SV_PDRINK, SV_PDROP, SV_KEEP, SV_PRAY, SV_PTAKE, SV_SHARE, SV_TEACHERS };
 /* the pack's: SV_PREADY / SV_PDRINK item id, quality   SV_PDROP id, quality, 255 = all the party's spares
    SV_KEEP id, quality, mark (0 none, 1 kept from selling and dropping, 2 marked to sell: keep.c)   SV_PTAKE id, quality, member: a spare mount for them to ride
    SV_SHARE id: a potion split evenly among the members on their feet, every quality of it (id -1: every potion) */

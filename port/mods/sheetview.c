@@ -25,6 +25,7 @@
 void plat_hold(int ms);
 #include "gamemodel.h"
 #include "sheetview.h"
+#include "teachers.h"
 #include "fixes.h"
 #include "keep.h"
 #include "relics.h"
@@ -550,11 +551,13 @@ static void sheet_run(void)
     saint_classes();
     build(who);
     sheet_model.open = 1; sheet_model.tab_step = 0;
+    sheet_model.find_teachers = (ns_screen == NS_NONE || ns_screen == NS_CARD) &&
+        g_rb(GV_in_battle) != 1 && game_mode() != GM_OTHER && config_get_int("assist.teachers", 1) && !config_get_int("original", 0);
     fprintf(stderr, "sheet: open (member %d, %d things)\n", who, sheet_model.nitems);
     ns_enter(NS_SHEET);
     ns_clear();
     ns_input_begin();
-    int leave = 0;
+    int leave = 0, teacher_skill = -1;
     sheet_model.pray_ask = sheet_model.pray_saint = -1;
     while (!leave) {
         if (!ns_round()) break;
@@ -600,6 +603,9 @@ static void sheet_run(void)
         NsAction a;
         while (!leave && !ns_unwinding && ns_pop(&a)) {
             if (a.type == SV_CLOSE) { leave = 1; break; }
+            if (a.type == SV_TEACHERS && sheet_model.find_teachers && teach_skill_offered(a.a)) {
+                teacher_skill = a.a; leave = 1; break;
+            }
             act(&a, &who);
             if (!ns_unwinding) build(who);
         }
@@ -610,6 +616,10 @@ static void sheet_run(void)
     ns_leave();
     if (ns_unwinding) return;
     AX = (u16)ns_call(GF_sheet_leave, 1, -1);
+    if (teacher_skill >= 0 && !ns_unwinding) {
+        void worldmap_teachers_from_sheet(int, int, int, int);
+        ns_defer(worldmap_teachers_from_sheet, who, teacher_skill, 0, 0);
+    }
     hook_return_far(0);
 }
 static void sheet_hook(void)                /* member_sheet(who), s031 1462:0124: ours (or the original's), then the battle's events taken aside */

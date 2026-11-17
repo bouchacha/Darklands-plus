@@ -31,6 +31,7 @@
 #include "vtrace.h"
 #include "imgui.h"
 #include "skillicons.h"
+#include "teachersui.h"
 #include "../runtime/config.h"
 #include <math.h>
 #include <limits.h>
@@ -780,6 +781,12 @@ static void skills(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
                 if (g.attr) ui_attr_icon(P.dl, ic, 4.6f * P.k, idx); else ui_skill_icon(P.dl, ic, 4.6f * P.k, idx);
                 ui_icon_disc = 1;
                 const char *name = g.attr ? gm_attr_name(idx) : gm_skill_name(idx);
+                bool find_teacher = !g.attr && s.find_teachers && teach_skill_offered(idx);
+                if (!g.attr && s.find_teachers) {
+                    if (h) ns_tip((find_teacher ? "Find a teacher for " + std::string(name)
+                                                : "No teacher gives lessons in " + std::string(name) + ".").c_str());
+                    if (find_teacher && P.hit(x0, y, x1, y + ROWH)) ns_push(SV_TEACHERS, idx, 0, 0);
+                }
                 char v[24];
                 ImU32 vc = ink;
                 if (g.attr) {
@@ -798,6 +805,10 @@ static void skills(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
                 if (raised_by(s.who, g.attr ? 0x48 : 0x49, idx, nullptr) > 0) vc = RAISED;   /* (a saint's help, for a while) */
                 float vw = P.width(fo, 4.8f, v);
                 P.text(fo, 4.8f, x0 + 7, y + 1.4f, ink, name, -1, x1 - vw - 4);
+                if (find_teacher) {
+                    float end = std::min(x0 + 7 + P.width(fo, 4.8f, name), x1 - vw - 4);
+                    P.dl->AddLine(NsDraw::w(x0 + 7, y + 6.7f), NsDraw::w(end, y + 6.7f), soft);
+                }
                 P.text(fo, 4.8f, 0, y + 1.4f, vc, v, x1 - 1.2f);
                 if (party_best(s, g.attr, idx) == 1)          /* the party's best at it: a gold dot */
                     P.dl->AddCircleFilled(NsDraw::w(x1 - 1.2f - vw - 1.8f, y + ROWH * 0.5f), 0.95f * P.k, BEST);
@@ -805,6 +816,10 @@ static void skills(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
             }
             y += 1.2f;
         }
+    }
+    if (s.find_teachers) {
+        ui_draw_teach_mark(P.dl, NsDraw::w(205, 145), 5.3f * P.k, NsDraw::INK_SOFT, NsDraw::LIGHT);
+        P.text(fo, NsDraw::FS_SMALL, 210, 142.3f, soft, "Click an underlined skill to find a teacher.");
     }
 }
 
