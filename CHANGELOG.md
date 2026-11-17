@@ -19,8 +19,8 @@
 
 **Fixed**
 
+- **A click goes to what is on top:** a Darklands+ panel's button first, then the rest of the panel (never passed to the game), then the open menu or a Darklands+ screen, then the field. A click on the menu bar no longer walks the party to a way out under it, the click that closes the menu no longer walks anyone, and hints about the field no longer show over the menu.
 - **Encounters by a pagan altar come one at a time:** beside an altar the chance of an encounter is up to a hundred times the usual, and the step that brings one leaves the party where it was, so encounter followed encounter on the tile before it. After one there, the altar now adds nothing until the party reaches it or walks away.
-
 - **A mishap in a new encounter** (the ferry's rope, a fall in the river) loses only what is carried, not what a member has equipped or the horse they ride.
 - **The place card's boats** no longer list a town twice (Schleswig's Flensburg).
 
