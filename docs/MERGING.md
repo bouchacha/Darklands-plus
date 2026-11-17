@@ -121,6 +121,7 @@ the files where each switch's key is read.
 | `display.native_sheet` | New character sheet | show | sheetview.c |
 | `inventory.shared` | One shared pack for the party | plus | sheetview.c |
 | `display.native_loot` | New loot screen | show | lootview.c |
+| `battle.aftermath` | Battle aftermath on the loot screen | show | aftermath.cpp |
 | `assist.loot_worth` | Shop value in the loot screen | show | lootview.cpp |
 | `display.native_alchemy` | New alchemy screen | show | alchemyview.c |
 | `assist.where_sold` | Where to buy missing ingredients | show | nsdraw.cpp |
