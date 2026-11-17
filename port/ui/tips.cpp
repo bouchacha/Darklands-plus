@@ -31,8 +31,16 @@ void ui_open_tab(int t);
 extern ImFont *font_body, *font_head;
 extern bool open_welcome;
 
-enum { TIP_NONE, TIP_GUIDE, TIP_BATTLE, TIP_ENCOUNTERS };
-static int open_tip, launches, battle_seen, title_seen, encounters_due;
+enum { TIP_NONE, TIP_GUIDE, TIP_BATTLE, TIP_ENCOUNTERS, TIP_VERSION };
+static int open_tip, launches, battle_seen, title_seen, encounters_due, version_due;
+
+/* a word to those who played an earlier version on what this one asks them to watch, once (ui.version_note keeps
+   the version it was shown for). Each release sets its own, or "" for none (his ask, 1.5.1: stairs in a fight) */
+static const char VERSION_NOTE_FOR[] = "1.5.1";
+static const char VERSION_NOTE[] =
+    "Stairs work differently in a fight: everyone on that floor now goes along, the knocked-out carried, "
+    "instead of one member alone.\n\nIf anything goes wrong on stairs or after a change of floor (someone left behind, "
+    "walking through a wall, a fight that will not end), please make a report: F12 > About > Report a problem, and say what you were doing.";
 static u32 title_at;            /* the start screen came: its note a moment later, once it is drawn (the game waits while a window is open) */
 
 static bool quiet(void) { return (getenv("DL_CTL") || getenv("DL_SCRIPT") || getenv("DL_RESTARTED")) && !getenv("DL_TIPS"); }
@@ -75,7 +83,11 @@ static void title_check(void)
     title_at = 0;
     fprintf(stderr, "tips: the start screen's note\n");
     encounters_due = !config_get_int("ui.encounters_note_seen", 0);   /* (once, after the welcome if it comes: encounters_tip) */
-    if (!config_get_int("ui.welcome_seen", 0)) { open_welcome = true; return; }   /* (the first start: the welcome, which says it too) */
+    if (!config_get_int("ui.welcome_seen", 0)) {                  /* (the first start: the welcome, which says it too) */
+        config_set("ui.version_note", VERSION_NOTE_FOR);      /* (nothing changed for a first player) */
+        open_welcome = true; return;
+    }
+    version_due = VERSION_NOTE[0] && strcmp(config_get("ui.version_note", ""), VERSION_NOTE_FOR);
     /* (the note pointing to the New Player Guide: withdrawn with the guide, ui/ui.cpp tab_guide_all) */
 }
 
@@ -175,6 +187,19 @@ static void encounters_tip(void)
     }
 }
 
+static void version_tip(void)
+{
+    bool done = false;
+    char title[48]; snprintf(title, sizeof title, "In Darklands+ %s", VERSION_NOTE_FOR);
+    if (begin_tip(title, 560)) {
+        ImGui::TextWrapped("%s", VERSION_NOTE);
+        ImGui::Spacing();
+        if (ImGui::Button("  Understood  ") || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_Escape)) done = true;
+    }
+    end_tip();
+    if (done) { open_tip = TIP_NONE; config_set("ui.version_note", VERSION_NOTE_FOR); config_save(); }
+}
+
 /* every frame, from ui/ui.cpp */
 void tips_frame(void)
 {
@@ -184,6 +209,10 @@ void tips_frame(void)
         encounters_due = 0;
         if (datamods_enabled() && datamods_find(DATAMOD_ENCOUNTERS) >= 0) { open_tip = TIP_ENCOUNTERS; fprintf(stderr, "tips: the New encounters note\n"); }
     }
+    if (version_due && !encounters_due && !open_welcome && open_tip == TIP_NONE && !quiet()) {
+        version_due = 0; open_tip = TIP_VERSION; fprintf(stderr, "tips: the note on version %s\n", VERSION_NOTE_FOR);
+    }
     if (open_tip == TIP_BATTLE) battle_tip();
     else if (open_tip == TIP_ENCOUNTERS) encounters_tip();
+    else if (open_tip == TIP_VERSION) version_tip();
 }
