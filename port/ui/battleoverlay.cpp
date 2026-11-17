@@ -23,6 +23,7 @@ void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);   /* ui/inventory.
 #include "gamedata.h"
 #include "ui.h"
 #include "overlay.h"
+#include "layers.h"
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -288,9 +289,8 @@ void ui_draw_battle_bars(void)
 /* what a click there would do, while a member is given orders (battle.click_hint, mods/orders.c):
    "Click: attack", or why not ("No clear shot"), the first line of the info, or alone by the pointer */
 extern "C" const char *orders_hint(void);
-extern "C" int ui_pointer_on_cover(void);
 extern "C" int levelwalk_door_at(int gx, int gy), levelwalk_door_open(int n), levelwalk_chest_at(int gx, int gy), levelwalk_stairs_at(int gx, int gy), levelwalk_wayout_at(int gx, int gy),
-                      levelwalk_chest_known(int k), levelwalk_chest_lock(int k), levelwalk_chest_trap(int k);   /* (mods/levelwalk.c) */          /* (ui/margins.cpp) */
+                      levelwalk_chest_known(int k), levelwalk_chest_lock(int k), levelwalk_chest_trap(int k);   /* (mods/levelwalk.c) */
 extern "C" int plat_pointer_outside(void);
 static void hint_line(const char *h)
 {
@@ -415,7 +415,7 @@ void ui_draw_battle_info(void)
     if (game_mode() != GM_BATTLE || config_get_int("original", 0) || ns_showing()) return;
     battle_intro();
     foe_arrow();
-    if (ui_pointer_on_cover()) return;                  /* (on the order strip or a chooser: not the field's) */
+    if (!ui_pointer_on_field()) return;                 /* (on a panel, the menu or another view of ours: not the field's; ui/layers.h) */
     int gx, gy; plat_mouse_game(&gx, &gy);
     { int cx, cy, cw, ch; if (hdtext_game_cursor(&cx, &cy, &cw, &ch)) { gx = cx; gy = cy; } }
     int mx = gx - 60, my = gy, n = (s8)g_rb(GV_hotspot_count), best = -1, by = -32768, hx0 = 0, hy0 = 0, hx1 = 0, hy1 = 0;

@@ -726,3 +726,11 @@ covered and found, and what it could not check.
   New encounters on by default with a note once at the start (worded on what can be checked: Dragon's review
   and the CRPG Addict on repetitive encounters; "most common" not claimed); keepitems spares the ridden mount;
   quests.no_papers (Cards and towns, off as in the game) draws a merchant's errand again while it is papers.
+- 2026-11-17 (his report: the menu bar's Game over a way out walked the party there; "approach and fix it
+  in a systemic way"): ui/layers.h is the one order for clicks over the picture (panel, view on the game's
+  pointer, field), ui_event follows it in one place, panels register their rects (ui_cover, mclick and the
+  margins' begin_panel all go to ui_layer_rect), the field's own actions and hints ask ui_pointer_on_field()
+  (levelwalk, orders' hint, the battle overlay; ui_pointer_on_cover is gone). The open menu's left clicks
+  are held from the game (runtime/bios.c mouse_hold_left; menuview waits for the release): before, the
+  click that closed the menu also walked the selected member. Tested in a keep: the closing click leaves
+  the party standing, the Game title opens its menu.

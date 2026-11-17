@@ -18,6 +18,7 @@
 #include "drawcache.h"
 #include "gamedata.h"
 #include "quests.h"
+#include "layers.h"
 #include "uiinternal.h"
 #include "uitabs.h"
 #include "townicons.h"
@@ -383,9 +384,16 @@ extern "C" int ui_event(const SDL_Event *e)
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
     if (!open_menu) {
-        if (e->type == SDL_MOUSEBUTTONDOWN && e->button.button == SDL_BUTTON_LEFT && overlay_click(e->button.x, e->button.y)) return 1;
+        /* who takes a click, from the top (ui/layers.h): a panel's button; the rest of a panel (swallowed:
+           never the game's); a view on the game's pointer (the menu bar, a native screen: the game's
+           pointer, nothing under it); the field (Darklands+'s door, stairs or way out first, then the game) */
+        bool ldown = e->type == SDL_MOUSEBUTTONDOWN && e->button.button == SDL_BUTTON_LEFT;
+        if (ldown && overlay_click(e->button.x, e->button.y)) return 1;
         if (e->type == SDL_MOUSEBUTTONUP && e->button.button == SDL_BUTTON_LEFT && overlay_click_up(e->button.x, e->button.y)) return 1;
-        if (e->type == SDL_MOUSEBUTTONDOWN && e->button.button == SDL_BUTTON_LEFT && (margins_click(e->button.x, e->button.y) || partypanel_click(e->button.x, e->button.y) || cardview_chip_click(e->button.x, e->button.y) || levelwalk_door_click())) { margin_click_taken = 1; return 1; }
+        if (ldown && (margins_click(e->button.x, e->button.y) || partypanel_click(e->button.x, e->button.y) || cardview_chip_click(e->button.x, e->button.y))) { margin_click_taken = 1; return 1; }
+        int layer = ldown ? ui_layer_at((float)e->button.x, (float)e->button.y) : UI_FIELD;
+        if (ldown && layer == UI_PANEL) { margin_click_taken = 1; return 1; }
+        if (ldown && layer == UI_FIELD && levelwalk_door_click()) { margin_click_taken = 1; return 1; }
         if (e->type == SDL_MOUSEBUTTONUP && e->button.button == SDL_BUTTON_LEFT && margin_click_taken) { margin_click_taken = 0; return 1; }
         {   /* a right-click on a member's box in a battle: their sheet (ui/partypanel.cpp) */
             static int rtaken;

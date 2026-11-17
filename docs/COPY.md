@@ -746,13 +746,13 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/battlelog.cpp:374` | No battle yet: the battle log shows here, blow by blow, during each battle and after it. |
 | `ui/battlelog.cpp:377` | The last battle |
 | `ui/battlelog.cpp:378` | The battle before |
-| `ui/battleoverlay.cpp:147` | weapon skills |
-| `ui/battleoverlay.cpp:147` | {Agility}, {Perception} and weapon skills |
-| `ui/battleoverlay.cpp:148` | %s: blinded (only parries; cannot shoot or throw), %d s more |
-| `ui/battleoverlay.cpp:149` | %s: blinded (only parries; cannot shoot or throw), %s %d%% lower, %d s more |
-| `ui/battleoverlay.cpp:150` | %s: blinded (only parries; cannot shoot or throw) %d s more; %s %d%% lower, %d s more |
-| `ui/battleoverlay.cpp:289` | Click: attack |
-| `ui/battleoverlay.cpp:289` | No clear shot |
+| `ui/battleoverlay.cpp:148` | weapon skills |
+| `ui/battleoverlay.cpp:148` | {Agility}, {Perception} and weapon skills |
+| `ui/battleoverlay.cpp:149` | %s: blinded (only parries; cannot shoot or throw), %d s more |
+| `ui/battleoverlay.cpp:150` | %s: blinded (only parries; cannot shoot or throw), %s %d%% lower, %d s more |
+| `ui/battleoverlay.cpp:151` | %s: blinded (only parries; cannot shoot or throw) %d s more; %s %d%% lower, %d s more |
+| `ui/battleoverlay.cpp:290` | Click: attack |
+| `ui/battleoverlay.cpp:290` | No clear shot |
 | `ui/battleoverlay.cpp:324` | The picture at the lower left of each member's box is their fighting style: what they do until you give them an order.  |
 | `ui/battleoverlay.cpp:324` | Click it to choose another.  |
 | `ui/battleoverlay.cpp:329` |  Everyone starts as a Skirmisher. Each character keeps the style you choose, battle to battle. |
@@ -1541,80 +1541,79 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/mapmsg.cpp:42` | press a key or click to continue |
 | `ui/marchview.cpp:44` | Marching order |
 | `ui/marchview.cpp:45` | The first leads the way; in single file the others follow in this order. |
-| `ui/margins.cpp:73` | In the wilds |
-| `ui/margins.cpp:75` | Traveling, near  |
-| `ui/margins.cpp:196` | University: new saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone, teachers to hire (it expects {Latin} and a sharp mind). |
-| `ui/margins.cpp:197` | Cathedral: donations for {Divine Favor} (and maybe {Virtue}), an errand for the canon (a relic), the patron saint's story, sanctuary. |
-| `ui/margins.cpp:201` | armor and shields |
-| `ui/margins.cpp:201` | bows, crossbows and guns |
-| `ui/margins.cpp:202` | weapons, armor and shields |
-| `ui/margins.cpp:202` | hammers, maces, flails and polearms (pikes, halberds, spears, staves) |
-| `ui/margins.cpp:203` | clothing and soft armor (padded, leather, studded leather, cuir bouilli) |
-| `ui/margins.cpp:269` | the party's best  |
-| `ui/margins.cpp:270` | nobody would learn |
-| `ui/margins.cpp:299` | Teachers here: a lesson a day at the inn, for a fee |
-| `ui/margins.cpp:300` | Under each, who would learn, and their skill now. |
-| `ui/margins.cpp:314` | Philosopher's Stone %dq |
-| `ui/margins.cpp:329` | A better Philosopher's Stone, for a price: |
-| `ui/margins.cpp:331` |  the alchemist's, quality %d; |
-| `ui/margins.cpp:332` |  the university's, quality %d; |
-| `ui/margins.cpp:334` |  The party's is %d%s. |
-| `ui/margins.cpp:334` |  The party has none. |
-| `ui/margins.cpp:334` | : nothing to gain here |
-| `ui/margins.cpp:374` | Notable shops |
-| `ui/margins.cpp:374` | Notable shops |
-| `ui/margins.cpp:376` | %s: %s of %dq (most shops sell about 25q). |
-| `ui/margins.cpp:381` | St.Edward, Confessor |
-| `ui/margins.cpp:389` | Saints taught here |
-| `ui/margins.cpp:406` |  (someone in the party knows this saint):  |
-| `ui/margins.cpp:406` |  (nobody in the party knows this saint):  |
-| `ui/margins.cpp:421` | Formulae sold here |
-| `ui/margins.cpp:440` | Someone in the party knows this formula. |
-| `ui/margins.cpp:440` | Nobody in the party knows this formula. |
-| `ui/margins.cpp:461` | Teachers to be hired |
-| `ui/margins.cpp:471` | %s: %s, up to %d |
-| `ui/margins.cpp:471` | %s: %s (their skill %d) |
-| `ui/margins.cpp:473` | A lesson a day at the inn, for a fee. Who would learn, and their skill now: |
-| `ui/margins.cpp:530` | Can't walk there |
-| `ui/margins.cpp:594` | Blessings and potions |
-| `ui/margins.cpp:669` | The first of these ends in  |
-| `ui/margins.cpp:669` | , the last in  |
-| `ui/margins.cpp:689` | Every member alike. |
-| `ui/margins.cpp:691` | Every member:  |
-| `ui/margins.cpp:727` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
-| `ui/margins.cpp:736` | Reputation %d |
-| `ui/margins.cpp:754` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
-| `ui/margins.cpp:754` | Below 0 its shops ask more and pay less: 1% for every 2 points below 0, up to 9%. |
-| `ui/margins.cpp:758` |   Changes seen since this game was loaded: |
-| `ui/margins.cpp:761` | the overland view |
-| `ui/margins.cpp:761` | , after choosing " |
-| `ui/margins.cpp:779` | The town counts as hostile: its gates and people turn the party away. |
-| `ui/margins.cpp:781` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
-| `ui/margins.cpp:792` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
-| `ui/margins.cpp:804` | Preparing for war |
-| `ui/margins.cpp:805` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
-| `ui/margins.cpp:807` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
-| `ui/margins.cpp:831` | The party has goods stored here (F12 > Journal > Stored). |
-| `ui/margins.cpp:836` | No blessings or potions at work. |
-| `ui/margins.cpp:845` | C: camp here |
-| `ui/margins.cpp:846` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
-| `ui/margins.cpp:850` | Go to a place here |
-| `ui/margins.cpp:850` | G: go to a place here |
-| `ui/margins.cpp:856` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
-| `ui/margins.cpp:905` | None taken on. |
-| `ui/margins.cpp:937` | Travel there |
-| `ui/margins.cpp:954` | ... %d more on the world map (M) |
-| `ui/margins.cpp:971` | Night in the streets |
-| `ui/margins.cpp:975` | almost always |
-| `ui/margins.cpp:976` | about %d time%s in 10 |
-| `ui/margins.cpp:977` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's {Stealth} and {Streetwise})%s. An inn is the safe place to wait for morning. |
-| `ui/margins.cpp:980` | , as set in F12 > Mods (Night encounters in the streets) |
-| `ui/margins.cpp:1019` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
-| `ui/margins.cpp:1019` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
-| `ui/margins.cpp:1021` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
-| `ui/margins.cpp:1021` | It is day (from 5:00 to 19:00). |
-| `ui/margins.cpp:1048` | %s in bank notes |
-| `ui/margins.cpp:1062` | F11: the keys and clicks of this screen. |
+| `ui/margins.cpp:74` | In the wilds |
+| `ui/margins.cpp:76` | Traveling, near  |
+| `ui/margins.cpp:198` | University: new saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone, teachers to hire (it expects {Latin} and a sharp mind). |
+| `ui/margins.cpp:199` | Cathedral: donations for {Divine Favor} (and maybe {Virtue}), an errand for the canon (a relic), the patron saint's story, sanctuary. |
+| `ui/margins.cpp:203` | armor and shields |
+| `ui/margins.cpp:203` | bows, crossbows and guns |
+| `ui/margins.cpp:204` | weapons, armor and shields |
+| `ui/margins.cpp:204` | hammers, maces, flails and polearms (pikes, halberds, spears, staves) |
+| `ui/margins.cpp:205` | clothing and soft armor (padded, leather, studded leather, cuir bouilli) |
+| `ui/margins.cpp:271` | the party's best  |
+| `ui/margins.cpp:272` | nobody would learn |
+| `ui/margins.cpp:301` | Teachers here: a lesson a day at the inn, for a fee |
+| `ui/margins.cpp:302` | Under each, who would learn, and their skill now. |
+| `ui/margins.cpp:316` | Philosopher's Stone %dq |
+| `ui/margins.cpp:331` | A better Philosopher's Stone, for a price: |
+| `ui/margins.cpp:333` |  the alchemist's, quality %d; |
+| `ui/margins.cpp:334` |  the university's, quality %d; |
+| `ui/margins.cpp:336` |  The party's is %d%s. |
+| `ui/margins.cpp:336` |  The party has none. |
+| `ui/margins.cpp:336` | : nothing to gain here |
+| `ui/margins.cpp:376` | Notable shops |
+| `ui/margins.cpp:376` | Notable shops |
+| `ui/margins.cpp:378` | %s: %s of %dq (most shops sell about 25q). |
+| `ui/margins.cpp:383` | St.Edward, Confessor |
+| `ui/margins.cpp:391` | Saints taught here |
+| `ui/margins.cpp:408` |  (someone in the party knows this saint):  |
+| `ui/margins.cpp:408` |  (nobody in the party knows this saint):  |
+| `ui/margins.cpp:423` | Formulae sold here |
+| `ui/margins.cpp:442` | Someone in the party knows this formula. |
+| `ui/margins.cpp:442` | Nobody in the party knows this formula. |
+| `ui/margins.cpp:463` | Teachers to be hired |
+| `ui/margins.cpp:473` | %s: %s, up to %d |
+| `ui/margins.cpp:473` | %s: %s (their skill %d) |
+| `ui/margins.cpp:475` | A lesson a day at the inn, for a fee. Who would learn, and their skill now: |
+| `ui/margins.cpp:584` | Blessings and potions |
+| `ui/margins.cpp:659` | The first of these ends in  |
+| `ui/margins.cpp:659` | , the last in  |
+| `ui/margins.cpp:679` | Every member alike. |
+| `ui/margins.cpp:681` | Every member:  |
+| `ui/margins.cpp:717` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
+| `ui/margins.cpp:726` | Reputation %d |
+| `ui/margins.cpp:744` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
+| `ui/margins.cpp:744` | Below 0 its shops ask more and pay less: 1% for every 2 points below 0, up to 9%. |
+| `ui/margins.cpp:748` |   Changes seen since this game was loaded: |
+| `ui/margins.cpp:751` | the overland view |
+| `ui/margins.cpp:751` | , after choosing " |
+| `ui/margins.cpp:769` | The town counts as hostile: its gates and people turn the party away. |
+| `ui/margins.cpp:771` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
+| `ui/margins.cpp:782` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
+| `ui/margins.cpp:794` | Preparing for war |
+| `ui/margins.cpp:795` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
+| `ui/margins.cpp:797` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
+| `ui/margins.cpp:821` | The party has goods stored here (F12 > Journal > Stored). |
+| `ui/margins.cpp:826` | No blessings or potions at work. |
+| `ui/margins.cpp:835` | C: camp here |
+| `ui/margins.cpp:836` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
+| `ui/margins.cpp:840` | Go to a place here |
+| `ui/margins.cpp:840` | G: go to a place here |
+| `ui/margins.cpp:846` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
+| `ui/margins.cpp:895` | None taken on. |
+| `ui/margins.cpp:927` | Travel there |
+| `ui/margins.cpp:944` | ... %d more on the world map (M) |
+| `ui/margins.cpp:961` | Night in the streets |
+| `ui/margins.cpp:965` | almost always |
+| `ui/margins.cpp:966` | about %d time%s in 10 |
+| `ui/margins.cpp:967` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's {Stealth} and {Streetwise})%s. An inn is the safe place to wait for morning. |
+| `ui/margins.cpp:970` | , as set in F12 > Mods (Night encounters in the streets) |
+| `ui/margins.cpp:1009` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
+| `ui/margins.cpp:1009` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
+| `ui/margins.cpp:1011` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
+| `ui/margins.cpp:1011` | It is day (from 5:00 to 19:00). |
+| `ui/margins.cpp:1038` | %s in bank notes |
+| `ui/margins.cpp:1052` | F11: the keys and clicks of this screen. |
 | `ui/margins_battle.cpp:84` | The battle runs again (the key: Space). Any order being given is given first. |
 | `ui/margins_battle.cpp:85` | This member's order is given; the battle stays paused, to give others theirs (the key: Enter). |
 | `ui/margins_battle.cpp:86` | Every kind of enemy on the field: attributes, weapons, armor (the key: E). |
@@ -2604,36 +2603,36 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/travel.cpp:139` | Stop to camp at 20:00: off |
 | `ui/travel.cpp:139` | Stop to camp at 20:00: when someone needs rest |
 | `ui/travel.cpp:139` | Stop to camp at 20:00: every night |
-| `ui/ui.cpp:86` |              |
-| `ui/ui.cpp:99` | EB Garamond (book face) |
-| `ui/ui.cpp:99` | Alegreya (calligraphic) |
-| `ui/ui.cpp:99` | IM Fell English (old print) |
-| `ui/ui.cpp:100` | Atkinson Hyperlegible (easiest to read) |
-| `ui/ui.cpp:100` | MedievalSharp (medieval hand) |
-| `ui/ui.cpp:100` | Fraktur (blackletter, for the brave) |
-| `ui/ui.cpp:101` | Grenze Gotisch (gothic, still readable) |
-| `ui/ui.cpp:101` | Comic Sans (we are so sorry) |
-| `ui/ui.cpp:226` | Comic Neue (a Comic Sans look-alike, we are so sorry) |
-| `ui/ui.cpp:241` | don't remind me |
-| `ui/ui.cpp:260` | Darklands stopped because of an error. Your saves are safe: Load is in the Game menu (right-click). F12 > About > Report a problem makes a report of it. |
-| `ui/ui.cpp:261` | The party's journey has ended. Load a saved game to continue: Load in the Game menu (right-click). |
-| `ui/ui.cpp:305` | The world map can only be opened from the overland view or a card, not in a battle. |
-| `ui/ui.cpp:306` | The world map can only be opened from the overland view or a card: close this screen first. |
-| `ui/ui.cpp:307` | The world map can only be opened from the overland view or a card, once a game is under way. |
-| `ui/ui.cpp:408` | How Darklands works |
-| `ui/ui.cpp:420` | A deep editor, for fixing and modding: |
-| `ui/ui.cpp:422` | it changes the saved game's own data directly, as the community's save editors do (to repair a character hit by an old bug, to cheat, or to make a mod). Nothing here is needed to play. |
-| `ui/ui.cpp:426` | Items (for a mod) |
-| `ui/ui.cpp:478` | Darklands+: the potions and the alchemical ingredients |
-| `ui/ui.cpp:480` | Potions, grades 1, 2 and 3 (the gold dots on the neck) |
-| `ui/ui.cpp:597` | Reconstructed Content |
-| `ui/ui.cpp:601` | Reconstructed Content |
-| `ui/ui.cpp:623` |              |
-| `ui/ui.cpp:736` | an index past the vertices |
-| `ui/ui.cpp:736` | not a number |
-| `ui/ui.cpp:736` | far past the window |
-| `ui/ui.cpp:769` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
-| `ui/ui.cpp:775` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
+| `ui/ui.cpp:87` |              |
+| `ui/ui.cpp:100` | EB Garamond (book face) |
+| `ui/ui.cpp:100` | Alegreya (calligraphic) |
+| `ui/ui.cpp:100` | IM Fell English (old print) |
+| `ui/ui.cpp:101` | Atkinson Hyperlegible (easiest to read) |
+| `ui/ui.cpp:101` | MedievalSharp (medieval hand) |
+| `ui/ui.cpp:101` | Fraktur (blackletter, for the brave) |
+| `ui/ui.cpp:102` | Grenze Gotisch (gothic, still readable) |
+| `ui/ui.cpp:102` | Comic Sans (we are so sorry) |
+| `ui/ui.cpp:227` | Comic Neue (a Comic Sans look-alike, we are so sorry) |
+| `ui/ui.cpp:242` | don't remind me |
+| `ui/ui.cpp:261` | Darklands stopped because of an error. Your saves are safe: Load is in the Game menu (right-click). F12 > About > Report a problem makes a report of it. |
+| `ui/ui.cpp:262` | The party's journey has ended. Load a saved game to continue: Load in the Game menu (right-click). |
+| `ui/ui.cpp:306` | The world map can only be opened from the overland view or a card, not in a battle. |
+| `ui/ui.cpp:307` | The world map can only be opened from the overland view or a card: close this screen first. |
+| `ui/ui.cpp:308` | The world map can only be opened from the overland view or a card, once a game is under way. |
+| `ui/ui.cpp:416` | How Darklands works |
+| `ui/ui.cpp:428` | A deep editor, for fixing and modding: |
+| `ui/ui.cpp:430` | it changes the saved game's own data directly, as the community's save editors do (to repair a character hit by an old bug, to cheat, or to make a mod). Nothing here is needed to play. |
+| `ui/ui.cpp:434` | Items (for a mod) |
+| `ui/ui.cpp:486` | Darklands+: the potions and the alchemical ingredients |
+| `ui/ui.cpp:488` | Potions, grades 1, 2 and 3 (the gold dots on the neck) |
+| `ui/ui.cpp:605` | Reconstructed Content |
+| `ui/ui.cpp:609` | Reconstructed Content |
+| `ui/ui.cpp:631` |              |
+| `ui/ui.cpp:744` | an index past the vertices |
+| `ui/ui.cpp:744` | not a number |
+| `ui/ui.cpp:744` | far past the window |
+| `ui/ui.cpp:777` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
+| `ui/ui.cpp:783` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
 | `ui/ui_windows.cpp:74` | Darklands+ is made by Yassine Meskhout. |
 | `ui/ui_windows.cpp:75` | Darklands (c) 1992 MicroProse. This is the original game, rebuilt to run directly on today's computers, with the game files of your own copy. F12 > Settings has the Full Original preset, the game as it played, and switches for most of what Darklands+ adds. |
 | `ui/ui_windows.cpp:78` | F11: the keys for the current screen.  F12: this window (the game waits while it is open).  Alt+Enter: full screen.  Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities). |

@@ -293,6 +293,8 @@ static int run(u16 mp, int keyboard)
     g_ww(GV_menu_bar_active, 1);
     ns_input_begin();
     memset(&mv_in, 0, sizeof mv_in);
+    extern int mouse_hold_left;
+    mouse_hold_left = 1;                                /* (its left clicks are the menu's alone: runtime/bios.c) */
     int chosen = 0;
     while (!chosen) {
         dl_poll();
@@ -315,6 +317,9 @@ static int run(u16 mp, int keyboard)
         }
     }
     M->open = 0;
+    { int mouse_host_buttons(void); u32 t0 = plat_ticks_ms();          /* (the click that closed it: let go before the game hears the button again) */
+      while ((mouse_host_buttons() & 1) && plat_ticks_ms() - t0 < 3000) { dl_poll(); plat_sleep_ms(3); } }
+    mouse_hold_left = 0;
     g_ww(GV_menu_bar_active, 0);
     while (g_rb(GV_mouse_buttons) & 2) { dl_poll(); plat_sleep_ms(3); }   /* (a held button would open it again) */
     ns_input_begin();

@@ -184,10 +184,10 @@ static void hint_note(int act)
     hint_sel = i; hint_act = act; hint_ct = ct;
     if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: pointer test: member %d, order %#x, target %d\n", i, act, ct);
 }
-int ui_pointer_on_cover(void);                  /* (ui/margins.cpp: the pointer on the order strip or another panel of ours) */
+int ui_pointer_on_field(void);                  /* (ui/layers.h: the pointer on the field, not on a panel or view of ours) */
 const char *orders_hint(void)
 {
-    if (ui_pointer_on_cover()) return 0;
+    if (!ui_pointer_on_field()) return 0;
     if (!config_get_int("battle.click_hint", 1) || config_get_int("original", 0) || g_rb(D_ORDER_MODE) != 1 || (s8)g_rb(D_SELECTED) != hint_sel) return 0;
     int a = hint_act, flee = (g_rw((u16)(GV_cbt_flags + 2 * hint_sel)) & 0x1000) != 0;
     switch (hint_ct) {

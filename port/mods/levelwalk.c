@@ -545,9 +545,9 @@ int levelwalk_door(int n)
 /* a click on the field (ui/ui.cpp, before the game has it): on a door, out of a fight, the walk to it; 1 taken */
 int levelwalk_door_click(void)
 {
-    int ui_pointer_on_cover(void), plat_pointer_outside(void);
+    int ui_pointer_on_field(void);                                 /* (ui/layers.h: nothing of ours above the field there) */
     void plat_mouse_game(int *x, int *y);
-    if (ui_pointer_on_cover() || plat_pointer_outside()) return 0;
+    if (!ui_pointer_on_field()) return 0;
     int gx, gy; plat_mouse_game(&gx, &gy);
     int d = levelwalk_door_at(gx, gy);
     if (d < 0 && !g_rb(GV_real_combat)) {                          /* (out of a fight: stairs, a way out - the walk there, and what is done on arrival; a chest is the game's click) */

@@ -347,10 +347,17 @@ static int ms_hostx = 320, ms_hosty = 100, ms_resync;
 static int ms_press[3], ms_release[3], ms_lpx[3], ms_lpy[3], ms_lrx[3], ms_lry[3];
 static unsigned ms_press_total[3];      /* presses ever (for Darklands+: a click the game's loop polled too late to see) */
 unsigned mouse_press_count(int b) { return b >= 0 && b < 3 ? ms_press_total[b] : 0; }
+/* a view of Darklands+'s on the game's pointer holding its left clicks (the menu while open,
+   mods/menuview.c): they count for the view (mouse_press_count) but the game neither hears of them
+   nor finds them in its press counts - a click that closed the menu walked the party there too
+   (ui/layers.h) */
+int mouse_hold_left;
+static int ms_host_b;
+int mouse_host_buttons(void) { return ms_host_b; }      /* (the buttons as they are, held for a view or not) */
 
 void mouse_update(int x, int y, int buttons)
 {
-    ms_hostx = x; ms_hosty = y;
+    ms_hostx = x; ms_hosty = y; ms_host_b = buttons;
     if (x < ms_minx) x = ms_minx; if (x > ms_maxx) x = ms_maxx;
     if (y < ms_miny) y = ms_miny; if (y > ms_maxy) y = ms_maxy;
     if (x != ms_x || y != ms_y) {
@@ -359,10 +366,11 @@ void mouse_update(int x, int y, int buttons)
     }
     for (int i = 0; i < 3; i++) {
         int was = (ms_b >> i) & 1, now = (buttons >> i) & 1;
+        if (i == 0 && mouse_hold_left) { if (now && !was) ms_press_total[0]++; continue; }
         if (now && !was) { ms_press[i]++; ms_press_total[i]++; ms_lpx[i] = ms_x; ms_lpy[i] = ms_y; ms_pending |= 2 << (2 * i); }
         if (!now && was) { ms_release[i]++; ms_lrx[i] = ms_x; ms_lry[i] = ms_y; ms_pending |= 4 << (2 * i); }
     }
-    ms_b = buttons;
+    ms_b = mouse_hold_left ? (buttons & ~1) | (ms_b & 1) : buttons;
 }
 
 static void int33(void)

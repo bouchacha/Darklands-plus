@@ -12,6 +12,7 @@
 #include <map>
 #include "padglyphs.h"
 #include "imgui.h"
+#include "layers.h"
 #include "gamedata.h"
 #include "skillicons.h"
 #include "richtext.h"
@@ -97,6 +98,7 @@ static bool begin_panel(const char *id, float x, float w, float h, float size)
                                           ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNav);
     ImGui::PushFont(ui_font_overlay);
     ImGui::SetWindowFontScale(size / ui_font_overlay->FontSize);
+    ui_layer_rect(ImVec2(x, 0), ImVec2(x + w, h), UI_PANEL);   /* (a margin is a panel: where it overlaps the picture, a click there is not the game's) */
     return open;
 }
 static void end_panel(void)
@@ -525,24 +527,12 @@ void mclick(ImVec2 a, ImVec2 b, std::function<void()> f)
 {
     if (mclicks_frame != ImGui::GetFrameCount()) { mclicks.clear(); mclicks_frame = ImGui::GetFrameCount(); }
     mclicks.push_back({ a, b, f });
+    ui_layer_rect(a, b, UI_PANEL);                     /* (a button of ours: ui/layers.h) */
 }
-/* the interface's own panels over the battlefield this frame (the order strip, a member's way chooser): the
-   pointer on one is on the interface, not on the field - no "Can't walk there", no foe's info, no crossed
-   blades on the pointer (mods/orders.c, ui/battleoverlay.cpp) */
-static std::vector<std::pair<ImVec2, ImVec2>> covers; static int covers_frame = -100, covers_prev_frame = -100;
-static std::vector<std::pair<ImVec2, ImVec2>> covers_prev;
-void ui_cover(ImVec2 a, ImVec2 b)
-{
-    if (covers_frame != ImGui::GetFrameCount()) { covers_prev.swap(covers); covers_prev_frame = covers_frame; covers.clear(); covers_frame = ImGui::GetFrameCount(); }
-    covers.push_back({ a, b });
-}
-extern "C" int ui_pointer_on_cover(void)
-{
-    ImVec2 m = ImGui::GetIO().MousePos;
-    int f = ImGui::GetFrameCount();
-    auto in = [&](const std::vector<std::pair<ImVec2, ImVec2>> &v) { for (const auto &c : v) if (m.x >= c.first.x && m.x < c.second.x && m.y >= c.first.y && m.y < c.second.y) return true; return false; };
-    return (f - covers_frame <= 1 && in(covers)) || (f - covers_prev_frame <= 2 && in(covers_prev));
-}
+/* the interface's own panels over the picture this frame (the order strip, a member's way chooser): the
+   pointer on one is on the interface, not on the field - its click is not the game's, no "Can't walk
+   there", no foe's info, no crossed blades on the pointer (ui/layers.h) */
+void ui_cover(ImVec2 a, ImVec2 b) { ui_layer_rect(a, b, UI_PANEL); }
 extern "C" int margins_click(int x, int y)
 {
     if (ImGui::GetFrameCount() - mclicks_frame <= 2)
