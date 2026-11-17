@@ -76,15 +76,13 @@ static std::vector<Eff> effects_table(int size, const std::vector<EvRec> &recs)
         if (kind < 0x48 || kind > 0x4a) continue;
         int m = W(0x1a), k = W(0), t = W(0x1e);
         if (m < 0 || m >= size || t == 0 || (t < 0 && kind == 0x4a)) continue;     /* (a saint's lowering of an attribute: negative) */
-        long until = abs_hours(W(0x18), W(0x16), W(0x14), W(0x12));
-        long left = until - now;
+        long left = abs_hours(W(0x18), W(0x16), W(0x14), W(0x12)) - now;
         if (left <= 0) continue;
-        auto add = [&](Eff e) { e.until = until; v.push_back(e); };
         char b[96];
         if ((kind == 0x48 && k >= 0 && k < 7) || (kind == 0x49 && k >= 0 && k < 19)) {
             snprintf(b, sizeof b, "%+d %s", t, kind == 0x48 ? gm_attr_name(k) : gm_skill_name(k));
             Eff e = { m, b, left, kind }; e.k = k; e.amount = t;
-            add(e);
+            v.push_back(e);
             continue;
         }
         if (kind == 0x4a) {
@@ -109,7 +107,7 @@ static std::vector<Eff> effects_table(int size, const std::vector<EvRec> &recs)
                     snprintf(b, sizeof b, "the party travels %s%s (from a saint)", t == 100 ? "twice as fast" : "half again as fast", k == 0x178 ? " in woods" : "");
                     snprintf(vb, sizeof vb, "%s", t == 100 ? "x2" : "x1.5");
                 } else snprintf(b, sizeof b, x.f, t);
-                Eff e = { m, b, left, kind }; e.k = k; e.amount = t; e.icon = x.icon; e.src = 2; e.val = vb; add(e); done = true; break; }
+                Eff e = { m, b, left, kind }; e.k = k; e.amount = t; e.icon = x.icon; e.src = 2; e.val = vb; v.push_back(e); done = true; break; }
             if (done) continue;
             int item = k == 0x69 || k == 0x6b || k == 0x6d || k == 0x74 ? k : t <= 5 ? 0x6a : 0x6b;
             std::string n = item < (int)gamedata.items.size() ? game_text(gamedata.items[item].name.c_str(), 64) : "Potion";
@@ -123,7 +121,7 @@ static std::vector<Eff> effects_table(int size, const std::vector<EvRec> &recs)
             else if (!(t >> 4)) { snprintf(b, sizeof b, "%s: %+d penetration", n.c_str(), t & 15); snprintf(vb, sizeof vb, "%+d", t & 15); icon = EI_PENETRATION; }
             else { snprintf(b, sizeof b, "%s: %+d damage, %+d penetration", n.c_str(), t >> 4, t & 15); snprintf(vb, sizeof vb, "%+d, %+d", t >> 4, t & 15); }
             Eff e = { m, b, left, kind }; e.k = k; e.amount = t; e.icon = icon; e.src = 1; e.val = vb;
-            add(e);
+            v.push_back(e);
             continue;
         } else continue;
     }
@@ -147,7 +145,7 @@ static std::vector<Eff> effects_table(int size, const std::vector<EvRec> &recs)
    lowerings running put back; the rest (Essence of Grace's Endurance drunk while wounded, his ask in 1.5: "+278")
    only healed. Shown so: the boosts that end last keep what is above the maximum, those that end first nothing,
    and a boost of nothing is not shown. Without the fix every point goes when its boost runs out, as recorded */
-static void boosts_in_force(std::vector<Eff> &v, bool keep_spent = false)
+static void boosts_in_force(std::vector<Eff> &v)
 {
     if (!fix_is_on("blessing")) return;
     for (int m = 0; m < 5; m++) for (int a = 0; a < 7; a++) {
@@ -166,14 +164,12 @@ static void boosts_in_force(std::vector<Eff> &v, bool keep_spent = false)
         std::sort(ix.begin(), ix.end(), [&](size_t x, size_t y) { return v[x].left > v[y].left; });   /* (the last to end first) */
         for (size_t x : ix) {
             Eff &e = v[x];
-            e.recorded_amount = e.amount;
             e.amount = e.amount < in ? e.amount : in;
             in -= e.amount;
             char b[96]; snprintf(b, sizeof b, "%+d %s", e.amount, gm_attr_name(a)); e.what = b;
         }
     }
-    if (!keep_spent)
-        v.erase(std::remove_if(v.begin(), v.end(), [](const Eff &e) { return e.kind == 0x48 && e.k >= 0 && e.amount == 0; }), v.end());
+    v.erase(std::remove_if(v.begin(), v.end(), [](const Eff &e) { return e.kind == 0x48 && e.k >= 0 && e.amount == 0; }), v.end());
 }
 
 /* what is at work now. While a battle has closed the cards the event table holds only what the
@@ -216,7 +212,7 @@ std::vector<Eff> effects_snapshot(int size)
         std::vector<Eff> world = effects_table(size, file_records());
         v.insert(v.end(), world.begin(), world.end());
     }
-    boosts_in_force(v, true);
+    boosts_in_force(v);
     return v;
 }
 

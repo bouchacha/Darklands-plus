@@ -16,12 +16,10 @@ struct Eff {
     int icon = -1;      /* the rest: its picture (EI_*, ui_effect_icon), -1 none */
     int src = 0;        /* where it came from, as the game records it: 1 a potion, 2 a saint; 0 not recorded (an attribute's or skill's boost) */
     std::string val;    /* the rest: what the picture's value says, short ("90", "+5q", "x2") */
-    long until = 0;     /* absolute hour of expiry, for matching an effect over time */
-    int recorded_amount = 0;   /* the amount before a boost was reduced to what remains */
 };
 enum { EI_FIRE, EI_ARMOR, EI_ARMOR_Q, EI_MISSILE_ARMOR, EI_WEAPON_Q, EI_DAMAGE, EI_PENETRATION, EI_TRAVEL, EI_TRAVEL_WOODS, EI_NO_DEATH, EI_STAYS };
 std::vector<Eff> effects_now(int size);   /* (members 0 .. size-1) */
-std::vector<Eff> effects_snapshot(int size);   /* recorded effects from both tables, for before/after comparisons */
+std::vector<Eff> effects_snapshot(int size);   /* recorded effects from both tables (ui/aftermath.cpp: the skill boosts before and after a battle) */
 const char *ui_effect_name(int ei);       /* the roundel's name in a text: "Fire" for {*Fire} (ui/richtext.h) */
 const char *ui_effect_say(int ei);        /* its name under the pointer: "Fire protection" */
 int ui_effect_of(const char *name, int len);   /* EI_* of a name in a text, -1 none */

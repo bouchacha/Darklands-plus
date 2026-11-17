@@ -1,5 +1,9 @@
 /* The victory loot shows what happened to the party, using the game's actual
- * recovery, practice rolls and armor wear. The report is frozen when loot opens. */
+ * recovery, practice rolls and armor wear. The report is frozen when loot opens.
+ * Only what lasts: the effects still running are in the right margin with their
+ * time left (his answer, 1.5.1). The notices of lasting changes (worn armour, a
+ * lowered maximum) still pop up on their own as the settings say: this gathers
+ * them, it does not replace them. */
 #include <algorithm>
 #include <array>
 #include <cstdlib>
@@ -9,7 +13,6 @@
 #include "effects.h"
 #include "nsdraw.h"
 #include "../mods/aftermath.h"
-#include "../mods/foefx.h"
 #include "../mods/gamemodel.h"
 #include "../mods/lootview.h"
 #include "../runtime/config.h"
@@ -24,8 +27,6 @@ namespace {
 constexpr int MEMBERS = 5, SKILLS = 19, ATTRIBUTES = 7;
 constexpr u16 LOOT_EXISTS = 0x1b98, LOOT_UNDER_MEMBER = 0xc81c, LOOT_PILES = 0x59c8;
 constexpr u16 BATTLE_DRAWING = 0x07d8;
-constexpr ImU32 BLUE = IM_COL32(41, 70, 105, 255);
-const char *const TEMPORARY = "Temporary effects";
 using SkillBoosts = std::array<std::array<int, SKILLS>, MEMBERS>;
 
 struct Member {
@@ -57,8 +58,8 @@ struct ReportMember {
     std::string name;
     std::vector<Entry> entries;
 };
-std::vector<ReportMember> changes, temporary;
-int changes_scroll = 0, temporary_scroll = 0;
+std::vector<ReportMember> changes;
+int changes_scroll = 0;
 
 bool enabled()
 {
@@ -230,36 +231,6 @@ void lasting_changes(ReportMember &row, const SkillBoosts &old_boost)
     }
 }
 
-bool same_effect(const Eff &a, const Eff &b)
-{
-    int amount_a = a.recorded_amount ? a.recorded_amount : a.amount;
-    int amount_b = b.recorded_amount ? b.recorded_amount : b.amount;
-    return a.m == b.m && a.kind == b.kind && a.k == b.k && amount_a == amount_b && a.until == b.until;
-}
-
-void temporary_changes(ReportMember &row, const std::vector<Eff> &effects, std::vector<bool> &matched)
-{
-    for (const Eff &e : effects) {
-        if (e.m != row.slot || e.kind == 0x43) continue;
-        size_t k = 0;
-        for (; k < battle.effects.size(); k++)
-            if (!matched[k] && same_effect(e, battle.effects[k])) { matched[k] = true; break; }
-        if (k < battle.effects.size() || !e.amount) continue;
-        std::string text = e.what + " (" + std::to_string(e.left) + " h left)";
-        if (e.kind == 0x48 || e.kind == 0x49) text = with_shield(e.k + (e.kind == 0x49 ? ATTRIBUTES : 0), text);
-        else if (e.icon >= 0) text = rich_effect(e.icon) + " " + text;
-        row.entries.push_back({ text, BLUE });
-    }
-
-    FoeFx field[3];
-    int n = foefx_of(row.slot, field, 3);
-    for (int k = 0; k < n; k++) {
-        const FoeFx &f = field[k];
-        const char *what = f.what == FX_BLIND ? "Blinded" : f.what == FX_WEAKENED ? "Weakened" : "Weapon skills lowered";
-        row.entries.push_back({ std::string(what) + " (" + std::to_string((f.left + 59) / 60) + "s left in battle)", BLUE, f.potion });
-    }
-}
-
 /* Pack whole entries across the page. A long entry wraps on its own line and
  * a member who needs another line keeps the same left-hand name column. */
 constexpr float LEFT = 63, RIGHT = 317, TOP = 20;
@@ -337,7 +308,7 @@ void draw_line(NsDraw &p, const Section &section, const Line &line, float y, boo
     }
 }
 
-void draw_section(NsDraw &p, const Section &section, float bottom, float body, bool is_temporary, bool single, int &scroll)
+void draw_section(NsDraw &p, const Section &section, float bottom, float body, int &scroll)
 {
     if (section.lines.empty()) return;
     float left = section.left, right = section.right;
@@ -350,16 +321,10 @@ void draw_section(NsDraw &p, const Section &section, float bottom, float body, b
     }
     scroll = std::max(0, std::min(last, scroll));
 
-    ImU32 head = is_temporary && !single ? IM_COL32(222, 223, 211, 255) : IM_COL32(229, 212, 176, 255);
     p.rect(left, TOP, right, bottom, IM_COL32(249, 239, 215, 255), 1.5f);
-    p.rect(left + 0.6f, TOP + 0.6f, right - 0.6f, TOP + HEAD_H, head, 1);
+    p.rect(left + 0.6f, TOP + 0.6f, right - 0.6f, TOP + HEAD_H, IM_COL32(229, 212, 176, 255), 1);
     p.frame(left, TOP, right, bottom, IM_COL32(125, 87, 43, 120), 1.5f);
-    const char *title = is_temporary && !single ? TEMPORARY : "Battle aftermath";
-    p.text(p.f, NsDraw::FS_HEAD, left + 4, TOP + 1, is_temporary && !single ? BLUE : NsDraw::INK, title);
-    if (is_temporary && single) {
-        float label_x = left + 9 + p.width(p.f, NsDraw::FS_HEAD, title);
-        p.text(p.fo, NsDraw::FS_BODY, label_x, TOP + 2.2f, BLUE, TEMPORARY);
-    }
+    p.text(p.f, NsDraw::FS_HEAD, left + 4, TOP + 1, NsDraw::INK, "Battle aftermath");
     if (last > 0) {
         ImU32 button = IM_COL32(120, 84, 40, 235);
         if (p.arrow_button(right - 24, TOP + 1.3f, right - 15, TOP + 8.7f, true, scroll > 0, button)) scroll--;
@@ -415,24 +380,16 @@ extern "C" void aftermath_armor_worn(int m, int id, int before, int after, int c
 extern "C" void aftermath_open(void)
 {
     changes.clear();
-    temporary.clear();
-    changes_scroll = temporary_scroll = 0;
+    changes_scroll = 0;
     if (!battle.report_next_loot) return;
     battle.report_next_loot = false;
-    auto effects = effects_snapshot(MEMBERS);
     auto old_boost = skill_boosts(battle.effects);
-    std::vector<bool> matched(battle.effects.size());
     for (int m = 0; m < MEMBERS; m++) {
         const Member &member = battle.before[m];
         if (!member.status) continue;
         ReportMember lasting = { m, member.name };
         lasting_changes(lasting, old_boost);
         if (!lasting.entries.empty()) changes.push_back(lasting);
-        int status = gm_member_status(m);
-        if (status != 1 && status != 2) continue;
-        ReportMember current = { m, member.name };
-        temporary_changes(current, effects, matched);
-        if (!current.entries.empty()) temporary.push_back(current);
     }
     std::stable_sort(changes.begin(), changes.end(), [](const ReportMember &a, const ReportMember &b) {
         return battle.fallen[a.slot] > battle.fallen[b.slot];     /* casualties first, even in a long report */
@@ -440,8 +397,6 @@ extern "C" void aftermath_open(void)
     if (getenv("DL_LOOT_LOG")) {
         for (const auto &row : changes) for (const Entry &entry : row.entries)
             fprintf(stderr, "aftermath: %s: %s\n", row.name.c_str(), rich_plain(entry.text.c_str()).c_str());
-        for (const auto &row : temporary) for (const Entry &entry : row.entries)
-            fprintf(stderr, "aftermath (temporary): %s: %s\n", row.name.c_str(), rich_plain(entry.text.c_str()).c_str());
     }
 }
 
@@ -456,14 +411,10 @@ extern "C" void aftermath_init(void)
 
 float aftermath_draw(NsDraw &p)
 {
-    if (changes.empty() && temporary.empty()) return 0;
-    bool split = !changes.empty() && !temporary.empty();
-    const float middle = LEFT + (RIGHT - LEFT) * 0.58f;
-    Section lasting = layout_section(p, changes, LEFT, split ? middle - 1 : RIGHT);
-    Section timed = layout_section(p, temporary, split ? middle + 1 : LEFT, RIGHT);
-    float body = std::min(std::max(lasting.height, timed.height), MAX_BODY_H);
+    if (changes.empty()) return 0;
+    Section lasting = layout_section(p, changes, LEFT, RIGHT);
+    float body = std::min(lasting.height, MAX_BODY_H);
     float bottom = TOP + HEAD_H + body + 2;
-    draw_section(p, lasting, bottom, body, false, !split, changes_scroll);
-    draw_section(p, timed, bottom, body, true, !split, temporary_scroll);
+    draw_section(p, lasting, bottom, body, changes_scroll);
     return bottom - TOP + 4;
 }
