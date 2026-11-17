@@ -619,18 +619,19 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:448` | Encounters by a pagan altar come one at a time |
 | `mods/fixes.c:449` | Beside a pagan altar the chance of an encounter is up to a hundred times the usual, tried at each small step of the party's marker, and the step that brings one leaves the party where it was: on the tile before the altar, encounter followed encounter. Now, after one there, the altar adds nothing to the chance until the party reaches it or walks away; the land's own chance stays. |
 | `mods/fixes.c:894` | if (col == 0) col = 1 |
-| `mods/fixes.c:1487` | The store room keeps at most 127 of one item. |
-| `mods/fixes.c:1488` | The store room is full: it keeps 100 kinds of items. |
-| `mods/fixes.c:1658` | abandon the horses |
-| `mods/fixes.c:2100` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
-| `mods/fixes.c:2376` | claim friendship |
-| `mods/fixes.c:2428` | It is $NamedOneName again |
-| `mods/fixes.c:2691` | You need a missile weapon |
-| `mods/fixes.c:2786` | if the argument was won |
-| `mods/fixes.c:2849` | Not bought: nobody in the party has room for another kind of item. |
-| `mods/fixes.c:2867` | Nobody in the party has room for another kind of item. |
-| `mods/fixes.c:4053` | Dissolve Lock needs Eater-Water in this member's pack. |
-| `mods/fixes.c:4115` | a hook (or { -2 }) for each fix, in the same order |
+| `mods/fixes.c:1081` | from the battle kept |
+| `mods/fixes.c:1542` | The store room keeps at most 127 of one item. |
+| `mods/fixes.c:1543` | The store room is full: it keeps 100 kinds of items. |
+| `mods/fixes.c:1713` | abandon the horses |
+| `mods/fixes.c:2155` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
+| `mods/fixes.c:2431` | claim friendship |
+| `mods/fixes.c:2483` | It is $NamedOneName again |
+| `mods/fixes.c:2746` | You need a missile weapon |
+| `mods/fixes.c:2841` | if the argument was won |
+| `mods/fixes.c:2904` | Not bought: nobody in the party has room for another kind of item. |
+| `mods/fixes.c:2922` | Nobody in the party has room for another kind of item. |
+| `mods/fixes.c:4108` | Dissolve Lock needs Eater-Water in this member's pack. |
+| `mods/fixes.c:4170` | a hook (or { -2 }) for each fix, in the same order |
 
 ## The interface (ui/)
 

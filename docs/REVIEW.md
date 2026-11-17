@@ -734,3 +734,8 @@ covered and found, and what it could not check.
   are held from the game (runtime/bios.c mouse_hold_left; menuview waits for the release): before, the
   click that closed the menu also walked the selected member. Tested in a keep: the closing click leaves
   the party standing, the Game title opens its menu.
+- 2026-11-17 (his report: potions drunk in Lugum gone after saving there): what a battle keeps of its own
+  events is said once (fixes.c battle_keeps, battle_kept, battle_put_back) and used by the battle's end
+  (cards_up_hook) and by a save made in it (battle_save_hook, new): the game's save in a battle reads
+  events.tmp over the battle's table and frees the whole table after; the hook lends it events.tmp as it
+  will be once the battle ends and keeps the battle's table out of its way.

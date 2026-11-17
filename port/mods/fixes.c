@@ -1025,34 +1025,32 @@ static void cards_down_hook(void)          /* cards_shutdown(), s043 1462:054e *
     cards_down = 1; world_open = 0;
     if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix potions: the cards close, %d potions running kept\n", pot_nkept);
 }
-/* the cards open again after a battle: the table is read back into its first slots, so what the
-   battle put in it is lost (but what lay past them) unless it is carried over - the members'
-   potions (kind 0x4a: the potion fixes) and a saint's help called in it (0x48 attribute, 0x49
-   skill, its price too: battlesaints), whole records */
-static void cards_up_hook(void)            /* cards_startup(), s043 1462:078e */
+/* what a battle keeps of its own events, whole records: the members' potions (kind 0x4a: the
+   potion fixes) and a saint's help called in it (0x48 attribute, 0x49 skill, its price too:
+   battlesaints) - when it ends (cards_up_hook) and in a save made in it (battle_save_hook) */
+static int battle_keeps(u32 e)
 {
-    static u8 rec[48][0x30];
-    int n = 0, pots = cards_down && any_potion_fix(), saints = cards_down && fix_on("battlesaints");
-    for (int i = 0; i < 300 && n < 48 && (pots || saints); i++) {
+    int kind = g_ev(e, G_EV_KIND), m = g_ev(e, G_EV_OWNER);
+    return m >= 0 && m <= 4 && ((kind == 0x4a && any_potion_fix()) || ((kind == 0x48 || kind == 0x49) && fix_on("battlesaints")));
+}
+static int battle_kept(u8 (*rec)[0x30], int max)   /* the battle's records kept, from the table */
+{
+    int n = 0;
+    for (int i = 0; i < G_NEVENTS && n < max; i++) {
         u32 e = ev_ptr(i);
-        if (!e) continue;
-        int kind = g_ev(e, G_EV_KIND), m = g_ev(e, G_EV_OWNER);
-        if (m < 0 || m > 4 || !((kind == 0x4a && pots) || ((kind == 0x48 || kind == 0x49) && saints))) continue;
+        if (!e || !battle_keeps(e)) continue;
         for (int k = 0; k < 0x30; k++) rec[n][k] = rb((u16)(e >> 16), (u16)((u16)e + k));
         n++;
     }
-    hook_call_original();
-    world_open = 0;
-    if (!cards_down) return;
-    u16 ax = AX, dx = DX;
-    cards_down = 0; pot_nkept = 0;
-    battledead_after();
-    if (ns_unwinding) return;
-    for (int r = 0; r < n; r++) {
+    return n;
+}
+static void battle_put_back(const u8 (*rec)[0x30], int n, const char *why)   /* into the table, unless there */
+{
+    for (int r = 0; r < n && !ns_unwinding; r++) {
         const u8 *b = rec[r];
         int kind = b[0x22] | b[0x23] << 8, m = b[0x1a] | b[0x1b] << 8, there = 0;
-        for (int i = 0; i < 300 && !there; i++) {          /* (the table is read back into its first slots: */
-            u32 e = ev_ptr(i);                              /*  what the battle put past them is still there) */
+        for (int i = 0; i < G_NEVENTS && !there; i++) {
+            u32 e = ev_ptr(i);
             if (!e) continue;
             int k = 0; while (k < 0x30 && rb((u16)(e >> 16), (u16)((u16)e + k)) == b[k]) k++;
             there = k == 0x30;
@@ -1062,9 +1060,25 @@ static void cards_up_hook(void)            /* cards_startup(), s043 1462:078e */
         u32 e = ev_ptr(i);
         if (!e) continue;
         for (int k = 0; k < 0x30; k++) wb((u16)(e >> 16), (u16)((u16)e + k), b[k]);
-        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix %s: member %d's kind %#x (%d, %d) from the battle kept (event %d)\n",
-                                          kind == 0x4a ? "potions" : "battlesaints", m, kind, (s16)(b[0] | b[1] << 8), (s16)(b[0x1e] | b[0x1f] << 8), i);
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix %s: member %d's kind %#x (%d, %d) %s (event %d)\n",
+                                          kind == 0x4a ? "potions" : "battlesaints", m, kind, (s16)(b[0] | b[1] << 8), (s16)(b[0x1e] | b[0x1f] << 8), why, i);
     }
+}
+
+/* the cards open again after a battle: the table is read back into its first slots, so what the
+   battle put in it is lost (but what lay past them) unless it is carried over (battle_keeps) */
+static void cards_up_hook(void)            /* cards_startup(), s043 1462:078e */
+{
+    static u8 rec[48][0x30];
+    int n = cards_down ? battle_kept(rec, 48) : 0;
+    hook_call_original();
+    world_open = 0;
+    if (!cards_down) return;
+    u16 ax = AX, dx = DX;
+    cards_down = 0; pot_nkept = 0;
+    battledead_after();
+    if (ns_unwinding) return;
+    battle_put_back((const u8 (*)[0x30])rec, n, "from the battle kept");
     AX = ax; DX = dx;
 }
 
@@ -1106,6 +1120,47 @@ static void battle_sheet_hook(void)              /* battle_sheet(who), s031 1462
     for (int i = 0, k = 0; i < G_NEVENTS && k < sheet_nkept; i++) if (!g_event(i)) ev_set(i, sheet_kept[k++]);
     if (getenv("DL_FIX_LOG") && sheet_nkept) fprintf(stderr, "fix potions: the sheet closed; %d of the battle's events kept\n", sheet_nkept);
     sheet_nkept = 0;
+    AX = ax; DX = dx;
+}
+/* a save in a battle (s037 1462:2ace, in_battle 1) reads the cards' events from events.tmp into the table's first
+   slots, over the battle's own, writes the save from the table and then frees every event in it: what the battle
+   had made was lost at once (a potion drunk in a dungeon gone as the game was saved there) and missing from the
+   save. The battle's events are taken out of the table for the save's while and put back after, untouched; and the
+   save reads events.tmp as it will be when the battle ends (battle_keeps: cards_up_hook carries them over), the
+   file put back after, so a save loaded has them running from the cards' events. While it is written the table
+   holds the cards' events and those kept, all the party's (world_open, as a sheet's while) */
+static u32 save_ev[G_NEVENTS];
+static int save_pending;
+static void battle_save_hook(void)               /* s037 1462:2ace (comment): write a save */
+{
+    if (!cards_down || g_rb(GV_in_battle) != 1 || save_pending || !(any_potion_fix() || fix_on("battlesaints"))) { hook_call_original(); return; }
+    static u8 rec[48][0x30];
+    int n = battle_kept(rec, 48);
+    char p[1200]; dos_host_path("EVENTS.TMP", p, sizeof p);
+    u8 *was = 0; long size = 0;
+    FILE *f = n ? fopen(p, "rb") : 0;
+    if (f) {
+        if (fseek(f, 0, SEEK_END) == 0 && (size = ftell(f)) >= 2 && (was = malloc((size_t)size)) && fseek(f, 0, SEEK_SET) == 0
+            && fread(was, 1, (size_t)size, f) != (size_t)size) { free(was); was = 0; }
+        fclose(f);
+    }
+    int nev = was ? was[0] | was[1] << 8 : 0, put = was && 2 + nev * 0x30L == size && nev + n <= G_NEVENTS;
+    if (put && (f = fopen(p, "wb"))) {
+        u8 c[2] = { (u8)(nev + n), (u8)((nev + n) >> 8) };
+        put = fwrite(c, 1, 2, f) == 2 && fwrite(was + 2, 1, (size_t)size - 2, f) == (size_t)size - 2 && fwrite(rec, 0x30, (size_t)n, f) == (size_t)n;
+        fclose(f);
+    } else put = 0;
+    for (int i = 0; i < G_NEVENTS; i++) { save_ev[i] = g_event(i); ev_set(i, 0); }
+    int open = world_open;
+    save_pending = world_open = 1;
+    hook_call_original();
+    u16 ax = AX, dx = DX;
+    save_pending = 0; world_open = open;
+    int back = 0;
+    for (int i = 0; i < G_NEVENTS; i++) if (save_ev[i] && !g_event(i)) { ev_set(i, save_ev[i]); back++; }
+    if (was && (f = fopen(p, "wb"))) { fwrite(was, 1, (size_t)size, f); fclose(f); }
+    free(was);
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix potions: saved in a battle: its %d events kept, %d of them in the save\n", back, put ? n : 0);
     AX = ax; DX = dx;
 }
 static void world_load_hook(void)                /* world_load(locfile), s043 1462:0100 */
@@ -4204,6 +4259,7 @@ void fixes_init(void)
     hook_install(GF_cards_startup, cards_up_hook);
     hook_install(GF_battle_sheet, battle_sheet_hook);   /* (a sheet in a battle: the battle's events kept) */
     hook_install(GF_world_load, world_load_hook);
+    hook_install(37, 0x1462, 0x2ace, battle_save_hook);   /* (a save in a battle: the battle's events kept) */
     for (int i = 0; i < FIX_COUNT; i++) {
         char key[64]; snprintf(key, sizeof key, "fix.%s", FIXES[i].id);
         fix_enable(i, config_get_int(key, FIXES[i].on));
