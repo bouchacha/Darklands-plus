@@ -1978,7 +1978,8 @@ static void tomb_exit(int can_leave)
     if (can_leave && !tomb_leave_agreed && config_get_int("battle.warn_tomb_exit", 1)
         && g_rw(GV_battlefield_kind) == 0x5f && !g_rb(GV_place_won) && !tomb_cleared()) {
         char question[112];
-        snprintf(question, sizeof question, "Skeletons still guard the %s. Leave without it?", tomb_item);
+        /* The game's yes/no box has one line and adds " y/n" to it. */
+        snprintf(question, sizeof question, "Leave without the %s?", strlen(tomb_item) <= 24 ? tomb_item : "quest item");
         u16 sp = SP, msg = ns_stack_str(question);
         int yes = ns_call(GF_ask_yes_no, 1, msg);
         if (ns_unwinding) return;
