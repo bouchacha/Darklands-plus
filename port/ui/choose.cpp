@@ -38,19 +38,26 @@ extern "C" void choose_draw(void)
     for (int i = 0; i < c.n && y + ROWH <= Y1 - 16; i++, y += ROWH) {
         const ChooseRow &r = c.row[i];
         bool h = P.over(X0 + 4, y, X1 - 4, y + ROWH);
-        if (h) P.rect(X0 + 4, y, X1 - 4, y + ROWH, IM_COL32(214, 170, 60, 90), 1.5f);
+        if (r.recommended) P.rect(X0 + 4, y, X1 - 4, y + ROWH, IM_COL32(185, 147, 60, 60), 1.5f);
+        if (h && !r.disabled) P.rect(X0 + 4, y, X1 - 4, y + ROWH, IM_COL32(214, 170, 60, 90), 1.5f);
         char num[4]; snprintf(num, sizeof num, "%d", i + 1);
         if (i < 9) P.text(P.fo, NsDraw::FS_SMALL, X0 + 6, y + 3.6f, NsDraw::INK_DIM, num);
-        P.icon(X0 + 17, y + 6.0f, 10.0f, r.id, r.qual);
-        std::string nm = ns_item_name(r.id), q = ns_quality_tag(r.id, r.qual);
+        if (r.name[0]) ui_member_head(P.dl, r.member, NsDraw::w(X0 + 13, y + 4), 10 * P.k);
+        else P.icon(X0 + 17, y + 6.0f, 10.0f, r.id, r.qual);
+        std::string nm = r.name[0] ? ns_gtext(r.name) : ns_item_name(r.id);
+        std::string q = r.name[0] ? "" : ns_quality_tag(r.id, r.qual);
         float nx = X0 + 25;
-        P.text(P.f, NsDraw::FS_NAME, nx, y + 2.6f, NsDraw::INK, nm, -1, X1 - 22);
+        P.text(P.f, NsDraw::FS_NAME, nx, y + 2.6f, r.disabled ? NsDraw::INK_DIM : NsDraw::INK, nm, -1, X1 - 22);
+        if (r.recommended) {
+            const char *label = "Best chance (Enter)";
+            P.text(P.fo, NsDraw::FS_SMALL, X1 - 8 - P.width(P.fo, NsDraw::FS_SMALL, label), y + 3.4f, NsDraw::INK, label);
+        }
         if (!q.empty()) P.text(P.fo, NsDraw::FS_SMALL, nx + P.width(P.f, NsDraw::FS_NAME, nm) + 2, y + 3.4f, NsDraw::INK_SOFT, q);
         if (r.info[0])                                                               /* (what it does, under its name) */
             P.text(P.fo, NsDraw::FS_SMALL, nx, y + 10.6f, r.bad ? IM_COL32(150, 32, 20, 255) : NsDraw::INK_SOFT, std::string(r.info), -1, X1 - 20);
-        ui_member_head(P.dl, r.member, NsDraw::w(X1 - 16, y + (ROWH - 10) * 0.5f), 10 * P.k);   /* (who carries it: their head; the name under the pointer) */
-        if (P.over(X1 - 16, y, X1 - 5, y + ROWH)) { char n[24]; gm_member_name(r.member, n, sizeof n); ns_tip(ns_gtext(n).c_str(), 12); }
-        if (P.hit(X0 + 4, y, X1 - 4, y + ROWH)) ns_push(CH_PICK, i, 0, 0);
+        if (!r.name[0]) ui_member_head(P.dl, r.member, NsDraw::w(X1 - 16, y + (ROWH - 10) * 0.5f), 10 * P.k);   /* (who carries it: their head; the name under the pointer) */
+        if (!r.name[0] && P.over(X1 - 16, y, X1 - 5, y + ROWH)) { char n[24]; gm_member_name(r.member, n, sizeof n); ns_tip(ns_gtext(n).c_str(), 12); }
+        if (!r.disabled && P.hit(X0 + 4, y, X1 - 4, y + ROWH)) ns_push(CH_PICK, i, 0, 0);
     }
     float bw = P.width(P.fo, NsDraw::FS_SMALL, c.none) + 10;
     if (P.button(X1 - 6 - bw, Y1 - 13, X1 - 6, Y1 - 4, c.none, IM_COL32(120, 84, 40, 235))) ns_push(CH_NONE, 0, 0, 0);

@@ -226,7 +226,12 @@ int ns_round(void)
     ns_call(GF_menu_bar_run, 2, 0x9419, 0);                 /* menu_bar_run */
     ns_nested = 0;
     if (ns_unwinding) return 0;
-    ns_call(GF_exit_if_requested, 0);                            /* exit_if_requested */
+    return ns_modal_round();
+}
+
+int ns_modal_round(void)
+{
+    ns_call(GF_exit_if_requested, 0);
     if (ns_unwinding) return 0;
     dl_poll();
     plat_sleep_ms(3);

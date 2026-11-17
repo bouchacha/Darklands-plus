@@ -3530,13 +3530,9 @@ static void ownplace_hook(void)             /* s030 1462:1300 (mx, my): the plac
  * Pick Locks + that record's quality - 25, a better set further down not looked at. For its while that record
  * takes the best quality the picker has, or with the shared pack (inventory.shared) any member present has. */
 int sheetview_shared(void);
-static void bestpick_hook(void)                 /* lock_pick (lock) */
+int best_lockpick_quality(int a)
 {
-    int a = g_rb(0xe1ca), first = -1, best = -1;
-    if (a < 0 || a >= 5) { hook_call_original(); return; }
-    int n = g_rb((u16)(G_MEMBER(a) + G_M_NITEMS));
-    for (int i = 0; i < n && i < 64; i++) if ((rw(G_FAR2E38, G_ITEM(a, i)) & 0xfff) == 0x40) { first = i; break; }
-    if (first < 0) { hook_call_original(); return; }
+    int best = -1;
     for (int m = 0; m < 5; m++) {
         if (m != a && !(sheetview_shared() && g_rb(G_MEMBER(m)) == 1)) continue;
         int nm = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
@@ -3545,6 +3541,17 @@ static void bestpick_hook(void)                 /* lock_pick (lock) */
             if ((rw(G_FAR2E38, o) & 0xfff) == 0x40 && rb(G_FAR2E38, (u16)(o + 4)) > 0 && rb(G_FAR2E38, (u16)(o + 3)) > best) best = rb(G_FAR2E38, (u16)(o + 3));
         }
     }
+    return best;
+}
+
+static void bestpick_hook(void)                 /* lock_pick (lock) */
+{
+    int a = g_rb(0xe1ca), first = -1, best = -1;
+    if (a < 0 || a >= 5) { hook_call_original(); return; }
+    int n = g_rb((u16)(G_MEMBER(a) + G_M_NITEMS));
+    for (int i = 0; i < n && i < 64; i++) if ((rw(G_FAR2E38, G_ITEM(a, i)) & 0xfff) == 0x40) { first = i; break; }
+    if (first < 0) { hook_call_original(); return; }
+    best = best_lockpick_quality(a);
     u16 q_at = (u16)(G_ITEM(a, first) + 3);
     u8 had = rb(G_FAR2E38, q_at);
     if (best <= had) { hook_call_original(); return; }

@@ -1,6 +1,4 @@
-/* choose.h - a box asking which of the party's things (mods/choose.c runs it, ui/choose.cpp draws
- * it): what picking does, a line each (the thing's picture, name and quality, what it does, the head
- * of who carries it) and a way out. For the relic a cathedral is given (mods/relics.c). */
+/* Native choice dialog for item rows (cathedral relics) or named party members (locks). */
 #ifndef DL_CHOOSE_H
 #define DL_CHOOSE_H
 #ifdef __cplusplus
@@ -11,6 +9,8 @@ extern "C" {
 typedef struct {
     int id, qual, member, index;      /* the item, its quality, who carries it, the record */
     char info[120];                   /* what it does (rich text, a line under its name; "" none) */
+    int disabled, recommended;       /* unavailable row, or the default selected with Enter */
+    char name[32];                    /* member row title; empty for an item row */
     int bad;                          /* (its info in red: e.g. the carrier lacks the Virtue it asks) */
 } ChooseRow;
 

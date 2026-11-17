@@ -10,6 +10,7 @@ extern int FIX_COUNT;
 void fixes_init(void);
 void fix_enable(int i, int on);
 void potion_bonus(int m, int *dmg, int *pen);
+int best_lockpick_quality(int member);
 int fix_is_on(const char *id);
 void fixes_clamp_party_items(void);
 void fixes_hardarmor_grade(int g, int *thick, int *qual);   /* a Hardarmor dose's armour by its grade (1..3) */         /* (every member's item count within bounds: after a robbery) */

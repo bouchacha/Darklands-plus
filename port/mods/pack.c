@@ -15,6 +15,8 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "gamemodel.h"
+#include "choose.h"
+#include "fixes.h"
 #include "nscreen.h"
 
 int sheetview_shared(void);
@@ -118,8 +120,8 @@ static int give_safe(int from, int to, int rec)
     if (empties && eat != 0xff && eat > rec) g_wb((u16)(D_EATER_SLOT + from), (u8)(eat - 1));
     return 1;
 }
-/* one of id (the best quality, or exactly q) to member a from whoever else has one to spare; 1 if handed */
-static int fetch(int a, int id, int q)
+/* Locate a spare for member a; return its quality, or -1 if none can be given. */
+static int find_spare(int a, int id, int q, int *holder, int *record)
 {
     int bh = -1, bi = -1, bq = -1, bn = 0;
     for (int h = 0; h < 5; h++) {
@@ -130,7 +132,15 @@ static int fetch(int a, int id, int q)
             if (g.qual > bq || (g.qual == bq && g.count > bn)) { bh = h; bi = i; bq = g.qual; bn = g.count; }
         }
     }
-    return bh >= 0 && give_safe(bh, a, bi);
+    *holder = bh;
+    *record = bi;
+    return bq;
+}
+
+static int fetch(int a, int id, int q)
+{
+    int holder, record;
+    return find_spare(a, id, q, &holder, &record) >= 0 && give_safe(holder, a, record);
 }
 
 /* lock picks: outside a battle (a dungeon, a castle) a member's orders offer a lock only to a member
@@ -154,6 +164,97 @@ static void lockpick_hook(void)
         if (ns_unwinding) return;
     }
     hook_call_original();
+}
+
+/* Match the first set that lock_pick reads, pack's handover when none is carried,
+   and the optional bestpick fix. Looking at a row never transfers an item. */
+static int pick_quality(int member)
+{
+    int quality = -1;
+    for (int i = 0; i < gm_item_count(member); i++) {
+        GmItem item;
+        if (gm_item(member, i, &item) && item.id == ID_LOCKPICK && item.count) {
+            quality = item.qual;
+            break;
+        }
+    }
+    if (quality < 0 && sheetview_shared()) {
+        int holder, record;
+        quality = find_spare(member, ID_LOCKPICK, -1, &holder, &record);
+        if (quality >= 0 && !room_by_records(member, ID_LOCKPICK, quality)) return -1;
+    }
+    if (quality >= 0 && fix_is_on("bestpick")) {
+        int best = best_lockpick_quality(member);
+        if (best > quality) quality = best;
+    }
+    return quality;
+}
+
+static int choose_lockpicker(int difficulty, int floor)
+{
+    ChooseRow rows[5] = {0};
+    int count = 0, best = -1, best_chance = 0;
+    for (int member = 0; member < gm_party_size(); member++) {
+        if (!gm_member_present(member)) continue;
+        ChooseRow *row = &rows[count++];
+        row->member = member;
+        gm_member_name(member, row->name, sizeof row->name);
+        int skill = gm_member_skill(member, 14);           /* combatant +0x79, Artifice */
+        int quality = pick_quality(member);
+        const char *reason = NULL;
+        if (gm_member_status(member) != 1) reason = "Unable to act";
+        else if (g_rb((u16)(GV_cbt_floor + member)) != floor) reason = "On another floor";
+        else if (quality < 0) reason = "No usable lock picks";
+        /* s023 1ef8:12c0: difficulty < Artifice + quality - 25 + (1..10). */
+        int rolls = skill + quality - 25 + 10 - difficulty;
+        int chance = reason || rolls <= 0 ? 0 : rolls >= 10 ? 100 : rolls * 10;
+        if (reason) snprintf(row->info, sizeof row->info, "0%%  |  Artifice %d  |  %s", skill, reason);
+        else snprintf(row->info, sizeof row->info, "%d%%  |  Artifice %d  |  Lock picks Q%d", chance, skill, quality);
+        row->disabled = chance == 0;
+        if (chance > best_chance) { best_chance = chance; best = count - 1; }
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "lock picker: member %d, Artifice %d, picks %d, chance %d%%\n", member, skill, quality, chance);
+    }
+    if (best >= 0) rows[best].recommended = 1;
+    int choice = choose_run("Who will pick the lock?", best >= 0 ? "Click a member or press their number."
+                           : "No one can open this lock with the picks available.", rows, count, "Cancel");
+    return choice >= 0 ? rows[choice].member : -1;
+}
+
+/* The party's P order targets the leader's nearby lock. Only the skill roll and its
+   practice credit use the chosen member. Individual tactical orders keep their actor. */
+static void party_pick_order(void)
+{
+    int leader = gm_leader();
+    if (!ns_active() || !config_get_int("battle.choose_lockpicker", 1)
+        || g_rb(GV_ai_paused) == 1 || g_rb(0x96e5) != 1 || !gm_member_present(leader)) {
+        hook_call_original();
+        return;
+    }
+    int door = g_rb(0xca99);
+    int index = g_rb((u16)((door ? 0xc64c : 0xc784) + leader));
+    u16 lock = door ? (u16)(0x1f5b + index * 14) : (u16)(0x3016 + index * 44);
+    int who = choose_lockpicker(rb(G_FAR20A5, lock) & 0x7f, g_rb((u16)(GV_cbt_floor + leader)));
+    if (ns_unwinding) return;
+    if (who >= 0) {
+        /* Hand the picks over before the bestpick hook inspects the picker's inventory,
+           even when its switch was turned on again during this session. */
+        if (sheetview_shared() && !carried_id(who, ID_LOCKPICK, -1)) fetch(who, ID_LOCKPICK, -1);
+        if (ns_unwinding) return;
+        u8 previous = g_rb(D_ACTOR);
+        g_wb(D_ACTOR, (u8)who);
+        int opened = ns_call(GF_lock_pick, 2, lock, G_FAR20A5);
+        if (ns_unwinding) return;
+        g_wb(D_ACTOR, previous);
+        if (opened == 1) {
+            if (door) ns_call(GF_door_toggle, 2, index, leader);
+            else ns_call(GF_chest_open, 1, leader);
+            if (ns_unwinding) return;
+            ns_call(GF_floor_view_draw, 1, -1);
+            if (ns_unwinding) return;
+        }
+        ns_call(GF_cbt_cancel_action, 1, leader);
+    }
+    if (!ns_unwinding) hook_return_far(0);
 }
 
 /* ammunition and thrown weapons that run out (with "never run out" off): a shot uses one of the
@@ -351,5 +452,6 @@ void pack_init(void)
     hook_install(GF_roster_screen, roster_hook);
     hook_install(GF_order_menu_build, orders_hook);
     hook_install(GF_lock_pick, lockpick_hook);
+    hook_install(16, 0x1ef8, 0x10b2, party_pick_order);
     hook_install(GF_use_ammo, use_ammo_hook);
 }

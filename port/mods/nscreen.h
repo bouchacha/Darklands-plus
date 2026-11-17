@@ -54,6 +54,7 @@ void ns_clear(void);
 extern int ns_nested;                 /* 1 a game screen runs inside: the view hides; 2 the menu bar may */
 extern unsigned ns_nested_since;
 int ns_round(void);
+int ns_modal_round(void);           /* pump input and quit without opening game menus */
 int ns_hidden(void);                  /* the view should not draw now (the menu bar open, a sheet ...) */
 
 /* the native screen on show (NS_NONE none). Screens open inside one another (a sheet from a shop's
