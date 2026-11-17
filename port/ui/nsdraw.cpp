@@ -816,19 +816,37 @@ int ns_slot_of(int id)
     }
     return 0;
 }
-/* a ware against what member m has there now: 1 better, -1 worse, 0 alike or not to be weighed
-   (another kind of weapon or shield), 2 nothing there. Armour: harder first, then better made
-   (as ns_item_compare says it); a weapon or shield: better made, of the same kind */
+NsWorn ns_worn_slot(int m, int slot)
+{
+    static const u8 type[] = { 0, 0x37, 0x38, 0x48, 0x3d, 0x0e };
+    static const u8 quality[] = { 0, 0x3b, 0x3c, 0x47, 0x44, 0x46 };
+    if (slot < 1 || slot > 5 || !gm_member_present(m)) return {};
+    u16 b = G_MEMBER(m);
+    return { (s8)g_rb(b + type[slot]), g_rb(b + quality[slot]) };
+}
+
+/* equipped_item_impl (s031): an exact type and quality first, otherwise the last matching type. */
+int ns_worn_id(int m, NsWorn worn)
+{
+    if (worn.type < 0) return -1;
+    int id = -1;
+    for (int i = 0; i < gm_item_count(m); i++) {
+        GmItem it;
+        if (!gm_item(m, i, &it) || it.type != worn.type) continue;
+        id = it.id;
+        if (it.qual == worn.quality) break;
+    }
+    return id;
+}
+
 /* member m's load were thing id worn in its slot instead of what is there (only equipped things
    weigh: equip_weight); -1 when it is not worn */
 int ns_load_with(int id, int m)
 {
     int sl = ns_slot_of(id);
     if (!sl || m < 0 || m >= 5 || !gm_member_present(m)) return -1;
-    static const u16 TOFF[6] = { 0, 0x37, 0x38, 0x48, 0x3d, 0x0e };
-    int t = (s8)g_rb((u16)(G_MEMBER(m) + TOFF[sl])), old = 0;
-    if (t >= 0) for (int k = 0; k < (int)gamedata.items.size(); k++) if (gamedata.items[k].type == t) { old = gm_itemdef_weight(k); break; }
-    int v = gm_member_load(m) - old + gm_itemdef_weight(id);
+    int old = ns_worn_id(m, ns_worn_slot(m, sl));
+    int v = gm_member_load(m) - (old < 0 ? 0 : gm_itemdef_weight(old)) + gm_itemdef_weight(id);
     return v < 0 ? 0 : v;
 }
 /* "Load 42 of 76", or with a thing pointed at "Load 42 > 47 of 76", right-aligned to x1 on a heading
@@ -854,9 +872,8 @@ int ns_against_worn(int id, int q, int m)
 {
     int sl = ns_slot_of(id);
     if (!sl || m < 0 || m >= 5 || !gm_member_present(m)) return 0;
-    static const u16 TOFF[6] = { 0, 0x37, 0x38, 0x48, 0x3d, 0x0e }, QOFF[6] = { 0, 0x3b, 0x3c, 0x47, 0x44, 0x46 };
-    u16 b = G_MEMBER(m);
-    int t = (s8)g_rb((u16)(b + TOFF[sl])), wq = g_rb((u16)(b + QOFF[sl]));
+    NsWorn worn = ns_worn_slot(m, sl);
+    int t = worn.type, wq = worn.quality;
     if (t < 0) return 2;
     const ItemDef *d = ns_itemdef(id);
     if (sl <= 2) {

@@ -25,8 +25,8 @@
 #include "../mods/nscreen.h"
 #include "../mods/barterview.h"
 #include "nsdraw.h"
+#include "shopcompare.h"
 #include "../runtime/config.h"
-#include <vector>
 extern "C" {
 #include "../mods/gamemodel.h"
 #include "../mods/assist.h"
@@ -103,6 +103,16 @@ extern "C" void barterview_draw(void)
     /* the member tabs (right column); the coin (or a right click): holds the purse */
     const float LX0 = 63, LX1 = 180, RX0 = 184, RX1 = 317, LY0 = 31, ROWH = 9;
     T(f, NsDraw::FS_HEAD, LX0 + 1, 21, cream, "For sale");
+    const bool cmp_on = config_get_int("display.shop_compare", 1) != 0;
+    int first_gear = -1;
+    if (cmp_on) for (int i = 0; i < b.nwares; i++) {
+        if (ns_slot_of(b.ware[i].id)) { first_gear = i; break; }
+    }
+    if (first_gear >= 0) {
+        T(fo, NsDraw::FS_SMALL, 91, 22.5f, cream_soft, "Party upgrades");
+        if (P.over(90, 20, 133, 29))
+            ns_tip("The arrow counts upgrades and empty slots across the party. A hollow arrow means empty slots only. Point at gear to compare each member's equipment and load.");
+    }
     /* a shop with ingredients and a party that knows formulae: the formulae, their ingredients carried and sold here */
     bool can_formulae = false;
     for (int i = 0; i < b.nwares && !can_formulae; i++) { const ItemDef *d = def(b.ware[i].id); if (d && d->kind == K_INGREDIENT) can_formulae = true; }
@@ -146,9 +156,13 @@ extern "C" void barterview_draw(void)
     if (b.who != V.last_who) { V.scroll[1] = 0; V.last_who = b.who; }
 
     /* the lists */
-    const int NROWS = 13;
+    const int NROWS = first_gear >= 0 ? 12 : 13;
     float LY1 = LY0 + NROWS * ROWH;
-    int new_hl = -1, new_hr = -1;
+    if (V.hover_seq != b.seq) {
+        V.hover_list = first_gear >= 0 ? 0 : -1;
+        V.hover_row = first_gear;
+        V.hover_seq = b.seq;
+    }
     /* a thing "Sell spare gear" would sell: the weapons, armour and shields not in use (not
        arrows, quarrels, balls or things to throw), that this shop pays for, not kept; and whatever
        the player marked to sell on the character sheet (keep.c: the potions never wanted) */
@@ -191,16 +205,15 @@ extern "C" void barterview_draw(void)
         }
     }
     if (V.find_ware >= 0) {
-        for (size_t r = 0; r < ware_order.size(); r++) if (ware_order[r] == V.find_ware) { V.scroll[0] = (int)r - 13 / 2; break; }
+        for (size_t r = 0; r < ware_order.size(); r++) if (ware_order[r] == V.find_ware) { V.scroll[0] = (int)r - NROWS / 2; break; }
         V.find_ware = -1;
     }
     auto ware_heading = [&](int g) { int n = 0; for (int i = 0; i < b.nwares; i++) n += ware_group(b.ware[i].id) == g; return std::string(WGROUP[g]) + " (" + std::to_string(n) + ")"; };
-    const bool cmp_on = config_get_int("display.shop_compare", 1) != 0;
-    const int cmp_slot = cmp_on && V.hover_list == 0 && V.hover_row >= 0 && V.hover_row < b.nwares ? ns_slot_of(b.ware[V.hover_row].id) : 0;
     static bool spare_lit;                       /* the button under the pointer (last frame): its things pulse in the list */
     float pulse = 0.5f + 0.5f * sinf(plat_ticks_ms() * 0.008f);
     for (int L = 0; L < 2; L++) {
         if (L == 1 && V.formulae) continue;
+        int cmp_slot = L && cmp_on && V.hover_list == 0 ? ns_slot_of(b.ware[V.hover_row].id) : 0;
         float x0 = L ? RX0 : LX0, x1 = L ? RX1 : LX1;
         /* the rows: the wares as the shop has them; the party's things as the character sheet has
            them (Equipped, Potions, the rest; each in the inventory's tidy order), a heading before each */
@@ -245,7 +258,7 @@ extern "C" void barterview_draw(void)
                 float lw = 0;
                 if (i == -1) {                                    /* Equipped: the member's load, and what the thing pointed at would make it */
                     int after = -1;
-                    if (V.hover_list == 0 && V.hover_row >= 0 && V.hover_row < b.nwares) after = ns_load_with(b.ware[V.hover_row].id, b.who);
+                    if (V.hover_list == 0) after = ns_load_with(b.ware[V.hover_row].id, b.who);
                     else if (V.hover_list == 1 && V.hover_row >= 0 && V.hover_row < b.nitems && !b.item[V.hover_row].equipped) after = ns_load_with(b.item[V.hover_row].id, b.who);
                     lw = ns_load_note(P, x1 - 3, y + 2.2f, b.who, after) + 3;
                 }
@@ -256,7 +269,7 @@ extern "C" void barterview_draw(void)
             if (L) { const BvItem &it = b.item[i]; id = it.id; qual = it.qual; price = it.price; count = it.count; eq = it.equipped; kept = it.kept; pack = it.holder < 0; }
             else { const BvWare &w = b.ware[i]; id = w.id; qual = w.qual; price = w.price; }
             bool h = in(mx, my, x0, y, x1, y + ROWH);
-            if (h) { new_hl = L; new_hr = i; }
+            if (h) { V.hover_list = L; V.hover_row = i; }
             if (h) R(x0 + 0.5f, y, x1 - 0.5f, y + ROWH, IM_COL32(226, 204, 160, 255));
             else if (r & 1) R(x0 + 0.5f, y, x1 - 0.5f, y + ROWH, IM_COL32(240, 230, 204, 255));
             if (!L && i == V.flash_ware && plat_ticks_ms() - V.flash_t < 2500) {     /* (found from the Formulae tab) */
@@ -274,11 +287,13 @@ extern "C" void barterview_draw(void)
             std::string ps = price > 0 ? money(price) : L ? "-" : "?";
             float pw = W(fo, NsDraw::FS_BODY, ps);
             float name_end = x1 - 2 - pw - 5 - W(fo, NsDraw::FS_BODY, qs) - 3;
-            int vs = !L && cmp_on ? ns_against_worn(id, qual, b.who) : 0;     /* (a ware: better or worse than what the member has there) */
-            if (vs) {
-                float ax = fminf(x0 + 12 + W(f, NsDraw::FS_NAME, nm) + 4.5f, name_end - 2.5f), ay = y + ROWH * 0.5f;   /* (just after the name) */
-                ns_compare_arrow(P.dl, ax, ay, vs, P.k);
-                name_end -= 6;
+            bool only_empty = false;
+            int upgrades = !L && cmp_on ? shop_upgrade_count(id, qual, only_empty) : 0;
+            if (upgrades) {
+                float ax = fminf(x0 + 12 + W(f, NsDraw::FS_NAME, nm) + 3.5f, name_end - 7);
+                ns_compare_arrow(P.dl, ax, y + ROWH * 0.5f, only_empty ? 2 : 1, P.k);
+                T(fo, NsDraw::FS_SMALL, ax + 2.8f, y + 2, green, std::to_string(upgrades));
+                name_end = ax - 2.5f;
             }
             if (L && cmp_slot && b.item[i].equipped == 1 && ns_slot_of(id) == cmp_slot) {      /* what the ware pointed at would replace */
                 R(x0 + 0.5f, y, x1 - 0.5f, y + ROWH, IM_COL32(214, 170, 60, (int)(40 + 50 * pulse)));
@@ -396,9 +411,6 @@ extern "C" void barterview_draw(void)
             R(RX1 - 1.6f, ty, RX1 - 0.4f, ty + th, IM_COL32(120, 80, 36, 140), 0.6f);
         }
     }
-    if (new_hl >= 0) { V.hover_list = new_hl; V.hover_row = new_hr; V.hover_seq = b.seq; }
-    else if (V.hover_seq != b.seq) V.hover_list = -1;
-
     /* the strip: the row under the pointer (or the last one), what the last action did */
     float SY0 = LY1 + 3, SY1 = 196;
     /* sell the spare gear: the weapons, armour and shields the member carries but does not use (not
@@ -445,7 +457,10 @@ extern "C" void barterview_draw(void)
                         : "Costs " + money_with_total(price) + (price > b.total_pf ? " - more than the purse holds" : "");
             t.right_col = L ? (price > 0 ? green : red) : (price > b.total_pf ? red : ink);
             t.y_max = SY1 - 9.5f;                                  /* (the hint line and the Sell spare gear button below) */
-            strip_end = ns_item_strip(P, SY0, t);
+            if (!L && cmp_on && ns_slot_of(id)) {
+                shop_compare_strip(P, SY0, t);
+                strip_end = SY0 + 45;
+            } else strip_end = ns_item_strip(P, SY0, t);
         }
     } else T(fo, NsDraw::FS_BODY, 68, SY0 + 3, ink_dim, "Point at a ware or one of your items to see it here; F11 shows what you can do.");
     if (show_spare) {

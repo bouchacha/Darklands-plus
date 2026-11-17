@@ -264,6 +264,9 @@ int ns_item_section(int id);              /* the section of the items list: 1 po
 static inline int ns_section_at(int k) { static const int O[6] = { 1, 6, 2, 3, 4, 5 }; return k >= 0 && k < 6 ? O[k] : 0; }   /* the k-th listed, after "Equipped" */
 const char *ns_item_section_name(int sec);   /* (0 "Equipped") */
 int ns_slot_of(int id);                    /* where a thing is worn or held: 1 body, 2 limbs, 3 shield, 4 weapon in hand, 5 missile weapon; 0 none */
+struct NsWorn { int type = -1, quality = 0; };
+NsWorn ns_worn_slot(int member, int slot);
+int ns_worn_id(int member, NsWorn worn);   /* the inventory item the game weighs in this slot, -1 if empty */
 int ns_load_with(int id, int m);           /* member m's load with thing id worn in its slot instead; -1 not worn */
 float ns_load_note(NsDraw &P, float x1, float y, int m, int after);   /* "Load 42 >> 47 of 76" right-aligned on a heading; its width */
 int ns_against_worn(int id, int q, int m); /* against what member m has there: 1 better, -1 worse, 0 alike or not to be weighed, 2 nothing there */
