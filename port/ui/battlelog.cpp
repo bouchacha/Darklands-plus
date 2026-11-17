@@ -19,7 +19,9 @@
 #include "imgui.h"
 #include "richtext.h"
 #include "skillicons.h"
+#include "../mods/aftermath.h"
 #include "ui.h"
+#include "ui_decls.h"
 #include "gamedata.h"
 extern "C" {
 #include "../runtime/cpu.h"
@@ -206,7 +208,7 @@ extern "C" void partypanel_note(int row, const char *text, int good);
 static void sidemsg_hook(void)
 {
     int row = (s16)rw(SS, (u16)(SP + 4)), colour = (s16)rw(SS, (u16)(SP + 6));
-    if (!partypanel_shown() || config_get_int("original", 0)) { hook_call_original(); return; }
+    if ((!partypanel_shown() && !aftermath_victory_loot_pending()) || config_get_int("original", 0)) { hook_call_original(); return; }
     char b[96]; g_str(G_DGROUP, GV_msg_buf, b, sizeof b);
     std::string t = game_text(b, strlen(b));
     {   /* "<skill> changed from X to Y" (skill_change_msg, s021 1ef8:0080): "Edged +3 (now 33)", and
@@ -340,7 +342,7 @@ extern "C" int battlelog_margin(float x, float w, float h, float fs)
 /* no margin: the last lines over the bottom of the battlefield, fading */
 extern "C" void battlelog_overlay(void)
 {
-    if (!ui_battle_log || !battle_showing() || lines.empty() || config_get_int("original", 0)) return;
+    if (!ui_battle_log || !battle_showing() || lines.empty() || lootview_showing() || config_get_int("original", 0)) return;
     float x0, y0, x1, y1; plat_game_to_win(60, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
     { extern int ui_margins_on; float l, d; plat_game_to_win(0, 0, &l, &d); if (ui_margins_on && l >= 150) return; }   /* the left margin shows them */
     ImFont *f = ui_font_overlay;

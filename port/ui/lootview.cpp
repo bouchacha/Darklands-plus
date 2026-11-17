@@ -12,6 +12,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
 #include "../mods/lootview.h"
+#include "../mods/aftermath.h"
 #include "nsdraw.h"
 #include "../mods/gamemodel.h"
 #include "../mods/assist.h"
@@ -70,20 +71,22 @@ extern "C" void lootview_draw(void)
     }
 
     /* the member tabs */
-    const float LX0 = 63, LX1 = 180, RX0 = 184, RX1 = 317, LY0 = 31, ROWH = 9; const int NROWS = 13;
-    const float LY1 = LY0 + NROWS * ROWH;
-    P.text(f, NsDraw::FS_HEAD, LX0 + 1, 21, ink, "The pile");
-    if (l.shared) P.text(f, NsDraw::FS_HEAD, RX0 + 1, 21, ink, "The party's pack");
+    float offset = aftermath_draw(P);
+    const float LX0 = 63, LX1 = 180, RX0 = 184, RX1 = 317, LY0 = 31 + offset, ROWH = 9, LY1 = 148;
+    const int NROWS = (int)((LY1 - LY0) / ROWH);
+    P.text(f, NsDraw::FS_HEAD, LX0 + 1, 21 + offset, ink, "The pile");
+    if (l.shared) P.text(f, NsDraw::FS_HEAD, RX0 + 1, 21 + offset, ink, "The party's pack");
     else {
         int n = 0; for (int m = 0; m < 5; m++) if (l.present[m]) n++;
         float tw = n ? (RX1 - RX0) / n : 0, x = RX0;
         for (int m = 0; m < 5; m++) {
             if (!l.present[m]) continue;
-            bool sel = m == l.who, h = P.over(x, 19, x + tw - 1, 29);
+            float y = 19 + offset;
+            bool sel = m == l.who, h = P.over(x, y, x + tw - 1, y + 10);
             ImU32 bg = sel ? IM_COL32(112, 40, 22, 240) : !l.able[m] ? IM_COL32(210, 200, 180, 255) : h ? IM_COL32(214, 190, 150, 255) : IM_COL32(222, 204, 168, 255);
-            if (sel || l.able[m]) P.tab(x, 19, x + tw - 1, 29, sel, h, 2); else P.rect(x, 19, x + tw - 1, 29, bg, 2);
-            P.text(f, NsDraw::FS_NAME, x + 2.5f, 20.5f, sel ? NsDraw::LIGHT : l.able[m] ? ink : dim, ns_gtext(l.names[m]), -1, x + tw - 2);
-            if (l.able[m] && P.hit(x, 19, x + tw - 1, 29)) ns_push(LV_WHO, m, 0, 0);
+            if (sel || l.able[m]) P.tab(x, y, x + tw - 1, y + 10, sel, h, 2); else P.rect(x, y, x + tw - 1, y + 10, bg, 2);
+            P.text(f, NsDraw::FS_NAME, x + 2.5f, y + 1.5f, sel ? NsDraw::LIGHT : l.able[m] ? ink : dim, ns_gtext(l.names[m]), -1, x + tw - 2);
+            if (l.able[m] && P.hit(x, y, x + tw - 1, y + 10)) ns_push(LV_WHO, m, 0, 0);
             x += tw;
         }
     }
