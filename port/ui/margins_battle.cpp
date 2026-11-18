@@ -147,7 +147,7 @@ static std::vector<OrderEntry> order_entries(void)
                 o.kind = s2 < 0 ? ui_order_icon_for(game_text(e.name, strlen(e.name)).c_str()) : OI_NONE;
                 if (o.kind == OI_ATTACK) o.label = "Standard";                  /* (the game's "Std Attack") */
                 if (e.key[0] && o.pq < 0) o.key = e.key;
-                if (e.key[0] && o.pid < 0) o.label += std::string(" (") + e.key + ")";   /* (the key, also on the button's corner; a potion's quality: the dots on its picture) */
+                if (e.key[0] && o.pid < 0) o.label += std::string(" (") + e.key + ")";   /* (the key, also on the button's corner; a potion's quality: the grade on its picture) */
                 else if (e.key[0] && o.pq >= 0) o.label += std::string(", quality ") + (e.key[0] == 'q' ? e.key + 1 : e.key);
                 v.push_back(o);
             }
@@ -182,7 +182,7 @@ static void order_button(ImDrawList *dl, ImVec2 a, const OrderEntry &e, bool ena
     if (e.pid >= 0) ui_item_icon_q(dl, ic, iw, e.pid, e.pq);
     else if (e.kind != OI_NONE) ui_draw_order_icon(dl, ic, iw * 0.95f, e.kind);
     if (!enabled) ui_dim_since(dl, v0, 0.45f);
-    if (square && e.count > 1) {                                  /* (how many: in the top corner, the quality's marks at the foot) */
+    if (square && e.count > 1) {                                  /* (how many: in the top corner, the grade at the foot) */
         char n[12]; snprintf(n, sizeof n, "%d", e.count);
         float fs = ImGui::GetFontSize() * 0.8f; ImVec2 ts = ImGui::GetFont()->CalcTextSizeA(fs, FLT_MAX, 0, n);
         ImVec2 p(b.x - ts.x - pad * 0.45f, a.y + pad * 0.15f);

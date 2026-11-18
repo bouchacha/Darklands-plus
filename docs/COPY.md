@@ -223,7 +223,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:222` | Skill icons' look |
 | `mods/options.c:222` | heraldic charges on shields (2) or in color (0), wherever a skill or attribute is shown. |
 | `mods/options.c:223` | A potion's grade |
-| `mods/options.c:223` | how a potion's grade shows on its flask (4 chevrons on a badge, 3 chevrons, 1 dots on a strip, 0 small dots). |
+| `mods/options.c:223` | how a potion's grade shows on its flask (5 Roman numerals I to III on a badge, 4 chevrons on a badge, 3 chevrons, 1 dots on a strip, 0 small dots). |
 | `mods/options.c:224` | The Philosopher's Stone |
 | `mods/options.c:224` | how the stone is pictured (2 the squared circle, 1 a rough stone, 0 an egg). |
 | `mods/options.c:225` | the clock shown while hours pass (styles by number). |
@@ -642,7 +642,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/aftermath.cpp:203` | Fell unconscious |
 | `ui/aftermath.cpp:211` |  destroyed (was  |
 | `ui/aftermath.cpp:327` | Battle aftermath |
-| `ui/alchemyicons.cpp:199` | and sometimes appears to make more gold |
+| `ui/alchemyicons.cpp:201` | and sometimes appears to make more gold |
 | `ui/alchemyview.cpp:97` |  mixes; the whole party's ingredients count. |
 | `ui/alchemyview.cpp:101` | The party's Philosopher's Stone |
 | `ui/alchemyview.cpp:101` | No Philosopher's Stone |
@@ -1274,7 +1274,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/guide.cpp:122` | A failed batch at an inn, in a village or a hideout ends in a mishap one time in two: an explosion (the party hurt, damages to pay, no room at that inn for four months) or a stink (no room for a month). Which of the two it is goes by the formula's risk (low, medium, high), but backwards: an explosion three times in four at low risk, two in three at medium, one in two at high. In a camp in the wilds a failure only costs the ingredients: brew there when the chance is poor. |
 | `ui/guide.cpp:123` | +The fix "Riskier alchemy formulae explode more often, not less" (F12 > Settings > Fixes) makes it one time in four at low risk, one in three at medium and one in two at high. |
 | `ui/guide.cpp:124` | A potion is as good as the formula it was brewed with: each potion has three formulae, of grade 1, 2 and 3. |
-| `ui/guide.cpp:125` | +The marks on a flask (one, two or three) show its grade (their look: F12 > Settings > Frames and clock), and the Formulae page lists every formula the party knows: who knows it, its ingredients against those carried, the batches they make and each alchemist's chance. |
+| `ui/guide.cpp:125` | +The numeral on a flask (I, II or III) shows its grade (its look: F12 > Settings > Frames and clock), and the Formulae page lists every formula the party knows: who knows it, its ingredients against those carried, the batches they make and each alchemist's chance. |
 | `ui/guide.cpp:128` | Saints are learned in a library (a town's monastery or university, or a monastery in the country) and called upon with Divine Favor, in a card's options or from the menu. Each saint helps with something different; the chance goes by the caller's Virtue and the Divine Favor spent, against what that saint asks for. |
 | `ui/guide.cpp:129` | Each library teaches four saints, the same for the whole game: one saint to one member a visit, for a small gift. |
 | `ui/guide.cpp:130` | +The character sheet's Saints page, set to Every saint in the game, names the libraries visited that teach each saint the party lacks, and says what each saint really does; the margin ("Saints taught here") and the world map say what a town's library teaches. |
@@ -1530,15 +1530,15 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/lodgeview.cpp:402` | , until rested |
 | `ui/lodgeview.cpp:407` | Click or press a key to skip to the end |
 | `ui/lodgeview.cpp:407` | Click or press a key to skip |
-| `ui/lootview.cpp:62` |  in cash (added to the purse). |
-| `ui/lootview.cpp:62` | No money found. |
-| `ui/lootview.cpp:78` | The party's pack |
-| `ui/lootview.cpp:106` | No potions or spare items in the pack. |
-| `ui/lootview.cpp:106` | Carries nothing. |
-| `ui/lootview.cpp:106` | Nothing left in the pile. |
-| `ui/lootview.cpp:163` | A shop pays about  |
-| `ui/lootview.cpp:167` | Point at an item to see it here; F11 shows what you can do. |
-| `ui/lootview.cpp:168` | Point at an item to see it here. Click a name above the right list (or press D) for another member. |
+| `ui/lootview.cpp:64` |  in cash (added to the purse). |
+| `ui/lootview.cpp:64` | No money found. |
+| `ui/lootview.cpp:80` | The party's pack |
+| `ui/lootview.cpp:121` | No potions or spare items in the pack. |
+| `ui/lootview.cpp:121` | Carries nothing. |
+| `ui/lootview.cpp:121` | Nothing left in the pile. |
+| `ui/lootview.cpp:188` | A shop pays about  |
+| `ui/lootview.cpp:192` | Point at an item to see it here; F11 shows what you can do. |
+| `ui/lootview.cpp:193` | Point at an item to see it here. Click a name above the right list (or press D) for another member. |
 | `ui/mapmsg.cpp:42` | press a key or click to continue |
 | `ui/marchview.cpp:44` | Marching order |
 | `ui/marchview.cpp:45` | The first leads the way; in single file the others follow in this order. |
@@ -1671,138 +1671,138 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/money.cpp:49` |  florin = 20 |
 | `ui/money.cpp:49` |  groschen = 240 |
 | `ui/money.cpp:50` | %ld pfennig%s in all (1 florin = 20 groschen = 240 pfennigs) |
-| `ui/nsdraw.cpp:29` |  against blows,  |
-| `ui/nsdraw.cpp:30` |  against shots and throws; unusable with a two-handed weapon |
-| `ui/nsdraw.cpp:35` | , penetration  |
-| `ui/nsdraw.cpp:36` | , time per blow  |
-| `ui/nsdraw.cpp:37` | draw and loose  |
-| `ui/nsdraw.cpp:43` | Covers body and arms |
-| `ui/nsdraw.cpp:43` | Covers the legs |
-| `ui/nsdraw.cpp:64` | less well made |
-| `ui/nsdraw.cpp:64` | as well made |
-| `ui/nsdraw.cpp:69` |  wears nothing there. |
-| `ui/nsdraw.cpp:73` | q): this is  |
-| `ui/nsdraw.cpp:78` |  carries no shield. |
-| `ui/nsdraw.cpp:79` | q): this is  |
-| `ui/nsdraw.cpp:86` |  Too heavy: it needs {Strength: |
-| `ui/nsdraw.cpp:90` |  In hand now:  |
-| `ui/nsdraw.cpp:90` | , penetration  |
-| `ui/nsdraw.cpp:91` |  No missile weapon equipped. |
-| `ui/nsdraw.cpp:91` |  Nothing in hand now. |
-| `ui/nsdraw.cpp:122` | Harder or better made than what  |
-| `ui/nsdraw.cpp:123` |  nothing there. |
-| `ui/nsdraw.cpp:124` | Everyone wears as good or better there. |
-| `ui/nsdraw.cpp:134` | Better made than the shield of  |
-| `ui/nsdraw.cpp:136` | Everyone's shield is as good or better. |
-| `ui/nsdraw.cpp:151` |  Too heavy for  |
-| `ui/nsdraw.cpp:151` |  (it needs {Strength: |
-| `ui/nsdraw.cpp:172` | Many encounters let you use it. |
-| `ui/nsdraw.cpp:172` | Some encounters let you use it. |
-| `ui/nsdraw.cpp:172` | A few encounters let you use it. |
-| `ui/nsdraw.cpp:172` | No encounter asks for it. |
-| `ui/nsdraw.cpp:190` | Its quality,  |
-| `ui/nsdraw.cpp:190` | , is added to the chance of a chase or a flight on horseback: the best rider's mount  |
-| `ui/nsdraw.cpp:190` | when one must catch up, the poorest rider's when everyone must get away ( |
-| `ui/nsdraw.cpp:202` | For climbing: over a town's walls at night, into a castle and the like, the best climber goes up first and lets it down for the others (without one, each climbs alone). One in the party is enough. |
-| `ui/nsdraw.cpp:203` | For picking locks: shops at night, doors, chests, a cell. One in the party is enough. |
-| `ui/nsdraw.cpp:206` | St. Cecilia, the patron of music, raises the party's standing in a town greatly for a member who carries an instrument. |
-| `ui/nsdraw.cpp:207` |  of the new encounters asks |
-| `ui/nsdraw.cpp:207` |  of the new encounters ask |
-| `ui/nsdraw.cpp:207` |  for one too. |
-| `ui/nsdraw.cpp:211` | One of the Six Keys: the gate to the last chamber of the Baphomet's lair opens only for a party that carries all six. Keep it. |
-| `ui/nsdraw.cpp:212` | A trophy: the boars' tusks, thought to be good-luck charms. Nothing in the game asks for them and no shop buys them. |
-| `ui/nsdraw.cpp:213` | A trophy. Nothing in the game asks for it. |
-| `ui/nsdraw.cpp:214` | A skeleton near a cemetery wants its bone back: give it this and it will talk with you. |
-| `ui/nsdraw.cpp:215` | The dragon's gold cup, taken back from the thief: brandish it before the dragon and it will not breathe fire on its treasure. |
-| `ui/nsdraw.cpp:219` |  of the new encounters asks |
-| `ui/nsdraw.cpp:219` |  of the new encounters ask |
-| `ui/nsdraw.cpp:219` |  for one; nothing in the game's own cards does. |
-| `ui/nsdraw.cpp:220` | Nothing in the game asks for one (no card, no saint): it is worth only what it sells for. |
-| `ui/nsdraw.cpp:222` | Wanted by whoever sent you to fetch it: bring it to them (the quests on the world map, M, say who and where). |
-| `ui/nsdraw.cpp:245` | No formula uses it. |
-| `ui/nsdraw.cpp:275` | ; the other two grades don't use it |
-| `ui/nsdraw.cpp:275` | ; the other grade doesn't use it |
-| `ui/nsdraw.cpp:278` | Dots: the grades (1 to 3) whose formula uses it, gold where the party knows it. Point at a potion for more. |
-| `ui/nsdraw.cpp:279` | Nobody in the party knows a formula with it. Dots: the grades (1 to 3) that use it; point at a potion for more. |
-| `ui/nsdraw.cpp:300` | The party has none. |
-| `ui/nsdraw.cpp:301` | The party has %d. |
-| `ui/nsdraw.cpp:302` | The party has %d: %s |
-| `ui/nsdraw.cpp:306` | Where to buy, nearest first |
-| `ui/nsdraw.cpp:341` | No formula uses it. |
-| `ui/nsdraw.cpp:343` | Goes into (a dot a grade; gold: known) |
-| `ui/nsdraw.cpp:384` | A click: a stock to keep (20, then 50, 100, 200, none); Shift+click: the same for every ingredient. In a town that sells it, a notice while the party has fewer. |
-| `ui/nsdraw.cpp:385` | Stock to keep:  |
-| `ui/nsdraw.cpp:385` | . In a town that sells it, a notice while the party has fewer. A click:  |
-| `ui/nsdraw.cpp:385` | ; Shift+click: that for every ingredient. |
-| `ui/nsdraw.cpp:419` |  Permanently; each dose adds to the last. |
-| `ui/nsdraw.cpp:420` | {Agility} {Perception} {Weapon Skills} |
-| `ui/nsdraw.cpp:423` | A reeking cloud, up to 4 by 4 paces; it hangs 3 s. |
-| `ui/nsdraw.cpp:424` | Prime target |
-| `ui/nsdraw.cpp:424` | Others in the cloud (party included) |
-| `ui/nsdraw.cpp:427` | Blinding powder, a small cloud; it hangs 3 s. The prime target is blinded too: parries only, no shooting or throwing. |
-| `ui/nsdraw.cpp:428` | Prime target |
-| `ui/nsdraw.cpp:431` | Black smoke. While it hangs, shots through it hit a fifth as often, and fighting from inside it costs 15 to hit. |
-| `ui/nsdraw.cpp:433` | The battle's orders never offer it to the party: it is for the encounters, and enemies throw it. |
-| `ui/nsdraw.cpp:435` | Itching powder, a small cloud; it hangs 3 s. |
-| `ui/nsdraw.cpp:436` | {Weapon Skills} |
-| `ui/nsdraw.cpp:436` | For each point of armor worn on the body and limbs |
-| `ui/nsdraw.cpp:439` | Acid on the prime target, at once and permanently: armor eaten to nothing is destroyed; with no armor (or damage left over) it wounds instead. It dissolves locks too. |
-| `ui/nsdraw.cpp:440` | {*Armor Quality} |
-| `ui/nsdraw.cpp:442` | A poison cloud, up to 2 by 2 paces; it hangs 2 s. It wounds at once, through any armor, more on a weaker target. |
-| `ui/nsdraw.cpp:445` | A blinding flash: the prime target, and every enemy of the thrower on that floor who faces it, is blinded (parries only, no shooting or throwing). The thrower's allies are spared. |
-| `ui/nsdraw.cpp:448` | A blast at once on the prime target, less around it. It wears the armor down by a quarter of the damage, permanently. |
-| `ui/nsdraw.cpp:451` | Burning pitch, at once, through any armor; a quarter of it further off, less a tenth of the armor's quality (and of Firewall's {*Fire} protection). It wears the armor down too, permanently. |
-| `ui/nsdraw.cpp:454` | A pool of sticky sludge, up to 4 by 4 paces: whoever crosses it is slowed. |
-| `ui/nsdraw.cpp:455` | Pace while crossing it |
-| `ui/nsdraw.cpp:457` | On every hit the member lands,  |
-| `ui/nsdraw.cpp:457` | with any weapon but an impact weapon or a flail |
-| `ui/nsdraw.cpp:457` | with any weapon: bows, guns, impact weapons and fists too |
-| `ui/nsdraw.cpp:457` | ; damage only, not the chance to hit. |
-| `ui/nsdraw.cpp:460` | On every hit the member lands,  |
-| `ui/nsdraw.cpp:460` | with a blade or a polearm |
-| `ui/nsdraw.cpp:460` | with any weapon |
-| `ui/nsdraw.cpp:461` | , up to 15 in all. |
-| `ui/nsdraw.cpp:461` | ; past 15 it starts again from 0 (a bow's 6 + 10 hits as 0). |
-| `ui/nsdraw.cpp:465` | The weapon in hand counts higher in quality, up to 99 |
-| `ui/nsdraw.cpp:465` | , if it is an impact weapon, a flail or a handgun |
-| `ui/nsdraw.cpp:465` | : bows, guns and fists too |
-| `ui/nsdraw.cpp:466` | ; each 10 points of quality add a step of damage. A second dose adds to the first. |
-| `ui/nsdraw.cpp:467` | {*Weapon Quality} |
-| `ui/nsdraw.cpp:469` | On every hit the member lands, with any weapon.  |
-| `ui/nsdraw.cpp:469` | Penetration counts up to 15 in all. |
-| `ui/nsdraw.cpp:469` | Penetration past 15 starts again from 0, so grades 1 and 3 lower a bow's. |
-| `ui/nsdraw.cpp:474` | Up to 99. A second dose adds to the first. |
-| `ui/nsdraw.cpp:475` | {Bows} {Thrown Weapons} {Missile Devices} |
-| `ui/nsdraw.cpp:478` | Against every blow and shot. A second dose while one runs keeps the stronger. |
-| `ui/nsdraw.cpp:479` | {*Armor Quality} |
-| `ui/nsdraw.cpp:479` | {*Armor} (thickness levels) |
-| `ui/nsdraw.cpp:480` | Against every blow and shot. Permanently; doses add up. |
-| `ui/nsdraw.cpp:483` | Just one florin. It is meant for the encounters, which ask for it (to purify, or to make gold). |
-| `ui/nsdraw.cpp:490` | Past the maximum if need be. |
-| `ui/nsdraw.cpp:491` |  It heals a wounded member, and the healing stays. |
-| `ui/nsdraw.cpp:491` |  It heals a wounded member, but takes it all back when it wears off. |
-| `ui/nsdraw.cpp:492` |  A second dose adds only what goes beyond the first. |
-| `ui/nsdraw.cpp:496` | The {Endurance} heals a wounded member, and the healing stays. |
-| `ui/nsdraw.cpp:496` | The {Endurance} heals a wounded member, but takes it all back when it wears off. |
-| `ui/nsdraw.cpp:497` | {Strength} back, permanently, of what wounds took |
-| `ui/nsdraw.cpp:500` | A second dose keeps the stronger. |
-| `ui/nsdraw.cpp:501` |  And {*Armor} +16 to the armor, permanently. |
-| `ui/nsdraw.cpp:502` | {*Fire} damage from Arabian Fire |
-| `ui/nsdraw.cpp:507` | Used by a member (P in the inventory) |
-| `ui/nsdraw.cpp:524` |  The numbers by grade: 1, 2, 3. |
-| `ui/nsdraw.cpp:607` | too much white space between left and right columns |
-| `ui/nsdraw.cpp:634` | How long it lasts |
-| `ui/nsdraw.cpp:751` |  when equipped |
-| `ui/nsdraw.cpp:777` | a light load: no hindrance |
-| `ui/nsdraw.cpp:777` | a normal load: blows hand to hand a fifth slower |
-| `ui/nsdraw.cpp:778` | a heavy load: blows at the usual pace, dodging hampered |
-| `ui/nsdraw.cpp:778` | overloaded: blows two thirds slower, little or no dodging |
-| `ui/nsdraw.cpp:781` | Worn by %s: load %d \xc2\xbb %d of %d, %s%s |
-| `ui/nsdraw.cpp:845` | Load %d \xc2\xbb %d of %d |
-| `ui/nsdraw.cpp:846` | Load %d of %d |
-| `ui/nsdraw.cpp:902` | Spare equipment |
-| `ui/nsdraw.cpp:902` | Tools and other goods |
-| `ui/nsdraw.cpp:902` | Trophies and quest items |
+| `ui/nsdraw.cpp:30` |  against blows,  |
+| `ui/nsdraw.cpp:31` |  against shots and throws; unusable with a two-handed weapon |
+| `ui/nsdraw.cpp:36` | , penetration  |
+| `ui/nsdraw.cpp:37` | , time per blow  |
+| `ui/nsdraw.cpp:38` | draw and loose  |
+| `ui/nsdraw.cpp:44` | Covers body and arms |
+| `ui/nsdraw.cpp:44` | Covers the legs |
+| `ui/nsdraw.cpp:65` | less well made |
+| `ui/nsdraw.cpp:65` | as well made |
+| `ui/nsdraw.cpp:70` |  wears nothing there. |
+| `ui/nsdraw.cpp:74` | q): this is  |
+| `ui/nsdraw.cpp:79` |  carries no shield. |
+| `ui/nsdraw.cpp:80` | q): this is  |
+| `ui/nsdraw.cpp:87` |  Too heavy: it needs {Strength: |
+| `ui/nsdraw.cpp:91` |  In hand now:  |
+| `ui/nsdraw.cpp:91` | , penetration  |
+| `ui/nsdraw.cpp:92` |  No missile weapon equipped. |
+| `ui/nsdraw.cpp:92` |  Nothing in hand now. |
+| `ui/nsdraw.cpp:123` | Harder or better made than what  |
+| `ui/nsdraw.cpp:124` |  nothing there. |
+| `ui/nsdraw.cpp:125` | Everyone wears as good or better there. |
+| `ui/nsdraw.cpp:135` | Better made than the shield of  |
+| `ui/nsdraw.cpp:137` | Everyone's shield is as good or better. |
+| `ui/nsdraw.cpp:152` |  Too heavy for  |
+| `ui/nsdraw.cpp:152` |  (it needs {Strength: |
+| `ui/nsdraw.cpp:173` | Many encounters let you use it. |
+| `ui/nsdraw.cpp:173` | Some encounters let you use it. |
+| `ui/nsdraw.cpp:173` | A few encounters let you use it. |
+| `ui/nsdraw.cpp:173` | No encounter asks for it. |
+| `ui/nsdraw.cpp:191` | Its quality,  |
+| `ui/nsdraw.cpp:191` | , is added to the chance of a chase or a flight on horseback: the best rider's mount  |
+| `ui/nsdraw.cpp:191` | when one must catch up, the poorest rider's when everyone must get away ( |
+| `ui/nsdraw.cpp:203` | For climbing: over a town's walls at night, into a castle and the like, the best climber goes up first and lets it down for the others (without one, each climbs alone). One in the party is enough. |
+| `ui/nsdraw.cpp:204` | For picking locks: shops at night, doors, chests, a cell. One in the party is enough. |
+| `ui/nsdraw.cpp:207` | St. Cecilia, the patron of music, raises the party's standing in a town greatly for a member who carries an instrument. |
+| `ui/nsdraw.cpp:208` |  of the new encounters asks |
+| `ui/nsdraw.cpp:208` |  of the new encounters ask |
+| `ui/nsdraw.cpp:208` |  for one too. |
+| `ui/nsdraw.cpp:212` | One of the Six Keys: the gate to the last chamber of the Baphomet's lair opens only for a party that carries all six. Keep it. |
+| `ui/nsdraw.cpp:213` | A trophy: the boars' tusks, thought to be good-luck charms. Nothing in the game asks for them and no shop buys them. |
+| `ui/nsdraw.cpp:214` | A trophy. Nothing in the game asks for it. |
+| `ui/nsdraw.cpp:215` | A skeleton near a cemetery wants its bone back: give it this and it will talk with you. |
+| `ui/nsdraw.cpp:216` | The dragon's gold cup, taken back from the thief: brandish it before the dragon and it will not breathe fire on its treasure. |
+| `ui/nsdraw.cpp:220` |  of the new encounters asks |
+| `ui/nsdraw.cpp:220` |  of the new encounters ask |
+| `ui/nsdraw.cpp:220` |  for one; nothing in the game's own cards does. |
+| `ui/nsdraw.cpp:221` | Nothing in the game asks for one (no card, no saint): it is worth only what it sells for. |
+| `ui/nsdraw.cpp:223` | Wanted by whoever sent you to fetch it: bring it to them (the quests on the world map, M, say who and where). |
+| `ui/nsdraw.cpp:246` | No formula uses it. |
+| `ui/nsdraw.cpp:276` | ; the other two grades don't use it |
+| `ui/nsdraw.cpp:276` | ; the other grade doesn't use it |
+| `ui/nsdraw.cpp:279` | Dots: the grades (1 to 3) whose formula uses it, gold where the party knows it. Point at a potion for more. |
+| `ui/nsdraw.cpp:280` | Nobody in the party knows a formula with it. Dots: the grades (1 to 3) that use it; point at a potion for more. |
+| `ui/nsdraw.cpp:301` | The party has none. |
+| `ui/nsdraw.cpp:302` | The party has %d. |
+| `ui/nsdraw.cpp:303` | The party has %d: %s |
+| `ui/nsdraw.cpp:307` | Where to buy, nearest first |
+| `ui/nsdraw.cpp:342` | No formula uses it. |
+| `ui/nsdraw.cpp:344` | Goes into (a dot a grade; gold: known) |
+| `ui/nsdraw.cpp:385` | A click: a stock to keep (20, then 50, 100, 200, none); Shift+click: the same for every ingredient. In a town that sells it, a notice while the party has fewer. |
+| `ui/nsdraw.cpp:386` | Stock to keep:  |
+| `ui/nsdraw.cpp:386` | . In a town that sells it, a notice while the party has fewer. A click:  |
+| `ui/nsdraw.cpp:386` | ; Shift+click: that for every ingredient. |
+| `ui/nsdraw.cpp:420` |  Permanently; each dose adds to the last. |
+| `ui/nsdraw.cpp:421` | {Agility} {Perception} {Weapon Skills} |
+| `ui/nsdraw.cpp:424` | A reeking cloud, up to 4 by 4 paces; it hangs 3 s. |
+| `ui/nsdraw.cpp:425` | Prime target |
+| `ui/nsdraw.cpp:425` | Others in the cloud (party included) |
+| `ui/nsdraw.cpp:428` | Blinding powder, a small cloud; it hangs 3 s. The prime target is blinded too: parries only, no shooting or throwing. |
+| `ui/nsdraw.cpp:429` | Prime target |
+| `ui/nsdraw.cpp:432` | Black smoke. While it hangs, shots through it hit a fifth as often, and fighting from inside it costs 15 to hit. |
+| `ui/nsdraw.cpp:434` | The battle's orders never offer it to the party: it is for the encounters, and enemies throw it. |
+| `ui/nsdraw.cpp:436` | Itching powder, a small cloud; it hangs 3 s. |
+| `ui/nsdraw.cpp:437` | {Weapon Skills} |
+| `ui/nsdraw.cpp:437` | For each point of armor worn on the body and limbs |
+| `ui/nsdraw.cpp:440` | Acid on the prime target, at once and permanently: armor eaten to nothing is destroyed; with no armor (or damage left over) it wounds instead. It dissolves locks too. |
+| `ui/nsdraw.cpp:441` | {*Armor Quality} |
+| `ui/nsdraw.cpp:443` | A poison cloud, up to 2 by 2 paces; it hangs 2 s. It wounds at once, through any armor, more on a weaker target. |
+| `ui/nsdraw.cpp:446` | A blinding flash: the prime target, and every enemy of the thrower on that floor who faces it, is blinded (parries only, no shooting or throwing). The thrower's allies are spared. |
+| `ui/nsdraw.cpp:449` | A blast at once on the prime target, less around it. It wears the armor down by a quarter of the damage, permanently. |
+| `ui/nsdraw.cpp:452` | Burning pitch, at once, through any armor; a quarter of it further off, less a tenth of the armor's quality (and of Firewall's {*Fire} protection). It wears the armor down too, permanently. |
+| `ui/nsdraw.cpp:455` | A pool of sticky sludge, up to 4 by 4 paces: whoever crosses it is slowed. |
+| `ui/nsdraw.cpp:456` | Pace while crossing it |
+| `ui/nsdraw.cpp:458` | On every hit the member lands,  |
+| `ui/nsdraw.cpp:458` | with any weapon but an impact weapon or a flail |
+| `ui/nsdraw.cpp:458` | with any weapon: bows, guns, impact weapons and fists too |
+| `ui/nsdraw.cpp:458` | ; damage only, not the chance to hit. |
+| `ui/nsdraw.cpp:461` | On every hit the member lands,  |
+| `ui/nsdraw.cpp:461` | with a blade or a polearm |
+| `ui/nsdraw.cpp:461` | with any weapon |
+| `ui/nsdraw.cpp:462` | , up to 15 in all. |
+| `ui/nsdraw.cpp:462` | ; past 15 it starts again from 0 (a bow's 6 + 10 hits as 0). |
+| `ui/nsdraw.cpp:466` | The weapon in hand counts higher in quality, up to 99 |
+| `ui/nsdraw.cpp:466` | , if it is an impact weapon, a flail or a handgun |
+| `ui/nsdraw.cpp:466` | : bows, guns and fists too |
+| `ui/nsdraw.cpp:467` | ; each 10 points of quality add a step of damage. A second dose adds to the first. |
+| `ui/nsdraw.cpp:468` | {*Weapon Quality} |
+| `ui/nsdraw.cpp:470` | On every hit the member lands, with any weapon.  |
+| `ui/nsdraw.cpp:470` | Penetration counts up to 15 in all. |
+| `ui/nsdraw.cpp:470` | Penetration past 15 starts again from 0, so grades 1 and 3 lower a bow's. |
+| `ui/nsdraw.cpp:475` | Up to 99. A second dose adds to the first. |
+| `ui/nsdraw.cpp:476` | {Bows} {Thrown Weapons} {Missile Devices} |
+| `ui/nsdraw.cpp:479` | Against every blow and shot. A second dose while one runs keeps the stronger. |
+| `ui/nsdraw.cpp:480` | {*Armor Quality} |
+| `ui/nsdraw.cpp:480` | {*Armor} (thickness levels) |
+| `ui/nsdraw.cpp:481` | Against every blow and shot. Permanently; doses add up. |
+| `ui/nsdraw.cpp:484` | Just one florin. It is meant for the encounters, which ask for it (to purify, or to make gold). |
+| `ui/nsdraw.cpp:491` | Past the maximum if need be. |
+| `ui/nsdraw.cpp:492` |  It heals a wounded member, and the healing stays. |
+| `ui/nsdraw.cpp:492` |  It heals a wounded member, but takes it all back when it wears off. |
+| `ui/nsdraw.cpp:493` |  A second dose adds only what goes beyond the first. |
+| `ui/nsdraw.cpp:497` | The {Endurance} heals a wounded member, and the healing stays. |
+| `ui/nsdraw.cpp:497` | The {Endurance} heals a wounded member, but takes it all back when it wears off. |
+| `ui/nsdraw.cpp:498` | {Strength} back, permanently, of what wounds took |
+| `ui/nsdraw.cpp:501` | A second dose keeps the stronger. |
+| `ui/nsdraw.cpp:502` |  And {*Armor} +16 to the armor, permanently. |
+| `ui/nsdraw.cpp:503` | {*Fire} damage from Arabian Fire |
+| `ui/nsdraw.cpp:508` | Used by a member (P in the inventory) |
+| `ui/nsdraw.cpp:525` |  The numbers by grade: 1, 2, 3. |
+| `ui/nsdraw.cpp:642` | too much white space between left and right columns |
+| `ui/nsdraw.cpp:669` | How long it lasts |
+| `ui/nsdraw.cpp:786` |  when equipped |
+| `ui/nsdraw.cpp:812` | a light load: no hindrance |
+| `ui/nsdraw.cpp:812` | a normal load: blows hand to hand a fifth slower |
+| `ui/nsdraw.cpp:813` | a heavy load: blows at the usual pace, dodging hampered |
+| `ui/nsdraw.cpp:813` | overloaded: blows two thirds slower, little or no dodging |
+| `ui/nsdraw.cpp:816` | Worn by %s: load %d \xc2\xbb %d of %d, %s%s |
+| `ui/nsdraw.cpp:880` | Load %d \xc2\xbb %d of %d |
+| `ui/nsdraw.cpp:881` | Load %d of %d |
+| `ui/nsdraw.cpp:937` | Spare equipment |
+| `ui/nsdraw.cpp:937` | Tools and other goods |
+| `ui/nsdraw.cpp:937` | Trophies and quest items |
 | `ui/optpreview.cpp:43` | The gate is barred. You... |
 | `ui/optpreview.cpp:45` | ...climb the wall |
 | `ui/optpreview.cpp:46` | ...pray to a saint |
@@ -2449,71 +2449,71 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/sheetview.cpp:479` | In effect now:  |
 | `ui/sheetview.cpp:481` |  more (see "Blessings and potions" in the margin). |
 | `ui/sheetview.cpp:506` | Worth about %s |
-| `ui/sheetview.cpp:554` | Carries nothing. |
-| `ui/sheetview.cpp:590` | The party's pack |
-| `ui/sheetview.cpp:613` | Click to show them. |
-| `ui/sheetview.cpp:613` | Click to fold them away. |
-| `ui/sheetview.cpp:625` | Split every potion of every member evenly among the members on their feet, as each potion's Split does. The odd ones stay with whoever holds them, where they can. |
-| `ui/sheetview.cpp:676` | %s has {Virtue:%d}, less than the {Virtue:%d} this relic asks: %s |
-| `ui/sheetview.cpp:677` | it cannot be wielded, and does nothing for their prayers. |
-| `ui/sheetview.cpp:677` | it does nothing for their prayers. |
-| `ui/sheetview.cpp:691` | Split this potion evenly among the members on their feet, every quality of it. The odd ones stay with whoever holds them, where they can. |
-| `ui/sheetview.cpp:702` | Wielding it asks {Virtue:%d}. |
-| `ui/sheetview.cpp:713` | Kept: never sold or dropped (Sell spare gear skips it). Click to stop keeping it. |
-| `ui/sheetview.cpp:714` | Kept: never sold or dropped (Sell spare gear skips it). Click to mark it to sell instead. |
-| `ui/sheetview.cpp:715` | Marked to sell: Sell spare gear in a shop sells it with the spare weapons and armor. Click to clear the mark. |
-| `ui/sheetview.cpp:716` | Keep it: Darklands+ will not sell it (one by one or with Sell spare gear) or drop it until you click again. |
-| `ui/sheetview.cpp:749` | ; hold Shift for one) |
-| `ui/sheetview.cpp:750` | : the party's pack is everyone's already |
-| `ui/sheetview.cpp:751` | : drop it on a member at the left (hold Shift: just one) |
-| `ui/sheetview.cpp:751` | : drop it on a member at the left |
-| `ui/sheetview.cpp:819` | : Virtue too low for this saint |
-| `ui/sheetview.cpp:897` | Known by the party |
-| `ui/sheetview.cpp:914` | Every saint in the game |
-| `ui/sheetview.cpp:928` | Or what it raises: |
-| `ui/sheetview.cpp:928` | Or what it raises: |
-| `ui/sheetview.cpp:942` | %s: the %d saint%s whose help %s it, the most first%s |
-| `ui/sheetview.cpp:942` | The town's opinion of the party (its reputation) |
-| `ui/sheetview.cpp:943` | raises or heals |
-| `ui/sheetview.cpp:943` |  (click again for all) |
-| `ui/sheetview.cpp:969` | No saint helps with that. |
-| `ui/sheetview.cpp:969` | Nobody in the party knows a saint that helps with that. (Every saint in the game shows the others too.) |
-| `ui/sheetview.cpp:1009` | This saint asks a {Virtue} of %d of the one who prays%s. Each member's {Virtue}: %s |
-| `ui/sheetview.cpp:1010` | , more than anyone who knows it has |
-| `ui/sheetview.cpp:1010` | , more than anyone in the party has |
-| `ui/sheetview.cpp:1036` | No library the party has been to teaches this saint. |
-| `ui/sheetview.cpp:1038` | Taught in the library of  |
-| `ui/sheetview.cpp:1061` | Nobody in the party knows this saint. |
-| `ui/sheetview.cpp:1070` | Asks a {%s} of %d%s. |
-| `ui/sheetview.cpp:1070` | Asks a {%s} of %d: too low for %s to call on this saint. |
-| `ui/sheetview.cpp:1071` | , more than anyone in the party has |
-| `ui/sheetview.cpp:1086` | {~Virtue:%d} too low (it asks %d) |
-| `ui/sheetview.cpp:1086` | This saint asks a {Virtue} of %d: no prayer is heard below it. |
-| `ui/sheetview.cpp:1088` | {Divine Favor:%d} needed for a 99%% chance |
-| `ui/sheetview.cpp:1089` | The least Divine Favor that gives the best chance of being heard (of the %d they have): more is spent for nothing. The prayer screen sets the favor. |
-| `ui/sheetview.cpp:1092` | All their Divine Favor gives this chance; a 99%% chance takes {Divine Favor:%d}. The prayer screen sets the favor. |
-| `ui/sheetview.cpp:1093` | All their Divine Favor gives this chance. The prayer screen sets the favor. |
-| `ui/sheetview.cpp:1095` | {Divine Favor:%d} needed at least, has %d |
-| `ui/sheetview.cpp:1096` | This saint hears no prayer of less than %d Divine Favor. |
-| `ui/sheetview.cpp:1100` |  With the %s, it costs them {Divine Favor:%d} less (counted here). |
-| `ui/sheetview.cpp:1105` | Call on this saint now: the prayer screen, where you choose how much Divine Favor to spend. |
-| `ui/sheetview.cpp:1112` | Differs from the description:  |
-| `ui/sheetview.cpp:1161` | Every formula in the game |
-| `ui/sheetview.cpp:1191` | Nobody in the party knows a formula. Every formula in the game shows them all, their ingredients and where they are sold. |
-| `ui/sheetview.cpp:1236` | nobody knows it - sold here |
-| `ui/sheetview.cpp:1236` | nobody knows it |
-| `ui/sheetview.cpp:1256` | The party's ingredients |
-| `ui/sheetview.cpp:1292` | Mystic number %d, %s. |
-| `ui/sheetview.cpp:1292` | risk unknown |
-| `ui/sheetview.cpp:1295` | The mystic number: the higher, the harder the formula is to brew (set against the alchemist's {Alchemy} and {Intelligence}). The risk: how badly a failed brew can go wrong. |
-| `ui/sheetview.cpp:1300` | Enough ingredients to make %d potion%s. |
-| `ui/sheetview.cpp:1301` | The party lacks an ingredient: brewing must wait. |
-| `ui/sheetview.cpp:1301` | The party lacks an ingredient. |
-| `ui/sheetview.cpp:1303` | Chance of brewing one batch |
-| `ui/sheetview.cpp:1313` | Nobody in the party knows it. |
-| `ui/sheetview.cpp:1316` | No alchemist sells it: it is traded for or found. |
-| `ui/sheetview.cpp:1317` | No alchemist the party has been to sells it. |
-| `ui/sheetview.cpp:1322` | Sold by the alchemist of  |
+| `ui/sheetview.cpp:566` | Carries nothing. |
+| `ui/sheetview.cpp:602` | The party's pack |
+| `ui/sheetview.cpp:625` | Click to show them. |
+| `ui/sheetview.cpp:625` | Click to fold them away. |
+| `ui/sheetview.cpp:637` | Split every potion of every member evenly among the members on their feet, as each potion's Split does. The odd ones stay with whoever holds them, where they can. |
+| `ui/sheetview.cpp:704` | %s has {Virtue:%d}, less than the {Virtue:%d} this relic asks: %s |
+| `ui/sheetview.cpp:705` | it cannot be wielded, and does nothing for their prayers. |
+| `ui/sheetview.cpp:705` | it does nothing for their prayers. |
+| `ui/sheetview.cpp:719` | Split this potion evenly among the members on their feet, every quality of it. The odd ones stay with whoever holds them, where they can. |
+| `ui/sheetview.cpp:730` | Wielding it asks {Virtue:%d}. |
+| `ui/sheetview.cpp:741` | Kept: never sold or dropped (Sell spare gear skips it). Click to stop keeping it. |
+| `ui/sheetview.cpp:742` | Kept: never sold or dropped (Sell spare gear skips it). Click to mark it to sell instead. |
+| `ui/sheetview.cpp:743` | Marked to sell: Sell spare gear in a shop sells it with the spare weapons and armor. Click to clear the mark. |
+| `ui/sheetview.cpp:744` | Keep it: Darklands+ will not sell it (one by one or with Sell spare gear) or drop it until you click again. |
+| `ui/sheetview.cpp:777` | ; hold Shift for one) |
+| `ui/sheetview.cpp:778` | : the party's pack is everyone's already |
+| `ui/sheetview.cpp:779` | : drop it on a member at the left (hold Shift: just one) |
+| `ui/sheetview.cpp:779` | : drop it on a member at the left |
+| `ui/sheetview.cpp:847` | : Virtue too low for this saint |
+| `ui/sheetview.cpp:925` | Known by the party |
+| `ui/sheetview.cpp:942` | Every saint in the game |
+| `ui/sheetview.cpp:956` | Or what it raises: |
+| `ui/sheetview.cpp:956` | Or what it raises: |
+| `ui/sheetview.cpp:970` | %s: the %d saint%s whose help %s it, the most first%s |
+| `ui/sheetview.cpp:970` | The town's opinion of the party (its reputation) |
+| `ui/sheetview.cpp:971` | raises or heals |
+| `ui/sheetview.cpp:971` |  (click again for all) |
+| `ui/sheetview.cpp:997` | No saint helps with that. |
+| `ui/sheetview.cpp:997` | Nobody in the party knows a saint that helps with that. (Every saint in the game shows the others too.) |
+| `ui/sheetview.cpp:1037` | This saint asks a {Virtue} of %d of the one who prays%s. Each member's {Virtue}: %s |
+| `ui/sheetview.cpp:1038` | , more than anyone who knows it has |
+| `ui/sheetview.cpp:1038` | , more than anyone in the party has |
+| `ui/sheetview.cpp:1064` | No library the party has been to teaches this saint. |
+| `ui/sheetview.cpp:1066` | Taught in the library of  |
+| `ui/sheetview.cpp:1089` | Nobody in the party knows this saint. |
+| `ui/sheetview.cpp:1098` | Asks a {%s} of %d%s. |
+| `ui/sheetview.cpp:1098` | Asks a {%s} of %d: too low for %s to call on this saint. |
+| `ui/sheetview.cpp:1099` | , more than anyone in the party has |
+| `ui/sheetview.cpp:1114` | {~Virtue:%d} too low (it asks %d) |
+| `ui/sheetview.cpp:1114` | This saint asks a {Virtue} of %d: no prayer is heard below it. |
+| `ui/sheetview.cpp:1116` | {Divine Favor:%d} needed for a 99%% chance |
+| `ui/sheetview.cpp:1117` | The least Divine Favor that gives the best chance of being heard (of the %d they have): more is spent for nothing. The prayer screen sets the favor. |
+| `ui/sheetview.cpp:1120` | All their Divine Favor gives this chance; a 99%% chance takes {Divine Favor:%d}. The prayer screen sets the favor. |
+| `ui/sheetview.cpp:1121` | All their Divine Favor gives this chance. The prayer screen sets the favor. |
+| `ui/sheetview.cpp:1123` | {Divine Favor:%d} needed at least, has %d |
+| `ui/sheetview.cpp:1124` | This saint hears no prayer of less than %d Divine Favor. |
+| `ui/sheetview.cpp:1128` |  With the %s, it costs them {Divine Favor:%d} less (counted here). |
+| `ui/sheetview.cpp:1133` | Call on this saint now: the prayer screen, where you choose how much Divine Favor to spend. |
+| `ui/sheetview.cpp:1140` | Differs from the description:  |
+| `ui/sheetview.cpp:1189` | Every formula in the game |
+| `ui/sheetview.cpp:1219` | Nobody in the party knows a formula. Every formula in the game shows them all, their ingredients and where they are sold. |
+| `ui/sheetview.cpp:1264` | nobody knows it - sold here |
+| `ui/sheetview.cpp:1264` | nobody knows it |
+| `ui/sheetview.cpp:1284` | The party's ingredients |
+| `ui/sheetview.cpp:1320` | Mystic number %d, %s. |
+| `ui/sheetview.cpp:1320` | risk unknown |
+| `ui/sheetview.cpp:1323` | The mystic number: the higher, the harder the formula is to brew (set against the alchemist's {Alchemy} and {Intelligence}). The risk: how badly a failed brew can go wrong. |
+| `ui/sheetview.cpp:1328` | Enough ingredients to make %d potion%s. |
+| `ui/sheetview.cpp:1329` | The party lacks an ingredient: brewing must wait. |
+| `ui/sheetview.cpp:1329` | The party lacks an ingredient. |
+| `ui/sheetview.cpp:1331` | Chance of brewing one batch |
+| `ui/sheetview.cpp:1341` | Nobody in the party knows it. |
+| `ui/sheetview.cpp:1344` | No alchemist sells it: it is traded for or found. |
+| `ui/sheetview.cpp:1345` | No alchemist the party has been to sells it. |
+| `ui/sheetview.cpp:1350` | Sold by the alchemist of  |
 | `ui/skillicons.cpp:462` | Missile Device |
 | `ui/skillicons.cpp:462` | Missile Weapons |
 | `ui/skillicons.cpp:463` | Speak Common |

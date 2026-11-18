@@ -122,7 +122,7 @@ void ui_guide_tab(void)
         "A failed batch at an inn, in a village or a hideout ends in a mishap one time in two: an explosion (the party hurt, damages to pay, no room at that inn for four months) or a stink (no room for a month). Which of the two it is goes by the formula's risk (low, medium, high), but backwards: an explosion three times in four at low risk, two in three at medium, one in two at high. In a camp in the wilds a failure only costs the ingredients: brew there when the chance is poor.",
         "+The fix \"Riskier alchemy formulae explode more often, not less\" (F12 > Settings > Fixes) makes it one time in four at low risk, one in three at medium and one in two at high.",
         "A potion is as good as the formula it was brewed with: each potion has three formulae, of grade 1, 2 and 3.",
-        "+The marks on a flask (one, two or three) show its grade (their look: F12 > Settings > Frames and clock), and the Formulae page lists every formula the party knows: who knows it, its ingredients against those carried, the batches they make and each alchemist's chance.",
+        "+The numeral on a flask (I, II or III) shows its grade (its look: F12 > Settings > Frames and clock), and the Formulae page lists every formula the party knows: who knows it, its ingredients against those carried, the batches they make and each alchemist's chance.",
     });
     topic("Saints", {
         "Saints are learned in a library (a town's monastery or university, or a monastery in the country) and called upon with Divine Favor, in a card's options or from the menu. Each saint helps with something different; the chance goes by the caller's Virtue and the Divine Favor spent, against what that saint asks for.",

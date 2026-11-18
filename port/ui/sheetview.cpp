@@ -525,6 +525,7 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
        folded at first: a long list, rarely looked through) */
     const int folded = config_get_int("sheet.folded", 1 << 5);
     std::vector<int> nsec(2 * NS_NSECT, 0);                /* (a folded section: how many things in it; the member's own after the pack's) */
+    std::map<int, std::vector<int>> grades;                /* (a potion at more than one grade: its row's thing, the first in the tidy order, and all of them) */
     auto section = [&](int sec, int part) {               /* part 0 in use, 1 the member's own, 2 the pack (or all the rest) */
         int bit = part == 1 ? 8 + sec : sec, cnt = part == 1 ? NS_NSECT + sec : sec;
         bool fold = part != 0 && (folded >> bit & 1);
@@ -536,6 +537,17 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
             if (in) { if (fold) nsec[cnt] += it.count > 1 ? it.count : 1; else rows.push_back(i); }
         }
         if (rows.size() == head + 1 && !(fold && nsec[cnt])) rows.pop_back(); else tidy(head + 1);
+        /* the potions: one row a potion, its grades on it (his ask, 1.5.1: a row a grade said each name two or three times) */
+        if (sec == 1 && rows.size() > head + 1) {
+            std::vector<int> one(rows.begin(), rows.begin() + head + 1);
+            for (size_t r = head + 1; r < rows.size(); r++) {
+                int i = rows[r], first = -1;
+                for (size_t q = head + 1; q < one.size() && first < 0; q++) if (s.item[one[q]].id == s.item[i].id) first = one[q];
+                if (first < 0) { one.push_back(i); grades[i].push_back(i); } else grades[first].push_back(i);
+            }
+            rows.swap(one);
+            for (auto it = grades.begin(); it != grades.end();) it = it->second.size() > 1 ? std::next(it) : grades.erase(it);
+        }
     };
     section(0, 0);
     if (s.shared) {
@@ -628,13 +640,29 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
             P.rect(hx + P.width(fo, NsDraw::FS_SMALL, hd) + 2, y + 4.8f, RX1 - 3 - lw, y + 5.1f, IM_COL32(120, 80, 36, 90));
             continue;
         }
+        /* a potion at more than one grade: a flask a grade when pointed at, the buttons (but Split) on the one lit */
+        auto gs = grades.find(i);
+        const bool graded = gs != grades.end();
+        NsGrade gr[8]; int ng = 0, held = -1, dragged = 0, total = 0;
+        if (graded) for (int gi : gs->second) if (ng < 8) {
+            const SvItem &e = s.item[gi];
+            if (gi == V.drop_row) held = ng;
+            dragged |= V.dragging && gi == V.drag_row;
+            total += e.count; gr[ng++] = { e.id, e.qual, e.count };
+        }
+        bool h = !V.dragging && P.over(RX0, y, RX1, y + ROWH), busy = graded ? held >= 0 : i == V.drop_row;
+        if (h || busy || (V.dragging && (graded ? dragged : i == V.drag_row))) P.rect(RX0 + 0.5f, y, RX1 - 0.5f, y + ROWH, IM_COL32(226, 204, 160, 255));
+        float name_x = RX0 + 11;
+        if (graded) {
+            int k = ns_potion_flasks(P, RX0 + 5.5f, y, ROWH, 6.3f, gr, ng, h || busy, held, &name_x);
+            if (V.drag_row == i && !V.dragging) V.drag_row = gs->second[k];   /* (a press on the row: a drag gives the grade lit) */
+            i = gs->second[k];
+        } else P.icon(RX0 + 5.5f, y + ROWH * 0.5f, 6.3f, s.item[i].id, s.item[i].qual);
         const SvItem &it = s.item[i];
-        bool h = !V.dragging && P.over(RX0, y, RX1, y + ROWH), busy = i == V.drop_row;
         if (h) { new_what = 1; new_which = i; hover_carried = i; }
-        if (h || busy || (V.dragging && i == V.drag_row)) P.rect(RX0 + 0.5f, y, RX1 - 0.5f, y + ROWH, IM_COL32(226, 204, 160, 255));
-        P.icon(RX0 + 5.5f, y + ROWH * 0.5f, 6.3f, it.id, it.qual);
         std::string nm = ns_item_name(it.id);
-        if (it.count > 1) nm += " (" + std::to_string(it.count) + ")";
+        int nc = graded ? total : it.count;
+        if (nc > 1 && !(graded && (h || busy))) nm += " (" + std::to_string(nc) + ")";   /* (pointed at: the counts on the flasks) */
         const ItemDef *d = ns_itemdef(it.id);
         /* a potion of this member's own, with another member on their feet: Split (his asks, RC6 and RC9: that potion, every
            quality of it, split evenly among them), left of Drink, or in Drink's place for one only to throw */
@@ -659,11 +687,11 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
            its name (room kept for it), and why under the pointer */
         const bool vlow = d && d->kind == K_RELIC && relics_on() && s.who >= 0 && s.who < 5 && !relic_bearer_ok(s.who, it.id);
         const float room = name_end - (vs ? 6 : 0) - (vlow ? 6 : 0);
-        float nw = P.width(f, NsDraw::FS_NAME, nm), qend = fminf(RX0 + 11 + nw, room);
-        P.text(f, NsDraw::FS_NAME, RX0 + 11, y + 1.0f, ink, nm, -1, room);
-        if (!ns_quality_tag(it.id, it.qual).empty()) {
+        float nw = P.width(f, NsDraw::FS_NAME, nm), qend = fminf(name_x + nw, room);
+        P.text(f, NsDraw::FS_NAME, name_x, y + 1.0f, ink, nm, -1, room);
+        if (!graded && !ns_quality_tag(it.id, it.qual).empty()) {
             char qs[16]; snprintf(qs, sizeof qs, "%s", ns_quality_tag(it.id, it.qual).c_str());
-            float qx = RX0 + 11 + nw + 2;
+            float qx = name_x + nw + 2;
             if (qx + P.width(fo, NsDraw::FS_SMALL, qs) < room) { P.text(fo, NsDraw::FS_SMALL, qx, y + 1.9f, soft, qs); qend = qx + P.width(fo, NsDraw::FS_SMALL, qs); }
         }
         if (vlow) {

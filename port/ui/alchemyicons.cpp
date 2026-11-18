@@ -21,6 +21,7 @@
 
 extern int potion_grade_preview;
 int potion_grade_preview = -1;                 /* (the settings' pictures: this style, not the chosen one) */
+int ui_potion_grade_look(void) { return potion_grade_preview >= 0 ? potion_grade_preview : config_get_int("display.potion_grade", 5); }
 namespace {
 using pen::C;
 using pen::Pen;
@@ -67,13 +68,14 @@ void flask(const Pen &p, ImU32 liq, float fill = 1.0f)
     p.rect(-2.5f, -11.6f, 2.5f, -9.2f, C(0.55f, 0.36f, 0.20f), 0.6f);   // the cork
     p.disc(-3.4f, 0.0f, 1.3f, C(1, 1, 1, 0.65f));                     // a gleam
 }
-/* the grade: one, two or three gold dots down the neck's right side (at least a few pixels each, so
-   that they stay apart and countable in a list's small icon) */
+/* the grade on the flask: I, II or III on a badge in the corner (his choice, 1.5.1: a numeral is read as a grade, never
+   as a count, and the chevrons are the saints' raises); or the earlier looks: chevrons, gold dots down the neck's side */
 void grade_dots(const Pen &p, int tier)
 {
     if (tier < 1) return;
     if (tier > 3) tier = 3;
-    int gm = potion_grade_preview >= 0 ? potion_grade_preview : config_get_int("display.potion_grade", 4);
+    int gm = ui_potion_grade_look();
+    if (gm == 5) { float hw = fmaxf(2.4f, 3.4f / p.u); ui_mark_numeral(p.dl, p.P(5.6f, 8.2f), hw * 1.9f * p.u, tier, false, 0); return; }
     if (gm == 3 || gm == 4) {                                    /* chevrons, as a rank's: one to three, stacked */
         float hw = fmaxf(2.4f, 3.4f / p.u), hh = hw * 0.62f, th = fmaxf(1.1f, 1.7f / p.u), step = hh + th * 1.25f;
         float x = gm == 3 ? 5.6f : 5.8f, y0 = gm == 3 ? -10.4f : 9.6f - (tier - 1) * step;

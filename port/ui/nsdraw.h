@@ -286,6 +286,13 @@ int ns_potion_grade(int id, int q);                   /* a potion's grade (1..3)
 enum { NS_SEAL_UNKNOWN, NS_SEAL_CAN, NS_SEAL_SHORT };
 enum { NS_RING_NONE, NS_RING_CHOSEN, NS_RING_HOVER, NS_RING_SHOWN };
 void ns_grade_seal(NsDraw &P, float x, float y, float r, int grade, int state, bool put, int ring);
+/* a potion carried at more than one grade, on one row (the character sheet, the loot screen): at rest one flask (its grade
+   marked when it is the only one; the caller adds how many in all to the name), pointed at a flask a grade, how many in its
+   top corner, the one the row's buttons act on lit. g: the grades' things, any order; held: one of them to act on whatever
+   the pointer does (a "Sure?" open), else -1. Returns the one acted on (an index into g): the grade under the pointer, else
+   the one clicked last, else the best; *name_x: where the name goes */
+struct NsGrade { int id, qual, count; };
+int ns_potion_flasks(NsDraw &P, float cx, float y, float rowh, float isz, const NsGrade *g, int n, bool pointed, int held, float *name_x);
 float ns_potion_about(NsDraw &P, float gs, float x, float y, float w, int id, int grade, float y_max, float side_y = -1);   /* a potion: its words, what it does
                                      (its table beside them, from side_y if given, where there is room), the encounters; the height */
 float ns_potion_about_height(NsDraw &P, float gs, float w, int id, int grade);

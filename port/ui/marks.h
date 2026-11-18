@@ -14,6 +14,8 @@ void ui_mark_stink(ImDrawList *dl, ImVec2 c, float r, float th);                
 void ui_mark_lost(ImDrawList *dl, ImVec2 c, float r, int item, float th);                 /* the ingredients lost (item: one of them) */
 /* how much, as a rank's chevrons: n (1..3) stacked on a dark badge, the lowest one's middle at base; hw the
    chevrons' half width, th their stroke (pixels). Gold pointing up; down (a cost, a loss): red pointing down.
-   A potion's grade (ui/alchemyicons.cpp); a saint's help where the pictures are not shields (ui_icon_rank). Returns the badge's half width */
+   A saint's help where the pictures are not shields (ui_icon_rank); a potion's grade in the chevron looks. Returns the badge's half width */
 float ui_mark_chevrons(ImDrawList *dl, ImVec2 base, float hw, float th, int n, bool down);
+float ui_mark_numeral(ImDrawList *dl, ImVec2 c, float h, int n, bool bare, ImU32 col);   /* a potion's grade, I to III: on a badge, or bare in col */
+int ui_potion_grade_look(void);   /* how a grade shows (display.potion_grade, 5 the numerals; the settings' pictures: the one drawn): ui/alchemyicons.cpp */
 void ui_campfire_icon(ImDrawList *dl, ImVec2 c, float s);                                 /* s: its height; camp in the wild */

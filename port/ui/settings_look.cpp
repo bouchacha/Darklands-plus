@@ -87,11 +87,11 @@ void pic_choice(const char *id, const char *key, int def, const int *vals, const
 
 void display_icons(void)
 {
-    float cw = fminf((ImGui::GetContentRegionAvail().x - 3 * ImGui::GetStyle().ItemSpacing.x) / 4, UIS(170));
+    float cw = fminf((ImGui::GetContentRegionAvail().x - 4 * ImGui::GetStyle().ItemSpacing.x) / 5, UIS(170));
     ImGui::TextUnformatted("A potion's grade, on its flask");
-    static const int PV[4] = { 4, 3, 1, 0 };
-    static const char *PL[4] = { "Chevrons on a badge", "Chevrons", "Dots on a strip", "Small dots" };
-    pic_choice("pgrade", "display.potion_grade", 4, PV, PL, 4, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
+    static const int PV[5] = { 5, 4, 3, 1, 0 };
+    static const char *PL[5] = { "Numerals", "Chevrons on a badge", "Chevrons", "Dots on a strip", "Small dots" };
+    pic_choice("pgrade", "display.potion_grade", 5, PV, PL, 5, cw, cw * 0.62f, [](ImDrawList *dl, ImVec2 a, ImVec2 b, int v) {
         extern int potion_grade_preview; void ui_item_icon_tier(ImDrawList *dl, ImVec2 c, float s, int id, int tier);
         dl->AddRectFilled(a, b, IM_COL32(244, 234, 210, 255), 4);
         potion_grade_preview = v;

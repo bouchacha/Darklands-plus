@@ -2,6 +2,7 @@
 #include <math.h>
 #include "../runtime/config.h"
 #include "nsdraw.h"
+#include "marks.h"
 #include "libraries.h"
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
@@ -575,10 +576,11 @@ void ns_grade_seal(NsDraw &P, float x, float y, float r, int grade, int state, b
     if (ring == NS_RING_CHOSEN) P.dl->AddCircle(c, rr + 0.75f * P.k, IM_COL32(214, 160, 40, 255), 16, fmaxf(1.0f, 0.45f * P.k));
     else if (ring == NS_RING_HOVER) P.dl->AddCircle(c, rr + 0.7f * P.k, IM_COL32(214, 160, 40, 150), 16, fmaxf(1.0f, 0.35f * P.k));
     else if (ring == NS_RING_SHOWN) P.dl->AddCircle(c, rr + 0.7f * P.k, IM_COL32(120, 80, 36, 170), 16, fmaxf(1.0f, 0.35f * P.k));
-    /* the grade as the flasks show it (display.potion_grade): one to three chevrons, or dots - a digit read as a count */
+    /* the grade as the flasks show it (display.potion_grade): I to III, chevrons, or dots - never a digit, read as a count */
     const ImU32 mc = state != NS_SEAL_UNKNOWN ? IM_COL32(246, 234, 206, 255) : IM_COL32(120, 96, 66, 170);
-    const int n = grade;
-    if (config_get_int("display.potion_grade", 4) >= 3) {
+    const int n = grade, look = ui_potion_grade_look();
+    if (look == 5) ui_mark_numeral(P.dl, c, rr * 1.0f, n, true, mc);
+    else if (look >= 3) {
         const float hw = rr * 0.5f, hh = hw * 0.55f, th2 = fmaxf(1.0f, rr * 0.16f), st = hh + th2 * 1.2f;
         for (int q = 0; q < n; q++) {
             float yy = c.y + (n - 1) * st * 0.5f - q * st;
@@ -589,6 +591,39 @@ void ns_grade_seal(NsDraw &P, float x, float y, float r, int grade, int state, b
         const float dr = fmaxf(1.0f, rr * 0.17f), st = dr * 2.7f;
         for (int q = 0; q < n; q++) P.dl->AddCircleFilled(ImVec2(c.x + ((n - 1) * 0.5f - q) * st, c.y), dr, mc, 10);
     }
+}
+
+int ns_potion_flasks(NsDraw &P, float cx, float y, float rowh, float isz, const NsGrade *g, int n, bool pointed, int held, float *name_x)
+{
+    static int pin_id = -1, pin_q = -1;                 /* (the grade clicked, as thing and quality: the lists are rebuilt after each action) */
+    int ord[8], m = 0;
+    for (int k = 0; k < n && m < 8; k++) ord[m++] = k;
+    std::stable_sort(ord, ord + m, [&](int a, int b) { return g[a].qual < g[b].qual; });   /* (the grades in order: a grade is a range of quality) */
+    const float step = isz + 2.6f, my = y + rowh * 0.5f;
+    int on = -1, pin = -1;
+    for (int k = 0; k < m; k++) if (g[ord[k]].id == pin_id && g[ord[k]].qual == pin_q) pin = ord[k];
+    if (pointed) for (int k = 0; k < m; k++) { float fx = cx + k * step; if (P.over(fx - step * 0.5f, y, fx + step * 0.5f, y + rowh)) on = ord[k]; }
+    if (on >= 0 && P.click && held < 0) { pin_id = g[on].id; pin_q = g[on].qual; pin = on; P.click = false; }
+    int t = held >= 0 ? held : on >= 0 ? on : pin >= 0 ? pin : ord[m - 1];
+    if (!pointed && held < 0) {
+        if (m == 1) P.icon(cx, my, isz, g[0].id, g[0].qual); else P.icon(cx, my, isz, g[0].id);
+        *name_x = cx + isz * 0.5f + 2.0f;
+        return t;
+    }
+    for (int k = 0; k < m; k++) {
+        const NsGrade &e = g[ord[k]];
+        float fx = cx + k * step;
+        if (ord[k] == t) {                              /* (the one lit: a pale square framed in brown, gold under the pointer) */
+            float a0 = fx - step * 0.5f + 0.3f, a1 = fx + step * 0.5f - 0.3f;
+            P.rect(a0, y + 0.4f, a1, y + rowh - 0.4f, IM_COL32(252, 244, 222, 255), 1.2f);
+            P.frame(a0, y + 0.4f, a1, y + rowh - 0.4f, ord[k] == on ? IM_COL32(200, 146, 36, 255) : IM_COL32(130, 88, 40, 255), 1.2f);
+        }
+        P.icon(fx, my, isz, e.id, e.qual);
+        std::string c = std::to_string(e.count);
+        P.text(P.fo, 3.9f, fx + step * 0.5f - P.width(P.fo, 3.9f, c) - 0.2f, y + 0.1f, NsDraw::INK, c);
+    }
+    *name_x = cx + (m - 1) * step + isz * 0.5f + 2.6f;
+    return t;
 }
 
 /* a potion's grade (1..3) from its quality, 0 not known */
@@ -794,7 +829,7 @@ std::string ns_quality_tag(int id, int qual)
     char b[24] = "";
     const ItemDef *d = ns_itemdef(id);
     if (ns_shows_quality(id, qual)) snprintf(b, sizeof b, "%dq", qual);
-    else if (d && d->kind == K_POTION && config_get_int("display.potion_grade", 4) == 2) {
+    else if (d && d->kind == K_POTION && ui_potion_grade_look() == 2) {
         int ui_potion_tier(int q, int base);
         int t = ui_potion_tier(qual, d->quality);
         if (t > 0) snprintf(b, sizeof b, "grade %d", t);

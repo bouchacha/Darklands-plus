@@ -14,6 +14,8 @@
 #include "../mods/lootview.h"
 #include "../mods/aftermath.h"
 #include "nsdraw.h"
+#include <map>
+#include <vector>
 #include "../mods/gamemodel.h"
 #include "../mods/assist.h"
 #include "../runtime/config.h"
@@ -95,7 +97,20 @@ extern "C" void lootview_draw(void)
     int new_hl = -1, new_hr = -1;
     for (int L = 0; L < 2; L++) {
         float x0 = L ? RX0 : LX0, x1 = L ? RX1 : LX1;
-        int n = L ? l.nitems : l.npile;
+        int n0 = L ? l.nitems : l.npile;
+        /* the rows: a potion at more than one grade on one row (as on the character sheet: ns_potion_flasks), in the
+           shared pack one for each owner's */
+        std::vector<int> rows;
+        std::map<int, std::vector<int>> grades;
+        for (int i = 0; i < n0; i++) {
+            int id = L ? l.item[i].id : l.pile[i].id, own = L ? l.item[i].owner : -1, first = -1;
+            const ItemDef *d = ns_itemdef(id);
+            if (d && d->kind == K_POTION && !(L && l.item[i].equipped))
+                for (int q : rows) if ((L ? l.item[q].id : l.pile[q].id) == id && (L ? l.item[q].owner : -1) == own) { first = q; break; }
+            if (first < 0) { rows.push_back(i); grades[i].push_back(i); } else grades[first].push_back(i);
+        }
+        for (auto it = grades.begin(); it != grades.end();) it = it->second.size() > 1 ? std::next(it) : grades.erase(it);
+        int n = (int)rows.size();
         P.rect(x0, LY0 - 1, x1, LY1 + 1, IM_COL32(250, 242, 222, 255), 1.5f);
         P.frame(x0, LY0 - 1, x1, LY1 + 1, IM_COL32(120, 80, 36, 90), 1.5f);
         bool over = P.over(x0, LY0, x1, LY1) || (!L && !P.over(RX0, LY0, RX1, LY1));
@@ -105,27 +120,37 @@ extern "C" void lootview_draw(void)
         if (V.scroll[L] < 0) V.scroll[L] = 0;
         if (!n) P.text(fo, NsDraw::FS_BODY, x0 + 4, LY0 + 3, dim, L ? (l.shared ? "No potions or spare items in the pack." : "Carries nothing.") : "Nothing left in the pile.");
         for (int r = 0; r < NROWS && V.scroll[L] + r < n; r++) {
-            int i = V.scroll[L] + r;
+            int i = rows[V.scroll[L] + r];
             float y = LY0 + r * ROWH;
-            int id = L ? l.item[i].id : l.pile[i].id, qual = L ? l.item[i].qual : l.pile[i].qual, count = L ? l.item[i].count : l.pile[i].count;
-            int eq = L ? l.item[i].equipped : 0, kept = L ? l.item[i].kept : 0, own = L && l.shared && l.item[i].potion;
             bool h = P.over(x0, y, x1, y + ROWH);
-            if (h) { new_hl = L; new_hr = i; }
             if (h) P.rect(x0 + 0.5f, y, x1 - 0.5f, y + ROWH, IM_COL32(226, 204, 160, 255));
             else if (r & 1) P.rect(x0 + 0.5f, y, x1 - 0.5f, y + ROWH, IM_COL32(240, 230, 204, 255));
-            P.icon(x0 + 6.5f, y + ROWH * 0.5f, 7.0f, id, qual);
+            auto gs = grades.find(i);
+            const bool graded = gs != grades.end();
+            float name_x = x0 + 12;
+            int total = 0;
+            if (graded) {                                   /* (a flask a grade when pointed at; Take and Put on the one lit) */
+                NsGrade gr[8]; int ng = 0;
+                for (int gi : gs->second) if (ng < 8) { int c = L ? l.item[gi].count : l.pile[gi].count; total += c; gr[ng++] = { L ? l.item[gi].id : l.pile[gi].id, L ? l.item[gi].qual : l.pile[gi].qual, c }; }
+                i = gs->second[ns_potion_flasks(P, x0 + 6.5f, y, ROWH, 7.0f, gr, ng, h, -1, &name_x)];
+            }
+            if (h) { new_hl = L; new_hr = i; }
+            int id = L ? l.item[i].id : l.pile[i].id, qual = L ? l.item[i].qual : l.pile[i].qual, count = L ? l.item[i].count : l.pile[i].count;
+            int eq = L ? l.item[i].equipped : 0, kept = L ? l.item[i].kept : 0, own = L && l.shared && l.item[i].potion;
+            if (!graded) P.icon(x0 + 6.5f, y + ROWH * 0.5f, 7.0f, id, qual);
             std::string nm = ns_item_name(id);
-            if (count > 1) nm += " (" + std::to_string(count) + ")";
-            char qs[16]; snprintf(qs, sizeof qs, "%s", ns_quality_tag(id, qual).c_str());
+            int nc = graded ? total : count;
+            if (nc > 1 && !(graded && h)) nm += " (" + std::to_string(nc) + ")";   /* (pointed at: the counts on the flasks) */
+            char qs[16]; snprintf(qs, sizeof qs, "%s", graded ? "" : ns_quality_tag(id, qual).c_str());
             int ow = L ? l.item[i].owner : -1;
             std::string owner = own && ow >= 0 && ow < 5 ? rich_member(ow) : std::string();   /* (whose: their head) */
             if (eq) P.rect(x0 + 0.5f, y + 1, x0 + 1.8f, y + ROWH - 1, NsDraw::RED);   /* equipped: a red mark at its left (said in the strip) */
             const char *tag = own ? owner.c_str() : kept ? "kept" : NULL;
             float tagw = tag ? P.tag_width(tag) : 0;
             float name_end = h ? x1 - (count > 1 ? 36 : 24) : x1 - 3 - P.width(fo, NsDraw::FS_BODY, qs) - 3;
-            P.text(f, NsDraw::FS_NAME, x0 + 12, y + 1.3f, ink, nm, -1, name_end - tagw);
+            P.text(f, NsDraw::FS_NAME, name_x, y + 1.3f, ink, nm, -1, name_end - tagw);
             if (tag) {
-                float nx = fminf(x0 + 12 + P.width(f, NsDraw::FS_NAME, nm) + 2, name_end - tagw);
+                float nx = fminf(name_x + P.width(f, NsDraw::FS_NAME, nm) + 2, name_end - tagw);
                 P.tag(nx, y, ROWH, tag, own ? NsDraw::TAG_OWNER : NsDraw::TAG_KEPT);
             }
             if (!h) { P.text(fo, NsDraw::FS_BODY, 0, y + 2.2f, soft, qs, x1 - 3); continue; }

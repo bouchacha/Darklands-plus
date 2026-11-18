@@ -739,3 +739,10 @@ covered and found, and what it could not check.
   (cards_up_hook) and by a save made in it (battle_save_hook, new): the game's save in a battle reads
   events.tmp over the battle's table and frees the whole table after; the hook lends it events.tmp as it
   will be once the battle ends and keeps the battle's table out of its way.
+- 2026-11-18 (his asks: potions listed a row a grade; Roman numerals for grades): a potion at several grades
+  is one row through one helper, ui/nsdraw.cpp ns_potion_flasks (at rest one flask and the total, pointed at a
+  flask a grade with its count, the one the buttons act on lit; the choice kept by thing and quality, as the
+  lists are rebuilt after each action), used by the character sheet and the loot screen; shops keep a row a
+  grade (each has its price). How a grade shows is read in one place, ui_potion_grade_look() (marks.h; the
+  settings' pictures through it), the numeral drawn by ui/marks.cpp ui_mark_numeral (on the flask's badge,
+  bare in a formula's seal). Chevrons now mean only the saints' raises and lowers.

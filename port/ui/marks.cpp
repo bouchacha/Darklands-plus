@@ -72,6 +72,24 @@ float ui_mark_chevrons(ImDrawList *dl, ImVec2 base, float hw, float th, int n, b
     return hw + th;
 }
 
+/* a grade as a Roman numeral, I to III, centred at c, h its height: as the serif type draws it, the strokes joined by
+   a bar above and below. On a dark badge in gold (a flask's corner), or bare in col (a formula's seal) */
+float ui_mark_numeral(ImDrawList *dl, ImVec2 c, float h, int n, bool bare, ImU32 col)
+{
+    if (n < 1) return 0;
+    if (n > 3) n = 3;
+    float th = fmaxf(1.0f, h * 0.2f), sp = fmaxf(th * 2.1f, h * 0.38f), w = (n - 1) * sp, ser = th * 1.1f;
+    float x0 = c.x - w * 0.5f, y0 = c.y - h * 0.5f, y1 = c.y + h * 0.5f;
+    if (!bare) {
+        dl->AddRectFilled(ImVec2(x0 - ser - th * 1.1f, y0 - th * 1.1f), ImVec2(x0 + w + ser + th * 1.1f, y1 + th * 1.1f), IM_COL32(41, 26, 13, 235), th);
+        col = IM_COL32(255, 209, 51, 255);
+    }
+    for (int k = 0; k < n; k++) dl->AddLine(ImVec2(x0 + k * sp, y0), ImVec2(x0 + k * sp, y1), col, th);
+    dl->AddLine(ImVec2(x0 - ser, y0 + th * 0.5f), ImVec2(x0 + w + ser, y0 + th * 0.5f), col, th * 0.8f);
+    dl->AddLine(ImVec2(x0 - ser, y1 - th * 0.5f), ImVec2(x0 + w + ser, y1 - th * 0.5f), col, th * 0.8f);
+    return w * 0.5f + ser + th * 1.1f;
+}
+
 /* a small campfire: two crossed logs, the flames over them (the map's "C: camp here", the campfire under the clock) */
 void ui_campfire_icon(ImDrawList *dl, ImVec2 c, float s)
 {
