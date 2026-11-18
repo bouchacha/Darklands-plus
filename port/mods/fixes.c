@@ -447,6 +447,8 @@ Fix FIXES[] = {
       "In a fight, a member who stepped onto stairs went to the other floor alone. The game keeps only the floor on screen in memory, so whoever was on the other floor walked through walls that were not there, opened the wrong doors and chests, set off the wrong traps, dropped his pack on the wrong floor and was seen by enemies who were not there. Now everyone on that floor goes along, the knocked-out carried, as the party does outside a fight; the enemies who saw it follow later.", 1 },
     { "altarroad", "Encounters by a pagan altar come one at a time",
       "Beside a pagan altar the chance of an encounter is up to a hundred times the usual, tried at each small step of the party's marker, and the step that brings one leaves the party where it was: on the tile before the altar, encounter followed encounter. Now, after one there, the altar adds nothing to the chance until the party reaches it or walks away; the land's own chance stays.", 1 },
+    { "bountybrief", "A robber-knight briefing names the right patron",
+      "The briefing looked for a quest giver with the castle's number. It now reads the quest from the office that just commissioned it, so the same person speaks throughout.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -643,6 +645,79 @@ static void bounty_hook(void)              /* $Raubi01 card, s080 1870:000c */
         g_ww(GV_saved_card2, (u16)only);
     }
     hook_call_original();
+}
+
+/* ---------------------------------------------------------------- bountybrief */
+static int briefing_event = -1;
+
+/* The return card identifies the issuing office.
+ * The retail offices share the market return route, so any of those three can match. */
+static int bounty_briefing_office(int back, int owner)
+{
+    switch (back) {
+    case 0x15: case 0x16: return owner == 0 || owner == 4 || owner == 5;
+    case 0x43: return owner == 8;            /* Fugger */
+    case 0x45: return owner == 6;            /* Medici */
+    case 0x47: return owner == 7;            /* Hanse */
+    case 0x86: return owner == 9;            /* Schulz */
+    case 6: case 8: case 0xc: case 0x12: case 0x19: return owner == 10;  /* council or lord */
+    default: return 1;
+    }
+}
+
+static u32 bounty_briefing_date(u32 e)
+{
+    u32 year = (u16)g_ev(e, G_EV_START + 6), month = (u16)g_ev(e, G_EV_START + 4);
+    u32 day = (u16)g_ev(e, G_EV_START + 2), hour = (u16)g_ev(e, G_EV_START);
+    return ((year * 16 + month) * 32 + day) * 24 + hour;
+}
+
+static void bounty_briefing_event_hook(void)
+{
+    /* $Raubi00 calls event_find(8, -1, -1, castle, 3, -1): the castle went in the owner slot. */
+    if (briefing_event >= 0 && rw(SS, (u16)(SP + 4)) == 8
+        && rw(SS, (u16)(SP + 6)) == 0xffff && rw(SS, (u16)(SP + 8)) == 0xffff
+        && rw(SS, (u16)(SP + 10)) == g_rw(GV_saved_card2)
+        && rw(SS, (u16)(SP + 12)) == 3 && rw(SS, (u16)(SP + 14)) == 0xffff) {
+        AX = (u16)briefing_event;
+        briefing_event = -1;
+        hook_return_far(0);
+        return;
+    }
+    hook_call_original();
+}
+
+static void bounty_briefing_hook(void)      /* $Raubi00, s080 1838:0000 */
+{
+    int town = (s16)g_rw(G_CUR_LOC), castle = (s16)g_rw(GV_saved_card2), back = g_rw(GV_saved_card);
+    int found = -1;
+    u32 latest = 0;
+    if (town >= 0 && g_location(castle)) {
+        for (int i = 0; i < G_NEVENTS; i++) {
+            u32 e = g_event(i);
+            if (!e || g_ev(e, G_EV_KIND) != 8 || g_ev(e, G_EV_TAG) != 3
+                || g_ev(e, G_EV_LOC) != castle || g_ev(e, G_EV_VALUE) != town) continue;
+            if (!bounty_briefing_office(back, g_ev(e, G_EV_OWNER))) continue;
+            /* The market offers advance an hour after writing their event, so the newest
+             * matching event identifies the offer that led to this shared briefing. */
+            u32 start = bounty_briefing_date(e);
+            if (found == -1 || start > latest) { found = i; latest = start; }
+        }
+    }
+    if (found < 0 || !hook_install(GF_event_find, bounty_briefing_event_hook)) {
+        /* The original would dereference events[-1] here. Return to the commissioning office. */
+        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix bountybrief: no patron for castle %d from town %d\n", castle, town);
+        g_ww(GV_next_card, (u16)back);
+        AX = (u16)back;
+        hook_return_far(0);
+        return;
+    }
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix bountybrief: castle %d from town %d, event %d (office %d, name seed %d)\n",
+        castle, town, found, g_ev(g_event(found), G_EV_OWNER), g_ev(g_event(found), G_EV_TYPE0));
+    briefing_event = found;
+    hook_call_original();
+    hook_remove(GF_event_find, bounty_briefing_event_hook);
+    briefing_event = -1;
 }
 
 /* ---------------------------------------------------------------- alchemy */
@@ -4166,7 +4241,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook },
     { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook }, { 30, 0x1462, 0x1c76, westedge_hook }, { GF_lock_pick, bestpick_hook },
     { 37, 0x1462, 0x2ace, save_records_hook }, { -2, 0, 0, 0 }, { 38, 0x1462, 0x02f8, innroster_key_hook }, { GF_party_remove, leaving_record_hook }, { -2, 0, 0, 0 }, { 37, 0x1c7d, 0x0d24, duplicate_load_hook }, { 16, 0x1ef8, 0x0f76, dissolve_key_hook }, { -2, 0, 0, 0 },
-    { 14, 0x0e76, 0x0694, thrown_end_hook }, { 14, 0x19cd, 0x0738, nosel_leave_hook }, { 18, 0x1f43, 0x0256, castsight_hook }, { GF_path_find, doorplan_hook }, { 30, 0x1462, 0x1dd4, maprows_hook }, { 87, 0x1986, 0x01e6, fruitonce_hook }, { 53, 0x1838, 0x02d6, footpadsonce_hook }, { 30, 0x1462, 0x25be, campwatch_hook }, { 14, 0x0e76, 0x0f58, exitleft_tick_hook }, { -2, 0, 0, 0 }, { -2, 0, 0, 0 } };   /* (hitsound: mods/sfx.c; savecheck: mods/saves.c; cachefile: mods/cachefile.c; stairsreturn: mods/stairsfix.c; onefloor: mods/levelwalk.c; altarroad: mods/travel.c) */
+    { 14, 0x0e76, 0x0694, thrown_end_hook }, { 14, 0x19cd, 0x0738, nosel_leave_hook }, { 18, 0x1f43, 0x0256, castsight_hook }, { GF_path_find, doorplan_hook }, { 30, 0x1462, 0x1dd4, maprows_hook }, { 87, 0x1986, 0x01e6, fruitonce_hook }, { 53, 0x1838, 0x02d6, footpadsonce_hook }, { 30, 0x1462, 0x25be, campwatch_hook }, { 14, 0x0e76, 0x0f58, exitleft_tick_hook }, { -2, 0, 0, 0 }, { -2, 0, 0, 0 }, { 80, 0x1838, 0x0000, bounty_briefing_hook } };   /* (hitsound: mods/sfx.c; savecheck: mods/saves.c; cachefile: mods/cachefile.c; stairsreturn: mods/stairsfix.c; onefloor: mods/levelwalk.c; altarroad: mods/travel.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
