@@ -46,6 +46,12 @@ std::string ns_item_line(int id, int q)
     return "";
 }
 
+/* The penalties applied by weapon_ready (s014 18bf:0a40), before the combat rating is clamped. */
+int ns_weapon_penalty(int skill_shortfall, int strength_shortfall, bool shot)
+{
+    return 2 * std::max(0, skill_shortfall) + (shot ? 1 : 3) * std::max(0, strength_shortfall);
+}
+
 /* a weapon or an armour against what member m has in that place now (the equipment slots of the
  * member record: weapon +0x3d/+0x44, missile +0x0e/+0x46, body +0x37/+0x3b, legs +0x38/+0x3c,
  * shield +0x48/+0x47: type and quality); "" for other things */

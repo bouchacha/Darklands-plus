@@ -442,8 +442,16 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         if (item_weaponlike(d) && d->type <= 33) {
             int sk = rb(G_FAR20A5, (u16)(0x75ac + d->type)), minsk = rb(G_FAR20A5, (u16)(0x7726 + d->type)), minst = rb(G_FAR20A5, (u16)(0x7765 + d->type));
             int have = sk < 7 ? s.skill[sk] : 0;
-            std::string fit = (have < minsk ? "needs " + std::to_string(minsk - have) + " more skill" : std::string("")) +
-                              (s.attr[1] < minst ? std::string(have < minsk ? ", " : "") + "too weak by " + std::to_string(minst - s.attr[1]) : "");
+            const bool shot = sk >= 4 && sk <= 6;
+            const int skill_shortfall = minsk - have, strength_shortfall = minst - s.attr_max[1];
+            const int penalty = ns_weapon_penalty(skill_shortfall, strength_shortfall, shot);
+            std::string fit;
+            if (penalty) {
+                fit = "-" + std::to_string(penalty) + (shot ? " to aim" : " to attack and defense") + " from low ";
+                if (skill_shortfall > 0) fit += strength_shortfall > 0 ? "skill and maximum {Strength}" : "skill";
+                else fit += "maximum {Strength}";
+                if (strength_shortfall > 0) fit += shot ? ", with weaker hits" : ", with weaker blows";
+            }
             if (relic_low && relic_is_weapon(it.id))                   /* (a weapon relic asks its Virtue) */
                 fit = "{Virtue:" + std::to_string(relic_member_virtue(s.who)) + "}, too little to wield it" + (fit.empty() ? "" : "; " + fit);
             P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, fit.empty() ? NsDraw::GREEN : NsDraw::RED, fit.empty() ? ns_gtext(s.names[s.who]) + " can use it well" : ns_gtext(s.names[s.who]) + ": " + fit);

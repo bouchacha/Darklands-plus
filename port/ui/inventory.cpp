@@ -703,12 +703,12 @@ void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's qual
         const bool shot = sk >= 4 && sk <= 6;                 /* (Thrown, Bows, Missile Devices: aimed) */
         if (shot) {
             ui_rich_textf("Needs {%s:%d}: each point below, -2 to aim", gm_skill_name(sk), minsk);
-            if (maxst < 99) ui_rich_textf("Best with {Strength:%d to %d}: each point below, -1 to aim and weaker hits; above, harder hits", minst, maxst);
-            else ui_rich_textf("Needs {Strength:%d}: each point below, -1 to aim and weaker hits", minst);
+            if (maxst < 99) ui_rich_textf("Best with maximum {Strength:%d to %d}: each point below, -1 to aim and weaker hits; above, harder hits", minst, maxst);
+            else ui_rich_textf("Below maximum {Strength:%d}: -1 to aim per point and weaker hits", minst);
         } else {
             ui_rich_textf("Needs {%s:%d}: each point below, -2 to attack and defense hand to hand", gm_skill_name(sk), minsk);
-            if (maxst < 99) ui_rich_textf("Best with {Strength:%d to %d}: each point below, -3 to attack and defense and weaker blows;\neach point above, +2 and harder blows", minst, maxst);
-            else ui_rich_textf("Needs {Strength:%d}: each point below, -3 to attack and defense and weaker blows", minst);
+            if (maxst < 99) ui_rich_textf("Best with maximum {Strength:%d to %d}: each point below, -3 to attack and defense and weaker blows;\neach point above, +2 and harder blows", minst, maxst);
+            else ui_rich_textf("Below maximum {Strength:%d}: -3 to attack and defense per point and weaker blows", minst);
         }
         /* who in the party could use it, and what it would cost them */
         ImGui::Separator();
@@ -716,13 +716,13 @@ void ui_item_details(const ItemDef *d, int id, int q)    /* (q: the thing's qual
         for (int m = 0; m < size; m++) {
             u16 b = G_MEMBER(m);
             char n[16]; g_str(G_DGROUP, (u16)(b + G_M_SHORTNAME), n, sizeof n);
-            int have = sk < 7 ? (s8)g_rb((u16)(b + G_M_SKILLS + sk)) : 0, str = (s8)g_rb((u16)(b + G_M_ATTR_CUR + 1));
+            int have = sk < 7 ? (s8)g_rb((u16)(b + G_M_SKILLS + sk)) : 0, str = (s8)g_rb((u16)(b + G_M_ATTR_MAX + 1));
             int ss = minsk - have, ws = minst - str;
             std::string v;
             if (ss > 0) v += std::to_string(ss) + (ss == 1 ? " point" : " points") + " short in skill";
-            if (ws > 0) v += std::string(v.empty() ? "" : ", ") + std::to_string(ws) + (ws == 1 ? " point" : " points") + " short in Strength";
+            if (ws > 0) v += std::string(v.empty() ? "" : ", ") + std::to_string(ws) + (ws == 1 ? " point" : " points") + " short in maximum Strength";
             if (v.empty()) v = str > maxst && maxst < 99 ? (shot ? "a good fit, and strong enough for harder hits" : "a good fit, and strong enough for harder blows") : "a good fit";
-            int loss = 2 * (ss > 0 ? ss : 0) + (shot ? 1 : 3) * (ws > 0 ? ws : 0);
+            int loss = ns_weapon_penalty(ss, ws, shot);
             ImVec4 c = loss ? ImVec4(0.62f, 0.20f, 0.12f, 1) : ImVec4(0.18f, 0.40f, 0.16f, 1);
             if (loss) ui_rich_textf_c(c, "%s: {%s:%d} {Strength:%d} - %s: -%d to %s", game_text(n, sizeof n).c_str(), gm_skill_name(sk), have, str, v.c_str(), loss, shot ? "aim" : "attack and defense");
             else ui_rich_textf_c(c, "%s: {%s:%d} {Strength:%d} - %s", game_text(n, sizeof n).c_str(), gm_skill_name(sk), have, str, v.c_str());

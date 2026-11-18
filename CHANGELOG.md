@@ -56,6 +56,8 @@ From Arkana Mechanika's Darklands Restoration register:
 
 All eight are woodk123's pull requests (#14 to #21), from bugs listed by Arkana Mechanika's Darklands Restoration.
 
+- **Weapon penalties on the character sheet:** low skill or maximum Strength shows the penalty to attack and defense or aim. A member can still equip the weapon, subject to the Virtue requirement of a weapon relic.
+
 ## 1.5
 
 What changed since 1.4.6.
