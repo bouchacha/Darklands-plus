@@ -317,6 +317,15 @@ the map's) stay the game's. `sounds/NAME.wav` (or `.ogg`, `NAME2.wav` ...
 for variations) replaces a battle sound; the names are listed in F12 > Settings > Sound, under
 "Custom sound packs". Mods can carry both folders; a mod's files win over the game folder's.
 
+The native start menu also uses `art/STARTSCR.png` for its background and
+`art/STARTLOGO.png` for its title lettering. Both follow the replacement-art switch,
+mod priority and art rescan. The background fills the existing right-hand picture
+area, with the parchment fading over its left side. A transparent PNG is recommended
+for the logo; it is centered and fitted above the subtitle without changing its
+aspect ratio. Keep transparent padding small. Missing or unreadable replacements
+fall back independently to the original APROCH1 background and STARTSCR lettering.
+These replacements do not change the menu choices or their positions.
+
 ### Making a whole art pack
 
 `port/tools/artpack.py ORIGINALS OUT` turns the exported originals (F12 > Mods > "Export the original pictures",

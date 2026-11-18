@@ -13,6 +13,7 @@
 extern "C" {
 #include "../runtime/cpu.h"
 #include "../mods/titleview.h"
+#include "../mods/hdart.h"
 #include "../mods/gamemodel.h"
 }
 
@@ -42,7 +43,9 @@ extern "C" void titleview_draw(void)
     /* the parchment, and the picture at the right fading into it */
     P.rect(0, 0, 320, 200, PARCH);
     const float PX0 = 316 - 251, PX1 = 316, PY0 = 4, PY1 = 196;
-    if (const GamePic *g = gamepic_part("PICS\\APROCH1.PIC", 68, 7, 242, 185)) {
+    const GamePic *background = hdart_on ? gamepic_art("STARTSCR") : nullptr;
+    if (!background) background = gamepic_part("PICS\\APROCH1.PIC", 68, 7, 242, 185);
+    if (const GamePic *g = background) {
         SDL_SetTextureScaleMode(g->tex, SDL_ScaleModeLinear);    /* (a watercolour: soft, not in blocks) */
         P.dl->AddImage((ImTextureID)(intptr_t)g->tex, NsDraw::w(PX0, PY0), NsDraw::w(PX1, PY1));
     }
@@ -55,7 +58,16 @@ extern "C" void titleview_draw(void)
 
     /* the lettering of the original start screen, and the time and place of the game */
     const float LX0 = 10, LX1 = 142;
-    if (const GamePic *g = gamepic_cutout("PICS\\STARTSCR.PIC", 68, 6, 206, 42, 24)) {
+    if (const GamePic *logo = hdart_on ? gamepic_art("STARTLOGO") : nullptr) {
+        // Fit in window pixels: preserve the PNG aspect even with DOS pixel correction.
+        const ImVec2 lo = NsDraw::w(LX0, 9), hi = NsDraw::w(LX1, 36);
+        const float scale = fminf((hi.x - lo.x) / logo->w, (hi.y - lo.y) / logo->h);
+        const ImVec2 size(logo->w * scale, logo->h * scale);
+        const ImVec2 at(lo.x + (hi.x - lo.x - size.x) * 0.5f,
+                        lo.y + (hi.y - lo.y - size.y) * 0.5f);
+        P.dl->AddImage((ImTextureID)(intptr_t)logo->tex, at,
+                       ImVec2(at.x + size.x, at.y + size.y));
+    } else if (const GamePic *g = gamepic_cutout("PICS\\STARTSCR.PIC", 68, 6, 206, 42, 24)) {
         float w = LX1 - LX0, h = w * 42.0f / 206.0f;
         ImTextureID t = (ImTextureID)(intptr_t)g->tex;
         auto at = [&](float dx, float dy, ImU32 tint) { P.dl->AddImage(t, NsDraw::w(LX0 + dx, 9 + dy), NsDraw::w(LX0 + w + dx, 9 + h + dy), ImVec2(0, 0), ImVec2(1, 1), tint); };
