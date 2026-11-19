@@ -84,7 +84,8 @@ int main(void)
         g_ww(G_CUR_LOC, (u16)-1); g_ww(GV_battle_result, (u16)result);
         ww(SS, SP + 4, (u16)-1); AX = (u16)-1; /* an unreliable native return must not veto victory */
         tomb_give_hook();
-        assert(awards == (result == 0) && original_calls == (result == 0));
+        int kept = result >= 0 && result <= 2;      /* won, or got out by the way out (1, 2) */
+        assert(awards == kept && original_calls == kept);
         assert((s16)g_rw(G_CUR_LOC) == -1 && SP == 0x8004);
         if (result == 0) {
             SP = 0x8000; tomb_give_hook(); assert(awards == 1); /* fetching event already resolved */

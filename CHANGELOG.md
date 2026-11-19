@@ -23,6 +23,7 @@
 
 **Fixed**
 
+- **Getting out of a quest tomb with its item keeps it:** taking the item wakes the dead, and a party that reaches the way out alive now carries it off, as the original game did and as its text says. Only a defeat loses it. An earlier Darklands+ fix had given the item only for beating every skeleton.
 - **The person who offers a robber-knight bounty also explains the task,** even when several offices have hired the party to hunt that knight (the card looked the patron up by the castle's number, and with no match read before the start of the list). By woodk123 (pull request #35).
 - **Potions and saints in a dungeon survive a save there:** saving in a dungeon or a battle ended at once the potions drunk and the saints' help called in it (a saint's boost then stayed for good), and they were missing from the save. They now run on, and come back with the save.
 - **The log of a session that stopped on an error is kept:** when the game stopped and Darklands+ started it again, the new session opened the log over the old one, so a report held only the new session and not the error (GitHub issue 25). The old log is now kept as the previous one, and the new one names the error.

@@ -298,7 +298,7 @@ the files where each switch's key is read.
 | `fix.alchrisk` | Riskier alchemy formulae explode more often, not less | fix | fixes.c |
 | `fix.bishop` | Quests from a cathedral are the bishop's, not the merchants' | fix | fixes.c |
 | `fix.altar` | No quests to a purged pagan altar | fix | fixes.c |
-| `fix.tomb` | The item taken from a tomb goes to the winner of the fight | fix | fixes.c, worldmap_draw.cpp |
+| `fix.tomb` | The item taken from a tomb is kept by a party that gets out with it | fix | fixes.c, worldmap_draw.cpp |
 | `fix.lordreward` | The lord and the council pay for their quests | fix | fixes.c, citynav.cpp |
 | `fix.armorday` | Armor and fire protection from potions and saints last a day; Hardarmor works as the manual says | fix | fixes.c, saintinfo.c, sainttexts.c, nsdraw.cpp, saintchips.cpp |
 | `fix.greatpower` | Great Power raises the weapon's quality | fix | fixes.c, effects.cpp, nsdraw.cpp |

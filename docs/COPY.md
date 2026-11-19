@@ -480,8 +480,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:309` | A cathedral's canon gave out quests as if for the town's merchants: the merchants paid for them (and gave no more quests of their own while one was open), the canon gave a new one at every visit, and the bishop's relic for a finished quest could be taken again and again. Now the quest counts as the bishop's, and his relic is the reward, given once. |
 | `mods/fixes.c:310` | No quests to a purged pagan altar |
 | `mods/fixes.c:311` | A pagan altar the party has destroyed vanishes from the overland view, but quests could still send the party there, and could then never be done (nor could their giver offer another). Such altars are no longer chosen; quests already sent to one go to the nearest altar still standing. |
-| `mods/fixes.c:312` | The item taken from a tomb goes to the winner of the fight |
-| `mods/fixes.c:313` | Taking the item a quest seeks from a tomb wakes its dead: winning that fight gave nothing (though the text says the party scrambles out with it) and losing it gave the item. Now the party gets the item when it wins. |
+| `mods/fixes.c:312` | The item taken from a tomb is kept by a party that gets out with it |
+| `mods/fixes.c:313` | Taking the item a quest seeks from a tomb wakes its dead, and the party must get out with it. The game kept it for a party that got out alive, as its text says, but also gave it after a defeat (whose text has the party wake "without" it), and would have given nothing for a victory. Now it is kept by getting out or by beating every skeleton, and lost with the fight. |
 | `mods/fixes.c:314` | The lord and the council pay for their quests |
 | `mods/fixes.c:315` | In a town without a council, the lord of the fortress gives robber knights to hunt, but the game pays such a quest's reward only at a council's hall, so in such a town it could never be collected. The lord now pays it at an audience, as a council does. And at a council's hall, calling on a saint to be let in gave the party a new robber knight to hunt instead of the reward waiting for it; now the saint's way pays it, as an audience does. |
 | `mods/fixes.c:316` | Armor and fire protection from potions and saints last a day; Hardarmor works as the manual says |
@@ -625,15 +625,15 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:1617` | The store room keeps at most 127 of one item. |
 | `mods/fixes.c:1618` | The store room is full: it keeps 100 kinds of items. |
 | `mods/fixes.c:1788` | abandon the horses |
-| `mods/fixes.c:2230` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
-| `mods/fixes.c:2506` | claim friendship |
-| `mods/fixes.c:2558` | It is $NamedOneName again |
-| `mods/fixes.c:2821` | You need a missile weapon |
-| `mods/fixes.c:2916` | if the argument was won |
-| `mods/fixes.c:2979` | Not bought: nobody in the party has room for another kind of item. |
-| `mods/fixes.c:2997` | Nobody in the party has room for another kind of item. |
-| `mods/fixes.c:4183` | Dissolve Lock needs Eater-Water in this member's pack. |
-| `mods/fixes.c:4245` | a hook (or { -2 }) for each fix, in the same order |
+| `mods/fixes.c:2235` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
+| `mods/fixes.c:2511` | claim friendship |
+| `mods/fixes.c:2563` | It is $NamedOneName again |
+| `mods/fixes.c:2826` | You need a missile weapon |
+| `mods/fixes.c:2921` | if the argument was won |
+| `mods/fixes.c:2984` | Not bought: nobody in the party has room for another kind of item. |
+| `mods/fixes.c:3002` | Nobody in the party has room for another kind of item. |
+| `mods/fixes.c:4188` | Dissolve Lock needs Eater-Water in this member's pack. |
+| `mods/fixes.c:4250` | a hook (or { -2 }) for each fix, in the same order |
 
 ## The interface (ui/)
 

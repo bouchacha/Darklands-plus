@@ -755,3 +755,11 @@ covered and found, and what it could not check.
   for all, and when nobody would, the same heads, so the reason shows; the lectern's tooltip and the list
   both call it. A teacher not to be had now carries its reason in a few words (TchSource.why, set beside
   each off = 1 in mods/teachers.c), so the list says why instead of "not now".
+- 2026-11-19 (standing order 4, the tomb): three layers had piled up. The original gives a tomb's
+  thing whatever the battle's result (s039 1462:1ab0 reads cur_loc), so getting out by the way out
+  kept it, the design its cards describe (an escape); only its victory (cur_loc already -1) and
+  defeat were wrong. Our tomb fix gave it only for a victory, which took the escape away; #13 made
+  beating every group a victory to get it back; #29 would have warned at the way out. Now
+  tomb_give_hook gives for a victory or an escape (results 0 to 2) and nothing for a defeat; #13's
+  victory stays (the fight ends once every skeleton is down); #29 closed. port/tools/test_tomb.c
+  checks each result.

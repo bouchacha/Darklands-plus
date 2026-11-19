@@ -103,8 +103,8 @@
  *  alchrisk  A failed brew's accident follows the formula's risk the right way round (below).
  *  bishop    A cathedral's errand is the bishop's, and its relic is paid once (below, bishop).
  *  altar     A pagan altar the party has purged is no errand's site any more (below, altar).
- *  tomb      Winning the fight in a tomb wins the errand's thing; losing it does not; beating
- *            every group of skeletons is winning it (below, tomb).
+ *  tomb      Getting out of a tomb alive with the errand's thing keeps it, by winning (every group
+ *            of skeletons beaten) or by the way out; losing the fight loses it (below, tomb).
  *  lordreward The lord of a town without a council pays for his tasks (below, lordreward).
  *  armourday Hardarmor, St. Dunstan's and St. Patrick's armour, St. Crispin's armour quality, Firewall
  *            and the fire saints' protection last a day (below).
@@ -309,8 +309,8 @@ Fix FIXES[] = {
       "A cathedral's canon gave out quests as if for the town's merchants: the merchants paid for them (and gave no more quests of their own while one was open), the canon gave a new one at every visit, and the bishop's relic for a finished quest could be taken again and again. Now the quest counts as the bishop's, and his relic is the reward, given once.", 1 },
     { "altar", "No quests to a purged pagan altar",
       "A pagan altar the party has destroyed vanishes from the overland view, but quests could still send the party there, and could then never be done (nor could their giver offer another). Such altars are no longer chosen; quests already sent to one go to the nearest altar still standing.", 1 },
-    { "tomb", "The item taken from a tomb goes to the winner of the fight",
-      "Taking the item a quest seeks from a tomb wakes its dead: winning that fight gave nothing (though the text says the party scrambles out with it) and losing it gave the item. Now the party gets the item when it wins.", 1 },
+    { "tomb", "The item taken from a tomb is kept by a party that gets out with it",
+      "Taking the item a quest seeks from a tomb wakes its dead, and the party must get out with it. The game kept it for a party that got out alive, as its text says, but also gave it after a defeat (whose text has the party wake \"without\" it), and would have given nothing for a victory. Now it is kept by getting out or by beating every skeleton, and lost with the fight.", 1 },
     { "lordreward", "The lord and the council pay for their quests",
       "In a town without a council, the lord of the fortress gives robber knights to hunt, but the game pays such a quest's reward only at a council's hall, so in such a town it could never be collected. The lord now pays it at an audience, as a council does. And at a council's hall, calling on a saint to be let in gave the party a new robber knight to hunt instead of the reward waiting for it; now the saint's way pays it, as an audience does.", 1 },
     { "armorday", "Armor and fire protection from potions and saints last a day; Hardarmor works as the manual says",
@@ -1987,11 +1987,16 @@ static void altar_frame(void)
 
 /* ---------------------------------------------------------------- tomb
  * $McGuf08 (s108 1838), "take the $NamedOneName and leave" (1838:07ca): the dead wake (1838:02b0,
- * run_battle) and then vec_214d(cur_loc) (s039 1462:1ab0) gives the thing if an errand (ev8_at(10,
- * cur_loc)) is there. But the victory has set cur_loc to -1 already, so nothing is given; a
- * defeat (3, 4) leaves it set, and the thing is given. Read the authoritative battle_result
- * at the post-battle give call (the return AX can be changed by another wrapper), and give
- * only after a victory, with the place for the moment of the call. */
+ * run_battle: battlefield 0x5f, 3 to 7 skeletons) and then vec_214d(cur_loc) (s039 1462:1ab0)
+ * gives the thing if an errand (ev8_at(10, cur_loc)) is there, whatever the battle's result. The
+ * game's design is an escape (card 7: "wondering how easy it will be to escape these catacombs"):
+ * getting out by the way out (1, 2: cards 10 and 17) leaves cur_loc set, and the thing is given.
+ * But a victory (0, card 8 "you scramble up with it") has set cur_loc to -1 already, so nothing is
+ * given, and a defeat (3, 4: card 12, "you awaken ... without the $NamedOneName") leaves it set,
+ * so the thing is given. Read the authoritative battle_result at the post-battle give call (the
+ * return AX can be changed by another wrapper): after a victory or an escape, give with the place
+ * for the moment of the call; after a defeat, nothing. (Until 1.5.1 this gave only after a
+ * victory, which took away the escape; pull request #29 then warned at the way out.) */
 static int tomb_loc = -1;
 /* A tomb (battlefield 0x5f) is one floor whose skeletons wait in groups at activation spots, none of
  * them a master whose fall ends the place: each fight goes back to exploring, and the stairs then
@@ -2032,13 +2037,13 @@ static void tomb_give_hook(void)            /* s039 1462:1ab0 (loc), during the 
 {
     if (tomb_loc < 0) { hook_call_original(); return; }
     int result = (s16)g_rw(GV_battle_result);
-    if (result != 0) {                                      /* lost, fled: no thing */
+    if (result < 0 || result > 2) {                         /* lost (3, 4): no thing */
         if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix tomb: battle %d, nothing given\n", result);
         AX = 0; hook_return_far(0); return;
     }
     u16 cur = g_rw(G_CUR_LOC);
     g_ww(G_CUR_LOC, (u16)tomb_loc); ww(SS, (u16)(SP + 4), (u16)tomb_loc);
-    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix tomb: won, the thing given (place %d)\n", tomb_loc);
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix tomb: %s, the thing given (place %d)\n", result ? "got out" : "won", tomb_loc);
     hook_call_original();
     g_ww(G_CUR_LOC, cur);
 }
