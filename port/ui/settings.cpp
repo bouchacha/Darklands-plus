@@ -78,7 +78,7 @@ static void replacement_art(void)
         if (n) ui_hint("%d replacement picture%s in %s%sart.", n, n == 1 ? "" : "s", dlp_user_dir, PATH_SEP);
         else ui_hint("No replacement pictures yet (%s%sart).", dlp_user_dir, PATH_SEP);
         static char msg[600];
-        if (ImGui::Button("Look again")) { hdart_rescan(); snprintf(msg, sizeof msg, "%d replacement pictures found.", hdart_count()); }
+        if (ImGui::Button("Look again (Ctrl+Shift+R)")) { hdart_rescan(); snprintf(msg, sizeof msg, "%d replacement pictures found.", hdart_count()); }
         ImGui::SameLine();
         if (ImGui::Button("Export the original pictures")) hdart_export(msg, sizeof msg);
         if (msg[0]) ui_hint("%s", msg);

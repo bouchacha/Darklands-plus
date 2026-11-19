@@ -34,6 +34,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "hdart.h"
+#include "battletiles.h"
 #include "hdtext.h"
 #include "datamods.h"
 #include "looks.h"
@@ -50,7 +51,7 @@ static int logon;
 
 /* ---------------------------------------------------------------- pictures */
 typedef struct {
-    char name[16];                  /* upper case, no path or extension */
+    char name[40];                  /* upper case, no path or extension */
     int w, h, sprite;
     u8 *px;
     u32 hist[256];
@@ -61,18 +62,18 @@ typedef struct {
 static Pic *pics; static int npics, cappics;
 
 /* ---------------------------------------------------------------- replacement files */
-typedef struct { char key[16]; char *path; } ArtFile;
+typedef struct { char key[40]; char *path; } ArtFile;
 static ArtFile *arts; static int narts, caparts;
 
 static void art_add(const char *path, const char *file)
 {
     const char *dot = strrchr(file, '.');
     if (!dot || (strcasecmp(dot, ".png") && strcasecmp(dot, ".jpg") && strcasecmp(dot, ".bmp") && strcasecmp(dot, ".tga"))) return;
-    int n = (int)(dot - file); if (n <= 0 || n >= 16) return;
-    char key[16]; for (int i = 0; i < n; i++) key[i] = (char)toupper((unsigned char)file[i]); key[n] = 0;
+    int n = (int)(dot - file); if (n <= 0 || n >= (int)sizeof arts[0].key) return;
+    char key[sizeof arts[0].key]; for (int i = 0; i < n; i++) key[i] = (char)toupper((unsigned char)file[i]); key[n] = 0;
     for (int i = 0; i < narts; i++) if (!strcmp(arts[i].key, key)) return;
     if (narts == caparts) { caparts = caparts ? caparts * 2 : 64; arts = realloc(arts, sizeof *arts * caparts); }
-    snprintf(arts[narts].key, 16, "%s", key);
+    snprintf(arts[narts].key, sizeof arts[narts].key, "%s", key);
     arts[narts].path = strdup(path);
     narts++;
 }
@@ -103,14 +104,18 @@ static void scan_dir(const char *dir, int depth)
 static const char *art_for(const char *key)
 {
     for (int i = 0; i < narts; i++) if (!strcmp(arts[i].key, key)) return arts[i].path;
+    if (!strncmp(key, "BT_TOWN_", 8)) {
+        char global[40]; snprintf(global, sizeof global, "BT_%s", key + 8);
+        return art_for(global);
+    }
     return 0;
 }
 
 int hdart_count(void) { return narts; }
 const char *hdart_art_file(const char *key)
 {
-    char k[16]; int i = 0;
-    for (; key[i] && i < 15; i++) k[i] = (char)toupper((unsigned char)key[i]);
+    char k[sizeof arts[0].key]; int i = 0;
+    for (; key[i] && i < (int)sizeof k - 1; i++) k[i] = (char)toupper((unsigned char)key[i]);
     k[i] = 0;
     return art_for(k);
 }
@@ -315,8 +320,10 @@ static void dac_lut(u32 *lut)
 /* a picture the game has just unpacked: find or add it */
 static int pic_register(const char *dosname, int w, int h, const u8 *px, int sprite)
 {
-    char key[16];
-    if (dosname && dosname[0]) base_name(dosname, key);
+    char key[sizeof pics[0].name];
+    int tile = dosname && !strncmp(dosname, "BT_", 3);
+    if (tile) snprintf(key, sizeof key, "%s", dosname);
+    else if (dosname && dosname[0]) base_name(dosname, key);
     else {                                          /* unnamed (unpacked from memory): by content */
         u32 hsh = 2166136261u;
         for (long i = 0; i < (long)w * h; i++) { hsh ^= px[i]; hsh *= 16777619u; }
@@ -337,11 +344,16 @@ static int pic_register(const char *dosname, int w, int h, const u8 *px, int spr
     { int has_baked(const char *); P->baked = has_baked(key); }
     u8 mask[256]; u32 fpal[256];
     dac_lut(P->ref);
-    if (dosname && dosname[0] && file_palette(dosname, fpal, mask))
+    if (!tile && dosname && dosname[0] && file_palette(dosname, fpal, mask))
         for (int i = 0; i < 256; i++) if (mask[i]) P->ref[i] = fpal[i];
     P->refb = brightness(P, P->ref, -1);
     if (logon) fprintf(stderr, "art: picture %d %s %dx%d%s%s\n", npics, key, w, h, sprite ? " (sprite)" : "", P->art ? " - has art" : "");
     return npics++;
+}
+
+int hdart_register_tile(const char *name, int w, int h, const u8 *px)
+{
+    return pic_register(name, w, h, px, 1);
 }
 
 /* ---------------------------------------------------------------- new pictures
@@ -731,6 +743,7 @@ static void h_draw_sprite(void)             /* gfx_draw_sprite(win, x, y, handle
 {
     u16 win = ARG(0); int x = (s16)ARG(1), y = (s16)ARG(2); u16 key = ARG(3);
     sprite_watch(key);
+    if (battletiles_sprite(win, x, y, key)) { hook_return_far(0); return; }
     hook_call_original();
     if (!narts && !hdart_show_names) return;
     Frame *f = game_mode() == GM_BATTLE ? frame_find(key) : 0;
@@ -763,6 +776,7 @@ static void h_copy(void)                    /* gfx_copy_rect(src, sx, sy, w, h, 
     int ax = sox + sx, ay = soy + sy, bx = dox + dx, by = doy + dy;
     int cx = bx, cy = by, cw = w, ch = h;           /* the part that lands inside the destination */
     if (!clip(&cx, &cy, &cw, &ch, dox, doy, dx1, dy1) || !clip(&cx, &cy, &cw, &ch, 0, 0, 320, 200)) return;
+    battletiles_copy(sp, ax + cx - bx, ay + cy - by, dp, cx, cy, cw, ch);
     hdtext_cover(dp, cx, cy, cw, ch);
     hdtext_copy(sp, ax + (cx - bx), ay + (cy - by), cw, ch, dp, cx, cy);
     static Reg tmp[MAXREG];
@@ -865,6 +879,7 @@ void hdart_labels(u32 *rgb, const u8 *idx, const u32 *lut)
 void hdart_prepare(u32 *rgb, const u8 *idx, const u32 *lut)
 {
     hdart_ndraws = 0;
+    battletiles_colour(rgb, idx);
     if (!hdart_on || !narts || !nreg[0]) return;
     int any = 0;
     for (int i = 0; i < nreg[0]; i++) if (pics[reg[0][i].pic].art) { any = 1; break; }
@@ -922,6 +937,8 @@ void hdart_prepare(u32 *rgb, const u8 *idx, const u32 *lut)
 int hdart_pick(int x, int y, int *px, int *py, int *pw, int *ph)
 {
     if (x < 0 || y < 0 || x >= 320 || y >= 200) return -1;
+    int tile = battletiles_pick(x, y, px, py, pw, ph);
+    if (tile >= 0) return tile;
     u8 v = M[0xa0000 + y * 320 + x];
     for (int i = nreg[0] - 1; i >= 0; i--) {
         Reg *r = &reg[0][i]; Pic *P = &pics[r->pic];
@@ -1020,6 +1037,7 @@ int hdart_export(char *msg, int msgn)
     char dir[1200], p[1400];
     snprintf(dir, sizeof dir, "%s/art", USER_DIR); MKDIR(dir);
     snprintf(dir, sizeof dir, "%s/art/original", USER_DIR); MKDIR(dir);
+    battletiles_templates();
     u32 base[256]; dac_lut(base);
     int done = 0, failed = 0;
     char pd[1200]; dos_host_path("PICS", pd, sizeof pd);
@@ -1111,6 +1129,7 @@ void hdart_init(void)
     hdart_on = config_get_int("display.hd_art", 1);
     hdart_show_names = config_get_int("display.art_names", 0);
     hdart_rescan();
+    battletiles_init();
     hook_install(GF_pic_draw, h_pic_draw);
     hook_install(GF_pic_draw_open, h_pic_open);
     hook_install(GF_pic_draw_mem, h_pic_mem);

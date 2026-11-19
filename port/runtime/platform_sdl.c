@@ -20,6 +20,7 @@
 #include "hle.h"
 #include "../ui/ui.h"
 #include "../mods/hdart.h"
+#include "../mods/battletiles.h"
 #include "../mods/hdtext.h"
 #include "game.h"
 #include "gamevars.h"
@@ -470,7 +471,11 @@ void plat_drawn(void) { hold_draw = 0; }
 static u32 drawing_t; static int drawing;
 static u8 whole_vga[320 * 200], whole_pal[768]; static int whole_ok;
 static const u8 *live_vga, *live_pal;     /* (what plat_present is given: the game's screen and palette) */
-static void keep_whole(const u8 *vga, const u8 *pal) { memcpy(whole_vga, vga, sizeof whole_vga); memcpy(whole_pal, pal, sizeof whole_pal); whole_ok = 1; }
+static void keep_whole(const u8 *vga, const u8 *pal) {
+    battletiles_snapshot();
+    memcpy(whole_vga, vga, sizeof whole_vga); memcpy(whole_pal, pal, sizeof whole_pal);
+    whole_ok = 1;
+}
 void plat_drawing(int on)
 {
     drawing = on; drawing_t = SDL_GetTicks();
@@ -841,7 +846,10 @@ static void run_script(void)
         else if (!strcmp(s->cmd, "ushot")) { if (ren) pending_shot = 1; }   /* test: a screenshot as Ctrl+F12 takes it (with the frame's draws beside it) */
         else if (!strcmp(s->cmd, "usdlkey")) {             /* test: a key as an SDL event (through Darklands+'s own keys, ui_event): usdlkey:z */
             SDL_Event ev; memset(&ev, 0, sizeof ev);
-            ev.type = SDL_KEYDOWN; ev.key.state = SDL_PRESSED; ev.key.keysym.scancode = SDL_GetScancodeFromName(s->arg);
+            const char *key = s->arg;
+            if (!SDL_strncasecmp(key, "Ctrl+", 5)) { ev.key.keysym.mod |= KMOD_LCTRL; key += 5; }
+            if (!SDL_strncasecmp(key, "Shift+", 6)) { ev.key.keysym.mod |= KMOD_LSHIFT; key += 6; }
+            ev.type = SDL_KEYDOWN; ev.key.state = SDL_PRESSED; ev.key.keysym.scancode = SDL_GetScancodeFromName(key);
             ev.key.windowID = win ? SDL_GetWindowID(win) : 0;          /* (ImGui's backend drops key events of no window) */
             ev.key.keysym.sym = SDL_GetKeyFromScancode(ev.key.keysym.scancode);
             SDL_PushEvent(&ev); ev.type = SDL_KEYUP; ev.key.state = SDL_RELEASED; SDL_PushEvent(&ev);

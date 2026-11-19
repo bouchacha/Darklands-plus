@@ -325,6 +325,28 @@ PNG with little padding, replaces it, centred above the subtitle and fitted with
 shape. Both follow the replacement-art switch, the mods' order and the art rescan, and each falls
 back to the game's own when missing; the menu's choices stay where they are.
 
+### Battle scenery
+
+In a tactical battle, open **F12 > Mods > Replacement art (for artists)**. Turn on
+**Show the name of the picture under the mouse**, close F12 and point at the scenery.
+**Export the original pictures** writes templates for the current battlefield to
+`art/original`. Visit other layouts to export their tiles too. Original exports and
+repaints of those images are for personal use. Draw your own artwork for a pack you share.
+
+Put a PNG with the displayed name in your mod's `art` folder. For example,
+`BT_TOWN_CITY_FLC_00_0.png` is town paving. The name identifies the source bank
+(`CITY`), scenery file type (`FLC`), hexadecimal record number (`00`), and frame or
+view (`0`). Each door state, cutaway or animation frame with a distinct source has
+its own file. Paint on the template's native pixel grid and keep its alignment. Battle
+scenery uses opaque or transparent pixels. Larger PNGs are sampled onto that grid.
+A `BT_TOWN_` name applies on town battlefields. To replace that source wherever it
+appears, use `BT_` in place of `BT_TOWN_`. A town-specific picture takes precedence
+over its general version. Missing pictures fall back individually.
+
+Save your edit, then press **Ctrl+Shift+R** in play or click **Look again**. The game
+reloads the art on the current field. The replacement-art switch and **Play the original
+game** setting apply to battle scenery too.
+
 ### Making a whole art pack
 
 `port/tools/artpack.py ORIGINALS OUT` turns the exported originals (F12 > Mods > "Export the original pictures",

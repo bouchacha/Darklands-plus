@@ -4,6 +4,8 @@
 
 **Added**
 
+- **Battle scenery art packs** can replace tactical floors, walls, doors and furniture. Point at a tile to find its filename, export a template in F12 > Mods and press Ctrl+Shift+R to reload a painted PNG during play.
+
 - **Battle aftermath on the loot screen:** after a won fight, above the loot, who went down, the skills gained or lost, and lasting losses such as a lowered maximum or worn armor. By woodk123 (pull request #27).
 - **New encounters on by default:** the mod of 160 new encounters that comes with Darklands+ is now ticked unless you untick it, and a note at the start screen says so once, with a button to turn it off.
 - **Share all potions:** the Potions heading of the character sheet pools every member's potions and splits each evenly among the members on their feet.

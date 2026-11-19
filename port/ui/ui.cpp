@@ -335,6 +335,12 @@ extern "C" int ui_event(const SDL_Event *e)
         ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
+    if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_r && (e->key.keysym.mod & KMOD_CTRL)
+        && (e->key.keysym.mod & KMOD_SHIFT) && !(e->key.keysym.mod & (KMOD_ALT | KMOD_GUI))
+        && !config_get_int("original", 0)) {
+        if (!e->key.repeat) hdart_rescan();
+        return 1;
+    }
     if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_F12 && !(e->key.keysym.mod & KMOD_CTRL)) { ui_toggle(); return 1; }
     if (!open_menu && !open_map && e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_m && !(e->key.keysym.mod & (KMOD_CTRL | KMOD_ALT | KMOD_SHIFT))
         && (game_mode() == GM_MAP || game_mode() == GM_CARD) && config_get_int("map.key_m", 1)) { ui_toggle_map(); return 1; }
