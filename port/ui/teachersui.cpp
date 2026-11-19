@@ -35,6 +35,31 @@ int ui_town_teachers(int loc, TchSource *out, int max)
     return teach_town(loc, &t, out, max);
 }
 
+int ui_teacher_icon(int src)
+{
+    static const int I[] = { TI_SMITH, TI_SWORD, TI_ARMOUR, TI_BOW, TI_TOOLS, TI_SQUARE, TI_UNIVERSITY, TI_MONASTERY, TI_PHYSICIAN, TI_ALCHEMIST };
+    return src >= 0 && src < (int)(sizeof I / sizeof I[0]) ? I[src] : TI_SQUARE;
+}
+
+bool ui_teach_learners(int k, int to, std::vector<TchLearner> *out)
+{
+    auto skill_of = [](int m, int j) { return (int)(s8)g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + j)); };
+    int best = -1;
+    bool each = k <= 6 || k == SKILL_RELIGION || k == SKILL_VIRTUE || k == SKILL_STEALTH || k == SKILL_RIDING, anyone = false;
+    for (int m = 0; m < 5; m++) {
+        if (!gm_member_present(m)) continue;
+        int v;
+        if (k <= 3) { v = 0; for (int j = 0; j <= 3; j++) v = v > skill_of(m, j) ? v : skill_of(m, j); }
+        else if (k <= 6) { v = 0; for (int j = 4; j <= 6; j++) v = v > skill_of(m, j) ? v : skill_of(m, j); }
+        else v = skill_of(m, k);
+        if (each) { if (v < to) { anyone = true; if (out) out->push_back({ m, v }); } }
+        else if (v > best) best = v;
+    }
+    if (each) return anyone;
+    if (best >= 0 && best < to && out) out->push_back({ -1, best });
+    return best >= 0 && best < to;
+}
+
 const char *ui_teacher_short(int src)
 {
     static const char *const N[] = { "Blacksmiths", "Swordsmiths", "Armorers", "Bowyers", "Artificers", "The guild",
@@ -42,7 +67,7 @@ const char *ui_teacher_short(int src)
     return src >= 0 && src < (int)(sizeof N / sizeof N[0]) ? N[src] : "?";
 }
 
-static const char *skill_short(int k)
+const char *ui_skill_short(int k)
 {
     static const char *const S[19] = { "Edged", "Impact", "Flails", "Polearms", "Thrown", "Bows", "Missile Devices", "Alchemy",
         "Religion", "Virtue", "Speak Common", "Latin", "Read & Write", "Healing", "Artifice", "Stealth", "Streetwise", "Riding", "Woodwise" };
@@ -52,7 +77,7 @@ static const char *skill_short(int k)
 std::string ui_teacher_skills(const TchSource &s)              /* their shields ({Edged}: ui/richtext.h) */
 {
     std::string r;
-    for (int k = 0; k < s.n; k++) r += (k ? " " : "") + std::string("{") + skill_short(s.skill[k]) + "}";
+    for (int k = 0; k < s.n; k++) r += (k ? " " : "") + std::string("{") + ui_skill_short(s.skill[k]) + "}";
     return r;
 }
 
@@ -96,7 +121,7 @@ std::string ui_teachers_hired_line(int loc)
     for (int k = 0; k < n; k++) {
         char b[80];
         if (h[k].skill < 0 || h[k].skill >= 19) continue;
-        snprintf(b, sizeof b, "{%s} (until %d %s)", skill_short(h[k].skill), h[k].day, gm_month_name((h[k].month % 12 + 12) % 12));
+        snprintf(b, sizeof b, "{%s} (until %d %s)", ui_skill_short(h[k].skill), h[k].day, gm_month_name((h[k].month % 12 + 12) % 12));
         r += (r.empty() ? "" : ", ") + std::string(b);
     }
     return r;

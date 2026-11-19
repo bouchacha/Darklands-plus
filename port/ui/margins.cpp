@@ -215,25 +215,8 @@ extern "C" void ui_text_utf8(const char *game, char *out, int n);
 extern "C" u32 plat_ticks_ms(void);
 extern "C" int ns_showing(void);
 static bool margin_town_row;                               /* (the margin's own row of the town's offers: the teachers too) */
-static int skill_of(int m, int k) { return (s8)g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + k)); }
-struct Learner { int m; int v; };                  /* (m -1: the party, its best) */
-static bool teach_learners(int k, int to, std::vector<Learner> *out)
-{
-    int best = -1;
-    bool each = k <= 6 || k == SKILL_RELIGION || k == SKILL_VIRTUE || k == SKILL_STEALTH || k == SKILL_RIDING;
-    for (int m = 0; m < 5; m++) {
-        if (!gm_member_present(m)) continue;
-        int v;
-        if (k <= 3) { v = 0; for (int j = 0; j <= 3; j++) v = std::max(v, skill_of(m, j)); }
-        else if (k <= 6) { v = 0; for (int j = 4; j <= 6; j++) v = std::max(v, skill_of(m, j)); }
-        else v = skill_of(m, k);
-        if (each) { if (v < to && out) out->push_back({ m, v }); else if (v < to) best = 0; }
-        else best = std::max(best, v);
-    }
-    if (each) return out ? !out->empty() : best == 0;
-    if (best >= 0 && best < to && out) out->push_back({ -1, best });
-    return best >= 0 && best < to;
-}
+typedef TchLearner Learner;                         /* (the rule: ui_teach_learners, ui/teachersui.cpp) */
+static bool teach_learners(int k, int to, std::vector<Learner> *out) { return ui_teach_learners(k, to, out); }
 /* a teacher in a row: the place's icon, the skills' shields, how far they teach (dim when nobody would
    learn, or not now); and, in a tooltip (lines), who would learn each skill and from what: its shield,
    then the members (or the party's best) and their skill now */
@@ -449,11 +432,7 @@ static void formulae_line(int town)
 /* the world map's place panel: the teachers a row a source - the place's picture, each skill's shield
    and how far they teach it; dim when nobody in the party would learn anything or not to be had now;
    who would learn, or why not, under the pointer (as the margin's lectern) */
-static int teacher_icon(int src)
-{
-    static const int I[] = { TI_SMITH, TI_SWORD, TI_ARMOUR, TI_BOW, TI_TOOLS, TI_SQUARE, TI_UNIVERSITY, TI_MONASTERY, TI_PHYSICIAN, TI_ALCHEMIST };
-    return src >= 0 && src < (int)(sizeof I / sizeof I[0]) ? I[src] : TI_SQUARE;
-}
+static int teacher_icon(int src) { return ui_teacher_icon(src); }
 static void teacher_rows(int loc)
 {
     if (!ui_teachers_on()) return;

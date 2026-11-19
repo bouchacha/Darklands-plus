@@ -746,3 +746,7 @@ covered and found, and what it could not check.
   grade (each has its price). How a grade shows is read in one place, ui_potion_grade_look() (marks.h; the
   settings' pictures through it), the numeral drawn by ui/marks.cpp ui_mark_numeral (on the flask's badge,
   bare in a formula's seal). Chevrons now mean only the saints' raises and lowers.
+- 2026-11-18 (his design for PR #31, Find teachers): who would learn from a teacher is one rule,
+  ui_teach_learners (ui/teachersui.cpp), with the teacher's town icon and the skills' short names
+  beside it; the margin's lectern and the world map's Find teachers both read it (margins.cpp keeps
+  thin wrappers), so a row is dim in the list exactly when the lectern is dim in the town.

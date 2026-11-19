@@ -38,6 +38,7 @@ extern "C" {
 #include "../mods/worldmap.h"
 #include "../mods/travel.h"
 #include "../mods/gamemodel.h"
+#include "../mods/fixes.h"
 int journal_visited(int loc);
 void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 }
@@ -81,7 +82,7 @@ void ui_town_lists_panel(int loc);                /* ui/margins.cpp */
 bool ui_town_list_has(int loc, int which); void ui_town_list_part(int loc, int which);   /* ui/margins.cpp: 0 saints, 1 formulae, 2 teachers */   /* ui/journal.cpp: "3 days" */
 extern "C" int journal_buy_window(bool *open, int what), journal_town_noted(int loc); extern "C" void journal_town_wares(int loc);   /* ui/journal.cpp */
 static int selected = -1;
-static bool nearby_work_open;
+static bool nearby_work_open, teachers_open;
 static int dock_hover = -1, dock_hover_next = -1;          /* the place panel's boat destination under the pointer (last frame): ringed on the map */
 static bool show_names = true, show_quests = true, show_icons = true, show_boats = true, show_days = false;
 static bool show_kind[16] = { true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true };   /* by icon kind (the legend's entries switch them) */
@@ -156,7 +157,7 @@ extern "C" int worldmap_open(void)
     if (game_mode() == GM_OTHER || game_mode() == GM_BATTLE) return 0;
     if (!worldmap_build()) return 0;
     upload();
-    nearby_work_open = false;
+    nearby_work_open = teachers_open = false;
     int px, py; party_tile(&px, &py);
     if (cx < 0 || px >= 0) tile_px(px, py, &cx, &cy);
     if (getenv("DL_WM_ZOOM")) zoom = (float)atof(getenv("DL_WM_ZOOM"));   /* test */
@@ -315,6 +316,128 @@ static void nearby_work_window(const std::vector<NearbyTownWork> &towns, float s
                 }
             }
             ImGui::EndChild();
+        }
+    }
+    ImGui::End();
+}
+
+/* Find teachers (his design, 1.5.1, after woodk123's pull request #31): every teacher of the towns whose offers are
+   known, a row a skill taught - its shield, how far it is taught, who teaches and where, the journey, and who would
+   learn (the margin's rule, ui_teach_learners: a row nobody would learn from is dim, as the lectern there). The skills'
+   shields above it filter (as the saints' "what it raises"); the columns sort; a click shows the town on the map.
+   The rows are made as the window opens: the journeys come from the travel routes */
+struct TeachRow { int skill, to, src, loc, minutes, off, learn; std::string town, learners; TchSource t; };
+static std::vector<TeachRow> teach_rows(const std::vector<Place> &places)
+{
+    std::vector<TeachRow> rows;
+    if (!ui_teachers_on()) return rows;
+    const bool overland = game_mode() == GM_MAP;
+    const int here = overland ? -1 : (s16)g_rw(G_CUR_LOC);
+    int ox = 0, oy = 0;
+    const bool has_origin = overland || travel_party_at(&ox, &oy);
+    for (const Place &p : places) {
+        if (p.loc >= (int)gamedata.cities.size() || !place_offers_known(p.loc)) continue;
+        TchSource ts[12];
+        int n = ui_town_teachers(p.loc, ts, 12);
+        if (!n) continue;
+        int minutes = p.loc == here ? 0 : overland ? travel_minutes_loc(p.loc, nullptr, nullptr) : has_origin ? travel_minutes_loc_from(ox, oy, p.loc) : -1;
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < ts[i].n; j++) {
+                std::vector<TchLearner> L;
+                bool any = ui_teach_learners(ts[i].skill[j], ts[i].strength, &L);
+                std::string w;
+                for (const TchLearner &l : L) w += (w.empty() ? "" : " ") + (l.m < 0 ? "the party's best " + std::to_string(l.v) : rich_member(l.m, std::to_string(l.v)));
+                rows.push_back({ ts[i].skill[j], ts[i].strength, ts[i].src, p.loc, minutes, ts[i].off, any, p.name, w, ts[i] });
+            }
+    }
+    return rows;
+}
+static void teachers_window(std::vector<TeachRow> &rows, const std::vector<Place> &places, float scale, float pad)
+{
+    static int only = -1;                                    /* (the skill shown, -1 all) */
+    const ImVec2 size = ImGui::GetIO().DisplaySize;
+    const float margin = 2 * pad, width = fminf(size.x - 2 * margin, UIS(860) * scale), max_height = fminf(size.y * 0.8f, UIS(600) * scale);
+    ImGui::SetNextWindowPos(ImVec2(margin, (size.y - max_height) * 0.5f), ImGuiCond_Appearing);
+    ImGui::SetNextWindowSize(ImVec2(width, max_height), ImGuiCond_Appearing);
+    ImGui::SetNextWindowBgAlpha(0.97f);
+    if (ImGui::Begin("Find teachers###teachers", &teachers_open, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings)) {
+        ImGui::SetWindowFontScale(scale);
+        const float lh = ImGui::GetTextLineHeight(), is = lh * 1.25f;
+        ImDrawList *dl = ImGui::GetWindowDrawList();
+        if (rows.empty()) ImGui::TextWrapped("No teachers known yet: the teachers of a town are known once the party has been there.");
+        else {
+            bool taught[19] = {};
+            for (const TeachRow &r : rows) if (r.skill >= 0 && r.skill < 19) taught[r.skill] = true;
+            ImGui::AlignTextToFramePadding(); ImGui::TextUnformatted("Teaches:");
+            for (int k = 0; k < 19; k++) {                   /* the shields: a click shows only that skill's teachers, again all */
+                if (!taught[k]) continue;
+                ImGui::SameLine(0, lh * 0.15f);
+                ImGui::PushID(k);
+                ImVec2 a = ImGui::GetCursorScreenPos();
+                if (ImGui::InvisibleButton("##sk", ImVec2(is, is))) only = only == k ? -1 : k;
+                bool hv = ImGui::IsItemHovered();
+                if (only == k) dl->AddRectFilled(a, ImVec2(a.x + is, a.y + is), IM_COL32(214, 170, 90, 200), is * 0.15f);
+                int v0 = dl->VtxBuffer.Size;
+                ui_skill_icon(dl, ImVec2(a.x + is * 0.5f, a.y + is * 0.5f), is * 0.92f, k);
+                if (only >= 0 && only != k && !hv) ui_dim_since(dl, v0, 0.45f);
+                if (hv) ImGui::SetTooltip("%s: %s", gm_skill_name(k), only == k ? "every skill again" : "only its teachers");
+                ImGui::PopID();
+            }
+            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+            ImGui::TextWrapped("Dim: nobody would learn from them, or not now. A click on a row shows the town on the map; under the pointer, how to hire them.");
+            ImGui::PopStyleColor();
+            if (ImGui::BeginTable("##teach", 6, ImGuiTableFlags_Sortable | ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp)) {
+                ImGui::TableSetupScrollFreeze(0, 1);
+                ImGui::TableSetupColumn("Skill", ImGuiTableColumnFlags_WidthStretch, 0.20f);
+                ImGui::TableSetupColumn(fix_is_on("teachcap") ? "To" : "Ability", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_PreferSortDescending, 0.07f);
+                ImGui::TableSetupColumn("Teacher", ImGuiTableColumnFlags_WidthStretch, 0.17f);
+                ImGui::TableSetupColumn("Town", ImGuiTableColumnFlags_WidthStretch, 0.15f);
+                ImGui::TableSetupColumn("Journey", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_DefaultSort, 0.13f);
+                ImGui::TableSetupColumn("Would learn", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoSort, 0.28f);
+                ImGui::TableHeadersRow();
+                if (ImGuiTableSortSpecs *ss = ImGui::TableGetSortSpecs()) if (ss->SpecsDirty && ss->SpecsCount) {
+                    const ImGuiTableColumnSortSpecs &c = ss->Specs[0];
+                    auto key = [&](const TeachRow &r) -> long {
+                        switch (c.ColumnIndex) { case 0: return r.skill; case 1: return r.to; case 2: return r.src;
+                                                 case 3: return 0; default: return r.minutes < 0 ? LONG_MAX / 2 : r.minutes; } };
+                    std::stable_sort(rows.begin(), rows.end(), [&](const TeachRow &a, const TeachRow &b) {
+                        bool lt = c.ColumnIndex == 3 ? a.town < b.town : key(a) < key(b), gt = c.ColumnIndex == 3 ? b.town < a.town : key(b) < key(a);
+                        return c.SortDirection == ImGuiSortDirection_Ascending ? lt : gt; });
+                    ss->SpecsDirty = false;
+                }
+                for (size_t i = 0; i < rows.size(); i++) {
+                    const TeachRow &r = rows[i];
+                    if (only >= 0 && r.skill != only) continue;
+                    ImGui::PushID((int)i);
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    int v0 = dl->VtxBuffer.Size;
+                    ImVec2 a = ImGui::GetCursorScreenPos();
+                    bool pick = ImGui::Selectable("##row", false, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap, ImVec2(0, lh));
+                    bool hov = ImGui::IsItemHovered();
+                    ui_skill_icon(dl, ImVec2(a.x + lh * 0.5f, a.y + lh * 0.5f), lh * 1.0f, r.skill);
+                    dl->AddText(ImVec2(a.x + lh * 1.25f, a.y), ImGui::GetColorU32(ImGuiCol_Text), ui_skill_short(r.skill));
+                    ImGui::TableNextColumn(); ImGui::Text("%d", r.to);
+                    ImGui::TableNextColumn();
+                    { ImVec2 b = ImGui::GetCursorScreenPos(); ui_draw_town_icon(dl, ImVec2(b.x + lh * 0.5f, b.y + lh * 0.5f), lh, ui_teacher_icon(r.src));
+                      ImGui::Dummy(ImVec2(lh, lh)); ImGui::SameLine(0, lh * 0.25f); ImGui::TextUnformatted(ui_teacher_short(r.src)); }
+                    ImGui::TableNextColumn(); ImGui::TextUnformatted(r.town.c_str());
+                    ImGui::TableNextColumn(); ImGui::TextUnformatted(r.minutes < 0 ? "no land route" : r.minutes == 0 ? "here" : hhmm(r.minutes).c_str());
+                    ImGui::TableNextColumn();
+                    if (r.off) ImGui::TextDisabled("not now");
+                    else if (r.learners.empty()) ImGui::TextDisabled("nobody");
+                    else ui_rich_text(r.learners.c_str());
+                    if (!r.learn || r.off) ui_dim_since(dl, v0, 0.42f);
+                    if (hov) {                                    /* the teacher: what it takes, how to hire them, how it stands */
+                        ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 26);
+                        ui_rich_text(ui_teacher_text(r.t).c_str());
+                        ImGui::PopTextWrapPos(); ImGui::EndTooltip();
+                    }
+                    if (pick) for (const Place &p : places) if (p.loc == r.loc) { focus_place(p); break; }
+                    ImGui::PopID();
+                }
+                ImGui::EndTable();
+            }
         }
     }
     ImGui::End();
@@ -955,6 +1078,7 @@ extern "C" void worldmap_draw(void)
     bool find_open = fold_head("Find...", FOLD_FIND);
     bool work_enabled = citynav_work_enabled();
     static std::vector<NearbyTownWork> work_towns;
+    static std::vector<TeachRow> teach_list;
     if (find_open || wm_test_enter) {
         /* a place by its name, then the finders: each a field or a button with its picture inside at the left */
         const float fh = ImGui::GetFrameHeight(), fis = fh * 0.78f;
@@ -1027,6 +1151,12 @@ extern "C" void worldmap_draw(void)
             nearby_work_open = !nearby_work_open;
             /* The map holds the game clock. Read the party, events and routes when opening the list. */
             if (nearby_work_open) work_towns = nearby_work_towns(P);
+        }
+        if (find_open && ui_teachers_on() && pic_button("Teachers", teachers_open, [&](ImVec2 c) {   /* (the lectern, as the margin's) */
+                fdl->AddCircleFilled(c, fis * 0.5f, IM_COL32(240, 228, 198, 255), 20);
+                ui_draw_teach_mark(fdl, c, fis * 0.78f, IM_COL32(80, 50, 24, 255), IM_COL32(252, 246, 228, 255)); })) {
+            teachers_open = !teachers_open;
+            if (teachers_open) teach_list = teach_rows(P);
         }
         {   /* the two finders: windows of their own (ui/journal.cpp); a click on a town there shows it here */
             static bool buy_open[2];
@@ -1116,6 +1246,8 @@ extern "C" void worldmap_draw(void)
     ImGui::End();
     if (find_open && work_enabled && nearby_work_open) nearby_work_window(work_towns, pk, pad);
     else nearby_work_open = false;
+    if (find_open && teachers_open) teachers_window(teach_list, P, pk, pad);
+    else teachers_open = false;
     {   /* the lower right: the party's mark, pulsing as on the map; a click centres the map on it */
         int px = -1, py = -1; party_tile(&px, &py);
         if (px >= 0) {

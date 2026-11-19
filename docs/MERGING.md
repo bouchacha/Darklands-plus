@@ -305,7 +305,7 @@ the files where each switch's key is read.
 | `fix.standings` | Saved games keep the party's standing with the Fugger, the Medici and the Hanse | fix | fixes.c |
 | `fix.battlesaints` | A saint's help called in a battle wears off | fix | fixes.c |
 | `fix.healboost` | Healing no longer takes a boost away | fix | fixes.c |
-| `fix.teachcap` | Teachers teach only up to their own ability | fix | fixes.c, teachers.c, teachers.h, citynav.cpp, lodgeview.cpp, margins.cpp, teachersui.cpp |
+| `fix.teachcap` | Teachers teach only up to their own ability | fix | fixes.c, teachers.c, teachers.h, citynav.cpp, lodgeview.cpp, margins.cpp, teachersui.cpp, worldmap.cpp |
 | `fix.oilweapons` | Each weapon oil works only with the weapons the manual names | fix | fixes.c, nsdraw.cpp |
 | `fix.pauls` | The two St. Pauls do what their texts say | fix | fixes.c, relics.c, saintinfo.c, saintchips.cpp |
 | `fix.saintrep` | St. Nepomuk's and St. Cecilia's reputation bonuses go to a real town | fix | fixes.c, saintinfo.c, saintchips.cpp |
