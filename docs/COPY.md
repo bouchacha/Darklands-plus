@@ -618,20 +618,22 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:447` | In a fight, a member who stepped onto stairs went to the other floor alone. The game keeps only the floor on screen in memory, so whoever was on the other floor walked through walls that were not there, opened the wrong doors and chests, set off the wrong traps, dropped his pack on the wrong floor and was seen by enemies who were not there. Now everyone on that floor goes along, the knocked-out carried, as the party does outside a fight; the enemies who saw it follow later. |
 | `mods/fixes.c:448` | Encounters by a pagan altar come one at a time |
 | `mods/fixes.c:449` | Beside a pagan altar the chance of an encounter is up to a hundred times the usual, tried at each small step of the party's marker, and the step that brings one leaves the party where it was: on the tile before the altar, encounter followed encounter. Now, after one there, the altar adds nothing to the chance until the party reaches it or walks away; the land's own chance stays. |
-| `mods/fixes.c:894` | if (col == 0) col = 1 |
-| `mods/fixes.c:1081` | from the battle kept |
-| `mods/fixes.c:1542` | The store room keeps at most 127 of one item. |
-| `mods/fixes.c:1543` | The store room is full: it keeps 100 kinds of items. |
-| `mods/fixes.c:1713` | abandon the horses |
-| `mods/fixes.c:2155` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
-| `mods/fixes.c:2431` | claim friendship |
-| `mods/fixes.c:2483` | It is $NamedOneName again |
-| `mods/fixes.c:2746` | You need a missile weapon |
-| `mods/fixes.c:2841` | if the argument was won |
-| `mods/fixes.c:2904` | Not bought: nobody in the party has room for another kind of item. |
-| `mods/fixes.c:2922` | Nobody in the party has room for another kind of item. |
-| `mods/fixes.c:4108` | Dissolve Lock needs Eater-Water in this member's pack. |
-| `mods/fixes.c:4170` | a hook (or { -2 }) for each fix, in the same order |
+| `mods/fixes.c:450` | A robber-knight briefing names the right patron |
+| `mods/fixes.c:451` | The briefing looked for a quest giver with the castle's number. It now reads the quest from the office that just commissioned it, so the same person speaks throughout. |
+| `mods/fixes.c:969` | if (col == 0) col = 1 |
+| `mods/fixes.c:1156` | from the battle kept |
+| `mods/fixes.c:1617` | The store room keeps at most 127 of one item. |
+| `mods/fixes.c:1618` | The store room is full: it keeps 100 kinds of items. |
+| `mods/fixes.c:1788` | abandon the horses |
+| `mods/fixes.c:2230` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
+| `mods/fixes.c:2506` | claim friendship |
+| `mods/fixes.c:2558` | It is $NamedOneName again |
+| `mods/fixes.c:2821` | You need a missile weapon |
+| `mods/fixes.c:2916` | if the argument was won |
+| `mods/fixes.c:2979` | Not bought: nobody in the party has room for another kind of item. |
+| `mods/fixes.c:2997` | Nobody in the party has room for another kind of item. |
+| `mods/fixes.c:4183` | Dissolve Lock needs Eater-Water in this member's pack. |
+| `mods/fixes.c:4245` | a hook (or { -2 }) for each fix, in the same order |
 
 ## The interface (ui/)
 
