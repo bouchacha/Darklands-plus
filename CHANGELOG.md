@@ -22,6 +22,7 @@
 **Fixed**
 
 - **Potions and saints in a dungeon survive a save there:** saving in a dungeon or a battle ended at once the potions drunk and the saints' help called in it (a saint's boost then stayed for good), and they were missing from the save. They now run on, and come back with the save.
+- **The log of a session that stopped on an error is kept:** when the game stopped and Darklands+ started it again, the new session opened the log over the old one, so a report held only the new session and not the error (GitHub issue 25). The old log is now kept as the previous one, and the new one names the error.
 - **A click goes to what is on top:** a Darklands+ panel's button first, then the rest of the panel (never passed to the game), then the open menu or a Darklands+ screen, then the field. A click on the menu bar no longer walks the party to a way out under it, the click that closes the menu no longer walks anyone, and hints about the field no longer show over the menu.
 - **Encounters by a pagan altar come one at a time:** beside an altar the chance of an encounter is up to a hundred times the usual, and the step that brings one leaves the party where it was, so encounter followed encounter on the tile before it. After one there, the altar now adds nothing until the party reaches it or walks away.
 - **A mishap in a new encounter** (the ferry's rope, a fall in the river) loses only what is carried, not what a member has equipped or the horse they ride.

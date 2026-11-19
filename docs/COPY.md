@@ -2615,25 +2615,25 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui.cpp:102` | Comic Sans (we are so sorry) |
 | `ui/ui.cpp:227` | Comic Neue (a Comic Sans look-alike, we are so sorry) |
 | `ui/ui.cpp:242` | don't remind me |
-| `ui/ui.cpp:261` | Darklands stopped because of an error. Your saves are safe: Load is in the Game menu (right-click). F12 > About > Report a problem makes a report of it. |
-| `ui/ui.cpp:262` | The party's journey has ended. Load a saved game to continue: Load in the Game menu (right-click). |
-| `ui/ui.cpp:306` | The world map can only be opened from the overland view or a card, not in a battle. |
-| `ui/ui.cpp:307` | The world map can only be opened from the overland view or a card: close this screen first. |
-| `ui/ui.cpp:308` | The world map can only be opened from the overland view or a card, once a game is under way. |
-| `ui/ui.cpp:416` | How Darklands works |
-| `ui/ui.cpp:428` | A deep editor, for fixing and modding: |
-| `ui/ui.cpp:430` | it changes the saved game's own data directly, as the community's save editors do (to repair a character hit by an old bug, to cheat, or to make a mod). Nothing here is needed to play. |
-| `ui/ui.cpp:434` | Items (for a mod) |
-| `ui/ui.cpp:486` | Darklands+: the potions and the alchemical ingredients |
-| `ui/ui.cpp:488` | Potions, grades 1, 2 and 3 (the gold dots on the neck) |
-| `ui/ui.cpp:605` | Reconstructed Content |
-| `ui/ui.cpp:609` | Reconstructed Content |
-| `ui/ui.cpp:631` |              |
-| `ui/ui.cpp:744` | an index past the vertices |
-| `ui/ui.cpp:744` | not a number |
-| `ui/ui.cpp:744` | far past the window |
-| `ui/ui.cpp:777` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
-| `ui/ui.cpp:783` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
+| `ui/ui.cpp:262` | Darklands stopped because of an error. Your saves are safe: Load is in the Game menu (right-click). F12 > About > Report a problem makes a report of it. |
+| `ui/ui.cpp:263` | The party's journey has ended. Load a saved game to continue: Load in the Game menu (right-click). |
+| `ui/ui.cpp:307` | The world map can only be opened from the overland view or a card, not in a battle. |
+| `ui/ui.cpp:308` | The world map can only be opened from the overland view or a card: close this screen first. |
+| `ui/ui.cpp:309` | The world map can only be opened from the overland view or a card, once a game is under way. |
+| `ui/ui.cpp:417` | How Darklands works |
+| `ui/ui.cpp:429` | A deep editor, for fixing and modding: |
+| `ui/ui.cpp:431` | it changes the saved game's own data directly, as the community's save editors do (to repair a character hit by an old bug, to cheat, or to make a mod). Nothing here is needed to play. |
+| `ui/ui.cpp:435` | Items (for a mod) |
+| `ui/ui.cpp:487` | Darklands+: the potions and the alchemical ingredients |
+| `ui/ui.cpp:489` | Potions, grades 1, 2 and 3 (the gold dots on the neck) |
+| `ui/ui.cpp:606` | Reconstructed Content |
+| `ui/ui.cpp:610` | Reconstructed Content |
+| `ui/ui.cpp:632` |              |
+| `ui/ui.cpp:745` | an index past the vertices |
+| `ui/ui.cpp:745` | not a number |
+| `ui/ui.cpp:745` | far past the window |
+| `ui/ui.cpp:778` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
+| `ui/ui.cpp:784` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
 | `ui/ui_windows.cpp:74` | Darklands+ is made by Yassine Meskhout. |
 | `ui/ui_windows.cpp:75` | Darklands (c) 1992 MicroProse. This is the original game, rebuilt to run directly on today's computers, with the game files of your own copy. F12 > Settings has the Full Original preset, the game as it played, and switches for most of what Darklands+ adds. |
 | `ui/ui_windows.cpp:78` | F11: the keys for the current screen.  F12: this window (the game waits while it is open).  Alt+Enter: full screen.  Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities). |

@@ -212,7 +212,12 @@ int main(int argc, char **argv)
     {   /* no console on Windows: keep a log next to the game */
         char lp[1100], pp[1100]; snprintf(lp, sizeof lp, "%s/darklands_port.log", dlp_data_dir);
         snprintf(pp, sizeof pp, "%s/darklands_port_previous.log", dlp_data_dir);   /* (the last session's kept: a bug met before a restart is still in it) */
-        remove(pp); rename(lp, pp);
+        remove(pp);
+        for (int t = 0; rename(lp, pp) && t < 30; t++) {   /* (a restart: the session before may still be closing its log, which */
+            FILE *f = fopen(lp, "rb");                     /* would then be opened over and lost - the error it ended on with it, */
+            if (!f) break;                                 /* GitHub issue 25) */
+            fclose(f); SDL_Delay(100);
+        }
         freopen(lp, "w", stderr);
         setvbuf(stderr, NULL, _IONBF, 0);        /* every line at once: a crash loses nothing */
     }

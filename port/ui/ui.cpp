@@ -257,7 +257,8 @@ extern "C" void ui_init(SDL_Window *win, SDL_Renderer *ren)
     idle_rest = 1;                      /* (always: the game waits without spinning; display.idle_rest retired, DL_NO_SPIN_REST for tests) */
     gamedata_load(game_dir);
     if (getenv("DL_RESTARTED")) {
-        const char *ee = getenv("DL_ERROR_EXIT");
+        const char *ee = getenv("DL_ERROR_EXIT"), *at = getenv("DL_ERROR_AT");
+        if (ee && atoi(ee) && at) fprintf(stderr, "restarted: the session before ended on an error, program exit %s\n", at);
         if (ee && atoi(ee)) ui_notice_for("Darklands stopped because of an error. Your saves are safe: Load is in the Game menu (right-click). F12 > About > Report a problem makes a report of it.", 30000);
         else ui_notice_for("The party's journey has ended. Load a saved game to continue: Load in the Game menu (right-click).", 20000);
     }

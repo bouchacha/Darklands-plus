@@ -1409,6 +1409,7 @@ void plat_restart(void)
     SDL_Quit();
 #ifdef _WIN32
     SetEnvironmentVariableA("DL_RESTARTED", "1");
+    freopen("NUL", "w", stderr);                 /* the log let go before the next session keeps it as the previous one (it was opened over) */
     STARTUPINFOW si; PROCESS_INFORMATION pi; memset(&si, 0, sizeof si); si.cb = sizeof si;
     if (CreateProcessW(NULL, GetCommandLineW(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) { CloseHandle(pi.hThread); CloseHandle(pi.hProcess); }
     exit(0);

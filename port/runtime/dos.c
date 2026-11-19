@@ -773,10 +773,12 @@ void dos_int21(void)
         } else dos_error(1);
         break;
     case 0x4c: fflush(stdout);
-        { int game_mode(void); fprintf(stderr, "program exit: int 21h 4Ch code %d (mode %d, card %.12s, DS:07f4 %d)\n  stack:", AL, game_mode(), (const char *)M + LIN((u16)(LOADSEG + 0x321a), 0xe3d4), rb((u16)(LOADSEG + 0x321a), 0x07f4));
-          for (int k = 0; k < 96; k++) { u16 w = rw(SS, (u16)(SP + 2 * k)), w2 = rw(SS, (u16)(SP + 2 * k + 2));      /* far return addresses: offset, then a code segment */
-              if (w2 >= LOADSEG && w2 < LOADSEG + 0x3000) fprintf(stderr, " %04x:%04x", (u16)(w2 - LOADSEG), w); }
-          fprintf(stderr, "\n"); }
+        { int game_mode(void); char at[700]; int n = snprintf(at, sizeof at, "code %d (mode %d, card %.12s, DS:07f4 %d), stack:", AL, game_mode(), (const char *)M + LIN((u16)(LOADSEG + 0x321a), 0xe3d4), rb((u16)(LOADSEG + 0x321a), 0x07f4));
+          for (int k = 0; k < 96 && n < (int)sizeof at - 12; k++) { u16 w = rw(SS, (u16)(SP + 2 * k)), w2 = rw(SS, (u16)(SP + 2 * k + 2));      /* far return addresses: offset, then a code segment */
+              if (w2 >= LOADSEG && w2 < LOADSEG + 0x3000) n += snprintf(at + n, sizeof at - n, " %04x:%04x", (u16)(w2 - LOADSEG), w); }
+          fprintf(stderr, "program exit: int 21h 4Ch %s\n", at);
+          void plat_setenv(const char *, const char *);
+          if (AL) plat_setenv("DL_ERROR_AT", at); }     /* (into the next session's log too, after a restart: GitHub issue 25's was lost) */
         { int saves_party_ended(void), halloffame_record(void);          /* the Honor Roll of Glory (ui/halloffame.cpp) */
           void plat_setenv(const char *, const char *);
           if (AL) { char c[16]; snprintf(c, sizeof c, "%d", AL); plat_setenv("DL_ERROR_EXIT", c); }   /* an error (99: a file missing, 1: out of memory ...), not the party's end */
