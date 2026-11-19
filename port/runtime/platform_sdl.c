@@ -402,17 +402,20 @@ void plat_field_slide(float *x, float *y)
     float e = 1 - (1 - t) * (1 - t);           /* (easing out) */
     *x = -slide_sx * (1 - e); *y = -slide_sy * (1 - e);
 }
-static int slide_watch(void)                /* 1: the field slides this frame */
+static int slide_watch(int h, int v)                /* 1: the field slides this frame */
 {
     int on = game_mode() == GM_BATTLE && config_get_int("battle.smooth_scroll", 1) && !config_get_int("original", 0);
     if (!on) { slide_h = -999; sliding = 0; return 0; }
-    int h = (s8)g_rb(0xc866), v = (s8)g_rb(0xc886), dh = h - slide_h, dv = v - slide_v, start = 0;
-    if (slide_h != -999 && (dh || dv) && abs(dh) <= 2 && abs(dv) <= 2) {
+    int dh = h - slide_h, dv = v - slide_v, start = 0;
+    int sx = -32 * dh + 16 * dv, sy = -16 * dv;
+    /* Two endpoint frames cover a single-axis slide. Across both axes they
+     * leave opposite corners with no source pixels. Present that step whole. */
+    if (slide_h != -999 && (dh || dv) && abs(dh) <= 2 && abs(dv) <= 2 && (!sx || !sy) && !hdart_ndraws) {
         if (!slide_old) slide_old = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 320, 200);
         if (!slide_new) slide_new = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 320, 200);
         if (slide_old && slide_new) {
             SDL_UpdateTexture(slide_old, 0, slide_prev, 320 * 4);
-            slide_sx = (float)(-32 * dh + 16 * dv); slide_sy = (float)(-16 * dv);
+            slide_sx = (float)sx; slide_sy = (float)sy;
             slide_t0 = plat_ticks_ms(); sliding = start = 1;
         }
     } else if (slide_h != -999 && (dh || dv)) sliding = 0;   /* (a jump: no slide) */
@@ -428,8 +431,7 @@ static void slide_draw(void)                /* the field: the old frame leaving,
     SDL_Rect clip = { dest.x + (int)(60 * kx + 0.5f), dest.y, dest.w - (int)(60 * kx + 0.5f), dest.h };
     SDL_RenderSetClipRect(ren, &clip);
     SDL_Rect src = { 60, 0, 260, 200 };
-    SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
-    SDL_RenderFillRect(ren, &clip);
+    /* The complete destination frame already covers the viewport. */
     SDL_Texture *tx[2] = { slide_old, slide_new };
     float ox[2] = { slide_sx * e, -slide_sx * (1 - e) }, oy[2] = { slide_sy * e, -slide_sy * (1 - e) };
     for (int k = 0; k < 2; k++) {
@@ -437,15 +439,6 @@ static void slide_draw(void)                /* the field: the old frame leaving,
         SDL_SetTextureBlendMode(tx[k], SDL_BLENDMODE_NONE);
         SDL_FRect d = { dest.x + (60 + ox[k]) * kx, dest.y + oy[k] * ky, 260 * kx, 200 * ky };
         SDL_RenderCopyF(ren, tx[k], &src, &d);
-    }
-    /* the game draws its pointer into the picture: the new frame's, carried along with it, is
-       covered with the old frame's ground at that place (the window's own pointer stays put) */
-    int px, py; plat_mouse_game(&px, &py);
-    SDL_Rect c = { px - 2, py - 4, 20, 18 };    /* (the hand: its tip at the pointer, the rest right and below) */
-    SDL_Rect cs = { c.x - (int)slide_sx, c.y - (int)slide_sy, c.w, c.h };
-    if (cs.x >= 0 && cs.y >= 0 && cs.x + cs.w <= 320 && cs.y + cs.h <= 200) {
-        SDL_FRect d = { dest.x + (c.x + ox[1]) * kx, dest.y + (c.y + oy[1]) * ky, c.w * kx, c.h * ky };
-        SDL_RenderCopyF(ren, slide_old, &cs, &d);
     }
     SDL_RenderSetClipRect(ren, 0);
 }
@@ -468,9 +461,13 @@ static u32 hold_draw_t; static int hold_draw;
 void plat_hold_until_drawn(void) { hold_draw = 1; hold_draw_t = SDL_GetTicks(); }
 void plat_drawn(void) { hold_draw = 0; }
 static u32 drawing_t; static int drawing;
-static u8 whole_vga[320 * 200], whole_pal[768]; static int whole_ok;
+static u8 whole_vga[320 * 200], whole_pal[768]; static int whole_ok, whole_col, whole_row;
 static const u8 *live_vga, *live_pal;     /* (what plat_present is given: the game's screen and palette) */
-static void keep_whole(const u8 *vga, const u8 *pal) { memcpy(whole_vga, vga, sizeof whole_vga); memcpy(whole_pal, pal, sizeof whole_pal); whole_ok = 1; }
+static void keep_whole(const u8 *vga, const u8 *pal) {
+    whole_col = (s8)g_rb(0xc866); whole_row = (s8)g_rb(0xc886);
+    memcpy(whole_vga, vga, sizeof whole_vga); memcpy(whole_pal, pal, sizeof whole_pal);
+    whole_ok = 1;
+}
 void plat_drawing(int on)
 {
     drawing = on; drawing_t = SDL_GetTicks();
@@ -524,7 +521,7 @@ void plat_present(const u8 *vga, const u8 *pal)
         }
         SDL_RenderCopyF(ren, tiles[t], &tile_src[t], &d);
     }
-    if (held ? sliding && slide_t() < 1 : slide_watch()) slide_draw();   /* (held: a slide under way goes on; a new one waits for the whole picture) */
+    if (held ? sliding && slide_t() < 1 : slide_watch(whole_col, whole_row)) slide_draw();   /* (held: a slide under way goes on; a new one waits for the whole picture) */
     crt_end(ren, &dest, crt_saved, frame, crt_tgt);
     uint64_t pt2 = ptime ? plat_ticks_us() : 0;
     ui_draw(ren);
