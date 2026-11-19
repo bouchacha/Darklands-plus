@@ -92,12 +92,14 @@ int ns_call_ptr(u16 seg, u16 off, int n, ...)
 /* ---------------------------------------------------------------- input */
 #define A_MOUSE_BTN GV_mouse_buttons
 static int btn_prev, rbtn_prev;
+static int inherited_left;
 static unsigned press_seen, rpress_seen;
 unsigned mouse_press_count(int b);
 void ns_input_begin(void)
 {
     int b = g_rb(A_MOUSE_BTN);
     btn_prev = b & 1; rbtn_prev = (b & 2) != 0;
+    inherited_left = btn_prev;
     press_seen = mouse_press_count(0); rpress_seen = mouse_press_count(1);
     ns_in.click = ns_in.rclick = ns_in.pressed = 0; ns_in.down = b & 1;
 }
@@ -109,6 +111,12 @@ void ns_input_poll(void)
     unsigned pc = mouse_press_count(0), rpc = mouse_press_count(1);
     int fresh = pc != press_seen, rfresh = rpc != rpress_seen;
     press_seen = pc; rpress_seen = rpc;
+    /* A town portrait opens its sheet on mouse-down. Its release belongs to
+       the town, even if the pointer has moved. A new press is the sheet's. */
+    if (inherited_left) {
+        if (fresh || !(b & 1)) inherited_left = 0;
+        btn_prev = fresh ? 0 : (b & 1);
+    }
     if ((btn_prev || fresh) && !(b & 1)) { ns_in.click = 1; ns_in.cx = ns_in.x; ns_in.cy = ns_in.y; }
     if ((!btn_prev || fresh) && (b & 1)) { ns_in.pressed = 1; ns_in.px = ns_in.x; ns_in.py = ns_in.y; }
     if (fresh && !btn_prev && !(b & 1)) { ns_in.pressed = 1; ns_in.px = ns_in.x; ns_in.py = ns_in.y; }
