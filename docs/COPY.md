@@ -619,7 +619,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:448` | Encounters by a pagan altar come one at a time |
 | `mods/fixes.c:449` | Beside a pagan altar the chance of an encounter is up to a hundred times the usual, tried at each small step of the party's marker, and the step that brings one leaves the party where it was: on the tile before the altar, encounter followed encounter. Now, after one there, the altar adds nothing to the chance until the party reaches it or walks away; the land's own chance stays. |
 | `mods/fixes.c:450` | A robber-knight briefing names the right patron |
-| `mods/fixes.c:451` | The briefing looked for a quest giver with the castle's number. It now reads the quest from the office that just commissioned it, so the same person speaks throughout. |
+| `mods/fixes.c:451` | The briefing that follows a robber-knight bounty looked the quest up with the castle's number where the office's belongs, so it found another office's quest, or none (the game then read past the start of its table). It now reads the quest the offering office has just made, so the same person speaks throughout. |
 | `mods/fixes.c:969` | if (col == 0) col = 1 |
 | `mods/fixes.c:1156` | from the battle kept |
 | `mods/fixes.c:1617` | The store room keeps at most 127 of one item. |

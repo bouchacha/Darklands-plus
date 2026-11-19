@@ -367,6 +367,7 @@ the files where each switch's key is read.
 | `fix.exitleft` | A member gone out by the way out no longer holds the others back | fix | fixes.c |
 | `fix.onefloor` | The party keeps to one floor in a fight | fix | fixes.c, levelwalk.c |
 | `fix.altarroad` | Encounters by a pagan altar come one at a time | fix | fixes.c, travel.c |
+| `fix.bountybrief` | A robber-knight briefing names the right patron | fix | fixes.c |
 
 The fixes (`fix.<id>`) are listed with their explanations in `port/mods/fixes.c`; the built-in
 rule changes (`mod.<id>`) in `port/mods/builtin.c`.
