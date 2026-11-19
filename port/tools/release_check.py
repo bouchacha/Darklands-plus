@@ -156,6 +156,16 @@ def main():
     print('%-40s %s' % ('the switches: none lost, the list current', 'OK' if r.returncode == 0 and same else 'FAILED'))
     if r.returncode: print(r.stdout.rstrip()); failed += 1
     elif not same: print('    docs/SWITCHES.md is not as the game writes it now: cp %s docs/SWITCHES.md' % sw); failed += 1
+    # the interface's own cost per screen, on a fresh copy of the game folder (tools/perfcheck.py: its budget)
+    pg = os.path.join(a.out, 'perfgame')
+    shutil.rmtree(pg, ignore_errors=True); shutil.copytree(a.game, pg)
+    r = subprocess.run([sys.executable, '-I', os.path.join(HERE, 'perfcheck.py'), '--game', pg, '--exe', a.exe], capture_output=True, text=True, timeout=900)
+    open(os.path.join(a.out, 'perfcheck.txt'), 'w').write(r.stdout + r.stderr)
+    print('%-40s %s' % ('every screen within its drawing budget', 'OK' if r.returncode == 0 else 'FAILED'))
+    for line in r.stdout.splitlines():
+        if line.rstrip().endswith(('FAIL', 'watch', 'once')): print('    ' + line.rstrip())
+    if r.returncode: failed += 1
+    shutil.rmtree(pg, ignore_errors=True)
     if failed and re.search(r'Go to \w[^:]*: something happened on the way', open(log, encoding='latin1', errors='replace').read()):
         print('    (Go to met a street encounter on the way - the shell game ($SHELL00) and the like: the game\'s own chance, which the')
         print('    fixed seed avoids in some towns and not in others; Quickstart picks the town. Not a fault: run the check again.)')

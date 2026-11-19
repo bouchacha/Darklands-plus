@@ -237,9 +237,9 @@ Tools: tests, checks, the harness.
 | `tools/nhunt.py` | 19 | nhunt.py NAME [--max N] [--pts x1,y1,x2,y2]: travel back and forth on the overland map of an nctl session until something other than the map shows (an encounter card). |
 | `tools/nplay.py` | 133 | run a tools/play.py-style script against the NATIVE build (headless) and save screenshots as PNG. |
 | `tools/package.py` | 152 | the Windows release of Darklands+: only our own code and the tools that make the game module on the player's machine (runtime/split.h). |
-| `tools/perfcheck.py` | 72 | how long the interface takes to draw on each screen (run after every new feature). |
+| `tools/perfcheck.py` | 78 | how long the interface takes to draw on each screen (run after every new feature). |
 | `tools/prepare.py` | 137 | make the game module (runtime/split.h) from the player's own DARKLAND.EXE. |
-| `tools/release_check.py` | 167 | a scripted session through the parts of Darklands+ that a release must not break, in a window (native screens are drawn only there), on your own game files. |
+| `tools/release_check.py` | 177 | a scripted session through the parts of Darklands+ that a release must not break, in a window (native screens are drawn only there), on your own game files. |
 | `tools/reloc_check.py` | 54 | every segment the DOS loader would have fixed up in DARKLAND.EXE's code, and whether the translation (port/recomp/recomp16.py) adds the load segment there too. |
 | `tools/smoke.py` | 52 | quick checks of a Darklands+ build against your own game files, before a release. |
 | `tools/soaktest.py` | 334 | a long automated playtest: plays the game for a while as a restless player would, and reports what went wrong. |

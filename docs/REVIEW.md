@@ -763,3 +763,14 @@ covered and found, and what it could not check.
   tomb_give_hook gives for a victory or an escape (results 0 to 2) and nothing for a defeat; #13's
   victory stays (the fight ends once every skeleton is down); #29 closed. port/tools/test_tomb.c
   checks each result.
+- 2026-11-19 (his rule: "always run performance checks"; investigate anything near a limit):
+  tools/perfcheck.py now runs as release_check.py's last step, on its own copy of the game folder.
+  It measures each screen while it is up (each step ends with its screen open, the next one closes
+  it) after 3 s to settle, and it covers the loot screen too. A worst over 8 ms in one window only
+  is "once", not a failure; more than 60,000 vertices is "watch". Looked into: the Saints page's
+  8 to 11 ms comes in the frames right after it opens, then at most 2.3 ms over 30 s (a stack
+  sample of those seconds found the game waiting on the screen); the alchemy screen and the world
+  map draw about 62,000 vertices, the alchemy screen's 36 item icons 12,000 of them and the crisp
+  text another 12,000. Drawing the icons once into pictures (as the plaited band is) would save
+  about 11,000; not worth it while a graphics card draws these with ease and the build stays under
+  2 ms.
