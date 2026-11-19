@@ -951,7 +951,11 @@ int hdart_pick(int x, int y, int *px, int *py, int *pw, int *ph)
     return -1;
 }
 
-int hdart_has_art(int pic) { return pic >= 0 && pic < npics && pics[pic].art; }
+int hdart_has_art(int pic)
+{
+    return pic >= 0 && pic < npics && pics[pic].art &&
+           (strncmp(pics[pic].name, "BT_", 3) || battletiles_art_enabled());
+}
 
 /* ---------------------------------------------------------------- export */
 int stbi_write_png(char const *filename, int w, int h, int comp, const void *data, int stride_in_bytes);

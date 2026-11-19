@@ -40,6 +40,7 @@ extern "C" {
 #include "../mods/hdtext.h"
 #include "../mods/musicpack.h"
 #include "../mods/hdart.h"
+#include "../mods/battletiles.h"
 #include "../mods/sfx.h"
 #include "../mods/datamods.h"
 #include "../mods/lootview.h"
@@ -334,6 +335,12 @@ extern "C" int ui_event(const SDL_Event *e)
     if (figpick_is_open() || portrait_picker_is_open()) {   /* a picker takes every event until it closes */
         ImGui_ImplSDL2_ProcessEvent(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
+    }
+    if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_F8 &&
+        !(e->key.keysym.mod & (KMOD_CTRL | KMOD_SHIFT | KMOD_ALT | KMOD_GUI)) &&
+        !open_menu && !open_map && !open_help && game_mode() == GM_BATTLE && !config_get_int("original", 0)) {
+        if (!e->key.repeat) battletiles_compare();
+        return 1;
     }
     if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_r && (e->key.keysym.mod & KMOD_CTRL)
         && (e->key.keysym.mod & KMOD_SHIFT) && !(e->key.keysym.mod & (KMOD_ALT | KMOD_GUI))

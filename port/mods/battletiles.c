@@ -34,7 +34,23 @@ typedef struct {
 static Tile tiles[TILE_MAX + 1];
 static u16 byseg[65536];
 static int count, town, active, original, names, generation, enabled, variable_slot, tracking;
-static int tile_log;
+static int tile_log, preview_original;
+
+int battletiles_art_enabled(void) { return hdart_on && !preview_original; }
+
+void battletiles_compare(void)
+{
+    extern void ui_notice(const char *);
+    if (!hdart_on) { ui_notice("Enable replacement art in F12 > Mods to compare scenery."); return; }
+    if (!active) return;
+    if (!preview_original) {
+        int i = 1;
+        while (i <= count && !hdart_art_file(tiles[i].name)) i++;
+        if (i > count) { ui_notice("No replacement scenery on this battlefield."); return; }
+    }
+    preview_original = !preview_original;
+    ui_notice(preview_original ? "Original scenery (F8 to switch back)" : "Modded scenery");
+}
 
 static void tracking_update(void)
 {
@@ -164,7 +180,7 @@ static void h_tiles_load(void)
         }
     }
     active = count > 0;
-    enabled = hdart_on; original = config_get_int("original", 0); names = hdart_show_names;
+    enabled = battletiles_art_enabled(); original = config_get_int("original", 0); names = hdart_show_names;
     generation = hdart_generation; tracking_update();
     if (tile_log) fprintf(stderr, "battle art: battlefield %#x, %d tile segments%s\n", kind, count, town ? " (town)" : "");
 }
@@ -194,9 +210,9 @@ static void h_furniture_load(void)
 static void h_input(void)
 {
     int orig = config_get_int("original", 0);
-    if (active && (enabled != hdart_on || original != orig || names != hdart_show_names || generation != hdart_generation)) {
+    if (active && (enabled != battletiles_art_enabled() || original != orig || names != hdart_show_names || generation != hdart_generation)) {
         int previously_tracking = tracking;
-        enabled = hdart_on; original = orig; names = hdart_show_names; generation = hdart_generation;
+        enabled = battletiles_art_enabled(); original = orig; names = hdart_show_names; generation = hdart_generation;
         tracking_update();
         if (tracking || previously_tracking) {
             ns_call(GF_floor_view_draw, 1, -1);
@@ -209,9 +225,11 @@ static void h_input(void)
 
 static void h_battle(void)
 {
+    preview_original = 0;
     clear_tiles();
     hook_call_original();
     clear_tiles();
+    preview_original = 0;
 }
 
 static int tile_pic(Tile *t)

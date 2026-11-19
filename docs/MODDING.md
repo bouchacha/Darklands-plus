@@ -343,6 +343,9 @@ A `BT_TOWN_` name applies on town battlefields. To replace that source wherever 
 appears, use `BT_` in place of `BT_TOWN_`. A town-specific picture takes precedence
 over its general version. Missing pictures fall back individually.
 
+During a battle, press **F8** to see the original scenery. Press **F8** again to see
+your replacements from the same viewpoint. The comparison resets after the battle.
+
 Save your edit, then press **Ctrl+Shift+R** in play or click **Look again**. The game
 reloads the art on the current field. The replacement-art switch and **Play the original
 game** setting apply to battle scenery too.

@@ -81,6 +81,7 @@ static void replacement_art(void)
         if (ImGui::Button("Look again (Ctrl+Shift+R)")) { hdart_rescan(); snprintf(msg, sizeof msg, "%d replacement pictures found.", hdart_count()); }
         ImGui::SameLine();
         if (ImGui::Button("Export the original pictures")) hdart_export(msg, sizeof msg);
+        ui_hint("In battle, press F8 to compare original and modded scenery.");
         if (msg[0]) ui_hint("%s", msg);
         bool sn = hdart_show_names;
         if (ImGui::Checkbox("Show the name of the picture under the mouse", &sn)) { hdart_show_names = sn; config_set_int("display.art_names", sn); ui_dirty_config = 1; }
