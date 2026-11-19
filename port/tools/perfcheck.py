@@ -41,7 +41,7 @@ def main():
     env = dict(os.environ, DL_PRESENT_TIME='10', NCTL_SCREEN=a.screen)
     cmd = NCTL + ['start', name, '--game', a.game, '--x11'] + (['--exe', a.exe] if a.exe else [])
     subprocess.run(cmd, env=env, capture_output=True, timeout=200)
-    log = '/tmp/nctl/%s/out.txt' % name
+    log = os.path.join(os.environ.get('NCTL_DIR', '/tmp/nctl'), name, 'out.txt')   # (nctl.py's own folder)
     subprocess.run(NCTL + ['do', name, START], capture_output=True, timeout=300)
     fails = 0
     print('%-18s %8s %8s %9s %8s' % ('screen', 'build', 'b worst', 'vertices', 'frame'))
