@@ -750,3 +750,8 @@ covered and found, and what it could not check.
   ui_teach_learners (ui/teachersui.cpp), with the teacher's town icon and the skills' short names
   beside it; the margin's lectern and the world map's Find teachers both read it (margins.cpp keeps
   thin wrappers), so a row is dim in the list exactly when the lectern is dim in the town.
+- 2026-11-19 (his review of Find teachers): the words for who would learn are one function too,
+  ui_teach_who (teachersui.cpp): heads with their skill now, "for the party" on the skills one member uses
+  for all, and when nobody would, the same heads, so the reason shows; the lectern's tooltip and the list
+  both call it. A teacher not to be had now carries its reason in a few words (TchSource.why, set beside
+  each off = 1 in mods/teachers.c), so the list says why instead of "not now".

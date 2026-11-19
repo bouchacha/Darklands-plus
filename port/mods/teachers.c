@@ -120,7 +120,7 @@ int teach_town(int loc, const TchTown *t, TchSource *out, int max)
             else if (GUILDS[k].need) {
                 int d = standing(k, seed, loc);
                 snprintf(o->now, sizeof o->now, d >= 0 ? "The guild would receive the party now, in the daytime." : "The guild would not receive the party yet (it needs more fame, reputation here or {Charisma}).");
-                o->off = d < 0;
+                if (d < 0) { o->off = 1; o->why = "the guild won't receive you"; }
             }
         }
     }
@@ -155,14 +155,14 @@ int teach_town(int loc, const TchTown *t, TchSource *out, int max)
         if (here) { int e = event_at(0x37, loc, -1); if (e >= 0) { u32 p = g_event(e); P = (s16)rw((u16)(p >> 16), (u16)((u16)p + 0x1e)); } }
         int best = party_best_skill(SKILL_HEALING);
         /* (in the game's order: the party healing better first, then the year) */
-        if (P > 1 && best > P) { snprintf(o->now, sizeof o->now, "His own {Healing:%d} this week, and the party's best is %d: he will not teach you.", P, best); o->off = 1; }
-        else if (P < 0 && best > hi) { snprintf(o->now, sizeof o->now, "His own {Healing:%d} at most, and the party's best is %d: he will not teach you.", hi, best); o->off = 1; }
-        else if ((s16)(seed + year) % 3 == 0) { snprintf(o->now, sizeof o->now, "He takes no students this year."); o->off = 1; }
+        if (P > 1 && best > P) { snprintf(o->now, sizeof o->now, "His own {Healing:%d} this week, and the party's best is %d: he will not teach you.", P, best); o->off = 1; o->why = "the party heals better"; }
+        else if (P < 0 && best > hi) { snprintf(o->now, sizeof o->now, "His own {Healing:%d} at most, and the party's best is %d: he will not teach you.", hi, best); o->off = 1; o->why = "the party heals better"; }
+        else if ((s16)(seed + year) % 3 == 0) { snprintf(o->now, sizeof o->now, "He takes no students this year."); o->off = 1; o->why = "no students this year"; }
         else if (P >= 0) {
-            if (P <= 1) { snprintf(o->now, sizeof o->now, "He takes no students at the moment."); o->off = 1; }
-            else if (best > P) { snprintf(o->now, sizeof o->now, "His own {Healing:%d} this week, and the party's best is %d: he will not teach you.", P, best); o->off = 1; }
+            if (P <= 1) { snprintf(o->now, sizeof o->now, "He takes no students at the moment."); o->off = 1; o->why = "no students this week"; }
+            else if (best > P) { snprintf(o->now, sizeof o->now, "His own {Healing:%d} this week, and the party's best is %d: he will not teach you.", P, best); o->off = 1; o->why = "the party heals better"; }
             else snprintf(o->now, sizeof o->now, "His own {Healing:%d} this week: he will teach you.", P);
-        } else if (best > hi) { snprintf(o->now, sizeof o->now, "His own {Healing:%d} at most, and the party's best is %d: he will not teach you.", hi, best); o->off = 1; }
+        } else if (best > hi) { snprintf(o->now, sizeof o->now, "His own {Healing:%d} at most, and the party's best is %d: he will not teach you.", hi, best); o->off = 1; o->why = "the party heals better"; }
         else if (best > lo) snprintf(o->now, sizeof o->now, "His own {Healing:%d to %d} this week (visiting him shows which): he teaches only if it is at least the party's best, %d.", lo, hi, best);
     }
     if (t->alchemist) {
@@ -180,11 +180,11 @@ int teach_town(int loc, const TchTown *t, TchSource *out, int max)
     for (int k = 0; k < n; k++) {
         TchSource *o = &out[k];
         if (o->off) continue;
-        if (o->src == TCH_MONASTERY && nh) { snprintf(o->now, sizeof o->now, "Another teacher is hired in the town, so the monks will not teach for now."); o->off = 1; continue; }
+        if (o->src == TCH_MONASTERY && nh) { snprintf(o->now, sizeof o->now, "Another teacher is hired in the town, so the monks will not teach for now."); o->off = 1; o->why = "another teacher is hired"; continue; }
         if (o->src == TCH_ARTIFICERS || o->src == TCH_UNIVERSITY || o->src == TCH_ALCHEMIST) continue;
         int all = o->n > 0;
         for (int i = 0; i < o->n; i++) { int got = 0; for (int j = 0; j < nh; j++) if (h[j].skill == o->skill[i]) got = 1; if (!got) all = 0; }
-        if (all) { snprintf(o->now, sizeof o->now, "Already hired: the teacher is at the inn now."); o->off = 1; }
+        if (all) { snprintf(o->now, sizeof o->now, "Already hired: the teacher is at the inn now."); o->off = 1; o->why = "hired: at the inn"; }
     }
     return n;
 }

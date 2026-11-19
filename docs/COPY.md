@@ -1553,70 +1553,69 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/margins.cpp:204` | weapons, armor and shields |
 | `ui/margins.cpp:204` | hammers, maces, flails and polearms (pikes, halberds, spears, staves) |
 | `ui/margins.cpp:205` | clothing and soft armor (padded, leather, studded leather, cuir bouilli) |
-| `ui/margins.cpp:254` | the party's best  |
-| `ui/margins.cpp:255` | nobody would learn |
-| `ui/margins.cpp:284` | Teachers here: a lesson a day at the inn, for a fee |
-| `ui/margins.cpp:285` | Under each, who would learn, and their skill now. |
-| `ui/margins.cpp:299` | Philosopher's Stone %dq |
-| `ui/margins.cpp:314` | A better Philosopher's Stone, for a price: |
-| `ui/margins.cpp:316` |  the alchemist's, quality %d; |
-| `ui/margins.cpp:317` |  the university's, quality %d; |
-| `ui/margins.cpp:319` |  The party's is %d%s. |
-| `ui/margins.cpp:319` |  The party has none. |
-| `ui/margins.cpp:319` | : nothing to gain here |
-| `ui/margins.cpp:359` | Notable shops |
-| `ui/margins.cpp:359` | Notable shops |
-| `ui/margins.cpp:361` | %s: %s of %dq (most shops sell about 25q). |
-| `ui/margins.cpp:366` | St.Edward, Confessor |
-| `ui/margins.cpp:374` | Saints taught here |
-| `ui/margins.cpp:391` |  (someone in the party knows this saint):  |
-| `ui/margins.cpp:391` |  (nobody in the party knows this saint):  |
-| `ui/margins.cpp:406` | Formulae sold here |
-| `ui/margins.cpp:425` | Someone in the party knows this formula. |
-| `ui/margins.cpp:425` | Nobody in the party knows this formula. |
-| `ui/margins.cpp:442` | Teachers to be hired |
-| `ui/margins.cpp:452` | %s: %s, up to %d |
-| `ui/margins.cpp:452` | %s: %s (their skill %d) |
-| `ui/margins.cpp:454` | A lesson a day at the inn, for a fee. Who would learn, and their skill now: |
-| `ui/margins.cpp:563` | Blessings and potions |
-| `ui/margins.cpp:638` | The first of these ends in  |
-| `ui/margins.cpp:638` | , the last in  |
-| `ui/margins.cpp:658` | Every member alike. |
-| `ui/margins.cpp:660` | Every member:  |
-| `ui/margins.cpp:696` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
-| `ui/margins.cpp:705` | Reputation %d |
-| `ui/margins.cpp:723` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
-| `ui/margins.cpp:723` | Below 0 its shops ask more and pay less: 1% for every 2 points below 0, up to 9%. |
-| `ui/margins.cpp:727` |   Changes seen since this game was loaded: |
-| `ui/margins.cpp:730` | the overland view |
-| `ui/margins.cpp:730` | , after choosing " |
-| `ui/margins.cpp:748` | The town counts as hostile: its gates and people turn the party away. |
-| `ui/margins.cpp:750` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
-| `ui/margins.cpp:761` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
-| `ui/margins.cpp:773` | Preparing for war |
-| `ui/margins.cpp:774` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
-| `ui/margins.cpp:776` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
-| `ui/margins.cpp:800` | The party has goods stored here (F12 > Journal > Stored). |
-| `ui/margins.cpp:805` | No blessings or potions at work. |
-| `ui/margins.cpp:814` | C: camp here |
-| `ui/margins.cpp:815` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
-| `ui/margins.cpp:819` | Go to a place here |
-| `ui/margins.cpp:819` | G: go to a place here |
-| `ui/margins.cpp:825` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
-| `ui/margins.cpp:874` | None taken on. |
-| `ui/margins.cpp:906` | Travel there |
-| `ui/margins.cpp:923` | ... %d more on the world map (M) |
-| `ui/margins.cpp:940` | Night in the streets |
-| `ui/margins.cpp:944` | almost always |
-| `ui/margins.cpp:945` | about %d time%s in 10 |
-| `ui/margins.cpp:946` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's {Stealth} and {Streetwise})%s. An inn is the safe place to wait for morning. |
-| `ui/margins.cpp:949` | , as set in F12 > Mods (Night encounters in the streets) |
-| `ui/margins.cpp:988` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
-| `ui/margins.cpp:988` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
-| `ui/margins.cpp:990` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
-| `ui/margins.cpp:990` | It is day (from 5:00 to 19:00). |
-| `ui/margins.cpp:1017` | %s in bank notes |
-| `ui/margins.cpp:1031` | F11: the keys and clicks of this screen. |
+| `ui/margins.cpp:253` | nobody would learn: %s |
+| `ui/margins.cpp:283` | Teachers here: a lesson a day at the inn, for a fee |
+| `ui/margins.cpp:284` | Under each, who would learn, and their skill now. |
+| `ui/margins.cpp:298` | Philosopher's Stone %dq |
+| `ui/margins.cpp:313` | A better Philosopher's Stone, for a price: |
+| `ui/margins.cpp:315` |  the alchemist's, quality %d; |
+| `ui/margins.cpp:316` |  the university's, quality %d; |
+| `ui/margins.cpp:318` |  The party's is %d%s. |
+| `ui/margins.cpp:318` |  The party has none. |
+| `ui/margins.cpp:318` | : nothing to gain here |
+| `ui/margins.cpp:358` | Notable shops |
+| `ui/margins.cpp:358` | Notable shops |
+| `ui/margins.cpp:360` | %s: %s of %dq (most shops sell about 25q). |
+| `ui/margins.cpp:365` | St.Edward, Confessor |
+| `ui/margins.cpp:373` | Saints taught here |
+| `ui/margins.cpp:390` |  (someone in the party knows this saint):  |
+| `ui/margins.cpp:390` |  (nobody in the party knows this saint):  |
+| `ui/margins.cpp:405` | Formulae sold here |
+| `ui/margins.cpp:424` | Someone in the party knows this formula. |
+| `ui/margins.cpp:424` | Nobody in the party knows this formula. |
+| `ui/margins.cpp:441` | Teachers to be hired |
+| `ui/margins.cpp:451` | %s: %s, up to %d |
+| `ui/margins.cpp:451` | %s: %s (their skill %d) |
+| `ui/margins.cpp:453` | A lesson a day at the inn, for a fee. Who would learn, and their skill now: |
+| `ui/margins.cpp:562` | Blessings and potions |
+| `ui/margins.cpp:637` | The first of these ends in  |
+| `ui/margins.cpp:637` | , the last in  |
+| `ui/margins.cpp:657` | Every member alike. |
+| `ui/margins.cpp:659` | Every member:  |
+| `ui/margins.cpp:695` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
+| `ui/margins.cpp:704` | Reputation %d |
+| `ui/margins.cpp:722` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
+| `ui/margins.cpp:722` | Below 0 its shops ask more and pay less: 1% for every 2 points below 0, up to 9%. |
+| `ui/margins.cpp:726` |   Changes seen since this game was loaded: |
+| `ui/margins.cpp:729` | the overland view |
+| `ui/margins.cpp:729` | , after choosing " |
+| `ui/margins.cpp:747` | The town counts as hostile: its gates and people turn the party away. |
+| `ui/margins.cpp:749` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
+| `ui/margins.cpp:760` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
+| `ui/margins.cpp:772` | Preparing for war |
+| `ui/margins.cpp:773` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
+| `ui/margins.cpp:775` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
+| `ui/margins.cpp:799` | The party has goods stored here (F12 > Journal > Stored). |
+| `ui/margins.cpp:804` | No blessings or potions at work. |
+| `ui/margins.cpp:813` | C: camp here |
+| `ui/margins.cpp:814` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
+| `ui/margins.cpp:818` | Go to a place here |
+| `ui/margins.cpp:818` | G: go to a place here |
+| `ui/margins.cpp:824` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
+| `ui/margins.cpp:873` | None taken on. |
+| `ui/margins.cpp:905` | Travel there |
+| `ui/margins.cpp:922` | ... %d more on the world map (M) |
+| `ui/margins.cpp:939` | Night in the streets |
+| `ui/margins.cpp:943` | almost always |
+| `ui/margins.cpp:944` | about %d time%s in 10 |
+| `ui/margins.cpp:945` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's {Stealth} and {Streetwise})%s. An inn is the safe place to wait for morning. |
+| `ui/margins.cpp:948` | , as set in F12 > Mods (Night encounters in the streets) |
+| `ui/margins.cpp:987` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
+| `ui/margins.cpp:987` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
+| `ui/margins.cpp:989` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
+| `ui/margins.cpp:989` | It is day (from 5:00 to 19:00). |
+| `ui/margins.cpp:1016` | %s in bank notes |
+| `ui/margins.cpp:1030` | F11: the keys and clicks of this screen. |
 | `ui/margins_battle.cpp:84` | The battle runs again (the key: Space). Any order being given is given first. |
 | `ui/margins_battle.cpp:85` | This member's order is given; the battle stays paused, to give others theirs (the key: Enter). |
 | `ui/margins_battle.cpp:86` | Every kind of enemy on the field: attributes, weapons, armor (the key: E). |
@@ -2527,19 +2526,21 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/skillicons.cpp:605` | Cards and towns |
 | `ui/skillicons.cpp:610` | The party and its items |
 | `ui/skillicons.cpp:626` | Fixes for bugs of the original |
-| `ui/teachersui.cpp:72` | Missile Devices |
-| `ui/teachersui.cpp:73` | Speak Common |
-| `ui/teachersui.cpp:73` | Read & Write |
-| `ui/teachersui.cpp:89` | Teaches: nothing that can be learned.  |
-| `ui/teachersui.cpp:99` |  per student per day.  |
-| `ui/teachersui.cpp:103` | Lessons go up to %d, the teacher's own ability, and no further.  |
-| `ui/teachersui.cpp:105` | The teacher's own ability is %d, but lessons go past it: students can reach 99, as in the original game.  |
-| `ui/teachersui.cpp:107` | Each day of lessons: %s %d%% chance of +1 to the skill (about one point every %d day%s).  |
-| `ui/teachersui.cpp:110` |  How to hire:  |
-| `ui/teachersui.cpp:110` |  The teacher then stays in town for a week; at the inn, set a member to "Train or study". |
-| `ui/teachersui.cpp:111` |  Who they accept:  |
-| `ui/teachersui.cpp:112` |  Right now:  |
-| `ui/teachersui.cpp:124` | {%s} (until %d %s) |
+| `ui/teachersui.cpp:75` |  for the party |
+| `ui/teachersui.cpp:85` |  for the party |
+| `ui/teachersui.cpp:97` | Missile Devices |
+| `ui/teachersui.cpp:98` | Speak Common |
+| `ui/teachersui.cpp:98` | Read & Write |
+| `ui/teachersui.cpp:114` | Teaches: nothing that can be learned.  |
+| `ui/teachersui.cpp:124` |  per student per day.  |
+| `ui/teachersui.cpp:128` | Lessons go up to %d, the teacher's own ability, and no further.  |
+| `ui/teachersui.cpp:130` | The teacher's own ability is %d, but lessons go past it: students can reach 99, as in the original game.  |
+| `ui/teachersui.cpp:132` | Each day of lessons: %s %d%% chance of +1 to the skill (about one point every %d day%s).  |
+| `ui/teachersui.cpp:135` |  How to hire:  |
+| `ui/teachersui.cpp:135` |  The teacher then stays in town for a week; at the inn, set a member to "Train or study". |
+| `ui/teachersui.cpp:136` |  Who they accept:  |
+| `ui/teachersui.cpp:137` |  Right now:  |
+| `ui/teachersui.cpp:149` | {%s} (until %d %s) |
 | `ui/tipplace.cpp:127` | tooltip over ... |
 | `ui/tipplace.cpp:145` | what it describes |
 | `ui/tips.cpp:41` | Stairs and ladders now work differently in a fight: instead of one member going through at a time, the whole  |
@@ -2839,12 +2840,12 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/worldmap.cpp:296` | Show %s on the map |
 | `ui/worldmap.cpp:298` | Land route unavailable |
 | `ui/worldmap.cpp:327` | what it raises |
-| `ui/worldmap.cpp:349` | the party's best  |
-| `ui/worldmap.cpp:363` | Find teachers###teachers |
-| `ui/worldmap.cpp:367` | No teachers known yet: the teachers of a town are known once the party has been there. |
-| `ui/worldmap.cpp:383` | every skill again |
-| `ui/worldmap.cpp:383` | only its teachers |
-| `ui/worldmap.cpp:387` | Dim: nobody would learn from them, or not now. A click on a row shows the town on the map; under the pointer, how to hire them. |
+| `ui/worldmap.cpp:360` | Find teachers###teachers |
+| `ui/worldmap.cpp:364` | No teachers known yet: the teachers of a town are known once the party has been there. |
+| `ui/worldmap.cpp:380` | every skill again |
+| `ui/worldmap.cpp:380` | only its teachers |
+| `ui/worldmap.cpp:384` | Lit: someone would learn. Religion, Virtue, Stealth, Riding and the weapons each member learns for their own use (a weapon: their best of hand to hand, or of shooting); the other skills one member uses for the whole party, so only the party's best counts. Dim: nobody is below the teacher, or the teacher can't be had now (the last column says which). A click on a row shows the town; under the pointer, how to hire them. |
+| `ui/worldmap.cpp:396` | Who would learn |
 | `ui/worldmap.cpp:425` | no land route |
 | `ui/worldmap.cpp:459` | Its saints, formulae and teachers: known once the party has been there. |
 | `ui/worldmap.cpp:461` | The saints its library teaches: known once the party has been there. |
@@ -3676,6 +3677,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/teachers.c:119` | A guild here is split by a dispute, and its masters want help with that first. |
 | `mods/teachers.c:122` | The guild would receive the party now, in the daytime. |
 | `mods/teachers.c:122` | The guild would not receive the party yet (it needs more fame, reputation here or {Charisma}). |
+| `mods/teachers.c:123` | the guild won't receive you |
 | `mods/teachers.c:130` | In the daytime, go to the university and choose "a teacher you can hire". |
 | `mods/teachers.c:131` | They may say no (it depends on {Perception}, {Intelligence}, {Latin}, the party's best {Alchemy} and fame). A refusal takes two hours, shuts their door for a week and may lower the party's reputation here by 1. |
 | `mods/teachers.c:138` | Go to the monastery and choose "inquire about tutoring in various disciplines". |
@@ -3683,17 +3685,25 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/teachers.c:146` | In the daytime, go to the physician and choose "beg him to allow you to be his students". |
 | `mods/teachers.c:147` | He takes no one who already heals better than he does himself (his own {Healing} changes from week to week; visiting him shows it). Some years he takes no students. |
 | `mods/teachers.c:158` | His own {Healing:%d} this week, and the party's best is %d: he will not teach you. |
+| `mods/teachers.c:158` | the party heals better |
 | `mods/teachers.c:159` | His own {Healing:%d} at most, and the party's best is %d: he will not teach you. |
+| `mods/teachers.c:159` | the party heals better |
 | `mods/teachers.c:160` | He takes no students this year. |
+| `mods/teachers.c:160` | no students this year |
 | `mods/teachers.c:162` | He takes no students at the moment. |
+| `mods/teachers.c:162` | no students this week |
 | `mods/teachers.c:163` | His own {Healing:%d} this week, and the party's best is %d: he will not teach you. |
+| `mods/teachers.c:163` | the party heals better |
 | `mods/teachers.c:164` | His own {Healing:%d} this week: he will teach you. |
 | `mods/teachers.c:165` | His own {Healing:%d} at most, and the party's best is %d: he will not teach you. |
+| `mods/teachers.c:165` | the party heals better |
 | `mods/teachers.c:166` | His own {Healing:%d to %d} this week (visiting him shows which): he teaches only if it is at least the party's best, %d. |
 | `mods/teachers.c:171` | In the daytime, go to Astrologists' Lane and choose "receiving additional instruction in alchemy". |
 | `mods/teachers.c:172` | They may say no (it depends on {Charisma}, {Speak Common}, the party's best {Alchemy} and reputation here). After a refusal, wait two and a half days. |
 | `mods/teachers.c:183` | Another teacher is hired in the town, so the monks will not teach for now. |
+| `mods/teachers.c:183` | another teacher is hired |
 | `mods/teachers.c:187` | Already hired: the teacher is at the inn now. |
+| `mods/teachers.c:187` | hired: at the inn |
 | `mods/teachers.c:224` | The guild's masters |
 | `mods/teachers.c:225` | Here: choose "inquire about special training". |
 | `mods/teachers.c:226` | They may say no (it depends on {Charisma}, reputation here and fame); they always agree if the guild owes the party a favor. |

@@ -23,6 +23,10 @@ int ui_teacher_icon(int src);                                     // the place's
    would (the margin, the map, Find teachers): a fighting skill if some member's best weapon of that kind (hand to hand:
    Edged, Impact, Flails, Polearms; at range: Thrown, Bows, Missile Devices) is below it; a skill each member needs
    (Religion, Virtue, Stealth, Riding) each member below it; a skill the party needs once (the others) the party's best,
-   if below it. out (may be 0): the members (m -1: the party's best) and their skill now; returns whether anyone would */
-struct TchLearner { int m; int v; };
+   if below it. out (may be 0): the members and their skill now (for a party's skill, its best); whether anyone would */
+struct TchLearner { int m; int v; bool party; };   /* (party: the best of a skill one member does for the party) */
 bool ui_teach_learners(int k, int to, std::vector<TchLearner> *out);
+bool ui_teach_each(int k);                                        // each member needs it (else one does it for the party)
+/* the same in words for a list (rich text): who would learn, with their skill now ("{@0:38} {@2:44}", or "{@1:47} for
+   the party"); if nobody would, the skills that count all the same; *anyone as above */
+std::string ui_teach_who(int k, int to, bool *anyone);

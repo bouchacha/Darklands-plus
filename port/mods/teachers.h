@@ -45,6 +45,7 @@ typedef struct {
     int strength;                    /* their ability: a lesson takes teach_chance(strength) % of days */
     char now[160];                   /* how it stands now, in the town the party is in ("" else) */
     int off;                         /* 1: not to be had now (the reason in now) */
+    const char *why;                 /* that reason in a few words, for a list ("no students this year"); 0 if not off */
 } TchSource;
 
 int teach_chance(int strength);                                     /* percent a day, for +1 */

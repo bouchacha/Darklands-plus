@@ -343,10 +343,7 @@ static std::vector<TeachRow> teach_rows(const std::vector<Place> &places)
         int minutes = p.loc == here ? 0 : overland ? travel_minutes_loc(p.loc, nullptr, nullptr) : has_origin ? travel_minutes_loc_from(ox, oy, p.loc) : -1;
         for (int i = 0; i < n; i++)
             for (int j = 0; j < ts[i].n; j++) {
-                std::vector<TchLearner> L;
-                bool any = ui_teach_learners(ts[i].skill[j], ts[i].strength, &L);
-                std::string w;
-                for (const TchLearner &l : L) w += (w.empty() ? "" : " ") + (l.m < 0 ? "the party's best " + std::to_string(l.v) : rich_member(l.m, std::to_string(l.v)));
+                bool any; std::string w = ui_teach_who(ts[i].skill[j], ts[i].strength, &any);
                 rows.push_back({ ts[i].skill[j], ts[i].strength, ts[i].src, p.loc, minutes, ts[i].off, any, p.name, w, ts[i] });
             }
     }
@@ -356,7 +353,7 @@ static void teachers_window(std::vector<TeachRow> &rows, const std::vector<Place
 {
     static int only = -1;                                    /* (the skill shown, -1 all) */
     const ImVec2 size = ImGui::GetIO().DisplaySize;
-    const float margin = 2 * pad, width = fminf(size.x - 2 * margin, UIS(860) * scale), max_height = fminf(size.y * 0.8f, UIS(600) * scale);
+    const float margin = 2 * pad, width = fminf(size.x - 2 * margin, UIS(960) * scale), max_height = fminf(size.y * 0.8f, UIS(600) * scale);
     ImGui::SetNextWindowPos(ImVec2(margin, (size.y - max_height) * 0.5f), ImGuiCond_Appearing);
     ImGui::SetNextWindowSize(ImVec2(width, max_height), ImGuiCond_Appearing);
     ImGui::SetNextWindowBgAlpha(0.97f);
@@ -384,16 +381,19 @@ static void teachers_window(std::vector<TeachRow> &rows, const std::vector<Place
                 ImGui::PopID();
             }
             ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-            ImGui::TextWrapped("Dim: nobody would learn from them, or not now. A click on a row shows the town on the map; under the pointer, how to hire them.");
+            ImGui::TextWrapped("Lit: someone would learn. Religion, Virtue, Stealth, Riding and the weapons each member learns for their "
+                               "own use (a weapon: their best of hand to hand, or of shooting); the other skills one member uses for the whole "
+                               "party, so only the party's best counts. Dim: nobody is below the teacher, or the teacher can't be had now "
+                               "(the last column says which). A click on a row shows the town; under the pointer, how to hire them.");
             ImGui::PopStyleColor();
             if (ImGui::BeginTable("##teach", 6, ImGuiTableFlags_Sortable | ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp)) {
                 ImGui::TableSetupScrollFreeze(0, 1);
-                ImGui::TableSetupColumn("Skill", ImGuiTableColumnFlags_WidthStretch, 0.20f);
-                ImGui::TableSetupColumn(fix_is_on("teachcap") ? "To" : "Ability", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_PreferSortDescending, 0.07f);
-                ImGui::TableSetupColumn("Teacher", ImGuiTableColumnFlags_WidthStretch, 0.17f);
-                ImGui::TableSetupColumn("Town", ImGuiTableColumnFlags_WidthStretch, 0.15f);
-                ImGui::TableSetupColumn("Journey", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_DefaultSort, 0.13f);
-                ImGui::TableSetupColumn("Would learn", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoSort, 0.28f);
+                ImGui::TableSetupColumn("Skill", ImGuiTableColumnFlags_WidthStretch, 0.16f);
+                ImGui::TableSetupColumn(fix_is_on("teachcap") ? "To" : "Ability", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_PreferSortDescending, 0.06f);
+                ImGui::TableSetupColumn("Teacher", ImGuiTableColumnFlags_WidthStretch, 0.15f);
+                ImGui::TableSetupColumn("Town", ImGuiTableColumnFlags_WidthStretch, 0.14f);
+                ImGui::TableSetupColumn("Journey", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_DefaultSort, 0.12f);
+                ImGui::TableSetupColumn("Who would learn", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoSort, 0.37f);
                 ImGui::TableHeadersRow();
                 if (ImGuiTableSortSpecs *ss = ImGui::TableGetSortSpecs()) if (ss->SpecsDirty && ss->SpecsCount) {
                     const ImGuiTableColumnSortSpecs &c = ss->Specs[0];
@@ -424,8 +424,8 @@ static void teachers_window(std::vector<TeachRow> &rows, const std::vector<Place
                     ImGui::TableNextColumn(); ImGui::TextUnformatted(r.town.c_str());
                     ImGui::TableNextColumn(); ImGui::TextUnformatted(r.minutes < 0 ? "no land route" : r.minutes == 0 ? "here" : hhmm(r.minutes).c_str());
                     ImGui::TableNextColumn();
-                    if (r.off) ImGui::TextDisabled("not now");
-                    else if (r.learners.empty()) ImGui::TextDisabled("nobody");
+                    if (r.off) ImGui::TextDisabled("not now: %s", r.t.why ? r.t.why : "ask in town");
+                    else if (!r.learn) ui_rich_textf("nobody: %s", r.learners.c_str());
                     else ui_rich_text(r.learners.c_str());
                     if (!r.learn || r.off) ui_dim_since(dl, v0, 0.42f);
                     if (hov) {                                    /* the teacher: what it takes, how to hire them, how it stands */

@@ -246,13 +246,12 @@ static void teacher_row(const TchSource &t, float is, bool lines)
     ImGui::Indent(is + gap);
     if (t.off) { std::string c = t.now; size_t p2 = c.find(" ("); if (p2 != std::string::npos) c = c.substr(0, p2) + "."; ui_rich_textf_c(ImVec4(0.6f, 0.2f, 0.1f, 1), "Not now: %s", c.c_str()); }
     for (int j = 0; j < t.n; j++) {                           /* each skill: its shield, who would learn it and their skill now */
-        std::vector<Learner> L; teach_learners(t.skill[j], t.strength, &L);
+        bool anyone; std::string w = ui_teach_who(t.skill[j], t.strength, &anyone);
         ImVec2 b = ImGui::GetCursorScreenPos(); float s2 = lh * 1.1f;
         ui_skill_icon(dl, ImVec2(b.x + s2 * 0.45f, b.y + lh * 0.5f), s2 * 0.9f, t.skill[j]);
         ImGui::Dummy(ImVec2(s2, lh)); ImGui::SameLine(0, gap);
-        std::string w;
-        for (const Learner &l : L) w += (w.empty() ? "" : "  ") + (l.m < 0 ? "the party's best " + std::to_string(l.v) : rich_member(l.m, std::to_string(l.v)));
-        if (L.empty()) ImGui::TextDisabled("nobody would learn"); else ui_rich_textf_c(ImVec4(0.15f, 0.42f, 0.15f, 1), "%s", w.c_str());
+        if (!anyone) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); ui_rich_textf("nobody would learn: %s", w.c_str()); ImGui::PopStyleColor(); }
+        else ui_rich_textf_c(ImVec4(0.15f, 0.42f, 0.15f, 1), "%s", w.c_str());
     }
     ImGui::Unindent(is + gap);
 }

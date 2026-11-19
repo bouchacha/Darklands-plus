@@ -9,6 +9,7 @@
 #include "money.h"
 #include "townicons.h"
 #include "teachersui.h"
+#include "richtext.h"
 extern "C" {
 #include "../mods/gamemodel.h"
 }
@@ -41,23 +42,47 @@ int ui_teacher_icon(int src)
     return src >= 0 && src < (int)(sizeof I / sizeof I[0]) ? I[src] : TI_SQUARE;
 }
 
+bool ui_teach_each(int k) { return k <= 6 || k == SKILL_RELIGION || k == SKILL_VIRTUE || k == SKILL_STEALTH || k == SKILL_RIDING; }
+static int teach_value(int m, int k)                 /* member m's skill as the rule counts it: a weapon skill, the best of its kind */
+{
+    auto sk = [m](int j) { return (int)(s8)g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + j)); };
+    int v = 0;
+    if (k <= 3) { for (int j = 0; j <= 3; j++) if (sk(j) > v) v = sk(j); }
+    else if (k <= 6) { for (int j = 4; j <= 6; j++) if (sk(j) > v) v = sk(j); }
+    else v = sk(k);
+    return v;
+}
 bool ui_teach_learners(int k, int to, std::vector<TchLearner> *out)
 {
-    auto skill_of = [](int m, int j) { return (int)(s8)g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + j)); };
-    int best = -1;
-    bool each = k <= 6 || k == SKILL_RELIGION || k == SKILL_VIRTUE || k == SKILL_STEALTH || k == SKILL_RIDING, anyone = false;
+    int best = -1, bm = -1;
+    bool each = ui_teach_each(k), anyone = false;
     for (int m = 0; m < 5; m++) {
         if (!gm_member_present(m)) continue;
-        int v;
-        if (k <= 3) { v = 0; for (int j = 0; j <= 3; j++) v = v > skill_of(m, j) ? v : skill_of(m, j); }
-        else if (k <= 6) { v = 0; for (int j = 4; j <= 6; j++) v = v > skill_of(m, j) ? v : skill_of(m, j); }
-        else v = skill_of(m, k);
-        if (each) { if (v < to) { anyone = true; if (out) out->push_back({ m, v }); } }
-        else if (v > best) best = v;
+        int v = teach_value(m, k);
+        if (each) { if (v < to) { anyone = true; if (out) out->push_back({ m, v, false }); } }
+        else if (v > best) { best = v; bm = m; }
     }
     if (each) return anyone;
-    if (best >= 0 && best < to && out) out->push_back({ -1, best });
-    return best >= 0 && best < to;
+    if (bm >= 0 && best < to && out) out->push_back({ bm, best, true });
+    return bm >= 0 && best < to;
+}
+std::string ui_teach_who(int k, int to, bool *anyone)
+{
+    std::vector<TchLearner> L;
+    bool any = ui_teach_learners(k, to, &L);
+    if (anyone) *anyone = any;
+    std::string w;
+    for (const TchLearner &l : L) w += (w.empty() ? "" : " ") + rich_member(l.m, std::to_string(l.v)) + (l.party ? " for the party" : "");
+    if (any) return w;
+    /* nobody: the skills that count, so the list shows why (each member's, or the party's best) */
+    int best = -1, bm = -1;
+    for (int m = 0; m < 5; m++) {
+        if (!gm_member_present(m)) continue;
+        int v = teach_value(m, k);
+        if (ui_teach_each(k)) w += (w.empty() ? "" : " ") + rich_member(m, std::to_string(v));
+        else if (v > best) { best = v; bm = m; }
+    }
+    return bm < 0 ? w : rich_member(bm, std::to_string(best)) + " for the party";
 }
 
 const char *ui_teacher_short(int src)
