@@ -302,6 +302,8 @@ void help_window(void)
             } else
                 row("Click a member", "then click an enemy, a spot or a menu choice; Enter gives the order");
             row("Ctrl+click a member", "make that member the active one: the view follows them (scrolling at an edge stops it)");
+            if (!ui_original_mode() && config_get_int("battle.wasd_pan", 1))
+                row("W A S D", "pan the view while paused or running; the arrow keys move the aiming pointer");
             row("Point at anyone", "who it is and how badly hurt");
             if (levelmap_available()) row("Tab", "a map of the level as far as the party has seen it; a click on its floor walks the party there (Darklands+)");
             if (!ui_original_mode()) row("Click a shut door", "out of a fight: the party walks to it and opens it (Darklands+)");

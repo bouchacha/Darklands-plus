@@ -4,6 +4,8 @@
 
 **Added**
 
+- **Battle camera:** tap or hold WASD to pan the field, including while paused. Arrow keys still move the targeting pointer. F12 battle settings can restore the original letter commands. Diagonal pans show a complete field without flashing black corners.
+
 - **Battle aftermath on the loot screen:** after a won fight, above the loot, who went down, the skills gained or lost, and lasting losses such as a lowered maximum or worn armor. By woodk123 (pull request #27).
 - **New encounters on by default:** the mod of 160 new encounters that comes with Darklands+ is now ticked unless you untick it, and a note at the start screen says so once, with a button to turn it off.
 - **Share all potions:** the Potions heading of the character sheet pools every member's potions and splits each evenly among the members on their feet.

@@ -836,12 +836,15 @@ static void run_script(void)
         }
         else if (!strcmp(s->cmd, "wshot")) snprintf(pending_wshot, sizeof pending_wshot, "%s", s->arg);
         else if (!strcmp(s->cmd, "ushot")) { if (ren) pending_shot = 1; }   /* test: a screenshot as Ctrl+F12 takes it (with the frame's draws beside it) */
-        else if (!strcmp(s->cmd, "usdlkey")) {             /* test: a key as an SDL event (through Darklands+'s own keys, ui_event): usdlkey:z */
+        else if (!strcmp(s->cmd, "usdlkey") || !strcmp(s->cmd, "usdlkeydown") || !strcmp(s->cmd, "usdlkeyup")) {             /* test: a key as an SDL event (through Darklands+'s own keys, ui_event): usdlkey:z */
             SDL_Event ev; memset(&ev, 0, sizeof ev);
             ev.type = SDL_KEYDOWN; ev.key.state = SDL_PRESSED; ev.key.keysym.scancode = SDL_GetScancodeFromName(s->arg);
             ev.key.windowID = win ? SDL_GetWindowID(win) : 0;          /* (ImGui's backend drops key events of no window) */
             ev.key.keysym.sym = SDL_GetKeyFromScancode(ev.key.keysym.scancode);
-            SDL_PushEvent(&ev); ev.type = SDL_KEYUP; ev.key.state = SDL_RELEASED; SDL_PushEvent(&ev);
+            if (strcmp(s->cmd, "usdlkeyup")) SDL_PushEvent(&ev);
+            if (strcmp(s->cmd, "usdlkeydown")) {
+                ev.type = SDL_KEYUP; ev.key.state = SDL_RELEASED; SDL_PushEvent(&ev);
+            }
         }
         else if (!strcmp(s->cmd, "utype")) {               /* test: text typed into the field that has the keyboard (a text input event): utype:plate */
             SDL_Event ev; memset(&ev, 0, sizeof ev);
@@ -1170,6 +1173,52 @@ void pad_hello(void)
 }
 int plat_controller_connected(void) { for (int i = 0; i < 4; i++) if (pads[i]) return 1; return 0; }
 
+/* Keyboard panning uses the same battle-view steps as dragging. Keep time in
+ * wall-clock milliseconds: a paused battle accepts camera input too. */
+enum { PAN_UP = 1, PAN_LEFT = 2, PAN_DOWN = 4, PAN_RIGHT = 8 };
+static unsigned pan_held, pan_tapped;
+static u32 pan_next;
+
+static unsigned pan_key(SDL_Keycode keycode)
+{
+    switch (keycode) {
+    case SDLK_w: return PAN_UP;
+    case SDLK_a: return PAN_LEFT;
+    case SDLK_s: return PAN_DOWN;
+    case SDLK_d: return PAN_RIGHT;
+    default: return 0;
+    }
+}
+
+static int keyboard_pan_allowed(void)
+{
+    int ui_is_open(void), ns_showing(void);
+    return game_mode() == GM_BATTLE && !ui_is_open() && !ns_showing() &&
+           !menu_sticky && !menu_bar_up() && !bg_paused &&
+           config_get_int("battle.wasd_pan", 1) && !config_get_int("original", 0);
+}
+
+static void keyboard_pan_tick(void)
+{
+    if (!(pan_held | pan_tapped)) return;
+    if (!keyboard_pan_allowed()) { pan_held = pan_tapped = 0; return; }
+    unsigned keys = pan_held | pan_tapped;
+    u32 now = plat_ticks_ms();
+    if (!pan_tapped && (s32)(now - pan_next) < 0) return;
+    pan_tapped = 0;
+    int dx = !!(keys & PAN_RIGHT) - !!(keys & PAN_LEFT);
+    int dy = !!(keys & PAN_DOWN) - !!(keys & PAN_UP);
+    /* One row step shifts the scene sideways by half a column. Two rows
+     * plus one column move exactly 32 pixels vertically on the screen. */
+    void battlescroll_pan(int, int);
+    int col = (s8)g_rb(GV_battle_view_col), row = (s8)g_rb(GV_battle_view_row);
+    if (dy && (row + 2 * dy < 1 || row + 2 * dy > 39 ||
+               col + dx + dy < 1 || col + dx + dy > 39)) dy = 0;
+    if (col + dx + dy < 1 || col + dx + dy > 39) dx = 0;
+    if (dx || dy) battlescroll_pan(dx + dy, 2 * dy);
+    pan_next = now + (dx && dy ? 198 : 140);
+}
+
 void plat_events(void)
 {
     SDL_Event e;
@@ -1186,9 +1235,21 @@ void plat_events(void)
             else if (e.type == SDL_KEYDOWN || e.type == SDL_MOUSEBUTTONDOWN) input_pad = 0;
         } else if (e.type == SDL_MOUSEMOTION && input_pad && (abs(e.motion.x - pad_warp_x) > 2 || abs(e.motion.y - pad_warp_y) > 2)
                    && (abs(e.motion.xrel) > 3 || abs(e.motion.yrel) > 3)) input_pad = 0;
+        if (e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_FOCUS_LOST)
+            pan_held = pan_tapped = 0;
+        if (e.type == SDL_KEYUP && (pan_held & pan_key(e.key.keysym.sym))) {
+            pan_held &= ~pan_key(e.key.keysym.sym);
+            continue;
+        }
         if (!headless && ui_event(&e)) { if (e.type == SDL_MOUSEBUTTONUP) swallow_click = 0; continue; }   /* (a release taken by the interface ends the swallowing too) */
         if (swallow_click && (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP)) { if (e.type == SDL_MOUSEBUTTONUP) swallow_click = 0; continue; }
         if (drag_filter(&e)) continue;
+        if (e.type == SDL_KEYDOWN && pan_key(e.key.keysym.sym) &&
+            !(e.key.keysym.mod & (KMOD_CTRL | KMOD_ALT | KMOD_GUI | KMOD_SHIFT)) && keyboard_pan_allowed()) {
+            unsigned bit = pan_key(e.key.keysym.sym);
+            if (!e.key.repeat) { pan_held |= bit; pan_tapped |= bit; }
+            continue;
+        }
         switch (e.type) {
         case SDL_QUIT: { int saves_close_requested(void); if (saves_close_requested()) break; }   /* (an Ironman game: saved first) */
             fprintf(stderr, "program exit: window closed\n"); plat_quit(0); break;
@@ -1289,6 +1350,7 @@ void plat_events(void)
         default: break;
         }
     }
+    keyboard_pan_tick();
 }
 
 void plat_click_game(int gx, int gy) { click_at(gx, gy); }
