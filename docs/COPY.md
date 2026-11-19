@@ -2575,23 +2575,23 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/tips.cpp:182` | Change it at any time: F12 > Mods. |
 | `ui/tips.cpp:194` | In Darklands+ %s |
 | `ui/tips.cpp:198` |   Understood   |
-| `ui/titleview.cpp:26` | saved today at %d:%02d |
-| `ui/titleview.cpp:27` | saved yesterday at %d:%02d |
-| `ui/titleview.cpp:28` | saved %d %s %d |
-| `ui/titleview.cpp:66` | Medieval Germany, the fifteenth century |
-| `ui/titleview.cpp:81` | %d saved game%s to choose from (The Story Continues) |
-| `ui/titleview.cpp:82` | Load a saved game |
-| `ui/titleview.cpp:83` | Load a saved game |
-| `ui/titleview.cpp:83` | No saved games yet |
-| `ui/titleview.cpp:84` | Create a New World: up to four characters of your own |
-| `ui/titleview.cpp:85` | Start at once with four ready-made characters |
-| `ui/titleview.cpp:86` | Darklands+ settings and mods (F12) |
-| `ui/titleview.cpp:87` | Back to the desktop |
-| `ui/titleview.cpp:104` | Enter continues;  L load,  N new party,  Q Quickstart |
-| `ui/titleview.cpp:104` | L load,  N new party,  Q Quickstart |
-| `ui/titleview.cpp:104` | Enter or N: a new party;  Q Quickstart |
-| `ui/titleview.cpp:107` | Darklands+ %s (build %s) |
-| `ui/titleview.cpp:107` | Darklands+ build %s%s |
+| `ui/titleview.cpp:27` | saved today at %d:%02d |
+| `ui/titleview.cpp:28` | saved yesterday at %d:%02d |
+| `ui/titleview.cpp:29` | saved %d %s %d |
+| `ui/titleview.cpp:78` | Medieval Germany, the fifteenth century |
+| `ui/titleview.cpp:93` | %d saved game%s to choose from (The Story Continues) |
+| `ui/titleview.cpp:94` | Load a saved game |
+| `ui/titleview.cpp:95` | Load a saved game |
+| `ui/titleview.cpp:95` | No saved games yet |
+| `ui/titleview.cpp:96` | Create a New World: up to four characters of your own |
+| `ui/titleview.cpp:97` | Start at once with four ready-made characters |
+| `ui/titleview.cpp:98` | Darklands+ settings and mods (F12) |
+| `ui/titleview.cpp:99` | Back to the desktop |
+| `ui/titleview.cpp:116` | Enter continues;  L load,  N new party,  Q Quickstart |
+| `ui/titleview.cpp:116` | L load,  N new party,  Q Quickstart |
+| `ui/titleview.cpp:116` | Enter or N: a new party;  Q Quickstart |
+| `ui/titleview.cpp:119` | Darklands+ %s (build %s) |
+| `ui/titleview.cpp:119` | Darklands+ build %s%s |
 | `ui/townicons.cpp:229` | von der Lilie |
 | `ui/travel.cpp:111` | Keep the campfire shown. |
 | `ui/travel.cpp:111` | Hide the campfire under the clock (point at the clock to see it again). |

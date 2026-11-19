@@ -43,9 +43,10 @@ extern "C" void titleview_draw(void)
     /* the parchment, and the picture at the right fading into it */
     P.rect(0, 0, 320, 200, PARCH);
     const float PX0 = 316 - 251, PX1 = 316, PY0 = 4, PY1 = 196;
-    const GamePic *background = hdart_on ? gamepic_art("STARTSCR") : nullptr;
-    if (!background) background = gamepic_part("PICS\\APROCH1.PIC", 68, 7, 242, 185);
-    if (const GamePic *g = background) {
+    /* (an art pack's APROCH1.png, the picture this one is cut from, cut at the same place: Seb-Zee's pull request #33) */
+    if (const GamePic *a = hdart_on ? gamepic_art("APROCH1") : nullptr)
+        P.dl->AddImage((ImTextureID)(intptr_t)a->tex, NsDraw::w(PX0, PY0), NsDraw::w(PX1, PY1), ImVec2(68 / 320.0f, 7 / 200.0f), ImVec2(310 / 320.0f, 192 / 200.0f));
+    else if (const GamePic *g = gamepic_part("PICS\\APROCH1.PIC", 68, 7, 242, 185)) {
         SDL_SetTextureScaleMode(g->tex, SDL_ScaleModeLinear);    /* (a watercolour: soft, not in blocks) */
         P.dl->AddImage((ImTextureID)(intptr_t)g->tex, NsDraw::w(PX0, PY0), NsDraw::w(PX1, PY1));
     }
@@ -58,8 +59,7 @@ extern "C" void titleview_draw(void)
 
     /* the lettering of the original start screen, and the time and place of the game */
     const float LX0 = 10, LX1 = 142;
-    if (const GamePic *logo = hdart_on ? gamepic_art("STARTLOGO") : nullptr) {
-        // Fit in window pixels: preserve the PNG aspect even with DOS pixel correction.
+    if (const GamePic *logo = hdart_on ? gamepic_art("STARTLOGO") : nullptr) {   /* (an art pack's own lettering, no picture of the game's: fitted, its shape kept) */
         const ImVec2 lo = NsDraw::w(LX0, 9), hi = NsDraw::w(LX1, 36);
         const float scale = fminf((hi.x - lo.x) / logo->w, (hi.y - lo.y) / logo->h);
         const ImVec2 size(logo->w * scale, logo->h * scale);

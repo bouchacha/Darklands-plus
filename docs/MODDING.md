@@ -317,14 +317,13 @@ the map's) stay the game's. `sounds/NAME.wav` (or `.ogg`, `NAME2.wav` ...
 for variations) replaces a battle sound; the names are listed in F12 > Settings > Sound, under
 "Custom sound packs". Mods can carry both folders; a mod's files win over the game folder's.
 
-The native start menu also uses `art/STARTSCR.png` for its background and
-`art/STARTLOGO.png` for its title lettering. Both follow the replacement-art switch,
-mod priority and art rescan. The background fills the existing right-hand picture
-area, with the parchment fading over its left side. A transparent PNG is recommended
-for the logo; it is centered and fitted above the subtitle without changing its
-aspect ratio. Keep transparent padding small. Missing or unreadable replacements
-fall back independently to the original APROCH1 background and STARTSCR lettering.
-These replacements do not change the menu choices or their positions.
+The start menu (Darklands+'s own) shows the right part of `APROCH1` (x 68 to 310, y 7 to 192 of
+the 320 x 200 picture, the parchment fading over its left side): an art pack's `art/APROCH1.png`
+is cut the same way. Its lettering is cut from `STARTSCR`, which an art pack's `STARTSCR.png`
+cannot give (the lettering is not apart from the stone there): `art/STARTLOGO.png`, a transparent
+PNG with little padding, replaces it, centred above the subtitle and fitted without changing its
+shape. Both follow the replacement-art switch, the mods' order and the art rescan, and each falls
+back to the game's own when missing; the menu's choices stay where they are.
 
 ### Making a whole art pack
 

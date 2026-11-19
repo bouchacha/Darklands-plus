@@ -4,13 +4,12 @@
 
 **Added**
 
-- **Start-screen art:** `art/STARTSCR.png` replaces the native menu background and `art/STARTLOGO.png` replaces its logo, with the original artwork used when no replacement is available.
-
 - **Battle aftermath on the loot screen:** after a won fight, above the loot, who went down, the skills gained or lost, and lasting losses such as a lowered maximum or worn armor. By woodk123 (pull request #27).
 - **New encounters on by default:** the mod of 160 new encounters that comes with Darklands+ is now ticked unless you untick it, and a note at the start screen says so once, with a button to turn it off.
 - **Share all potions:** the Potions heading of the character sheet pools every member's potions and splits each evenly among the members on their feet.
 - **One row a potion** on the character sheet and the loot screen, instead of a row for each grade. Point at it: a flask for each grade with how many of it, and the buttons act on the one lit (the best grade, or the one you click); Split still shares out every grade.
 - **Potion grades as Roman numerals,** I, II and III, on the flasks, in the battle orders and on the Formulae page (the chevrons were also the saints' raises). The earlier looks stay in F12 > Settings > Frames and clock.
+- **Art packs on the start menu:** the start menu's picture comes from an art pack's `APROCH1.png` (the picture it is cut from), and `art/STARTLOGO.png` replaces its lettering. By Seb-Zee (pull request #33).
 - **Shops warn of a short stock:** in For sale, an ingredient's "have" tag turns red while the party has fewer than the stock to keep, and the line under the list says how many of how many.
 - **The member's own sections fold** on the character sheet beside the shared pack, as the pack's do (Potions among them).
 - **No papers to steal** (F12 > Settings > Cards and towns, off at first): quest givers no longer send the party for papers held in a town, which means breaking into an office at night; they give one of their other errands.
