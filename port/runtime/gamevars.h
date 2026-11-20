@@ -472,6 +472,7 @@
 #define GF_datafile_select              -1, 0x0000, 0x25f2    /* (name): select data file name (kept in data_file) unless current */
 #define GF_datafile_forget              -1, 0x0000, 0x262e    /* (): data_file = "" */
 #define GF_gfx_copy_rect                -1, 0x047c, 0x0553    /* (src, sx, sy, w, h, dst, dx, dy): copy a rectangle between pages */
+#define GF_gfx_show_page                -1, 0x047c, 0x059e    /* (page): a whole page shown: its 64,000 bytes copied to the screen (MGRAPHIC slot 31; the battle view) */
 #define GF_screen_hold                  -1, 0x047c, 0x0568    /* (): before a whole screen is drawn (the graphics driver hides it meanwhile) */
 #define GF_screen_release               -1, 0x047c, 0x056f    /* (): after: the screen shown */
 #define GF_gfx_text                     -1, 0x047c, 0x055a    /* (win, x, y, char *s): draw a string */

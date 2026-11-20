@@ -3134,40 +3134,40 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/gamemodel.c:471` | Speak Common |
 | `mods/gamemodel.c:471` | Read & Write |
 | `mods/gamemodel.c:490` | Missile Devices |
-| `mods/hdart.c:786` | Create a New World |
-| `mods/hdart.c:787` | The Story Continues |
-| `mods/hdart.c:963` | Replacement art for Darklands+\r  |
-| `mods/hdart.c:963` | WHAT TO MAKE\r  |
-| `mods/hdart.c:963` | - One image per picture of the game, named as it: art\\NAME.png replaces the game's picture NAME.\r  |
-| `mods/hdart.c:963` |   PNG, JPG, BMP and TGA files are read (PNG and TGA keep transparency).\r  |
-| `mods/hdart.c:963` | - To find a picture's name: F12 > Mods > Replacement art (for artists) > "Show the name of the picture\r  |
-| `mods/hdart.c:963` |   under the mouse".\r  |
-| `mods/hdart.c:963` | - This folder (art\\original) holds every original picture as a PNG in the game's own colors, as a\r  |
-| `mods/hdart.c:963` |   template. Nothing in it is used as a replacement.\r  |
-| `mods/hdart.c:963` | SIZE AND SHAPE\r  |
-| `mods/hdart.c:963` | - Any size: your image is stretched over the place of the original picture and drawn at the window's\r  |
-| `mods/hdart.c:963` |   resolution.\r  |
-| `mods/hdart.c:963` | - Darklands was made for 4:3 screens, which showed each of its pixels 1.2 times as tall as it is wide,\r  |
-| `mods/hdart.c:963` |   and Darklands+ shows them that way. So draw at that shape: a picture of 320 x 200 (most of them)\r  |
-| `mods/hdart.c:963` |   becomes a 4:3 image, such as 1600 x 1200 (each original pixel 5 wide and 6 tall), 2400 x 1800 or\r  |
-| `mods/hdart.c:963` |   1280 x 960. Any other picture: its width times 5 by its height times 6, or the same proportions.\r  |
-| `mods/hdart.c:963` |   An image in the original's own proportions (320 x 200, 1600 x 1000) comes out 1.2 times too tall.\r  |
-| `mods/hdart.c:963` | - To trace over an original: resize it to 1600 x 1200 with the proportions unlocked.\r  |
-| `mods/hdart.c:963` | ON THE CARDS (the pictures behind the game's texts and choices)\r  |
-| `mods/hdart.c:963` | - The left fifth of the picture lies under the party's panel, and a frame covers its edges. What shows\r  |
-| `mods/hdart.c:963` |   is about x 66 to 312 and y 6 to 194 of the 320 x 200 picture: x 330 to 1560 and y 36 to 1164 of a\r  |
-| `mods/hdart.c:963` |   1600 x 1200 image. card-guide-1600x1200.png in this folder marks it: lay it over your image.\r  |
-| `mods/hdart.c:963` | - The card's text and its choices are written over the picture, which is dimmed while the choices\r  |
-| `mods/hdart.c:963` |   are up.\r  |
-| `mods/hdart.c:963` | TRANSPARENCY\r  |
-| `mods/hdart.c:963` | - Where the game draws a picture as a sprite (an item, a figure), its color 0 is transparent, as in\r  |
-| `mods/hdart.c:963` |   the templates here; the transparent parts of your PNG are transparent too.\r  |
-| `mods/hdart.c:963` | WHERE TO PUT THEM\r  |
-| `mods/hdart.c:963` | - In the art folder that holds this one (art\\NAME.png; subfolders of art are read too), or in a mod:\r  |
-| `mods/hdart.c:963` |   mods\\My art\\art\\NAME.png beside a mod.txt, turned on in F12 > Mods.\r  |
-| `mods/hdart.c:963` | - F12 > Mods > Replacement art > "Look again" picks up new files without a restart.\r  |
-| `mods/hdart.c:1062` | %d pictures written to %s, with README.txt (the sizes to draw at) and a guide for the cards%s |
-| `mods/hdart.c:1062` |  (some could not be written) |
+| `mods/hdart.c:851` | Create a New World |
+| `mods/hdart.c:852` | The Story Continues |
+| `mods/hdart.c:1028` | Replacement art for Darklands+\r  |
+| `mods/hdart.c:1028` | WHAT TO MAKE\r  |
+| `mods/hdart.c:1028` | - One image per picture of the game, named as it: art\\NAME.png replaces the game's picture NAME.\r  |
+| `mods/hdart.c:1028` |   PNG, JPG, BMP and TGA files are read (PNG and TGA keep transparency).\r  |
+| `mods/hdart.c:1028` | - To find a picture's name: F12 > Mods > Replacement art (for artists) > "Show the name of the picture\r  |
+| `mods/hdart.c:1028` |   under the mouse".\r  |
+| `mods/hdart.c:1028` | - This folder (art\\original) holds every original picture as a PNG in the game's own colors, as a\r  |
+| `mods/hdart.c:1028` |   template. Nothing in it is used as a replacement.\r  |
+| `mods/hdart.c:1028` | SIZE AND SHAPE\r  |
+| `mods/hdart.c:1028` | - Any size: your image is stretched over the place of the original picture and drawn at the window's\r  |
+| `mods/hdart.c:1028` |   resolution.\r  |
+| `mods/hdart.c:1028` | - Darklands was made for 4:3 screens, which showed each of its pixels 1.2 times as tall as it is wide,\r  |
+| `mods/hdart.c:1028` |   and Darklands+ shows them that way. So draw at that shape: a picture of 320 x 200 (most of them)\r  |
+| `mods/hdart.c:1028` |   becomes a 4:3 image, such as 1600 x 1200 (each original pixel 5 wide and 6 tall), 2400 x 1800 or\r  |
+| `mods/hdart.c:1028` |   1280 x 960. Any other picture: its width times 5 by its height times 6, or the same proportions.\r  |
+| `mods/hdart.c:1028` |   An image in the original's own proportions (320 x 200, 1600 x 1000) comes out 1.2 times too tall.\r  |
+| `mods/hdart.c:1028` | - To trace over an original: resize it to 1600 x 1200 with the proportions unlocked.\r  |
+| `mods/hdart.c:1028` | ON THE CARDS (the pictures behind the game's texts and choices)\r  |
+| `mods/hdart.c:1028` | - The left fifth of the picture lies under the party's panel, and a frame covers its edges. What shows\r  |
+| `mods/hdart.c:1028` |   is about x 66 to 312 and y 6 to 194 of the 320 x 200 picture: x 330 to 1560 and y 36 to 1164 of a\r  |
+| `mods/hdart.c:1028` |   1600 x 1200 image. card-guide-1600x1200.png in this folder marks it: lay it over your image.\r  |
+| `mods/hdart.c:1028` | - The card's text and its choices are written over the picture, which is dimmed while the choices\r  |
+| `mods/hdart.c:1028` |   are up.\r  |
+| `mods/hdart.c:1028` | TRANSPARENCY\r  |
+| `mods/hdart.c:1028` | - Where the game draws a picture as a sprite (an item, a figure), its color 0 is transparent, as in\r  |
+| `mods/hdart.c:1028` |   the templates here; the transparent parts of your PNG are transparent too.\r  |
+| `mods/hdart.c:1028` | WHERE TO PUT THEM\r  |
+| `mods/hdart.c:1028` | - In the art folder that holds this one (art\\NAME.png; subfolders of art are read too), or in a mod:\r  |
+| `mods/hdart.c:1028` |   mods\\My art\\art\\NAME.png beside a mod.txt, turned on in F12 > Mods.\r  |
+| `mods/hdart.c:1028` | - F12 > Mods > Replacement art > "Look again" picks up new files without a restart.\r  |
+| `mods/hdart.c:1127` | %d pictures written to %s, with README.txt (the sizes to draw at) and a guide for the cards%s |
+| `mods/hdart.c:1127` |  (some could not be written) |
 | `mods/hdtext.c:457` | cursor: shown %d page %d save %d,%d %dx%d at %d,%d |
 | `mods/keep.c:38` | formula %d %15s |
 | `mods/keep.c:57` | # potions first or last in the alchemy screen's list (potion k first\|last); an ingredient's stock to keep (stock item n)  |

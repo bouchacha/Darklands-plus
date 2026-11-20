@@ -4,7 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#define HDART_MAXDRAWS 160
+#define HDART_MAXDRAWS 1024          /* (a battlefield whose scenery is all replaced: some hundreds) */
 /* draw picture pic's part (sx, sy, w, h) over the game pixels (x, y, w, h), colour * mod/255 */
 typedef struct { int pic, sx, sy, x, y, w, h; unsigned char mod[3]; } HdDraw;
 extern HdDraw hdart_draws[HDART_MAXDRAWS];

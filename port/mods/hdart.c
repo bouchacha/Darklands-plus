@@ -49,8 +49,9 @@ int hdart_show_names;
 static int logon;
 
 /* ---------------------------------------------------------------- pictures */
+#define ART_NAME 24                 /* a picture's name with its end: a file's (8 letters), a battle frame's or scenery's (CITY_NWC_03_2) */
 typedef struct {
-    char name[16];                  /* upper case, no path or extension */
+    char name[ART_NAME];            /* upper case, no path or extension */
     int w, h, sprite;
     u8 *px;
     u32 hist[256];
@@ -61,18 +62,18 @@ typedef struct {
 static Pic *pics; static int npics, cappics;
 
 /* ---------------------------------------------------------------- replacement files */
-typedef struct { char key[16]; char *path; } ArtFile;
+typedef struct { char key[ART_NAME]; char *path; } ArtFile;
 static ArtFile *arts; static int narts, caparts;
 
 static void art_add(const char *path, const char *file)
 {
     const char *dot = strrchr(file, '.');
     if (!dot || (strcasecmp(dot, ".png") && strcasecmp(dot, ".jpg") && strcasecmp(dot, ".bmp") && strcasecmp(dot, ".tga"))) return;
-    int n = (int)(dot - file); if (n <= 0 || n >= 16) return;
-    char key[16]; for (int i = 0; i < n; i++) key[i] = (char)toupper((unsigned char)file[i]); key[n] = 0;
+    int n = (int)(dot - file); if (n <= 0 || n >= ART_NAME) return;
+    char key[ART_NAME]; for (int i = 0; i < n; i++) key[i] = (char)toupper((unsigned char)file[i]); key[n] = 0;
     for (int i = 0; i < narts; i++) if (!strcmp(arts[i].key, key)) return;
     if (narts == caparts) { caparts = caparts ? caparts * 2 : 64; arts = realloc(arts, sizeof *arts * caparts); }
-    snprintf(arts[narts].key, 16, "%s", key);
+    snprintf(arts[narts].key, ART_NAME, "%s", key);
     arts[narts].path = strdup(path);
     narts++;
 }
@@ -109,8 +110,8 @@ static const char *art_for(const char *key)
 int hdart_count(void) { return narts; }
 const char *hdart_art_file(const char *key)
 {
-    char k[16]; int i = 0;
-    for (; key[i] && i < 15; i++) k[i] = (char)toupper((unsigned char)key[i]);
+    char k[ART_NAME]; int i = 0;
+    for (; key[i] && i < ART_NAME - 1; i++) k[i] = (char)toupper((unsigned char)key[i]);
     k[i] = 0;
     return art_for(k);
 }
@@ -287,7 +288,7 @@ static void base_name(const char *path, char *out)
     const char *b = path;
     for (const char *q = path; *q; q++) if (*q == '\\' || *q == '/' || *q == ':') b = q + 1;
     int n = 0;
-    while (b[n] && b[n] != '.' && n < 15) { out[n] = (char)toupper((unsigned char)b[n]); n++; }
+    while (b[n] && b[n] != '.' && n < ART_NAME - 1) { out[n] = (char)toupper((unsigned char)b[n]); n++; }
     out[n] = 0;
 }
 
@@ -315,7 +316,7 @@ static void dac_lut(u32 *lut)
 /* a picture the game has just unpacked: find or add it */
 static int pic_register(const char *dosname, int w, int h, const u8 *px, int sprite)
 {
-    char key[16];
+    char key[ART_NAME];
     if (dosname && dosname[0]) base_name(dosname, key);
     else {                                          /* unnamed (unpacked from memory): by content */
         u32 hsh = 2166136261u;
@@ -399,7 +400,7 @@ const char *hdart_virtual_file(const char *dosname)
 {
     const char *dot = strrchr(dosname, '.');
     if (!dot || strcasecmp(dot, ".pic")) return 0;
-    char key[16]; base_name(dosname, key);
+    char key[ART_NAME]; base_name(dosname, key);
     const char *art = art_for(key);
     if (!art) return 0;
     static char path[1300];
@@ -460,7 +461,7 @@ static int crest_exists(int letter)
 static void crest_step(u16 name_off)
 {
     char nm[64]; g_str(G_DGROUP, name_off, nm, sizeof nm);
-    char key[16]; base_name(nm, key);
+    char key[ART_NAME]; base_name(nm, key);
     if (strncmp(key, "SHIELD", 6) || !key[6] || key[7]) return;
     for (int m = 0; m < 5; m++) {
         u16 at = (u16)(G_MEMBER(m) + 1);
@@ -556,7 +557,7 @@ static Spr *spr_slot(u16 key)
 /* battle sprites: frame segment -> IMC file and frame number (sprite_file_load, s014 0e76:3d2c,
  * fills frames[k*8+m] with the segments the frames were copied to); a frame at seg:0 is
  * u8 w, u8 h, then per row u8 count, u8 skip, u8 pixels[count] */
-typedef struct { u16 seg; char name[12]; short n; int pic; u32 hash; } Frame;
+typedef struct { u16 seg; char name[ART_NAME - 4]; short n; int pic; u32 hash; } Frame;
 #define MAXFRAME 8192
 static Frame frame[MAXFRAME]; static int nframe, frame_next;
 static short frame_index[65536];
@@ -672,6 +673,62 @@ static void h_sprite_file(void)             /* sprite_file_load(i, name, frames,
     if (logon || getenv("DL_SPRITE_WATCH")) fprintf(stderr, "art: sprite set %s: %d frames (slot %d)\n", key, k * 8, slot);
 }
 
+/* a battlefield's scenery (battle_tiles_load, s002 0e76:0c8c; the level's furniture, furniture_load 1ef8:07a2): its
+ * floors, walls and their details are sprites in the battle frames' format, each copied to a segment of its own,
+ * drawn with gfx_draw_sprite as the fighters are. Named here as battle frames are (the set, its kind, the record,
+ * then the view: SET_KIND_RR_V), they are replaced, named under the pointer and exported as every other picture.
+ * Where the loader leaves them, from woodk123's reading of it (pull request #36): the terrain descriptor at
+ * DS:9085 holds each kind's set name and its record for each of 15 slots; the slots' segments are in a table
+ * a view (DS) or, for the details, in pairs in far 20a5. The kinds: FLC floor, FFC floor detail (2 frames), NWC
+ * and WWC the walls facing north and west (4 views: whole, cut away, a door's states), NFC and WFC their details
+ * (2 frames), FRC furniture */
+static const struct { const char *ext; u8 set, slots, views, paired; u16 tbl[4]; } SCENERY[] = {
+    { "FLC", 0x01, 0x0a, 1, 0, { 0xc1d0 } },
+    { "FFC", 0x1a, 0x24, 2, 1, { 0x3474 } },
+    { "NWC", 0x34, 0x3d, 4, 0, { 0xc220, 0xc4dd, 0xc601, 0xc24c } },
+    { "NFC", 0x4d, 0x57, 2, 1, { 0x6eea } },
+    { "WWC", 0x67, 0x70, 4, 0, { 0xc29b, 0xc62c, 0xc658, 0xc26f } },
+    { "WFC", 0x80, 0x8a, 2, 1, { 0x6f2a } },
+    { "FRC", 0x9a, 0xa4, 1, 0, { 0xc8d5 } },
+};
+static void scenery_name(char *out, size_t n, const char *set, const char *ext, int record)
+{
+    char up[12]; int k = 0;
+    for (; set[k] && k < 8; k++) up[k] = (char)toupper((unsigned char)set[k]);
+    up[k] = 0;
+    snprintf(out, n, "%s_%s_%02d", up, ext, record);
+}
+static void h_tiles_load(void)              /* battle_tiles_load(): the battlefield's scenery */
+{
+    hook_call_original();
+    if (unw_active) return;
+    int named = 0;
+    for (unsigned g = 0; g < sizeof SCENERY / sizeof SCENERY[0]; g++) {
+        char set[12]; g_str(G_DGROUP, (u16)(0x9085 + SCENERY[g].set), set, sizeof set);
+        if (!set[0]) continue;
+        for (int slot = 1; slot < 16; slot++) {
+            int record = (s8)g_rb((u16)(0x9085 + SCENERY[g].slots + slot));
+            if (record < 0) continue;
+            char key[ART_NAME - 4]; scenery_name(key, sizeof key, set, SCENERY[g].ext, record);
+            for (int v = 0; v < SCENERY[g].views; v++) {
+                u16 seg = SCENERY[g].paired ? rw(G_FAR20A5, (u16)(SCENERY[g].tbl[0] + slot * 4 + v * 2)) : g_rw((u16)(SCENERY[g].tbl[v] + slot * 2));
+                if (seg && rb(seg, 0) && rb(seg, 1)) { frame_set(seg, key, v); named++; }
+            }
+        }
+    }
+    if (logon) fprintf(stderr, "art: battlefield scenery: %d pictures named\n", named);
+}
+static void h_furniture_load(void)          /* furniture_load(): <set>.frc, the level's furniture (one record) */
+{
+    hook_call_original();
+    if (unw_active) return;
+    u16 seg = g_rw(0xd6ee);
+    char set[12]; g_str(G_FAR20A5, 0x33c8, set, sizeof set);
+    if (!seg || !set[0] || !rb(seg, 0) || !rb(seg, 1)) return;
+    char key[ART_NAME - 4]; scenery_name(key, sizeof key, set, "FRC", rb(G_FAR20A5, 0x33d2));
+    frame_set(seg, key, 0);
+}
+
 /* the picture of a battle frame (decoded at seg:0; recoloured sets differ: one picture each) */
 static int frame_pic(Frame *f)
 {
@@ -692,7 +749,7 @@ static int frame_pic(Frame *f)
         o = (u16)(o + 2 + cnt);
     }
     if (f->pic >= 0 && f->hash == hsh) return f->pic;
-    char name[24]; snprintf(name, sizeof name, "%s_%d", f->name, f->n);
+    char name[ART_NAME]; snprintf(name, sizeof name, "%s_%d", f->name, f->n);
     f->pic = pic_register(name, w, h, px, 1);
     f->hash = hsh;
     return f->pic;
@@ -751,6 +808,14 @@ static void h_draw_pic(void)                /* gfx_draw_pic(win, x, y, handle) *
     place_sprite(win, x, y, spr_find(key));
 }
 
+static void h_show_page(void)               /* gfx_show_page(page): the whole page copied to the screen, its pictures with it */
+{
+    int page = (s16)ARG(0);
+    hook_call_original();
+    if (page <= 0 || page >= NPAGES) return;
+    memcpy(reg[0], reg[page], sizeof(Reg) * (size_t)nreg[page]);
+    nreg[0] = nreg[page];
+}
 static void h_copy(void)                    /* gfx_copy_rect(src, sx, sy, w, h, dst, dx, dy) */
 {
     u16 sw = ARG(0), dw = ARG(5);
@@ -1037,7 +1102,7 @@ int hdart_export(char *msg, int msgn)
             u8 *img = pic_decode(data, n, &w, &h, pal, mask);
             free(data);
             if (!img) continue;                     /* a palette only (CHARPALT) */
-            char key[16]; base_name(e->d_name, key);
+            char key[ART_NAME]; base_name(e->d_name, key);
             int seen = find_pic(key), anypal = 0;
             for (int i = 0; i < 256; i++) anypal |= mask[i];
             if (seen >= 0) for (int i = 0; i < 256; i++) if (!mask[i]) pal[i] = pics[seen].ref[i];
@@ -1121,8 +1186,11 @@ void hdart_init(void)
     hook_install(GF_gfx_save_rect, h_save_rect);
     hook_install(GF_gfx_draw_pic, h_draw_pic);
     hook_install(GF_gfx_copy_rect, h_copy);
+    hook_install(GF_gfx_show_page, h_show_page);
     hook_install(GF_gfx_draw_sprite, h_draw_sprite);
     hook_install(GF_sprite_file_load, h_sprite_file);
+    hook_install(GF_battle_tiles_load, h_tiles_load);
+    hook_install(GF_furniture_load, h_furniture_load);
     if (getenv("DL_THUNK_LOG")) thunk_probe();
     if (getenv("DL_ART_MAKE")) { char d[64]; snprintf(d, sizeof d, "PICS\\%s.PIC", getenv("DL_ART_MAKE")); const char *r = hdart_virtual_file(d); fprintf(stderr, "art make: %s\n", r ? r : "(none)"); }
 }

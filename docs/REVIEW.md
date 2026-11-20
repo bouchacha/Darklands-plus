@@ -785,3 +785,14 @@ covered and found, and what it could not check.
   shared the sword with a weapon's quality) and on the icon sheet (uiconstyles:2). The gear tooltip is one
   function, ns_gear_tip (ui/nsdraw.cpp), for the sheet, the shops and the loot screen. The pen-flourish
   frame's inner curl is kept in the corner (it reached into a tooltip's first and last lines).
+- 2026-11-19 (his review of PR #36, battle scenery art: "consistent with the other methods"): the
+  scenery goes through the one replacement-art path (mods/hdart.c), not a second one. After
+  battle_tiles_load and furniture_load each scenery segment is named as a battle frame
+  (SET_KIND_RR_V; where the loader keeps them, from woodk123's reading in #36), so gfx_draw_sprite's
+  frames, the names under the mouse, the export and Look again take them as they take the fighters.
+  What was missing for it: the battle view reaches the screen through gfx_show_page (MGRAPHIC slot 31,
+  a whole page copied), which now carries the page's pictures to the screen as gfx_copy_rect carries
+  a rectangle's; names up to 23 letters (ART_NAME); up to 1024 replaced pieces drawn a frame. Not taken
+  from #36: its own drawing at the game's pixels, the town-only names, F8 and Ctrl+Shift+R (the art
+  switch and Look again are the tools for every picture). Measured: a wilderness battle with its floors,
+  trees and rocks replaced prepares its frame in about 1.1 ms (0.13 ms with no art).

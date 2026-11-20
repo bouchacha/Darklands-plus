@@ -313,7 +313,12 @@ PNG, JPG, BMP and TGA are read; files under `art/original` are never used. `art/
 replaces the gauntlet pointer: drawn with transparency at window resolution, as wide as the
 gauntlet (26 of the game's 320 pixels; a picture taller than wide fits a square that wide), with its
 top left corner, the fingertip, at the point that is clicked; the other pointers (an item carried,
-the map's) stay the game's. `sounds/NAME.wav` (or `.ogg`, `NAME2.wav` ...
+the map's) stay the game's. A battlefield's scenery is replaced the same way, named by its set, its
+kind and its record, then the view: `OUT_FLC_00_0.png` is a floor of the wilderness set `OUT`,
+`OUTGRPA_FRC_20_0.png` one of its trees. The kinds: `FLC` floors, `FFC` their details (two frames),
+`NWC` and `WWC` walls (up to four views each), `NFC` and `WFC` the walls' details, `FRC` furniture.
+In a battle, the names under the mouse find a piece, and the export writes those seen.
+`sounds/NAME.wav` (or `.ogg`, `NAME2.wav` ...
 for variations) replaces a battle sound; the names are listed in F12 > Settings > Sound, under
 "Custom sound packs". Mods can carry both folders; a mod's files win over the game folder's.
 

@@ -126,6 +126,7 @@
 
 /* ---- root 047c: graphics driver interface (MGRAPHIC thunks), mouse, keyboard, timer (assembly) --- */
 #define gfx_copy_rect            sub_root_047c_0553   /* (src, sx, sy, w, h, dst, dx, dy): copy a rectangle between pages */
+#define gfx_show_page            sub_root_047c_059e   /* (page): a whole page shown: its 64,000 bytes copied to the screen (MGRAPHIC slot 31; the battle view) */
 #define screen_hold              sub_root_047c_0568   /* (): before a whole screen is drawn (the graphics driver hides it meanwhile) */
 #define screen_release           sub_root_047c_056f   /* (): after: the screen shown */
 #define gfx_text                 sub_root_047c_055a   /* (win, x, y, char *s): draw a string */
