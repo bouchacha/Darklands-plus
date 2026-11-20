@@ -1016,9 +1016,9 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/citynav.cpp:1184` | A Philosopher's Stone of quality %d; the party has none. |
 | `ui/citynav.cpp:1260` | A teacher to hire (faint: not available now) |
 | `ui/citynav.cpp:1261` | A quest of yours leads here |
-| `ui/combaticons.cpp:52` | padded or leather |
-| `ui/combaticons.cpp:52` | studded or cuir-bouilli |
-| `ui/combaticons.cpp:52` | chain or brigandine |
+| `ui/combaticons.cpp:53` | padded or leather |
+| `ui/combaticons.cpp:53` | studded or cuir-bouilli |
+| `ui/combaticons.cpp:53` | chain or brigandine |
 | `ui/createview.cpp:109` | A new character |
 | `ui/createview.cpp:110` | %s, called %s, age %d |
 | `ui/createview.cpp:111` | %s, called %s |
@@ -2533,17 +2533,17 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/sheetview.cpp:1357` | No alchemist sells it: it is traded for or found. |
 | `ui/sheetview.cpp:1358` | No alchemist the party has been to sells it. |
 | `ui/sheetview.cpp:1363` | Sold by the alchemist of  |
-| `ui/skillicons.cpp:468` | Missile Device |
-| `ui/skillicons.cpp:468` | Missile Weapons |
-| `ui/skillicons.cpp:469` | Speak Common |
-| `ui/skillicons.cpp:471` | Read & Write |
-| `ui/skillicons.cpp:472` | Edged Weapon |
-| `ui/skillicons.cpp:472` | Impact Weapon |
-| `ui/skillicons.cpp:472` | Thrown Weapon |
-| `ui/skillicons.cpp:607` | Frames and clock |
-| `ui/skillicons.cpp:611` | Cards and towns |
-| `ui/skillicons.cpp:616` | The party and its items |
-| `ui/skillicons.cpp:632` | Fixes for bugs of the original |
+| `ui/skillicons.cpp:472` | Missile Device |
+| `ui/skillicons.cpp:472` | Missile Weapons |
+| `ui/skillicons.cpp:473` | Speak Common |
+| `ui/skillicons.cpp:475` | Read & Write |
+| `ui/skillicons.cpp:476` | Edged Weapon |
+| `ui/skillicons.cpp:476` | Impact Weapon |
+| `ui/skillicons.cpp:476` | Thrown Weapon |
+| `ui/skillicons.cpp:611` | Frames and clock |
+| `ui/skillicons.cpp:615` | Cards and towns |
+| `ui/skillicons.cpp:620` | The party and its items |
+| `ui/skillicons.cpp:636` | Fixes for bugs of the original |
 | `ui/teachersui.cpp:75` |  for the party |
 | `ui/teachersui.cpp:85` |  for the party |
 | `ui/teachersui.cpp:97` | Missile Devices |
