@@ -1,7 +1,7 @@
 // iconsheets.cpp - the test command uiconstyles:N: sheets of the pictures drawn with ImGui shapes, to
 // compare them across families and to look at new line art large (docs/REVIEW.md). 2: the towns',
 // quests', careers', pages' and settings' sections' pictures, the inn's and camp's, the small signs
-// (ui/marks.h), the age and the pointer drawn anew; 3: the battle
+// (ui/marks.h), the age, what is at work, a weapon's, shield's and armor's numbers and the pointer drawn anew; 3: the battle
 // orders', the ingredients and potions as items, the world map's; 4: the ingredients by family with
 // their names; 7: the ingredients large; 8: the attributes, skills and standing large, in colour and
 // heraldic; 1000+id: one ingredient window-large; any other: the skills and attributes in both looks.
@@ -13,6 +13,7 @@
 #include "townicons.h"
 #include "quests.h"
 #include "marks.h"
+#include "combaticons.h"
 
 extern int ui_icon_disc;
 void ui_icon_style_preview(int st);
@@ -33,7 +34,7 @@ extern "C" void ui_icon_styles_draw(void)
     if (sheet_on == 2) {   /* every other set of icons, to look for one drawn twice for two things (uiconstyles:2) */
         static const char *SECT[] = { "Preset", "New screens", "Text", "Frames and clock", "Cards and towns", "The party and its items", "Battles", "Travel",
                                       "Fixes for bugs of the original", "Screen", "Intro", "Sound", "Controller" };
-        float cell = fminf(ds.x / 14, ds.y / 9.1f), sz = cell * 0.5f; int n = 0;   /* (its ten rows all in the window) */
+        float cell = fminf(ds.x / 14, ds.y / 10.1f), sz = cell * 0.5f; int n = 0;   /* (its eleven rows all in the window) */
         auto at = [&](int k) { return ImVec2(cell * 0.5f + (k % 14) * cell, cell * 0.45f + (k / 14) * cell * 0.9f); };
         for (int i = 0; i < 40; i++) ui_draw_town_icon(dl, at(n++), sz, i);                 /* (the town icons: as many as there are) */
         n = (n + 13) / 14 * 14;
@@ -59,6 +60,9 @@ extern "C" void ui_icon_styles_draw(void)
           ui_age_icon(dl, at(n++), sz * 0.8f); }
         n = (n + 13) / 14 * 14;                                                          /* what is at work (ui/effects.h EI_*): a saint's, then a potion's */
         for (int i = 0; i < 11; i++) ui_effect_icon(dl, at(n++), sz * 0.8f, i, i < 5 ? 2 : i < 7 ? 1 : 0);
+        n = (n + 13) / 14 * 14;                                                          /* a weapon's, a shield's and an armor's numbers (ui/combaticons.h), the six armor tiers */
+        for (int i = 0; i < CI_N; i++) ui_combat_icon(dl, at(n++), sz * 0.8f, i, IM_COL32(58, 38, 20, 255));
+        for (int t = 0; t < 6; t++) ui_armor_icon(dl, at(n++), sz * 0.8f, t, IM_COL32(58, 38, 20, 255));
         return;
     }
     if (sheet_on >= 1000) {   /* one ingredient's sign as large as the window allows (uiconstyles:1000+id) */

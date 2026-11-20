@@ -253,6 +253,99 @@ int gm_shield_defence(int type, int q, int missile)
     if (!missile) return type == 95 ? 2 * q / 7 : type == 96 ? 2 * q / 5 : type == 97 ? q / 2 : -5;      /* (s014 18bf:0592, a blow) */
     return type == 95 ? 2 * q / 7 + 1 : type == 96 ? q / 2 + 4 : type == 97 ? 2 * q / 3 + 8 : -5;         /* (18bf:02a8's own branch, a shot or throw) */
 }
+int gm_weapon(int t, GmWeapon *w)
+{
+    if (t < 0 || t > 62) return 0;
+    w->type = t;
+    w->skill = rb(G_FAR20A5, (u16)(0x75ac + t)); w->time = rb(G_FAR20A5, (u16)(0x7669 + t));
+    int cp = rb(G_FAR20A5, (u16)(0x76a8 + t));
+    w->two_hands = (cp >> 4) >= 2; w->pen = cp & 15;
+    w->dmg = (s8)rb(G_FAR20A5, (u16)(0x76e7 + t)); w->need = rb(G_FAR20A5, (u16)(0x7726 + t));
+    w->str_lo = (s8)rb(G_FAR20A5, (u16)(0x7765 + t)); w->str_hi = rb(G_FAR20A5, (u16)(0x77a4 + t)) & 127;
+    w->reload = rb(G_FAR20A5, (u16)(0x77e3 + t));
+    return w->skill <= 6;
+}
+int gm_weapon_shot(const GmWeapon *w) { return w->skill >= 4 && w->skill <= 6; }
+int gm_armor_tier(int type) { return type >= 67 && type <= 84 ? rb(G_FAR20A5, (u16)(0x781e + type)) : -1; }
+int gm_rating(int skill, int str_max, const GmWeapon *w)
+{
+    int short_sk = w->need - skill > 0 ? w->need - skill : 0, short_st = w->str_lo - str_max > 0 ? w->str_lo - str_max : 0;
+    int r;
+    if (gm_weapon_shot(w)) r = skill - short_st - 2 * short_sk;
+    else r = skill + (w->str_hi < 99 && str_max > w->str_hi ? 2 * (str_max - w->str_hi) : 0) - 3 * short_st - 2 * short_sk;
+    return r < 0 ? 0 : r > 255 ? 255 : r;
+}
+int gm_defence(int rating, int shield_type, int shield_q, int two_hands, int vs_flail)
+{
+    int d = rating + (two_hands || vs_flail ? -5 : gm_shield_defence(shield_type, shield_q, 0));
+    return d < 0 ? 0 : d;
+}
+int gm_hit_chance(int rating, int defence)
+{
+    int c = 50 + (rating - defence) * 2 / 3;              /* (idiv: toward zero, as the game's) */
+    return c < 0 ? 0 : c > 100 ? 100 : c;
+}
+int gm_through(int dmg, int pen, int h) { return h < pen ? dmg : h == pen ? dmg / 2 : dmg / 8; }
+int gm_str_damage(int str_max, int str_lo, int str_hi)
+{
+    if (str_hi < 99 && str_max > str_hi) return (str_max - str_hi) / 5 + 1;
+    if (str_max < str_lo) return (str_max - str_lo) / 5 - 1;
+    return 0;
+}
+int gm_time_per_blow(int skill, int agility, const GmWeapon *w) { return ((w->time + 15) * 2 + (200 - skill - agility) / 2) / 2; }
+/* c's hand-to-hand weapon and rating: what weapon_ready (18bf:0a40) set from the weapon's line of the tables (+0x52
+   its time, +0x53 penetration and hands, +0x54 damage, +0x56/+0x57 the Strength range, +0x57 bit 7 set: a missile
+   weapon readied) and +0x20, while one is readied; while a missile weapon is (a shooter: those are its, and +0x20
+   from its skill), what it would set with c's melee weapon (+0x51; none: type 9, as weapon_ready takes it), from
+   c's skills (+0x6b) and maximum Strength: the game readies it before a blow. *shield: whether a shield counts with
+   it (one hand: +0x53 & 0xf0 == 0x10) */
+static int cb_hand(int c, GmWeapon *w, int *shield)
+{
+    u16 d = CB_REC(c);
+    int cp;
+    if (!(g_rb((u16)(d + 0x57)) & 0x80)) {
+        cp = g_rb((u16)(d + 0x53));
+        w->type = (s8)g_rb((u16)(d + CB_MELEE)); w->skill = w->type >= 0 && w->type <= 62 ? rb(G_FAR20A5, (u16)(0x75ac + w->type)) : -1;
+        w->two_hands = (cp >> 4) >= 2; w->pen = cp & 15;
+        w->dmg = (s8)g_rb((u16)(d + 0x54)); w->str_lo = (s8)g_rb((u16)(d + 0x56)); w->str_hi = g_rb((u16)(d + 0x57)) & 127;
+        *shield = (cp & 0xf0) == 0x10;
+        return g_rb((u16)(d + CB_MELEE_RATING));
+    }
+    int t = (s8)g_rb((u16)(d + CB_MELEE));
+    if (t < 0 || t > 62) t = 9;
+    gm_weapon(t, w);
+    *shield = (rb(G_FAR20A5, (u16)(0x76a8 + t)) & 0xf0) == 0x10;
+    return gm_rating((s8)g_rb((u16)(d + 0x6b + (w->skill & 15))), (s8)g_rb((u16)(d + CB_STR_MAX)), w);
+}
+int gm_cb_defence(int c, int a)
+{
+    GmWeapon wc, wa; int sc, sa;
+    int r = cb_hand(c, &wc, &sc);
+    cb_hand(a, &wa, &sa);
+    u16 d = CB_REC(c);
+    return gm_defence(r, g_rb((u16)(d + 0x5c)), (s8)g_rb((u16)(d + 0x5b)), !sc, wa.skill == 2);
+}
+int gm_cb_rating(int c) { GmWeapon w; int sh; return cb_hand(c, &w, &sh); }
+int gm_cb_aim(int c)
+{
+    u16 d = CB_REC(c);
+    int t = (s8)g_rb((u16)(d + CB_MISSILE));
+    GmWeapon w;
+    if (g_rb((u16)(d + 0x57)) & 0x80) return g_rb((u16)(d + CB_AIM));   /* (readied: cb_hand) */
+    if (!gm_weapon(t, &w)) return -1;
+    return gm_rating((s8)g_rb((u16)(d + 0x6b + w.skill)), (s8)g_rb((u16)(d + CB_STR_MAX)), &w);
+}
+int gm_cb_hit_chance(int a, int d) { return gm_hit_chance(gm_cb_rating(a), gm_cb_defence(d, a)); }
+int gm_cb_tier(int c, int loc) { u16 d = CB_REC(c); return (s8)g_rb((u16)(d + 0x4d + (loc ? 1 : 0))) + (g_rb((u16)(d + 0x55)) & 127); }
+int gm_cb_pen(int a) { GmWeapon w; int sh; cb_hand(a, &w, &sh); return (w.pen + g_rb((u16)(CB_REC(a) + 0x48))) & 15; }
+int gm_cb_blow(int a, int d, int loc)
+{
+    GmWeapon w; int sh;
+    cb_hand(a, &w, &sh);
+    int extra = g_rb((u16)(CB_REC(a) + 0x48));
+    int r = gm_through(w.dmg + (extra >> 4), (w.pen + extra) & 15, gm_cb_tier(d, loc)) + gm_str_damage((s8)g_rb((u16)(CB_REC(a) + CB_STR_MAX)), w.str_lo, w.str_hi);
+    return r < 0 ? 0 : r;
+}
 int gm_member_fight_agility(int m)
 {
     int cur, mx, e, s, a;

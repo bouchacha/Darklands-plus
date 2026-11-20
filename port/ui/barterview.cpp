@@ -148,7 +148,7 @@ extern "C" void barterview_draw(void)
     /* the lists */
     const int NROWS = 13;
     float LY1 = LY0 + NROWS * ROWH;
-    int new_hl = -1, new_hr = -1;
+    int new_hl = -1, new_hr = -1, tip_id = -1, tip_q = 0;   /* (tip: the gear pointed at, for its tooltip) */
     /* a thing "Sell spare gear" would sell: the weapons, armour and shields not in use (not
        arrows, quarrels, balls or things to throw), that this shop pays for, not kept; and whatever
        the player marked to sell on the character sheet (keep.c: the potions never wanted) */
@@ -257,6 +257,7 @@ extern "C" void barterview_draw(void)
             else { const BvWare &w = b.ware[i]; id = w.id; qual = w.qual; price = w.price; }
             bool h = in(mx, my, x0, y, x1, y + ROWH);
             if (h) { new_hl = L; new_hr = i; }
+            if (h && mx < x1 - 2 - W(fo, NsDraw::FS_BODY, price > 0 ? money(price) : L ? "-" : "?") - 2 - 15 - 13 - 1) { tip_id = L ? b.item[i].id : b.ware[i].id; tip_q = L ? b.item[i].qual : b.ware[i].qual; }   /* (left of Buy, Sell and All: the gear's tooltip) */
             if (h) R(x0 + 0.5f, y, x1 - 0.5f, y + ROWH, IM_COL32(226, 204, 160, 255));
             else if (r & 1) R(x0 + 0.5f, y, x1 - 0.5f, y + ROWH, IM_COL32(240, 230, 204, 255));
             if (!L && i == V.flash_ware && plat_ticks_ms() - V.flash_t < 2500) {     /* (found from the Formulae tab) */
@@ -396,6 +397,7 @@ extern "C" void barterview_draw(void)
             R(RX1 - 1.6f, ty, RX1 - 0.4f, ty + th, IM_COL32(120, 80, 36, 140), 0.6f);
         }
     }
+    if (tip_id >= 0) ns_gear_tip(tip_id, tip_q);           /* a weapon, armor or shield pointed at: its numbers, the party's fit */
     if (new_hl >= 0) { V.hover_list = new_hl; V.hover_row = new_hr; V.hover_seq = b.seq; }
     else if (V.hover_seq != b.seq) V.hover_list = -1;
 

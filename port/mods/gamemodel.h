@@ -41,6 +41,46 @@ int gm_temp_boost(int kind, int m, int idx);
    weapon's range - 3 per point below it - 2 per point of skill below the weapon's need; +0x21, the
    "aim", the skill - 1 per point of Strength below - 2 per point of skill below. */
 int gm_shield_defence(int type, int q, int missile);
+/* combat in numbers, the game's own rules for the tooltips (weapon, shield, armor) and the battle's info (one
+   place: the same numbers everywhere). A weapon type's line of the combat tables (far 20a5, by type 0-62; s014
+   weapon_ready reads them): its skill (0-6), time per blow (the table's, +0x7669), two hands, penetration and
+   damage (+0x76a8 low four bits, +0x76e7), the skill it needs (+0x7726), its Strength range (+0x7765 to
+   +0x77a4; 99 or more: no top), the time to throw, draw or reload (+0x77e3). 0 if t is no weapon type */
+typedef struct { int type, skill, time, two_hands, pen, dmg, need, str_lo, str_hi, reload; } GmWeapon;
+int gm_weapon(int t, GmWeapon *w);
+int gm_weapon_shot(const GmWeapon *w);            /* thrown, bow or missile device: aimed (+0x21), not swung */
+int gm_armor_tier(int type);                      /* an armor type's hardness (20a5:781e): 0 cloth, 1 soft, 2 stiff, 3 scale, 4 mail, 5 plate; -1 none */
+/* the rating weapon_ready gives (18bf:0a40) with this skill and maximum Strength: hand to hand the melee rating
+   (+0x20), the skill + 2 a point of Strength above the range - 3 a point below - 2 a point of skill below
+   the need; a shot or throw the aim (+0x21), the skill - 1 a point of Strength below - 2 a point of skill
+   below; 0 to 255 */
+int gm_rating(int skill, int str_max, const GmWeapon *w);
+/* a fighter's defence against a blow (18bf:0592): its rating + the shield's value, or - 5 with no shield, a
+   two-handed weapon, or against a flail; at least 0 */
+int gm_defence(int rating, int shield_type, int shield_q, int two_hands, int vs_flail);
+int gm_hit_chance(int rating, int defence);       /* in 100, one on one, a plain attack: 50 + 2/3 of (rating - defence), 0 to 100 */
+/* a blow's damage through armor of hardness h (hit_damage, 18bf:0778): all of it below the weapon's
+   penetration, half at it, an eighth above; the Strength term (+1, and 1 more each 5 points above the
+   range; -1, and 1 more each 5 below) apart */
+int gm_through(int dmg, int pen, int h);
+int gm_str_damage(int str_max, int str_lo, int str_hi);
+/* the time between blows hand to hand (attack_rate, 18bf:0002: (time + 15) x 2 + (200 - skill - Agility) / 2,
+   halved here: the weapon's (time + 15), the fighter's (200 - skill - Agility) / 4); lower is quicker */
+int gm_time_per_blow(int skill, int agility, const GmWeapon *w);
+/* a typical foe, for the tooltips: DARKLAND.ENM's seasoned bandit (Bandit3), weapon skill 40, Agility 20, no
+   shield, leather: his defence 35 against a blow (40 - 5) and against a shot (-5 + 2 x 20) */
+enum { GM_FOE_RATING = 40, GM_FOE_DEFENCE = 35, GM_FOE_DEFENCE_SHOT = 35 };
+/* in a battle, hand to hand, from the combatant records (CB_REC; what weapon_ready set, or, for one with a missile
+   weapon readied, what it would set with their melee weapon: the game readies it before a blow): c's rating and
+   defence against a's blow, the chance that a's blow lands on d, a's penetration (with what a potion adds, +0x48),
+   and a's blow through d's armor at loc (0 body, 1 legs: +0x4d/+0x4e, what hardens it +0x55; the Strength term) */
+int gm_cb_rating(int c);
+int gm_cb_aim(int c);                             /* c's aim with their missile weapon (+0x21 while it is readied); -1 none */
+int gm_cb_defence(int c, int a);
+int gm_cb_hit_chance(int a, int d);
+int gm_cb_pen(int a);
+int gm_cb_blow(int a, int d, int loc);
+int gm_cb_tier(int c, int loc);                   /* the hardness a blow meets there */
 /* the Agility member m brings to the defence against a shot or a throw (counted twice there): all of it while
    the load is at most 5/8 of (maximum Endurance + Strength) x 1, two thirds up to 10/8, a third up
    to 15/8, none above (s014 18bf:02a8, the to-hit roll of a shot or throw) */

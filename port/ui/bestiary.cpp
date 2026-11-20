@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include "imgui.h"
+#include "combaticons.h"
 #include "tablesort.h"
 #include "ui.h"
 #include "uiinternal.h"
@@ -103,11 +104,9 @@ static void details(int ti)
     for (int e = 0; e < NE; e++) { const unsigned char *r = foe_rec(e); if ((r[0] | r[1] << 8) == ti) names += (names.empty() ? "" : ", ") + game_text((const char *)r + 2, strnlen((const char *)r + 2, 12)); }
     if (!names.empty()) ImGui::TextWrapped("Enemies of this kind: %s", names.c_str());
     int hv = hardness(t[0x92]), hl = hardness(t[0x93]);
-    static const char *HN[6] = { "none", "soft", "stiff", "scale", "mail", "plate" };
     std::string va = item_name(t[0x92], t[0x94], "natural armor"), la = item_name(t[0x93], t[0x95], "natural armor");
-    ImGui::Text("Body: %s, hardness %d (%s); legs: %s, hardness %d (%s); armor quality %d",
-                va.empty() ? "nothing" : va.c_str(), hv, hv >= 0 && hv < 6 ? HN[hv] : "?",
-                la.empty() ? "nothing" : la.c_str(), hl, hl >= 0 && hl < 6 ? HN[hl] : "?", t[0x96]);
+    ImGui::Text("Body: %s, tier %d (%s); legs: %s, tier %d (%s); armor quality %d",     /* (the armor tiers' names: ui/combaticons.h) */
+                va.empty() ? "nothing" : va.c_str(), hv, ui_armor_tier_name(hv), la.empty() ? "nothing" : la.c_str(), hl, ui_armor_tier_name(hl), t[0x96]);
     std::string through;
     for (int w = 0; w <= 33; w++) {
         int pen = penetration(w);

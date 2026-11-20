@@ -94,7 +94,7 @@ extern "C" void lootview_draw(void)
     }
     if (l.who != V.last_who) { V.scroll[1] = 0; V.last_who = l.who; }
 
-    int new_hl = -1, new_hr = -1;
+    int new_hl = -1, new_hr = -1, tip_id = -1, tip_q = 0;
     for (int L = 0; L < 2; L++) {
         float x0 = L ? RX0 : LX0, x1 = L ? RX1 : LX1;
         int n0 = L ? l.nitems : l.npile;
@@ -148,6 +148,7 @@ extern "C" void lootview_draw(void)
             const char *tag = own ? owner.c_str() : kept ? "kept" : NULL;
             float tagw = tag ? P.tag_width(tag) : 0;
             float name_end = h ? x1 - (count > 1 ? 36 : 24) : x1 - 3 - P.width(fo, NsDraw::FS_BODY, qs) - 3;
+            if (h && P.mx < name_end) { tip_id = id; tip_q = qual; }   /* (left of Take and Put: the gear's tooltip) */
             P.text(f, NsDraw::FS_NAME, name_x, y + 1.3f, ink, nm, -1, name_end - tagw);
             if (tag) {
                 float nx = fminf(name_x + P.width(f, NsDraw::FS_NAME, nm) + 2, name_end - tagw);
@@ -170,6 +171,7 @@ extern "C" void lootview_draw(void)
             P.rect(x1 - 1.6f, ty, x1 - 0.4f, ty + th, IM_COL32(120, 80, 36, 140), 0.6f);
         }
     }
+    if (tip_id >= 0) ns_gear_tip(tip_id, tip_q);           /* a weapon, armor or shield pointed at: its numbers, the party's fit */
     if (new_hl >= 0) { V.hover_list = new_hl; V.hover_row = new_hr; V.hover_seq = l.seq; }
     else if (V.hover_seq != l.seq) V.hover_list = -1;
 

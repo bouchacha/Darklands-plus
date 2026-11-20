@@ -459,7 +459,8 @@ void orn_frame_style_box(ImDrawList *dl, ImVec2 a, ImVec2 b, float s, int st)
             float sx = cx ? -1.0f : 1.0f, sy = cy ? -1.0f : 1.0f;
             ImVec2 c(cx ? b.x - o : a.x + o, cy ? b.y - o : a.y + o);
             dl->AddBezierCubic(ImVec2(c.x + sx * L, c.y), ImVec2(c.x + sx * L * 0.3f, c.y - sy * L * 0.12f), ImVec2(c.x, c.y), ImVec2(c.x, c.y + sy * L), PEN, lw * 1.2f);
-            dl->AddBezierCubic(ImVec2(c.x + sx * L * 0.2f, c.y + sy * L * 0.2f), ImVec2(c.x + sx * L * 0.55f, c.y + sy * L * 0.05f), ImVec2(c.x + sx * L * 0.5f, c.y + sy * L * 0.45f), ImVec2(c.x + sx * L * 0.3f, c.y + sy * L * 0.35f), PEN, lw);
+            /* (the curl within, kept in the corner: at 0.55 L it reached into a tooltip's first and last lines) */
+            dl->AddBezierCubic(ImVec2(c.x + sx * L * 0.12f, c.y + sy * L * 0.12f), ImVec2(c.x + sx * L * 0.33f, c.y + sy * L * 0.03f), ImVec2(c.x + sx * L * 0.3f, c.y + sy * L * 0.27f), ImVec2(c.x + sx * L * 0.18f, c.y + sy * L * 0.21f), PEN, lw);
             dl->AddCircleFilled(ImVec2(c.x + sx * L, c.y), lw * 1.3f, PEN, 8);
             dl->AddCircleFilled(ImVec2(c.x, c.y + sy * L), lw * 1.3f, PEN, 8);
         }

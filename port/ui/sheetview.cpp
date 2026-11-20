@@ -439,20 +439,47 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
                                                       : "For another member to ride it, drag it onto them, or press their number (1 to 5).") + 0.5f;
         }
         else if (give_hint) y += P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, NsDraw::INK_DIM, give_hint) + 0.5f;
-        if (item_weaponlike(d) && d->type <= 33) {
-            int sk = rb(G_FAR20A5, (u16)(0x75ac + d->type)), minsk = rb(G_FAR20A5, (u16)(0x7726 + d->type)), minst = rb(G_FAR20A5, (u16)(0x7765 + d->type));
-            int have = sk < 7 ? s.skill[sk] : 0;
-            std::string fit = (have < minsk ? "needs " + std::to_string(minsk - have) + " more skill" : std::string("")) +
-                              (s.attr[1] < minst ? std::string(have < minsk ? ", " : "") + "too weak by " + std::to_string(minst - s.attr[1]) : "");
-            if (relic_low && relic_is_weapon(it.id))                   /* (a weapon relic asks its Virtue) */
-                fit = "{Virtue:" + std::to_string(relic_member_virtue(s.who)) + "}, too little to wield it" + (fit.empty() ? "" : "; " + fit);
-            P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, fit.empty() ? NsDraw::GREEN : NsDraw::RED, fit.empty() ? ns_gtext(s.names[s.who]) + " can use it well" : ns_gtext(s.names[s.who]) + ": " + fit);
-        } else if (d && d->type >= 95 && d->type <= 97) {     /* a shield: the defence it gives this member (mods/gamemodel.h) */
-            int sb = gm_shield_defence(d->type, it.qual, 0), sh = gm_shield_defence(d->type, it.qual, 1), ag = gm_member_fight_agility(s.who), a = s.attr[2];
-            char b[240];
-            snprintf(b, sizeof b, "%s's defense with it: against a blow, %d + their melee rating; against a shot or throw, %d + twice the {Agility:%d} = %d%s", ns_gtext(s.names[s.who]).c_str(), sb, sh, ag, sh + 2 * ag,
-                     ag < a ? " (the load lowers Agility)" : "");
-            P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, ink, b);
+        GmWeapon wp;
+        if (item_weaponlike(d) && d->type <= 33 && gm_weapon(d->type, &wp)) {
+            /* this member's chances with it against a typical foe, as its tooltip has them (mods/gamemodel.h; the maximum
+               Strength, as weapon_ready reads it): red with what it lacks, green with what Strength adds */
+            const std::string who = ns_gtext(s.names[s.who]);
+            const bool shot = gm_weapon_shot(&wp);
+            int have = s.skill[wp.skill], strm = s.attr_max[1], r = gm_rating(have, strm, &wp);
+            int fd = shot ? GM_FOE_DEFENCE_SHOT : GM_FOE_DEFENCE, hit = gm_hit_chance(r, fd), fit = gm_hit_chance(have, fd);
+            std::string l = who + ": hit chance " + std::to_string(hit) + "%";
+            if (!shot) {
+                u16 mb = G_MEMBER(s.who);
+                int sht = (s8)g_rb((u16)(mb + G_M_SHIELD)), shq = g_rb((u16)(mb + 0x47));
+                l += ", dodge chance " + std::to_string(100 - gm_hit_chance(GM_FOE_RATING, gm_defence(r, sht, shq, wp.two_hands, 0))) + "%";
+            }
+            l += " on a typical foe";
+            if (have < wp.need || strm < wp.str_lo) {
+                l += "; it needs";
+                if (have < wp.need) l += " {" + std::string(gm_skill_name(wp.skill)) + ":" + std::to_string(wp.need) + "}";
+                if (strm < wp.str_lo) l += " {Strength:" + std::to_string(wp.str_lo) + "}";
+            } else if (hit > fit) l += "; {Strength:" + std::to_string(strm) + "} adds " + std::to_string(hit - fit);
+            ImU32 col = hit < fit ? NsDraw::RED : NsDraw::GREEN;
+            if (relic_low && relic_is_weapon(it.id)) {                 /* (a weapon relic asks its Virtue) */
+                l = "{Virtue:" + std::to_string(relic_member_virtue(s.who)) + "}, too little to wield it; " + l; col = NsDraw::RED;
+            }
+            P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, col, l);
+        } else if (d && d->type >= 95 && d->type <= 97) {     /* a shield: this member's dodge chance with it (mods/gamemodel.h, as its tooltip) */
+            const std::string who = ns_gtext(s.names[s.who]);
+            u16 mb = G_MEMBER(s.who);
+            int ag = gm_member_fight_agility(s.who), a = s.attr[2], mt = (s8)g_rb((u16)(mb + 0x3d));
+            std::string l;
+            GmWeapon cw;
+            if (mt >= 0 && gm_weapon(mt, &cw) && !gm_weapon_shot(&cw)) {
+                if (cw.two_hands) l = who + "'s weapon takes both hands: no shield with it. ";
+                else {
+                    int r = gm_rating(s.skill[cw.skill], s.attr_max[1], &cw);
+                    l = who + ", with it: dodge chance " + std::to_string(100 - gm_hit_chance(GM_FOE_RATING, gm_defence(r, d->type, it.qual, 0, 0))) + "% against a typical foe's blow (" +
+                        std::to_string(100 - gm_hit_chance(GM_FOE_RATING, gm_defence(r, -1, 0, 0, 0))) + "% without). ";
+                }
+            }
+            l += "Against a shot or throw, " + std::string(l.empty() ? who + "'s" : "their") + " {Agility:" + std::to_string(ag) + "} counts twice too" + (ag < a ? " (the load lowers it)." : ".");
+            P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, ink, l);
         }                                                         /* (a potion's words: in its block above, ns_potion_about) */
     } else if (V.what == 2 && V.which >= 0 && V.which < 19) {
         std::string help = ui_skill_help(V.which);
@@ -492,20 +519,6 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
         P.rect(SX0 + 1, SY1 - 8.6f, SX1 - 1, SY1 - 0.6f, IM_COL32(230, 214, 178, 255));
         P.text(fo, NsDraw::FS_SMALL, SX0 + 2.5f, SY1 - 7.8f, IM_COL32(112, 40, 22, 255), ns_gtext(s.note), -1, SX1 - 1);
     }
-}
-
-/* the details of a thing in use in a fight (ui_item_details: the numbers, who in the party could
-   use it, what armour stops), and about what a shop pays for it */
-static void gear_tip(const SvItem &it)
-{
-    const ItemDef *d = ns_itemdef(it.id);
-    if (!d || !((item_weaponlike(d) && d->type <= 33) || d->kind == K_RELIC ||
-                (d->type >= 67 && d->type <= 84) || (d->type >= 95 && d->type <= 97))) return;
-    ns_tip_begin(30);
-    ImGui::TextUnformatted(ns_item_name(it.id).c_str());
-    if (d->value) ImGui::TextDisabled("Worth about %s", money_with_total(d->value).c_str());
-    ui_item_details(d, it.id, it.qual);
-    ns_tip_end();
 }
 
 static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which)
@@ -758,7 +771,7 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
     }
     /* a weapon, armour or shield the pointer rests on: all its numbers, and the whole party's fit (after
        the Tooltip delay, as every tooltip: third_party/imgui BeginTooltipEx) */
-    if (tip_i >= 0 && !V.dragging) gear_tip(s.item[tip_i]);
+    if (tip_i >= 0 && !V.dragging) ns_gear_tip(s.item[tip_i].id, s.item[tip_i].qual);
     if (s.ndrops > 0) {                                  /* take back what was left behind here */
         const SvDrop &d = s.drops[s.ndrops - 1];
         std::string l = "Undo: " + ns_gtext(d.name) + (d.count > 1 ? " (" + std::to_string(d.count) + ")" : "");

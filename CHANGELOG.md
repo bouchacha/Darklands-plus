@@ -4,6 +4,7 @@
 
 **Added**
 
+- **Who should carry a weapon, in chances:** a weapon's tooltip (character sheet, shops, the loot screen) has a column for each member under their head: what the weapon needs against each one's skill and Strength, the chance to hit a typical foe and to dodge his blow, the damage through each armor tier, and the time per blow with their Agility. A shield's tooltip gives its dodge chance in 100 for each size, an armor's its tier and which weapons get through it. In a battle, pointing at a foe shows each member against him: both chances and the blow each way. The tooltips and the battle info draw each property with one picture (damage, penetration, time, the armor tiers ...). From woodk123's pull request #34.
 - **Battle aftermath on the loot screen:** after a won fight, above the loot, who went down, the skills gained or lost, and lasting losses such as a lowered maximum or worn armor. By woodk123 (pull request #27).
 - **New encounters on by default:** the mod of 160 new encounters that comes with Darklands+ is now ticked unless you untick it, and a note at the start screen says so once, with a button to turn it off.
 - **Share all potions:** the Potions heading of the character sheet pools every member's potions and splits each evenly among the members on their feet.
@@ -23,6 +24,7 @@
 
 **Fixed**
 
+- **A weapon's fit goes by maximum Strength,** as the game reckons it: the tooltips used the Strength left after wounds, so a wounded member looked too weak for a weapon the game let them use in full. Found by woodk123 (pull request #34).
 - **Getting out of a quest tomb with its item keeps it:** taking the item wakes the dead, and a party that reaches the way out alive now carries it off, as the original game did and as its text says. Only a defeat loses it. An earlier Darklands+ fix had given the item only for beating every skeleton.
 - **The person who offers a robber-knight bounty also explains the task,** even when several offices have hired the party to hunt that knight (the card looked the patron up by the castle's number, and with no match read before the start of the list). By woodk123 (pull request #35).
 - **Potions and saints in a dungeon survive a save there:** saving in a dungeon or a battle ended at once the potions drunk and the saints' help called in it (a saint's boost then stayed for good), and they were missing from the save. They now run on, and come back with the save.

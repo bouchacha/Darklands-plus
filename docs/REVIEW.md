@@ -774,3 +774,14 @@ covered and found, and what it could not check.
   text another 12,000. Drawing the icons once into pictures (as the plaited band is) would save
   about 11,000; not worth it while a graphics card draws these with ease and the build stays under
   2 ms.
+- 2026-11-19 (his design for PR #34, the weapon's fit; standing order 2): the combat numbers come from one
+  place, mods/gamemodel.h: a weapon's line of the tables (gm_weapon), the rating weapon_ready gives, the
+  defence, the to-hit chance, the damage through a tier, the Strength term and the time per blow, and in a
+  battle the same from the combatant records (gm_cb_*: what weapon_ready set, or for a member or foe with a
+  missile weapon readied, what it would set with their melee weapon, read from +0x57 bit 7). The tooltips,
+  the character sheet's line, the item line under every list and the battle's foe info all call them. One
+  picture a property, ui/combaticons.h (two hands, damage, penetration, the hourglass for time, hit, dodge
+  a blow or a shot, the six armor tiers as tunics), also in the potions' and saints' roundels (damage had
+  shared the sword with a weapon's quality) and on the icon sheet (uiconstyles:2). The gear tooltip is one
+  function, ns_gear_tip (ui/nsdraw.cpp), for the sheet, the shops and the loot screen. The pen-flourish
+  frame's inner curl is kept in the corner (it reached into a tooltip's first and last lines).

@@ -385,12 +385,18 @@ static void effect_body(ImDrawList *dl, ImVec2 c, float s, int k)
         dl->AddLine(P(-10.0f, 9.0f), P(-1.0f, 0.0f), ink, 2.2f * u); dl->AddLine(P(-10.0f, 9.0f), P(-1.0f, 0.0f), gold, 1.2f * u);
         dl->AddTriangleFilled(P(0.6f, -1.6f), P(-3.4f, -0.6f), P(-0.4f, 2.6f), ink);
         break; }
-    case 4: case 5: sword(); break;                     /* a weapon's quality; its damage */
-    case 6: {  /* penetration: a spear's head and shaft */
-        ImVec2 h[4] = { P(0, -11.0f), P(3.2f, -4.0f), P(0, 0), P(-3.2f, -4.0f) };
-        dl->AddConvexPolyFilled(h, 4, gold); dl->AddPolyline(h, 4, ink, ImDrawFlags_Closed, 0.7f * u);
-        dl->AddLine(P(0, -9.0f), P(0, -1.0f), ink, 0.5f * u);
-        dl->AddRectFilled(P(-1.0f, 0), P(1.0f, 11.0f), gold); dl->AddRect(P(-1.0f, 0), P(1.0f, 11.0f), ink, 0, 0, 0.6f * u);
+    case 4: sword(); break;                             /* a weapon's quality */
+    case 5: {  /* its damage: a blow's burst, as the weapons' tooltips have it (ui/combaticons.cpp CI_DAMAGE, on a 24-unit box: 2/3 here) */
+        static const float B[28] = { 0, -10, 2, -4, 8, -6, 5, -1, 10, 2, 4, 3, 5, 10, 0, 6, -5, 10, -4, 3, -10, 2, -5, -1, -8, -6, -2, -4 };
+        IconPath b;
+        for (int i = 0; i < 28; i += 2) b.to(P(B[i] * 1.05f, B[i + 1] * 1.05f));
+        b.fill(dl, gold, ink, 0.8f * u);
+        break; }
+    case 6: {  /* penetration: a shaft through a plate, as the weapons' tooltips have it (CI_PEN) */
+        dl->AddRectFilled(P(1.0f, -10.0f), P(4.0f, 10.0f), gold); dl->AddRect(P(1.0f, -10.0f), P(4.0f, 10.0f), ink, 0, 0, 0.7f * u);
+        dl->AddLine(P(-10.0f, 0), P(6.0f, 0), ink, 2.6f * u); dl->AddLine(P(-10.0f, 0), P(6.0f, 0), gold, 1.4f * u);
+        ImVec2 h[3] = { P(10.0f, 0), P(5.0f, -3.4f), P(5.0f, 3.4f) };
+        dl->AddConvexPolyFilled(h, 3, gold); dl->AddPolyline(h, 3, ink, ImDrawFlags_Closed, 0.7f * u);
         break; }
     case 7: boot(0.6f); break;                          /* the party travels faster */
     case 8: {  /* ... in woods: the boot, a fir behind it */

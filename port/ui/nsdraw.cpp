@@ -1,7 +1,9 @@
 /* nsdraw.cpp - see nsdraw.h */
 #include <math.h>
+#include "combaticons.h"
 #include "../runtime/config.h"
 #include "nsdraw.h"
+#include "money.h"
 #include "marks.h"
 #include "libraries.h"
 #include "../runtime/cpu.h"
@@ -25,25 +27,36 @@ std::string ns_item_line(int id, int q)
 {
     const ItemDef *d = ns_itemdef(id);
     if (!d) return "";
-    if (d->type >= 95 && d->type <= 97) {                  /* a shield: its defence, by size and quality (mods/gamemodel.h) */
+    if (d->type >= 95 && d->type <= 97) {                  /* a shield: what it adds to the dodge chance, by size and quality (as its tooltip: ui_item_details) */
         if (q < 0) q = d->quality;
-        return "Defense " + std::to_string(gm_shield_defence(d->type, q, 0)) + " against blows, " + std::to_string(gm_shield_defence(d->type, q, 1)) +
-               " against shots and throws; unusable with a two-handed weapon";
+        auto plus = [&](int missile) { return std::to_string((gm_shield_defence(d->type, q, missile) + 5) * 2 / 3); };
+        return "Dodge chance +" + plus(0) + " in 100 against blows, +" + plus(1) + " against shots and throws; not with a two-handed weapon";
     }
     if (item_weaponlike(d) && d->type <= 33) {
-        int w = d->type, sk = rb(G_FAR20A5, (u16)(0x75ac + w)), cp = rb(G_FAR20A5, (u16)(0x76a8 + w)), dmg = rb(G_FAR20A5, (u16)(0x76e7 + w));
-        int tm = rb(G_FAR20A5, (u16)(0x7669 + w)), rl = rb(G_FAR20A5, (u16)(0x77e3 + w));
-        std::string r = (sk < 7 ? "{" + std::string(gm_skill_short(sk)) + "}" : std::string("?")) + ", " + ((cp >> 4) >= 2 ? "two-handed" : "one-handed") + ", damage " + std::to_string(dmg) + ", penetration " + std::to_string(cp & 15);
-        if (tm) r += ", time per blow " + std::to_string(tm);
-        if (rl) r += std::string(", time to ") + (w >= 30 ? "reload " : w >= 27 ? "draw and loose " : "throw ") + std::to_string(rl);
+        GmWeapon w;                                        /* (the times as its tooltip has them: a blow's the weapon's part, time + 15) */
+        if (!gm_weapon(d->type, &w)) return "";
+        std::string r = "{" + std::string(gm_skill_short(w.skill)) + "}, " + (w.two_hands ? "two-handed" : "one-handed") + ", damage " + std::to_string(w.dmg) + ", penetration " + std::to_string(w.pen);
+        if (!gm_weapon_shot(&w)) r += ", time per blow " + std::to_string(w.time + 15);
+        else if (w.reload) r += std::string(w.skill == 4 ? ", time per throw " : ", time per shot ") + std::to_string(w.reload);
         return r;
     }
     if (d->type >= 67 && d->type <= 84) {
-        static const char *HN[6] = { "none", "soft", "stiff", "scale", "mail", "plate" };
-        int h = rb(G_FAR20A5, (u16)(0x781e + d->type));
-        return std::string(d->type <= 75 ? "Covers body and arms" : "Covers the legs") + ", hardness " + std::to_string(h) + " (" + (h >= 0 && h < 6 ? HN[h] : "?") + ")";
+        int h = gm_armor_tier(d->type);
+        return std::string(d->type <= 75 ? "Covers body and arms" : "Covers the legs") + ", tier " + std::to_string(h) + " (" + ui_armor_tier_name(h) + ")";
     }
     return "";
+}
+
+void ui_item_details(const ItemDef *d, int id, int q);      /* (ui/inventory.cpp) */
+void ns_gear_tip(int id, int q)
+{
+    const ItemDef *d = ns_itemdef(id);
+    if (!d || !((item_weaponlike(d) && d->type <= 33) || d->kind == K_RELIC || (d->type >= 67 && d->type <= 84) || (d->type >= 95 && d->type <= 97))) return;
+    ns_tip_begin(30);
+    ImGui::TextUnformatted(ns_item_name(id).c_str());
+    if (d->value) ImGui::TextDisabled("Worth about %s", money_with_total(d->value).c_str());
+    ui_item_details(d, id, q);
+    ns_tip_end();
 }
 
 /* a weapon or an armour against what member m has in that place now (the equipment slots of the
@@ -63,7 +76,6 @@ std::string ns_item_compare(int id, int q, int m)
         return std::string("?");
     };
     auto cmpq = [&](int a, int c) { return a > c ? "better made" : a < c ? "less well made" : "as well made"; };
-    static const char *HN[6] = { "none", "soft", "stiff", "scale", "mail", "plate" };
     if (d->type >= 67 && d->type <= 84) {
         bool vital = d->type <= 75;
         int t, wq, h = rb(G_FAR20A5, (u16)(0x781e + d->type));
@@ -71,7 +83,7 @@ std::string ns_item_compare(int id, int q, int m)
         int wh = rb(G_FAR20A5, (u16)(0x781e + t));
         std::string n = name_of(t, wq);
         int s1 = (h > wh) - (h < wh), s2 = (q > wq) - (q < wq);
-        return who + " wears " + n + " (" + (wh >= 0 && wh < 6 ? HN[wh] : "?") + ", " + std::to_string(wq) + "q): this is " +
+        return who + " wears " + n + " (" + ui_armor_tier_name(wh) + ", " + std::to_string(wq) + "q): this is " +
                (s1 > 0 ? "harder" : s1 < 0 ? "softer" : "as hard") + (s1 == s2 ? " and " : " but ") + cmpq(q, wq) + ".";
     }
     if (d->kind == K_SHIELD) {

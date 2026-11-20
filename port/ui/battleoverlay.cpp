@@ -18,6 +18,7 @@
 #include "imgui_internal.h"
 #include "richtext.h"
 #include "skillicons.h"
+#include "combaticons.h"
 void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);   /* ui/inventory.cpp */
 #include "../mods/nscreen.h"
 #include "gamedata.h"
@@ -33,6 +34,7 @@ extern "C" {
 #include "../mods/assist.h"
 #include "../mods/hdtext.h"
 #include "../mods/foefx.h"
+#include "../mods/gamemodel.h"
 }
 extern ImFont *ui_font_small, *ui_font_text;
 extern ImFont *ui_font_overlay;
@@ -470,7 +472,7 @@ void ui_draw_battle_info(void)
     u16 b = (u16)(0x9c55 + best * 0x80);
     int st = g_rb((u16)(b + CB_STATUS)), end = (s8)g_rb((u16)(b + CB_END)), endm = (s8)g_rb((u16)(b + CB_END_MAX)), str = (s8)g_rb((u16)(b + CB_STR)), strm = (s8)g_rb((u16)(b + CB_STR_MAX));
     /* +0x22 the missile weapon's type (0xff none), +0x51 the melee weapon's (as the member record's +0x3d) */
-    int atk = g_rb((u16)(b + CB_AIM)), def = g_rb((u16)(b + CB_MELEE_RATING)), wm = (s8)g_rb((u16)(b + CB_MISSILE)), w = (s8)g_rb((u16)(b + CB_MELEE));
+    int wm = (s8)g_rb((u16)(b + CB_MISSILE)), w = (s8)g_rb((u16)(b + CB_MELEE));
     const bool human = enemyview_human(best);
     std::string name;
     if (best < 5) { char nm[26]; g_str(G_DGROUP, (u16)(b + CB_NAME), nm, sizeof nm); name = game_text(nm, sizeof nm); }
@@ -508,8 +510,6 @@ void ui_draw_battle_info(void)
         ImGui::TextColored(best < 5 ? ImVec4(0.18f, 0.32f, 0.55f, 1) : ImVec4(0.55f, 0.15f, 0.10f, 1), "%s", name.c_str());
         if (*cond) { ImGui::SameLine(); ImGui::TextDisabled("- %s", cond); }
         if (best < 5 || ui_battle_numbers) ui_rich_textf("{Endurance:%d/%d}   {Strength:%d/%d}", end, endm, str, strm);
-        if (wm >= 0 && wm <= 33) ImGui::Text("Melee rating %d, aim %d", def, atk);   /* (+0x20 both ways hand to hand, +0x21 shooting: mods/gamemodel.h) */
-        else ImGui::Text("Melee rating %d", def);
         {   FoeFx fx[3]; int nfx = foefx_of(best, fx, 3);       /* the potions at work on them, and for how long */
             for (int q = 0; q < nfx; q++) {
                 float fsz = ImGui::GetFontSize();
@@ -528,49 +528,79 @@ void ui_draw_battle_info(void)
             return -1;
         };
         auto wname = [&](int t) -> std::string { int i = wid(t); return i < 0 ? "" : game_text(gamedata.items[i].name.c_str(), gamedata.items[i].name.size()); };
-        if (human) {
-            std::string a = wname(w), m = wname(wm);
-            if (!a.empty() || !m.empty()) ImGui::TextDisabled("%s%s%s", a.c_str(), !a.empty() && !m.empty() ? ", " : "", m.c_str());
-        } else ImGui::TextDisabled("Natural weapons");
+        /* his weapon, its skill's shield with his rating, its penetration; his armor's tier (his design, 2026-11-19: the
+           pictures of the weapons' and armors' tooltips, ui/combaticons.h) */
+        const ImU32 dimc = ImGui::GetColorU32(ImGuiCol_TextDisabled);
+        int pen = gm_cb_pen(best), tier = gm_cb_tier(best, 0), def_h = gm_cb_rating(best);
+        GmWeapon hw; const bool hw_ok = human && gm_weapon(w, &hw);
+        /* (+0x20 both ways hand to hand, +0x21 the aim: mods/gamemodel.h) */
+        if (hw_ok) ui_rich_textf("{%s:%d}", gm_skill_name(hw.skill), def_h); else ImGui::Text("Melee rating %d", def_h);
+        ImGui::SameLine();
+        ImGui::TextUnformatted(human ? (wname(w).empty() ? "bare hands" : wname(w).c_str()) : "natural weapons");
+        ImGui::SameLine(); ui_combat_icon_inline(CI_PEN); ImGui::Text("%d", pen);
+        ImGui::SameLine(0, ImGui::GetFontSize()); ui_armor_icon_inline(tier > 5 ? 5 : tier);
+        {   int at = g_rb((u16)(b + CB_BODY_ARMOR)); std::string an;
+            for (const ItemDef &d : gamedata.items) if (at != 0xff && d.type == at && d.type >= 67 && d.type <= 84) { an = game_text(d.plain.empty() ? d.name.c_str() : d.plain.c_str(), d.plain.empty() ? d.name.size() : d.plain.size()); break; }
+            if (!human) ImGui::Text("natural, as %s", ui_armor_tier_name(tier > 5 ? 5 : tier));
+            else ImGui::TextUnformatted(an.empty() ? "no armor" : an.c_str()); }
+        if (human && wm >= 0 && wm <= 33 && !wname(wm).empty() && gm_cb_aim(best) >= 0) ImGui::TextDisabled("%s, aim %d", wname(wm).c_str(), gm_cb_aim(best));
         if (best >= 5 && st == 1) {
-            /* its body armour against the party's weapons (the game's rule, as in the armour
-               tooltips: penetration below the hardness deflects most of the blow, equal halves it,
-               above pierces and wounds strength) */
-            int at = g_rb((u16)(b + CB_BODY_ARMOR)), h = at == 0xff ? 0 : rb(G_FAR20A5, (u16)(0x781e + at));
-            static const char *HN[6] = { "no armor", "soft armor", "stiff armor", "scale armor", "mail", "plate" };
-            if (h >= 0 && h < 6) {
-                if (human) ImGui::Text("%s (hardness %d)", HN[h], h);
-                else if (h > 0) ImGui::Text("Natural armor, hardness %d (as %s)", h, HN[h]);
-                else ImGui::Text("No armor (hardness 0)");
-                int size = (s16)g_rw(G_PARTY_SIZE); if (size < 0 || size > 5) size = 0;
+            /* each member against him hand to hand, the chosen one lit: the chances of a blow each way and its damage to
+               the body (mods/gamemodel.h, from the combatant records: what the game will roll); red and green as on a
+               weapon's tooltip (a misfit, the Strength bonus) */
+            int size = (s16)g_rw(G_PARTY_SIZE); if (size < 0 || size > 5) size = 0;
+            const ImU32 GREEN = IM_COL32(46, 102, 41, 255), RED = IM_COL32(158, 51, 31, 255);
+            float fsz = ImGui::GetFontSize();
+            bool tiers[6] = {};
+            if (ImGui::BeginTable("##foefit", 5, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_NoSavedSettings)) {
+                static const int ICON[4] = { CI_HIT, CI_DODGE, CI_DAMAGE, CI_DAMAGE };
+                static const char *const LAB[4] = { "Hit chance", "Dodge chance", "Your blow", "His blow" };
+                ImGui::TableNextRow(); ImGui::TableNextColumn();
+                for (int k = 0; k < 4; k++) { ImGui::TableNextColumn(); ui_combat_icon_inline(ICON[k], dimc); ImGui::TextDisabled("%s", LAB[k]); }
+                const bool ordering = g_rb(GV_order_mode) != 0;
                 for (int m = 0; m < size; m++) {
                     u16 mb = (u16)(0x9c55 + m * 0x80);
                     if (g_rb((u16)(mb + CB_STATUS)) != 1) continue;
-                    /* the member's head, then each weapon in hand as its picture, then what it does in its colour: green pierces, amber
-                       its extra damage halved, red cut to an eighth */
-                    struct Seg { int id; const char *word; ImVec4 col; };
-                    std::vector<Seg> seg;
-                    for (int k = 0; k < 2; k++) {
-                        int mw = (s8)g_rb((u16)(mb + (k ? 0x22 : 0x51)));
-                        int id = wid(mw);
-                        if (id < 0) continue;
-                        int pen = rb(G_FAR20A5, (u16)(0x76a8 + mw)) & 15, r = pen > h ? 0 : pen == h ? 1 : 2;
-                        seg.push_back({ id, r == 0 ? "pierces" : r == 1 ? "extra damage halved" : "extra damage to an eighth",
-                                        r == 0 ? ImVec4(0.18f, 0.40f, 0.16f, 1) : r == 1 ? ImVec4(0.69f, 0.49f, 0.0f, 1) : ImVec4(0.62f, 0.20f, 0.12f, 1) });
+                    ImGui::TableNextRow();
+                    if (ordering ? g_rb(GV_selected_member) == m : gm_member_selected(m)) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, IM_COL32(222, 190, 110, 140));
+                    ImGui::TableNextColumn();
+                    { ImVec2 q = ImGui::GetCursorScreenPos(); ImGui::Dummy(ImVec2(fsz * 1.3f / 1.2f, fsz * 1.3f)); ui_member_head(ImGui::GetWindowDrawList(), m, q, fsz * 1.3f); }
+                    GmWeapon mw; int mt = (s8)g_rb((u16)(mb + CB_MELEE)), strm = (s8)g_rb((u16)(mb + CB_STR_MAX));
+                    ImU32 fit = 0, sd = 0;
+                    if (gm_weapon(mt, &mw) && !gm_weapon_shot(&mw)) {
+                        int sk = gm_member_skill(m, mw.skill), r = gm_rating(sk, strm, &mw);
+                        fit = r < sk ? RED : r > sk ? GREEN : 0;
+                        int sdd = gm_str_damage(strm, mw.str_lo, mw.str_hi); sd = sdd < 0 ? RED : sdd > 0 ? GREEN : 0;
                     }
-                    if (seg.empty()) continue;
-                    float fsz = ImGui::GetFontSize();
-                    { ImVec2 q = ImGui::GetCursorScreenPos(); ImGui::Dummy(ImVec2(fsz * 1.05f / 1.2f, fsz)); ui_member_head(ImGui::GetWindowDrawList(), m, ImVec2(q.x, q.y), fsz * 1.05f); }
-                    for (size_t g = 0; g < seg.size(); g++) {
-                        ImGui::SameLine(0, fsz * (g ? 0.9f : 0.4f));
-                        ImVec2 q = ImGui::GetCursorScreenPos();
-                        ImGui::Dummy(ImVec2(fsz * 1.1f, fsz));
-                        ui_item_icon(ImGui::GetWindowDrawList(), ImVec2(q.x + fsz * 0.55f, q.y + fsz * 0.5f), fsz * 1.05f, seg[g].id);
-                        ImGui::SameLine(0, fsz * 0.2f);
-                        ImGui::TextColored(seg[g].col, "%s", seg[g].word);
-                    }
+                    auto num = [&](const char *t, ImU32 c) { ImGui::TableNextColumn(); ImGui::PushStyleColor(ImGuiCol_Text, c ? ImGui::ColorConvertU32ToFloat4(c) : ImGui::GetStyleColorVec4(ImGuiCol_Text)); ImGui::TextUnformatted(t); ImGui::PopStyleColor(); };
+                    char t[16];
+                    snprintf(t, sizeof t, "%d%%", gm_cb_hit_chance(m, best)); num(t, fit);
+                    snprintf(t, sizeof t, "%d%%", 100 - gm_cb_hit_chance(best, m)); num(t, fit);
+                    snprintf(t, sizeof t, "%d", gm_cb_blow(m, best, 0)); num(t, sd);
+                    int mt_tier = gm_cb_tier(m, 0); if (mt_tier > 5) mt_tier = 5; if (mt_tier < 0) mt_tier = 0;
+                    tiers[mt_tier] = true;
+                    snprintf(t, sizeof t, "%d", gm_cb_blow(best, m, 0)); num(t, 0);
+                    ImGui::SameLine(); ui_armor_icon_inline(mt_tier);
                 }
+                ImGui::EndTable();
             }
+            /* what his blow gets through, of the armor the party wears */
+            std::string parts;
+            for (int g = 0; g < 3; g++) {
+                std::string ts;
+                for (int t = 0; t < 6; t++) if (tiers[t] && ((g == 0 && t < pen) || (g == 1 && t == pen) || (g == 2 && t > pen))) ts += (ts.empty() ? "" : " and ") + std::string(ui_armor_tier_name(t));
+                if (ts.empty()) continue;
+                parts += (parts.empty() ? "" : ", ") + std::string(g == 0 ? "all of it through " : g == 1 ? "half through " : "an eighth through ") + ts;
+            }
+            float tw = ImGui::GetItemRectSize().x;
+            ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + fmaxf(tw, fsz * 16));
+            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+            ImGui::SetWindowFontScale(ImGui::GetCurrentWindow()->FontWindowScale * 0.88f);
+            ImGui::TextWrapped("Each member against him hand to hand, the chosen one lit; a blow to the body. Red and green: a weapon's misfit or Strength bonus, as on its tooltip.");
+            if (!parts.empty()) ImGui::TextWrapped("%s (penetration %d) gets %s.", hw_ok && !wname(w).empty() ? ("His " + wname(w)).c_str() : "His blow", pen, parts.c_str());
+            ImGui::SetWindowFontScale(ImGui::GetCurrentWindow()->FontWindowScale / 0.88f);
+            ImGui::PopStyleColor();
+            ImGui::PopTextWrapPos();
         }
         ImGui::PopFont();
     }

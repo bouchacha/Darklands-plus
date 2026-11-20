@@ -691,7 +691,13 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
     }
     ImGui::SetNextWindowPos(tl, ImGuiCond_Always, ImVec2(0, 0));
     ImGui::SetNextWindowBgAlpha(0.97f);
-    ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(fmaxf(UIS(380), fminf(io.DisplaySize.x * 0.32f, ui_text_px() * 26)), FLT_MAX));
+    {   /* (a weapon's table, a column a member, wants more room: ui_item_details) */
+        float mw = fmaxf(UIS(380), fminf(io.DisplaySize.x * 0.32f, ui_text_px() * 26));
+        if (item >= 0 && item < (int)gamedata.items.size() && gamedata.items[item].type >= 0 && gamedata.items[item].type <= 33 &&
+            (gamedata.items[item].kind == K_WEAPON || gamedata.items[item].kind == K_MISSILE || gamedata.items[item].kind == K_RELIC))
+            mw = fmaxf(mw, fminf(io.DisplaySize.x * 0.6f, ui_text_px() * 44));
+        ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(mw, FLT_MAX));
+    }
     if (ImGui::Begin("##shopinfo", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize |
                                              ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings)) {
         ImGui::PushFont(ui_font_overlay);
