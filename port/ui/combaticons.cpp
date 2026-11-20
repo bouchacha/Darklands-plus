@@ -21,10 +21,11 @@ void ui_combat_icon(ImDrawList *dl, ImVec2 c, float s, int kind, ImU32 ink)
     case CI_DAMAGE:                                     /* a blow's burst */
         p.poly_line({ 0, -10, 2, -4, 8, -6, 5, -1, 10, 2, 4, 3, 5, 10, 0, 6, -5, 10, -4, 3, -10, 2, -5, -1, -8, -6, -2, -4 }, ink, w);
         break;
-    case CI_PEN:                                        /* a shaft through a plate */
-        p.line(2, -9, 2, 9, ink, w);
-        p.line(-9, 0, 6, 0, ink, w);
-        p.tri(4.5f, 0, 0, -3.2f, 0, 3.2f, ink);
+    case CI_PEN:                                        /* a shaft through a plate: the plate broken where it passes, the head clear beyond it */
+        p.line(-2, -10, -2, -3.2f, ink, w * 1.7f);
+        p.line(-2, 3.2f, -2, 10, ink, w * 1.7f);
+        p.line(-11, 0, 4, 0, ink, w);
+        p.tri(11, 0, 4, -3.6f, 4, 3.6f, ink);
         break;
     case CI_HIT:                                        /* a blade, struck home */
         p.line(-9, 9, 2, -2, ink, w);

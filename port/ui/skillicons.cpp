@@ -392,10 +392,14 @@ static void effect_body(ImDrawList *dl, ImVec2 c, float s, int k)
         for (int i = 0; i < 28; i += 2) b.to(P(B[i] * 1.05f, B[i + 1] * 1.05f));
         b.fill(dl, gold, ink, 0.8f * u);
         break; }
-    case 6: {  /* penetration: a shaft through a plate, as the weapons' tooltips have it (CI_PEN) */
-        dl->AddRectFilled(P(1.0f, -10.0f), P(4.0f, 10.0f), gold); dl->AddRect(P(1.0f, -10.0f), P(4.0f, 10.0f), ink, 0, 0, 0.7f * u);
-        dl->AddLine(P(-10.0f, 0), P(6.0f, 0), ink, 2.6f * u); dl->AddLine(P(-10.0f, 0), P(6.0f, 0), gold, 1.4f * u);
-        ImVec2 h[3] = { P(10.0f, 0), P(5.0f, -3.4f), P(5.0f, 3.4f) };
+    case 6: {  /* penetration: a shaft through a plate, as the weapons' tooltips have it (CI_PEN): the plate broken
+                  where it passes, the head clear beyond it */
+        for (int k = 0; k < 2; k++) {
+            float y0 = k ? 3.2f : -10.0f, y1 = k ? 10.0f : -3.2f;
+            dl->AddRectFilled(P(-3.5f, y0), P(-0.5f, y1), gold); dl->AddRect(P(-3.5f, y0), P(-0.5f, y1), ink, 0, 0, 0.7f * u);
+        }
+        dl->AddLine(P(-10.5f, 0), P(4.5f, 0), ink, 2.6f * u); dl->AddLine(P(-10.5f, 0), P(4.5f, 0), gold, 1.4f * u);
+        ImVec2 h[3] = { P(10.5f, 0), P(4.0f, -3.6f), P(4.0f, 3.6f) };
         dl->AddConvexPolyFilled(h, 3, gold); dl->AddPolyline(h, 3, ink, ImDrawFlags_Closed, 0.7f * u);
         break; }
     case 7: boot(0.6f); break;                          /* the party travels faster */
