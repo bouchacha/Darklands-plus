@@ -24,6 +24,8 @@
 
 **Fixed**
 
+- **A click on a member's portrait in a town keeps their sheet open:** the sheet opened on the press, and letting go of the button closed it again. By woodk123 (pull request #38).
+- **No black corners when the battle view scrolls diagonally:** a diagonal step shows the finished picture instead of sliding, since neither picture covered the corners. By woodk123 (pull request #37).
 - **A weapon's fit goes by maximum Strength,** as the game reckons it: the tooltips used the Strength left after wounds, so a wounded member looked too weak for a weapon the game let them use in full. Found by woodk123 (pull request #34).
 - **Getting out of a quest tomb with its item keeps it:** taking the item wakes the dead, and a party that reaches the way out alive now carries it off, as the original game did and as its text says. Only a defeat loses it. An earlier Darklands+ fix had given the item only for beating every skeleton.
 - **The person who offers a robber-knight bounty also explains the task,** even when several offices have hired the party to hunt that knight (the card looked the patron up by the castle's number, and with no match read before the start of the list). By woodk123 (pull request #35).

@@ -440,6 +440,20 @@ static void slide_draw(void)                /* the field: the old frame leaving,
         SDL_FRect d = { dest.x + (60 + ox[k]) * kx, dest.y + oy[k] * ky, 260 * kx, 200 * ky };
         SDL_RenderCopyF(ren, tx[k], &src, &d);
     }
+    /* the game's pointer, when it is drawn into the picture (display.live_pointer off: hdtext.c pointer_out takes it out
+       otherwise, and the interface draws it at the mouse): the new frame's, carried along with it, is covered with the old
+       frame's ground at that place (the window's own pointer stays put). With the pointer taken out there is nothing to
+       cover, and the patch would show the old ground in the new frame */
+    extern int hdtext_live_pointer;
+    if (!hdtext_live_pointer) {
+        int px, py; plat_mouse_game(&px, &py);
+        SDL_Rect c = { px - 2, py - 4, 20, 18 };    /* (the hand: its tip at the pointer, the rest right and below) */
+        SDL_Rect cs = { c.x - (int)slide_sx, c.y - (int)slide_sy, c.w, c.h };
+        if (cs.x >= 0 && cs.y >= 0 && cs.x + cs.w <= 320 && cs.y + cs.h <= 200) {
+            SDL_FRect d = { dest.x + (c.x + ox[1]) * kx, dest.y + (c.y + oy[1]) * ky, c.w * kx, c.h * ky };
+            SDL_RenderCopyF(ren, slide_old, &cs, &d);
+        }
+    }
     SDL_RenderSetClipRect(ren, 0);
 }
 
