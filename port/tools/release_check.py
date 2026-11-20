@@ -36,7 +36,7 @@ STEPS = [
     ('a battle (test battle at the next card)', 'wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 10; ucmd umode:; wait 1; wshot 6_battle; ucmd uunpause:; wait 10; ucmd umode:; wait 1', [r'^mode 4$']),
     ('a sheet in the battle (F2)', 'key F2; wait 5; wshot 6b_sheet; key Escape; wait 4; ucmd umode:; wait 1', [r'sheet: open', r'sheet: closed', r'^mode 4$']),
     ('enemy info (E, native)', 'key e; wait 2; wshot 6c_enemy; click; wait 2', [r'enemy info: open', r'enemy info: closed']),
-    ('fast forward (Z) on and off', 'ucmd usdlkey:z; wait 2; ucmd usdlkey:z; wait 1', [r'battle: fast forward on', r'battle: fast forward off']),
+    ('fast forward (Z) on and off', 'ucmd upause:; wait 1; ucmd usdlkey:z; wait 2; ucmd usdlkey:z; wait 1', [r'battle: fast forward on', r'battle: fast forward off']),   # (paused: a battle nearly won ended in the fast forward, and the loot came before its step)
     ('win it (test hits) and the loot (native)', HITS + '; ucmd uunpause:; wait 25; wshot 7_loot', [r'loot screen: open'],
      '; '.join(['; '.join('ucmd uhit:1,%d,40,0' % c for c in range(5, 13)) + '; ucmd uunpause:; wait 3'] * 6) + '; ' +
      '; '.join(['; '.join('ucmd ukill:%d' % c for c in range(5, 13)) + '; ucmd uunpause:; wait 3'] * 4)),   # (a foe that came late: hit it too; the hits land as the battle runs; then, a battle whose foes shrug the test hits off: wounds that fell them)

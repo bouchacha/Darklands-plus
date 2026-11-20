@@ -467,6 +467,7 @@ int testcmd_run(const char *cmd, const char *arg)
             }
         }
         else if (!strcmp(cmd, "ualchemy")) { extern int uscreen_pending, uscreen_a, uscreen_b; uscreen_a = 0; uscreen_b = 8; sscanf(arg, "%d,%d", &uscreen_a, &uscreen_b); uscreen_pending = 1; }   /* test: the alchemy screen (member, hours) at the next card menu */
+        else if (!strcmp(cmd, "upause")) { int p = g_rb(0xa695) == 1; if (!p) { void bios_kbd_inject(u16); bios_kbd_inject(0x3920); } fprintf(stderr, "pause: %s\n", p ? "was paused" : "paused now"); }   /* test: a battle paused (Space only if it runs) */
         else if (!strcmp(cmd, "uunpause")) { int p = g_rb(0xa695) == 1; if (p) { void bios_kbd_inject(u16); bios_kbd_inject(0x3920); } fprintf(stderr, "unpause: %s\n", p ? "was paused" : "running"); }   /* test: a battle running (Space only if it is paused: ai_paused) */
         else if (!strcmp(cmd, "upaused")) fprintf(stderr, "paused: ai_paused %d real_combat %d choice pending %d\n", g_rb(0xa695), g_rb(GV_real_combat), g_rb(0xd6f1));   /* test: is the battle paused */
         else if (!strcmp(cmd, "umenu")) { int m = 0, i = 0, j = -1; sscanf(arg, "%d,%d,%d", &m, &i, &j); void menuview_request(int, int, int); menuview_request(m, i, j); }   /* test: menu m's entry i (sub-entry j) chosen, as a click on it does */
