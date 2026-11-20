@@ -48,13 +48,13 @@ std::string ns_item_line(int id, int q)
 }
 
 void ui_item_details(const ItemDef *d, int id, int q);      /* (ui/inventory.cpp) */
+void ui_item_tip_head(const ItemDef *d, int id, int q);
 void ns_gear_tip(int id, int q)
 {
     const ItemDef *d = ns_itemdef(id);
     if (!d || !((item_weaponlike(d) && d->type <= 33) || d->kind == K_RELIC || (d->type >= 67 && d->type <= 84) || (d->type >= 95 && d->type <= 97))) return;
     ns_tip_begin(30);
-    ImGui::TextUnformatted(ns_item_name(id).c_str());
-    if (d->value) ImGui::TextDisabled("Worth about %s", money_with_total(d->value).c_str());
+    ui_item_tip_head(d, id, q);
     ui_item_details(d, id, q);
     ns_tip_end();
 }

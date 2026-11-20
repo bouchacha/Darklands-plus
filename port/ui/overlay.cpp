@@ -596,6 +596,7 @@ extern "C" void travel_overlay(void);
  * formula book) - what it is good for, as a tooltip */
 int ui_shop_info = 1;
 void ui_item_details(const ItemDef *d, int id, int q = -1);
+void ui_item_tip_head(const ItemDef *d, int id, int q);
 static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula);
 static std::string squash(const std::string &t)            /* letters and digits only, lower case: "St.Martin" = "St. Martin" */
 {
@@ -705,10 +706,7 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
         ImGui::PushTextWrapPos(fmaxf(UIS(360), fminf(io.DisplaySize.x * 0.30f, ui_text_px() * 24)));
         if (item >= 0) {
             const ItemDef *d = &gamedata.items[item];
-            std::string nm = game_text(d->name.c_str(), d->name.size());
-            ImGui::TextUnformatted(nm.c_str());
-            bool wearable = item_wieldable(d);   /* (only equipped things count toward the load) */
-            ImGui::TextDisabled("%s%s", kind_name_one(d->kind), wearable && d->weight ? (", weight " + std::to_string(d->weight) + " when equipped").c_str() : "");
+            ui_item_tip_head(d, item, tip_q);              /* (as every item tooltip: ui/inventory.cpp) */
             ui_item_details(d, item, tip_q);
         } else if (saint >= 0) {
             const Saint &st = gamedata.saints[saint];

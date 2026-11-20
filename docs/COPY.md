@@ -1343,66 +1343,58 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/infoview.cpp:102` | by reputation |
 | `ui/infoview.cpp:141` | Last change:  |
 | `ui/infoview.cpp:142` | , after choosing " |
-| `ui/inventory.cpp:47` | East. Black Bean |
-| `ui/inventory.cpp:48` | White Cinnabar |
-| `ui/inventory.cpp:52` | Choleric Base |
-| `ui/inventory.cpp:52` | Phleqmatic Base |
-| `ui/inventory.cpp:53` | Sanguine Base |
-| `ui/inventory.cpp:53` | Melanc. Base |
-| `ui/inventory.cpp:73` | East. Black Bean |
-| `ui/inventory.cpp:535` | Items can't change hands during a battle. |
-| `ui/inventory.cpp:536` | Close the game's current screen (sheet, shop ...) to hand items over. |
-| `ui/inventory.cpp:537` | Start or load a game first. |
-| `ui/inventory.cpp:781` | }  {Strength: |
-| `ui/inventory.cpp:782` | bonus from {Strength: |
-| `ui/inventory.cpp:811` | your shot, on a typical foe |
-| `ui/inventory.cpp:811` | your blow, on a typical foe |
-| `ui/inventory.cpp:816` | Dodge chance |
-| `ui/inventory.cpp:817` | his blow; no shield (two hands) |
-| `ui/inventory.cpp:817` | his blow, with each one's shield |
-| `ui/inventory.cpp:826` | penetration %d |
-| `ui/inventory.cpp:837` | Time per blow |
-| `ui/inventory.cpp:842` | (lower is quicker) |
-| `ui/inventory.cpp:850` | Time per throw |
-| `ui/inventory.cpp:850` | Time per shot |
-| `ui/inventory.cpp:860` | Typical foe: weapon skill 40, no shield, like a seasoned bandit. In a fight, the foe you point at. |
-| `ui/inventory.cpp:861` | A shot's chance: your aim against his shield and twice his Agility, with nobody in the way. |
-| `ui/inventory.cpp:862` | Both chances come from your weapon skill against his. A shield adds to dodging%s |
-| `ui/inventory.cpp:862` | , but two hands leave no hand for one. |
-| `ui/inventory.cpp:862` | ; each member's own is counted. |
-| `ui/inventory.cpp:863` | Damage depends on the armor where the blow lands:  |
-| `ui/inventory.cpp:864` | all of it through any armor |
-| `ui/inventory.cpp:866` | all of it through anything lighter than  |
-| `ui/inventory.cpp:867` | half through  |
-| `ui/inventory.cpp:868` | , an eighth through anything heavier |
-| `ui/inventory.cpp:870` |  (penetration  |
-| `ui/inventory.cpp:871` |  Strength above  |
-| `ui/inventory.cpp:871` |  adds 1 a blow, below  |
-| `ui/inventory.cpp:871` |  takes 1 away, and 1 more for every 5 points beyond. |
-| `ui/inventory.cpp:872` |  Strength below  |
-| `ui/inventory.cpp:872` |  takes 1 a blow away, and 1 more for every 5 points short. |
-| `ui/inventory.cpp:874` | Time per blow: the weapon's %d, plus (200 - skill - Agility) / 4. |
-| `ui/inventory.cpp:886` | Wielded, it takes {Divine Favor:%d} off every prayer of the one wielding it, to any saint (none below 5). Wielding it asks {Virtue:%d}. |
-| `ui/inventory.cpp:888` | It takes {Divine Favor:%d} off every prayer of the one carrying it, to any saint (none below 5), if they have {Virtue:%d}. |
-| `ui/inventory.cpp:890` | Of several relics, the best counts. |
-| `ui/inventory.cpp:895` |  - too little to wield it |
-| `ui/inventory.cpp:895` |  - too little |
-| `ui/inventory.cpp:897` | Off: Relics as the manual has them (F12 > Settings > The party and its items). |
-| `ui/inventory.cpp:898` | This blessed item is immune from any quality degradation. |
-| `ui/inventory.cpp:918` | , body and arms |
-| `ui/inventory.cpp:919` | What a blow does through it, by the weapon's penetration: |
-| `ui/inventory.cpp:937` | %d+  all of it |
-| `ui/inventory.cpp:939` | 1-%d  an eighth |
-| `ui/inventory.cpp:940` | 1  an eighth |
-| `ui/inventory.cpp:961` | The six tiers: |
-| `ui/inventory.cpp:972` | The tiers count 0 (cloth) to 5 (plate). A weapon gets all its damage through a tier below its penetration, half through the tier equal to it, an eighth through any higher one. |
-| `ui/inventory.cpp:973` | A blow that pierces also wounds {Strength}; a good hit gets through more easily. Quality: every 10 points take 1 off each blow's damage. |
-| `ui/inventory.cpp:987` | Dodge chance, a shot or throw |
-| `ui/inventory.cpp:987` | Dodge chance, a blow |
-| `ui/inventory.cpp:994` | Next to carrying no shield. One hand: not with a two-handed weapon. |
-| `ui/inventory.cpp:1002` | a shot or throw |
-| `ui/inventory.cpp:1009` | How it works: a fighter with no shield defends 5 points short. A shield takes that away and adds its own points, more with size and quality. Every 3 points are 2 in 100. |
-| `ui/inventory.cpp:1010` | A flail's blow goes around a shield: against one, it counts as no shield. |
+| `ui/inventory.cpp:48` | East. Black Bean |
+| `ui/inventory.cpp:49` | White Cinnabar |
+| `ui/inventory.cpp:53` | Choleric Base |
+| `ui/inventory.cpp:53` | Phleqmatic Base |
+| `ui/inventory.cpp:54` | Sanguine Base |
+| `ui/inventory.cpp:54` | Melanc. Base |
+| `ui/inventory.cpp:74` | East. Black Bean |
+| `ui/inventory.cpp:536` | Items can't change hands during a battle. |
+| `ui/inventory.cpp:537` | Close the game's current screen (sheet, shop ...) to hand items over. |
+| `ui/inventory.cpp:538` | Start or load a game first. |
+| `ui/inventory.cpp:755` | Worth about  |
+| `ui/inventory.cpp:755` | ; worth about  |
+| `ui/inventory.cpp:805` | } {Strength: |
+| `ui/inventory.cpp:806` | bonus from {Strength: |
+| `ui/inventory.cpp:839` | Dodge chance |
+| `ui/inventory.cpp:848` | Damage bonus |
+| `ui/inventory.cpp:858` | Time per blow |
+| `ui/inventory.cpp:871` | Chances against a typical foe: weapon skill 40, no shield, like a seasoned bandit (in a battle, point at a foe for each member's chances against him).  |
+| `ui/inventory.cpp:872` | A shot's: your aim against his shield and twice his Agility, with nobody in the way. |
+| `ui/inventory.cpp:873` | Both come from your weapon skill against his; a shield adds to dodging |
+| `ui/inventory.cpp:873` | , but this weapon leaves no hand for one. |
+| `ui/inventory.cpp:873` | , each member's own. |
+| `ui/inventory.cpp:875` | Damage (at the top) by the armor where the blow lands:  |
+| `ui/inventory.cpp:876` | all of it through any armor |
+| `ui/inventory.cpp:878` | all of it through anything lighter than  |
+| `ui/inventory.cpp:879` | half through  |
+| `ui/inventory.cpp:880` | , an eighth through anything heavier |
+| `ui/inventory.cpp:882` |  (penetration  |
+| `ui/inventory.cpp:883` |  Damage bonus: Strength above  |
+| `ui/inventory.cpp:883` |  adds 1 a blow, below  |
+| `ui/inventory.cpp:883` |  takes 1 away, and 1 more for every 5 points beyond. |
+| `ui/inventory.cpp:884` |  Damage bonus: Strength below  |
+| `ui/inventory.cpp:884` |  takes 1 a blow away, and 1 more for every 5 points short. |
+| `ui/inventory.cpp:886` | Time per blow: the weapon's %d, plus (200 - weapon skill - Agility) / 4; lower is quicker. |
+| `ui/inventory.cpp:898` | Wielded, it takes {Divine Favor:%d} off every prayer of the one wielding it, to any saint (none below 5). Wielding it asks {Virtue:%d}. |
+| `ui/inventory.cpp:900` | It takes {Divine Favor:%d} off every prayer of the one carrying it, to any saint (none below 5), if they have {Virtue:%d}. |
+| `ui/inventory.cpp:902` | Of several relics, the best counts. |
+| `ui/inventory.cpp:907` |  - too little to wield it |
+| `ui/inventory.cpp:907` |  - too little |
+| `ui/inventory.cpp:909` | Off: Relics as the manual has them (F12 > Settings > The party and its items). |
+| `ui/inventory.cpp:910` | This blessed item is immune from any quality degradation. |
+| `ui/inventory.cpp:922` | time per throw |
+| `ui/inventory.cpp:922` | time per shot |
+| `ui/inventory.cpp:935` | Tier %d (%s), %s |
+| `ui/inventory.cpp:935` | body and arms |
+| `ui/inventory.cpp:955` | The share of a weapon's damage a blow gets through, by the weapon's penetration (on its tooltip). A Strength bonus comes on top, in full. |
+| `ui/inventory.cpp:956` | A blow that pierces also wounds {Strength}; a good hit gets through more easily. Quality: every 10 points take 1 off each blow's damage. |
+| `ui/inventory.cpp:971` | Dodge chance, a shot or throw |
+| `ui/inventory.cpp:971` | Dodge chance, a blow |
+| `ui/inventory.cpp:985` | a shot or throw |
+| `ui/inventory.cpp:993` | Next to carrying no shield; none with a two-handed weapon. A fighter with no shield defends 5 points short: a shield takes that away and adds its own points, more with size and quality. Every 3 points are 2 in 100. |
+| `ui/inventory.cpp:994` | A flail's blow goes around a shield: against one, it counts as no shield. |
 | `ui/itemedit.cpp:32` | Could not read DARKLAND.LST. |
 | `ui/itemedit.cpp:49` | Every item of the game. Change names, weight, quality, rarity and value here, then save the list into a mod folder; it takes effect when the game is started again with that mod ticked. |
 | `ui/itemedit.cpp:51` | Every item of the game, with its weight, usual quality, rarity and value (to change them for a mod, choose a preset other than Full Original in F12 > Settings). |
@@ -1700,7 +1692,6 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/nsdraw.cpp:40` | , time per shot  |
 | `ui/nsdraw.cpp:45` | Covers body and arms |
 | `ui/nsdraw.cpp:45` | Covers the legs |
-| `ui/nsdraw.cpp:57` | Worth about %s |
 | `ui/nsdraw.cpp:78` | less well made |
 | `ui/nsdraw.cpp:78` | as well made |
 | `ui/nsdraw.cpp:82` |  wears nothing there. |
@@ -1878,22 +1869,21 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/overlay.cpp:449` | nobody has one |
 | `ui/overlay.cpp:504` |  learned of  |
 | `ui/overlay.cpp:555` |  sells what the party keeps a stock of |
-| `ui/overlay.cpp:711` |  when equipped |
-| `ui/overlay.cpp:722` | Nobody in the party knows this saint |
-| `ui/overlay.cpp:731` | %s - mystic number %d, %s |
-| `ui/overlay.cpp:743` | %s of the three formulae for %s (the others: %s). |
-| `ui/overlay.cpp:751` | Nobody in the party knows this formula. |
-| `ui/overlay.cpp:766` | (carried: %d) |
-| `ui/overlay.cpp:768` | Enough for %d batch%s. |
-| `ui/overlay.cpp:768` | Not enough ingredients for a batch. |
-| `ui/overlay.cpp:792` |   Take all of it |
-| `ui/overlay.cpp:792` |   Share it out among the party |
-| `ui/overlay.cpp:793` |   Sell the whole stack |
-| `ui/overlay.cpp:828` | Making a character: name and gender first, then the family background, the attributes, and one profession after another, five years each, until you begin adventuring. Older characters know more, but age costs attributes. |
-| `ui/overlay.cpp:831` | The family decides the first attributes and skills. The right side shows what the background under the pointer would give; EP (top right) are the points to spend next. |
-| `ui/overlay.cpp:833` | Spend the EP on attributes: pick one, then + or -. Endurance and Strength are the hit points (and together set how much a character can carry); Agility counts in battle; Perception, Intelligence and Charisma serve many skills. |
-| `ui/overlay.cpp:834` | Choose the profession for the next five years. The right side shows the one under the pointer: the EP it gives (top), the attributes after it, and for each skill gain:room, that is, what it adds at once and how many EP that skill can still take. Some professions open only after others, or need certain attributes. |
-| `ui/overlay.cpp:835` | Spend the EP on skills: pick one, then + or -. A skill takes at most the room shown after the colon. Then choose the next profession, or begin adventuring. |
+| `ui/overlay.cpp:720` | Nobody in the party knows this saint |
+| `ui/overlay.cpp:729` | %s - mystic number %d, %s |
+| `ui/overlay.cpp:741` | %s of the three formulae for %s (the others: %s). |
+| `ui/overlay.cpp:749` | Nobody in the party knows this formula. |
+| `ui/overlay.cpp:764` | (carried: %d) |
+| `ui/overlay.cpp:766` | Enough for %d batch%s. |
+| `ui/overlay.cpp:766` | Not enough ingredients for a batch. |
+| `ui/overlay.cpp:790` |   Take all of it |
+| `ui/overlay.cpp:790` |   Share it out among the party |
+| `ui/overlay.cpp:791` |   Sell the whole stack |
+| `ui/overlay.cpp:826` | Making a character: name and gender first, then the family background, the attributes, and one profession after another, five years each, until you begin adventuring. Older characters know more, but age costs attributes. |
+| `ui/overlay.cpp:829` | The family decides the first attributes and skills. The right side shows what the background under the pointer would give; EP (top right) are the points to spend next. |
+| `ui/overlay.cpp:831` | Spend the EP on attributes: pick one, then + or -. Endurance and Strength are the hit points (and together set how much a character can carry); Agility counts in battle; Perception, Intelligence and Charisma serve many skills. |
+| `ui/overlay.cpp:832` | Choose the profession for the next five years. The right side shows the one under the pointer: the EP it gives (top), the attributes after it, and for each skill gain:room, that is, what it adds at once and how many EP that skill can still take. Some professions open only after others, or need certain attributes. |
+| `ui/overlay.cpp:833` | Spend the EP on skills: pick one, then + or -. A skill takes at most the room shown after the colon. Then choose the next profession, or begin adventuring. |
 | `ui/overlay_text.cpp:178` | This option tests %s: %s %d%% chance of success. The original game shows this number while you hold Shift over an option; it rises with the skills and attributes tested. |
 | `ui/overlay_text.cpp:179` | This option tests the whole party: %s %d%% chance of success. The original game shows this number while you hold Shift over an option; it rises with the skills and attributes tested. |
 | `ui/overlay_text.cpp:213` | Edged Weapons |
