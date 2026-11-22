@@ -417,6 +417,7 @@ void preset_restore_custom(void)
     if (!config_get_int("custom.saved", 0)) return;
     char k[96];
     config_set_int("original", 0);
+    { void fixes_original_changed(void); fixes_original_changed(); }
     int n = options_count();
     for (int i = 0; i < n; i++) {
         const Option *o = options_get(i);
@@ -446,8 +447,12 @@ void options_sound_kept(void)
 
 /* a switch that did not exist when the player chose a preset (a release adds some) takes that preset's value, not the
    Darklands+ default: under "Play the original game" a fix added since stays off (fixes.c reads its key at the start),
-   on Purist a new addition stays off. The preset is told from the switches the settings do hold: all of them at a
-   preset's values (the original's flag for Full Original). Run once at the start, before anything reads a switch */
+   on Purist a new addition stays off. Only for a preset the player chose and still has: the original's flag for
+   Full Original; for Purist the choice on record ("preset", written by preset_apply) and every switch the settings
+   hold still at its values. (The settings hold only the switches something wrote, so a missing one is as often
+   untouched as new: after preset_apply every switch whose preset value differs from its default is held, and only
+   then does "missing and different" mean new. A setup of the player's own is never touched.) Run once at the
+   start, before anything reads a switch */
 void options_fill_new(void)
 {
     static const char NONE[] = "";
@@ -455,8 +460,8 @@ void options_fill_new(void)
     for (int i = 0; i < n; i++) if (config_get(options_get(i)->key, NONE) == NONE) missing++; else held++;
     if (!missing || !held) return;
     if (config_get_int("original", 0)) p = PRESET_BUGGY_PURIST;
-    else for (int q = PRESET_PURIST; q < PRESET_COUNT && p < 0; q++) {      /* (Darklands+ last: its values are the defaults anyway) */
-        int d = 0;
+    else if (config_get_int("preset", PRESET_CUSTOM) == PRESET_PURIST) {
+        int d = 0, q = PRESET_PURIST;
         for (int i = 0; i < n && !d; i++) {
             const Option *o = options_get(i);
             int pv = preset_value(o, q);
@@ -464,7 +469,7 @@ void options_fill_new(void)
         }
         if (!d) p = q;
     }
-    if (p < 0 || p == PRESET_PLUS) return;
+    if (p < 0) return;
     for (int i = 0; i < n; i++) {
         const Option *o = options_get(i);
         int pv = preset_value(o, p);
@@ -493,6 +498,7 @@ void preset_apply(int p)
     }
     options_sound_kept();                            /* (no preset touches the sound: the MT-32 stays, his choice in 1.5) */
     config_set_int("original", p == PRESET_BUGGY_PURIST);
+    { void fixes_original_changed(void); fixes_original_changed(); }
     config_set_int("preset", p);
     void datamods_scan(void), musicpack_reload(void); datamods_scan(); musicpack_reload();
     if (listener) listener("preset", p);

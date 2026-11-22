@@ -87,7 +87,10 @@ static int walk_to(int lead, int tx, int ty, int *gx, int *gy)
     pathfix_long_search(0);
     if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: %d routes looked for in %u ms (%s)\n", tries, plat_ticks_ms() - t0, mx < 0 ? "none" : "found");
     if (mx < 0) { g_ww(CBF(lead, CB_TO_X), (u16)otx); g_ww(CBF(lead, CB_TO_Y), (u16)oty); return 0; }
-    for (int i = 0; i < 5; i++) if (g_rb(CBF(i, CB_STATUS)) == 1) g_wb((u16)(GV_cbt_moving + i), 1);
+    /* (the others follow in single file: out of a fight. In one, each keeps the order it has: marked as moving
+       there, melee_exchanges (s014 0e76:2a4a) stopped their blows and their walks ended with no order left -
+       a click on the level map in a fight dropped everyone else's order. The audit, 2026-11-22) */
+    for (int i = 0; i < 5; i++) if (g_rb(CBF(i, CB_STATUS)) == 1 && (i == lead || g_rb(GV_real_combat) != 1)) g_wb((u16)(GV_cbt_moving + i), 1);
     ns_call(GF_path_give, 1, lead);                             /* (the path found last: to mx, my) */
     if (ns_unwinding) return 0;
     g_ww(CBF(lead, CB_ORDER), 1);
@@ -320,8 +323,9 @@ static void keys_hook(void)                /* combat_keys (): U with nobody on t
         if (d < bd) { bd = d; best = s; }
     }
     bios_kbd_get(1);                                         /* (the key is ours) */
-    if (best < 0) { ui_notice("There are no stairs on this floor that the party has found."); return; }
-    levelwalk_stairs(best);
+    if (best < 0) ui_notice("There are no stairs on this floor that the party has found.");
+    else levelwalk_stairs(best);
+    if (!ns_unwinding) hook_return_far(0);                   /* (the key taken: the game's own routine not called, its return made here) */
 }
 /* the party walks to stairs s of the floor shown and, outside a fight, takes them on arrival (U above;
    a click on a floor of the level map's chart, ui/levelmap.cpp) */

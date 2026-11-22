@@ -11,6 +11,8 @@
 #define KEPT_CITY_SEG 0xFF60    /* the city's record: 1 KB */
 #define EV_MIRROR_SEG 0xD000    /* 300 events of 0x30 bytes, 3 paragraphs each: D000..D383 */
 #define EV_MIRROR_END 0xD384
+#define EV_NONE_SEG   0xD384    /* one more record: what "event -1" leads to (mods/fixes.c noevent_frame) */
+#define EV_OURS_END   0xD387
 void hle_stub(u16 seg, u16 off);         /* a far call/jump landed in the fake BIOS */
 void (*driver_find(u16 seg, u16 off))(void);
 void hle_init(const char *gamedir, const char *exe, int argc, char **argv);

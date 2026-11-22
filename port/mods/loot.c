@@ -349,9 +349,18 @@ static void ingr_store_hook(void)          /* cache_first_draw (who, arg): the s
             wb(G_FAR2E38, (u16)(ok + 3), (u8)(rb(G_FAR2E38, (u16)(ok + 3)) + rb(G_FAR2E38, (u16)(o + 3))));
             int n = (s16)g_rw(GV_cache_n);
             for (int j = i; j + 1 < n; j++) for (int b = 0; b < 4; b++) wb(G_FAR2E38, (u16)(F_STORE + 4 * j + b), rb(G_FAR2E38, (u16)(F_STORE + 4 * (j + 1) + b)));
-            g_ww(GV_cache_n, (u16)(n - 1)); i--;
+            g_ww(GV_cache_n, (u16)(n - 1)); g_ww(GV_cache_n_shown, (u16)(n - 1)); i--;   /* (cache_save writes the "shown" count of rows: left behind, a stale copy of the last row went back into the store at every look) */
             break;
         }
+    }
+    /* (a row joined past 127 by 1.5.1-RC18 or earlier, which joined up to 255: split again while the store has a row free) */
+    for (int i = 0; i < (s16)g_rw(GV_cache_n) && (s16)g_rw(GV_cache_n) < 100; i++) {
+        u16 o = (u16)(F_STORE + 4 * i); int c = rb(G_FAR2E38, (u16)(o + 3)), n = (s16)g_rw(GV_cache_n);
+        if (c <= 127 || !is_ingredient(rw(G_FAR2E38, o) & 0xfff)) continue;
+        u16 q = (u16)(F_STORE + 4 * n);
+        ww(G_FAR2E38, q, rw(G_FAR2E38, o)); wb(G_FAR2E38, (u16)(q + 2), rb(G_FAR2E38, (u16)(o + 2))); wb(G_FAR2E38, (u16)(q + 3), (u8)(c - 127));
+        wb(G_FAR2E38, (u16)(o + 3), 127);
+        g_ww(GV_cache_n, (u16)(n + 1)); g_ww(GV_cache_n_shown, (u16)(n + 1));
     }
 }
 /* 1.4 to 1.4.5-RC5 read the item list from the game's copy in memory, which a battle or a dungeon overwrites: a save

@@ -355,7 +355,7 @@ static int split_evenly(const int *ms, int n, int id, int q, int *tally)
 int sheet_battle_drink(int m, int id, int q)
 {
     if (record_of(m, id, q, 1) < 0) return 0;
-    ns_defer(battle_drink_now, m, id, q, 0);
+    ns_defer_here(battle_drink_now, m, id, q, 0);
     return 1;
 }
 

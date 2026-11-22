@@ -553,7 +553,7 @@ static void give(int from, int to, int idx, bool one = false)
     if (const char *w = why_locked()) { fprintf(stderr, "ui: %s\n", w); return; }
     int before = g_rb((u16)(G_MEMBER(to) + G_M_NITEMS));
     if (before >= 64) { fprintf(stderr, "ui: %s cannot carry any more items\n", member_name(to, false).c_str()); return; }
-    ns_defer(give_now, from, to, idx, one);
+    ns_defer_here(give_now, from, to, idx, one);
 }
 
 /* what an item is good for: weapon numbers and who could use it, what armour covers, a potion's

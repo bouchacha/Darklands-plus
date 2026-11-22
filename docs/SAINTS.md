@@ -50,7 +50,7 @@ Fixes.
   armour for good (the fireward fix hides those bits, so with it they gave nothing at all). Now
   each lasts a day, the fire saints as fire protection 90 (Polycarp's) for the one prayed for
   (Polycarp: everyone).
-- **battlesaints** (earlier): help called in a battle never wore off.
+- (Until 1.5.1 a switch, battlesaints, was said to make help called in a battle wear off. The original lets it wear off by itself; what had lost its end was Darklands+'s own handling of a battle's events, replaced in 1.5.1.)
 
 ## As the texts say (the sainttexts fix)
 

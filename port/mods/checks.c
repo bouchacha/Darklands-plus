@@ -29,6 +29,7 @@
 #include "nscreen.h"
 #include "travel.h"
 #include "gamemodel.h"
+#include "fixes.h"
 #include "datamods.h"
 #include "checks.h"
 
@@ -150,7 +151,7 @@ static void items(void)
         if (!here || h != who[m]) memset(right[m], 0, sizeof right[m]);
         who[m] = h;
         if (same) right[m][7] = 1;
-        else if (here && right[m][7] && lm < 0) lm = m;
+        else if (here && right[m][7] && lm < 0 && fix_is_on("loadsum") && fix_is_on("itemcount")) lm = m;   /* (without those two the original leaves a load unsummed itself) */
         for (int a = 0; a < 7 && here && known; a++) {
             int cur, max; gm_member_attr(m, a, &cur, &max);
             if (max <= 0 || cur <= max + run[m][a]) right[m][a] = 1;

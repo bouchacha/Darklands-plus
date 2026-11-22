@@ -182,16 +182,25 @@ int ns_hidden(void)
 
 /* ---------------------------------------------------------------- deferred requests */
 #define ND 16
-static struct { NsDeferFn fn; int a, b, c, d; } dq[ND]; static int dn;
+/* (ns_defer_here: a request that is run in the state it was asked in, or not at all: which battle, or none. One
+   asked from the party panel in a battle's last tick ran at the first menu bar after it, a card's: the battle's
+   sheet opened over a card, with the battle's memory gone. The audit, 2026-11-22. ns_defer: wherever the game
+   is by then, the sound's and the music's) */
+int fixes_battle_now(void);
+static struct { NsDeferFn fn; int a, b, c, d, battle; } dq[ND]; static int dn;
 void ns_defer(NsDeferFn fn, int a, int b, int c, int d)
 {
     if (dn >= ND) return;
-    dq[dn].fn = fn; dq[dn].a = a; dq[dn].b = b; dq[dn].c = c; dq[dn].d = d; dn++;
+    dq[dn].fn = fn; dq[dn].a = a; dq[dn].b = b; dq[dn].c = c; dq[dn].d = d; dq[dn].battle = -1; dn++;
 }
+void ns_defer_here(NsDeferFn fn, int a, int b, int c, int d) { int n = dn; ns_defer(fn, a, b, c, d); if (dn > n) dq[n].battle = fixes_battle_now(); }
 static void run_deferred(void)
 {
     int n = dn; dn = 0;
-    for (int i = 0; i < n && !unw_active; i++) dq[i].fn(dq[i].a, dq[i].b, dq[i].c, dq[i].d);
+    for (int i = 0; i < n && !unw_active; i++) {
+        if (dq[i].battle != -1 && dq[i].battle != fixes_battle_now()) { fprintf(stderr, "nscreen: a request asked in another state dropped\n"); continue; }
+        dq[i].fn(dq[i].a, dq[i].b, dq[i].c, dq[i].d);
+    }
 }
 static void safe_point_hook(void)           /* menu_bar_run(menus, once): a game screen's round begins */
 {
@@ -225,7 +234,7 @@ static void moved(u16 table, int n, u16 from, u16 to)       /* the far pointers 
 static void mem_free_hook(void)            /* mem_free (seg, name), root 05ba:00c2 */
 {
     u16 seg = rw(SS, (u16)(SP + 4));
-    if (seg == KEPT_LST_SEG || seg == KEPT_LOC_SEG || seg == KEPT_CITY_SEG || (seg >= EV_MIRROR_SEG && seg < EV_MIRROR_END)) {
+    if (seg == KEPT_LST_SEG || seg == KEPT_LOC_SEG || seg == KEPT_CITY_SEG || (seg >= EV_MIRROR_SEG && seg < EV_OURS_END)) {
         hook_return_far(0); return;                    /* (Darklands+'s own, not DOS's to free: a kept block; an event of the battle's copy, mods/fixes.c) */
     }
     int which = !seg ? -1 : rw(G_FAR2E38, (u16)(G_ITEMDEFS + 2)) == seg ? 0 : rw(G_FAR2E38, 0x10be + 2) == seg ? 1 : g_rw(GV_city_rec + 2) == seg ? 2 : -1;

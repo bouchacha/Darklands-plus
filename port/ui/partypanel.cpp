@@ -302,7 +302,7 @@ extern "C" int partypanel_click(int wx, int wy)
             if (gx >= mode_btn[k].x0 && gx <= mode_btn[k].x1 && gy >= mode_btn[k].y0 && gy <= mode_btn[k].y1) { chooser_m = mode_btn[k].m; return 1; }
     int m = box_at();
     if (m < 0) return 0;
-    ns_defer(g_rb(GV_real_combat) == 1 ? choose_member : open_sheet, m, 0, 0, 0);
+    ns_defer_here(g_rb(GV_real_combat) == 1 ? choose_member : open_sheet, m, 0, 0, 0);
     return 1;
 }
 extern "C" int partypanel_rclick(int wx, int wy)
@@ -310,7 +310,7 @@ extern "C" int partypanel_rclick(int wx, int wy)
     (void)wx; (void)wy;
     int m = box_at();
     if (m < 0) return 0;
-    ns_defer(open_sheet, m, 0, 0, 0);
+    ns_defer_here(open_sheet, m, 0, 0, 0);
     return 1;
 }
 

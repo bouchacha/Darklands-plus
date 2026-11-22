@@ -370,10 +370,10 @@ static void loadscreen_hook(void)
     hook_return_far(0);
 }
 
-static void (*on_loaded[16])(void); static int non_loaded;
+static void (*on_loaded[32])(void); static int non_loaded;
 static char menu_card[16];                         /* (the card whose menu's switches are kept: note_menu_flags) */
 unsigned saves_loaded_ms;
-void saves_on_loaded(void (*fn)(void)) { if (non_loaded < 16) on_loaded[non_loaded++] = fn; }
+void saves_on_loaded(void (*fn)(void)) { if (non_loaded < 32) on_loaded[non_loaded++] = fn; else fprintf(stderr, "saves: no room for another saves_on_loaded\n"); }
 static void loaded_hook(void)              /* the save is read (s037 1c7d:0d24): always installed, saves_on or not */
 {
     if (getenv("DL_SAVES_LOG")) {

@@ -62,6 +62,7 @@ static void strong_party(int on) { if (on) hook_install(GF_party_default, strong
 static void rich_start_hook(void)
 {
     hook_call_original();
+    if (unw_active) return;                         /* (a game loaded from the opening card's menu: its purse is its own) */
     g_ww(G_MONEY, 5000); g_ww(G_MONEY + 2, 0); g_ww(G_MONEY + 4, 0);
 }
 static void rich_start(int on) { if (on) hook_install(44, 0x1838, 0x0000, rich_start_hook); else hook_remove(44, 0x1838, 0x0000, rich_start_hook); }
@@ -110,15 +111,17 @@ static int papers_item(int v) { v &= 0xfff; return v == 0x78 || v == 0x7f || v =
 static void no_papers_hook(void)
 {
     if (!config_get_int("quests.no_papers", 0) || config_get_int("original", 0)) { hook_call_original(); return; }
+    u16 sp0 = SP, ip = rw(SS, sp0), cs = rw(SS, (u16)(sp0 + 2));
     for (int tries = 0; ; tries++) {
-        hook_call_original();
-        if (ns_unwinding) return;
+        hook_call_original();                       /* (its far ret pops the return address: put back before another call, as quick_learn_battle_hook) */
+        if (ns_unwinding || unw_active) return;
         int ev = (s16)AX;
         u32 e = ev >= 0 && ev < G_NEVENTS ? g_event(ev) : 0;
         if (!e || !papers_item(g_ev(e, 0x2e)) || tries >= 30) return;
         if (getenv("DL_QUEST_LOG")) fprintf(stderr, "no papers: errand %d for item %#x drawn again\n", ev, g_ev(e, 0x2e));
         ns_call(GF_event_free, 1, ev);
         if (ns_unwinding) return;
+        SP = sp0; ww(SS, sp0, ip); ww(SS, (u16)(sp0 + 2), cs);
     }
 }
 

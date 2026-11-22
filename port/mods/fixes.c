@@ -200,10 +200,7 @@
  *            (below, dwarfrelic).
  *  minechests A mine's floor shows a chest (piece 5 closed, 6 open, of a cell's first byte's high nibble)
  *            only where a chest is (below, minechests).
- *  carditems Things a card gives by kind (add_items, add_item, add_item_q) take their type and weight from
- *            the item list as it is, not the game's copy a battle or dungeon lays other data over
- *            (below, carditems).
- *  cityalert, dayjobs, cloudline, attrsum, lootcount, corridors, battledead, createback: below, each
+ *  cityalert, dayjobs, cloudline, attrsum, lootcount, corridors, createback: below, each
  *            at its hook (Arkana Mechanika's B-55afd6, B-074e99, B-3cc78a and B-bfb04e, B-82a302,
  *            B-e080d4, B-c90740, B-f7799c, B-126118).
  *  enemygroups A battle's loader (groups_fixup, s004 0e76:1d90) drops each level's empty groups
@@ -370,8 +367,6 @@ Fix FIXES[] = {
       "Piles of loot gathered after a battle add up identical items in a count that holds at most 255: past that, the rest was lost (after a battle with many arrows or bolts). Now what does not fit goes into another row.", 1 },
     { "corridors", "Castle corridor decorations stay on their passage",
       "When laying out a castle, the game picks a spot along each passage's wall to decorate, counted from the passage's far end instead of its start: all but one possible roll put the spot past the passage's end, in another room. Now the spot is on the passage.", 1 },
-    { "battledead", "A hireling killed in battle doesn't later send away his replacement",
-      "When a hireling died in a battle, the end of his contract and his \"has left\" notice were not cancelled: later they could send away whoever had taken his place in the party. Now they are cancelled after the battle.", 1 },
     { "createback", "Esc in character creation doesn't reopen a childhood already chosen",
       "In character creation, Esc on the childhood's points went back to the list of childhoods, though the childhood was already taken (the character was 15): picking a row there then started the adult profession with the same number on the other list. Now Esc there leads on to the professions, as Esc on a profession's points does.", 1 },
     { "ruinkeep", "The burnt-out keep lets the party go after searching it",
@@ -400,8 +395,6 @@ Fix FIXES[] = {
       "Past an iron door in a mine, a grinning dwarf says that enemies beyond it guard a relic they stole, which the dwarfs cannot touch, and bids the party regain it; yet the game put a relic in the leader's hands there and then. Now the relic is among the things of the next fight the party wins in that mine (it shows in that fight's loot), and the dwarf speaks of it as taken only once it is.", 1 },
     { "minechests", "A chest in a mine is one the party can open",
       "Some chests drawn on a mine's floors are only pictures: no chest is there, and clicking or standing by one does nothing. They are no longer drawn; every chest left on a mine's floor can be opened (or picked, or its lock dissolved).", 1 },
-    { "carditems", "Things a card gives after a battle are the things it names",
-      "Once a mine is won, the miners give the party ten sacks of minerals (10 to 14 each of ten ingredients), but none reached the party's lists: a card right after a battle or in a dungeon made things from the game's copy of the item list, which the battle's own data lies over then, and they came out of the wrong kind. Now every thing a card gives takes its kind and weight from the item list itself.", 1 },
     { "prayfor", "Every prayer asks who it is for",
       "A prayer from the character sheet asks who it is for, but one a card calls for (calling on a saint in an encounter or in a town) did not: the game took it as a prayer for the whole party, and what the saint gives one person (a boost, healing) went to the party's leader, though another prayed and spent the Divine Favor. Praying with P, without choosing, did the same. Now every prayer asks who it is for, the one who prays first, and a prayer made without choosing helps the one who prays.", 1 },
     { "westedge", "Leaving a place by the map's west edge puts the party beside it",
@@ -449,7 +442,7 @@ Fix FIXES[] = {
     { "bountybrief", "A robber-knight briefing names the right patron",
       "The briefing that follows a robber-knight bounty looked the quest up with the castle's number where the office's belongs, so it found another office's quest, or none (the game then read past the start of its table). It now reads the quest the offering office has just made, so the same person speaks throughout.", 1 },
     { "loadsum", "Armor worn out or a last weapon thrown no longer weighs",
-      "A member's load is summed when something is readied or put away on the character sheet. A fight changes what is in use without summing it again: armor worn down to nothing is thrown away, and the last javelin, axe or dart leaves the hand, yet the load went on counting them, so the member stayed as burdened as before (the load band, and the Agility a shot counts with) until the next change on the sheet. The load is now summed again at once.", 1 },
+      "A member's load is summed when something is readied or put away on the character sheet. A fight changes what is in use without summing it again: armor worn down to nothing is thrown away, and the last javelin, axe or dart leaves the hand, yet the load went on counting them, so the member stayed as burdened as before (the load band, and the Agility a shot counts with) until the next change on the sheet. The load is now summed again at once, and when a game is loaded.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -1037,16 +1030,30 @@ static void rkcastle_frame(void);
 static void boost_mend_frame(void);
 static void load_mend(void);
 static int load_right(int m, const char *why);
+static int ev_flux, cards_down;            /* (below: the game is swapping its event table with EVENTS.TMP; a battle has closed the cards) */
+/* "No such event" is -1 (event_find, s029), and many callers use it as a number all the same: events[-1] is the four
+   bytes before the table (2e38:1b28, the tail of var_named's last name), 0 as a rule, so they read the interrupt
+   table at 0000:0000 as a record and some write or free it (fixed where met: bounty, teachers, bountybrief; the
+   audit of 2026-11-22 lists 51 such calls). While those bytes are 0 they lead to an empty record of Darklands+'s
+   own: a read finds nothing, a write harms nothing, a free is left alone (mods/nscreen.c mem_free_hook); the
+   record is emptied again every frame. Not with "Play the original game". */
+static void noevent_frame(void)
+{
+    u16 o = (u16)(G_EVENTS - 4);
+    if (!rw(G_FAR2E38, o) && !rw(G_FAR2E38, (u16)(o + 2))) ww(G_FAR2E38, (u16)(o + 2), EV_NONE_SEG);
+    if (!rw(G_FAR2E38, o) && rw(G_FAR2E38, (u16)(o + 2)) == EV_NONE_SEG) memset(M + (u32)EV_NONE_SEG * 16, 0, 0x30);
+}
 void fixes_frame(void)
 {
     colours_frame();
+    if (!config_get_int("original", 0)) noevent_frame();
     if (fix_on("itemcount")) itemcount_frame();
-    if (fix_on("potions")) potions_frame();
+    if (fix_on("potions") && !ev_flux) potions_frame();        /* (not while the game swaps the events with their file: what these rebuild from them would be 0 for a frame) */
     if (fix_on("offmap")) offmap_frame();
-    if (fix_on("altar")) altar_frame();
-    if (fix_on("armorday")) armourday_frame();
-    if (fix_on("greatpower") || sainttexts_on) greatpower_frame();
-    if (fix_on("rkcastle")) rkcastle_frame();
+    if (fix_on("altar") && !ev_flux && !cards_down) altar_frame();        /* (these two move a task to another place and write the places: while the cards are closed the places are a copy the game throws away) */
+    if (fix_on("armorday") && !ev_flux) armourday_frame();
+    if ((fix_on("greatpower") || sainttexts_on) && !ev_flux) greatpower_frame();
+    if (fix_on("rkcastle") && !ev_flux && !cards_down) rkcastle_frame();
     boost_mend_frame();
 }
 
@@ -1059,7 +1066,6 @@ void fixes_frame(void)
  * In a battle the events are in the table too (below: the party's events over a battle). */
 typedef struct { int m, type0, t; s16 end[4]; } PotEv;   /* end: hour, day, month, year (+0x12 ..) */
 static int cards_down;
-static void battledead_after(void);
 static int boost_mend(const char *when);
 u32 plat_ticks_ms(void);
 
@@ -1106,7 +1112,8 @@ static int pot_all(PotEv *out, int max)
  * closing: the game finds the file and the table as it left them, with whatever was made meanwhile in the file. Not
  * with "Play the original game", where nothing of Darklands+ reads them. While a swap is under way the table is not to
  * be trusted (fixes_events_steady). */
-static int ev_mirrored, ev_flux;
+static int battle_serial;                  /* (counted at each cards_shutdown) */
+static int ev_mirrored, ev_flux, ev_bracket;       /* (ev_bracket: the game has the file in the table itself, a sheet or a save in a battle) */
 static void ev_set(int i, u32 p) { ww(G_FAR2E38, (u16)(G_EVENTS + i * 4), (u16)p); ww(G_FAR2E38, (u16)(G_EVENTS + i * 4 + 2), (u16)(p >> 16)); }
 static int ev_ours(u32 p) { return (u16)(p >> 16) >= EV_MIRROR_SEG && (u16)(p >> 16) < EV_MIRROR_END; }
 static void ev_bring(void)                 /* EVENTS.TMP into the table's free slots */
@@ -1117,7 +1124,7 @@ static void ev_bring(void)                 /* EVENTS.TMP into the table's free s
         for (u32 a = (u32)EV_MIRROR_SEG * 16; a < (u32)EV_MIRROR_END * 16 && clean; a++) clean = M[a] == 0;
         if (!clean) fprintf(stderr, "kept: the memory at %04x is in use: the party's events stay in their file over a battle\n", EV_MIRROR_SEG);
     }
-    if (!clean || config_get_int("original", 0)) return;
+    if (!clean || ev_mirrored || config_get_int("original", 0)) return;
     char p[1200]; dos_host_path("EVENTS.TMP", p, sizeof p);
     FILE *f = fopen(p, "rb"); u8 c[2]; int n = 0, got = 0, j = 0;
     if (f && fread(c, 1, 2, f) == 2) n = c[0] | c[1] << 8;
@@ -1158,7 +1165,7 @@ static void cards_down_hook(void)          /* cards_shutdown(), s043 1462:054e *
     hook_call_original();
     if (unw_active) return;
     u16 ax = AX, dx = DX;
-    cards_down = 1;
+    cards_down = 1; battle_serial++;
     ev_bring();
     ev_flux = 0;
     AX = ax; DX = dx;
@@ -1167,17 +1174,13 @@ static void world_load_hook(void)          /* world_load(locfile), s043 1462:010
 {
     if (ev_mirrored) { ev_flux = 1; ev_send(); if (ns_unwinding) return; }
     hook_call_original();
-    ev_flux = 0;
+    ev_flux = 0; ev_bracket = cards_down;
 }
 /* the cards open again after a battle (its world_load above) */
 static void cards_up_hook(void)            /* cards_startup(), s043 1462:078e */
 {
     hook_call_original();
-    if (!cards_down) return;
-    u16 ax = AX, dx = DX;
-    cards_down = 0; ev_flux = 0;
-    battledead_after();
-    AX = ax; DX = dx;
+    cards_down = ev_flux = ev_bracket = 0;
 }
 /* a member's sheet in a battle: the game's own world_load (above) finds the file whole; when the sheet is over
    (fixes_sheet_closed, from member_sheet's hook) the game writes the table to the file and frees it */
@@ -1185,6 +1188,7 @@ void fixes_sheet_closed(void) { if (cards_down) ev_flux = 1; }
 static void battle_sheet_hook(void)        /* battle_sheet(who), s031 1462:0000 */
 {
     hook_call_original();
+    ev_bracket = 0;
     if (!cards_down || unw_active) { ev_flux = 0; return; }
     u16 ax = AX, dx = DX;
     ev_bring();
@@ -1199,17 +1203,23 @@ static void battle_save_hook(void)         /* s037 1462:2ace (comment): write a 
     ev_flux = 1;
     if (ev_mirrored) { ev_send(); if (ns_unwinding) return; }
     hook_call_original();
+    ev_bracket = 0;
     if (unw_active) return;
     u16 ax = AX, dx = DX;
     ev_bring();
     ev_flux = 0;
     AX = ax; DX = dx;
 }
+/* "Play the original game" switched off in the middle of a battle (F12 > Settings: a preset): the table is brought
+   in now, or a potion from the tray would make its event in an empty table and the game's next read of the file
+   would write over it. (Switched on there: the table stays as it is and goes to the file at the game's next read.) */
+void fixes_original_changed(void) { if (cards_down && !ev_mirrored && !ev_flux && !ev_bracket) ev_bring(); }
 int fixes_events_steady(void) { return !ev_flux; }   /* (fixes.h) */
+int fixes_battle_now(void) { return cards_down ? battle_serial : 0; }   /* (fixes.h: which battle the cards are closed for, 0 none) */
 void fixes_title_opened(void)              /* (fixes.h: a party lost in a battle, the game left there: its copy is nobody's now) */
 {
     for (int i = 0; i < G_NEVENTS; i++) { u32 e = g_event(i); if (e && ev_ours(e)) { ev_set(i, 0); memset(M + (u32)(e >> 16) * 16, 0, 0x30); } }
-    ev_mirrored = cards_down = ev_flux = 0;
+    ev_mirrored = cards_down = ev_flux = ev_bracket = 0;
 }
 
 /* an attribute left above its maximum by a boost whose record was lost: until 1.5.1-RC18 Darklands+'s own handling of
@@ -1364,6 +1374,7 @@ static void saint_armour(int add)          /* St. Dunstan's (1) or St. Patrick's
     u16 mb = (u16)G_MEMBER(who);
     u8 a41 = g_rb((u16)(mb + 0x41));
     hook_call_original();
+    if (unw_active) return;                             /* (a game loaded at the prayer's message: its members are not these) */
     u16 ax = AX, dx = DX;                               /* (what it returns) */
     g_wb((u16)(mb + 0x41), a41);
     record_potion(who, 0x16d, add);                     /* (0x16d: a saint's armour, added to Hardarmor's) */
@@ -1431,6 +1442,7 @@ static void crispin_hook(void)
     u8 q[5][2];
     for (int m = 0; m < 5; m++) { q[m][0] = g_rb((u16)(G_MEMBER(m) + 0x3b)); q[m][1] = g_rb((u16)(G_MEMBER(m) + 0x3c)); }
     hook_call_original();
+    if (unw_active) return;
     u16 ax = AX, dx = DX;
     for (int m = 0; m < 5; m++) {
         g_wb((u16)(G_MEMBER(m) + 0x3b), q[m][0]); g_wb((u16)(G_MEMBER(m) + 0x3c), q[m][1]);
@@ -1454,6 +1466,7 @@ static void fire_saint(int whole, int saint)
     u8 a41[5], f10[5];
     for (int m = 0; m < 5; m++) { a41[m] = g_rb((u16)(G_MEMBER(m) + 0x41)); f10[m] = g_rb((u16)(G_MEMBER(m) + 0x10)); }
     hook_call_original();
+    if (unw_active) return;
     u16 ax = AX, dx = DX;
     for (int m = 0; m < 5; m++) {
         g_wb((u16)(G_MEMBER(m) + 0x41), a41[m]); g_wb((u16)(G_MEMBER(m) + 0x10), f10[m]);
@@ -1574,6 +1587,7 @@ static void thrown_end_hook(void)           /* the battle's end, s014 0e76:0694 
             if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix thrownskill: member %d practises with the weapon he threw last (type %d)\n", m, thrown_last[m]);
         }
     hook_call_original();
+    if (unw_active) { for (int m = 0; m < 5; m++) thrown_last[m] = -1; return; }   /* (a game loaded at the practice's message: nothing of this battle into it) */
     int over = (s16)g_rw(GV_battle_result) != 6;    /* (6: no practice yet, the fight goes on) */
     for (int m = 0; m < 5; m++) { if (put >> m & 1) g_wb((u16)(G_MEMBER(m) + G_M_MISSILE), 0xff); if (over) thrown_last[m] = -1; }
 }
@@ -1807,7 +1821,11 @@ static void w04_options(void)
 
 static void cardopts_hook(void)             /* card_options (block) */
 {
-    fixes_card_opts();
+    /* (once a call of card_options: the native cards' own hook on it (mods/cardview.c options_hook) calls
+       fixes_card_opts itself and not the original. A fix switched off and on goes outermost (hooks.c), and both
+       then ran: w04_options, which moves the options about, scrambled $CityW04. The audit, 2026-11-22) */
+    int cardview_active(void);
+    if (!cardview_active()) fixes_card_opts();
     hook_call_original();
 }
 
@@ -1840,6 +1858,13 @@ static int papers_event(int loc, u16 *seg, u16 *off)
     return -1;
 }
 int fixes_debt_note_office(int aux) { return (aux % 2 == 0) ? 1 : 2; }     /* the office the giver names (Medici 1, Fugger 2) */
+static int dn_i = -1, dn_aux, dn_want; static u32 dn_e;
+static void debtnote_back(void)            /* (still the same errand: +0x2a as it was) */
+{
+    if (dn_i >= 0 && g_event(dn_i) == dn_e && g_ev(dn_e, 0x2a) == dn_want) ww((u16)(dn_e >> 16), (u16)((u16)dn_e + 0x2a), (u16)dn_aux);
+    dn_i = -1;
+}
+static void debtnote_text_hook(void) { debtnote_back(); hook_call_original(); }   /* card_text (block, how), within the search */
 static void debtnote_hook(void)            /* the lock is open: search the office chosen */
 {
     u16 sg, o;
@@ -1849,8 +1874,11 @@ static void debtnote_hook(void)            /* the lock is open: search the offic
     int want = aux - aux % 4 + named;                        /* (the same +0x2a but for the office) */
     ww(sg, (u16)(o + 0x2a), (u16)want);
     if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix debtnote: office %d searched, the notes in office %d (game: %d)\n", office, named, aux % 4);
+    dn_i = i; dn_e = ((u32)sg << 16) | o; dn_aux = aux; dn_want = want;
+    hook_install(GF_card_text, debtnote_text_hook);         /* (as it was before the routine's text waits: a save made at that text held the changed one) */
     hook_call_original();
-    if (g_event(i) == (((u32)sg << 16) | o) && (s16)rw(sg, (u16)(o + 0x2a)) == want) ww(sg, (u16)(o + 0x2a), (u16)aux);   /* (still the same errand: as it was) */
+    hook_remove(GF_card_text, debtnote_text_hook);
+    if (!unw_active) debtnote_back();
 }
 
 /* ---------------------------------------------------------------- alchrisk
@@ -2328,8 +2356,12 @@ static void pileup_hook(void)               /* damage_queue (d, t, pen, arm) */
 static int cf_tries;
 static void cf_dice_hook(void)              /* roll_dice (n, d), while 1d78 places the party on a kind 0x7c level */
 {
+    u16 ret = rw(SS, SP);
     hook_call_original();
-    if ((s16)AX != (s16)g_rw(0xdb63)) return;
+    /* (only the room's roll, which returns to 15af:1fda: the rolls for the direction further on, 15af:2082 and
+       2097, are roll_dice (1, 4) - 1, and one turned to 0 gave direction -1, with which 15af:3372 never ends:
+       the freeze again, one time in four, in the very case this is for. The audit, 2026-11-22) */
+    if (ret != 0x1fda || (s16)AX != (s16)g_rw(0xdb63)) return;
     if (++cf_tries < 50) return;
     if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix castlefreeze: only the gate room to draw: room 0\n");
     AX = 0;
@@ -3073,36 +3105,6 @@ static void corridors_hook(void)
     hook_remove(GF_roll_dice, corridor_roll_hook);
 }
 
-/* ---------------------------------------------------------------- battledead
- * party_delete (s037 1462:3f30) cancels the member's contract (kind 0x43) and "has left" notice
- * (0x47). A member who dies in a battle is deleted while the table is in events.tmp (between
- * cards_shutdown and cards_startup: root 03a1:000a, run_battle), so both came back with it; the
- * notice later sent away whoever had that place in the party then. Here they are cancelled once
- * the table is back (cards_up_hook). Found by Arkana Mechanika (Darklands Restoration), B-f7799c. */
-static int dead_pending;
-static void battledead_hook(void)          /* party_delete (p) */
-{
-    int p = (s16)rw(SS, (u16)(SP + 4));
-    if (cards_down && p >= 0 && p < 5) dead_pending |= 1 << p;
-    hook_call_original();
-}
-static void battledead_after(void)          /* (cards_up_hook, the table back) */
-{
-    int was = dead_pending; dead_pending = 0;
-    if (!was || !fix_on("battledead")) return;
-    for (int p = 0; p < 5; p++) {
-        if (!(was & 1 << p) || g_rb(G_MEMBER(p))) continue;          /* (still gone) */
-        for (int kind = 0x43; kind <= 0x47; kind += 4) {
-            int i = ns_call(GF_event_find, 6, kind, p, -1, -1, -1, -1);
-            if (ns_unwinding) return;
-            if (i >= 0) {
-                ns_call(GF_event_free, 1, i);
-                if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix battledead: member %d's kind %#x event cancelled\n", p, kind);
-            }
-        }
-    }
-}
-
 /* ---------------------------------------------------------------- createback
  * Making a character (s037 18c8): Esc on the attribute points of the childhood (state 2) sets
  * state 1, the list of childhoods, though the childhood is applied (age 15); a row there takes the
@@ -3307,30 +3309,6 @@ static void minechests_hook(void)
     if (cleared && getenv("DL_FIX_LOG")) fprintf(stderr, "fix minechests: %d chest%s with nothing there not drawn\n", cleared, cleared == 1 ? "" : "s");
 }
 
-/* ---------------------------------------------------------------- carditems
- * A card gives things by kind through add_items (who, code, n), add_item (who, code) and add_item_q (who, code,
- * quality), s031 18e7:00e0, 0128, 016e, which fill the record's type, quality and weight from item_defs (2e38:0890),
- * the game's copy of DARKLAND.LST: a battle or a dungeon lays its own data over it, and a card right after one ($MineE00,
- * the miners' ten sacks once the mine is won: ten ingredients, 10 to 14 each) made records of the wrong type (72 as
- * type 5, not 109), which the party's lists then did not show. Here the record (add_item_rec_impl, its struct on the
- * stack: code, type, quality, count, weight) takes them from the list itself; add_item_q's quality stays. */
-static int ci_kind;                         /* 1 a thing of the list's quality, 2 of the caller's */
-static void carditems_n_hook(void)   { ci_kind = 1; hook_call_original(); ci_kind = 0; }
-static void carditems_one_hook(void) { ci_kind = 1; hook_call_original(); ci_kind = 0; }
-static void carditems_q_hook(void)   { ci_kind = 2; hook_call_original(); ci_kind = 0; }
-static void carditems_rec_hook(void)        /* add_item_rec_impl (who, struct item) */
-{
-    if (ci_kind) {
-        int code = rw(SS, (u16)(SP + 6)) & 0xfff, t = gm_itemdef_u8(code, 0x1e), w = gm_itemdef_u8(code, 0x25), q = gm_itemdef_u8(code, 0x26);
-        if (t >= 0 && rb(SS, (u16)(SP + 8)) != (u8)t) {
-            if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix carditems: item %d of type %d, not %d\n", code, t, rb(SS, (u16)(SP + 8)));
-            wb(SS, (u16)(SP + 8), (u8)t);
-            if (w >= 0) wb(SS, (u16)(SP + 11), (u8)w);
-            if (ci_kind == 1 && q >= 0) wb(SS, (u16)(SP + 9), (u8)q);
-        }
-    }
-    hook_call_original();
-}
 
 /* ---------------------------------------------------------------- rkcastle
  * The givers of robber knights (the councils, lords, merchants, the Hanse, the Fuggers, a village:
@@ -4232,7 +4210,7 @@ static void loadsum_hook(void)             /* use_ammo (i), s014 18bf:0c48; s019
 }
 static void load_mend(void)
 {
-    if (config_get_int("original", 0)) return;
+    if (!fix_on("loadsum") || config_get_int("original", 0)) return;      /* (the load is the sum: that fix's word; the original's own leftovers stay without it) */
     int size = (s16)g_rw(G_PARTY_SIZE);
     for (int m = 0; m < size && m < 5; m++) load_right(m, "mend: a game loaded");
 }
@@ -4254,9 +4232,9 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 57, 0x1838, 0x067c, mv_wrap_hook }, { 114, 0x18d3, 0x041c, hussite_hook }, { 47, 0x1a44, 0x05f0, nightwall_all_hook },
     { 36, 0x1462, 0x1b80, campguard_hook }, { GF_groups_fixup, enemygroups_hook }, { GF_loc_hostile_impl, cityalert_hook },
     { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook },
-    { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook }, { GF_party_delete, battledead_hook },
+    { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook },
     { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook },
-    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook }, { 30, 0x1462, 0x1c76, westedge_hook }, { GF_lock_pick, bestpick_hook },
+    { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_saint_finish, prayfor_hook }, { 30, 0x1462, 0x1c76, westedge_hook }, { GF_lock_pick, bestpick_hook },
     { 37, 0x1462, 0x2ace, save_records_hook }, { -2, 0, 0, 0 }, { 38, 0x1462, 0x02f8, innroster_key_hook }, { GF_party_remove, leaving_record_hook }, { -2, 0, 0, 0 }, { 37, 0x1c7d, 0x0d24, duplicate_load_hook }, { 16, 0x1ef8, 0x0f76, dissolve_key_hook }, { -2, 0, 0, 0 },
     { 14, 0x0e76, 0x0694, thrown_end_hook }, { 14, 0x19cd, 0x0738, nosel_leave_hook }, { 18, 0x1f43, 0x0256, castsight_hook }, { GF_path_find, doorplan_hook }, { 30, 0x1462, 0x1dd4, maprows_hook }, { 87, 0x1986, 0x01e6, fruitonce_hook }, { 53, 0x1838, 0x02d6, footpadsonce_hook }, { 30, 0x1462, 0x25be, campwatch_hook }, { 14, 0x0e76, 0x0f58, exitleft_tick_hook }, { -2, 0, 0, 0 }, { -2, 0, 0, 0 }, { 80, 0x1838, 0x0000, bounty_briefing_hook }, { GF_use_ammo, loadsum_hook },
 };   /* (hitsound: mods/sfx.c; savecheck: mods/saves.c; cachefile: mods/cachefile.c; stairsreturn: mods/stairsfix.c; onefloor: mods/levelwalk.c; altarroad: mods/travel.c) */
@@ -4272,7 +4250,7 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "dissolve", GF_cbt_location_action, dissolve_order_hook },
     { "tomb", GF_combat_over, tomb_over_hook },
     { "dwarfrelic", GF_event_new, dwarfrelic_event_hook }, { "dwarfrelic", GF_chest_open, dwarfrelic_chest_hook }, { "dwarfrelic", 40, 0x1462, 0x0000, dwarfrelic_screen_hook },
-    { "carditems", GF_add_items_impl, carditems_n_hook }, { "carditems", 31, 0x18e7, 0x0128, carditems_one_hook }, { "carditems", GF_add_item_q, carditems_q_hook },
+    
     { "knightdead", 81, 0x1838, 0x0000, knightcard_hook }, { "knightdead", 81, 0x18bb, 0x0004, knightcard_hook },
     { "itemcount", 14, 0x0e76, 0x2324, falls_hook }, { "itemcount", 14, 0x18bf, 0x0fa4, useitem_hook },
     { "teachers", 29, 0x0e76, 0x324c, teachers_next_hook }, { "armorwear", 19, 0x1ef8, 0x0914, wornout_hook },

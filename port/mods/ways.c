@@ -25,6 +25,7 @@
 #include "battlerules.h"
 #include "styles.h"
 #include "ways.h"
+#include "saves.h"
 
 #define D_ORDER_ACTION GV_order_action   /* int: the attack chosen in order mode (-1 none, 1 walk ...) */
 #define D_SELECTED     GV_selected_member   /* char: the member given orders */
@@ -567,20 +568,26 @@ void orders_style_changed(int m)
    cleared - the last battle's orders, kinds kept, marks, bow switches and ways given way to orders are
    not this one's (a member sent hand to hand there opened fire here no more) */
 void battlerules_battle_begins(void), pathfix_battle_begins(void), levelwalk_battle_begins(void);
+static void battle_begins(void)
+{
+    for (int i = 0; i < 5; i++) {
+        bow_given[i] = bow_hold[i] = 0; bow_flips[i] = 0;
+        idle_since[i] = 0; shot_at[i] = -1; kept_kind[i] = -1; told[i] = 0; auto_parry[i] = own_order[i] = 0;
+        committed[i] = 0; pt[i] = -1; memset(noway_at[i], 0, sizeof noway_at[i]); blocked_at[i] = 0;
+    }
+    lines_met = 0;
+    battlerules_battle_begins(); pathfix_battle_begins(); levelwalk_battle_begins();   /* (every file's memory of a battle: forgotten at the next) */
+    if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: a battle begins\n");
+}
+/* (and where a battle does begin: battle_run, s002 0e76:0000, which every battle passes, and a game loaded - a
+   load from one battle straight into a battle save may draw no frame between that sees "no battle": the audit,
+   2026-11-22) */
+static void battle_run_hook(void) { battle_begins(); hook_call_original(); }
 void orders_frame(void)
 {
     static int was;
     int in = game_mode() == GM_BATTLE || (was && gm_in_battle());   /* (a sheet or Enemy Info opened in the battle is not a new battle) */
-    if (in && !was) {
-        for (int i = 0; i < 5; i++) {
-            bow_given[i] = bow_hold[i] = 0; bow_flips[i] = 0;
-            idle_since[i] = 0; shot_at[i] = -1; kept_kind[i] = -1; told[i] = 0; auto_parry[i] = own_order[i] = 0;
-            committed[i] = 0; pt[i] = -1; memset(noway_at[i], 0, sizeof noway_at[i]); blocked_at[i] = 0;
-        }
-        lines_met = 0;
-        battlerules_battle_begins(); pathfix_battle_begins(); levelwalk_battle_begins();   /* (every file's memory of a battle: forgotten at the next) */
-        if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: a battle begins\n");
-    }
+    if (in && !was) battle_begins();
     was = in;
 }
 static void keep_kinds(void)
@@ -711,5 +718,7 @@ void ways_untold(void) { for (int k = 0; k < 5; k++) told[k] = 0; }
 void ways_init(void)
 {
     hook_install(GF_melee_exchanges, melee_hook);
+    hook_install(GF_battle_run, battle_run_hook);
+    saves_on_loaded(battle_begins);
     hook_install(GF_order_mode_leave, leave_hook);
 }

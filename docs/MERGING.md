@@ -287,7 +287,7 @@ the files where each switch's key is read.
 | `fix.mapfoot` | No jump at the foot of the travel map | fix | fixes.c, travel.c |
 | `fix.offmap` | No quest destinations off the edge of the land | fix | fixes.c |
 | `fix.bestweapon` | Weapon practice trains the leader's best weapon skill | fix | fixes.c |
-| `fix.itemcount` | Robbers take only what is there (no crash afterwards) | fix | fixes.c |
+| `fix.itemcount` | Robbers take only what is there (no crash afterwards) | fix | checks.c, fixes.c |
 | `fix.store room` | Nothing lost in store rooms | fix | fixes.c |
 | `fix.testcard` | No crash on the developers' test card | fix | fixes.c |
 | `fix.armorwear` | Only the armor worn wears out | fix | fixes.c |
@@ -328,7 +328,6 @@ the files where each switch's key is read.
 | `fix.attrsum` | Cards that test two attributes add both | fix | fixes.c |
 | `fix.lootcount` | No loot lost past 255 of a kind | fix | fixes.c |
 | `fix.corridors` | Castle corridor decorations stay on their passage | fix | fixes.c |
-| `fix.battledead` | A hireling killed in battle doesn't later send away his replacement | fix | fixes.c |
 | `fix.createback` | Esc in character creation doesn't reopen a childhood already chosen | fix | fixes.c |
 | `fix.ruinkeep` | The burnt-out keep lets the party go after searching it | fix | fixes.c |
 | `fix.rkonce` | A giver asks for a robber knight once | fix | fixes.c |
@@ -343,7 +342,6 @@ the files where each switch's key is read.
 | `fix.kingdoor` | The dwarf king waits behind his own door | fix | fixes.c |
 | `fix.dwarfrelic` | The dwarf's relic is won from its guards | fix | fixes.c |
 | `fix.minechests` | A chest in a mine is one the party can open | fix | fixes.c |
-| `fix.carditems` | Things a card gives after a battle are the things it names | fix | fixes.c |
 | `fix.prayfor` | Every prayer asks who it is for | fix | fixes.c, prayview.c |
 | `fix.westedge` | Leaving a place by the map's west edge puts the party beside it | fix | fixes.c |
 | `fix.bestpick` | A lock is picked with the best lock picks | fix | fixes.c |
@@ -367,7 +365,7 @@ the files where each switch's key is read.
 | `fix.onefloor` | The party keeps to one floor in a fight | fix | fixes.c, levelwalk.c |
 | `fix.altarroad` | Encounters by a pagan altar come one at a time | fix | fixes.c, travel.c |
 | `fix.bountybrief` | A robber-knight briefing names the right patron | fix | fixes.c |
-| `fix.loadsum` | Armor worn out or a last weapon thrown no longer weighs | fix | fixes.c |
+| `fix.loadsum` | Armor worn out or a last weapon thrown no longer weighs | fix | checks.c, fixes.c |
 
 The fixes (`fix.<id>`) are listed with their explanations in `port/mods/fixes.c`; the built-in
 rule changes (`mod.<id>`) in `port/mods/builtin.c`.

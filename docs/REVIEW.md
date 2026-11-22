@@ -976,3 +976,53 @@ covered and found, and what it could not check.
   hook_call_original missed a load made from the game's own loop (the native cards off: only ns_call set it):
   hooks.c now sets it whenever the original comes back unwinding. Left open: bounty may free the wrong patron's
   reward when two wait in one town (plausible); armorday's text overstates with fireward off.
+- 2026-11-22 (the audit, round 2, the other four reviewers: today's changes read by one who had not made them;
+  every hook of fixes.c read in full, 208 pairs; the 469 hooks and calls outside it that round 1 had cleared by
+  state; the 442 writes round 1 had classed from the statement, 251 of them now read in their function, and the
+  open leads). What they found and what was done.
+  In today's own changes: (1) options_fill_new told "new" from "never written" by the keys held, and would have
+  switched 29 additions off for a setup that happened to match Purist: now only for a preset on record (the
+  original's flag; "preset" = Purist with every held switch still at its values). (2) The preset changed from Full
+  Original to Darklands+ in a battle left the table empty: fixes_original_changed brings it in (ev_bracket tells
+  the game's own sheet or save; ev_bring does nothing when already brought). (3) CK_LOAD only with loadsum and
+  itemcount on. (4) The frames that rebuild from the events (potions, armorday, greatpower) and those that move a
+  task (altar, rkcastle; these not while the cards are closed either) wait while the table is swapped. (5)
+  battledead had nothing left to do (party_delete finds the events itself now): retired. carditems likewise, its
+  stated cause never in the original and the item list now always whole: retired, CK_ITEMLIST the watch. 92
+  fixes. (6) load_mend under loadsum (it had put the original's own leftovers right with no switch). (7) A store
+  row joined past 127 before is split again.
+  In the fixes' hooks: (8) castlefreeze went on turning any roll equal to the gate room into 0 after breaking the
+  loop: the direction rolls after it (15af:2082, 2097: roll_dice (1, 4) - 1) came out -1 one time in four, and
+  15af:3372 never ends with that: the freeze the fix is for. Now only the roll that returns to 15af:1fda. (9)
+  cardopts ran twice once a fix had been switched off and on (it goes outermost; the native cards' hook calls
+  fixes_card_opts too) and w04_options scrambled $CityW04: one caller now. (10) debtnote held its changed +0x2a
+  across the routine's text, where a save took it: put back before the text. (11) The saints' armour and fire
+  hooks and thrown_end wrote after an original that may have come back unwinding (a load at its message): they
+  return then. All 183 hooked functions: far or near as their hooks take them, no argument read by SP after the
+  original.
+  Outside fixes.c: (12) ingr_store_hook lowered the store's count but not the count cache_save writes
+  (GV_cache_n_shown): a store with an ingredient in two rows was written back with a stale copy of its last row
+  at every look, on by default since 1.4. (13) no_papers_hook called the original again without putting the
+  return address back (a crash at the errand's card; the switch is new and off). (14) levelwalk's U key returned
+  without the return when it took the key. (15) rich_start wrote its florins into a game loaded at the opening
+  card. (16) levelwalk walk_to marked every member as walking in a fight too: their orders dropped. (17)
+  orders.c best_attack asked path_find for a way to a foe without making the foe the target (path_find answers
+  no for a place anyone else stands on): a shot ordered where the attack was meant. (18) A refused click on a foe
+  left the order mode on attack. (19) A request deferred from the party panel in a battle's last tick ran at the
+  next menu bar, a card's: ns_defer_here runs only in the state it was asked in. (20) ways.c, battlerules.c and
+  pathfix.c forgot a battle only when a frame saw none: now at battle_run and at a load. (21) "No such event":
+  the four bytes before the table lead to an empty record of Darklands+'s own (noevent_frame), so a read of
+  events[-1] finds nothing and a write or a free harms nothing; 51 calls listed in the report.
+  Sound, by their reading: the mirror and the kept blocks on every path enumerated (all 8 uses of EVENTS.TMP,
+  every caller of world_load, cards_shutdown, cards_startup, battle_sheet, battle_run, the save); their memory
+  unused by anything in runtime/; all 414 places pass CK_PLACES; no stale target or record number in the order
+  writes of ways.c, orders.c, battlerules.c; noselection's other 17 routines (the one write through member -1
+  is dissolve's); aftermath_end.
+  Open, each with its reason: a save at a card's text starts the card again (some 180 handlers at most give
+  before their text, every patron's payment among them; and the fetched item's reward card can free another
+  event after such a load): one rule in save_hook, his decision, asked twice. bounty with two patrons' rewards in
+  one town (plausible). pack.c's hand-out at a battle taken up from a save uses give_one, not give_safe
+  (plausible). cardview.c common_step without the game's text keeper 150b:13f2 (Party Info's native screen off:
+  not the default). The fifteen tests no gate runs. The save in a battle and the preset change in a battle are
+  not tried by release_check. Not read by anyone: sainttexts.c's saints, travel.c's planner, encounters.c's
+  loader, 188 writes of the native views and small files, 30 of the fixes' claims in part.

@@ -104,10 +104,13 @@ static int best_attack(int i, int m)
     if (mode == 0 || (!combat_improved() && ways_near_foe(i, m))) {   /* (improved combat: a shooter shoots until the foe is beside it) */
         /* hand to hand, unless there is no way to the foe at all (hemmed in by others): then a shot,
            if the member has a missile weapon and something to loose */
-        u16 tx = g_rw((u16)(c + CB_TO_X)), ty = g_rw((u16)(c + CB_TO_Y));
-        g_ww((u16)(c + CB_TO_X), g_rw(CBF(m, CB_X))); g_ww((u16)(c + CB_TO_Y), g_rw(CBF(m, CB_Y)));
+        /* (with the foe as the member's target for the asking, as the game's own click has it, s014 19cd:0dcc:
+           path_find, 12f7:000a, answers "no way" at once for a place anyone but the walker's target stands on,
+           so without it every foe standing still was out of reach and got a shot. The audit, 2026-11-22) */
+        u16 tx = g_rw((u16)(c + CB_TO_X)), ty = g_rw((u16)(c + CB_TO_Y)); u8 tg = g_rb((u16)(c + CB_TARGET));
+        g_ww((u16)(c + CB_TO_X), g_rw(CBF(m, CB_X))); g_ww((u16)(c + CB_TO_Y), g_rw(CBF(m, CB_Y))); g_wb((u16)(c + CB_TARGET), (u8)m);
         int way = ns_call(GF_path_find, 1, i) == 1;
-        g_ww((u16)(c + CB_TO_X), tx); g_ww((u16)(c + CB_TO_Y), ty);
+        g_ww((u16)(c + CB_TO_X), tx); g_ww((u16)(c + CB_TO_Y), ty); g_wb((u16)(c + CB_TARGET), tg);
         if (way) return melee;
         if (!ways_line_clear(i, m)) return melee;                         /* (no way found, nor a line: the game's own attack, which walks round as it can) */
         if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d has no way to %d: a shot instead\n", i, m);
@@ -399,6 +402,7 @@ static void click_hook(void)                    /* s014 19cd:0dcc (x, y): a clic
         int sel = (s8)g_rb(D_SELECTED), act = set ? set : (s16)g_rw(D_ORDER_ACTION);
         ways_keep_kind(sel, m >= 5 && (act == 0x22 || act == 6 || act == 0x0a) ? act : -1);
     }
+    u16 act_was = g_rw(D_ORDER_ACTION);
     if (set) {
         g_ww(D_ORDER_ACTION, (u16)set);                 /* as if the attack had been chosen first */
         fprintf(stderr, "orders: member %d %s %d (clicked at %d,%d)\n", (s8)g_rb(D_SELECTED), set == MISSILE ? "shoots at" : "attacks", m, x, y);
@@ -413,6 +417,7 @@ static void click_hook(void)                    /* s014 19cd:0dcc (x, y): a clic
     hook_call_original();
     if (!selected_ok()) return;
     int ct = (s8)g_rb(GV_cursor_target);
+    if (set && ct >= 5 && g_rw(D_BOX_COLOUR) == g_rw(D_REFUSED) && g_rw(D_ORDER_ACTION) == (u16)set) g_ww(D_ORDER_ACTION, act_was);   /* (the foe refused: the order as it was, or the next click on the ground, which the game takes only with no attack chosen, did nothing) */
     if (walk && (ct == -3 || ct == -4) && config_get_int("battle.click_hint", 1)) ui_notice(ct == -3 ? "Can't walk there." : "No path there: something stands in the way.");
     if ((ct >= 5 && g_rw(D_BOX_COLOUR) != g_rw(D_REFUSED)) || (ct == -2 && g_rw(GV_order_dest_x) != 0))
         ways_told((s8)g_rb(D_SELECTED));               /* (an order of the player's: the member's way gives way to it, mods/ways.c) */

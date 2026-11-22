@@ -71,6 +71,7 @@ int ns_showing(void);                 /* a native screen is up and drawn (the ov
  * game_call_far (runtime/game.h: no frame is drawn inside it), not ns_call. */
 typedef void (*NsDeferFn)(int a, int b, int c, int d);
 void ns_defer(NsDeferFn fn, int a, int b, int c, int d);
+void ns_defer_here(NsDeferFn fn, int a, int b, int c, int d);   /* ... only if the game is still in the state it was asked in (the same battle, or none) */
 void nscreen_init(void);
 void ns_defer_frame_end(int game_held);   /* (ui/ui.cpp, after drawing) */
 

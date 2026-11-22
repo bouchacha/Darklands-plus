@@ -17,6 +17,8 @@ int fixes_running(int m, int type0);             /* the largest running kind 0x4
 int fixes_cards_down(void);                       /* a battle (and its loot) has closed the cards; the event table holds the party's events all the same */
 int fixes_events_steady(void);                    /* 0 while the game swaps its event table with EVENTS.TMP: not to be read just now */
 void fixes_sheet_closed(void);                    /* member_sheet over (ui's own or the original): in a battle the game now writes the table to its file */
+void fixes_original_changed(void);                /* "Play the original game" was switched: in a battle the events are brought in */
+int fixes_battle_now(void);                       /* which battle the cards are closed for (a count), 0 none */
 void fixes_title_opened(void);                    /* the start screen: no game running, whatever a battle left is dropped */
 /* oilweapons: each weapon oil only with the weapons the manual names */
 int oils_weapon(int i);                         /* the weapon type member i strikes with now (combatant +0x51, or +0x22 when shooting) */

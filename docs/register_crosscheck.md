@@ -152,7 +152,7 @@ fixes are described in `port/mods/fixes.c` (its header and each hook), the saint
 | B-024865 | 0E76:448A | EventExpiry.UndoBoost | confirmed, unreachable |  |
 | B-2c6441 | 0E76:448A | EventExpiry.UndoBoost | fixed | fix.potions |
 | B-dcf1be | 0E76:448A | EventExpiry.UndoBoost | fixed | fix.blessing |
-| B-e1b48f | 1462:0100 | EventLog.Reload | fixed | fix.battlesaints |
+| B-e1b48f | 1462:0100 | EventLog.Reload | not met in play: the battle's own code makes no event for the read to write over (tried 2026-11-22, docs/REVIEW.md) | none (fix.battlesaints retired in 1.5.1) |
 | B-8f44e7 | 0E76:2C4E; 0E76:3034 | EventLog.Create | confirmed, kept |  |
 | B-8d31a1 | 0E76:2E74 | EventLog.Update | confirmed, kept |  |
 | B-2e264a | 18BF:0778 | Attacks.HitDamage | fixed | fix.fireward |
@@ -170,7 +170,7 @@ fixes are described in `port/mods/fixes.c` (its header and each hook), the saint
 | B-bfb04e | 1EC9:0142 | EffectField.LineCrossesCloud | fixed now | fix.cloudline |
 | B-61f351 | 0E76:00DC; 1EF8:059A; 0E76:0694 | TacticalBattle.WriteBattleFile | fixed | fix.castle |
 | B-14d327 | 1C7D:09C6 | DarklandsGame.LoadInGame | avoided | saves.quick,  display.native_saves |
-| B-f7799c | 03A1:000A | DarklandsGame.FightTheBattle | fixed now | fix.battledead |
+| B-f7799c | 03A1:000A | DarklandsGame.FightTheBattle | fixed | no switch since 1.5.1: the party's events are in the table over a battle (mods/fixes.c), so party_delete cancels them itself |
 | B-d7cb44 | 14F7:31E6 | CombatantSetup.BackToMember | confirmed, harmless (never read as a location; see uncertain_crosscheck.md) |  |
 | B-85e0e4 | 1462:04BC; 1462:1468 | ItemStores.Close | fixed now (woodk123) | fix.cachefile |
 | B-3de49c | 1462:04BC; 1462:1468 | ItemStores.Close | fixed now (woodk123) | fix.cachefile |
