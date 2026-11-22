@@ -905,3 +905,9 @@ covered and found, and what it could not check.
   gamemodel.c's "not in memory in a battle" guard is gone. Corrected here: the entry above of the same day says
   release_check "saves and loads there" in its battle; it does not (a fight allows no save): that door is tried
   by hand only, still.
+- 2026-11-22 (skill gains missing after a spider fight or on leaving the field): the aftermath was built only
+  when victory opened a loot pile. Weapon practice can also settle on retreat or when the party leaves a
+  dungeon after collecting its loot. The report now reads the party after combat settles, using the last
+  dungeon report as its baseline. An empty victory uses the timed notice. The release check exercises a
+  spider victory, a retreat, a dungeon exit after looting and a victory without practice. Defeats and
+  surrenders keep their original result notices.
