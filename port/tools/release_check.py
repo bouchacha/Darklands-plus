@@ -38,6 +38,7 @@ STEPS = [
     ('enemy info (E, native)', 'key e; wait 2; wshot 6c_enemy; click; wait 2', [r'enemy info: open', r'enemy info: closed']),
     ('fast forward (Z) on and off', 'ucmd upause:; wait 1; ucmd usdlkey:z; wait 2; ucmd usdlkey:z; wait 1', [r'battle: fast forward on', r'battle: fast forward off']),   # (paused: a battle nearly won ended in the fast forward, and the loot came before its step)
     ('a boost drunk in the battle (Truesight)', 'ucmd upause:; ucmd upotion:0,6f,40; wait 2', [r'^potion 6f q40 for 0']),   # (carried over the battle's end: the loot step; a fight allows no save, a dungeon's walk does - checked by hand)
+    ('the item list in the battle, after the sheet (kept: mods/nscreen.c)', 'ucmd udefs:; wait 1', [r'^defs: (\d+) of \1 as DARKLAND\.LST .*in battle 1$']),   # (freed by the game with its pointers left: his Dietrich's load 198)
     ('win it (test hits) and the loot (native)', HITS + '; ucmd uunpause:; wait 25; wshot 7_loot', [r'loot screen: open'],
      '; '.join(['; '.join('ucmd uhit:1,%d,40,0' % c for c in range(5, 13)) + '; ucmd uunpause:; wait 3'] * 6) + '; ' +
      '; '.join(['; '.join('ucmd ukill:%d' % c for c in range(5, 13)) + '; ucmd uunpause:; wait 3'] * 4)),   # (a foe that came late: hit it too; the hits land as the battle runs; then, a battle whose foes shrug the test hits off: wounds that fell them)

@@ -861,3 +861,29 @@ covered and found, and what it could not check.
   that quality first): 61 and 58 kept, the same as before the drink; and a game saved with a wrong load is put right
   once loaded. pack.c's own keeping of both loads around give_one (the same fault, found in RC9) stays for when
   the switch is off.
+- 2026-11-22 (his "wasn't part of my standing orders explicitly for you to stop relying on patchwork fixes?"): it
+  was, and it had been kept as a look back at old fixes between tasks, not as the bar for each new one: the load
+  of 198 was the cause found in RC9 at pack.c's hand-over, written in its comment and guarded there alone, and
+  that morning's fix battleload put equip_weight's answer right without touching why it was wrong. The rule is now
+  in CONTRIBUTING.md ("When a fix is finished": the cause in the game's terms, every way to it looked for and the
+  fix at the cause, a check against its return, all of it here). Applied to the load. The cause: the game reads
+  DARKLAND.LST into a DOS block and keeps 200 far pointers into it at 2e38:0890 (world_load s043 1462:0100, the
+  loot's s040 1462:0000, the start's s001); mem_free (root 05ba:00c2) frees the block at cards_shutdown, at the end
+  of the battle's sheet (s031 1462:0000) and of the loot, and the pointers stay, into memory the battle takes. The
+  ways in: every game function that reads the table (53 functions touch it, in s001, s029-s043 and the cards; none in the battle's
+  s014-s028, which call only the sheet and the loot, and those read the list again) when called in a battle - the
+  original never does, Darklands+ does: the potion tray (use_potion, item_take_one), the pack's give_one, any
+  ns_call to come. So it was Darklands+'s fault, not the original's: the switch battleload is gone (94 fixes; its
+  text had also claimed that throwing the last of a thing spoilt the load, which no code does). The fix at the
+  cause (mods/nscreen.c mem_free_hook): when the game frees the block the pointers lead into, the records are
+  kept at ITEMLIST_SEG (F400, memory the game never uses) and the pointers moved there until the game reads the
+  list again. Seen with the test command udefs (the 200 records against DARKLAND.LST): 67 of 200 in his DKSAVEEY
+  before; 200 of 200 after, through a load into a battle, the sheet opened and closed there (the game's own block
+  while it is open), a load out of the battle and back; two members' last Ironarm from the tray
+  leave their loads at 61 and 58 with no guard. Taken out: equip_weight's hook, pack.c's keeping of both loads. Kept: the mend
+  of a load saved wrong (fixes.c load_mend, from gamemodel.c gm_member_equip_load). Against its return: CK_ITEMLIST
+  (the table's records are DARKLAND.LST's, in a battle too) and CK_LOAD (each load is what is equipped) in
+  mods/checks.c, and release_check runs udefs in its battle. And his Jorg's +4 Thrown Weapons at the stairs: the
+  game's own, not a fault: a potion thrown sets the member's practice bit 4 (s014 0e76:1f00, DS:d68d + 2m), paid
+  as Thrown Weapons when the battle mode ends (s014 0e76:0694), which in a dungeon is at the stairs or a door;
+  his byte was 0x1f in DKSAVEEY and the log shows his Stone-tar.

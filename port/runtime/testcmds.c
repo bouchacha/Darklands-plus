@@ -468,6 +468,17 @@ int testcmd_run(const char *cmd, const char *arg)
         }
         else if (!strcmp(cmd, "ualchemy")) { extern int uscreen_pending, uscreen_a, uscreen_b; uscreen_a = 0; uscreen_b = 8; sscanf(arg, "%d,%d", &uscreen_a, &uscreen_b); uscreen_pending = 1; }   /* test: the alchemy screen (member, hours) at the next card menu */
         else if (!strcmp(cmd, "ulayer")) { void ui_layer_test(void); ui_layer_test(); }   /* test: ui/layers.h at the pointer */
+        else if (!strcmp(cmd, "udefs")) {               /* test: the game's item definitions (2e38:0890) against DARKLAND.LST */
+            int gamedata_item_raw(int id, int off, int size);
+            int same = 0, n = 0, first_bad = -1;
+            for (int id = 0; gamedata_item_raw(id, 0, 1) >= 0; id++, n++) {
+                u32 d = g_itemdef(id); int ok = d != 0;
+                for (int k = 0; ok && k < 46; k++) ok = rb((u16)(d >> 16), (u16)((u16)d + k)) == gamedata_item_raw(id, k, 1);
+                if (ok) same++; else if (first_bad < 0) first_bad = id;
+            }
+            u32 d0 = g_itemdef(0);
+            fprintf(stderr, "defs: %d of %d as DARKLAND.LST (first not: %d), item 0 at %04x:%04x, in battle %d\n", same, n, first_bad, (unsigned)(d0 >> 16), (unsigned)(u16)d0, g_rb(GV_in_battle));
+        }
         else if (!strcmp(cmd, "upause")) { int p = g_rb(0xa695) == 1; if (!p) { void bios_kbd_inject(u16); bios_kbd_inject(0x3920); } fprintf(stderr, "pause: %s\n", p ? "was paused" : "paused now"); }   /* test: a battle paused (Space only if it runs) */
         else if (!strcmp(cmd, "uunpause")) { int p = g_rb(0xa695) == 1; if (p) { void bios_kbd_inject(u16); bios_kbd_inject(0x3920); } fprintf(stderr, "unpause: %s\n", p ? "was paused" : "running"); }   /* test: a battle running (Space only if it is paused: ai_paused) */
         else if (!strcmp(cmd, "upaused")) fprintf(stderr, "paused: ai_paused %d real_combat %d choice pending %d\n", g_rb(0xa695), g_rb(GV_real_combat), g_rb(0xd6f1));   /* test: is the battle paused */

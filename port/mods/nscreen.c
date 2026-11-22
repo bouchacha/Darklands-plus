@@ -203,7 +203,31 @@ static void safe_point_hook(void)           /* menu_bar_run(menus, once): a game
 }
 /* the end of an interface frame while the game is held (F12's window open: no rounds run) */
 void ns_defer_frame_end(int game_held) { if (dn && game_held) run_deferred(); }
-void nscreen_init(void) { hook_install(GF_menu_bar_run, safe_point_hook); }
+/* ---------------------------------------------------------------- the item list, kept
+ * The game reads its item list (DARKLAND.LST: a count, then 46 bytes a thing) into a block of DOS memory
+ * and keeps a far pointer to each thing's record at 2e38:0890 (world_load, s043 1462:0100; the loot
+ * screen's s040 and the start's s001 the same). It frees the block when the cards close for a battle
+ * (cards_shutdown), and again when the battle's sheet or loot screen that read it closes, but leaves the
+ * pointers, into memory the battle then takes for itself. The game's own battle code never reads them
+ * (s014-s028 call no function that does but the sheet and the loot screen, which read the list again);
+ * Darklands+ does, through the game's item functions it calls in a battle: the potion tray's drink and
+ * the pack's hand-over reach equip_weight, which summed whatever lay there (his Dietrich overloaded at
+ * 198, 1.5.1-RC18). So when the game frees the block, its records are kept at ITEMLIST_SEG (memory the
+ * game never uses) and the pointers moved there, until the game reads the list again and sets them. */
+static void mem_free_hook(void)            /* mem_free (seg, name), root 05ba:00c2 */
+{
+    u16 seg = rw(SS, (u16)(SP + 4));
+    int n = seg && rw(G_FAR2E38, (u16)(G_ITEMDEFS + 2)) == seg && rw(G_FAR2E38, G_ITEMDEFS) == 3 ? rb(seg, 0) : 0;
+    for (int i = 0; i < 3 + 46 * n; i++) wb(ITEMLIST_SEG, (u16)i, rb(seg, (u16)i));
+    hook_call_original();
+    if (unw_active) return;
+    for (int i = 0; i < n; i++) {
+        ww(G_FAR2E38, (u16)(G_ITEMDEFS + 4 * i), (u16)(3 + 46 * i));
+        ww(G_FAR2E38, (u16)(G_ITEMDEFS + 4 * i + 2), ITEMLIST_SEG);
+    }
+}
+
+void nscreen_init(void) { hook_install(GF_menu_bar_run, safe_point_hook); hook_install(GF_mem_free, mem_free_hook); }
 
 /* ---------------------------------------------------------------- the stack of screens */
 static struct { int screen, nested; unsigned since; } stk[8];

@@ -82,6 +82,25 @@ All tests copy the game folder; it is never changed.
    maintainer writes the notes at a release and `port/tools/check_docs.py --fix` regenerates
    the rest, so pull requests made side by side do not clash there.
 
+## When a fix is finished
+
+A bug met in one place usually has other ways in. A fix that guards the place it was met, with
+the cause written in a comment and left live, comes back through the next door (the load of 198:
+found at the pack's hand-over, guarded there, met again from the potion tray two releases
+later). So a fix, to the game's code or to Darklands+'s own, is finished when:
+
+1. **The cause is named in the game's terms**: the function, the state it gets wrong and why
+   ("cards_shutdown frees the item list and leaves its pointers"), not the symptom ("the load
+   is wrong after a potion").
+2. **Every other way to that cause has been looked for** in the generated code (the callers of
+   the function, the other kinds of data that pass the same way) **and the fix sits at the
+   cause**, where it covers them all. A way left open is listed, with the reason.
+3. **Something would catch it coming back**: a step in `port/tools/release_check.py` or a watch
+   in `port/mods/checks.c` on the thing that must stay true. Saves it has already spoilt are
+   mended when loaded.
+4. **`docs/REVIEW.md`'s log says all of it**: the cause, the ways in found, the check, what was
+   not done. Guards made redundant by the fix are taken out.
+
 ## Pull requests
 
 Thank you for them. To make them quick to take:

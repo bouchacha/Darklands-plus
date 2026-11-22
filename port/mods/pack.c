@@ -65,11 +65,12 @@ static void hand_out_ammo(void)
  * The game still keeps every thing with some member, and in places it asks one member for one:
  * then Darklands+ hands it over first (give_one, s031 18e7:0000, the game's own), with the
  * battle's bookkeeping kept: give_one may reset best_skill (DS 0x99eb, a byte: item_unequip ->
- * equip_weight when a stack empties), a member's Eater-Water for a lock is a record number
- * (DS 0xc7cd, char[5], 0xff none) that shifts when an earlier record empties, the last one of a
- * thing in use stays, and so does the last potion a member is ordered to throw (the kind
- * code - 0x5f at DS 0xca0c, the quality at 0xc97a, char[13]; pending while the fighter's +0x10
- * word has 0x100 and its action byte, DS 0xca64, is not yet 0xd). */
+ * equip_weight when a stack empties; the item list it reads is there in a battle: mods/nscreen.c),
+ * a member's Eater-Water for a lock is a record number (DS 0xc7cd, char[5], 0xff none) that
+ * shifts when an earlier record empties, the last one of a thing in use stays, and so does the
+ * last potion a member is ordered to throw (the kind code - 0x5f at DS 0xca0c, the quality at
+ * 0xc97a, char[13]; pending while the fighter's +0x10 word has 0x100 and its action byte, DS
+ * 0xca64, is not yet 0xd). */
 #define D_BEST_SKILL  0x99eb
 #define D_EATER_SLOT  0xc7cd
 #define D_THROW_KIND  0xca0c
@@ -98,10 +99,7 @@ static int room_by_records(int m, int id, int q)
     for (int j = 0; j < gm_item_count(m); j++) { GmItem x; if (gm_item(m, j, &x) && x.id == id && x.qual == q && x.count < 255) return 1; }
     return 0;
 }
-/* (when the giver's stack empties, give_one goes through item_unequip -> equip_weight, which in a battle
-   reads the item definitions that are not in memory and writes a wrong load into the giver's +0x35 (the
-   fighter's load, its pace of blows): a thing not in use never changes the load, so both loads are kept.
-   The Eater-Water record and a pending throw are the battle engine's (a dungeon too); elsewhere they
+/* (the Eater-Water record and a pending throw are the battle engine's (a dungeon too); elsewhere they
    are left over from the last battle) */
 static int engine_on(void) { return game_mode() == GM_BATTLE; }
 static int give_safe(int from, int to, int rec)
@@ -111,10 +109,10 @@ static int give_safe(int from, int to, int rec)
     u8 eat = from < 5 && eng ? g_rb((u16)(D_EATER_SLOT + from)) : 0xff;
     if (eat != 0xff) { GmItem e; if (!gm_item(from, eat, &e) || e.id != ID_EATERWATER) eat = 0xff; }
     if (empties && (gm_item_in_use(from, rec) || (eat != 0xff && eat == rec) || (eng && throw_pending(from, g.id, g.qual)))) return 0;
-    u8 bs = g_rb(D_BEST_SKILL), lf = g_rb((u16)(G_MEMBER(from) + 0x35)), lt = g_rb((u16)(G_MEMBER(to) + 0x35));
+    u8 bs = g_rb(D_BEST_SKILL);
     ns_call(GF_give_one, 4, from, to, rec, 9);
     if (ns_unwinding) return 0;
-    g_wb(D_BEST_SKILL, bs); g_wb((u16)(G_MEMBER(from) + 0x35), lf); g_wb((u16)(G_MEMBER(to) + 0x35), lt);
+    g_wb(D_BEST_SKILL, bs);
     if (empties && eat != 0xff && eat > rec) g_wb((u16)(D_EATER_SLOT + from), (u8)(eat - 1));
     return 1;
 }

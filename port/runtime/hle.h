@@ -3,6 +3,7 @@
 #include "cpu.h"
 #define HLE_SEG 0xF000          /* fake BIOS segment: IVT entries point to F000:(n*4) */
 #define EMS_SEG 0xF100          /* EMS driver: entry F100:0100, device name at F100:000A */
+#define ITEMLIST_SEG 0xF400     /* the game's item list kept while its own copy is freed (mods/nscreen.c) */
 void hle_stub(u16 seg, u16 off);         /* a far call/jump landed in the fake BIOS */
 void (*driver_find(u16 seg, u16 off))(void);
 void hle_init(const char *gamedir, const char *exe, int argc, char **argv);

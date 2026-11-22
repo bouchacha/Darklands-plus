@@ -359,6 +359,33 @@ int gm_member_fight_agility(int m)
 int gm_member_skill(int m, int k) { return m >= 0 && m < 5 && k >= 0 && k < 19 ? (s8)g_rb((u16)(G_MEMBER(m) + G_M_SKILLS + k)) : 0; }
 int gm_member_age(int m) { return m >= 0 && m < 5 ? (s16)g_rw((u16)(G_MEMBER(m) - 2)) : 0; }   /* (the int before the record) */
 int gm_member_load(int m) { return m >= 0 && m < 5 ? g_rb((u16)(G_MEMBER(m) + G_M_LOAD)) : 0; }
+/* equip_weight(m) (s031 18e7:140a) sets the load: for each of the five things equipped (a kind and a quality in
+ * the member's record: weapon +0x3d/+0x44, body +0x37/+0x3b, legs +0x38/+0x3c, shield +0x48/+0x47, missile
+ * +0x0e/+0x46) s031 18e7:14b6 finds the record held (its kind at +2: the one of that quality, else the last of
+ * that kind) and adds that item's weight (+0x25); at most 500, in a byte. Here the same from the item list. */
+static int equipped_id(int m, int kind, int q)
+{
+    int n = (s8)g_rb((u16)(G_MEMBER(m) + G_M_NITEMS)), last = -1;
+    if (kind < 0) return -1;
+    for (int i = 0; i < n && i < 64; i++) {
+        u16 o = G_ITEM(m, i);
+        if (rb(G_FAR2E38, (u16)(o + 2)) != (kind & 0xff)) continue;
+        last = (s16)rw(G_FAR2E38, o);
+        if (rb(G_FAR2E38, (u16)(o + 3)) == (q & 0xff)) return last;
+    }
+    return last;
+}
+int gm_member_equip_load(int m)
+{
+    static const u8 KIND[5] = { 0x3d, 0x37, 0x38, 0x48, 0x0e }, QUAL[5] = { 0x44, 0x3b, 0x3c, 0x47, 0x46 };
+    if (m < 0 || m >= 5) return 0;
+    int load = 0;
+    for (int k = 0; k < 5; k++) {
+        int id = equipped_id(m, (s8)g_rb((u16)(G_MEMBER(m) + KIND[k])), g_rb((u16)(G_MEMBER(m) + QUAL[k])));
+        if (id >= 0) load += gm_itemdef_weight(id);
+    }
+    return load > 500 ? 500 : load;
+}
 /* the sheet's load: 0 light (up to half of END + STR), 1 normal (up to all), 2 heavy (half again), 3 overloaded
  * (s029 0e76:013a) */
 int gm_member_load_band(int m)

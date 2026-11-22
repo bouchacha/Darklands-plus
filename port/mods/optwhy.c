@@ -149,6 +149,7 @@ const char *const OPTIONS_RETIRED[] = {
     "display.idle_rest",             /* the game waits without spinning: always */
     "sound.hit_sounds",              /* hits make a sound: the fix "hitsound" */
     "assist.infinite_ammo", "assist.infinite_thrown", "assist.return_thrown",   /* one choice instead, Ammunition (assist.endless: 1 endless, 2 given back, 0 the original's) */
+    "fix.battleload",                /* (1.5.1-RC18 only) the load after a last potion in a battle: Darklands+'s own fault, put right for all (mods/nscreen.c: the item list kept) */
     0 };
 
 const char *option_why(const Option *o)

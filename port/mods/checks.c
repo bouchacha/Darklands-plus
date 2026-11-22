@@ -2,7 +2,9 @@
  * log once a session as a "check:" line with where it was seen (the card, the screen, the place,
  * the day), so that a playtest's log says what went wrong and when, not only what the player
  * noticed later. release_check.py and soaktest.py fail on any "check:" line. Cheap: a few reads a
- * frame. The checks are for the kinds of fault found so far:
+ * frame.
+ *
+ * The checks are for the kinds of fault found so far:
  *  - memory written past the end of a buffer: the menu bar's titles (DS:9419.., set once at start;
  *    a card text past msg_buf's 900 bytes once turned "Game" into "MeetA01"), the members' item
  *    counts (one too many taken: a crash at the next death);
@@ -11,7 +13,11 @@
  *  - values out of range: the place, the party's size, the money, the date going backwards
  *    without a load, the game's 300 notes nearly full ("EVENT Failure");
  *  - a boost whose end was lost: an attribute above its maximum and its running boosts (CK_BOOST,
- *    watched in mods/fixes.c boost_check_frame, beside the mend; his Jorg's Perception 60 of 33). */
+ *    watched in mods/fixes.c boost_check_frame, beside the mend; his Jorg's Perception 60 of 33);
+ *  - the game reading memory it has freed: its item list's pointers leading anywhere but to
+ *    DARKLAND.LST's records (CK_ITEMLIST; mods/nscreen.c keeps the list over a battle), and what
+ *    that spoilt: a member's load other than the weights of what is equipped (CK_LOAD; his
+ *    Dietrich's 198). */
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -22,6 +28,8 @@
 #include "../runtime/config.h"
 #include "nscreen.h"
 #include "travel.h"
+#include "gamemodel.h"
+#include "datamods.h"
 #include "checks.h"
 
 extern unsigned saves_loaded_ms;
@@ -93,6 +101,47 @@ static void party(void)
     if (lasting(CK_LOC, loc < -1 || loc >= G_NLOC)) check_fail(CK_LOC, "the current place is %d", loc);
 }
 
+/* the item list and the loads reckoned from it, once a second or so. Not for five seconds after a load, and
+   never again once the mods in use have changed (the game reads a mod's item list at its next world load,
+   Darklands+ at once: the two differ until then) */
+int gamedata_item_raw(int id, int off, int size);
+static void items(void)
+{
+    static u32 t; static int gen = -1;
+    if (plat_ticks_ms() - t < 1000) return;
+    t = plat_ticks_ms();
+    int mode = game_mode(), size = (s16)g_rw(G_PARTY_SIZE);
+    if (gen == -1) gen = datamods_generation();
+    if ((mode != GM_CARD && mode != GM_MAP && mode != GM_BATTLE) || gen != datamods_generation() || size < 1 || size > 5 ||
+        saves_load_under_way() || (saves_loaded_ms && plat_ticks_ms() - saves_loaded_ms < 5000)) { lasting(CK_ITEMLIST, 0); lasting(CK_LOAD, 0); return; }
+    int bad = -1;
+    for (int id = 0; bad < 0 && gamedata_item_raw(id, 0, 1) >= 0; id++) {
+        u32 d = g_itemdef(id);
+        for (int k = 0; bad < 0 && k < 46; k++) if (!d || rb((u16)(d >> 16), (u16)((u16)d + k)) != gamedata_item_raw(id, k, 1)) bad = id;
+    }
+    if (lasting(CK_ITEMLIST, bad >= 0)) {
+        u32 d = g_itemdef(bad);
+        check_fail(CK_ITEMLIST, "the game's record of item %d (at %04x:%04x) is not DARKLAND.LST's (in a battle: %d): freed memory read?", bad, (unsigned)(d >> 16), (unsigned)(u16)d, g_rb(GV_in_battle) == 1);
+    }
+    /* (a load counts once it has been right for that member: the start's ready-made party comes with loads one
+       off its own sum - its first member's 57 for 56 - until something is equipped, and so may a member who joins) */
+    static u8 right[5]; static unsigned who[5], load_seen;
+    if (load_seen != saves_loaded_ms) { load_seen = saves_loaded_ms; memset(right, 0, sizeof right); }
+    int lm = -1;
+    for (int m = 0; m < 5; m++) {
+        char nm[40]; unsigned h = 0;
+        gm_member_name(m, nm, sizeof nm);
+        for (const char *c = nm; *c; c++) h = h * 31 + (unsigned char)*c;
+        int here = m < size && g_rb(G_MEMBER(m)), same = here && gm_member_load(m) == (gm_member_equip_load(m) & 0xff);
+        if (!here || h != who[m]) right[m] = 0;
+        who[m] = h;
+        if (same) right[m] = 1;
+        else if (here && right[m] && lm < 0) lm = m;
+    }
+    if (bad < 0 && lasting(CK_LOAD, lm >= 0))
+        check_fail(CK_LOAD, "member %d's load is %d, but the things equipped weigh %d", lm, gm_member_load(lm), gm_member_equip_load(lm));
+}
+
 static void notes(void)
 {
     static unsigned t; if (++t % 60) return;                 /* (once a second or so) */
@@ -134,5 +183,5 @@ void checks_map_step(int result, int moved)
 void checks_frame(void)
 {
     if (config_get_int("original", 0)) return;
-    menus(); party(); notes(); calendar();
+    menus(); party(); items(); notes(); calendar();
 }

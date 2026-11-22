@@ -112,7 +112,6 @@
  *  standings A saved game keeps the party's standing with the three companies (below, standings).
  *  battlesaints A saint's or a potion's boosts in a battle wear off (below, potions: the cards close),
  *            and an attribute a lost boost left above its maximum comes down (below, boost_mend).
- *  battleload The load reckoned right in a battle when an item runs out (below, battleload).
  *  healboost Healing no longer lowers an attribute boosted above its maximum (below, healboost).
  *  teachcap  Lessons at the inn stop at the teacher's ability (below, teachcap).
  *  oilweapons Each weapon oil only with the weapons the manual names (below, oilweapons).
@@ -324,8 +323,6 @@ Fix FIXES[] = {
       "The companies' cards raise and lower the party's standing with them (if it, or the party's reputation in the town, is below zero, they give no quests), but a saved game did not keep it: after loading, it was whatever the previous game played had left, or zero after a restart. It is now kept in the save (the original game can still load such saves).", 1 },
     { "battlesaints", "A saint's help or a potion's boost in a battle wears off",
       "In the original, a saint called on in a battle, or a potion such as Truesight drunk in one, raised attributes and skills permanently (usually), and the price some saints ask (a lowered attribute) was never given back: the battle, and a game saved in a battle or a dungeon, lost track of what was to wear off. Both now wear off, as outside a battle, and an attribute such a lost boost left above its maximum comes back down when a game is loaded or a battle ends.", 1 },
-    { "battleload", "A potion drunk in a battle leaves the load as it was",
-      "In a battle the game reckoned a member's load from item records that are not in memory there, whenever an item ran out: drinking the last potion of a kind from the battle's potion tray, giving away the last of a stack or throwing the last of something made the load nonsense, so the member showed as overloaded (or carrying almost nothing) and struck at the wrong pace. The load is now reckoned from the game's item list, as it is outside a battle.", 1 },
     { "healboost", "Healing no longer takes a boost away",
       "Healing (Essence o'Grace, or a saint's) brings a wounded attribute part of the way back to its maximum, but the game also brought an attribute above its maximum part of the way down to it: a member whose Strength or Endurance stood above the maximum (Ironarm, New-wind, a saint) lost most of that boost to the potion meant to heal them. Healing now only raises an attribute, never lowers it.", 1 },
     { "teachcap", "Teachers teach only up to their own ability",
@@ -4315,58 +4312,21 @@ static void dissolve_key_hook(void)         /* s016 1ef8:0f76 (), D or Disarm Tr
     if (!ns_unwinding) hook_return_far(0);
 }
 
-/* ---------------------------------------------------------------- battleload
- * equip_weight(m) (s031 18e7:140a) reckons member m's load (party +0x35: the pace of blows, the sheet's load): for each of
- * the five things equipped (a kind and a quality in the member's record: weapon +0x3d/+0x44, body +0x37/+0x3b, legs
- * +0x38/+0x3c, shield +0x48/+0x47, missile +0x0e/+0x46) s031 18e7:14b6 finds the record held (its kind at +2: the one of
- * that quality too, else the last of that kind) and the weight (+0x25) of that item's definition (far 2e38:0890) is
- * added; at most 500, in a byte. In a battle those definitions are not in memory unless a sheet has loaded the cards'
- * world, so when an item ran out (item_unequip calls it) the load came from whatever lay there: his Dietrich overloaded at
- * 198 after drinking his last Ironarm from the potion tray (reproduced with his DKSAVEEY: 61 became 37). In a battle the
- * result is put right from the game's item list as Darklands+ reads it (DARKLAND.LST, gm_itemdef_weight) */
-static int equipped_id(int m, int kind, int q)                  /* (as s031 18e7:14b6) */
-{
-    int n = (s8)g_rb((u16)(G_MEMBER(m) + G_M_NITEMS)), last = -1;
-    if (kind < 0) return -1;
-    for (int i = 0; i < n && i < 64; i++) {
-        u16 o = G_ITEM(m, i);
-        if (rb(G_FAR2E38, (u16)(o + 2)) != (kind & 0xff)) continue;
-        last = (s16)rw(G_FAR2E38, o);
-        if (rb(G_FAR2E38, (u16)(o + 3)) == (q & 0xff)) return last;
-    }
-    return last;
-}
-static int equip_load(int m)                                    /* (as equip_weight, from the game's item list) */
-{
-    static const u8 KIND[5] = { 0x3d, 0x37, 0x38, 0x48, 0x0e }, QUAL[5] = { 0x44, 0x3b, 0x3c, 0x47, 0x46 };
-    int load = 0;
-    for (int k = 0; k < 5; k++) {
-        int id = equipped_id(m, (s8)g_rb((u16)(G_MEMBER(m) + KIND[k])), g_rb((u16)(G_MEMBER(m) + QUAL[k])));
-        if (id >= 0) load += gm_itemdef_weight(id);
-    }
-    return load > 500 ? 500 : load;
-}
-static int load_put_right(int m, const char *when)              /* 1 if it was wrong */
-{
-    int load = equip_load(m), was = g_rb((u16)(G_MEMBER(m) + G_M_LOAD));
-    if (was == (load & 0xff)) return 0;
-    g_wb((u16)(G_MEMBER(m) + G_M_LOAD), (u8)load);
-    fprintf(stderr, "fix battleload: member %d's load %d, not %d (%s)\n", m, load & 0xff, was, when);
-    return 1;
-}
-static void equip_weight_hook(void)
-{
-    int m = (s16)rw(SS, (u16)(SP + 4));
-    hook_call_original();
-    if (g_rb(GV_in_battle) != 1 || m < 0 || m >= 5) return;
-    if (load_put_right(m, "an item ran out in a battle")) AX = (u16)(s16)(s8)g_rb((u16)(G_MEMBER(m) + G_M_LOAD));
-}
-/* and a game saved with such a load (his, after the Ironarm) is put right once loaded (boost_mend_frame) */
+/* ---------------------------------------------------------------- the load, mended
+ * A game saved by 1.5.1-RC18 or earlier may hold a load summed from freed memory (his Dietrich at 198 after
+ * drinking his last Ironarm from the battle's potion tray; the cause: mods/nscreen.c, the item list kept): once
+ * loaded, each member's load is put back to what equip_weight sums (CK_LOAD in mods/checks.c watches it after) */
 static void load_mend(void)
 {
-    if (!fix_on("battleload")) return;
+    if (config_get_int("original", 0)) return;
     int size = (s16)g_rw(G_PARTY_SIZE);
-    for (int m = 0; m < size && m < 5; m++) if (g_rb(G_MEMBER(m))) load_put_right(m, "a game loaded");
+    for (int m = 0; m < size && m < 5; m++) {
+        if (!g_rb(G_MEMBER(m))) continue;
+        int load = gm_member_equip_load(m), was = g_rb((u16)(G_MEMBER(m) + G_M_LOAD));
+        if (was == (load & 0xff)) continue;
+        g_wb((u16)(G_MEMBER(m) + G_M_LOAD), (u8)load);
+        fprintf(stderr, "mend: member %d's load %d, not %d (a game loaded)\n", m, load & 0xff, was);
+    }
 }
 
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
@@ -4379,7 +4339,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { GF_set_member_bit, patron_hook }, { 108, 0x1925, 0x0438, debtnote_hook }, { 29, 0x0e76, 0x3fb2, alchrisk_hook },
     { 56, 0x19c4, 0x0ac2, canon_hook }, { 30, 0x1462, 0x28f2, sites_hook }, { 108, 0x1838, 0x07ca, tomb_hook },
     { 50, 0x1a06, 0x026c, lord_hook }, { GF_use_potion, potion_fixes_hook }, { GF_use_potion, potion_fixes_hook },
-    { 37, 0x1462, 0x2ace, standings_save_hook }, { -2, 0, 0, 0 }, { 31, 0x18e7, 0x140a, equip_weight_hook }, { GF_heal_attr_pct, healboost_hook },
+    { 37, 0x1462, 0x2ace, standings_save_hook }, { -2, 0, 0, 0 }, { GF_heal_attr_pct, healboost_hook },
     { GF_camp_spend_day, teachcap_hook }, { GF_hit_damage, oils_hit_hook }, { 39, 0x165c, 0x5cca, paul_hook },
     { 39, 0x165c, 0x41fa, nepomuk_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x21aa, nightbowyer_hook },
     { 57, 0x1838, 0x03cc, confession_hook }, { 29, 0x0e76, 0x3f30, appointment_hook }, { GF_damage_queue, pileup_hook }, { 7, 0x15af, 0x1d78, castlefreeze_hook }, { 56, 0x18c0, 0x0494, university_hook }, { GF_add_item_rec_impl, partyitems_hook }, { GF_item_quality_flags_impl, itemflags_hook },

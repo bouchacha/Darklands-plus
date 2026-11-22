@@ -87,6 +87,7 @@ int gm_cb_tier(int c, int loc);                   /* the hardness a blow meets t
 int gm_member_fight_agility(int m);
 int gm_member_age(int m);
 int gm_member_load(int m);                        /* weight of what is carried (the sheet's load) */
+int gm_member_equip_load(int m);                  /* what it should be: equip_weight's sum, from the item list */
 int gm_member_load_band(int m);                   /* 0 light, 1 normal, 2 heavy, 3 overloaded */
 /* pictures: the herald's letter (PICS\SHIELD<letter>.PIC; 0 none), the figure's code ("F01" ...:
  * PICS\<code>SHORT.PIC and the battle sprites; "" none) and the figure's own 8 colours (the
