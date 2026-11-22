@@ -49,6 +49,8 @@ extern "C" int ui_modal_up(void)
     return ui_is_open() || savesview_opts_open() || (cardview_dialog && game_dialog_kind && ns_screen != NS_NONE);
 }
 
+extern "C" int ui_menu_up(void) { return menu_model.open; }
+
 bool ui_layer_clear(ImVec2 a, ImVec2 b)
 {
     int f = ImGui::GetFrameCount();
@@ -62,12 +64,13 @@ bool ui_layer_clear(ImVec2 a, ImVec2 b)
 extern "C" int ui_layer_at(float x, float y)
 {
     if (ui_modal_up()) return UI_MODAL;
+    if (menu_model.open) return UI_MENU;                  /* (its click anywhere: on it chooses, elsewhere closes) */
     int f = ImGui::GetFrameCount(), t = UI_FIELD;
     if (f - now_frame <= 1) { int k = top_in(now, x, y); if (k > t) t = k; }
     if (f - before_frame <= 2) { int k = top_in(before, x, y); if (k > t) t = k; }
     if (t < UI_VIEW) {                                /* the views over the whole picture, while up */
         float x0, y0, x1, y1; plat_game_to_win(0, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
-        if (x >= x0 && x < x1 && y >= y0 && y < y1 && (menu_model.open || ns_showing())) t = UI_VIEW;
+        if (x >= x0 && x < x1 && y >= y0 && y < y1 && ns_showing()) t = UI_VIEW;
     }
     return t;
 }
@@ -91,7 +94,7 @@ extern "C" int ui_pointer_on_field(void)
 namespace {
 struct TierWin { ImGuiWindow *w; int tier, order; };
 std::vector<TierWin> tiers; int tiers_frame = -100;
-const char *TIER_NAME[] = { "##tier_cover", "##tier_field", "##tier_panel", "##tier_dim", "##tier_toast" };
+const char *TIER_NAME[] = { "##tier_cover", "##tier_field", "##tier_panel", "##tier_menu", "##tier_dim", "##tier_toast" };
 void tier_add(ImGuiWindow *w, int tier, int order)
 {
     int f = ImGui::GetFrameCount();

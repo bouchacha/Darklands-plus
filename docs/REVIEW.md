@@ -817,5 +817,9 @@ covered and found, and what it could not check.
   the pages by the game's): ui_draw hides ImGui's pointer from everything drawn under such a window, and
   NsDraw, the party's boxes and the menu bar take no pointer then (ui_modal_up, also for the game's own
   message over a page). (4) The field's hint keeps clear of the panels (ui_layer_clear), the other sides
-  tried in turn; the party's boxes a click picks are panels in the layers too. The matrix of every pair is
-  published for him (the artifact "UI layer audit").
+  tried in turn; the party's boxes a click picks are panels in the layers too. (5) The open menu bar was on
+  the background list, under the panels (the tray covered the corner of the Orders menu and took a click
+  there; a click on a margin acted and left the menu open): it is now UI_MENU, drawn over the panels
+  (UI_TIER_MENU), taking every click (over the picture through the game's pointer, beside it by closing the
+  menu), with nothing under it seeing the pointer. (6) The game's hand is drawn last, over the game's own
+  message. The matrix of every pair is published for him (the artifact "UI Layer Audit").

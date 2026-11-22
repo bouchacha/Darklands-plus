@@ -334,7 +334,7 @@ extern "C" void partypanel_draw(void)
     P.fk = ui_face_k(P.f); P.fok = ui_face_k(P.fo);
     P.dl = ui_tier_list(UI_TIER_PANEL);                        /* (a panel: ui/layers.h) */
     { void plat_mouse_game(int *x, int *y); plat_mouse_game(&P.mx, &P.my); }   /* (the pointer now: ns_in is read only while a native screen runs) */
-    if (ui_modal_up()) P.mx = P.my = -32768;                   /* (under a window that takes every event: no pointer) */
+    if (ui_modal_up() || ui_menu_up()) P.mx = P.my = -32768;   /* (under a window that takes every event, or the open menu bar: no pointer) */
     shown_now = true;
 
     const ImU32 BG = IM_COL32(18, 13, 9, 255), CARD = IM_COL32(38, 29, 20, 255), EDGE = IM_COL32(112, 82, 46, 255);

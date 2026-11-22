@@ -83,7 +83,7 @@ extern "C" void menuview_draw(void)
     P.k = (e.y - o.y) / 200.0f; P.kx = (e.x - o.x) / 320.0f;
     if (P.k * 6 * 1.18f > 44 && ui_font_game_hi[ui_game_font]) P.f = ui_font_game_hi[ui_game_font];
     P.fk = ui_face_k(P.f); P.fok = ui_face_k(P.fo);
-    P.dl = ImGui::GetBackgroundDrawList();
+    P.dl = ui_tier_list(UI_TIER_MENU);                             /* (over the panels: ui/layers.h) */
     P.mx = ns_in.x; P.my = ns_in.y;
     if (ui_modal_up()) P.mx = P.my = -32768;                       /* (under a window that takes every event: no pointer, ui/layers.h) */
     bool click = mv_in.click != 0, rclick = mv_in.rclick != 0;

@@ -35,6 +35,7 @@ extern "C" {
 #include "../mods/mods.h"
 #include "../mods/assist.h"
 #include "../mods/cardview.h"
+#include "../mods/menuview.h"
 #include "../mods/travel.h"
 #include "../mods/fixes.h"
 #include "../mods/saves.h"
@@ -421,6 +422,14 @@ static int ui_route(const SDL_Event *e)
            never the game's); a view on the game's pointer (the menu bar, a native screen: the game's
            pointer, nothing under it); the field (Darklands+'s door, stairs or way out first, then the game) */
         bool ldown = e->type == SDL_MOUSEBUTTONDOWN && e->button.button == SDL_BUTTON_LEFT;
+        if (ui_menu_up()) {     /* the open menu bar takes every click (ui/layers.h UI_MENU): over the picture the game's pointer
+                                   carries it to the menu (on an entry it chooses, elsewhere it closes); beside the picture,
+                                   where the game's pointer stops at the edge, it closes the menu */
+            static int menu_out;
+            if (e->type == SDL_MOUSEBUTTONDOWN && plat_win_outside(e->button.x, e->button.y)) { menuview_push(MV_CLOSE, 0, 0, 0); menu_out = 1; return 1; }
+            if (e->type == SDL_MOUSEBUTTONUP && menu_out) { menu_out = 0; return 1; }
+            return 0;
+        }
         if (ldown && overlay_click(e->button.x, e->button.y)) return 1;
         if (e->type == SDL_MOUSEBUTTONUP && e->button.button == SDL_BUTTON_LEFT && overlay_click_up(e->button.x, e->button.y)) return 1;
         if (ldown && (margins_click(e->button.x, e->button.y) || partypanel_click(e->button.x, e->button.y) || cardview_chip_click(e->button.x, e->button.y))) { margin_click_taken = 1; return 1; }
@@ -579,14 +588,14 @@ unsigned long long ui_build_us;
 extern "C" int ui_vtx, ui_cmds; int ui_vtx, ui_cmds;   /* (DL_PRESENT_TIME: the size of what the interface hands the graphics card) */
 extern "C" int ui_frame_depth; int ui_frame_depth;    /* an interface frame being made (the game must not run inside one: runtime/bios.c dl_poll) */
 extern "C" void plat_native_stack(void);
-/* under a window that takes every event (ui/layers.h UI_MODAL), the views and the panels see no pointer: no
-   hover, no tooltip of theirs over the window or beside it (the pages drawn by Darklands+ on the game's
-   own pointer: NsDraw::begin) */
+/* under a window that takes every event (ui/layers.h UI_MODAL), or the open menu bar (UI_MENU), the views and
+   the panels see no pointer: no hover, no tooltip of theirs over the window or beside it (the pages drawn by
+   Darklands+ on the game's own pointer: NsDraw::begin; the menu bar itself runs on the game's pointer) */
 static void ui_pointer_hidden(bool on)
 {
     static ImVec2 keep; static bool hidden;
     ImGuiIO &io = ImGui::GetIO();
-    if (on && !hidden && ui_modal_up()) { keep = io.MousePos; io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX); hidden = true; }
+    if (on && !hidden && (ui_modal_up() || ui_menu_up())) { keep = io.MousePos; io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX); hidden = true; }
     else if (!on && hidden) { io.MousePos = keep; hidden = false; }
 }
 extern "C" void ui_draw(SDL_Renderer *ren)

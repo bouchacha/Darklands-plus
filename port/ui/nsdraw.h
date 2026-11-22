@@ -57,7 +57,7 @@ struct NsDraw {
         fk = ui_face_k(f); fok = ui_face_k(fo);
         dl = ImGui::GetBackgroundDrawList();
         mx = ns_in.x; my = ns_in.y;
-        if (ui_modal_up()) mx = my = -32768;     /* (under a window that takes every event, the game's message too: no pointer, ui/layers.h) */
+        if (ui_modal_up() || ui_menu_up()) mx = my = -32768;   /* (under a window that takes every event, the game's message, the open menu bar: no pointer, ui/layers.h) */
         click = ns_take_click(&cx, &cy);
         rclick = ns_in.rclick != 0; ns_in.rclick = 0;
         shift = ImGui::GetIO().KeyShift || (rb(0x0040, 0x0017) & 3);   /* (or the game's own keyboard: scripts, the controller) */

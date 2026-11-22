@@ -2625,36 +2625,36 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/travel.cpp:140` | Stop to camp at 20:00: off |
 | `ui/travel.cpp:140` | Stop to camp at 20:00: when someone needs rest |
 | `ui/travel.cpp:140` | Stop to camp at 20:00: every night |
-| `ui/ui.cpp:88` |              |
-| `ui/ui.cpp:101` | EB Garamond (book face) |
-| `ui/ui.cpp:101` | Alegreya (calligraphic) |
-| `ui/ui.cpp:101` | IM Fell English (old print) |
-| `ui/ui.cpp:102` | Atkinson Hyperlegible (easiest to read) |
-| `ui/ui.cpp:102` | MedievalSharp (medieval hand) |
-| `ui/ui.cpp:102` | Fraktur (blackletter, for the brave) |
-| `ui/ui.cpp:103` | Grenze Gotisch (gothic, still readable) |
-| `ui/ui.cpp:103` | Comic Sans (we are so sorry) |
-| `ui/ui.cpp:228` | Comic Neue (a Comic Sans look-alike, we are so sorry) |
-| `ui/ui.cpp:243` | don't remind me |
-| `ui/ui.cpp:263` | Darklands stopped because of an error. Your saves are safe: Load is in the Game menu (right-click). F12 > About > Report a problem makes a report of it. |
-| `ui/ui.cpp:264` | The party's journey has ended. Load a saved game to continue: Load in the Game menu (right-click). |
-| `ui/ui.cpp:308` | The world map can only be opened from the overland view or a card, not in a battle. |
-| `ui/ui.cpp:309` | The world map can only be opened from the overland view or a card: close this screen first. |
-| `ui/ui.cpp:310` | The world map can only be opened from the overland view or a card, once a game is under way. |
-| `ui/ui.cpp:449` | How Darklands works |
-| `ui/ui.cpp:461` | A deep editor, for fixing and modding: |
-| `ui/ui.cpp:463` | it changes the saved game's own data directly, as the community's save editors do (to repair a character hit by an old bug, to cheat, or to make a mod). Nothing here is needed to play. |
-| `ui/ui.cpp:467` | Items (for a mod) |
-| `ui/ui.cpp:519` | Darklands+: the potions and the alchemical ingredients |
-| `ui/ui.cpp:521` | Potions, grades 1, 2 and 3 (the gold dots on the neck) |
-| `ui/ui.cpp:645` | Reconstructed Content |
-| `ui/ui.cpp:649` | Reconstructed Content |
-| `ui/ui.cpp:671` |              |
-| `ui/ui.cpp:790` | an index past the vertices |
-| `ui/ui.cpp:790` | not a number |
-| `ui/ui.cpp:790` | far past the window |
-| `ui/ui.cpp:823` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
-| `ui/ui.cpp:829` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
+| `ui/ui.cpp:89` |              |
+| `ui/ui.cpp:102` | EB Garamond (book face) |
+| `ui/ui.cpp:102` | Alegreya (calligraphic) |
+| `ui/ui.cpp:102` | IM Fell English (old print) |
+| `ui/ui.cpp:103` | Atkinson Hyperlegible (easiest to read) |
+| `ui/ui.cpp:103` | MedievalSharp (medieval hand) |
+| `ui/ui.cpp:103` | Fraktur (blackletter, for the brave) |
+| `ui/ui.cpp:104` | Grenze Gotisch (gothic, still readable) |
+| `ui/ui.cpp:104` | Comic Sans (we are so sorry) |
+| `ui/ui.cpp:229` | Comic Neue (a Comic Sans look-alike, we are so sorry) |
+| `ui/ui.cpp:244` | don't remind me |
+| `ui/ui.cpp:264` | Darklands stopped because of an error. Your saves are safe: Load is in the Game menu (right-click). F12 > About > Report a problem makes a report of it. |
+| `ui/ui.cpp:265` | The party's journey has ended. Load a saved game to continue: Load in the Game menu (right-click). |
+| `ui/ui.cpp:309` | The world map can only be opened from the overland view or a card, not in a battle. |
+| `ui/ui.cpp:310` | The world map can only be opened from the overland view or a card: close this screen first. |
+| `ui/ui.cpp:311` | The world map can only be opened from the overland view or a card, once a game is under way. |
+| `ui/ui.cpp:458` | How Darklands works |
+| `ui/ui.cpp:470` | A deep editor, for fixing and modding: |
+| `ui/ui.cpp:472` | it changes the saved game's own data directly, as the community's save editors do (to repair a character hit by an old bug, to cheat, or to make a mod). Nothing here is needed to play. |
+| `ui/ui.cpp:476` | Items (for a mod) |
+| `ui/ui.cpp:528` | Darklands+: the potions and the alchemical ingredients |
+| `ui/ui.cpp:530` | Potions, grades 1, 2 and 3 (the gold dots on the neck) |
+| `ui/ui.cpp:654` | Reconstructed Content |
+| `ui/ui.cpp:658` | Reconstructed Content |
+| `ui/ui.cpp:680` |              |
+| `ui/ui.cpp:799` | an index past the vertices |
+| `ui/ui.cpp:799` | not a number |
+| `ui/ui.cpp:799` | far past the window |
+| `ui/ui.cpp:832` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
+| `ui/ui.cpp:838` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
 | `ui/ui_windows.cpp:75` | Darklands+ is made by Yassine Meskhout. |
 | `ui/ui_windows.cpp:76` | Darklands (c) 1992 MicroProse. This is the original game, rebuilt to run directly on today's computers, with the game files of your own copy. F12 > Settings has the Full Original preset, the game as it played, and switches for most of what Darklands+ adds. |
 | `ui/ui_windows.cpp:79` | F11: the keys for the current screen.  F12: this window (the game waits while it is open).  Alt+Enter: full screen.  Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities). |
