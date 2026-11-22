@@ -22,6 +22,12 @@ BAD = re.compile(r'ERROR: AddressSanitizer|runtime error:|FATAL|unmatched return
 # test hits on every enemy, 30 rounds (an unlucky battle, a slow build)
 HITS = '; '.join('; '.join('ucmd uhit:1,%d,40,0' % c for c in range(5, 13)) + '; wait 1' for _ in range(30))
 
+# The original exit check finds each member off the floor (-99). With enemies
+# present it is a retreat; once a dungeon group is beaten it is a peaceful exit.
+LEAVE_FIELD = '; '.join(f'ucmd upoke:321a,{0xa6b4 + member:x},9d' for member in range(5))
+NO_PRACTICE = '; '.join(f'ucmd upoke:321a,{0xd68d + 2 * member:x},0' for member in range(5))
+SPIDER_FIGHT = 'ucmd ufight:47,5,57,1,2,-1,0,0,-1,0,0; ucmd ugoto:24; wait 12; ucmd umode:'
+
 # (name, steps, patterns that must appear in the log after the steps)
 STEPS = [
     ('start and Quickstart', 'QUICKSTART; key Return; wait 12; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; wshot 1_card',
@@ -42,7 +48,7 @@ STEPS = [
     ('win it (test hits) and the loot (native)', HITS + '; ucmd uunpause:; wait 25; wshot 7_loot', [r'loot screen: open'],
      '; '.join(['; '.join('ucmd uhit:1,%d,40,0' % c for c in range(5, 13)) + '; ucmd uunpause:; wait 3'] * 6) + '; ' +
      '; '.join(['; '.join('ucmd ukill:%d' % c for c in range(5, 13)) + '; ucmd uunpause:; wait 3'] * 4)),   # (a foe that came late: hit it too; the hits land as the battle runs; then, a battle whose foes shrug the test hits off: wounds that fell them)
-    ('share out and leave the loot', 'ucmd unspush:5; wait 2; ucmd unspush:6; wait 4', [r'loot screen: closed', r'battle end: "Victory! The battle is won."',
+    ('share out and leave the loot', 'ucmd unspush:5; wait 2; ucmd unspush:6; wait 4', [r'loot screen: closed', r'battle end: "Victory! (The battle is won|No skill changes)\."',
      r"fix battlesaints: member 0's kind 0x48 \(3, \d+\) from the battle kept"]),   # (the Truesight drunk in it still running: his Jorg's Perception 60 of 33)
     ('the alchemy screen (native)', 'ucmd ualchemy:0,8; at 30 190; wait 3; click; wait 3; click; wait 3; click; wait 3; click; wait 3', [r'alchemy: open']),
     ('leave the alchemy screen', 'wshot 8_alchemy; ucmd unspush:1,0; wait 1; ucmd unspush:5; wait 3', [r'alchemy: closed']),
@@ -64,11 +70,22 @@ STEPS = [
     ('Go to knows every street line', 'ucmd ucitylines:; wait 1', [r'citylines: \d+ lines, 0 unmatched']),   # (every option of every hub card, every text block)
     ("the saints' help in short (Saints page)", 'ucmd usaintchips:; wait 1', [r'saintchips: \d+ helps, 0 parts not understood']),   # (every saint, the saints' fixes on and off)
     ('the world map (M), Find a town', 'ucmd ukey:M; wait 2; ucmd ufind:Koln; wait 2; wshot 19_map; ucmd ukey:M; wait 2', [r'world map: open', r'world map: found K', r'world map: closed']),
-    ('fight two spiders in the wilds', 'ucmd ufight:47,5,57,1,2,-1,0,0,-1,0,0; ucmd ugoto:24; wait 12; ucmd umode:', [r'^mode 4$']),
+    ('fight two spiders in the wilds', SPIDER_FIGHT, [r'^mode 4$']),
     # Mark thrown-weapon practice for the first member. Combat cleanup rolls the gain.
     ('skill practice in a victory without loot',
      'ucmd upause:; ucmd upoke:321a,d68d,4; ucmd ukill:5; ucmd ukill:6; ucmd urand:7; ucmd uunpause:; wait 8',
      [r'^aftermath: .*Thrown Weapons \+\d+', r'^alert: Battle aftermath$', r'battle end: "Victory!']),
+    ('another spider fight', SPIDER_FIGHT, [r'^mode 4$']),
+    ('retreat with practice', 'ucmd upause:; ucmd upoke:321a,d68d,4; ucmd urand:7; ' + LEAVE_FIELD + '; ucmd uunpause:; wait 8',
+     [r'^aftermath: .*Thrown Weapons \+\d+', r'^alert: Battle aftermath$', r'battle end: "The party has retreated\.']),
+    ('a bandit group for dungeon loot', 'ucmd ufight:47,5,7,2,2,-1,0,0,-1,0,0; ucmd ugoto:0; wait 12; ucmd umode:', [r'^mode 4$']),
+    ('loot and resume exploration', 'ucmd upause:; ucmd upoke:321a,9080,1; ucmd upoke:321a,9084,0; ucmd upoke:321a,d68d,4; '
+     'ucmd ukill:5; ucmd ukill:6; ucmd uunpause:; wait 6; ucmd unspush:6; wait 2', [r'loot screen: open', r'loot screen: closed']),
+    ('settled practice on dungeon exit', 'ucmd urand:7; ' + LEAVE_FIELD + '; ucmd uunpause:; wait 8',
+     [r'^aftermath: .*Thrown Weapons \+\d+', r'^alert: Battle aftermath$', r'battle end: "The party has left the field\.']),
+    ('a spider fight without practice', SPIDER_FIGHT, [r'^mode 4$']),
+    ('empty victory uses the timed notice', 'ucmd upause:; ' + NO_PRACTICE + '; ucmd ukill:5; ucmd ukill:6; ucmd uunpause:; wait 8',
+     [r'battle end: "Victory! No skill changes\."']),
 ]
 
 

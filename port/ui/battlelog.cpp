@@ -209,7 +209,7 @@ extern "C" void partypanel_note(int row, const char *text, int good);
 static void sidemsg_hook(void)
 {
     int row = (s16)rw(SS, (u16)(SP + 4)), colour = (s16)rw(SS, (u16)(SP + 6));
-    if ((!partypanel_shown() && !aftermath_victory_pending()) || config_get_int("original", 0)) { hook_call_original(); return; }
+    if ((!partypanel_shown() && !aftermath_practice_pending()) || config_get_int("original", 0)) { hook_call_original(); return; }
     char b[96]; g_str(G_DGROUP, GV_msg_buf, b, sizeof b);
     std::string t = game_text(b, strlen(b));
     {   /* "<skill> changed from X to Y" (skill_change_msg, s021 1ef8:0080): "Edged +3 (now 33)", and

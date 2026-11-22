@@ -9,7 +9,8 @@ void aftermath_begin(void);
 void aftermath_end(void);
 void aftermath_open(void);                         /* build the report for the loot screen now opening */
 void aftermath_armor_worn(int m, int id, int before, int after, int count);
-int aftermath_victory_pending(void);                /* the victory report will include skill practice */
+int aftermath_practice_pending(void);               /* the aftermath will include skill practice */
+int aftermath_take_empty_victory(void);             /* one note for the timed victory message */
 #ifdef __cplusplus
 }
 

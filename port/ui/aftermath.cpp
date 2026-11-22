@@ -1,5 +1,5 @@
-/* A victory report shows the game's actual recovery, practice rolls and armor
- * wear, either above the loot or in a notice when there is nothing to collect.
+/* The aftermath shows the game's actual recovery, practice rolls and armor
+ * wear, either above the loot or in a notice after combat settles.
  * Only what lasts: the effects still running are in the right margin with their
  * time left (his answer, 1.5.1). The notices of lasting changes (worn armour, a
  * lowered maximum) still pop up on their own as the settings say: this gathers
@@ -41,7 +41,7 @@ struct Wear {
 };
 struct Battle {
     bool tracking = false, checking_end = false, report_next_loot = false;
-    bool dungeon_practice_pending = false;
+    bool exit_practice_pending = false;
     int victory_member = -1;    /* whose pile combat_over asked to open, even if empty */
     std::array<Member, MEMBERS> before;
     std::array<int, MEMBERS> fallen;
@@ -62,6 +62,7 @@ struct ReportMember {
 };
 std::vector<ReportMember> changes;
 int changes_scroll = 0;
+bool empty_victory_pending = false;    /* consumed by the game's later victory message */
 
 bool enabled()
 {
@@ -143,9 +144,15 @@ void over_hook()
     battle.checking_end = battle.tracking;
     hook_call_original();
     battle.checking_end = false;
+    if (battle.tracking && !unw_active && AX == 1) {
+        /* combat_main now rolls practice: retreat (2), scripted exit (7), or
+         * leave the field (8). A dungeon may already have shown its loot. */
+        int result = (s16)g_rw(GV_battle_result);
+        battle.exit_practice_pending = result == 2 || result == 7 || result == 8;
+    }
 }
 
-void report_if_no_loot(bool final);
+void finish_victory_report();
 
 void pile_hook()
 {
@@ -165,7 +172,7 @@ void pile_hook()
     }
     battle.report_next_loot = true;
     hook_call_original();
-    report_if_no_loot(false);
+    finish_victory_report();
     if (!unw_active) snapshot();
 }
 
@@ -247,7 +254,7 @@ std::vector<ReportMember> collect_report()
     return report;
 }
 
-void draw_no_loot_report(const std::vector<ReportMember> &report)
+void draw_standalone_report(const std::vector<ReportMember> &report)
 {
     if (!ImGui::BeginTable("##aftermath", 2)) return;
     ImGui::TableSetupColumn("Member", ImGuiTableColumnFlags_WidthFixed);
@@ -265,24 +272,23 @@ void draw_no_loot_report(const std::vector<ReportMember> &report)
     ImGui::EndTable();
 }
 
-void show_no_loot_report(bool show_empty)
+bool show_standalone_report()
 {
     auto report = collect_report();
-    if (!report.empty())
-        ui_alert_custom("Battle aftermath", [report = std::move(report)] { draw_no_loot_report(report); });
-    else if (show_empty)
-        ui_alert("Battle aftermath", "No skill changes or lasting losses.", nullptr);
+    if (report.empty()) return false;
+    ui_alert_custom("Battle aftermath", [report = std::move(report)] { draw_standalone_report(report); });
+    return true;
 }
 
 /* The native loot loop consumes report_next_loot only if the game actually
  * opens a pile. Its normal early return leaves the report for this notice. */
-void report_if_no_loot(bool final)
+void finish_victory_report()
 {
-    if (!battle.report_next_loot) return;
+    bool standalone = battle.report_next_loot;
     battle.report_next_loot = false;
     if (unw_active || !enabled() || g_rb(GV_demo_mode)) return;
-    if (!final) battle.dungeon_practice_pending = true;
-    show_no_loot_report(final);
+    bool reported = standalone ? show_standalone_report() : !changes.empty();
+    if (battle.victory_member >= 0) empty_victory_pending = !reported;
 }
 
 /* Pack whole entries across the page. A long entry wraps on its own line and
@@ -395,6 +401,7 @@ void draw_section(NsDraw &p, const Section &section, float bottom, float body, i
 
 extern "C" void aftermath_begin(void)
 {
+    empty_victory_pending = false;
     battle = {};
     battle.tracking = enabled();
     if (battle.tracking) snapshot();
@@ -413,17 +420,24 @@ extern "C" void aftermath_end(void)
             R = registers;
             tail_pending = tail;
         }
-        report_if_no_loot(true);
-    } else if (!unw_active && battle.dungeon_practice_pending && enabled()) {
-        /* An intermediate victory resumed exploration. Leaving the cleared
-         * floor (8), or a scripted exit (7), has just settled its practice. */
-        int result = (s16)g_rw(GV_battle_result);
-        if (result == 7 || result == 8) show_no_loot_report(false);
+        finish_victory_report();
+    } else if (!unw_active && battle.exit_practice_pending && enabled() && !g_rb(GV_demo_mode)) {
+        show_standalone_report();
     }
     battle = {};
 }
 
-extern "C" int aftermath_victory_pending(void) { return battle.victory_member >= 0; }
+extern "C" int aftermath_practice_pending(void)
+{
+    return (battle.victory_member >= 0 || battle.exit_practice_pending) && enabled();
+}
+
+extern "C" int aftermath_take_empty_victory(void)
+{
+    bool empty = empty_victory_pending;
+    empty_victory_pending = false;
+    return empty && enabled();
+}
 
 extern "C" void aftermath_armor_worn(int m, int id, int before, int after, int count)
 {
