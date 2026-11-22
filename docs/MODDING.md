@@ -332,18 +332,18 @@ back to the game's own when missing; the menu's choices stay where they are.
 
 ### Art pack checklist
 
-To find the pictures for a pack, start with the [master checklist (JSON)](../port/tools/art-checklist/darklands-art-checklist.json).
+To find the pictures for a pack, start with the [master checklist (JSON)](../port/tools/darklands_art_checklist.json).
 It lists scene pictures, equipment, fighter animations and battlefield scenery by name. Each
 entry with a `file` field gives the filename to put under your mod's `art/` folder. Cutscenes,
 map cells and other original-format resources are also catalogued and labelled with their format.
 
-To browse one set at a time, download the [checker](../port/tools/art-checklist/check-art-pack.py)
+To browse one set at a time, download the [checker](../port/tools/check_art_pack.py)
 and the JSON into the same folder. From there, use Python 3 to list the groups and print a plan.
 
 ```sh
-python check-art-pack.py --list-groups --category "battle scenery"
-python check-art-pack.py --plan --group CITY.FLC
-python check-art-pack.py --plan --town --json
+python check_art_pack.py --list-groups --category "battle scenery"
+python check_art_pack.py --plan --group CITY.FLC
+python check_art_pack.py --plan --town --json
 ```
 
 The plan is JSON you can give to an artist or an AI tool. `--town` selects the 417 scenery
@@ -357,8 +357,8 @@ To check a pack, install Pillow and pass the mod folder that contains `art/`.
 
 ```sh
 python -m pip install Pillow
-python check-art-pack.py "path/to/My mod" --town
-python check-art-pack.py "path/to/My mod" --group CITY.FLC --json
+python check_art_pack.py "path/to/My mod" --town
+python check_art_pack.py "path/to/My mod" --group CITY.FLC --json
 ```
 
 The checker reports missing, duplicate or unreadable pictures and flags unexpected empty or
@@ -370,8 +370,8 @@ and 2 for an input or setup error.
 Use **Look again** in F12 > Mods and check the result in play, especially wall joins and animation.
 
 The list contains metadata only. Export templates from your own game with F12 > Mods.
-A developer can [rebuild the checklist](../port/tools/art-checklist/build-art-checklist.py) from a
-source checkout with `python port/tools/art-checklist/build-art-checklist.py "path/to/DARKLAND"`.
+A developer can [rebuild the checklist](../port/tools/gen_art_checklist.py) from a
+source checkout with `python port/tools/gen_art_checklist.py "path/to/DARKLAND"`.
 Use the base 483.07 folder containing `PICS` and `DARKLAND.ENM`.
 
 ### Making a whole art pack

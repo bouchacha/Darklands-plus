@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import sys
 
-MANIFEST = Path(__file__).with_name("darklands-art-checklist.json")
+MANIFEST = Path(__file__).with_name("darklands_art_checklist.json")
 EXTENSIONS = {".png", ".jpg", ".bmp", ".tga"}
 OK = {"present", "blank_original_fallback"}
 

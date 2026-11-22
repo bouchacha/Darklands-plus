@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build the replacement-art checklist from a player's Darklands 483.07 files.
 
-Run from a Darklands+ checkout: python build-art-checklist.py GAME [--output FILE].
+From the repository root, run python port/tools/gen_art_checklist.py GAME [--output FILE].
 Only names, descriptions, dimensions and frame relationships go in the JSON.
 """
 import argparse
@@ -14,7 +14,7 @@ import sys
 import tempfile
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[2]
+ROOT = HERE.parents[1]
 sys.path.insert(0, str(ROOT / "formats"))
 from dlformats import cat, enm, fnt, imc, lzss, pic
 
@@ -373,7 +373,7 @@ def save(path, meta, groups):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("game", type=Path, help="Base game directory containing DARKLAND.ENM and PICS")
-    parser.add_argument("--output", type=Path, default=HERE / "darklands-art-checklist.json")
+    parser.add_argument("--output", type=Path, default=HERE / "darklands_art_checklist.json")
     args = parser.parse_args()
     try:
         meta, groups = catalogue(args.game)

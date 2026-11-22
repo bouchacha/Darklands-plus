@@ -3,4 +3,4 @@
 *.py text eol=lf
 Makefile text eol=lf
 *.yml text eol=lf
-port/tools/art-checklist/darklands-art-checklist.json text eol=lf linguist-generated=true
+port/tools/darklands_art_checklist.json text eol=lf linguist-generated=true
