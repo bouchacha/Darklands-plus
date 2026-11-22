@@ -82,6 +82,17 @@ All tests copy the game folder; it is never changed.
    maintainer writes the notes at a release and `port/tools/check_docs.py --fix` regenerates
    the rest, so pull requests made side by side do not clash there.
 
+### Updating the art checklist
+
+When the port adds, renames or removes a picture that art packs can replace, update the
+[master checklist](port/tools/darklands_art_checklist.json) in the same pull request. This
+includes changes to individual animation frames, scenery variants and filename patterns.
+
+Adjust the [generator](port/tools/gen_art_checklist.py) as needed to match the names the game
+loads. From the repository root, run `python port/tools/gen_art_checklist.py "path/to/DARKLAND"`
+with your base Darklands 483.07 folder. Check the affected entries in the JSON diff and
+commit the regenerated file with the change.
+
 ## Pull requests
 
 Thank you for them. To make them quick to take:

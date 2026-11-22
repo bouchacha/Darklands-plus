@@ -61,3 +61,5 @@ Actively developed. Bug reports, suggestions and contributions are welcome (see 
 ## For developers
 
 Darklands+ rests on a matching decompilation of Darklands 483.07: 382 of the game's source files are C that Microsoft C 6.00A compiles back to the original bytes, and `port/` recompiles the whole game to run natively. This repository holds no game files and no code generated from them. Start with [docs/DEVELOPERS.md](docs/DEVELOPERS.md), [CONTRIBUTING.md](CONTRIBUTING.md), [docs/MODDING.md](docs/MODDING.md) and [docs/MERGING.md](docs/MERGING.md).
+
+When you change which pictures an art pack can replace or what their files are called, [update the art checklist](CONTRIBUTING.md#updating-the-art-checklist) in the same pull request.
