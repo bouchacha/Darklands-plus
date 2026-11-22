@@ -107,6 +107,8 @@ folder is; a mod can carry one too). Draw it at 4:3, 1600 x 1200 for the full-sc
 original pictures" writes every original into art\original as a template, with README.txt (the
 sizes, and what a card's frame and the party's panel cover) and a guide to lay over a card's
 picture; "Show the name of the picture under the mouse" tells you which picture is which.
+For a checklist of replacement filenames and a tool to check your art pack, see
+https://github.com/bouchacha/Darklands-plus/blob/master/docs/MODDING.md#art-pack-checklist
 
 MAKING MODS (in the Darklands folder)
   mods\My mod\mod.txt               first line: the name shown in F12 > Mods

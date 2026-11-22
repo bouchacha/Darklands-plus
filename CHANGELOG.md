@@ -4,6 +4,7 @@
 
 **Added**
 
+- **Art pack checklist** for modders. Look up replacement filenames by scene, fighter or battlefield set, then check which pictures a pack supplies. See the [modding guide](docs/MODDING.md#art-pack-checklist).
 - **Art packs can replace a battlefield's scenery:** floors, walls, doors, furniture and their details, each by its own name, found under the mouse and exported like every other picture (F12 > Mods > Replacement art), drawn at the window's resolution. From woodk123's findings in pull request #36.
 - **Who should carry a weapon, in chances:** a weapon's tooltip (character sheet, shops, the loot screen) has a column for each member under their head: what the weapon needs against each one's skill and Strength, the chance to hit a typical foe and to dodge his blow, the damage through each armor tier, and the time per blow with their Agility. A shield's tooltip gives its dodge chance in 100 for each size, an armor's its tier and which weapons get through it. In a battle, pointing at a foe shows each member against him: both chances and the blow each way. The tooltips and the battle info draw each property with one picture (damage, penetration, time, the armor tiers ...). From woodk123's pull request #34.
 - **Battle aftermath on the loot screen:** after a won fight, above the loot, who went down, the skills gained or lost, and lasting losses such as a lowered maximum or worn armor. By woodk123 (pull request #27).

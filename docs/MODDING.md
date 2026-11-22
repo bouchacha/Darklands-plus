@@ -330,6 +330,50 @@ PNG with little padding, replaces it, centred above the subtitle and fitted with
 shape. Both follow the replacement-art switch, the mods' order and the art rescan, and each falls
 back to the game's own when missing; the menu's choices stay where they are.
 
+### Art pack checklist
+
+To find the pictures for a pack, start with the [master checklist (JSON)](../port/tools/art-checklist/darklands-art-checklist.json).
+It lists scene pictures, equipment, fighter animations and battlefield scenery by name. Each
+entry with a `file` field gives the filename to put under your mod's `art/` folder. Cutscenes,
+map cells and other original-format resources are also catalogued and labelled with their format.
+
+To browse one set at a time, download the [checker](../port/tools/art-checklist/check-art-pack.py)
+and the JSON into the same folder. From there, use Python 3 to list the groups and print a plan.
+
+```sh
+python check-art-pack.py --list-groups --category "battle scenery"
+python check-art-pack.py --plan --group CITY.FLC
+python check-art-pack.py --plan --town --json
+```
+
+The plan is JSON you can give to an artist or an AI tool. `--town` selects the 417 scenery
+pictures used across all nine town battlefield definitions, including shared outdoor and
+interior sets. `--group CITY.FLC` selects just the city floor bank. For a fighter, try
+`--group E03WKSW` for the bandit's sword walk. Its `slots` show which poses share a picture.
+`native_px` gives the original width and height. A sprite's `ink_box` shows where its visible
+pixels belong on that canvas. Keep empty views transparent.
+
+To check a pack, install Pillow and pass the mod folder that contains `art/`.
+
+```sh
+python -m pip install Pillow
+python check-art-pack.py "path/to/My mod" --town
+python check-art-pack.py "path/to/My mod" --group CITY.FLC --json
+```
+
+The checker reports missing, duplicate or unreadable pictures and flags unexpected empty or
+visible images. An omitted transparent original can fall back to the game. Unlisted names are
+reported separately because a mod can add its own pictures. For a large pack, split the art
+across subfolders. The game reads up to 4,096 entries per folder and up to three levels below
+`art/`. Exit codes are 0 for a covered selection, 1 for missing pictures or files to review,
+and 2 for an input or setup error.
+Use **Look again** in F12 > Mods and check the result in play, especially wall joins and animation.
+
+The list contains metadata only. Export templates from your own game with F12 > Mods.
+A developer can [rebuild the checklist](../port/tools/art-checklist/build-art-checklist.py) from a
+source checkout with `python port/tools/art-checklist/build-art-checklist.py "path/to/DARKLAND"`.
+Use the base 483.07 folder containing `PICS` and `DARKLAND.ENM`.
+
 ### Making a whole art pack
 
 `port/tools/artpack.py ORIGINALS OUT` turns the exported originals (F12 > Mods > "Export the original pictures",
