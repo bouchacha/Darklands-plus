@@ -837,3 +837,17 @@ covered and found, and what it could not check.
   maximum and the running boosts (kind 0x48, in the table and, in a battle, in events.tmp) once a game is
   loaded and after every battle, with a notice (his dksavees: back to 33; a running Truesight saved and
   loaded in a battle left alone).
+- 2026-11-22 (his "why wasn't this bug caught before?"): the same fault, the game swapping its event table
+  out (events.tmp) while a battle's events were in it, has three ways in: the end of a battle (battlesaints,
+  1.2), a sheet in a battle (1.4.7-RC9, his report) and a save in a battle (1.5.1-RC7, his report), each fixed
+  when he met it, not looked for together. Looked for now in the generated code: the callers of world_load
+  (s043 1462:0100), cards_shutdown (1462:054e) and cards_startup (1462:078e) are run_battle (s029 0e76:2278),
+  s029 0e76:255a (cards_shutdown alone; the cards come up through cards_startup, hooked), battle_sheet (s031
+  1462:0000), s037 1c7d:09c6 (cards_startup alone, in the loader's segment) and one card (s133 1838:186c),
+  whose calls between the two (101 functions reached) never reach event_create (s029
+  0e76:2c4e), use_potion or the attribute boost: nothing can be made there to lose. The game's save writer
+  reads the file itself (battle_save_hook). Against a fourth: CK_BOOST (mods/checks.h, watched beside the mend)
+  logs an attribute above its maximum and its running boosts outside a battle, and release_check drinks a
+  Truesight in its battle, saves and loads there, and fails on the mend's line. And the level map's doors
+  (his screenshot): drawn when the centre of their record was in seen[], which takes every cell of the
+  view's diamond, behind walls too; now, as the stairs, ways out and chests, only over floor known (rect_seen).

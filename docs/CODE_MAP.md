@@ -58,14 +58,14 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/cachefile.c` | 228 | keep each inn's stored items when the cache file is rewritten. |
 | `mods/cacheview.c` | 288 | the store room as a native screen (nscreen.h; the view is ui/cacheview.cpp). |
 | `mods/cardview.c` | 668 | the card screen drawn by Darklands+ itself. |
-| `mods/checks.c` | 136 | things that must never happen, watched while the game runs. |
+| `mods/checks.c` | 138 | things that must never happen, watched while the game runs. |
 | `mods/choose.c` | 48 | a box asking which of the party's things (ui/choose.cpp draws it): the native screens' frame (mods/nscreen.h), a line clicked or its number pressed picks it, Esc or the way out's button picks none. |
 | `mods/createview.c` | 199 | making a character as a native screen (display.native_create; the view is ui/createview.cpp). |
 | `mods/cutcards.c` | 214 | encounters MicroProse wrote and never used, put back (rules.fehde, rules.hospice, rules.manor_rumor: F12 > Reconstructed Content, experimental, off by default; the catalogue of what the game holds unused is docs/cut_content.md). |
 | `mods/datamods.c` | 429 | mod folders: game files replaced without touching the game's own. |
 | `mods/encounters.c` | 2085 | new encounters written as data. |
 | `mods/enemyview.c` | 129 | the battle's Enemy Info as a native page (display.native_enemyinfo; the view is ui/enemyview.cpp). |
-| `mods/fixes.c` | 4402 | fixes for bugs that are still in the last official version (483.07). |
+| `mods/fixes.c` | 4433 | fixes for bugs that are still in the last official version (483.07). |
 | `mods/fixgroups.c` | 35 | the fixes (fixes.c) sorted by kind, for the settings' list: from what the game plainly gets wrong to what is open to argument, as players have talked of them over the years (the GOG and Steam forums, the old Usenet posts and the patch notes MicroProse left). |
 | `mods/foefx.c` | 91 | what a thrown potion (or a trap's) is doing to each fighter now, and for how long: the battle's own records, read for ui/battleoverlay.cpp (a picture over the fighter, the words under the pointer). |
 | `mods/foesleft.c` | 130 | the foes a place still holds that the party has not met yet (battle.foes_left, on by default): shown under the battle margin's enemies, so a castle, dungeon or mine whose fight "does not end" says where the rest still wait (the game ends it only when they are all beaten, or the party walks out and counts as fled). |
@@ -159,7 +159,7 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/itemedit.cpp` | 137 | F12 > Editor > Items (for a mod): the item list (DARKLAND.LST: 200 records of 46 bytes, then the saints' and formulas' names) as an editable table. |
 | `ui/journal.cpp` | 1254 | the town journal: as the party travels, it notes the towns it reaches (with the shops each one has, from DARKLAND.CTY) and the full stock of every shop whose wares it looks at, with qualities and prices. |
 | `ui/layers.cpp` | 143 | the one order of ui/layers.h: who takes a click (the rects of the panels over the picture, this frame's and the last frame's; the views and the windows known from their state), and the drawing in the same order (the tiers' windows stacked under every other window). |
-| `ui/levelmap.cpp` | 894 | Tab in a battle or while exploring a castle, mine or dungeon (the tactical view, which shows only 14 x 10 cells around the party): a map of the level as far as the party has seen it, in the view's own slant, with the party, the enemies in sight, doors and furniture, and at its top right the floors in short (a square a floor, the stairs seen between them). |
+| `ui/levelmap.cpp` | 901 | Tab in a battle or while exploring a castle, mine or dungeon (the tactical view, which shows only 14 x 10 cells around the party): a map of the level as far as the party has seen it, in the view's own slant, with the party, the enemies in sight, doors and furniture, and at its top right the floors in short (a square a floor, the stairs seen between them). |
 | `ui/libraries.cpp` | 126 | see libraries.h. Which places have a library the party can study in: the saint card ($Learn00, card 0x39) is reached from a town's monastery ($CityM00), its university ($Unive00) and a monastery in the country ($Count04) |
 | `ui/lodgeview.cpp` | 412 | an inn's room or a camp drawn by Darklands+ (mods/lodgeview.c runs it): the members with each one's day, what the chosen member can do (the original's words; greyed with the reason where not), the town's teachers with their fees, what a day costs against the purse, and Spend a day, Until rested and Leave. |
 | `ui/lootview.cpp` | 197 | draws the loot screen (mods/lootview.c runs it; docs/NATIVE_SCREENS.md). |
@@ -240,7 +240,7 @@ Tools: tests, checks, the harness.
 | `tools/package.py` | 152 | the Windows release of Darklands+: only our own code and the tools that make the game module on the player's machine (runtime/split.h). |
 | `tools/perfcheck.py` | 78 | how long the interface takes to draw on each screen (run after every new feature). |
 | `tools/prepare.py` | 137 | make the game module (runtime/split.h) from the player's own DARKLAND.EXE. |
-| `tools/release_check.py` | 177 | a scripted session through the parts of Darklands+ that a release must not break, in a window (native screens are drawn only there), on your own game files. |
+| `tools/release_check.py` | 179 | a scripted session through the parts of Darklands+ that a release must not break, in a window (native screens are drawn only there), on your own game files. |
 | `tools/reloc_check.py` | 54 | every segment the DOS loader would have fixed up in DARKLAND.EXE's code, and whether the translation (port/recomp/recomp16.py) adds the load segment there too. |
 | `tools/smoke.py` | 52 | quick checks of a Darklands+ build against your own game files, before a release. |
 | `tools/soaktest.py` | 334 | a long automated playtest: plays the game for a while as a restless player would, and reports what went wrong. |

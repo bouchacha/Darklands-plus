@@ -9,7 +9,9 @@
  *  - state that stuck: every step on the map an encounter (a night in camp's encounter waiting for
  *    a card it could replace, 1.4.6-RC6);
  *  - values out of range: the place, the party's size, the money, the date going backwards
- *    without a load, the game's 300 notes nearly full ("EVENT Failure"). */
+ *    without a load, the game's 300 notes nearly full ("EVENT Failure");
+ *  - a boost whose end was lost: an attribute above its maximum and its running boosts (CK_BOOST,
+ *    watched in mods/fixes.c boost_check_frame, beside the mend; his Jorg's Perception 60 of 33). */
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>

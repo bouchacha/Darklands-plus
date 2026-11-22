@@ -258,6 +258,7 @@
 #include "saves.h"
 #include "teachers.h"
 #include "sainttexts.h"
+#include "checks.h"
 
 Fix FIXES[] = {
     { "blessing", "Blessings no longer cost attribute points permanently",
@@ -1254,12 +1255,14 @@ static void battle_save_hook(void)               /* s037 1462:2ace (comment): wr
    and are read from it; not while the table holds both (a sheet or a save in a battle) */
 static int boost_mend_due;
 static void boost_mend_after_load(void) { boost_mend_due = 1; }   /* (saves_on_loaded) */
-static void boost_mend(const char *when)
+/* the boosts running for each member and attribute (kind 0x48, its amount at +0x1e): the table's and, in a battle, the
+   cards' in events.tmp; 0 when they cannot all be known (the table holding both, a sheet or a save in a battle) */
+static int boosts_running(int run[5][7])
 {
-    if (!fix_on("battlesaints") || world_open || sheet_pending || save_pending || ns_unwinding) return;
+    if (world_open || sheet_pending || save_pending || ns_unwinding) return 0;
     int battle = g_rb(GV_in_battle) == 1;
-    if (battle && !cards_down) return;                  /* (the cards' events neither in the table nor known to be in the file) */
-    int run[5][7]; memset(run, 0, sizeof run);
+    if (battle && !cards_down) return 0;                /* (the cards' events neither in the table nor known to be in the file) */
+    memset(run, 0, sizeof(int) * 5 * 7);
     for (int i = 0; i < G_NEVENTS; i++) {
         u32 e = ev_ptr(i);
         if (!e || g_ev(e, G_EV_KIND) != 0x48) continue;
@@ -1269,7 +1272,7 @@ static void boost_mend(const char *when)
     if (battle) {
         char p[1200]; dos_host_path("EVENTS.TMP", p, sizeof p);
         FILE *f = fopen(p, "rb"); u8 b[0x30], c[2]; int n = 0;
-        if (!f) return;
+        if (!f) return 0;
         if (fread(c, 1, 2, f) == 2) n = c[0] | c[1] << 8;
         for (int k = 0; k < n && k < G_NEVENTS && fread(b, 1, 0x30, f) == 0x30; k++) {
             int m = (s16)(b[G_EV_OWNER] | b[G_EV_OWNER + 1] << 8), a = (s16)(b[G_EV_TYPE0] | b[G_EV_TYPE0 + 1] << 8), v = (s16)(b[G_EV_VALUE] | b[G_EV_VALUE + 1] << 8);
@@ -1277,6 +1280,12 @@ static void boost_mend(const char *when)
         }
         fclose(f);
     }
+    return 1;
+}
+static void boost_mend(const char *when)
+{
+    int run[5][7];
+    if (!fix_on("battlesaints") || !boosts_running(run)) return;
     int size = (s16)g_rw(G_PARTY_SIZE);
     for (int m = 0; m < size && m < 5; m++)
         for (int a = 0; a < 7; a++) {
@@ -1289,9 +1298,31 @@ static void boost_mend(const char *when)
             fprintf(stderr, "fix battlesaints: %s: member %d attribute %d %d of %d with %d running: back to %d\n", when, m, a, cur, max, run[m][a], top);
         }
 }
+/* and watched (mods/checks.h CK_BOOST), outside a battle, once a second: an attribute above its maximum by more than its
+   running boosts for two seconds on end is a boost whose end some other path lost - one more of the game's swaps of its
+   event table, the kind that made this (the end of a battle, a sheet in a battle, a save in a battle, each found only when
+   a player met it). The mend at a load or a battle's end puts it right; the check says where it began */
+static void boost_check_frame(void)
+{
+    static unsigned t; static u32 since;
+    if (++t % 60 || !fix_on("battlesaints")) return;
+    int mode = game_mode(), run[5][7];
+    if (g_rb(GV_in_battle) == 1 || (mode != GM_CARD && mode != GM_MAP) || (saves_loaded_ms && plat_ticks_ms() - saves_loaded_ms < 5000) || !boosts_running(run)) { since = 0; return; }
+    int size = (s16)g_rw(G_PARTY_SIZE), bm = -1, ba = 0, bc = 0, bt = 0;
+    for (int m = 0; m < size && m < 5 && bm < 0; m++)
+        for (int a = 0; a < 7 && bm < 0; a++) {
+            int cur = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + a)), max = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + a));
+            if (max > 0 && cur > max + run[m][a]) { bm = m; ba = a; bc = cur; bt = max + run[m][a]; }
+        }
+    if (bm < 0) { since = 0; return; }
+    if (!since) { since = plat_ticks_ms() | 1; return; }
+    if (plat_ticks_ms() - since < 2000) return;
+    check_fail(CK_BOOST, "member %d's %s is %d, above its maximum and its running boosts (%d): a boost's end lost", bm, gm_attr_name(ba), bc, bt);
+}
 static void boost_mend_frame(void)
 {
     if (boost_mend_due && saves_loaded_ms && plat_ticks_ms() - saves_loaded_ms > 1500) { boost_mend_due = 0; boost_mend("a game loaded"); }
+    if (!config_get_int("original", 0)) boost_check_frame();
 }
 static void world_load_hook(void)                /* world_load(locfile), s043 1462:0100 */
 {

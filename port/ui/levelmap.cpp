@@ -507,6 +507,16 @@ extern "C" void levelmap_draw(void)
     };
     static const int SDX[4] = { 1, -1, 0, 0 }, SDY[4] = { 0, 0, -1, 1 };   /* (east, west, north, south) */
     auto kf = [&](int x, int y) { return known(x, y) && is_floor(x, y); };
+    /* a door, stairs or a way out (a record of map pixels x, y, w, h: 20a5:1f54, 2fb8) the party has seen: floor known
+       under it, revealed by the game or remembered. Not a cell merely in the view's diamond (seen[]: behind a wall, or
+       behind a door still shut, the game keeps hidden) - his report, 1.5.1-RC17: a door shown past floor not explored */
+    auto rect_seen = [&](u16 r0) {
+        int x = (s16)rw(G_FAR20A5, r0), y = (s16)rw(G_FAR20A5, (u16)(r0 + 2)), w = rb(G_FAR20A5, (u16)(r0 + 4)), h = rb(G_FAR20A5, (u16)(r0 + 5));
+        float X0 = x / 32.0f, Y0 = y / 16.0f, X1 = (x + w) / 32.0f, Y1 = (y + h) / 16.0f;
+        if (X1 - X0 < 0.5f) X1 = X0 + 0.5f; if (Y1 - Y0 < 0.5f) Y1 = Y0 + 0.5f;
+        for (int cx = (int)floorf(X0); cx < (int)ceilf(X1); cx++) for (int cy = (int)floorf(Y0); cy < (int)ceilf(Y1); cy++) if (kf(cx, cy)) return true;
+        return false;
+    };
     /* the way goes on from known floor into floor not explored yet: through a side with no wall, or a door */
     auto opening = [&](int x, int y) {
         if (!floor_art(x, y) || kf(x, y)) return false;
@@ -586,7 +596,7 @@ extern "C" void levelmap_draw(void)
             float X0 = x / 32.0f, Y0 = y / 16.0f, X1 = (x + w) / 32.0f, Y1 = (y + h) / 16.0f;
             if (X1 - X0 < 0.25f) { float m = (X0 + X1) * 0.5f; X0 = m - 0.125f; X1 = m + 0.125f; }
             if (Y1 - Y0 < 0.25f) { float m = (Y0 + Y1) * 0.5f; Y0 = m - 0.125f; Y1 = m + 0.125f; }
-            if (!known((int)((X0 + X1) * 0.5f), (int)((Y0 + Y1) * 0.5f))) continue;
+            if (!rect_seen(r0)) continue;
             bool open = rb(G_FAR20A5, (u16)(0x33d3 + k)) != 0;
             ImVec2 a = P(X0, Y0), b = P(X1, Y0), c2 = P(X1, Y1), d = P(X0, Y1);
             dl->AddQuadFilled(a, b, c2, d, open ? IM_COL32(110, 80, 50, 255) : DOOR);
@@ -605,10 +615,7 @@ extern "C" void levelmap_draw(void)
             int to = (s8)rb(G_FAR20A5, (u16)(r0 + 6));
             float X0 = x / 32.0f, Y0 = y / 16.0f, X1 = (x + w) / 32.0f, Y1 = (y + h) / 16.0f;
             if (X1 - X0 < 0.5f) X1 = X0 + 0.5f; if (Y1 - Y0 < 0.5f) Y1 = Y0 + 0.5f;
-            bool k_seen = false;
-            for (int cx = (int)X0; cx <= (int)X1 && !k_seen; cx++) for (int cy = (int)Y0; cy <= (int)Y1; cy++)
-                if (known(cx, cy) && is_floor(cx, cy)) { k_seen = true; break; }     /* not behind a door still shut */
-            if (!k_seen) continue;
+            if (!rect_seen(r0)) continue;                         /* (not behind a door still shut) */
             ImVec2 a = P(X0, Y0), b = P(X1, Y0), c2 = P(X1, Y1), d = P(X0, Y1);
             dl->AddQuadFilled(a, b, c2, d, STAIRS);
             for (int st = 1; st <= 3; st++) {                    /* (steps: lines across, as a plan draws stairs) */
@@ -728,7 +735,7 @@ extern "C" void levelmap_draw(void)
         auto in_rect = [&](u16 r0, float grow) {               /* a door's or stairs' record: map pixels x, y, w, h */
             int x = (s16)rw(G_FAR20A5, r0), y = (s16)rw(G_FAR20A5, (u16)(r0 + 2)), w = rb(G_FAR20A5, (u16)(r0 + 4)), h = rb(G_FAR20A5, (u16)(r0 + 5));
             float X0 = x / 32.0f - grow, Y0 = y / 16.0f - grow, X1 = (x + w) / 32.0f + grow, Y1 = (y + h) / 16.0f + grow;
-            if (Xf < X0 || Xf > X1 || Yf < Y0 || Yf > Y1 || !known((int)((X0 + X1) * 0.5f), (int)((Y0 + Y1) * 0.5f))) return false;
+            if (Xf < X0 || Xf > X1 || Yf < Y0 || Yf > Y1 || !rect_seen(r0)) return false;   /* (only what the map shows) */
             wx = x + w / 2; wy = y + h / 2; qx0 = X0; qy0 = Y0; qx1 = X1; qy1 = Y1;
             return true;
         };
