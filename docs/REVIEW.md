@@ -796,3 +796,26 @@ covered and found, and what it could not check.
   from #36: its own drawing at the game's pixels, the town-only names, F8 and Ctrl+Shift+R (the art
   switch and Look again are the tools for every picture). Measured: a wilderness battle with its floors,
   trees and rocks replaced prepares its frame in about 1.1 ms (0.13 ms with no art).
+- 2026-11-21 (his ask after RC15: "pair up each UI element with every other UI element", the potion tray's
+  tooltip not shown and a field hint over the tray): every element over the picture paired with every
+  other, and one order made for both the pointer and the eye (ui/layers.h). Found: (1) the cause of his
+  screen - a window that closes on the press (the level map's click, the world map's double-click, the
+  Honor Roll) left the release to the game, so ImGui's button stayed down and the SDL backend, which reads
+  the mouse by itself only while no button is down, kept ImGui's pointer where the click was: the panels
+  then hovered nothing and the field's hints followed the game's pointer over them (seen with his save:
+  ImGui's pointer stood at the level map's click after the mouse moved). ui_event now hands ImGui every
+  release of a button or key it saw pressed, and every move of the mouse, whoever takes the event. (2) The
+  order on screen was not the order for the pointer: the panels' and the field's windows stood in the order
+  ImGui first made them in a session (none is ever focused), the party's boxes were on the background list
+  under all of them, and a dozen things were on ImGui's foreground list, over the tooltips (the notices,
+  the foe arrow, the route, the camp button, the money that rises in the margin, the battle log's lines,
+  the picture names, the town walk's and the hours' covers). Now each is drawn in its tier (ui_tier,
+  ui_tier_list: the covers, the field's marks and boxes, the panels, the shade under a window, the
+  notices), and ui_tiers_stack puts the tiers' windows under every other window in that order, the notices
+  over the windows and under the tooltips. (3) Under a window that takes every event the panels, the
+  pages and the field still tested the pointer (the strip's and the tray's buttons by its bare position,
+  the pages by the game's): ui_draw hides ImGui's pointer from everything drawn under such a window, and
+  NsDraw, the party's boxes and the menu bar take no pointer then (ui_modal_up, also for the game's own
+  message over a page). (4) The field's hint keeps clear of the panels (ui_layer_clear), the other sides
+  tried in turn; the party's boxes a click picks are panels in the layers too. The matrix of every pair is
+  published for him (the artifact "UI layer audit").

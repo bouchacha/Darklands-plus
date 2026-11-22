@@ -12,6 +12,7 @@
 #include <string>
 #include <deque>
 #include "imgui.h"
+#include "layers.h"
 #include "ui.h"
 #include "uiinternal.h"
 #include "gamedata.h"
@@ -90,7 +91,7 @@ void ui_alert_draw(void)
     if (a.shown < 0) a.shown = ImGui::GetTime();
     const bool ready = ImGui::GetTime() - a.shown >= 0.5;
     ImGuiIO &io = ImGui::GetIO();
-    ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 120));
+    ui_tier_list(UI_TIER_DIM)->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 120));
     float w = fminf(io.DisplaySize.x * 0.9f, UIS(640));
     ImGui::SetNextWindowSize(ImVec2(w, 0));
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.42f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));

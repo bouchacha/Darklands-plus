@@ -281,6 +281,25 @@ static int count_of(int m, int id, int q)
     return c;
 }
 int sheet_drinkable(int id) { return drinkable(id); }
+/* what a drink did, after "X drinks the Y": the four that raise an attribute past its maximum (111 Truesight: Perception,
+   112 to 114: Endurance, Strength, Agility) do nothing at all when it already stands as far above its maximum as the dose
+   would add - the game adds only what goes past what stands above it (use_potion, s031 1462:43b2, then s029 0e76:4c04). His
+   report, 1.5.1-RC15: two Truesights drunk and no sign of them, the Perception standing 27 above its maximum */
+static const int DRINK_ATTR[4] = { 3, 0, 1, 2 };             /* (G_M_ATTR_CUR order: END STR AGL PER) */
+static int drink_before(int m, int id)
+{
+    if (id < 111 || id > 114) return -999;
+    int c, x; gm_member_attr(m, DRINK_ATTR[id - 111], &c, &x);
+    return c;
+}
+static void drink_said(char *t, size_t tn, int m, const char *who, int id, int before)
+{
+    if (before == -999) return;
+    int a = DRINK_ATTR[id - 111], c, x; gm_member_attr(m, a, &c, &x);
+    if (c != before || c <= x) return;
+    size_t n = strlen(t);
+    snprintf(t + n, tn > n ? tn - n : 0, " Nothing changes: %s's %s already stands %d above its maximum, and a dose adds only what goes past that.", who, gm_attr_name(a), c - x);
+}
 /* in a battle (the potions tray, ui/margins_battle.cpp): as the sheet's Drink, at a safe point (ns_defer) */
 static void battle_drink_now(int m, int id, int q, int d)
 {
@@ -289,13 +308,15 @@ static void battle_drink_now(int m, int id, int q, int d)
     int i = record_of(m, id, q, 1);
     if (i < 0) return;
     char nm[32]; item_name(id, nm, sizeof nm);
+    int before = drink_before(m, id);
     ns_call(GF_use_potion, 2, m, i);
     if (ns_unwinding) return;
     ns_call(GF_item_take_one, 2, m, i);
     if (ns_unwinding) return;
-    char t[96], who[32]; u16 b = G_MEMBER(m); int k = 0;
+    char t[256], who[32]; u16 b = G_MEMBER(m); int k = 0;
     for (; k < 31; k++) { char c = (char)g_rb((u16)(b + 0x2a + k)); if (!c || c == ' ') break; who[k] = c; } who[k] = 0;
     snprintf(t, sizeof t, "%s drinks the %s.", who, nm);
+    drink_said(t, sizeof t, m, who, id, before);
     void ui_notice(const char *msg); ui_notice(t);
     fprintf(stderr, "battle: %s\n", t);
 }
@@ -341,7 +362,7 @@ int sheet_battle_drink(int m, int id, int q)
 static void act(const NsAction *a, int *who)
 {
     int w = *who, idx = a->a;
-    GmItem g; char nm[32] = "", t[160];
+    GmItem g; char nm[32] = "", t[256];
     if (a->type == SV_PREADY || a->type == SV_PDRINK || a->type == SV_PDROP || a->type == SV_KEEP || a->type == SV_PTAKE || a->type == SV_SHARE) {
         int id = a->a, q = a->b;
         if (id >= 0) item_name(id, nm, sizeof nm);
@@ -415,10 +436,12 @@ static void act(const NsAction *a, int *who)
             int r = pack_fetch(w, id, q, nm, t, sizeof t);
             if (ns_unwinding) return;
             if (r < 0) break;
+            int before = drink_before(w, id);
             ns_call(GF_use_potion, 2, w, r);
             if (ns_unwinding) return;
             ns_call(GF_item_take_one, 2, w, r);
             snprintf(t, sizeof t, "%s drinks the %s.", sheet_model.names[w], nm);
+            drink_said(t, sizeof t, w, sheet_model.names[w], id, before);
             break; }
         case SV_PDROP: {
             if (keep_is(id, q)) { snprintf(t, sizeof t, "The %s is marked Keep: unmark it before dropping it.", nm); break; }
@@ -518,13 +541,15 @@ static void act(const NsAction *a, int *who)
         d->id = g.id; d->qual = g.qual; d->count = n; snprintf(d->name, sizeof d->name, "%s", nm);
         snprintf(t, sizeof t, n > 1 ? "Left behind: the %s (%d). Undo takes them back." : "Left behind: a %s. Undo takes it back.", nm, n);
         break; }
-    case SV_DRINK:
+    case SV_DRINK: {
         if (!drinkable(g.id)) return;
+        int before = drink_before(w, g.id);
         ns_call(GF_use_potion, 2, w, idx);
         if (ns_unwinding) return;
         ns_call(GF_item_take_one, 2, w, idx);
         snprintf(t, sizeof t, "%s drinks the %s.", sheet_model.names[w], nm);
-        break;
+        drink_said(t, sizeof t, w, sheet_model.names[w], g.id, before);
+        break; }
     default: return;
     }
     if (ns_unwinding) return;

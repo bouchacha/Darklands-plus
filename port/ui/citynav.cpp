@@ -23,6 +23,7 @@
 #include <map>
 #include "richtext.h"
 #include "imgui.h"
+#include "layers.h"
 #include "ornament.h"
 #include "ui.h"
 #include "gamedata.h"
@@ -705,7 +706,7 @@ extern "C" void citynav_draw_cover(void)
     if (g < 0 || !config_get_int("assist.city_goto_cover", 1)) { last_goal = -1; return; }
     if (g != last_goal) { if (tail_goal < 0) shown_from = now; last_goal = g; }
     if (!steps_taken && !leaving && tail_goal < 0) return;   /* (not yet under way: the card it starts from) */
-    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    ImDrawList *dl = ui_tier_list(UI_TIER_COVER);
     float x0, y0, x1, y1; plat_game_to_win(60, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
     float w = x1 - x0, h = y1 - y0, k = h / 200.0f;
     dl->AddRectFilledMultiColor(ImVec2(x0, y0), ImVec2(x1, y1), IM_COL32(236, 222, 188, 255), IM_COL32(230, 214, 176, 255), IM_COL32(214, 194, 152, 255), IM_COL32(222, 204, 164, 255));
@@ -1056,7 +1057,7 @@ struct Tile { int d; std::vector<TileLine> lines; std::vector<TipPart> tip; int 
 extern "C" int citynav_window(void)
 {
     ImGuiIO &io = ImGui::GetIO();
-    ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 90));
+    ui_tier_list(UI_TIER_DIM)->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 90));
     float w = fminf(io.DisplaySize.x * 0.94f, UIS(1250)), maxh = io.DisplaySize.y * 0.94f;
     ImGui::SetNextWindowSizeConstraints(ImVec2(w, 0), ImVec2(w, maxh));
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));

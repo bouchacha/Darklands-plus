@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-ImDrawList *ui_overlay_list(void);       /* the overlay layer: under tooltips and windows, over the picture */
+#include "layers.h"                       /* (where each thing is drawn: ui_tier_list) */
 ImVec2 ui_g2w(float gx, float gy);        /* a game pixel (320x200) in window pixels */
 void ui_draw_battle_bars(void);
 void ui_draw_battle_info(void);

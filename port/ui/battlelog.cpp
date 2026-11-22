@@ -17,6 +17,7 @@
 #include <vector>
 #include <map>
 #include "imgui.h"
+#include "layers.h"
 #include "richtext.h"
 #include "skillicons.h"
 #include "../mods/aftermath.h"
@@ -317,7 +318,7 @@ extern "C" int battle_showing(void)          /* (a member's sheet opened in the 
 extern "C" int battlelog_margin(float x, float w, float h, float fs)
 {
     if (!ui_battle_log || !battle_showing() || config_get_int("original", 0)) return 0;
-    ImDrawList *dl = ImGui::GetBackgroundDrawList();
+    ImDrawList *dl = ui_tier_list(UI_TIER_PANEL);                  /* (a margin: ui/layers.h) */
     ImFont *f = ui_font_overlay;
     float pad = fs * 0.7f, lh = fs * 1.25f, y = h - pad;
     {   /* framed as the other margins' panels (an ImGui window's border) */
@@ -352,7 +353,7 @@ extern "C" void battlelog_overlay(void)
     int n = 0;
     for (int k = (int)lines.size() - 1; k >= 0 && n < 4; k--, n++) if (now - lines[k].t > SHOW + FADE) break;
     if (!n) return;
-    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    ImDrawList *dl = ui_tier_list(UI_TIER_FIELD);
     float lh = fs * 1.2f, pad = fs * 0.4f;
     { extern float ui_orderbar_top; if (ui_orderbar_top > 0 && ui_orderbar_top < y1) y1 = ui_orderbar_top; }   /* (above the order strip) */
     float y = y1 - pad - lh * n;

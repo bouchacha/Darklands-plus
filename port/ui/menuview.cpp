@@ -85,6 +85,7 @@ extern "C" void menuview_draw(void)
     P.fk = ui_face_k(P.f); P.fok = ui_face_k(P.fo);
     P.dl = ImGui::GetBackgroundDrawList();
     P.mx = ns_in.x; P.my = ns_in.y;
+    if (ui_modal_up()) P.mx = P.my = -32768;                       /* (under a window that takes every event: no pointer, ui/layers.h) */
     bool click = mv_in.click != 0, rclick = mv_in.rclick != 0;
     int cx = mv_in.cx, cy = mv_in.cy;
     mv_in.click = mv_in.rclick = 0;

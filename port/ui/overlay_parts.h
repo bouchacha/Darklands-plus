@@ -2,7 +2,7 @@
  * helpers, the loot buttons; ui/overlay_text.cpp: crisp text, the chances, the pointer) */
 #pragma once
 #include "imgui.h"
-ImDrawList *ovl_list(void);                       /* the overlay layer: over the picture, under windows */
+#include "layers.h"                               /* (where each thing is drawn: ui_tier_list) */
 void text_edged(ImDrawList *dl, ImFont *f, float size, ImVec2 p, ImU32 c, const char *t, int edge, int bg = -1);
 double rel_lum(int r, int g, int b);
 ImU32 contrast_fix(ImU32 c, int bg);

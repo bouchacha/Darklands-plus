@@ -11,6 +11,7 @@
 #include <string>
 #include "padglyphs.h"
 #include "imgui.h"
+#include "layers.h"
 #include "tablesort.h"
 #include "skillicons.h"
 #include "backends/imgui_impl_sdl2.h"
@@ -117,7 +118,7 @@ void tab_about(void)
 void welcome_window(void)
 {
     ImGuiIO &io = ImGui::GetIO();
-    ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 140));
+    ui_tier_list(UI_TIER_DIM)->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 140));
     float w = fminf(io.DisplaySize.x * 0.9f, UIS(760));
     ImGui::SetNextWindowSize(ImVec2(w, 0), ImGuiCond_Always);
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
@@ -183,7 +184,7 @@ extern "C" int plat_choose_folder(const char *title, char *out, int n);
 void mt32_window(void)
 {
     ImGuiIO &io = ImGui::GetIO();
-    ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 140));
+    ui_tier_list(UI_TIER_DIM)->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 140));
     float w = fminf(io.DisplaySize.x * 0.92f, UIS(780));
     ImGui::SetNextWindowSize(ImVec2(w, 0), ImGuiCond_Always);
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
@@ -247,7 +248,7 @@ void mt32_window(void)
 void help_window(void)
 {
     ImGuiIO &io = ImGui::GetIO();
-    ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 100));
+    ui_tier_list(UI_TIER_DIM)->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 100));
     float w = fminf(io.DisplaySize.x * 0.92f, UIS(900));
     ImGui::SetNextWindowSizeConstraints(ImVec2(w, 0), ImVec2(w, io.DisplaySize.y * 0.94f));
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));

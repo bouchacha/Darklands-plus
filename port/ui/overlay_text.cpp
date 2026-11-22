@@ -123,7 +123,7 @@ void draw_chances(void)
     if (mode >= 2) return;
     int x0 = 60 + (s16)g_rw(GV_card_layout_x), w = (s16)g_rw(GV_card_layout_w), tc = (s16)g_rw(0xee59);
     int members = (s16)g_rw(G_PARTY_SIZE);
-    ImDrawList *dl = ovl_list();
+    ImDrawList *dl = ui_tier_list(UI_TIER_FIELD);
     ImFont *f = ui_font_overlay;
     int tip_line = -1, tip_pct = 0, tip_who = -1; ImVec2 tip_at;
     for (int i = 0; i < n; i++) {

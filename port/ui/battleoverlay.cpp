@@ -40,7 +40,6 @@ extern ImFont *ui_font_small, *ui_font_text;
 extern ImFont *ui_font_overlay;
 extern ImFont *ui_font_game[UI_GAME_FONTS];
 extern int ui_game_font, ui_text_edge;
-static ImDrawList *ovl_list(void) { return ui_overlay_list(); }
 extern "C" void plat_field_slide(float *x, float *y);
 static ImVec2 g2w(float x, float y) { float sx, sy; plat_field_slide(&sx, &sy); return ui_g2w(x + sx, y + sy); }   /* (with the field while it slides) */
 extern "C" int ns_showing(void);
@@ -222,7 +221,7 @@ static void draw_aim(ImDrawList *dl)
 void ui_draw_battle_bars(void)
 {
     if (game_mode() == GM_BATTLE && !ns_showing() && !config_get_int("original", 0)) {
-        ImDrawList *dl0 = ovl_list();
+        ImDrawList *dl0 = ui_tier_list(UI_TIER_FIELD);
         dl0->PushClipRect(ui_g2w(60, 0), ui_g2w(320, 200), true);
         draw_aim(dl0);
         dl0->PopClipRect();
@@ -235,7 +234,7 @@ void ui_draw_battle_bars(void)
     while (!floats.empty() && nowms > floats.front().t0 + 5000) floats.erase(floats.begin());
     int n = (s8)g_rb(GV_hotspot_count);
     if (n <= 0 || n > 40) return;
-    ImDrawList *dl = ovl_list();
+    ImDrawList *dl = ui_tier_list(UI_TIER_FIELD);
     bool done[13] = {};
     float k = g2w(0, 1).y - g2w(0, 0).y;                      /* window pixels per game row */
     dl->PushClipRect(ui_g2w(60, 0), ui_g2w(320, 200), true);  /* (the field only: not over the margins or the panel) */
@@ -302,14 +301,23 @@ static void hint_line(const char *h)
 }
 extern "C" int enemyview_human(int i);         /* (mods/enemyview.c: a man with armor and weapons, or natural ones) */
 extern ImVec2 ptr_lo, ptr_hi; extern int ptr_frame;   /* (ui/overlay_text.cpp: where the game's pointer was drawn) */
-static void place_by_pointer(ImVec2 p)
+static void place_by_pointer(ImVec2 p, const char *win)
 {
     /* beside the pointer, towards the room, never over it: past the game's pointer where it is
-       drawn (a hand 16 by 12 of the game's pixels), else past the point */
+       drawn (a hand 16 by 12 of the game's pixels), else past the point; and clear of our panels (the
+       strip, the potion tray, the margins: ui/layers.h - his report, RC15: a hint over the tray), the
+       other sides tried when the first is not; none clear, the first (drawn under the panels) */
     ImGuiIO &io = ImGui::GetIO();
     ImVec2 lo(p.x - 20, p.y - 20), hi(p.x + 26, p.y + 26);
     if (ImGui::GetFrameCount() - ptr_frame <= 2) { lo = ImVec2(fminf(ptr_lo.x, p.x), fminf(ptr_lo.y, p.y)); hi = ImVec2(fmaxf(ptr_hi.x, p.x), fmaxf(ptr_hi.y, p.y)); }
     bool right = p.x > io.DisplaySize.x * 0.6f, below = p.y > io.DisplaySize.y * 0.55f;
+    ImVec2 sz(ui_text_px() * 12, ui_text_px() * 1.6f);                 /* (its size the frame before, once drawn) */
+    if (ImGuiWindow *w = ImGui::FindWindowByName(win)) if (w->Size.x > 0 && w->Size.y > 0) sz = w->Size;
+    for (int k = 0; k < 4; k++) {                                       /* (as first chosen, the other side, the other height, both) */
+        bool r = right != ((k & 1) != 0), bl = below != ((k & 2) != 0);
+        ImVec2 a(r ? lo.x - 6 - sz.x : hi.x + 6, bl ? hi.y - sz.y : lo.y), b(a.x + sz.x, a.y + sz.y);
+        if (a.x >= 0 && a.y >= 0 && b.x <= io.DisplaySize.x && b.y <= io.DisplaySize.y && ui_layer_clear(a, b)) { right = r; below = bl; break; }
+    }
     ImGui::SetNextWindowPos(ImVec2(right ? lo.x - 6 : hi.x + 6, below ? hi.y : lo.y), ImGuiCond_Always, ImVec2(right ? 1.0f : 0.0f, below ? 1.0f : 0.0f));
     ImGui::SetNextWindowBgAlpha(0.92f);
 }
@@ -389,7 +397,7 @@ static void foe_arrow(void)
     float ty = bdy > 0 ? (y1 - in - cyw) / bdy : bdy < 0 ? (y0 + in - cyw) / bdy : 1e9f;
     float t = fminf(tx, ty);
     ImVec2 tip(cxw + bdx * t, cyw + bdy * t);
-    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    ImDrawList *dl = ui_tier_list(UI_TIER_FIELD);
     float L = 13 * k, W = 7 * k, pulse = 0.75f + 0.25f * sinf((float)ImGui::GetTime() * 4);
     ImVec2 base(tip.x - bdx * L, tip.y - bdy * L), nrm(-bdy, bdx);
     ImVec2 a(base.x + nrm.x * W, base.y + nrm.y * W), b2(base.x - nrm.x * W, base.y - nrm.y * W);
@@ -459,8 +467,9 @@ void ui_draw_battle_info(void)
     }
     if (best < 0) {
         if (!hint) return;
-        place_by_pointer(g2w((float)gx, (float)gy));
+        place_by_pointer(g2w((float)gx, (float)gy), "##clickhint");
         if (ImGui::Begin("##clickhint", nullptr, INFO_FLAGS)) {
+            ui_tier(UI_TIER_FIELD);
             ImGui::PushFont(ui_font_overlay);
             ImGui::SetWindowFontScale(ui_text_px() * 0.85f / ui_font_overlay->FontSize);
             hint_line(hint);
@@ -481,8 +490,9 @@ void ui_draw_battle_info(void)
     const char *cond = st == 3 ? "dead" : st == 2 ? "unconscious" : endm <= 0 ? "" : end * 4 <= endm ? "badly hurt" : end * 2 <= endm ? "hurt" : end < endm ? "a little hurt" : "unhurt";
     if (st == 1 && strm > 0 && str * 2 <= strm) cond = "gravely wounded";
     if (hint) {                                          /* what a click does: by the pointer, where the eye is */
-        place_by_pointer(g2w((float)gx, (float)gy));
+        place_by_pointer(g2w((float)gx, (float)gy), "##clickhint");
         if (ImGui::Begin("##clickhint", nullptr, INFO_FLAGS)) {
+            ui_tier(UI_TIER_FIELD);
             ImGui::PushFont(ui_font_overlay);
             ImGui::SetWindowFontScale(ui_text_px() * 0.85f / ui_font_overlay->FontSize);
             hint_line(hint);
@@ -504,6 +514,7 @@ void ui_draw_battle_info(void)
         ImGui::SetNextWindowBgAlpha(0.92f);
     }
     if (ImGui::Begin("##battleinfo", nullptr, INFO_FLAGS)) {
+        ui_tier(UI_TIER_FIELD);
         last_size = ImGui::GetWindowSize();
         ImGui::PushFont(ui_font_overlay);
         ImGui::SetWindowFontScale(ui_text_px() * 0.85f / ui_font_overlay->FontSize);
@@ -616,7 +627,7 @@ void ui_draw_battle_fast(void)
 {
     if (!battle_fast || game_mode() != GM_BATTLE || ns_showing()) return;
     if (ImGui::GetFrameCount() - ui_fast_button_frame <= 2) return;
-    ImDrawList *dl = ovl_list();
+    ImDrawList *dl = ui_tier_list(UI_TIER_FIELD);                       /* (a mark: it takes no click) */
     const char *t = "\xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z)";
     ImFont *f = ImGui::GetFont(); float fs = ImGui::GetFontSize();
     ImVec2 ts = f->CalcTextSizeA(fs, 1e9f, 0, t), r = g2w(318, 2);

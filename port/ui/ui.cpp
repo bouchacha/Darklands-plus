@@ -1,5 +1,6 @@
 // ui.cpp - the native port's own interface, drawn over the game: the Darklands+ window (F12)
 // and its pages (the settings pages in settings.cpp), help, notices. Dear ImGui on SDL_Renderer.
+#include <bitset>
 #include <SDL.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -314,25 +315,56 @@ extern "C" void ui_toggle_map(void)
 
 static int margin_click_taken, outside_down;
 extern "C" int levelwalk_door_click(void);            /* (mods/levelwalk.c: a click on a door, out of a fight) */
+/* ImGui sees every move of the mouse, and every release of a button or key it saw pressed, whoever takes the
+   event: a window that closes on the press (the level map's click, the world map's double-click, the Honor
+   Roll's click) left the release to the game, and ImGui's button held - and with it ImGui's pointer frozen where
+   the click was (the SDL backend reads the mouse by itself only while no button is down): no tooltip on the
+   panels, and the field's hints shown over them, from the pointer ImGui still had on the field (his report,
+   1.5.1-RC15) */
+static unsigned imgui_buttons;                        /* (the mouse buttons ImGui saw go down and not up) */
+static std::bitset<SDL_NUM_SCANCODES> imgui_keys;     /* (the keys) */
+static const SDL_Event *imgui_seen;                   /* (the event being routed, once ImGui has had it) */
+static void imgui_event(const SDL_Event *e)
+{
+    imgui_seen = e;
+    if (e->type == SDL_MOUSEBUTTONDOWN || e->type == SDL_MOUSEBUTTONUP) {
+        unsigned b = 1u << (e->button.button & 31);
+        imgui_buttons = e->type == SDL_MOUSEBUTTONDOWN ? imgui_buttons | b : imgui_buttons & ~b;
+    }
+    if ((e->type == SDL_KEYDOWN || e->type == SDL_KEYUP) && e->key.keysym.scancode < SDL_NUM_SCANCODES)
+        imgui_keys[e->key.keysym.scancode] = e->type == SDL_KEYDOWN;
+    ImGui_ImplSDL2_ProcessEvent(e);
+}
+static int ui_route(const SDL_Event *e);
 extern "C" int ui_event(const SDL_Event *e)
+{
+    imgui_seen = nullptr;
+    int r = ui_route(e);
+    if (imgui_seen != e && (e->type == SDL_MOUSEMOTION || (e->type == SDL_MOUSEBUTTONUP && (imgui_buttons >> (e->button.button & 31) & 1))
+                            || (e->type == SDL_KEYUP && e->key.keysym.scancode < SDL_NUM_SCANCODES && imgui_keys[e->key.keysym.scancode])))
+        imgui_event(e);
+    return r;
+}
+/* who takes an event (ui/layers.h for a click over the picture) */
+static int ui_route(const SDL_Event *e)
 {
     if (e->type == SDL_RENDER_TARGETS_RESET || e->type == SDL_RENDER_DEVICE_RESET) dc_reset();   /* (the kept pictures lost) */
     if (open_mt32 && !open_welcome) {       /* the MT-32 recommendation, as the welcome */
-        ImGui_ImplSDL2_ProcessEvent(e);
+        imgui_event(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
     if (open_welcome || tips_open()) {      /* the first start's word of welcome, and the tips (ui/tips.cpp), take every event until closed */
-        ImGui_ImplSDL2_ProcessEvent(e);
+        imgui_event(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
     if (ui_alert_open() && !open_menu) {     /* a notice to click through (ui/alerts.cpp) takes every event until it closes: the
                                                battle under it must not take its click (or the Esc / Space meant for it) */
         if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_F12) { ui_toggle(); return 1; }
-        ImGui_ImplSDL2_ProcessEvent(e);
+        imgui_event(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
     if (figpick_is_open() || portrait_picker_is_open()) {   /* a picker takes every event until it closes */
-        ImGui_ImplSDL2_ProcessEvent(e);
+        imgui_event(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
     if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_F12 && !(e->key.keysym.mod & KMOD_CTRL)) { ui_toggle(); return 1; }
@@ -346,7 +378,7 @@ extern "C" int ui_event(const SDL_Event *e)
     }
     if (halloffame_is_open()) {             /* the Honor Roll of Glory takes every event until closed */
         if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_F12) { halloffame_close(); return 1; }
-        ImGui_ImplSDL2_ProcessEvent(e);
+        imgui_event(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
     /* Tab in a battle or dungeon: the level map (ui/levelmap.cpp) */
@@ -355,7 +387,7 @@ extern "C" int ui_event(const SDL_Event *e)
     if (levelmap_is_open()) {
         if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_ESCAPE) { levelmap_toggle(); return 1; }
         if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_F12) { levelmap_toggle(); ui_toggle(); return 1; }
-        ImGui_ImplSDL2_ProcessEvent(e);
+        imgui_event(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
     /* Z in a battle: fast forward (mods/pathfix.c) */
@@ -367,21 +399,21 @@ extern "C" int ui_event(const SDL_Event *e)
     if (open_goto) {
         if (e->type == SDL_KEYDOWN && (e->key.keysym.sym == SDLK_ESCAPE || e->key.keysym.sym == SDLK_g)) { open_goto = false; return 1; }
         if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_F12) { open_goto = false; ui_toggle(); return 1; }
-        ImGui_ImplSDL2_ProcessEvent(e);
+        imgui_event(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
     if (savesview_opts_open()) {            /* the Save page's saving options (ui/savesview.cpp): every event, as the menu */
         if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_ESCAPE) { savesview_opts_close(); return 1; }
-        ImGui_ImplSDL2_ProcessEvent(e);
+        imgui_event(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
     if (open_map) {
         if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_ESCAPE && worldmap_find_escape(ImGui::GetIO().WantTextInput)) {   /* (Esc: a name in the Find box cleared first) */
-            if (ImGui::GetIO().WantTextInput) ImGui_ImplSDL2_ProcessEvent(e);
+            if (ImGui::GetIO().WantTextInput) imgui_event(e);
             return 1;
         }
         if (e->type == SDL_KEYDOWN && (e->key.keysym.sym == SDLK_ESCAPE || (e->key.keysym.sym == SDLK_m && !ImGui::GetIO().WantTextInput))) { ui_toggle_map(); return 1; }
-        ImGui_ImplSDL2_ProcessEvent(e);
+        imgui_event(e);
         return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
     }
     if (!open_menu) {
@@ -408,7 +440,7 @@ extern "C" int ui_event(const SDL_Event *e)
         return 0;
     }
     if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_ESCAPE) { ui_toggle(); return 1; }
-    ImGui_ImplSDL2_ProcessEvent(e);
+    imgui_event(e);
     return e->type != SDL_QUIT && e->type != SDL_WINDOWEVENT;
 }
 
@@ -547,6 +579,16 @@ unsigned long long ui_build_us;
 extern "C" int ui_vtx, ui_cmds; int ui_vtx, ui_cmds;   /* (DL_PRESENT_TIME: the size of what the interface hands the graphics card) */
 extern "C" int ui_frame_depth; int ui_frame_depth;    /* an interface frame being made (the game must not run inside one: runtime/bios.c dl_poll) */
 extern "C" void plat_native_stack(void);
+/* under a window that takes every event (ui/layers.h UI_MODAL), the views and the panels see no pointer: no
+   hover, no tooltip of theirs over the window or beside it (the pages drawn by Darklands+ on the game's
+   own pointer: NsDraw::begin) */
+static void ui_pointer_hidden(bool on)
+{
+    static ImVec2 keep; static bool hidden;
+    ImGuiIO &io = ImGui::GetIO();
+    if (on && !hidden && ui_modal_up()) { keep = io.MousePos; io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX); hidden = true; }
+    else if (!on && hidden) { io.MousePos = keep; hidden = false; }
+}
 extern "C" void ui_draw(SDL_Renderer *ren)
 {
     if (ui_frame_depth) { static int said; if (!said++) { fprintf(stderr, "ui: a frame begun while another is being made\n"); plat_native_stack(); } }
@@ -571,8 +613,9 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     }
     else if (halloffame_is_open()) halloffame_draw();
     else if (levelmap_is_open()) levelmap_draw();
-    else { VT(banner_draw()); VT(hdtext_draw()); VT(partypanel_draw()); VT(cardview_draw()); VT(barterview_draw()); VT(sheetview_draw()); VT(lootview_draw()); VT(alchemyview_draw()); VT(cacheview_draw()); VT(prayview_draw()); VT(createview_draw()); VT(rosterview_draw()); VT(infoview_draw()); VT(titleview_draw()); VT(marchview_draw()); VT(lodgeview_draw()); VT(enemyview_draw()); VT(mapmsg_draw()); VT(choose_draw()); VT(savesview_draw()); VT(menuview_draw()); }
+    else { ui_pointer_hidden(true); VT(banner_draw()); VT(hdtext_draw()); VT(partypanel_draw()); VT(cardview_draw()); VT(barterview_draw()); VT(sheetview_draw()); VT(lootview_draw()); VT(alchemyview_draw()); VT(cacheview_draw()); VT(prayview_draw()); VT(createview_draw()); VT(rosterview_draw()); VT(infoview_draw()); VT(titleview_draw()); VT(marchview_draw()); VT(lodgeview_draw()); VT(enemyview_draw()); VT(mapmsg_draw()); VT(choose_draw()); VT(savesview_draw()); VT(menuview_draw()); }
     if (!open_menu && !open_map && !levelmap_is_open() && !halloffame_is_open()) VT(ui_overlay());
+    ui_pointer_hidden(false);
     {
         if (!windows_up()) hdtext_draw_cursor();
         else hdtext_pointer_off();
@@ -588,7 +631,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     ns_defer_frame_end(open_menu || open_map);                    /* (requests while the game is held: mods/nscreen.h) */
     if (open_menu) {
         ImGuiIO &io = ImGui::GetIO();
-        ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 110));
+        ui_tier_list(UI_TIER_DIM)->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 110));
         float w = fminf(io.DisplaySize.x * 0.95f, UIS(1100)), h = fminf(io.DisplaySize.y * 0.92f, UIS(820));
         ImGui::SetNextWindowSize(ImVec2(w, h), ImGuiCond_Always);
         ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
@@ -669,7 +712,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
       if (hg_active && !windows_up()) {                         /* (drawn over everything: it gives way to a window over the game, as the
                                                                    game's message does below. 1.4.6-RC14, his report: a loss notice came up
                                                                    during the hours and the clock stood over its OK and over F12) */
-          ImDrawList *dl = ImGui::GetForegroundDrawList();
+          ImDrawList *dl = ui_tier_list(UI_TIER_COVER);
           float x0, y0, x1, y1; plat_game_to_win(0, 0, &x0, &y0); plat_game_to_win(320, 200, &x1, &y1);
           dl->AddRectFilled(ImVec2(x0, y0), ImVec2(x1, y1), IM_COL32(20, 12, 4, 120));
           float kx = (x1 - x0) / 320.0f, ky = (y1 - y0) / 200.0f;
@@ -713,6 +756,7 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     orn_windows();
     ui_rich_tip_flush();                                   /* (a shield's name under the pointer, if nothing else took the place: ui/richtext.h) */
     ui_tip_audit(); ui_panel_audit(); ui_pointer_audit();   /* (the checks: tools/uitour.py) */
+    ui_tiers_stack();                                      /* (the drawing in the order of ui/layers.h) */
     ImGui::Render();
     ui_build_us = SDL_GetPerformanceCounter();
     { ImDrawData *dd = ImGui::GetDrawData(); ui_vtx = dd->TotalVtxCount; ui_cmds = 0; for (int i = 0; i < dd->CmdListsCount; i++) ui_cmds += dd->CmdLists[i]->CmdBuffer.Size; }

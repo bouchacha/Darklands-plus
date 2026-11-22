@@ -96,6 +96,7 @@ static bool begin_panel(const char *id, float x, float w, float h, float size)
     ImGui::PushStyleColor(ImGuiCol_Separator, IM_COL32(120, 92, 56, 200));
     bool open = ImGui::Begin(id, nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings |
                                           ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNav);
+    ui_tier(UI_TIER_PANEL);
     ImGui::PushFont(ui_font_overlay);
     ImGui::SetWindowFontScale(size / ui_font_overlay->FontSize);
     ui_layer_rect(ImVec2(x, 0), ImVec2(x + w, h), UI_PANEL);   /* (a margin is a panel: where it overlaps the picture, a click there is not the game's) */
@@ -1007,7 +1008,7 @@ extern "C" void ui_margins(void)
                 float fs = ImGui::GetFontSize() * (1.15f + 0.25f * (1.0f - fminf(1.0f, t * 4)));
                 ImVec2 ts = ImGui::GetFont()->CalcTextSizeA(fs, FLT_MAX, 0, s2.c_str());
                 ImVec2 pos(fminf(b.x + 6, ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - ts.x - 4), a.y - t * ImGui::GetFontSize() * 0.4f);
-                ImDrawList *fl = ImGui::GetForegroundDrawList();
+                ImDrawList *fl = ui_tier_list(UI_TIER_PANEL);
                 fl->AddRectFilled(ImVec2(pos.x - 4, pos.y - 1), ImVec2(pos.x + ts.x + 4, pos.y + ts.y + 1), IM_COL32(30, 20, 8, (int)(200 * al)), 4);
                 fl->AddText(ImGui::GetFont(), fs, pos, IM_COL32(255, 214, 80, (int)(255 * al)), s2.c_str());
             }

@@ -515,9 +515,11 @@ static void strip(NsDraw &P, const SheetModel &s, float SX0, float SX1, float SY
             P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, y, SW, RAISED, t);
         }
     }
-    if (s.note[0] && plat_ticks_ms() - s.note_t < 6000) {
-        P.rect(SX0 + 1, SY1 - 8.6f, SX1 - 1, SY1 - 0.6f, IM_COL32(230, 214, 178, 255));
-        P.text(fo, NsDraw::FS_SMALL, SX0 + 2.5f, SY1 - 7.8f, IM_COL32(112, 40, 22, 255), ns_gtext(s.note), -1, SX1 - 1);
+    if (s.note[0] && plat_ticks_ms() - s.note_t < 6000) {          /* (what was just done; a longer one on more lines, upwards) */
+        std::string n = ns_gtext(s.note);
+        float nw = SX1 - SX0 - 3.5f, top = SY1 - 0.6f - fmaxf(8.0f, P.para_height(fo, NsDraw::FS_SMALL, nw, n) + 1.6f);
+        P.rect(SX0 + 1, top, SX1 - 1, SY1 - 0.6f, IM_COL32(230, 214, 178, 255));
+        P.para(fo, NsDraw::FS_SMALL, SX0 + 2.5f, top + 0.8f, nw, IM_COL32(112, 40, 22, 255), n);
     }
 }
 

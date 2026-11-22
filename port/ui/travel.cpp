@@ -6,6 +6,7 @@
 #include <math.h>
 #include <vector>
 #include "imgui.h"
+#include "layers.h"
 #include "worldmap_draw.h"
 #include "richtext.h"
 #include "marks.h"
@@ -27,7 +28,7 @@ extern "C" void travel_overlay(void)
     if (ns_showing()) return;
     if (!travel_map_live()) return;            /* a card is up over the map (a village, an encounter); the option
                                                   count of the last card stays set after it closes */
-    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    ImDrawList *dl = ui_tier_list(UI_TIER_FIELD);
     int vx = (s16)g_rw(GV_map_view_col), vr = (s16)g_rw(GV_map_buf_row) + (s16)g_rw(GV_map_view_row);
     /* the route ahead in straight legs (route_ahead, tile_px pixels: a tile 16 x 4, odd rows half a tile to the
        right), on the game's screen (the map's window from x 65, y 21: tile_px less 16 a column and 4 a row of the
@@ -63,7 +64,7 @@ extern "C" void travel_camp_button(void)
 {
     if (game_mode() != GM_MAP || ns_showing() || !travel_map_live() || config_get_int("original", 0)) { camp_frame = -10; return; }
     int mode = config_get_int("travel.camp_at_8", 0), hidden = config_get_int("map.camp_button_hidden", 0);
-    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    ImDrawList *dl = ui_tier_list(UI_TIER_PANEL);
     ImVec2 mp = ImGui::GetIO().MousePos;
     auto in = [&](ImVec2 p0, ImVec2 p1) { return mp.x >= p0.x && mp.x < p1.x && mp.y >= p0.y && mp.y < p1.y; };
     ImVec2 s0, s1; plat_game_to_win(289, 0, &s0.x, &s0.y); plat_game_to_win(320, 16, &s1.x, &s1.y);

@@ -11,6 +11,7 @@
 #include <map>
 #include "padglyphs.h"
 #include "imgui.h"
+#include "layers.h"
 #include "gamedata.h"
 #include "teachersui.h"
 #include "ordericons.h"
@@ -363,6 +364,7 @@ static void potions_tray(float cx, float bottom, float fs, float maxw)
     ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(24, 18, 12, 220));
     if (ImGui::Begin("##potiontray", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize |
                                                ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNav)) {
+        ui_tier(UI_TIER_PANEL);
         ImGui::PushFont(ui_font_overlay);
         ImGui::SetWindowFontScale(fs * 0.82f / ui_font_overlay->FontSize);
         ImDrawList *dl = ImGui::GetWindowDrawList();
@@ -569,6 +571,7 @@ void order_bar(float x0, float x1, float y1, bool with_resume)
     ImGui::PushStyleColor(ImGuiCol_Separator, IM_COL32(0, 0, 0, 0));
     if (ImGui::Begin("##orderbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize |
                                             ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNav)) {
+        ui_tier(UI_TIER_PANEL);
         ImGui::PushFont(ui_font_overlay);
         ImGui::SetWindowFontScale(fs / ui_font_overlay->FontSize);
         order_buttons(w - fs * 1.2f, with_resume);

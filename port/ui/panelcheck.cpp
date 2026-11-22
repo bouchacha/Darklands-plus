@@ -6,7 +6,7 @@
 // few lines at its top.
 //
 // Left out: what stands at the back on purpose (the world map and the level map, each the window the
-// others float on; the overlay layer over the game's picture), and what is meant to cover the rest
+// others float on; the tiers' layers over the whole screen, ui/layers.h), and what is meant to cover the rest
 // while it is up (F12's window, the welcome and the first-start windows, an alert, a menu or modal).
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -21,7 +21,7 @@ static bool named(const ImGuiWindow *w, const char *const *list)
     return false;
 }
 
-static const char *const BACK[] = { "World map", "Level map", "##overlay_layer", nullptr };
+static const char *const BACK[] = { "World map", "Level map", "##tier_", nullptr };
 static const char *const OVER[] = { "Darklands+", "Welcome to Darklands+", "Saving options", "Keys and clicks", "Darklands sounds best", "##alert", "Debug##Default", nullptr };
 
 static ImRect shown(const ImGuiWindow *w)

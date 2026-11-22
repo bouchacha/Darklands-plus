@@ -689,11 +689,11 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/alchemyview.cpp:455` | Start mixing |
 | `ui/alchemyview.cpp:456` | Start mixing |
 | `ui/alchemyview.cpp:464` | The mystic number: the higher, the harder the formula is to brew. The risk is what a failed batch can cause. At an inn, in a village or a hideout, one failure in two ends in a mishap: %s in %s it is an explosion (the party hurt, damages to pay, no room at the inn for four months), otherwise a stink (no room for a month). In a camp in the wild a failure only costs the ingredients. |
-| `ui/alerts.cpp:75` | %s: %d, was %d |
-| `ui/alerts.cpp:111` |   OK (%d more)   |
-| `ui/alerts.cpp:152` |  - what comes before  |
-| `ui/alerts.cpp:178` | Y: yes     N: no |
-| `ui/alerts.cpp:178` | Any key or click: continue |
+| `ui/alerts.cpp:76` | %s: %d, was %d |
+| `ui/alerts.cpp:112` |   OK (%d more)   |
+| `ui/alerts.cpp:153` |  - what comes before  |
+| `ui/alerts.cpp:179` | Y: yes     N: no |
+| `ui/alerts.cpp:179` | Any key or click: continue |
 | `ui/barterview.cpp:139` | Click to have %s pay from now on |
 | `ui/barterview.cpp:171` | Missile weapons |
 | `ui/barterview.cpp:171` | Tools and other goods |
@@ -722,75 +722,75 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/barterview.cpp:467` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  purchases go to the member picked above |
 | `ui/barterview.cpp:468` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  click a name to see their items |
 | `ui/barterview.cpp:469` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  click a name's coin to make that member pay |
-| `ui/battlelog.cpp:117` | , {Strength:- |
-| `ui/battlelog.cpp:132` | , the armor holds |
-| `ui/battlelog.cpp:132` | ; knocked back |
-| `ui/battlelog.cpp:133` | , knocked back |
-| `ui/battlelog.cpp:137` | , knocked back, misses  |
-| `ui/battlelog.cpp:190` | A dart from a trap misses  |
-| `ui/battlelog.cpp:214` | <skill> changed from X to Y |
-| `ui/battlelog.cpp:214` | Edged +3 (now 33) |
-| `ui/battlelog.cpp:216` |  changed from  |
-| `ui/battlelog.cpp:218` |  changed from %d to %d |
-| `ui/battlelog.cpp:219` | changed from 99 to 99 |
-| `ui/battlelog.cpp:229` | {%s:%+d (now %d)} |
-| `ui/battlelog.cpp:230` | %s %+d (now %d) |
-| `ui/battlelog.cpp:263` | The battle is over: the party has fallen. |
-| `ui/battlelog.cpp:263` | The battle is over: the enemies are beaten. |
-| `ui/battlelog.cpp:263` | The battle is over. |
-| `ui/battlelog.cpp:281` |  is wounded by  |
-| `ui/battlelog.cpp:281` | a dart from a trap |
-| `ui/battlelog.cpp:288` |  falls unconscious |
-| `ui/battlelog.cpp:290` |  leaves the field |
-| `ui/battlelog.cpp:294` | A dart from a trap hits  |
-| `ui/battlelog.cpp:294` | , the armor holds |
+| `ui/battlelog.cpp:118` | , {Strength:- |
+| `ui/battlelog.cpp:133` | , the armor holds |
+| `ui/battlelog.cpp:133` | ; knocked back |
+| `ui/battlelog.cpp:134` | , knocked back |
+| `ui/battlelog.cpp:138` | , knocked back, misses  |
+| `ui/battlelog.cpp:191` | A dart from a trap misses  |
+| `ui/battlelog.cpp:215` | <skill> changed from X to Y |
+| `ui/battlelog.cpp:215` | Edged +3 (now 33) |
+| `ui/battlelog.cpp:217` |  changed from  |
+| `ui/battlelog.cpp:219` |  changed from %d to %d |
+| `ui/battlelog.cpp:220` | changed from 99 to 99 |
+| `ui/battlelog.cpp:230` | {%s:%+d (now %d)} |
+| `ui/battlelog.cpp:231` | %s %+d (now %d) |
+| `ui/battlelog.cpp:264` | The battle is over: the party has fallen. |
+| `ui/battlelog.cpp:264` | The battle is over: the enemies are beaten. |
+| `ui/battlelog.cpp:264` | The battle is over. |
+| `ui/battlelog.cpp:282` |  is wounded by  |
+| `ui/battlelog.cpp:282` | a dart from a trap |
+| `ui/battlelog.cpp:289` |  falls unconscious |
+| `ui/battlelog.cpp:291` |  leaves the field |
+| `ui/battlelog.cpp:295` | A dart from a trap hits  |
 | `ui/battlelog.cpp:295` | , the armor holds |
-| `ui/battlelog.cpp:329` | Each blow will be listed here. |
-| `ui/battlelog.cpp:374` | No battle yet: the battle log shows here, blow by blow, during each battle and after it. |
-| `ui/battlelog.cpp:377` | The last battle |
-| `ui/battlelog.cpp:378` | The battle before |
-| `ui/battleoverlay.cpp:150` | weapon skills |
-| `ui/battleoverlay.cpp:150` | {Agility}, {Perception} and weapon skills |
-| `ui/battleoverlay.cpp:151` | %s: blinded (only parries; cannot shoot or throw), %d s more |
-| `ui/battleoverlay.cpp:152` | %s: blinded (only parries; cannot shoot or throw), %s %d%% lower, %d s more |
-| `ui/battleoverlay.cpp:153` | %s: blinded (only parries; cannot shoot or throw) %d s more; %s %d%% lower, %d s more |
-| `ui/battleoverlay.cpp:292` | Click: attack |
-| `ui/battleoverlay.cpp:292` | No clear shot |
-| `ui/battleoverlay.cpp:326` | The picture at the lower left of each member's box is their fighting style: what they do until you give them an order.  |
-| `ui/battleoverlay.cpp:326` | Click it to choose another.  |
-| `ui/battleoverlay.cpp:331` |  Everyone starts as a Skirmisher. Each character keeps the style you choose, battle to battle. |
-| `ui/battleoverlay.cpp:332` | Each member's fighting style |
-| `ui/battleoverlay.cpp:332` | Darklands+; F12 > Settings > Battles > Improved combat. |
-| `ui/battleoverlay.cpp:341` | Battles need fewer clicks |
-| `ui/battleoverlay.cpp:342` | Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.  Each member fights in their own fighting style until you give them an order: the picture at the lower left of their box. Click it to choose another (Skirmisher, Archer, Charger, or Manual). An order you give is carried out, then they go back to their style.  Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.  While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does. |
-| `ui/battleoverlay.cpp:348` | All this is Darklands+; each part can be switched off, for the original game's controls, in F12 > Settings > Battles. F11 lists the battle's keys and clicks. |
-| `ui/battleoverlay.cpp:411` | The nearest enemy is this way: click to look |
-| `ui/battleoverlay.cpp:427` | Door: click to walk there and close it |
-| `ui/battleoverlay.cpp:427` | Door: click to walk there and open it |
-| `ui/battleoverlay.cpp:432` | Stairs: click to walk there and take them |
-| `ui/battleoverlay.cpp:439` | a complex trap |
-| `ui/battleoverlay.cpp:439` | a moderate trap |
-| `ui/battleoverlay.cpp:439` | a simple trap |
-| `ui/battleoverlay.cpp:444` | Chest%s: Pick Lock from the orders of a member beside it |
-| `ui/battleoverlay.cpp:444` | Chest%s: Disarm from the orders of a member beside it |
-| `ui/battleoverlay.cpp:445` | Chest%s: open it from the orders of a member beside it |
-| `ui/battleoverlay.cpp:448` | Way out: click to walk there; then Exit Battlefield (X) for each member |
-| `ui/battleoverlay.cpp:448` | Way out: a member standing here can leave (Exit Battlefield, X) |
-| `ui/battleoverlay.cpp:481` | a little hurt |
-| `ui/battleoverlay.cpp:482` | gravely wounded |
-| `ui/battleoverlay.cpp:524` | The master of this place: once this enemy has fallen and the fight is over, the place is won. |
-| `ui/battleoverlay.cpp:537` | Melee rating %d |
-| `ui/battleoverlay.cpp:539` | natural weapons |
-| `ui/battleoverlay.cpp:544` | natural, as %s |
-| `ui/battleoverlay.cpp:557` | Dodge chance |
-| `ui/battleoverlay.cpp:593` | all of it through  |
-| `ui/battleoverlay.cpp:593` | half through  |
-| `ui/battleoverlay.cpp:593` | an eighth through  |
-| `ui/battleoverlay.cpp:599` | Each member against him hand to hand, the chosen one lit; a blow to the body. Red and green: a weapon's misfit or Strength bonus, as on its tooltip. |
-| `ui/battleoverlay.cpp:600` | %s (penetration %d) gets %s. |
-| `ui/battleoverlay.cpp:613` | Back to the chosen speed (Z) |
-| `ui/battleoverlay.cpp:620` | \xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z) |
-| `ui/battleoverlay.cpp:623` | >> fast forward  (Z) |
+| `ui/battlelog.cpp:296` | , the armor holds |
+| `ui/battlelog.cpp:330` | Each blow will be listed here. |
+| `ui/battlelog.cpp:375` | No battle yet: the battle log shows here, blow by blow, during each battle and after it. |
+| `ui/battlelog.cpp:378` | The last battle |
+| `ui/battlelog.cpp:379` | The battle before |
+| `ui/battleoverlay.cpp:149` | weapon skills |
+| `ui/battleoverlay.cpp:149` | {Agility}, {Perception} and weapon skills |
+| `ui/battleoverlay.cpp:150` | %s: blinded (only parries; cannot shoot or throw), %d s more |
+| `ui/battleoverlay.cpp:151` | %s: blinded (only parries; cannot shoot or throw), %s %d%% lower, %d s more |
+| `ui/battleoverlay.cpp:152` | %s: blinded (only parries; cannot shoot or throw) %d s more; %s %d%% lower, %d s more |
+| `ui/battleoverlay.cpp:291` | Click: attack |
+| `ui/battleoverlay.cpp:291` | No clear shot |
+| `ui/battleoverlay.cpp:334` | The picture at the lower left of each member's box is their fighting style: what they do until you give them an order.  |
+| `ui/battleoverlay.cpp:334` | Click it to choose another.  |
+| `ui/battleoverlay.cpp:339` |  Everyone starts as a Skirmisher. Each character keeps the style you choose, battle to battle. |
+| `ui/battleoverlay.cpp:340` | Each member's fighting style |
+| `ui/battleoverlay.cpp:340` | Darklands+; F12 > Settings > Battles > Improved combat. |
+| `ui/battleoverlay.cpp:349` | Battles need fewer clicks |
+| `ui/battleoverlay.cpp:350` | Click a member (on the field, or their box at the left), then an enemy to attack or a spot to walk to: that click gives the order. Space pauses and resumes the battle; while it is paused, the next member without an order is chosen for you.  Each member fights in their own fighting style until you give them an order: the picture at the lower left of their box. Click it to choose another (Skirmisher, Archer, Charger, or Manual). An order you give is carried out, then they go back to their style.  Against armor their weapon cannot pierce, members choose Vulnerable (aimed at the gaps in the armor) by themselves when that can get through.  While a member is selected, their orders are buttons at the foot of the field, grouped by what they do; point at one to see what it does. |
+| `ui/battleoverlay.cpp:356` | All this is Darklands+; each part can be switched off, for the original game's controls, in F12 > Settings > Battles. F11 lists the battle's keys and clicks. |
+| `ui/battleoverlay.cpp:419` | The nearest enemy is this way: click to look |
+| `ui/battleoverlay.cpp:435` | Door: click to walk there and close it |
+| `ui/battleoverlay.cpp:435` | Door: click to walk there and open it |
+| `ui/battleoverlay.cpp:440` | Stairs: click to walk there and take them |
+| `ui/battleoverlay.cpp:447` | a complex trap |
+| `ui/battleoverlay.cpp:447` | a moderate trap |
+| `ui/battleoverlay.cpp:447` | a simple trap |
+| `ui/battleoverlay.cpp:452` | Chest%s: Pick Lock from the orders of a member beside it |
+| `ui/battleoverlay.cpp:452` | Chest%s: Disarm from the orders of a member beside it |
+| `ui/battleoverlay.cpp:453` | Chest%s: open it from the orders of a member beside it |
+| `ui/battleoverlay.cpp:456` | Way out: click to walk there; then Exit Battlefield (X) for each member |
+| `ui/battleoverlay.cpp:456` | Way out: a member standing here can leave (Exit Battlefield, X) |
+| `ui/battleoverlay.cpp:490` | a little hurt |
+| `ui/battleoverlay.cpp:491` | gravely wounded |
+| `ui/battleoverlay.cpp:535` | The master of this place: once this enemy has fallen and the fight is over, the place is won. |
+| `ui/battleoverlay.cpp:548` | Melee rating %d |
+| `ui/battleoverlay.cpp:550` | natural weapons |
+| `ui/battleoverlay.cpp:555` | natural, as %s |
+| `ui/battleoverlay.cpp:568` | Dodge chance |
+| `ui/battleoverlay.cpp:604` | all of it through  |
+| `ui/battleoverlay.cpp:604` | half through  |
+| `ui/battleoverlay.cpp:604` | an eighth through  |
+| `ui/battleoverlay.cpp:610` | Each member against him hand to hand, the chosen one lit; a blow to the body. Red and green: a weapon's misfit or Strength bonus, as on its tooltip. |
+| `ui/battleoverlay.cpp:611` | %s (penetration %d) gets %s. |
+| `ui/battleoverlay.cpp:624` | Back to the chosen speed (Z) |
+| `ui/battleoverlay.cpp:631` | \xe2\x96\xb6\xe2\x96\xb6 fast forward  (Z) |
+| `ui/battleoverlay.cpp:634` | >> fast forward  (Z) |
 | `ui/bestiary.cpp:40` | Could not read DARKLAND.ENM. |
 | `ui/bestiary.cpp:44` | DARKLAND.ENM has an unexpected size. |
 | `ui/bestiary.cpp:92` | natural weapons |
@@ -893,129 +893,129 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/cardview.cpp:881` | (click to choose who learns one; point at a formula there for its details) |
 | `ui/cardview.cpp:882` | (click to choose who) |
 | `ui/cardview.cpp:898` | ..., for 3 groschen. |
-| `ui/citynav.cpp:186` | Market stalls: everyday goods to buy and sell. |
-| `ui/citynav.cpp:187` | Foreign trader |
-| `ui/citynav.cpp:187` | Pavilions of traders from distant lands: goods to buy and sell. |
-| `ui/citynav.cpp:188` | Swordsmith's Lane: weapons, and the swordsmiths' guild. |
-| `ui/citynav.cpp:189` | Armorer's Way: armor and shields, and the armorers' guild. |
-| `ui/citynav.cpp:190` | The Square of Bowyers and Gunsmiths: bows, crossbows and guns, and their guild. |
-| `ui/citynav.cpp:191` | The Street of the Blacksmiths: weapons, and the blacksmiths' guild. |
-| `ui/citynav.cpp:192` | Soldiers' Road |
-| `ui/citynav.cpp:192` | Shops and push-carts crowded with soldiers and camp followers, and the street's leaders. |
-| `ui/citynav.cpp:194` | Tinkers' Square: hammers, maces, flails and polearms, and the artisans' guild. |
-| `ui/citynav.cpp:195` | Clothmakers' Street: clothing and soft armor (padded, leather, studded leather, cuir bouilli), and the clothmakers' guild. |
-| `ui/citynav.cpp:196` | Astrologists' Lane: formulae to buy or trade, a better Philosopher's Stone, lessons in Alchemy. |
-| `ui/citynav.cpp:198` | Stalls with herbs and rare materials: alchemical ingredients. |
-| `ui/citynav.cpp:199` | Wounds treated for a fee, lessons in Healing, alchemical ingredients bought and sold. |
-| `ui/citynav.cpp:200` | Heavy coin changed into bank notes that weigh nothing, and back, for a fee. |
-| `ui/citynav.cpp:201` | The Medici representative: bank notes, as at the Fugger bank. |
-| `ui/citynav.cpp:202` | Hanseatic League |
-| `ui/citynav.cpp:202` | The offices of the league of northern merchant towns: quests for pay. Asked politely, they judge the party by its standing with the Hanse; asked boldly, by its reputation here and its fame. Collecting a reward politely also raises that standing. |
-| `ui/citynav.cpp:203` | The Fuggers' Leihhaus: a wide choice of everyday goods, and money for almost anything you sell. |
-| `ui/citynav.cpp:204` | Mass (Divine Favor for everyone, more with Religion and Latin); a donation of a third of the purse (the leader's Divine Favor); the patron saint's story; an errand for the canon (a relic); sanctuary. |
-| `ui/citynav.cpp:205` | Mass at set hours (Divine Favor for everyone, more with Religion and Latin); confession (the leader's Divine Favor, a few hours); a tithe of a tenth of the purse (everyone's Divine Favor filled); sanctuary when the town is against you. |
-| `ui/citynav.cpp:206` | The monks' library (Religion, Latin) and prayers for Divine Favor. |
-| `ui/citynav.cpp:207` | New saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone. The staff expect Latin and a sharp mind. |
-| `ui/citynav.cpp:208` | Nuns tend the sick: alms, a day's work beside them (Healing), wounds tended for a fee, or free of charge if they accept you. Open by day only. |
-| `ui/citynav.cpp:209` | Meals and a bed, news and rumors, the stables, a store room; stay to study or train. |
-| `ui/citynav.cpp:210` | Notices, gossip and news. |
-| `ui/citynav.cpp:211` | The city council: an audience with the lord, prisoners in the dungeons. |
-| `ui/citynav.cpp:212` | The city's prison. |
-| `ui/citynav.cpp:213` | The city guard's headquarters: people to join the party, weapons training. |
-| `ui/citynav.cpp:214` | The lord's fortress: an audience with the lord, prisoners in the dungeons. |
-| `ui/citynav.cpp:215` | Boats to other towns, for a fee (each leaves on its own day). |
-| `ui/citynav.cpp:216` | A dangerous slum: rumors, and a room for next to nothing. |
-| `ui/citynav.cpp:217` | A quiet corner where the party can wait: an hour, three hours, or until nightfall. |
-| `ui/citynav.cpp:218` | An alley to a stretch of the wall: a way out when you cannot use the gates. |
-| `ui/citynav.cpp:219` | Leave the city by one of its gates. |
-| `ui/citynav.cpp:221` | Quest givers |
-| `ui/citynav.cpp:221` | Learning and healing |
-| `ui/citynav.cpp:244` | arms and armor |
-| `ui/citynav.cpp:244` | less violent |
-| `ui/citynav.cpp:249` | other crafts |
-| `ui/citynav.cpp:257` | city marketplace |
-| `ui/citynav.cpp:257` | central city square |
-| `ui/citynav.cpp:258` | crafts district |
-| `ui/citynav.cpp:258` | central fortress |
+| `ui/citynav.cpp:187` | Market stalls: everyday goods to buy and sell. |
+| `ui/citynav.cpp:188` | Foreign trader |
+| `ui/citynav.cpp:188` | Pavilions of traders from distant lands: goods to buy and sell. |
+| `ui/citynav.cpp:189` | Swordsmith's Lane: weapons, and the swordsmiths' guild. |
+| `ui/citynav.cpp:190` | Armorer's Way: armor and shields, and the armorers' guild. |
+| `ui/citynav.cpp:191` | The Square of Bowyers and Gunsmiths: bows, crossbows and guns, and their guild. |
+| `ui/citynav.cpp:192` | The Street of the Blacksmiths: weapons, and the blacksmiths' guild. |
+| `ui/citynav.cpp:193` | Soldiers' Road |
+| `ui/citynav.cpp:193` | Shops and push-carts crowded with soldiers and camp followers, and the street's leaders. |
+| `ui/citynav.cpp:195` | Tinkers' Square: hammers, maces, flails and polearms, and the artisans' guild. |
+| `ui/citynav.cpp:196` | Clothmakers' Street: clothing and soft armor (padded, leather, studded leather, cuir bouilli), and the clothmakers' guild. |
+| `ui/citynav.cpp:197` | Astrologists' Lane: formulae to buy or trade, a better Philosopher's Stone, lessons in Alchemy. |
+| `ui/citynav.cpp:199` | Stalls with herbs and rare materials: alchemical ingredients. |
+| `ui/citynav.cpp:200` | Wounds treated for a fee, lessons in Healing, alchemical ingredients bought and sold. |
+| `ui/citynav.cpp:201` | Heavy coin changed into bank notes that weigh nothing, and back, for a fee. |
+| `ui/citynav.cpp:202` | The Medici representative: bank notes, as at the Fugger bank. |
+| `ui/citynav.cpp:203` | Hanseatic League |
+| `ui/citynav.cpp:203` | The offices of the league of northern merchant towns: quests for pay. Asked politely, they judge the party by its standing with the Hanse; asked boldly, by its reputation here and its fame. Collecting a reward politely also raises that standing. |
+| `ui/citynav.cpp:204` | The Fuggers' Leihhaus: a wide choice of everyday goods, and money for almost anything you sell. |
+| `ui/citynav.cpp:205` | Mass (Divine Favor for everyone, more with Religion and Latin); a donation of a third of the purse (the leader's Divine Favor); the patron saint's story; an errand for the canon (a relic); sanctuary. |
+| `ui/citynav.cpp:206` | Mass at set hours (Divine Favor for everyone, more with Religion and Latin); confession (the leader's Divine Favor, a few hours); a tithe of a tenth of the purse (everyone's Divine Favor filled); sanctuary when the town is against you. |
+| `ui/citynav.cpp:207` | The monks' library (Religion, Latin) and prayers for Divine Favor. |
+| `ui/citynav.cpp:208` | New saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone. The staff expect Latin and a sharp mind. |
+| `ui/citynav.cpp:209` | Nuns tend the sick: alms, a day's work beside them (Healing), wounds tended for a fee, or free of charge if they accept you. Open by day only. |
+| `ui/citynav.cpp:210` | Meals and a bed, news and rumors, the stables, a store room; stay to study or train. |
+| `ui/citynav.cpp:211` | Notices, gossip and news. |
+| `ui/citynav.cpp:212` | The city council: an audience with the lord, prisoners in the dungeons. |
+| `ui/citynav.cpp:213` | The city's prison. |
+| `ui/citynav.cpp:214` | The city guard's headquarters: people to join the party, weapons training. |
+| `ui/citynav.cpp:215` | The lord's fortress: an audience with the lord, prisoners in the dungeons. |
+| `ui/citynav.cpp:216` | Boats to other towns, for a fee (each leaves on its own day). |
+| `ui/citynav.cpp:217` | A dangerous slum: rumors, and a room for next to nothing. |
+| `ui/citynav.cpp:218` | A quiet corner where the party can wait: an hour, three hours, or until nightfall. |
+| `ui/citynav.cpp:219` | An alley to a stretch of the wall: a way out when you cannot use the gates. |
+| `ui/citynav.cpp:220` | Leave the city by one of its gates. |
+| `ui/citynav.cpp:222` | Quest givers |
+| `ui/citynav.cpp:222` | Learning and healing |
+| `ui/citynav.cpp:245` | arms and armor |
+| `ui/citynav.cpp:245` | less violent |
+| `ui/citynav.cpp:250` | other crafts |
+| `ui/citynav.cpp:258` | city marketplace |
+| `ui/citynav.cpp:258` | central city square |
 | `ui/citynav.cpp:259` | crafts district |
-| `ui/citynav.cpp:259` | side streets and alleys |
-| `ui/citynav.cpp:262` | not found in this city |
-| `ui/citynav.cpp:263` | alchemical symbols |
-| `ui/citynav.cpp:263` | great churches |
-| `ui/citynav.cpp:265` | great churches |
-| `ui/citynav.cpp:265` | common districts |
-| `ui/citynav.cpp:265` | merchant and craft districts |
-| `ui/citynav.cpp:266` | gates leading out |
-| `ui/citynav.cpp:267` | posted notices |
-| `ui/citynav.cpp:273` | avoiding them |
-| `ui/citynav.cpp:273` | attack the guards |
-| `ui/citynav.cpp:274` | other locations you remember |
-| `ui/citynav.cpp:275` | connecting to important districts |
-| `ui/citynav.cpp:275` | to be determined |
-| `ui/citynav.cpp:440` | : the list follows the cards |
-| `ui/citynav.cpp:462` | a walk there found no path |
-| `ui/citynav.cpp:464` | Go to %s: %s |
-| `ui/citynav.cpp:512` | think better of it |
-| `ui/citynav.cpp:512` | apologizes for disturbing |
-| `ui/citynav.cpp:512` | not to get involved |
-| `ui/citynav.cpp:512` | come back in the morning |
-| `ui/citynav.cpp:531` | simply walk out |
-| `ui/citynav.cpp:539` | leave the city |
-| `ui/citynav.cpp:540` | out of the city |
-| `ui/citynav.cpp:562` | The gate: choose how to get out, and the journey begins in the overland view. |
-| `ui/citynav.cpp:602` | left the city. |
-| `ui/citynav.cpp:603` | too many steps; stopped. |
-| `ui/citynav.cpp:612` | something happened on the way. |
-| `ui/citynav.cpp:612` | leave this place first. |
-| `ui/citynav.cpp:620` | the way is blocked. |
-| `ui/citynav.cpp:626` | cannot find the way from this card. |
-| `ui/citynav.cpp:636` | leading merchant |
-| `ui/citynav.cpp:641` | something happened on the way. |
-| `ui/citynav.cpp:643` | something happened on the way. |
-| `ui/citynav.cpp:643` | leave this place first. |
-| `ui/citynav.cpp:653` | the marketplace by night: choose how to get past the guards to the offices upstairs (press G again there for the office). |
-| `ui/citynav.cpp:654` | the marketplace by night: its stalls are shut until 5:00. |
-| `ui/citynav.cpp:675` | not found in this city. |
-| `ui/citynav.cpp:685` | Going to: %s. Press any key or click to stop. |
-| `ui/citynav.cpp:715` | Walking to the city gate |
-| `ui/citynav.cpp:715` | Walking to: %s |
-| `ui/citynav.cpp:728` | Any key or click stops the walk. |
-| `ui/citynav.cpp:837` | May offer a quest |
-| `ui/citynav.cpp:838` | Audience chance %d%% |
-| `ui/citynav.cpp:839` | Quest chance %d%% |
-| `ui/citynav.cpp:843` | No quests until %d %s |
-| `ui/citynav.cpp:845` | On a quest for them |
-| `ui/citynav.cpp:846` | Your reward is waiting |
-| `ui/citynav.cpp:854` |  Until %d %s, %d:00. |
-| `ui/citynav.cpp:968` | leading merchant |
-| `ui/citynav.cpp:979` | avoiding them |
-| `ui/citynav.cpp:983` | request an audience |
-| `ui/citynav.cpp:1027` | Point at a place to read about it here: what it offers, its quests, its teachers. |
-| `ui/citynav.cpp:1038` | Click the tile and the party walks there. |
-| `ui/citynav.cpp:1077` | Pick a place and the party walks there through the streets. Press any key or click to stop them. |
-| `ui/citynav.cpp:1079` | Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out. |
-| `ui/citynav.cpp:1107` | Closed until 5:00 |
-| `ui/citynav.cpp:1107` | Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same. |
-| `ui/citynav.cpp:1111` | Turned away until %d %s |
-| `ui/citynav.cpp:1111` | The alchemists turned the party away; they will see you again from %d %s, %d:00. |
-| `ui/citynav.cpp:1112` | Library shut until %d %s |
-| `ui/citynav.cpp:1112` | The monks' library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:1113` | Prayers again from %d %s |
-| `ui/citynav.cpp:1113` | The party prayed with the monks; they may again from %d %s, %d:00. |
-| `ui/citynav.cpp:1114` | Library shut until %d %s |
-| `ui/citynav.cpp:1114` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:1140` | Your quest:  |
-| `ui/citynav.cpp:1140` | see the world map (M) |
-| `ui/citynav.cpp:1162` | Wares %dq, better than most |
-| `ui/citynav.cpp:1164` | Wares of %dq (most shops sell about 25q). |
-| `ui/citynav.cpp:1176` | What you learned |
-| `ui/citynav.cpp:1176` | The physician:  |
-| `ui/citynav.cpp:1182` | Philosopher's Stone %dq |
-| `ui/citynav.cpp:1182` | Stone %dq, no better |
-| `ui/citynav.cpp:1184` | A Philosopher's Stone of quality %d; the party's is %d. |
-| `ui/citynav.cpp:1184` | A Philosopher's Stone of quality %d; the party has none. |
-| `ui/citynav.cpp:1260` | A teacher to hire (faint: not available now) |
-| `ui/citynav.cpp:1261` | A quest of yours leads here |
+| `ui/citynav.cpp:259` | central fortress |
+| `ui/citynav.cpp:260` | crafts district |
+| `ui/citynav.cpp:260` | side streets and alleys |
+| `ui/citynav.cpp:263` | not found in this city |
+| `ui/citynav.cpp:264` | alchemical symbols |
+| `ui/citynav.cpp:264` | great churches |
+| `ui/citynav.cpp:266` | great churches |
+| `ui/citynav.cpp:266` | common districts |
+| `ui/citynav.cpp:266` | merchant and craft districts |
+| `ui/citynav.cpp:267` | gates leading out |
+| `ui/citynav.cpp:268` | posted notices |
+| `ui/citynav.cpp:274` | avoiding them |
+| `ui/citynav.cpp:274` | attack the guards |
+| `ui/citynav.cpp:275` | other locations you remember |
+| `ui/citynav.cpp:276` | connecting to important districts |
+| `ui/citynav.cpp:276` | to be determined |
+| `ui/citynav.cpp:441` | : the list follows the cards |
+| `ui/citynav.cpp:463` | a walk there found no path |
+| `ui/citynav.cpp:465` | Go to %s: %s |
+| `ui/citynav.cpp:513` | think better of it |
+| `ui/citynav.cpp:513` | apologizes for disturbing |
+| `ui/citynav.cpp:513` | not to get involved |
+| `ui/citynav.cpp:513` | come back in the morning |
+| `ui/citynav.cpp:532` | simply walk out |
+| `ui/citynav.cpp:540` | leave the city |
+| `ui/citynav.cpp:541` | out of the city |
+| `ui/citynav.cpp:563` | The gate: choose how to get out, and the journey begins in the overland view. |
+| `ui/citynav.cpp:603` | left the city. |
+| `ui/citynav.cpp:604` | too many steps; stopped. |
+| `ui/citynav.cpp:613` | something happened on the way. |
+| `ui/citynav.cpp:613` | leave this place first. |
+| `ui/citynav.cpp:621` | the way is blocked. |
+| `ui/citynav.cpp:627` | cannot find the way from this card. |
+| `ui/citynav.cpp:637` | leading merchant |
+| `ui/citynav.cpp:642` | something happened on the way. |
+| `ui/citynav.cpp:644` | something happened on the way. |
+| `ui/citynav.cpp:644` | leave this place first. |
+| `ui/citynav.cpp:654` | the marketplace by night: choose how to get past the guards to the offices upstairs (press G again there for the office). |
+| `ui/citynav.cpp:655` | the marketplace by night: its stalls are shut until 5:00. |
+| `ui/citynav.cpp:676` | not found in this city. |
+| `ui/citynav.cpp:686` | Going to: %s. Press any key or click to stop. |
+| `ui/citynav.cpp:716` | Walking to the city gate |
+| `ui/citynav.cpp:716` | Walking to: %s |
+| `ui/citynav.cpp:729` | Any key or click stops the walk. |
+| `ui/citynav.cpp:838` | May offer a quest |
+| `ui/citynav.cpp:839` | Audience chance %d%% |
+| `ui/citynav.cpp:840` | Quest chance %d%% |
+| `ui/citynav.cpp:844` | No quests until %d %s |
+| `ui/citynav.cpp:846` | On a quest for them |
+| `ui/citynav.cpp:847` | Your reward is waiting |
+| `ui/citynav.cpp:855` |  Until %d %s, %d:00. |
+| `ui/citynav.cpp:969` | leading merchant |
+| `ui/citynav.cpp:980` | avoiding them |
+| `ui/citynav.cpp:984` | request an audience |
+| `ui/citynav.cpp:1028` | Point at a place to read about it here: what it offers, its quests, its teachers. |
+| `ui/citynav.cpp:1039` | Click the tile and the party walks there. |
+| `ui/citynav.cpp:1078` | Pick a place and the party walks there through the streets. Press any key or click to stop them. |
+| `ui/citynav.cpp:1080` | Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out. |
+| `ui/citynav.cpp:1108` | Closed until 5:00 |
+| `ui/citynav.cpp:1108` | Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same. |
+| `ui/citynav.cpp:1112` | Turned away until %d %s |
+| `ui/citynav.cpp:1112` | The alchemists turned the party away; they will see you again from %d %s, %d:00. |
+| `ui/citynav.cpp:1113` | Library shut until %d %s |
+| `ui/citynav.cpp:1113` | The monks' library (where saints are learned) is shut to the party until %d %s, %d:00. |
+| `ui/citynav.cpp:1114` | Prayers again from %d %s |
+| `ui/citynav.cpp:1114` | The party prayed with the monks; they may again from %d %s, %d:00. |
+| `ui/citynav.cpp:1115` | Library shut until %d %s |
+| `ui/citynav.cpp:1115` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
+| `ui/citynav.cpp:1141` | Your quest:  |
+| `ui/citynav.cpp:1141` | see the world map (M) |
+| `ui/citynav.cpp:1163` | Wares %dq, better than most |
+| `ui/citynav.cpp:1165` | Wares of %dq (most shops sell about 25q). |
+| `ui/citynav.cpp:1177` | What you learned |
+| `ui/citynav.cpp:1177` | The physician:  |
+| `ui/citynav.cpp:1183` | Philosopher's Stone %dq |
+| `ui/citynav.cpp:1183` | Stone %dq, no better |
+| `ui/citynav.cpp:1185` | A Philosopher's Stone of quality %d; the party's is %d. |
+| `ui/citynav.cpp:1185` | A Philosopher's Stone of quality %d; the party has none. |
+| `ui/citynav.cpp:1261` | A teacher to hire (faint: not available now) |
+| `ui/citynav.cpp:1262` | A quest of yours leads here |
 | `ui/combaticons.cpp:53` | padded or leather |
 | `ui/combaticons.cpp:53` | studded or cuir-bouilli |
 | `ui/combaticons.cpp:53` | chain or brigandine |
@@ -1557,129 +1557,129 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/marchview.cpp:45` | The first leads the way; in single file the others follow in this order. |
 | `ui/margins.cpp:74` | In the wilds |
 | `ui/margins.cpp:76` | Traveling, near  |
-| `ui/margins.cpp:198` | University: new saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone, teachers to hire (it expects {Latin} and a sharp mind). |
-| `ui/margins.cpp:199` | Cathedral: donations for {Divine Favor} (and maybe {Virtue}), an errand for the canon (a relic), the patron saint's story, sanctuary. |
-| `ui/margins.cpp:203` | armor and shields |
-| `ui/margins.cpp:203` | bows, crossbows and guns |
-| `ui/margins.cpp:204` | weapons, armor and shields |
-| `ui/margins.cpp:204` | hammers, maces, flails and polearms (pikes, halberds, spears, staves) |
-| `ui/margins.cpp:205` | clothing and soft armor (padded, leather, studded leather, cuir bouilli) |
-| `ui/margins.cpp:253` | nobody would learn: %s |
-| `ui/margins.cpp:283` | Teachers here: a lesson a day at the inn, for a fee |
-| `ui/margins.cpp:284` | Under each, who would learn, and their skill now. |
-| `ui/margins.cpp:298` | Philosopher's Stone %dq |
-| `ui/margins.cpp:313` | A better Philosopher's Stone, for a price: |
-| `ui/margins.cpp:315` |  the alchemist's, quality %d; |
-| `ui/margins.cpp:316` |  the university's, quality %d; |
-| `ui/margins.cpp:318` |  The party's is %d%s. |
-| `ui/margins.cpp:318` |  The party has none. |
-| `ui/margins.cpp:318` | : nothing to gain here |
-| `ui/margins.cpp:358` | Notable shops |
-| `ui/margins.cpp:358` | Notable shops |
-| `ui/margins.cpp:360` | %s: %s of %dq (most shops sell about 25q). |
-| `ui/margins.cpp:365` | St.Edward, Confessor |
-| `ui/margins.cpp:373` | Saints taught here |
-| `ui/margins.cpp:390` |  (someone in the party knows this saint):  |
-| `ui/margins.cpp:390` |  (nobody in the party knows this saint):  |
-| `ui/margins.cpp:405` | Formulae sold here |
-| `ui/margins.cpp:424` | Someone in the party knows this formula. |
-| `ui/margins.cpp:424` | Nobody in the party knows this formula. |
-| `ui/margins.cpp:441` | Teachers to be hired |
-| `ui/margins.cpp:451` | %s: %s, up to %d |
-| `ui/margins.cpp:451` | %s: %s (their skill %d) |
-| `ui/margins.cpp:453` | A lesson a day at the inn, for a fee. Who would learn, and their skill now: |
-| `ui/margins.cpp:562` | Blessings and potions |
-| `ui/margins.cpp:637` | The first of these ends in  |
-| `ui/margins.cpp:637` | , the last in  |
-| `ui/margins.cpp:657` | Every member alike. |
-| `ui/margins.cpp:659` | Every member:  |
-| `ui/margins.cpp:695` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
-| `ui/margins.cpp:704` | Reputation %d |
-| `ui/margins.cpp:722` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
-| `ui/margins.cpp:722` | Below 0 its shops ask more and pay less: 1% for every 2 points below 0, up to 9%. |
-| `ui/margins.cpp:726` |   Changes seen since this game was loaded: |
-| `ui/margins.cpp:729` | the overland view |
-| `ui/margins.cpp:729` | , after choosing " |
-| `ui/margins.cpp:747` | The town counts as hostile: its gates and people turn the party away. |
-| `ui/margins.cpp:749` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
-| `ui/margins.cpp:760` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
-| `ui/margins.cpp:772` | Preparing for war |
-| `ui/margins.cpp:773` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
-| `ui/margins.cpp:775` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
-| `ui/margins.cpp:799` | The party has goods stored here (F12 > Journal > Stored). |
-| `ui/margins.cpp:804` | No blessings or potions at work. |
-| `ui/margins.cpp:813` | C: camp here |
-| `ui/margins.cpp:814` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
-| `ui/margins.cpp:818` | Go to a place here |
-| `ui/margins.cpp:818` | G: go to a place here |
-| `ui/margins.cpp:824` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
-| `ui/margins.cpp:873` | None taken on. |
-| `ui/margins.cpp:905` | Travel there |
-| `ui/margins.cpp:922` | ... %d more on the world map (M) |
-| `ui/margins.cpp:939` | Night in the streets |
-| `ui/margins.cpp:943` | almost always |
-| `ui/margins.cpp:944` | about %d time%s in 10 |
-| `ui/margins.cpp:945` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's {Stealth} and {Streetwise})%s. An inn is the safe place to wait for morning. |
-| `ui/margins.cpp:948` | , as set in F12 > Mods (Night encounters in the streets) |
-| `ui/margins.cpp:987` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
-| `ui/margins.cpp:987` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
-| `ui/margins.cpp:989` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
-| `ui/margins.cpp:989` | It is day (from 5:00 to 19:00). |
-| `ui/margins.cpp:1016` | %s in bank notes |
-| `ui/margins.cpp:1030` | F11: the keys and clicks of this screen. |
-| `ui/margins_battle.cpp:84` | The battle runs again (the key: Space). Any order being given is given first. |
-| `ui/margins_battle.cpp:85` | This member's order is given; the battle stays paused, to give others theirs (the key: Enter). |
-| `ui/margins_battle.cpp:86` | Every kind of enemy on the field: attributes, weapons, armor (the key: E). |
-| `ui/margins_battle.cpp:87` | Then click a spot: the member walks there. |
-| `ui/margins_battle.cpp:88` | Then click a spot: the member runs there without stopping to fight or striking back (to get out of a melee). |
-| `ui/margins_battle.cpp:89` | The member stops where they are and waits. |
-| `ui/margins_battle.cpp:90` | The party moves together as a group. |
-| `ui/margins_battle.cpp:91` | The party moves in single file, the leader first. |
-| `ui/margins_battle.cpp:92` | Open or shut the door beside the member. |
-| `ui/margins_battle.cpp:93` | Take the stairs beside the member to another floor. |
-| `ui/margins_battle.cpp:94` | Open the chest beside the member. |
-| `ui/margins_battle.cpp:95` | Pick the lock beside the member. |
-| `ui/margins_battle.cpp:96` | Dissolve the lock beside the member with an Eater-Water potion. |
-| `ui/margins_battle.cpp:97` | Disarm the trap on the chest beside the member. |
-| `ui/margins_battle.cpp:98` | The whole party gives up the fight. |
-| `ui/margins_battle.cpp:99` | Search the fallen for their belongings. |
-| `ui/margins_battle.cpp:100` | Leave the battlefield by the way out beside the member. |
-| `ui/margins_battle.cpp:101` | Stop giving this member an order (the key: Esc); the battle stays paused. |
-| `ui/margins_battle.cpp:102` | Then click an enemy: a standard attack, balanced between blows and guard. |
-| `ui/margins_battle.cpp:103` | Then click an enemy: blows aimed at the gaps in the armor (1 to 4 more penetration), but slower and a little less likely to land. |
-| `ui/margins_battle.cpp:104` | Then click an enemy: quick, furious blows without thought of defense. |
-| `ui/margins_battle.cpp:105` | Then click an enemy: the member mostly defends, hard to hit, striking back only now and then. |
-| `ui/margins_battle.cpp:106` | Then click an enemy: shoot or throw at it with the missile weapon (a clear line needed). |
-| `ui/margins_battle.cpp:204` |  Not open to this member now. |
-| `ui/margins_battle.cpp:227` | Walk Towards |
-| `ui/margins_battle.cpp:228` | Flee Towards |
-| `ui/margins_battle.cpp:228` | Travel As Group |
-| `ui/margins_battle.cpp:229` | Travel Single File |
-| `ui/margins_battle.cpp:229` | Cancel Giving Order |
-| `ui/margins_battle.cpp:384` | Drink: a click and the member drinks one at once. |
-| `ui/margins_battle.cpp:384` | Throw or use: a click gives the order (a potion is thrown at the enemy you then click). |
-| `ui/margins_battle.cpp:418` | Back to the chosen speed |
-| `ui/margins_battle.cpp:418` | Back to the chosen speed (Z) |
-| `ui/margins_battle.cpp:418` | Fast forward |
-| `ui/margins_battle.cpp:418` | Fast forward (Z) |
-| `ui/margins_battle.cpp:433` | Resume (Space) |
-| `ui/margins_battle.cpp:440` | The battle is running: Space pauses it, or click one of the party. |
-| `ui/margins_battle.cpp:448` | does not end |
-| `ui/margins_battle.cpp:457` | Enemies not yet met |
-| `ui/margins_battle.cpp:459` | No one else waits in this place. |
-| `ui/margins_battle.cpp:463` | No one on this floor (%d). |
-| `ui/margins_battle.cpp:467` | %sfloor %d: %d |
-| `ui/margins_battle.cpp:470` | Elsewhere: %s. |
-| `ui/margins_battle.cpp:473` | The master of this place waits on this floor. |
-| `ui/margins_battle.cpp:474` | The master of this place waits on floor %d. |
-| `ui/margins_battle.cpp:527` | a little hurt |
-| `ui/margins_battle.cpp:528` | gravely wounded |
-| `ui/margins_battle.cpp:533` | The master of this place: once this one has fallen and the fight is over, the place is won. |
-| `ui/margins_battle.cpp:538` | None in sight yet. |
-| `ui/margins_battle.cpp:540` | To explore: in Single File (Q) or as a Group (G), click a passage and the party walks there. Click stairs and they take them; a shut door and they open it; a way out and they walk to it, its orders ready. A chest says under the pointer whether it is locked or trapped (once a member has stood at it): bring the member to open it there%s. |
-| `ui/margins_battle.cpp:541` | ; Tab shows the level map (as far as the party has seen it), and a click on it walks the party there |
-| `ui/menuview.cpp:106` | Arrows, Enter; Esc closes |
-| `ui/menuview.cpp:106` | Click to choose; Esc or a click elsewhere closes |
+| `ui/margins.cpp:199` | University: new saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone, teachers to hire (it expects {Latin} and a sharp mind). |
+| `ui/margins.cpp:200` | Cathedral: donations for {Divine Favor} (and maybe {Virtue}), an errand for the canon (a relic), the patron saint's story, sanctuary. |
+| `ui/margins.cpp:204` | armor and shields |
+| `ui/margins.cpp:204` | bows, crossbows and guns |
+| `ui/margins.cpp:205` | weapons, armor and shields |
+| `ui/margins.cpp:205` | hammers, maces, flails and polearms (pikes, halberds, spears, staves) |
+| `ui/margins.cpp:206` | clothing and soft armor (padded, leather, studded leather, cuir bouilli) |
+| `ui/margins.cpp:254` | nobody would learn: %s |
+| `ui/margins.cpp:284` | Teachers here: a lesson a day at the inn, for a fee |
+| `ui/margins.cpp:285` | Under each, who would learn, and their skill now. |
+| `ui/margins.cpp:299` | Philosopher's Stone %dq |
+| `ui/margins.cpp:314` | A better Philosopher's Stone, for a price: |
+| `ui/margins.cpp:316` |  the alchemist's, quality %d; |
+| `ui/margins.cpp:317` |  the university's, quality %d; |
+| `ui/margins.cpp:319` |  The party's is %d%s. |
+| `ui/margins.cpp:319` |  The party has none. |
+| `ui/margins.cpp:319` | : nothing to gain here |
+| `ui/margins.cpp:359` | Notable shops |
+| `ui/margins.cpp:359` | Notable shops |
+| `ui/margins.cpp:361` | %s: %s of %dq (most shops sell about 25q). |
+| `ui/margins.cpp:366` | St.Edward, Confessor |
+| `ui/margins.cpp:374` | Saints taught here |
+| `ui/margins.cpp:391` |  (someone in the party knows this saint):  |
+| `ui/margins.cpp:391` |  (nobody in the party knows this saint):  |
+| `ui/margins.cpp:406` | Formulae sold here |
+| `ui/margins.cpp:425` | Someone in the party knows this formula. |
+| `ui/margins.cpp:425` | Nobody in the party knows this formula. |
+| `ui/margins.cpp:442` | Teachers to be hired |
+| `ui/margins.cpp:452` | %s: %s, up to %d |
+| `ui/margins.cpp:452` | %s: %s (their skill %d) |
+| `ui/margins.cpp:454` | A lesson a day at the inn, for a fee. Who would learn, and their skill now: |
+| `ui/margins.cpp:563` | Blessings and potions |
+| `ui/margins.cpp:638` | The first of these ends in  |
+| `ui/margins.cpp:638` | , the last in  |
+| `ui/margins.cpp:658` | Every member alike. |
+| `ui/margins.cpp:660` | Every member:  |
+| `ui/margins.cpp:696` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
+| `ui/margins.cpp:705` | Reputation %d |
+| `ui/margins.cpp:723` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
+| `ui/margins.cpp:723` | Below 0 its shops ask more and pay less: 1% for every 2 points below 0, up to 9%. |
+| `ui/margins.cpp:727` |   Changes seen since this game was loaded: |
+| `ui/margins.cpp:730` | the overland view |
+| `ui/margins.cpp:730` | , after choosing " |
+| `ui/margins.cpp:748` | The town counts as hostile: its gates and people turn the party away. |
+| `ui/margins.cpp:750` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
+| `ui/margins.cpp:761` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
+| `ui/margins.cpp:773` | Preparing for war |
+| `ui/margins.cpp:774` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
+| `ui/margins.cpp:776` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
+| `ui/margins.cpp:800` | The party has goods stored here (F12 > Journal > Stored). |
+| `ui/margins.cpp:805` | No blessings or potions at work. |
+| `ui/margins.cpp:814` | C: camp here |
+| `ui/margins.cpp:815` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
+| `ui/margins.cpp:819` | Go to a place here |
+| `ui/margins.cpp:819` | G: go to a place here |
+| `ui/margins.cpp:825` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
+| `ui/margins.cpp:874` | None taken on. |
+| `ui/margins.cpp:906` | Travel there |
+| `ui/margins.cpp:923` | ... %d more on the world map (M) |
+| `ui/margins.cpp:940` | Night in the streets |
+| `ui/margins.cpp:944` | almost always |
+| `ui/margins.cpp:945` | about %d time%s in 10 |
+| `ui/margins.cpp:946` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's {Stealth} and {Streetwise})%s. An inn is the safe place to wait for morning. |
+| `ui/margins.cpp:949` | , as set in F12 > Mods (Night encounters in the streets) |
+| `ui/margins.cpp:988` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
+| `ui/margins.cpp:988` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
+| `ui/margins.cpp:990` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
+| `ui/margins.cpp:990` | It is day (from 5:00 to 19:00). |
+| `ui/margins.cpp:1017` | %s in bank notes |
+| `ui/margins.cpp:1031` | F11: the keys and clicks of this screen. |
+| `ui/margins_battle.cpp:85` | The battle runs again (the key: Space). Any order being given is given first. |
+| `ui/margins_battle.cpp:86` | This member's order is given; the battle stays paused, to give others theirs (the key: Enter). |
+| `ui/margins_battle.cpp:87` | Every kind of enemy on the field: attributes, weapons, armor (the key: E). |
+| `ui/margins_battle.cpp:88` | Then click a spot: the member walks there. |
+| `ui/margins_battle.cpp:89` | Then click a spot: the member runs there without stopping to fight or striking back (to get out of a melee). |
+| `ui/margins_battle.cpp:90` | The member stops where they are and waits. |
+| `ui/margins_battle.cpp:91` | The party moves together as a group. |
+| `ui/margins_battle.cpp:92` | The party moves in single file, the leader first. |
+| `ui/margins_battle.cpp:93` | Open or shut the door beside the member. |
+| `ui/margins_battle.cpp:94` | Take the stairs beside the member to another floor. |
+| `ui/margins_battle.cpp:95` | Open the chest beside the member. |
+| `ui/margins_battle.cpp:96` | Pick the lock beside the member. |
+| `ui/margins_battle.cpp:97` | Dissolve the lock beside the member with an Eater-Water potion. |
+| `ui/margins_battle.cpp:98` | Disarm the trap on the chest beside the member. |
+| `ui/margins_battle.cpp:99` | The whole party gives up the fight. |
+| `ui/margins_battle.cpp:100` | Search the fallen for their belongings. |
+| `ui/margins_battle.cpp:101` | Leave the battlefield by the way out beside the member. |
+| `ui/margins_battle.cpp:102` | Stop giving this member an order (the key: Esc); the battle stays paused. |
+| `ui/margins_battle.cpp:103` | Then click an enemy: a standard attack, balanced between blows and guard. |
+| `ui/margins_battle.cpp:104` | Then click an enemy: blows aimed at the gaps in the armor (1 to 4 more penetration), but slower and a little less likely to land. |
+| `ui/margins_battle.cpp:105` | Then click an enemy: quick, furious blows without thought of defense. |
+| `ui/margins_battle.cpp:106` | Then click an enemy: the member mostly defends, hard to hit, striking back only now and then. |
+| `ui/margins_battle.cpp:107` | Then click an enemy: shoot or throw at it with the missile weapon (a clear line needed). |
+| `ui/margins_battle.cpp:205` |  Not open to this member now. |
+| `ui/margins_battle.cpp:228` | Walk Towards |
+| `ui/margins_battle.cpp:229` | Flee Towards |
+| `ui/margins_battle.cpp:229` | Travel As Group |
+| `ui/margins_battle.cpp:230` | Travel Single File |
+| `ui/margins_battle.cpp:230` | Cancel Giving Order |
+| `ui/margins_battle.cpp:386` | Drink: a click and the member drinks one at once. |
+| `ui/margins_battle.cpp:386` | Throw or use: a click gives the order (a potion is thrown at the enemy you then click). |
+| `ui/margins_battle.cpp:420` | Back to the chosen speed |
+| `ui/margins_battle.cpp:420` | Back to the chosen speed (Z) |
+| `ui/margins_battle.cpp:420` | Fast forward |
+| `ui/margins_battle.cpp:420` | Fast forward (Z) |
+| `ui/margins_battle.cpp:435` | Resume (Space) |
+| `ui/margins_battle.cpp:442` | The battle is running: Space pauses it, or click one of the party. |
+| `ui/margins_battle.cpp:450` | does not end |
+| `ui/margins_battle.cpp:459` | Enemies not yet met |
+| `ui/margins_battle.cpp:461` | No one else waits in this place. |
+| `ui/margins_battle.cpp:465` | No one on this floor (%d). |
+| `ui/margins_battle.cpp:469` | %sfloor %d: %d |
+| `ui/margins_battle.cpp:472` | Elsewhere: %s. |
+| `ui/margins_battle.cpp:475` | The master of this place waits on this floor. |
+| `ui/margins_battle.cpp:476` | The master of this place waits on floor %d. |
+| `ui/margins_battle.cpp:529` | a little hurt |
+| `ui/margins_battle.cpp:530` | gravely wounded |
+| `ui/margins_battle.cpp:535` | The master of this place: once this one has fallen and the fight is over, the place is won. |
+| `ui/margins_battle.cpp:540` | None in sight yet. |
+| `ui/margins_battle.cpp:542` | To explore: in Single File (Q) or as a Group (G), click a passage and the party walks there. Click stairs and they take them; a shut door and they open it; a way out and they walk to it, its orders ready. A chest says under the pointer whether it is locked or trapped (once a member has stood at it): bring the member to open it there%s. |
+| `ui/margins_battle.cpp:543` | ; Tab shows the level map (as far as the party has seen it), and a click on it walks the party there |
+| `ui/menuview.cpp:107` | Arrows, Enter; Esc closes |
+| `ui/menuview.cpp:107` | Click to choose; Esc or a click elsewhere closes |
 | `ui/money.cpp:49` |  florin = 20 |
 | `ui/money.cpp:49` |  groschen = 240 |
 | `ui/money.cpp:50` | %ld pfennig%s in all (1 florin = 20 groschen = 240 pfennigs) |
@@ -1850,40 +1850,40 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ornament.cpp:520` | Blind tooling |
 | `ui/ornament.cpp:521` | Metal plaque |
 | `ui/ornament.cpp:528` | Heals 8 to 15 Endurance |
-| `ui/overlay.cpp:135` |   (replaced) |
-| `ui/overlay.cpp:173` | A new encounter: %s (from a mod, not the original game) |
-| `ui/overlay.cpp:186` | Darklands+ %s (build %s) |
-| `ui/overlay.cpp:186` | Darklands+ build %s%s |
-| `ui/overlay.cpp:219` | No controller detected |
-| `ui/overlay.cpp:219` | Xbox controller detected |
-| `ui/overlay.cpp:219` | PlayStation controller detected |
-| `ui/overlay.cpp:219` | Nintendo controller detected |
-| `ui/overlay.cpp:313` | MT-32 ACTIVE |
-| `ui/overlay.cpp:338` | MIDI MESSAGE |
-| `ui/overlay.cpp:339` | MIDI MESSAGE |
-| `ui/overlay.cpp:396` | nobody knows |
-| `ui/overlay.cpp:410` | nobody has one |
-| `ui/overlay.cpp:419` | Saints who help here |
-| `ui/overlay.cpp:419` | Items that help here |
-| `ui/overlay.cpp:449` | nobody knows |
-| `ui/overlay.cpp:449` | nobody has one |
-| `ui/overlay.cpp:504` |  learned of  |
-| `ui/overlay.cpp:555` |  sells what the party keeps a stock of |
-| `ui/overlay.cpp:720` | Nobody in the party knows this saint |
-| `ui/overlay.cpp:729` | %s - mystic number %d, %s |
-| `ui/overlay.cpp:741` | %s of the three formulae for %s (the others: %s). |
-| `ui/overlay.cpp:749` | Nobody in the party knows this formula. |
-| `ui/overlay.cpp:764` | (carried: %d) |
-| `ui/overlay.cpp:766` | Enough for %d batch%s. |
-| `ui/overlay.cpp:766` | Not enough ingredients for a batch. |
-| `ui/overlay.cpp:790` |   Take all of it |
-| `ui/overlay.cpp:790` |   Share it out among the party |
-| `ui/overlay.cpp:791` |   Sell the whole stack |
-| `ui/overlay.cpp:826` | Making a character: name and gender first, then the family background, the attributes, and one profession after another, five years each, until you begin adventuring. Older characters know more, but age costs attributes. |
-| `ui/overlay.cpp:829` | The family decides the first attributes and skills. The right side shows what the background under the pointer would give; EP (top right) are the points to spend next. |
-| `ui/overlay.cpp:831` | Spend the EP on attributes: pick one, then + or -. Endurance and Strength are the hit points (and together set how much a character can carry); Agility counts in battle; Perception, Intelligence and Charisma serve many skills. |
-| `ui/overlay.cpp:832` | Choose the profession for the next five years. The right side shows the one under the pointer: the EP it gives (top), the attributes after it, and for each skill gain:room, that is, what it adds at once and how many EP that skill can still take. Some professions open only after others, or need certain attributes. |
-| `ui/overlay.cpp:833` | Spend the EP on skills: pick one, then + or -. A skill takes at most the room shown after the colon. Then choose the next profession, or begin adventuring. |
+| `ui/overlay.cpp:132` |   (replaced) |
+| `ui/overlay.cpp:170` | A new encounter: %s (from a mod, not the original game) |
+| `ui/overlay.cpp:183` | Darklands+ %s (build %s) |
+| `ui/overlay.cpp:183` | Darklands+ build %s%s |
+| `ui/overlay.cpp:216` | No controller detected |
+| `ui/overlay.cpp:216` | Xbox controller detected |
+| `ui/overlay.cpp:216` | PlayStation controller detected |
+| `ui/overlay.cpp:216` | Nintendo controller detected |
+| `ui/overlay.cpp:310` | MT-32 ACTIVE |
+| `ui/overlay.cpp:335` | MIDI MESSAGE |
+| `ui/overlay.cpp:336` | MIDI MESSAGE |
+| `ui/overlay.cpp:393` | nobody knows |
+| `ui/overlay.cpp:407` | nobody has one |
+| `ui/overlay.cpp:416` | Saints who help here |
+| `ui/overlay.cpp:416` | Items that help here |
+| `ui/overlay.cpp:446` | nobody knows |
+| `ui/overlay.cpp:446` | nobody has one |
+| `ui/overlay.cpp:501` |  learned of  |
+| `ui/overlay.cpp:552` |  sells what the party keeps a stock of |
+| `ui/overlay.cpp:717` | Nobody in the party knows this saint |
+| `ui/overlay.cpp:726` | %s - mystic number %d, %s |
+| `ui/overlay.cpp:738` | %s of the three formulae for %s (the others: %s). |
+| `ui/overlay.cpp:746` | Nobody in the party knows this formula. |
+| `ui/overlay.cpp:761` | (carried: %d) |
+| `ui/overlay.cpp:763` | Enough for %d batch%s. |
+| `ui/overlay.cpp:763` | Not enough ingredients for a batch. |
+| `ui/overlay.cpp:787` |   Take all of it |
+| `ui/overlay.cpp:787` |   Share it out among the party |
+| `ui/overlay.cpp:788` |   Sell the whole stack |
+| `ui/overlay.cpp:823` | Making a character: name and gender first, then the family background, the attributes, and one profession after another, five years each, until you begin adventuring. Older characters know more, but age costs attributes. |
+| `ui/overlay.cpp:826` | The family decides the first attributes and skills. The right side shows what the background under the pointer would give; EP (top right) are the points to spend next. |
+| `ui/overlay.cpp:828` | Spend the EP on attributes: pick one, then + or -. Endurance and Strength are the hit points (and together set how much a character can carry); Agility counts in battle; Perception, Intelligence and Charisma serve many skills. |
+| `ui/overlay.cpp:829` | Choose the profession for the next five years. The right side shows the one under the pointer: the EP it gives (top), the attributes after it, and for each skill gain:room, that is, what it adds at once and how many EP that skill can still take. Some professions open only after others, or need certain attributes. |
+| `ui/overlay.cpp:830` | Spend the EP on skills: pick one, then + or -. A skill takes at most the room shown after the colon. Then choose the next profession, or begin adventuring. |
 | `ui/overlay_text.cpp:178` | This option tests %s: %s %d%% chance of success. The original game shows this number while you hold Shift over an option; it rises with the skills and attributes tested. |
 | `ui/overlay_text.cpp:179` | This option tests the whole party: %s %d%% chance of success. The original game shows this number while you hold Shift over an option; it rises with the skills and attributes tested. |
 | `ui/overlay_text.cpp:213` | Edged Weapons |
@@ -1945,14 +1945,14 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/partypanel.cpp:248` | has nothing left to shoot or throw: give another order |
 | `ui/partypanel.cpp:249` | finds no path to an enemy: friends or walls stand in the way. Move someone aside, or give an order (a shot, a spot to walk to) |
 | `ui/partypanel.cpp:250` | waits for an order: click them here or on the battlefield, then an enemy, a spot or a choice from the Orders menu |
-| `ui/partypanel.cpp:439` | %s  %s: open the sheet. |
-| `ui/partypanel.cpp:461` | In effect on %s:%s |
-| `ui/partypanel.cpp:466` | Click: give %s orders (double-click: and move the view there). Right-click: %s's character sheet (F%d). |
-| `ui/partypanel.cpp:467` | Click: %s's character sheet (F%d). |
-| `ui/partypanel.cpp:482` | %s is on Manual: %s Click to choose a fighting style. |
-| `ui/partypanel.cpp:483` | %s fights as %s until you give them an order: %s Click to choose another fighting style. |
-| `ui/partypanel.cpp:493` | Divine Favor |
-| `ui/partypanel.cpp:531` | 's fighting style |
+| `ui/partypanel.cpp:443` | %s  %s: open the sheet. |
+| `ui/partypanel.cpp:465` | In effect on %s:%s |
+| `ui/partypanel.cpp:470` | Click: give %s orders (double-click: and move the view there). Right-click: %s's character sheet (F%d). |
+| `ui/partypanel.cpp:471` | Click: %s's character sheet (F%d). |
+| `ui/partypanel.cpp:486` | %s is on Manual: %s Click to choose a fighting style. |
+| `ui/partypanel.cpp:487` | %s fights as %s until you give them an order: %s Click to choose another fighting style. |
+| `ui/partypanel.cpp:497` | Divine Favor |
+| `ui/partypanel.cpp:535` | 's fighting style |
 | `ui/portraits.cpp:228` | Could not open this folder. |
 | `ui/portraits.cpp:241` | Could not read the whole folder. |
 | `ui/portraits.cpp:269` | Could not preview that image. |
@@ -2468,71 +2468,71 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/sheetview.cpp:502` | Point at an attribute or a skill to see what it does. Blue: raised by a saint for a while. |
 | `ui/sheetview.cpp:506` | In effect now:  |
 | `ui/sheetview.cpp:508` |  more (see "Blessings and potions" in the margin). |
-| `ui/sheetview.cpp:579` | Carries nothing. |
-| `ui/sheetview.cpp:615` | The party's pack |
-| `ui/sheetview.cpp:638` | Click to show them. |
-| `ui/sheetview.cpp:638` | Click to fold them away. |
-| `ui/sheetview.cpp:650` | Split every potion of every member evenly among the members on their feet, as each potion's Split does. The odd ones stay with whoever holds them, where they can. |
-| `ui/sheetview.cpp:717` | %s has {Virtue:%d}, less than the {Virtue:%d} this relic asks: %s |
-| `ui/sheetview.cpp:718` | it cannot be wielded, and does nothing for their prayers. |
-| `ui/sheetview.cpp:718` | it does nothing for their prayers. |
-| `ui/sheetview.cpp:732` | Split this potion evenly among the members on their feet, every quality of it. The odd ones stay with whoever holds them, where they can. |
-| `ui/sheetview.cpp:743` | Wielding it asks {Virtue:%d}. |
-| `ui/sheetview.cpp:754` | Kept: never sold or dropped (Sell spare gear skips it). Click to stop keeping it. |
-| `ui/sheetview.cpp:755` | Kept: never sold or dropped (Sell spare gear skips it). Click to mark it to sell instead. |
-| `ui/sheetview.cpp:756` | Marked to sell: Sell spare gear in a shop sells it with the spare weapons and armor. Click to clear the mark. |
-| `ui/sheetview.cpp:757` | Keep it: Darklands+ will not sell it (one by one or with Sell spare gear) or drop it until you click again. |
-| `ui/sheetview.cpp:790` | ; hold Shift for one) |
-| `ui/sheetview.cpp:791` | : the party's pack is everyone's already |
-| `ui/sheetview.cpp:792` | : drop it on a member at the left (hold Shift: just one) |
-| `ui/sheetview.cpp:792` | : drop it on a member at the left |
-| `ui/sheetview.cpp:860` | : Virtue too low for this saint |
-| `ui/sheetview.cpp:938` | Known by the party |
-| `ui/sheetview.cpp:955` | Every saint in the game |
-| `ui/sheetview.cpp:969` | Or what it raises: |
-| `ui/sheetview.cpp:969` | Or what it raises: |
-| `ui/sheetview.cpp:983` | %s: the %d saint%s whose help %s it, the most first%s |
-| `ui/sheetview.cpp:983` | The town's opinion of the party (its reputation) |
-| `ui/sheetview.cpp:984` | raises or heals |
-| `ui/sheetview.cpp:984` |  (click again for all) |
-| `ui/sheetview.cpp:1010` | No saint helps with that. |
-| `ui/sheetview.cpp:1010` | Nobody in the party knows a saint that helps with that. (Every saint in the game shows the others too.) |
-| `ui/sheetview.cpp:1050` | This saint asks a {Virtue} of %d of the one who prays%s. Each member's {Virtue}: %s |
-| `ui/sheetview.cpp:1051` | , more than anyone who knows it has |
-| `ui/sheetview.cpp:1051` | , more than anyone in the party has |
-| `ui/sheetview.cpp:1077` | No library the party has been to teaches this saint. |
-| `ui/sheetview.cpp:1079` | Taught in the library of  |
-| `ui/sheetview.cpp:1102` | Nobody in the party knows this saint. |
-| `ui/sheetview.cpp:1111` | Asks a {%s} of %d%s. |
-| `ui/sheetview.cpp:1111` | Asks a {%s} of %d: too low for %s to call on this saint. |
-| `ui/sheetview.cpp:1112` | , more than anyone in the party has |
-| `ui/sheetview.cpp:1127` | {~Virtue:%d} too low (it asks %d) |
-| `ui/sheetview.cpp:1127` | This saint asks a {Virtue} of %d: no prayer is heard below it. |
-| `ui/sheetview.cpp:1129` | {Divine Favor:%d} needed for a 99%% chance |
-| `ui/sheetview.cpp:1130` | The least Divine Favor that gives the best chance of being heard (of the %d they have): more is spent for nothing. The prayer screen sets the favor. |
-| `ui/sheetview.cpp:1133` | All their Divine Favor gives this chance; a 99%% chance takes {Divine Favor:%d}. The prayer screen sets the favor. |
-| `ui/sheetview.cpp:1134` | All their Divine Favor gives this chance. The prayer screen sets the favor. |
-| `ui/sheetview.cpp:1136` | {Divine Favor:%d} needed at least, has %d |
-| `ui/sheetview.cpp:1137` | This saint hears no prayer of less than %d Divine Favor. |
-| `ui/sheetview.cpp:1141` |  With the %s, it costs them {Divine Favor:%d} less (counted here). |
-| `ui/sheetview.cpp:1146` | Call on this saint now: the prayer screen, where you choose how much Divine Favor to spend. |
-| `ui/sheetview.cpp:1153` | Differs from the description:  |
-| `ui/sheetview.cpp:1202` | Every formula in the game |
-| `ui/sheetview.cpp:1232` | Nobody in the party knows a formula. Every formula in the game shows them all, their ingredients and where they are sold. |
-| `ui/sheetview.cpp:1277` | nobody knows it - sold here |
-| `ui/sheetview.cpp:1277` | nobody knows it |
-| `ui/sheetview.cpp:1297` | The party's ingredients |
-| `ui/sheetview.cpp:1333` | Mystic number %d, %s. |
-| `ui/sheetview.cpp:1333` | risk unknown |
-| `ui/sheetview.cpp:1336` | The mystic number: the higher, the harder the formula is to brew (set against the alchemist's {Alchemy} and {Intelligence}). The risk: how badly a failed brew can go wrong. |
-| `ui/sheetview.cpp:1341` | Enough ingredients to make %d potion%s. |
-| `ui/sheetview.cpp:1342` | The party lacks an ingredient: brewing must wait. |
-| `ui/sheetview.cpp:1342` | The party lacks an ingredient. |
-| `ui/sheetview.cpp:1344` | Chance of brewing one batch |
-| `ui/sheetview.cpp:1354` | Nobody in the party knows it. |
-| `ui/sheetview.cpp:1357` | No alchemist sells it: it is traded for or found. |
-| `ui/sheetview.cpp:1358` | No alchemist the party has been to sells it. |
-| `ui/sheetview.cpp:1363` | Sold by the alchemist of  |
+| `ui/sheetview.cpp:581` | Carries nothing. |
+| `ui/sheetview.cpp:617` | The party's pack |
+| `ui/sheetview.cpp:640` | Click to show them. |
+| `ui/sheetview.cpp:640` | Click to fold them away. |
+| `ui/sheetview.cpp:652` | Split every potion of every member evenly among the members on their feet, as each potion's Split does. The odd ones stay with whoever holds them, where they can. |
+| `ui/sheetview.cpp:719` | %s has {Virtue:%d}, less than the {Virtue:%d} this relic asks: %s |
+| `ui/sheetview.cpp:720` | it cannot be wielded, and does nothing for their prayers. |
+| `ui/sheetview.cpp:720` | it does nothing for their prayers. |
+| `ui/sheetview.cpp:734` | Split this potion evenly among the members on their feet, every quality of it. The odd ones stay with whoever holds them, where they can. |
+| `ui/sheetview.cpp:745` | Wielding it asks {Virtue:%d}. |
+| `ui/sheetview.cpp:756` | Kept: never sold or dropped (Sell spare gear skips it). Click to stop keeping it. |
+| `ui/sheetview.cpp:757` | Kept: never sold or dropped (Sell spare gear skips it). Click to mark it to sell instead. |
+| `ui/sheetview.cpp:758` | Marked to sell: Sell spare gear in a shop sells it with the spare weapons and armor. Click to clear the mark. |
+| `ui/sheetview.cpp:759` | Keep it: Darklands+ will not sell it (one by one or with Sell spare gear) or drop it until you click again. |
+| `ui/sheetview.cpp:792` | ; hold Shift for one) |
+| `ui/sheetview.cpp:793` | : the party's pack is everyone's already |
+| `ui/sheetview.cpp:794` | : drop it on a member at the left (hold Shift: just one) |
+| `ui/sheetview.cpp:794` | : drop it on a member at the left |
+| `ui/sheetview.cpp:862` | : Virtue too low for this saint |
+| `ui/sheetview.cpp:940` | Known by the party |
+| `ui/sheetview.cpp:957` | Every saint in the game |
+| `ui/sheetview.cpp:971` | Or what it raises: |
+| `ui/sheetview.cpp:971` | Or what it raises: |
+| `ui/sheetview.cpp:985` | %s: the %d saint%s whose help %s it, the most first%s |
+| `ui/sheetview.cpp:985` | The town's opinion of the party (its reputation) |
+| `ui/sheetview.cpp:986` | raises or heals |
+| `ui/sheetview.cpp:986` |  (click again for all) |
+| `ui/sheetview.cpp:1012` | No saint helps with that. |
+| `ui/sheetview.cpp:1012` | Nobody in the party knows a saint that helps with that. (Every saint in the game shows the others too.) |
+| `ui/sheetview.cpp:1052` | This saint asks a {Virtue} of %d of the one who prays%s. Each member's {Virtue}: %s |
+| `ui/sheetview.cpp:1053` | , more than anyone who knows it has |
+| `ui/sheetview.cpp:1053` | , more than anyone in the party has |
+| `ui/sheetview.cpp:1079` | No library the party has been to teaches this saint. |
+| `ui/sheetview.cpp:1081` | Taught in the library of  |
+| `ui/sheetview.cpp:1104` | Nobody in the party knows this saint. |
+| `ui/sheetview.cpp:1113` | Asks a {%s} of %d%s. |
+| `ui/sheetview.cpp:1113` | Asks a {%s} of %d: too low for %s to call on this saint. |
+| `ui/sheetview.cpp:1114` | , more than anyone in the party has |
+| `ui/sheetview.cpp:1129` | {~Virtue:%d} too low (it asks %d) |
+| `ui/sheetview.cpp:1129` | This saint asks a {Virtue} of %d: no prayer is heard below it. |
+| `ui/sheetview.cpp:1131` | {Divine Favor:%d} needed for a 99%% chance |
+| `ui/sheetview.cpp:1132` | The least Divine Favor that gives the best chance of being heard (of the %d they have): more is spent for nothing. The prayer screen sets the favor. |
+| `ui/sheetview.cpp:1135` | All their Divine Favor gives this chance; a 99%% chance takes {Divine Favor:%d}. The prayer screen sets the favor. |
+| `ui/sheetview.cpp:1136` | All their Divine Favor gives this chance. The prayer screen sets the favor. |
+| `ui/sheetview.cpp:1138` | {Divine Favor:%d} needed at least, has %d |
+| `ui/sheetview.cpp:1139` | This saint hears no prayer of less than %d Divine Favor. |
+| `ui/sheetview.cpp:1143` |  With the %s, it costs them {Divine Favor:%d} less (counted here). |
+| `ui/sheetview.cpp:1148` | Call on this saint now: the prayer screen, where you choose how much Divine Favor to spend. |
+| `ui/sheetview.cpp:1155` | Differs from the description:  |
+| `ui/sheetview.cpp:1204` | Every formula in the game |
+| `ui/sheetview.cpp:1234` | Nobody in the party knows a formula. Every formula in the game shows them all, their ingredients and where they are sold. |
+| `ui/sheetview.cpp:1279` | nobody knows it - sold here |
+| `ui/sheetview.cpp:1279` | nobody knows it |
+| `ui/sheetview.cpp:1299` | The party's ingredients |
+| `ui/sheetview.cpp:1335` | Mystic number %d, %s. |
+| `ui/sheetview.cpp:1335` | risk unknown |
+| `ui/sheetview.cpp:1338` | The mystic number: the higher, the harder the formula is to brew (set against the alchemist's {Alchemy} and {Intelligence}). The risk: how badly a failed brew can go wrong. |
+| `ui/sheetview.cpp:1343` | Enough ingredients to make %d potion%s. |
+| `ui/sheetview.cpp:1344` | The party lacks an ingredient: brewing must wait. |
+| `ui/sheetview.cpp:1344` | The party lacks an ingredient. |
+| `ui/sheetview.cpp:1346` | Chance of brewing one batch |
+| `ui/sheetview.cpp:1356` | Nobody in the party knows it. |
+| `ui/sheetview.cpp:1359` | No alchemist sells it: it is traded for or found. |
+| `ui/sheetview.cpp:1360` | No alchemist the party has been to sells it. |
+| `ui/sheetview.cpp:1365` | Sold by the alchemist of  |
 | `ui/skillicons.cpp:472` | Missile Device |
 | `ui/skillicons.cpp:472` | Missile Weapons |
 | `ui/skillicons.cpp:473` | Speak Common |
@@ -2561,41 +2561,41 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/teachersui.cpp:149` | {%s} (until %d %s) |
 | `ui/tipplace.cpp:127` | tooltip over ... |
 | `ui/tipplace.cpp:145` | what it describes |
-| `ui/tips.cpp:41` | Stairs and ladders now work differently in a fight: instead of one member going through at a time, the whole  |
-| `ui/tips.cpp:41` | party comes along, wherever they stand on the floor, the knocked-out carried. A party split across floors caused  |
-| `ui/tips.cpp:41` | many bugs in the original game (16 known ones), and keeping it together was the cleanest fix.  If anything goes wrong on stairs or after a change of floor (someone left behind,  |
-| `ui/tips.cpp:41` | walking through a wall, a fight that will not end), please make a report: F12 > About > Report a problem, and say what you were doing. |
-| `ui/tips.cpp:67` | Never show again (this will nag you %d more time%s) |
-| `ui/tips.cpp:68` | Never show again |
-| `ui/tips.cpp:134` | Battles, with Improved combat |
-| `ui/tips.cpp:135` | Your people fight on between orders |
-| `ui/tips.cpp:136` | A member with a bow, crossbow, gun or thrown weapon keeps shooting; when the target falls, at the nearest enemy in sight. |
-| `ui/tips.cpp:137` | With no clear line (a wall, a tree or a friend in the way), a shooter steps a few paces aside to find one. |
-| `ui/tips.cpp:138` | Shooters draw a melee weapon once an enemy is close, when nothing is left to shoot, or to help a friend nearby who is set upon or badly hurt. |
-| `ui/tips.cpp:139` | A member whose enemy falls turns on another close by; one with no orders joins a fight beside it, unless told to hold. |
-| `ui/tips.cpp:141` | F11 on a keyboard lists the keys. |
-| `ui/tips.cpp:142` | Space pauses and resumes. Orders can be given while paused. |
-| `ui/tips.cpp:144` | Click a member, then an enemy, a spot or a menu choice; Enter gives the order. |
-| `ui/tips.cpp:145` | A click on an enemy lets your member choose the attack: a Vulnerable one, aimed at the gaps, when only that gets through the enemy's armor; else a standard one. An attack you pick from the orders yourself (Std Attack, Vulnerable, Berserk, Parry) is kept. |
-| `ui/tips.cpp:146` | F11 lists every key |
-| `ui/tips.cpp:147` | ; Tab, the level map |
-| `ui/tips.cpp:151` | Std Attack: blows and guard in balance. |
-| `ui/tips.cpp:152` | Vulnerable: slow blows aimed at the gaps in the armor; they pierce more (1 to 4 more penetration), but come far less often and land a little less. For armor the weapon cannot get through. |
-| `ui/tips.cpp:153` | Berserk: quick, sure blows, without thought of defense. To finish a foe fast. |
-| `ui/tips.cpp:154` | Parry: mostly defends; hard to hit, striking back slower and less surely. To hold a foe off while help comes, or to spare a wounded member. |
-| `ui/tips.cpp:156` | Improved combat can be switched off in F12 > Settings > Battles. |
-| `ui/tips.cpp:158` |   To battle   |
-| `ui/tips.cpp:167` | the repetitiveness of some encounters |
-| `ui/tips.cpp:172` | New encounters |
-| `ui/tips.cpp:173` | A frequent complaint about Darklands, in reviews and among players, is that its random encounters soon repeat. |
-| `ui/tips.cpp:175` | Darklands+ comes with a mod of 160 new ones in the spirit of the original: 90 in the wild, 18 on the river boats, 34 in the towns' streets and 18 in camp. They come up among the game's own; a small seal in the corner of the card marks a new one. |
-| `ui/tips.cpp:178` |   Play with them   |
-| `ui/tips.cpp:178` |   Turn them on   |
-| `ui/tips.cpp:180` |   Turn them off   |
-| `ui/tips.cpp:180` |   Leave them off   |
-| `ui/tips.cpp:182` | Change it at any time: F12 > Mods. |
-| `ui/tips.cpp:194` | In Darklands+ %s |
-| `ui/tips.cpp:198` |   Understood   |
+| `ui/tips.cpp:42` | Stairs and ladders now work differently in a fight: instead of one member going through at a time, the whole  |
+| `ui/tips.cpp:42` | party comes along, wherever they stand on the floor, the knocked-out carried. A party split across floors caused  |
+| `ui/tips.cpp:42` | many bugs in the original game (16 known ones), and keeping it together was the cleanest fix.  If anything goes wrong on stairs or after a change of floor (someone left behind,  |
+| `ui/tips.cpp:42` | walking through a wall, a fight that will not end), please make a report: F12 > About > Report a problem, and say what you were doing. |
+| `ui/tips.cpp:68` | Never show again (this will nag you %d more time%s) |
+| `ui/tips.cpp:69` | Never show again |
+| `ui/tips.cpp:135` | Battles, with Improved combat |
+| `ui/tips.cpp:136` | Your people fight on between orders |
+| `ui/tips.cpp:137` | A member with a bow, crossbow, gun or thrown weapon keeps shooting; when the target falls, at the nearest enemy in sight. |
+| `ui/tips.cpp:138` | With no clear line (a wall, a tree or a friend in the way), a shooter steps a few paces aside to find one. |
+| `ui/tips.cpp:139` | Shooters draw a melee weapon once an enemy is close, when nothing is left to shoot, or to help a friend nearby who is set upon or badly hurt. |
+| `ui/tips.cpp:140` | A member whose enemy falls turns on another close by; one with no orders joins a fight beside it, unless told to hold. |
+| `ui/tips.cpp:142` | F11 on a keyboard lists the keys. |
+| `ui/tips.cpp:143` | Space pauses and resumes. Orders can be given while paused. |
+| `ui/tips.cpp:145` | Click a member, then an enemy, a spot or a menu choice; Enter gives the order. |
+| `ui/tips.cpp:146` | A click on an enemy lets your member choose the attack: a Vulnerable one, aimed at the gaps, when only that gets through the enemy's armor; else a standard one. An attack you pick from the orders yourself (Std Attack, Vulnerable, Berserk, Parry) is kept. |
+| `ui/tips.cpp:147` | F11 lists every key |
+| `ui/tips.cpp:148` | ; Tab, the level map |
+| `ui/tips.cpp:152` | Std Attack: blows and guard in balance. |
+| `ui/tips.cpp:153` | Vulnerable: slow blows aimed at the gaps in the armor; they pierce more (1 to 4 more penetration), but come far less often and land a little less. For armor the weapon cannot get through. |
+| `ui/tips.cpp:154` | Berserk: quick, sure blows, without thought of defense. To finish a foe fast. |
+| `ui/tips.cpp:155` | Parry: mostly defends; hard to hit, striking back slower and less surely. To hold a foe off while help comes, or to spare a wounded member. |
+| `ui/tips.cpp:157` | Improved combat can be switched off in F12 > Settings > Battles. |
+| `ui/tips.cpp:159` |   To battle   |
+| `ui/tips.cpp:168` | the repetitiveness of some encounters |
+| `ui/tips.cpp:173` | New encounters |
+| `ui/tips.cpp:174` | A frequent complaint about Darklands, in reviews and among players, is that its random encounters soon repeat. |
+| `ui/tips.cpp:176` | Darklands+ comes with a mod of 160 new ones in the spirit of the original: 90 in the wild, 18 on the river boats, 34 in the towns' streets and 18 in camp. They come up among the game's own; a small seal in the corner of the card marks a new one. |
+| `ui/tips.cpp:179` |   Play with them   |
+| `ui/tips.cpp:179` |   Turn them on   |
+| `ui/tips.cpp:181` |   Turn them off   |
+| `ui/tips.cpp:181` |   Leave them off   |
+| `ui/tips.cpp:183` | Change it at any time: F12 > Mods. |
+| `ui/tips.cpp:195` | In Darklands+ %s |
+| `ui/tips.cpp:199` |   Understood   |
 | `ui/titleview.cpp:27` | saved today at %d:%02d |
 | `ui/titleview.cpp:28` | saved yesterday at %d:%02d |
 | `ui/titleview.cpp:29` | saved %d %s %d |
@@ -2614,230 +2614,230 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/titleview.cpp:119` | Darklands+ %s (build %s) |
 | `ui/titleview.cpp:119` | Darklands+ build %s%s |
 | `ui/townicons.cpp:229` | von der Lilie |
-| `ui/travel.cpp:111` | Keep the campfire shown. |
-| `ui/travel.cpp:111` | Hide the campfire under the clock (point at the clock to see it again). |
-| `ui/travel.cpp:114` | Stop to camp at 20:00: off. |
-| `ui/travel.cpp:115` | At 20:00 the party stops and makes camp when someone is short of {Strength}, or of more {Divine Favor} than a night brings back ({Endurance} comes back on the road by itself). |
-| `ui/travel.cpp:116` | At 20:00 the party stops and makes camp every night (to brew potions on the road, say). |
-| `ui/travel.cpp:117` | Click: stop at 20:00 when someone needs rest. |
-| `ui/travel.cpp:117` | Click: stop at 20:00 every night. |
-| `ui/travel.cpp:121` | A day in camp or at an inn lasts until 5:00: from 20:00 that is a night of 9 hours, from 21:00 it is 5:00 the day after (32 hours). |
-| `ui/travel.cpp:139` | Stop to camp at 20:00: off |
-| `ui/travel.cpp:139` | Stop to camp at 20:00: when someone needs rest |
-| `ui/travel.cpp:139` | Stop to camp at 20:00: every night |
-| `ui/ui.cpp:87` |              |
-| `ui/ui.cpp:100` | EB Garamond (book face) |
-| `ui/ui.cpp:100` | Alegreya (calligraphic) |
-| `ui/ui.cpp:100` | IM Fell English (old print) |
-| `ui/ui.cpp:101` | Atkinson Hyperlegible (easiest to read) |
-| `ui/ui.cpp:101` | MedievalSharp (medieval hand) |
-| `ui/ui.cpp:101` | Fraktur (blackletter, for the brave) |
-| `ui/ui.cpp:102` | Grenze Gotisch (gothic, still readable) |
-| `ui/ui.cpp:102` | Comic Sans (we are so sorry) |
-| `ui/ui.cpp:227` | Comic Neue (a Comic Sans look-alike, we are so sorry) |
-| `ui/ui.cpp:242` | don't remind me |
-| `ui/ui.cpp:262` | Darklands stopped because of an error. Your saves are safe: Load is in the Game menu (right-click). F12 > About > Report a problem makes a report of it. |
-| `ui/ui.cpp:263` | The party's journey has ended. Load a saved game to continue: Load in the Game menu (right-click). |
-| `ui/ui.cpp:307` | The world map can only be opened from the overland view or a card, not in a battle. |
-| `ui/ui.cpp:308` | The world map can only be opened from the overland view or a card: close this screen first. |
-| `ui/ui.cpp:309` | The world map can only be opened from the overland view or a card, once a game is under way. |
-| `ui/ui.cpp:417` | How Darklands works |
-| `ui/ui.cpp:429` | A deep editor, for fixing and modding: |
-| `ui/ui.cpp:431` | it changes the saved game's own data directly, as the community's save editors do (to repair a character hit by an old bug, to cheat, or to make a mod). Nothing here is needed to play. |
-| `ui/ui.cpp:435` | Items (for a mod) |
-| `ui/ui.cpp:487` | Darklands+: the potions and the alchemical ingredients |
-| `ui/ui.cpp:489` | Potions, grades 1, 2 and 3 (the gold dots on the neck) |
-| `ui/ui.cpp:606` | Reconstructed Content |
-| `ui/ui.cpp:610` | Reconstructed Content |
-| `ui/ui.cpp:632` |              |
-| `ui/ui.cpp:745` | an index past the vertices |
-| `ui/ui.cpp:745` | not a number |
-| `ui/ui.cpp:745` | far past the window |
-| `ui/ui.cpp:778` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
-| `ui/ui.cpp:784` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
-| `ui/ui_windows.cpp:74` | Darklands+ is made by Yassine Meskhout. |
-| `ui/ui_windows.cpp:75` | Darklands (c) 1992 MicroProse. This is the original game, rebuilt to run directly on today's computers, with the game files of your own copy. F12 > Settings has the Full Original preset, the game as it played, and switches for most of what Darklands+ adds. |
-| `ui/ui_windows.cpp:78` | F11: the keys for the current screen.  F12: this window (the game waits while it is open).  Alt+Enter: full screen.  Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities). |
-| `ui/ui_windows.cpp:82` | saved games, and every other file the game writes: %s (Darklands+ cannot write to the game folder; the saved games in its SAVES folder can still be loaded) |
-| `ui/ui_windows.cpp:84` | saved games: the SAVES folder of the game folder, as in the original |
-| `ui/ui_windows.cpp:87` | the game: %s |
-| `ui/ui_windows.cpp:88` | settings: darklands_port.ini in %s |
-| `ui/ui_windows.cpp:88` | the game folder |
-| `ui/ui_windows.cpp:90` | mods, replacement art and sounds: the mods, art and sounds folders in %s |
-| `ui/ui_windows.cpp:90` | the game folder |
-| `ui/ui_windows.cpp:91` | screenshots (Ctrl+F12, the window as you see it): the screenshots folder in %s |
+| `ui/travel.cpp:112` | Keep the campfire shown. |
+| `ui/travel.cpp:112` | Hide the campfire under the clock (point at the clock to see it again). |
+| `ui/travel.cpp:115` | Stop to camp at 20:00: off. |
+| `ui/travel.cpp:116` | At 20:00 the party stops and makes camp when someone is short of {Strength}, or of more {Divine Favor} than a night brings back ({Endurance} comes back on the road by itself). |
+| `ui/travel.cpp:117` | At 20:00 the party stops and makes camp every night (to brew potions on the road, say). |
+| `ui/travel.cpp:118` | Click: stop at 20:00 when someone needs rest. |
+| `ui/travel.cpp:118` | Click: stop at 20:00 every night. |
+| `ui/travel.cpp:122` | A day in camp or at an inn lasts until 5:00: from 20:00 that is a night of 9 hours, from 21:00 it is 5:00 the day after (32 hours). |
+| `ui/travel.cpp:140` | Stop to camp at 20:00: off |
+| `ui/travel.cpp:140` | Stop to camp at 20:00: when someone needs rest |
+| `ui/travel.cpp:140` | Stop to camp at 20:00: every night |
+| `ui/ui.cpp:88` |              |
+| `ui/ui.cpp:101` | EB Garamond (book face) |
+| `ui/ui.cpp:101` | Alegreya (calligraphic) |
+| `ui/ui.cpp:101` | IM Fell English (old print) |
+| `ui/ui.cpp:102` | Atkinson Hyperlegible (easiest to read) |
+| `ui/ui.cpp:102` | MedievalSharp (medieval hand) |
+| `ui/ui.cpp:102` | Fraktur (blackletter, for the brave) |
+| `ui/ui.cpp:103` | Grenze Gotisch (gothic, still readable) |
+| `ui/ui.cpp:103` | Comic Sans (we are so sorry) |
+| `ui/ui.cpp:228` | Comic Neue (a Comic Sans look-alike, we are so sorry) |
+| `ui/ui.cpp:243` | don't remind me |
+| `ui/ui.cpp:263` | Darklands stopped because of an error. Your saves are safe: Load is in the Game menu (right-click). F12 > About > Report a problem makes a report of it. |
+| `ui/ui.cpp:264` | The party's journey has ended. Load a saved game to continue: Load in the Game menu (right-click). |
+| `ui/ui.cpp:308` | The world map can only be opened from the overland view or a card, not in a battle. |
+| `ui/ui.cpp:309` | The world map can only be opened from the overland view or a card: close this screen first. |
+| `ui/ui.cpp:310` | The world map can only be opened from the overland view or a card, once a game is under way. |
+| `ui/ui.cpp:449` | How Darklands works |
+| `ui/ui.cpp:461` | A deep editor, for fixing and modding: |
+| `ui/ui.cpp:463` | it changes the saved game's own data directly, as the community's save editors do (to repair a character hit by an old bug, to cheat, or to make a mod). Nothing here is needed to play. |
+| `ui/ui.cpp:467` | Items (for a mod) |
+| `ui/ui.cpp:519` | Darklands+: the potions and the alchemical ingredients |
+| `ui/ui.cpp:521` | Potions, grades 1, 2 and 3 (the gold dots on the neck) |
+| `ui/ui.cpp:649` | Reconstructed Content |
+| `ui/ui.cpp:653` | Reconstructed Content |
+| `ui/ui.cpp:675` |              |
+| `ui/ui.cpp:789` | an index past the vertices |
+| `ui/ui.cpp:789` | not a number |
+| `ui/ui.cpp:789` | far past the window |
+| `ui/ui.cpp:822` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
+| `ui/ui.cpp:828` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
+| `ui/ui_windows.cpp:75` | Darklands+ is made by Yassine Meskhout. |
+| `ui/ui_windows.cpp:76` | Darklands (c) 1992 MicroProse. This is the original game, rebuilt to run directly on today's computers, with the game files of your own copy. F12 > Settings has the Full Original preset, the game as it played, and switches for most of what Darklands+ adds. |
+| `ui/ui_windows.cpp:79` | F11: the keys for the current screen.  F12: this window (the game waits while it is open).  Alt+Enter: full screen.  Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities). |
+| `ui/ui_windows.cpp:83` | saved games, and every other file the game writes: %s (Darklands+ cannot write to the game folder; the saved games in its SAVES folder can still be loaded) |
+| `ui/ui_windows.cpp:85` | saved games: the SAVES folder of the game folder, as in the original |
+| `ui/ui_windows.cpp:88` | the game: %s |
+| `ui/ui_windows.cpp:89` | settings: darklands_port.ini in %s |
+| `ui/ui_windows.cpp:89` | the game folder |
+| `ui/ui_windows.cpp:91` | mods, replacement art and sounds: the mods, art and sounds folders in %s |
 | `ui/ui_windows.cpp:91` | the game folder |
-| `ui/ui_windows.cpp:92` | the session log: darklands_port.log (Windows) in %s; Report a problem below puts it in a zip with what else a report needs |
+| `ui/ui_windows.cpp:92` | screenshots (Ctrl+F12, the window as you see it): the screenshots folder in %s |
 | `ui/ui_windows.cpp:92` | the game folder |
-| `ui/ui_windows.cpp:94` | the game's program, made from your DARKLAND.EXE on the first start: %s (delete it to have it made again) |
-| `ui/ui_windows.cpp:102` | Report a problem |
-| `ui/ui_windows.cpp:105` | Dear ImGui (MIT license); Nuked OPL3, the Sound Blaster FM synthesis (LGPL 2.1); Munt's libmt32emu, the Roland MT-32 (LGPL 2.1); stb_image, stb_image_write, stb_vorbis (public domain); SDL2 and Mark Adler's blast (zlib license); fonts EB Garamond, Alegreya, Atkinson Hyperlegible, IM Fell English, MedievalSharp, UnifrakturMaguntia, Grenze Gotisch and Comic Neue (SIL Open Font License 1.1). |
-| `ui/ui_windows.cpp:108` | Darklands was designed by Arnold Hendrick and made by MicroProse; everything here stands on their game. |
-| `ui/ui_windows.cpp:109` | With thanks to the Darklands community: vvendigo's tools, Merle's and Joel "Quadko" McIntyre's documentation of the file formats, the Darklands Companion, Arkana Mechanika (Darklands Restoration) for its register of the original's bugs, and woodk123 for fixes. |
-| `ui/ui_windows.cpp:125` | Welcome to Darklands+ |
-| `ui/ui_windows.cpp:128` | This is Darklands (MicroProse, 1992), rebuilt to run directly on today's computers, with the game files of your own copy. Windows does not let programs write to the game folder where it is installed, so your saved games go to %s (the ones already in the game folder can be loaded as always). |
-| `ui/ui_windows.cpp:132` | This is Darklands (MicroProse, 1992), rebuilt to run directly on today's computers, with the game files of your own copy. Your saved games stay in the game folder as always. |
-| `ui/ui_windows.cpp:135` | Darklands+ adds what players have long wished for: crisp text, chances on the cards, a character sheet for the whole party, journals, a world map, a battle log, quick saves and fixes for old bugs. Choose how much of it below; most of it can also be switched on or off one by one. |
-| `ui/ui_windows.cpp:140` | How would you like to play? |
-| `ui/ui_windows.cpp:145` |  (recommended) |
-| `ui/ui_windows.cpp:156` | one save, kept by the game itself as you go; no loading back. For your next new game, with any of the three. |
-| `ui/ui_windows.cpp:160` | Saved games stay compatible with the original game whichever you choose. |
-| `ui/ui_windows.cpp:161` | Change it at any time, or turn single features on or off: {START} > Settings. {LSTICK} moves the pointer, {A} clicks. |
-| `ui/ui_windows.cpp:162` | Change it at any time, or turn single features on or off: F12 > Settings. |
-| `ui/ui_windows.cpp:168` | F12: the Darklands+ window (the game waits while it is open) |
-| `ui/ui_windows.cpp:169` | F11: the keys and clicks for the current screen, including the game's hidden ones |
-| `ui/ui_windows.cpp:170` | Click a party member on the left (in a battle, right-click: a click there selects them for orders): their character sheet, with the whole party's saints and formulae |
-| `ui/ui_windows.cpp:171` | M: the world map, to find a place and travel there |
-| `ui/ui_windows.cpp:172` | Right-click: the game's menu bar (save, load, orders in battle) |
-| `ui/ui_windows.cpp:173` | Alt+Enter: full screen   Ctrl+S: quick save   F9: quick load |
-| `ui/ui_windows.cpp:191` | Darklands sounds best on a Roland MT-32 |
-| `ui/ui_windows.cpp:192` | Darklands was written for the Roland MT-32, a synthesizer of 1987 (or its sibling the LAPC-I, a card inside the computer). Everything the game plays goes through it as notes, the battle sounds too. The game first loads instruments of its own into it, so the music comes out as composed, with flutes, strings and horns, and the battles sound like swords and shields... sort of: each blow is still a synthesizer playing a note. |
-| `ui/ui_windows.cpp:196` | Every other sound setting is a stand-in. The Sound Blaster, the usual sound card of the time, plays simpler versions of the music and rougher imitations of the battle sounds; an ordinary synthesizer, such as the one built into Windows, plays the wrong instruments altogether. |
-| `ui/ui_windows.cpp:200` | Darklands+ has an MT-32 built in (Munt's imitation of it). It only needs two files copied from a real one's memory, its ROM files: control and PCM, of an MT-32 or of the later CM-32L (either works and they sound much the same; with both, the MT-32 plays unless you choose the CM-32L in F12 > Settings > Sound). They are usually named MT32_CONTROL.ROM and MT32_PCM.ROM (CM32L_CONTROL.ROM and CM32L_PCM.ROM for a CM-32L); any names do, Darklands+ knows them by what is in them. They belong to Roland, so they cannot come with this download. If you play other games with Munt or DOSBox and an MT-32, you have them already: show Darklands+ the folder. |
-| `ui/ui_windows.cpp:214` | Choose the folder with the ROM files... |
-| `ui/ui_windows.cpp:216` | The folder with the MT-32 or CM-32L ROM files (control and PCM): |
-| `ui/ui_windows.cpp:218` | No MT-32 or CM-32L ROM files in that folder. |
-| `ui/ui_windows.cpp:226` | No ROM files found there yet. |
-| `ui/ui_windows.cpp:228` | Darklands+ also looks in Munt's ROM folder, DOSBox Staging's mt32-roms folder, and a "roms" folder in the Darklands+ folder or the game folder. |
-| `ui/ui_windows.cpp:233` | Restart with the MT-32 |
-| `ui/ui_windows.cpp:239` | F12 > Settings > Sound has all of this too. |
-| `ui/ui_windows.cpp:255` | Keys and clicks (F11) |
-| `ui/ui_windows.cpp:268` | Now: loading a game |
-| `ui/ui_windows.cpp:268` | Now: saving the game |
-| `ui/ui_windows.cpp:269` | Double-click a save |
-| `ui/ui_windows.cpp:269` | load it (or click it, then Load) |
-| `ui/ui_windows.cpp:269` | Up, Down, Enter |
-| `ui/ui_windows.cpp:269` | choose a save, load it |
-| `ui/ui_windows.cpp:270` | a name for the save (22 characters at most; Backspace deletes one) |
-| `ui/ui_windows.cpp:270` | Enter or Save |
-| `ui/ui_windows.cpp:271` | Esc or Cancel |
-| `ui/ui_windows.cpp:271` | back to the game as it was |
-| `ui/ui_windows.cpp:273` | Now: a stay at the inn |
-| `ui/ui_windows.cpp:274` | A member, or 1 ... 5 |
-| `ui/ui_windows.cpp:274` | choose the member whose day you are planning |
-| `ui/ui_windows.cpp:275` | J R P A E G T |
-| `ui/ui_windows.cpp:275` | Regain Endurance (Just Relax), Regain Strength, Pray, Alchemy work, Earn a little money, Guard the camp, Train or study (the original's keys) |
-| `ui/ui_windows.cpp:276` | one day passes; A week: seven days; Until rested: members short of Strength who only relax switch to Regain Strength, then days pass until nobody is regaining Strength or praying |
-| `ui/ui_windows.cpp:277` | L, Esc or Leave |
-| `ui/ui_windows.cpp:280` | Click an option |
-| `ui/ui_windows.cpp:280` | or press its number, 1 to 9 |
-| `ui/ui_windows.cpp:281` | Hold Shift over an option |
-| `ui/ui_windows.cpp:281` | the chance of success as the original game shows it (Darklands+'s badges show every option's chance) |
-| `ui/ui_windows.cpp:282` | go to a place in this city (Darklands+) |
-| `ui/ui_windows.cpp:283` | the world map (Darklands+) |
-| `ui/ui_windows.cpp:284` | (in the right margin) what this town has that most towns lack, and its notable shops: point at one to see what it offers |
-| `ui/ui_windows.cpp:286` | Now: the overland view |
-| `ui/ui_windows.cpp:287` | walk towards that spot |
-| `ui/ui_windows.cpp:288` | travel there along the roads (Darklands+; any key or click stops) |
-| `ui/ui_windows.cpp:289` | the world map (Darklands+): find a place, double-click to travel there |
-| `ui/ui_windows.cpp:290` | Point at a quest's icon |
-| `ui/ui_windows.cpp:290` | the quest that leads there (a portcullis or a pillory beside a town: the town bars the party, or its watch wants the party) |
-| `ui/ui_windows.cpp:291` | A quest in the left margin |
-| `ui/ui_windows.cpp:291` | click to open it, then Travel there |
-| `ui/ui_windows.cpp:292` | (in the right margin, near a town) what that town has that most towns lack, and its notable shops (point at one to see what it offers) |
-| `ui/ui_windows.cpp:294` | Now: a battle |
-| `ui/ui_windows.cpp:295` | pause / resume; orders can be given while paused |
-| `ui/ui_windows.cpp:297` | Click a member |
-| `ui/ui_windows.cpp:297` | then click an enemy (attack) or a spot (walk there): that click gives the order |
-| `ui/ui_windows.cpp:298` | select a member; Esc: cancel the order being given |
-| `ui/ui_windows.cpp:301` | The buttons at the foot of the field |
-| `ui/ui_windows.cpp:301` | the selected member's orders, each in the same place for everyone, its key on it (an order not open to them dimmed); their potions and items to throw or use in a grid just above. For a member already fighting, an attack is given against that enemy at once. Fast forward and Resume stand at the top of the right margin |
-| `ui/ui_windows.cpp:303` | Click a member |
-| `ui/ui_windows.cpp:303` | then click an enemy, a spot or a menu choice; Enter gives the order |
-| `ui/ui_windows.cpp:304` | Ctrl+click a member |
-| `ui/ui_windows.cpp:304` | make that member the active one: the view follows them (scrolling at an edge stops it) |
-| `ui/ui_windows.cpp:305` | Point at anyone |
-| `ui/ui_windows.cpp:305` | who it is and how badly hurt |
-| `ui/ui_windows.cpp:306` | a map of the level as far as the party has seen it; a click on its floor walks the party there (Darklands+) |
-| `ui/ui_windows.cpp:307` | Click a shut door |
-| `ui/ui_windows.cpp:307` | out of a fight: the party walks to it and opens it (Darklands+) |
-| `ui/ui_windows.cpp:309` | The battle log |
-| `ui/ui_windows.cpp:309` | every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal > Battle log keeps it all |
-| `ui/ui_windows.cpp:311` | Now: the loot |
-| `ui/ui_windows.cpp:312` | Take / Put back |
-| `ui/ui_windows.cpp:312` | on the row under the pointer: the whole stack (1: just one) |
-| `ui/ui_windows.cpp:313` | everything into the party's pack |
-| `ui/ui_windows.cpp:313` | go to the member shown above the right list (each member's own); the rest into the party's pack |
-| `ui/ui_windows.cpp:314` | Take all / Share out |
-| `ui/ui_windows.cpp:314` | everything to the member shown / to whoever has some already, else whoever has the most room (A / S) |
-| `ui/ui_windows.cpp:315` | Names above the right list, D |
-| `ui/ui_windows.cpp:315` | switch to another member |
-| `ui/ui_windows.cpp:316` | L, Esc or Leave |
-| `ui/ui_windows.cpp:316` | leave (what is left stays behind) |
-| `ui/ui_windows.cpp:318` | Now: the loot |
-| `ui/ui_windows.cpp:319` | get the chosen item from the pile / put one back (the cursor's list) |
-| `ui/ui_windows.cpp:320` | switch to the next member (the one who gets what you take) |
-| `ui/ui_windows.cpp:321` | take the whole pile for the member shown |
-| `ui/ui_windows.cpp:321` | share the pile out: each item to whoever has some already, else whoever has the most room |
-| `ui/ui_windows.cpp:322` | leave (what is left stays behind) |
-| `ui/ui_windows.cpp:325` | on the row under the pointer; with Shift: ten / the whole stack |
-| `ui/ui_windows.cpp:326` | Names above your list |
-| `ui/ui_windows.cpp:326` | whose items are listed (B: the next member); right-click a name: that member holds the purse |
-| `ui/ui_windows.cpp:327` | Wheel, Up, Down |
-| `ui/ui_windows.cpp:327` | scroll the list under the pointer |
-| `ui/ui_windows.cpp:328` | L, Esc or Leave |
-| `ui/ui_windows.cpp:331` | buy the merchant's chosen item / sell your chosen item (one at a time) |
-| `ui/ui_windows.cpp:332` | buy ten of the merchant's chosen item (while the money lasts) |
-| `ui/ui_windows.cpp:332` | sell the whole stack of your chosen item |
-| `ui/ui_windows.cpp:333` | barter for the next member |
-| `ui/ui_windows.cpp:336` | Now: the store room |
-| `ui/ui_windows.cpp:337` | on the row under the pointer: the whole stack (1: just one) |
-| `ui/ui_windows.cpp:338` | every item not equipped (with the party's pack, Darklands+: except kept items and potions) |
-| `ui/ui_windows.cpp:339` | a potion taken goes to the member shown above the right list; the rest into the party's pack |
-| `ui/ui_windows.cpp:340` | The store room |
-| `ui/ui_windows.cpp:340` | the same at every inn (Darklands+; F12 > Settings > New screens) |
-| `ui/ui_windows.cpp:341` | L, Esc or Leave |
-| `ui/ui_windows.cpp:343` | Now: a character sheet |
-| `ui/ui_windows.cpp:344` | Equip / Unequip / Drink / Keep / Drop |
-| `ui/ui_windows.cpp:344` | on the row under the pointer on the Items page: with the shared pack (Darklands+) the spare items are in the party's pack, and Equip moves the item from the pack to this member and equips it (Drop with Shift: all of them) |
-| `ui/ui_windows.cpp:345` | each member's own: drag one onto someone at the left to give it |
-| `ui/ui_windows.cpp:346` | marks an item never to be sold or dropped (a small seal on its row) |
-| `ui/ui_windows.cpp:347` | only equipped items count toward the load, as in the original |
-| `ui/ui_windows.cpp:348` | Equip / Unequip / Drink / Give / Drop |
-| `ui/ui_windows.cpp:348` | on the row under the pointer on the Items page (Give and Drop with Shift: the whole stack) |
-| `ui/ui_windows.cpp:349` | Items, Skills, Saints, Formulae |
-| `ui/ui_windows.cpp:349` | the pages at the top (Tab or Right: next page; Shift+Tab or Left: previous page) |
-| `ui/ui_windows.cpp:350` | Choose Portrait |
-| `ui/ui_windows.cpp:350` | pick a PNG or JPEG, drag or zoom to adjust its framing, then choose Use Portrait |
-| `ui/ui_windows.cpp:351` | Party panel, F1 ... F5 |
-| `ui/ui_windows.cpp:351` | another member's sheet; this member's picture, Esc or Close: back |
-| `ui/ui_windows.cpp:352` | Ctrl+F1 ... Ctrl+F5 |
-| `ui/ui_windows.cpp:352` | make member 1 ... 5 the leader (or Make leader) |
-| `ui/ui_windows.cpp:353` | Wheel, Up, Down |
-| `ui/ui_windows.cpp:353` | scroll the list |
-| `ui/ui_windows.cpp:355` | Now: a character sheet |
-| `ui/ui_windows.cpp:356` | Ctrl+F1 ... Ctrl+F5 |
-| `ui/ui_windows.cpp:356` | make member 1 ... 5 the leader (or Make leader at the top) |
-| `ui/ui_windows.cpp:357` | Up, Down, PgUp, PgDn |
-| `ui/ui_windows.cpp:357` | move in a list (the mouse wheel too) |
-| `ui/ui_windows.cpp:358` | in the equipment list: give the chosen item to member 1 ... 5 (with Shift: all of them) |
-| `ui/ui_windows.cpp:359` | in the equipment list: ready or wear the chosen item |
-| `ui/ui_windows.cpp:360` | in the equipment list: drop the chosen item (with Shift: all of them) |
-| `ui/ui_windows.cpp:362` | Keys of the original game |
-| `ui/ui_windows.cpp:363` | the menu bar: click an entry (or hold the button and release it on one); a click elsewhere or any key closes it; F10 with the keyboard |
-| `ui/ui_windows.cpp:364` | Right mouse button |
-| `ui/ui_windows.cpp:364` | the menu bar, while it is held: release it on an entry (F10 with the keyboard) |
-| `ui/ui_windows.cpp:365` | Alt+S / Alt+L |
-| `ui/ui_windows.cpp:365` | save / load, with a comment (the original's screens list nine saves) |
-| `ui/ui_windows.cpp:366` | the marching order |
-| `ui/ui_windows.cpp:367` | difficulty    Alt+M music    Alt+F sound effects |
-| `ui/ui_windows.cpp:368` | messages about saints' changes on / off |
-| `ui/ui_windows.cpp:370` | quit to the desktop |
-| `ui/ui_windows.cpp:372` | the Darklands+ window (pauses the game) |
-| `ui/ui_windows.cpp:373` | Ctrl+S / F9 or Ctrl+L |
-| `ui/ui_windows.cpp:373` | quick save / quick load |
-| `ui/ui_windows.cpp:374` | full screen    Ctrl+F12 screenshot |
-| `ui/ui_windows.cpp:377` | The controller |
-| `ui/ui_windows.cpp:383` | moves the pointer (slowly while the left trigger is held) |
-| `ui/ui_windows.cpp:384` | the mouse wheel; pressed: Z (fast forward in a battle) |
-| `ui/ui_windows.cpp:385` | click / right-click (the menu bar) |
-| `ui/ui_windows.cpp:387` | the arrow keys |
-| `ui/ui_windows.cpp:388` | Tab (the level map) / Space (pause) |
-| `ui/ui_windows.cpp:389` | {START} {BACK} |
-| `ui/ui_windows.cpp:389` | F12 (the Darklands+ window) / M (the world map) |
-| `ui/ui_windows.cpp:390` | held: Ctrl (in the overland view: Ctrl+click travels there) |
-| `ui/ui_windows.cpp:391` | pressed: F11 (this list) |
-| `ui/ui_windows.cpp:393` | F11, Esc or a click closes this. |
+| `ui/ui_windows.cpp:93` | the session log: darklands_port.log (Windows) in %s; Report a problem below puts it in a zip with what else a report needs |
+| `ui/ui_windows.cpp:93` | the game folder |
+| `ui/ui_windows.cpp:95` | the game's program, made from your DARKLAND.EXE on the first start: %s (delete it to have it made again) |
+| `ui/ui_windows.cpp:103` | Report a problem |
+| `ui/ui_windows.cpp:106` | Dear ImGui (MIT license); Nuked OPL3, the Sound Blaster FM synthesis (LGPL 2.1); Munt's libmt32emu, the Roland MT-32 (LGPL 2.1); stb_image, stb_image_write, stb_vorbis (public domain); SDL2 and Mark Adler's blast (zlib license); fonts EB Garamond, Alegreya, Atkinson Hyperlegible, IM Fell English, MedievalSharp, UnifrakturMaguntia, Grenze Gotisch and Comic Neue (SIL Open Font License 1.1). |
+| `ui/ui_windows.cpp:109` | Darklands was designed by Arnold Hendrick and made by MicroProse; everything here stands on their game. |
+| `ui/ui_windows.cpp:110` | With thanks to the Darklands community: vvendigo's tools, Merle's and Joel "Quadko" McIntyre's documentation of the file formats, the Darklands Companion, Arkana Mechanika (Darklands Restoration) for its register of the original's bugs, and woodk123 for fixes. |
+| `ui/ui_windows.cpp:126` | Welcome to Darklands+ |
+| `ui/ui_windows.cpp:129` | This is Darklands (MicroProse, 1992), rebuilt to run directly on today's computers, with the game files of your own copy. Windows does not let programs write to the game folder where it is installed, so your saved games go to %s (the ones already in the game folder can be loaded as always). |
+| `ui/ui_windows.cpp:133` | This is Darklands (MicroProse, 1992), rebuilt to run directly on today's computers, with the game files of your own copy. Your saved games stay in the game folder as always. |
+| `ui/ui_windows.cpp:136` | Darklands+ adds what players have long wished for: crisp text, chances on the cards, a character sheet for the whole party, journals, a world map, a battle log, quick saves and fixes for old bugs. Choose how much of it below; most of it can also be switched on or off one by one. |
+| `ui/ui_windows.cpp:141` | How would you like to play? |
+| `ui/ui_windows.cpp:146` |  (recommended) |
+| `ui/ui_windows.cpp:157` | one save, kept by the game itself as you go; no loading back. For your next new game, with any of the three. |
+| `ui/ui_windows.cpp:161` | Saved games stay compatible with the original game whichever you choose. |
+| `ui/ui_windows.cpp:162` | Change it at any time, or turn single features on or off: {START} > Settings. {LSTICK} moves the pointer, {A} clicks. |
+| `ui/ui_windows.cpp:163` | Change it at any time, or turn single features on or off: F12 > Settings. |
+| `ui/ui_windows.cpp:169` | F12: the Darklands+ window (the game waits while it is open) |
+| `ui/ui_windows.cpp:170` | F11: the keys and clicks for the current screen, including the game's hidden ones |
+| `ui/ui_windows.cpp:171` | Click a party member on the left (in a battle, right-click: a click there selects them for orders): their character sheet, with the whole party's saints and formulae |
+| `ui/ui_windows.cpp:172` | M: the world map, to find a place and travel there |
+| `ui/ui_windows.cpp:173` | Right-click: the game's menu bar (save, load, orders in battle) |
+| `ui/ui_windows.cpp:174` | Alt+Enter: full screen   Ctrl+S: quick save   F9: quick load |
+| `ui/ui_windows.cpp:192` | Darklands sounds best on a Roland MT-32 |
+| `ui/ui_windows.cpp:193` | Darklands was written for the Roland MT-32, a synthesizer of 1987 (or its sibling the LAPC-I, a card inside the computer). Everything the game plays goes through it as notes, the battle sounds too. The game first loads instruments of its own into it, so the music comes out as composed, with flutes, strings and horns, and the battles sound like swords and shields... sort of: each blow is still a synthesizer playing a note. |
+| `ui/ui_windows.cpp:197` | Every other sound setting is a stand-in. The Sound Blaster, the usual sound card of the time, plays simpler versions of the music and rougher imitations of the battle sounds; an ordinary synthesizer, such as the one built into Windows, plays the wrong instruments altogether. |
+| `ui/ui_windows.cpp:201` | Darklands+ has an MT-32 built in (Munt's imitation of it). It only needs two files copied from a real one's memory, its ROM files: control and PCM, of an MT-32 or of the later CM-32L (either works and they sound much the same; with both, the MT-32 plays unless you choose the CM-32L in F12 > Settings > Sound). They are usually named MT32_CONTROL.ROM and MT32_PCM.ROM (CM32L_CONTROL.ROM and CM32L_PCM.ROM for a CM-32L); any names do, Darklands+ knows them by what is in them. They belong to Roland, so they cannot come with this download. If you play other games with Munt or DOSBox and an MT-32, you have them already: show Darklands+ the folder. |
+| `ui/ui_windows.cpp:215` | Choose the folder with the ROM files... |
+| `ui/ui_windows.cpp:217` | The folder with the MT-32 or CM-32L ROM files (control and PCM): |
+| `ui/ui_windows.cpp:219` | No MT-32 or CM-32L ROM files in that folder. |
+| `ui/ui_windows.cpp:227` | No ROM files found there yet. |
+| `ui/ui_windows.cpp:229` | Darklands+ also looks in Munt's ROM folder, DOSBox Staging's mt32-roms folder, and a "roms" folder in the Darklands+ folder or the game folder. |
+| `ui/ui_windows.cpp:234` | Restart with the MT-32 |
+| `ui/ui_windows.cpp:240` | F12 > Settings > Sound has all of this too. |
+| `ui/ui_windows.cpp:256` | Keys and clicks (F11) |
+| `ui/ui_windows.cpp:269` | Now: loading a game |
+| `ui/ui_windows.cpp:269` | Now: saving the game |
+| `ui/ui_windows.cpp:270` | Double-click a save |
+| `ui/ui_windows.cpp:270` | load it (or click it, then Load) |
+| `ui/ui_windows.cpp:270` | Up, Down, Enter |
+| `ui/ui_windows.cpp:270` | choose a save, load it |
+| `ui/ui_windows.cpp:271` | a name for the save (22 characters at most; Backspace deletes one) |
+| `ui/ui_windows.cpp:271` | Enter or Save |
+| `ui/ui_windows.cpp:272` | Esc or Cancel |
+| `ui/ui_windows.cpp:272` | back to the game as it was |
+| `ui/ui_windows.cpp:274` | Now: a stay at the inn |
+| `ui/ui_windows.cpp:275` | A member, or 1 ... 5 |
+| `ui/ui_windows.cpp:275` | choose the member whose day you are planning |
+| `ui/ui_windows.cpp:276` | J R P A E G T |
+| `ui/ui_windows.cpp:276` | Regain Endurance (Just Relax), Regain Strength, Pray, Alchemy work, Earn a little money, Guard the camp, Train or study (the original's keys) |
+| `ui/ui_windows.cpp:277` | one day passes; A week: seven days; Until rested: members short of Strength who only relax switch to Regain Strength, then days pass until nobody is regaining Strength or praying |
+| `ui/ui_windows.cpp:278` | L, Esc or Leave |
+| `ui/ui_windows.cpp:281` | Click an option |
+| `ui/ui_windows.cpp:281` | or press its number, 1 to 9 |
+| `ui/ui_windows.cpp:282` | Hold Shift over an option |
+| `ui/ui_windows.cpp:282` | the chance of success as the original game shows it (Darklands+'s badges show every option's chance) |
+| `ui/ui_windows.cpp:283` | go to a place in this city (Darklands+) |
+| `ui/ui_windows.cpp:284` | the world map (Darklands+) |
+| `ui/ui_windows.cpp:285` | (in the right margin) what this town has that most towns lack, and its notable shops: point at one to see what it offers |
+| `ui/ui_windows.cpp:287` | Now: the overland view |
+| `ui/ui_windows.cpp:288` | walk towards that spot |
+| `ui/ui_windows.cpp:289` | travel there along the roads (Darklands+; any key or click stops) |
+| `ui/ui_windows.cpp:290` | the world map (Darklands+): find a place, double-click to travel there |
+| `ui/ui_windows.cpp:291` | Point at a quest's icon |
+| `ui/ui_windows.cpp:291` | the quest that leads there (a portcullis or a pillory beside a town: the town bars the party, or its watch wants the party) |
+| `ui/ui_windows.cpp:292` | A quest in the left margin |
+| `ui/ui_windows.cpp:292` | click to open it, then Travel there |
+| `ui/ui_windows.cpp:293` | (in the right margin, near a town) what that town has that most towns lack, and its notable shops (point at one to see what it offers) |
+| `ui/ui_windows.cpp:295` | Now: a battle |
+| `ui/ui_windows.cpp:296` | pause / resume; orders can be given while paused |
+| `ui/ui_windows.cpp:298` | Click a member |
+| `ui/ui_windows.cpp:298` | then click an enemy (attack) or a spot (walk there): that click gives the order |
+| `ui/ui_windows.cpp:299` | select a member; Esc: cancel the order being given |
+| `ui/ui_windows.cpp:302` | The buttons at the foot of the field |
+| `ui/ui_windows.cpp:302` | the selected member's orders, each in the same place for everyone, its key on it (an order not open to them dimmed); their potions and items to throw or use in a grid just above. For a member already fighting, an attack is given against that enemy at once. Fast forward and Resume stand at the top of the right margin |
+| `ui/ui_windows.cpp:304` | Click a member |
+| `ui/ui_windows.cpp:304` | then click an enemy, a spot or a menu choice; Enter gives the order |
+| `ui/ui_windows.cpp:305` | Ctrl+click a member |
+| `ui/ui_windows.cpp:305` | make that member the active one: the view follows them (scrolling at an edge stops it) |
+| `ui/ui_windows.cpp:306` | Point at anyone |
+| `ui/ui_windows.cpp:306` | who it is and how badly hurt |
+| `ui/ui_windows.cpp:307` | a map of the level as far as the party has seen it; a click on its floor walks the party there (Darklands+) |
+| `ui/ui_windows.cpp:308` | Click a shut door |
+| `ui/ui_windows.cpp:308` | out of a fight: the party walks to it and opens it (Darklands+) |
+| `ui/ui_windows.cpp:310` | The battle log |
+| `ui/ui_windows.cpp:310` | every blow and wound: the left margin on a wide window, else the bottom right; F12 > Journal > Battle log keeps it all |
+| `ui/ui_windows.cpp:312` | Now: the loot |
+| `ui/ui_windows.cpp:313` | Take / Put back |
+| `ui/ui_windows.cpp:313` | on the row under the pointer: the whole stack (1: just one) |
+| `ui/ui_windows.cpp:314` | everything into the party's pack |
+| `ui/ui_windows.cpp:314` | go to the member shown above the right list (each member's own); the rest into the party's pack |
+| `ui/ui_windows.cpp:315` | Take all / Share out |
+| `ui/ui_windows.cpp:315` | everything to the member shown / to whoever has some already, else whoever has the most room (A / S) |
+| `ui/ui_windows.cpp:316` | Names above the right list, D |
+| `ui/ui_windows.cpp:316` | switch to another member |
+| `ui/ui_windows.cpp:317` | L, Esc or Leave |
+| `ui/ui_windows.cpp:317` | leave (what is left stays behind) |
+| `ui/ui_windows.cpp:319` | Now: the loot |
+| `ui/ui_windows.cpp:320` | get the chosen item from the pile / put one back (the cursor's list) |
+| `ui/ui_windows.cpp:321` | switch to the next member (the one who gets what you take) |
+| `ui/ui_windows.cpp:322` | take the whole pile for the member shown |
+| `ui/ui_windows.cpp:322` | share the pile out: each item to whoever has some already, else whoever has the most room |
+| `ui/ui_windows.cpp:323` | leave (what is left stays behind) |
+| `ui/ui_windows.cpp:326` | on the row under the pointer; with Shift: ten / the whole stack |
+| `ui/ui_windows.cpp:327` | Names above your list |
+| `ui/ui_windows.cpp:327` | whose items are listed (B: the next member); right-click a name: that member holds the purse |
+| `ui/ui_windows.cpp:328` | Wheel, Up, Down |
+| `ui/ui_windows.cpp:328` | scroll the list under the pointer |
+| `ui/ui_windows.cpp:329` | L, Esc or Leave |
+| `ui/ui_windows.cpp:332` | buy the merchant's chosen item / sell your chosen item (one at a time) |
+| `ui/ui_windows.cpp:333` | buy ten of the merchant's chosen item (while the money lasts) |
+| `ui/ui_windows.cpp:333` | sell the whole stack of your chosen item |
+| `ui/ui_windows.cpp:334` | barter for the next member |
+| `ui/ui_windows.cpp:337` | Now: the store room |
+| `ui/ui_windows.cpp:338` | on the row under the pointer: the whole stack (1: just one) |
+| `ui/ui_windows.cpp:339` | every item not equipped (with the party's pack, Darklands+: except kept items and potions) |
+| `ui/ui_windows.cpp:340` | a potion taken goes to the member shown above the right list; the rest into the party's pack |
+| `ui/ui_windows.cpp:341` | The store room |
+| `ui/ui_windows.cpp:341` | the same at every inn (Darklands+; F12 > Settings > New screens) |
+| `ui/ui_windows.cpp:342` | L, Esc or Leave |
+| `ui/ui_windows.cpp:344` | Now: a character sheet |
+| `ui/ui_windows.cpp:345` | Equip / Unequip / Drink / Keep / Drop |
+| `ui/ui_windows.cpp:345` | on the row under the pointer on the Items page: with the shared pack (Darklands+) the spare items are in the party's pack, and Equip moves the item from the pack to this member and equips it (Drop with Shift: all of them) |
+| `ui/ui_windows.cpp:346` | each member's own: drag one onto someone at the left to give it |
+| `ui/ui_windows.cpp:347` | marks an item never to be sold or dropped (a small seal on its row) |
+| `ui/ui_windows.cpp:348` | only equipped items count toward the load, as in the original |
+| `ui/ui_windows.cpp:349` | Equip / Unequip / Drink / Give / Drop |
+| `ui/ui_windows.cpp:349` | on the row under the pointer on the Items page (Give and Drop with Shift: the whole stack) |
+| `ui/ui_windows.cpp:350` | Items, Skills, Saints, Formulae |
+| `ui/ui_windows.cpp:350` | the pages at the top (Tab or Right: next page; Shift+Tab or Left: previous page) |
+| `ui/ui_windows.cpp:351` | Choose Portrait |
+| `ui/ui_windows.cpp:351` | pick a PNG or JPEG, drag or zoom to adjust its framing, then choose Use Portrait |
+| `ui/ui_windows.cpp:352` | Party panel, F1 ... F5 |
+| `ui/ui_windows.cpp:352` | another member's sheet; this member's picture, Esc or Close: back |
+| `ui/ui_windows.cpp:353` | Ctrl+F1 ... Ctrl+F5 |
+| `ui/ui_windows.cpp:353` | make member 1 ... 5 the leader (or Make leader) |
+| `ui/ui_windows.cpp:354` | Wheel, Up, Down |
+| `ui/ui_windows.cpp:354` | scroll the list |
+| `ui/ui_windows.cpp:356` | Now: a character sheet |
+| `ui/ui_windows.cpp:357` | Ctrl+F1 ... Ctrl+F5 |
+| `ui/ui_windows.cpp:357` | make member 1 ... 5 the leader (or Make leader at the top) |
+| `ui/ui_windows.cpp:358` | Up, Down, PgUp, PgDn |
+| `ui/ui_windows.cpp:358` | move in a list (the mouse wheel too) |
+| `ui/ui_windows.cpp:359` | in the equipment list: give the chosen item to member 1 ... 5 (with Shift: all of them) |
+| `ui/ui_windows.cpp:360` | in the equipment list: ready or wear the chosen item |
+| `ui/ui_windows.cpp:361` | in the equipment list: drop the chosen item (with Shift: all of them) |
+| `ui/ui_windows.cpp:363` | Keys of the original game |
+| `ui/ui_windows.cpp:364` | the menu bar: click an entry (or hold the button and release it on one); a click elsewhere or any key closes it; F10 with the keyboard |
+| `ui/ui_windows.cpp:365` | Right mouse button |
+| `ui/ui_windows.cpp:365` | the menu bar, while it is held: release it on an entry (F10 with the keyboard) |
+| `ui/ui_windows.cpp:366` | Alt+S / Alt+L |
+| `ui/ui_windows.cpp:366` | save / load, with a comment (the original's screens list nine saves) |
+| `ui/ui_windows.cpp:367` | the marching order |
+| `ui/ui_windows.cpp:368` | difficulty    Alt+M music    Alt+F sound effects |
+| `ui/ui_windows.cpp:369` | messages about saints' changes on / off |
+| `ui/ui_windows.cpp:371` | quit to the desktop |
+| `ui/ui_windows.cpp:373` | the Darklands+ window (pauses the game) |
+| `ui/ui_windows.cpp:374` | Ctrl+S / F9 or Ctrl+L |
+| `ui/ui_windows.cpp:374` | quick save / quick load |
+| `ui/ui_windows.cpp:375` | full screen    Ctrl+F12 screenshot |
+| `ui/ui_windows.cpp:378` | The controller |
+| `ui/ui_windows.cpp:384` | moves the pointer (slowly while the left trigger is held) |
+| `ui/ui_windows.cpp:385` | the mouse wheel; pressed: Z (fast forward in a battle) |
+| `ui/ui_windows.cpp:386` | click / right-click (the menu bar) |
+| `ui/ui_windows.cpp:388` | the arrow keys |
+| `ui/ui_windows.cpp:389` | Tab (the level map) / Space (pause) |
+| `ui/ui_windows.cpp:390` | {START} {BACK} |
+| `ui/ui_windows.cpp:390` | F12 (the Darklands+ window) / M (the world map) |
+| `ui/ui_windows.cpp:391` | held: Ctrl (in the overland view: Ctrl+click travels there) |
+| `ui/ui_windows.cpp:392` | pressed: F11 (this list) |
+| `ui/ui_windows.cpp:394` | F11, Esc or a click closes this. |
 | `ui/worldmap.cpp:79` | Unwelcome here |
 | `ui/worldmap.cpp:79` | The watch on alert here |
 | `ui/worldmap.cpp:79` | Wanted by the watch here |
@@ -3642,35 +3642,36 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/sheetview.c:266` | No %s is left in the party's pack. |
 | `mods/sheetview.c:268` | %s cannot carry another kind of item. |
 | `mods/sheetview.c:273` | The %s could not be handed to %s. |
-| `mods/sheetview.c:298` | %s drinks the %s. |
-| `mods/sheetview.c:353` | No spare %s is left in the party's pack. |
-| `mods/sheetview.c:360` | %s rides the %s. |
-| `mods/sheetview.c:362` | %s carries the %s, but rides the better %s. |
-| `mods/sheetview.c:365` | split all potions of one type |
-| `mods/sheetview.c:389` | %s: already split evenly. |
-| `mods/sheetview.c:390` | %s split evenly: |
-| `mods/sheetview.c:409` | %s takes up %s%s. |
-| `mods/sheetview.c:410` | Wielding %s%s asks more Virtue than %s has. |
-| `mods/sheetview.c:411` | %s%s cannot be readied. |
-| `mods/sheetview.c:421` | %s drinks the %s. |
-| `mods/sheetview.c:424` | The %s is marked Keep: unmark it before dropping it. |
-| `mods/sheetview.c:440` | Left behind: the %s (%d). Undo takes them back. |
-| `mods/sheetview.c:440` | Left behind: a %s. Undo takes it back. |
-| `mods/sheetview.c:487` | Taken back: the %s (%d). |
-| `mods/sheetview.c:487` | Taken back: the %s. |
-| `mods/sheetview.c:488` | The %s cannot be taken back (no room). |
-| `mods/sheetview.c:493` | %s takes up %s%s. |
-| `mods/sheetview.c:494` | Wielding %s%s asks more Virtue than %s has. |
-| `mods/sheetview.c:495` | %s%s cannot be readied. |
-| `mods/sheetview.c:499` | %s puts %s%s away. |
-| `mods/sheetview.c:505` | %s cannot carry another kind of item. |
-| `mods/sheetview.c:507` | %s gives the %s to %s. |
-| `mods/sheetview.c:507` | %s gives a %s to %s. |
-| `mods/sheetview.c:508` | %s cannot take the %s. |
-| `mods/sheetview.c:512` | The %s is marked Keep: unmark it before dropping it. |
-| `mods/sheetview.c:519` | Left behind: the %s (%d). Undo takes them back. |
-| `mods/sheetview.c:519` | Left behind: a %s. Undo takes it back. |
-| `mods/sheetview.c:526` | %s drinks the %s. |
+| `mods/sheetview.c:301` |  Nothing changes: %s's %s already stands %d above its maximum, and a dose adds only what goes past that. |
+| `mods/sheetview.c:318` | %s drinks the %s. |
+| `mods/sheetview.c:374` | No spare %s is left in the party's pack. |
+| `mods/sheetview.c:381` | %s rides the %s. |
+| `mods/sheetview.c:383` | %s carries the %s, but rides the better %s. |
+| `mods/sheetview.c:386` | split all potions of one type |
+| `mods/sheetview.c:410` | %s: already split evenly. |
+| `mods/sheetview.c:411` | %s split evenly: |
+| `mods/sheetview.c:430` | %s takes up %s%s. |
+| `mods/sheetview.c:431` | Wielding %s%s asks more Virtue than %s has. |
+| `mods/sheetview.c:432` | %s%s cannot be readied. |
+| `mods/sheetview.c:443` | %s drinks the %s. |
+| `mods/sheetview.c:447` | The %s is marked Keep: unmark it before dropping it. |
+| `mods/sheetview.c:463` | Left behind: the %s (%d). Undo takes them back. |
+| `mods/sheetview.c:463` | Left behind: a %s. Undo takes it back. |
+| `mods/sheetview.c:510` | Taken back: the %s (%d). |
+| `mods/sheetview.c:510` | Taken back: the %s. |
+| `mods/sheetview.c:511` | The %s cannot be taken back (no room). |
+| `mods/sheetview.c:516` | %s takes up %s%s. |
+| `mods/sheetview.c:517` | Wielding %s%s asks more Virtue than %s has. |
+| `mods/sheetview.c:518` | %s%s cannot be readied. |
+| `mods/sheetview.c:522` | %s puts %s%s away. |
+| `mods/sheetview.c:528` | %s cannot carry another kind of item. |
+| `mods/sheetview.c:530` | %s gives the %s to %s. |
+| `mods/sheetview.c:530` | %s gives a %s to %s. |
+| `mods/sheetview.c:531` | %s cannot take the %s. |
+| `mods/sheetview.c:535` | The %s is marked Keep: unmark it before dropping it. |
+| `mods/sheetview.c:542` | Left behind: the %s (%d). Undo takes them back. |
+| `mods/sheetview.c:542` | Left behind: a %s. Undo takes it back. |
+| `mods/sheetview.c:550` | %s drinks the %s. |
 | `mods/stairsfix.c:158` | These stairs have no safe arrival. The member stays on this floor. |
 | `mods/styles.c:18` | Skirmisher, hand to hand |
 | `mods/styles.c:20` | As in the original game: they wait for your orders. |

@@ -25,6 +25,9 @@
 
 **Fixed**
 
+- **Tooltips and hints follow the pointer after a click on the level map:** a click there (or a double-click on the world map, or a click on the Honor Roll) closed the window while the button was still down, and Darklands+ kept the pointer where the click was. Until the next click in one of its windows the panels showed no tooltips, and a hint about the field could stand over the potion tray.
+- **What is on top takes the pointer, and is drawn on top:** in one order, from the top: the pointer, tooltips, the passing notices, a Darklands+ window (F12, the maps, an alert ...), the panels (the margins, the party's boxes, the order strip, the potion tray ...), then the marks on the field. A hint about the field is placed clear of the panels; the notices, the foe arrow, the route and the camp button no longer cover a tooltip; and while a window that takes every event is up, nothing under it lights up or shows a tooltip.
+- **A potion that does nothing says why:** Truesight and the potions that raise Endurance, Strength or Agility past the maximum add only what goes past what already stands above it, so a member whose attribute stands far above its maximum gets nothing from a dose. Drinking one then says so, with how far above the maximum it stands, instead of the drink seeming lost.
 - **A click on a member's portrait in a town keeps their sheet open:** the sheet opened on the press, and letting go of the button closed it again. By woodk123 (pull request #38).
 - **No black corners when the battle view scrolls diagonally:** a diagonal step shows the finished picture instead of sliding, since neither picture covered the corners. By woodk123 (pull request #37).
 - **A weapon's fit goes by maximum Strength,** as the game reckons it: the tooltips used the Strength left after wounds, so a wounded member looked too weak for a weapon the game let them use in full. Found by woodk123 (pull request #34).

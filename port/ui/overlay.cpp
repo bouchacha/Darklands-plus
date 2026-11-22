@@ -43,9 +43,6 @@ void plat_game_to_win(float gx, float gy, float *wx, float *wy);
 
 extern ImFont *ui_font_small, *ui_font_text;
 extern ImFont *ui_font_overlay;          /* ui.cpp: the text over and beside the picture */
-static ImDrawList *ovl_dl;               /* the overlay layer (ui_overlay): under tooltips and windows, over the picture */
-ImDrawList *ovl_list(void) { return ovl_dl ? ovl_dl : ImGui::GetForegroundDrawList(); }
-ImDrawList *ui_overlay_list(void) { return ovl_list(); }
 extern ImFont *ui_font_game[UI_GAME_FONTS];
 extern int ui_game_font, ui_text_edge;
 
@@ -128,7 +125,7 @@ static void draw_picture_name(void)
     plat_mouse_game(&mx, &my);
     int pic = hdart_pick(mx, my, &x, &y, &w, &h);
     if (pic < 0) return;
-    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    ImDrawList *dl = ui_tier_list(UI_TIER_FIELD);
     ImVec2 a = g2w((float)x, (float)y), b = g2w((float)(x + w), (float)(y + h));
     dl->AddRect(a, b, IM_COL32(0, 0, 0, 200), 0, 0, 5);
     dl->AddRect(a, b, IM_COL32(255, 220, 80, 255), 0, 0, 2);
@@ -153,7 +150,7 @@ static void draw_new_encounter_seal(void)
     int a = encounters_card_active();
     if (!a || game_mode() != GM_CARD || !config_get_int("encounters.seal", 1)) return;
     if (encounters_builtin(a - 1)) return;               /* (the game's own unused cards, put back: no mod's) */
-    ImDrawList *dl = ovl_list();
+    ImDrawList *dl = ui_tier_list(UI_TIER_FIELD);
     ImVec2 c = g2w(307.0f, 14.0f), e = g2w(313.0f, 14.0f);
     float r = e.x - c.x; if (r < 7) r = 7;
     const int N = 14;                                    /* the blob of wax: a wobbly rim */
@@ -184,7 +181,7 @@ static void draw_version(void)
     if (!(m == GM_OTHER || (m == GM_SCREEN && (s16)g_rw(G_PARTY_SIZE) == 0))) return;   /* (the title menu is a screen, before a party) */
     { extern TitleModel title_model; if (title_model.open && ns_screen == NS_TITLE && !ns_hidden()) return; }   /* (the start screen drawn anew writes it on its parchment) */
     char t[96]; snprintf(t, sizeof t, dlp_release[0] ? "Darklands+ %s (build %s)" : "Darklands+ build %s%s", dlp_release[0] ? dlp_release : dlp_version, dlp_release[0] ? dlp_version : "");
-    ImDrawList *dl = ovl_list();
+    ImDrawList *dl = ui_tier_list(UI_TIER_FIELD);
     ImVec2 br = g2w(318.0f, 198.0f), sz = ImGui::CalcTextSize(t);
     ImVec2 p(br.x - sz.x, br.y - sz.y);
     dl->AddText(ImVec2(p.x + 1, p.y + 1), IM_COL32(0, 0, 0, 200), t);
@@ -218,7 +215,7 @@ static void draw_hello(void)
     float a = age + 700 < life ? 1.0f : (life - age) / 700.0f;
     static const char *KIND[4] = { "No controller detected", "Xbox controller detected", "PlayStation controller detected", "Nintendo controller detected" };
     ImGuiIO &io = ImGui::GetIO();
-    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    ImDrawList *dl = ui_tier_list(UI_TIER_TOAST);
     ImGui::PushFont(ui_font_overlay);
     float lh = ImGui::GetTextLineHeight(), gh = lh * 1.15f;
     const char *t1 = KIND[hello_kind > 3 ? 1 : hello_kind];
@@ -254,7 +251,7 @@ extern "C" void ui_draw_notice(void)
     if (notices.empty()) return;
     ImGuiIO &io = ImGui::GetIO();
     ImGui::PushFont(ui_font_overlay);
-    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    ImDrawList *dl = ui_tier_list(UI_TIER_TOAST);
     const float wrap = fmaxf(400.0f, io.DisplaySize.x * 0.5f), fs = ImGui::GetFontSize();
     float bottom = io.DisplaySize.y - 28;
     for (int i = (int)notices.size() - 1; i >= 0; i--) {
@@ -303,7 +300,7 @@ static void draw_lcd(void)
     float pad = fs * 0.55f, W = lw + 2 * pad, H = fs * 1.35f + lh + fs * 1.6f + 2 * pad;
     ImVec2 P0(io.DisplaySize.x - W - fs * 0.8f, fs * 0.8f), P1(P0.x + W, P0.y + H);
     auto A = [&](int al) { return (int)(al * a); };
-    ImDrawList *dl = ImGui::GetForegroundDrawList();
+    ImDrawList *dl = ui_tier_list(UI_TIER_TOAST);
     dl->AddRectFilled(ImVec2(P0.x + 3, P0.y + 4), ImVec2(P1.x + 3, P1.y + 4), IM_COL32(0, 0, 0, A(90)), 6);   /* its shadow */
     dl->AddRectFilledMultiColor(P0, P1, IM_COL32(66, 64, 62, A(250)), IM_COL32(66, 64, 62, A(250)), IM_COL32(40, 38, 37, A(250)), IM_COL32(40, 38, 37, A(250)));
     dl->AddRect(P0, P1, IM_COL32(110, 108, 104, A(255)), 6, 0, 1.5f);
@@ -434,7 +431,7 @@ static void draw_card_help(void)
         if (!hit) break;
     }
     card_help_top = p0.y;
-    ImDrawList *dl = ovl_list();
+    ImDrawList *dl = ui_tier_list(UI_TIER_PANEL);
     float rr = size * 0.35f;
     dl->AddRectFilled(p0, p1, IM_COL32(28, 18, 10, 215), rr);
     dl->AddRect(p0, p1, IM_COL32(170, 125, 65, 220), rr, 0, 1.5f);
@@ -517,7 +514,7 @@ static void draw_learned(void)
     float bh = hs.y + ls.y + gap + es.y + pad * 2.4f;
     float bottom = card_help_top > 0 ? card_help_top - size * 0.4f : br.y;
     ImVec2 p0(br.x - w - 2 * pad, bottom - bh), p1(br.x, bottom);
-    ImDrawList *dl = ovl_list();
+    ImDrawList *dl = ui_tier_list(UI_TIER_PANEL);
     learned_top = p0.y;
     dl->AddRectFilled(p0, p1, IM_COL32(28, 18, 10, (int)(228 * a)), size * 0.35f);
     dl->AddRect(p0, p1, IM_COL32(170, 130, 70, (int)(230 * a)), size * 0.35f, 0, 1.5f);
@@ -564,7 +561,7 @@ static void draw_stock(void)
     }
     float bottom = learned_top > 0 ? learned_top - size * 0.4f : card_help_top > 0 ? card_help_top - size * 0.4f : br.y;
     ImVec2 p0(br.x - w - 2 * pad, bottom - bh), p1(br.x, bottom);
-    ImDrawList *dl = ovl_list();
+    ImDrawList *dl = ui_tier_list(UI_TIER_PANEL);
     dl->AddRectFilled(p0, p1, IM_COL32(28, 18, 10, (int)(228 * a)), size * 0.35f);
     dl->AddRect(p0, p1, IM_COL32(170, 130, 70, (int)(230 * a)), size * 0.35f, 0, 1.5f);
     dl->AddText(f, size * 1.05f, ImVec2(p0.x + pad, p0.y + pad * 0.8f), IM_COL32(250, 246, 236, (int)(255 * a)), head.c_str(), 0, w);
@@ -790,7 +787,7 @@ static void draw_loot_buttons(void)
     static const char *L[2][2] = { { "A", "  Take all of it" }, { "S", "  Share it out among the party" } };
     static const char *B[2][2] = { { "A", "  Sell the whole stack" }, { "T", "  Buy ten" } };
     const char *(*T)[2] = loot_active ? L : B;
-    ImDrawList *dl = ovl_list();
+    ImDrawList *dl = ui_tier_list(UI_TIER_PANEL);
     ImVec2 mp = ImGui::GetIO().MousePos;
     for (int i = 0; i < 2; i++) {
         ImVec2 p0 = g2w(0xb6, (float)(0x1a + 8 * i)), p1 = g2w(0x12c, (float)(0x1a + 8 * i + 8));
@@ -842,6 +839,7 @@ static void draw_creation_guide(void)
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 8));
     if (ImGui::Begin("##creation", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoFocusOnAppearing |
                                             ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings)) {
+        ui_tier(UI_TIER_PANEL);
         ImGui::PushFont(ui_font_overlay);
         /* about the size of the game's own text (6.5 of its 200 rows a line), smaller only if the
            text would not fit the panel */
@@ -859,13 +857,7 @@ static void draw_creation_guide(void)
 extern "C" void travelmap_labels(void);
 extern "C" void ui_overlay(void)
 {
-    {   /* a layer for the panels and badges over the picture: under the tooltips (windows), above the crisp text */
-        ImGuiIO &io = ImGui::GetIO();
-        ImGui::SetNextWindowPos(ImVec2(0, 0)); ImGui::SetNextWindowSize(io.DisplaySize);
-        ImGui::Begin("##overlay_layer", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground |
-                     ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav);
-        ovl_dl = ImGui::GetWindowDrawList();             /* (left open to the end, so that its clipping and font stay set) */
-    }
+    /* (each thing in its tier of ui/layers.h: the marks on the picture, the panels, the windows) */
     draw_chances();
     draw_card_help();
     if (assist_card_help) { watch_saints(); draw_learned(); } else learned_top = 0;
@@ -886,8 +878,6 @@ extern "C" void ui_overlay(void)
     draw_loot_buttons();
     if (ui_test_tip_item >= 0 && ui_test_tip_item < (int)gamedata.items.size()) { tip_q = ui_test_tip_q; show_tip(ImVec2(UIS(40), UIS(40)), ImVec2(0, 0), ui_test_tip_item, -1, -1); tip_q = -1; }
     else if (ui_test_tip_formula >= 0 && ui_test_tip_formula < (int)gamedata.formula_names.size()) show_tip(ImVec2(UIS(40), UIS(40)), ImVec2(0, 0), -1, -1, ui_test_tip_formula);
-    ImGui::End();                                       /* the layer */
-    ovl_dl = nullptr;
 }
 
 /* the tooltip of a saint or an item, for ui/cardview.cpp */

@@ -332,8 +332,9 @@ extern "C" void partypanel_draw(void)
     P.k = (e.y - o.y) / 200.0f; P.kx = (e.x - o.x) / 320.0f;
     if (P.k * 6 * 1.18f > 44 && ui_font_game_hi[ui_game_font]) P.f = ui_font_game_hi[ui_game_font];
     P.fk = ui_face_k(P.f); P.fok = ui_face_k(P.fo);
-    P.dl = ImGui::GetBackgroundDrawList();
+    P.dl = ui_tier_list(UI_TIER_PANEL);                        /* (a panel: ui/layers.h) */
     { void plat_mouse_game(int *x, int *y); plat_mouse_game(&P.mx, &P.my); }   /* (the pointer now: ns_in is read only while a native screen runs) */
+    if (ui_modal_up()) P.mx = P.my = -32768;                   /* (under a window that takes every event: no pointer) */
     shown_now = true;
 
     const ImU32 BG = IM_COL32(18, 13, 9, 255), CARD = IM_COL32(38, 29, 20, 255), EDGE = IM_COL32(112, 82, 46, 255);
@@ -341,6 +342,9 @@ extern "C" void partypanel_draw(void)
     P.rect(0, 0, 60, 200, BG);
     int size = gm_party_size(), lead = gm_leader();
     bool battle = gm_in_battle() && game_mode() == GM_BATTLE;      /* (not the loot after it) */
+    if (battle && !ns_showing() && config_get_int("battle.panel_select", 1))   /* (the boxes a click picks, box_at: panels, ui/layers.h) */
+        for (int m = 0; m < size; m++)
+            if (gm_member_present(m) && gm_member_status(m) == 1 && !gm_member_elsewhere(m)) ui_cover(NsDraw::w(0, 40.0f * m), NsDraw::w(60, 40.0f * m + 40));
     std::vector<Eff> eff = effects_now(size);                   /* (the blessings and potions at work: a halo on the picture) */
     for (int m = 0; m < 5; m++) {
         float y0 = 40.0f * m;
@@ -542,6 +546,7 @@ extern "C" void partypanel_draw(void)
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0)); ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
         ImGui::Begin("##waychooser", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings
                      | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoNav);
+        ui_tier(UI_TIER_PANEL);
         ui_cover(wa, wb);                                         /* (the pointer on it: not on the field) */
         ImDrawList *bg = P.dl; P.dl = ImGui::GetWindowDrawList();
         P.rect(x0, y0, x0 + w, y0 + h, IM_COL32(26, 19, 13, 248), 2);
