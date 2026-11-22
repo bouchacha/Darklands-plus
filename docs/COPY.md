@@ -3020,10 +3020,11 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/checks.c:99` | the party's money is below 0 (%d %d %d) |
 | `mods/checks.c:101` | the current place is %d |
 | `mods/checks.c:124` | the game's record of item %d (at %04x:%04x) is not DARKLAND.LST's (in a battle: %d): freed memory read? |
-| `mods/checks.c:142` | member %d's load is %d, but the things equipped weigh %d |
-| `mods/checks.c:150` | %d of the game's %d notes in use |
-| `mods/checks.c:169` | the date went backwards (%ld to %ld) without a load |
-| `mods/checks.c:180` | 12 steps on the map in a row each brought an encounter (one held waiting?) |
+| `mods/checks.c:133` | the game's record of place %d (at %04x:%04x) is no place (in a battle: %d): freed memory read? |
+| `mods/checks.c:151` | member %d's load is %d, but the things equipped weigh %d |
+| `mods/checks.c:159` | %d of the game's %d notes in use |
+| `mods/checks.c:178` | the date went backwards (%ld to %ld) without a load |
+| `mods/checks.c:189` | 12 steps on the map in a row each brought an encounter (one held waiting?) |
 | `mods/cutcards.c:69` | name     The hospice  |
 | `mods/cutcards.c:69` | card     $CityH00  |
 | `mods/cutcards.c:69` | picture  XDAMONK  |
@@ -3132,14 +3133,14 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixgroups.c:13` | Bugs players have long used to their advantage (invulnerability from fire protection, confession's clock turned back, the same bounty again and again). Leave these off to keep the old tricks. |
 | `mods/fixgroups.c:14` | Left over from 1992 |
 | `mods/fixgroups.c:14` | Not bugs, but nobody misses them: the question from the printed manual before the party first sets out. |
-| `mods/gamemodel.c:492` | Divine Favor |
-| `mods/gamemodel.c:497` | Edged Weapons |
-| `mods/gamemodel.c:497` | Impact Weapons |
-| `mods/gamemodel.c:497` | Thrown Weapons |
-| `mods/gamemodel.c:497` | Missile Devices |
-| `mods/gamemodel.c:498` | Speak Common |
-| `mods/gamemodel.c:498` | Read & Write |
-| `mods/gamemodel.c:517` | Missile Devices |
+| `mods/gamemodel.c:491` | Divine Favor |
+| `mods/gamemodel.c:496` | Edged Weapons |
+| `mods/gamemodel.c:496` | Impact Weapons |
+| `mods/gamemodel.c:496` | Thrown Weapons |
+| `mods/gamemodel.c:496` | Missile Devices |
+| `mods/gamemodel.c:497` | Speak Common |
+| `mods/gamemodel.c:497` | Read & Write |
+| `mods/gamemodel.c:516` | Missile Devices |
 | `mods/hdart.c:851` | Create a New World |
 | `mods/hdart.c:852` | The Story Continues |
 | `mods/hdart.c:1028` | Replacement art for Darklands+\r  |

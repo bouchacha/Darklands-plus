@@ -196,14 +196,13 @@ int gm_room_for(int m, int id, int qual)
 }
 
 /* item id's definition, byte or word at off (the type +0x1e, the shop categories +0x20/+0x22, the weight +0x25, the
-   quality +0x26 ...): DARKLAND.LST's (ui/gamedata.cpp), not the game's copy in memory, which a battle or a dungeon
-   overwrites (its pointers then lead to other data: every thing came out an ingredient, mods/loot.c); the game's
-   copy only if the list could not be read. -1 unknown */
+   quality +0x26 ...): DARKLAND.LST's as Darklands+ reads it (ui/gamedata.cpp); the game's copy in memory only if
+   the list could not be read (that copy is there in a battle too: mods/nscreen.c, the world's tables kept). -1
+   unknown */
 int gamedata_item_raw(int id, int off, int size);
 static u32 itemdef(int id) { return g_itemdef(id & 0xfff); }
 static int mem_def(int id, int off, int size)
 {
-    if (g_rb(GV_in_battle) == 1) return -1;                /* (not in memory there) */
     u32 d = itemdef(id); if (!d) return -1;
     return size == 2 ? rw((u16)(d >> 16), (u16)((u16)d + off)) : rb((u16)(d >> 16), (u16)((u16)d + off));
 }

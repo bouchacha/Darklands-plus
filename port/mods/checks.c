@@ -15,9 +15,9 @@
  *  - a boost whose end was lost: an attribute above its maximum and its running boosts (CK_BOOST,
  *    watched in mods/fixes.c boost_check_frame, beside the mend; his Jorg's Perception 60 of 33);
  *  - the game reading memory it has freed: its item list's pointers leading anywhere but to
- *    DARKLAND.LST's records (CK_ITEMLIST; mods/nscreen.c keeps the list over a battle), and what
- *    that spoilt: a member's load other than the weights of what is equipped (CK_LOAD; his
- *    Dietrich's 198). */
+ *    DARKLAND.LST's records (CK_ITEMLIST), its places' to anything but a place (CK_PLACES;
+ *    mods/nscreen.c keeps both over a battle), and what that spoilt: a member's load other than
+ *    the weights of what is equipped (CK_LOAD; his Dietrich's 198). */
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -113,7 +113,7 @@ static void items(void)
     int mode = game_mode(), size = (s16)g_rw(G_PARTY_SIZE);
     if (gen == -1) gen = datamods_generation();
     if ((mode != GM_CARD && mode != GM_MAP && mode != GM_BATTLE) || gen != datamods_generation() || size < 1 || size > 5 ||
-        saves_load_under_way() || (saves_loaded_ms && plat_ticks_ms() - saves_loaded_ms < 5000)) { lasting(CK_ITEMLIST, 0); lasting(CK_LOAD, 0); return; }
+        saves_load_under_way() || (saves_loaded_ms && plat_ticks_ms() - saves_loaded_ms < 5000)) { lasting(CK_ITEMLIST, 0); lasting(CK_LOAD, 0); lasting(CK_PLACES, 0); return; }
     int bad = -1;
     for (int id = 0; bad < 0 && gamedata_item_raw(id, 0, 1) >= 0; id++) {
         u32 d = g_itemdef(id);
@@ -122,6 +122,15 @@ static void items(void)
     if (lasting(CK_ITEMLIST, bad >= 0)) {
         u32 d = g_itemdef(bad);
         check_fail(CK_ITEMLIST, "the game's record of item %d (at %04x:%04x) is not DARKLAND.LST's (in a battle: %d): freed memory read?", bad, (unsigned)(d >> 16), (unsigned)(u16)d, g_rb(GV_in_battle) == 1);
+    }
+    int place = -1;                                           /* (a place: a kind, a tile of the map, a name) */
+    for (int k = 0; k < G_NLOC && place < 0; k++) {
+        u32 r = g_location(k); u16 sg = (u16)(r >> 16), of = (u16)r;
+        if (!r || rw(sg, of) >= 64 || rw(sg, (u16)(of + 4)) >= 340 || rw(sg, (u16)(of + 6)) >= 950 || rb(sg, (u16)(of + 0x26)) < 0x20) place = k;
+    }
+    if (lasting(CK_PLACES, place >= 0)) {
+        u32 r = g_location(place);
+        check_fail(CK_PLACES, "the game's record of place %d (at %04x:%04x) is no place (in a battle: %d): freed memory read?", place, (unsigned)(r >> 16), (unsigned)(u16)r, g_rb(GV_in_battle) == 1);
     }
     /* (a load counts once it has been right for that member: the start's ready-made party comes with loads one
        off its own sum - its first member's 57 for 56 - until something is equipped, and so may a member who joins) */

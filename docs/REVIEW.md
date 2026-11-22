@@ -887,3 +887,21 @@ covered and found, and what it could not check.
   game's own, not a fault: a potion thrown sets the member's practice bit 4 (s014 0e76:1f00, DS:d68d + 2m), paid
   as Thrown Weapons when the battle mode ends (s014 0e76:0694), which in a dungeon is at the stairs or a door;
   his byte was 0x1f in DKSAVEEY and the log shows his Stone-tar.
+- 2026-11-22 (the audit, three passes by three reviewers who had not seen the fixes: every hook and call into
+  the game by the game's states; every write into its memory and what must stay true of it; every past fix,
+  whether at its cause. Their reports are kept out of the repository; what each found and what was done about it
+  is logged here as it is done). From the third, the first: the item list was one of three. cards_shutdown frees
+  DARKLAND.LST's block, the places' (loc_buf, 0x19e pointers at 2e38:10be) and the city's record (city_rec,
+  DS:9785), and the battle's sheet reads and frees all three again; that afternoon's fix kept the 46-byte item
+  records alone. Seen with udefs in his DKSAVEEY: 27 of the 414 place records were still places in the battle.
+  And the fix offmap wrote through them: offmap_frame ran in a battle too (every 64th frame: any word of the
+  battle's memory that lay where a place's column had been and read 327..335, or its row 930..939, was set to 326
+  or 929); minechests asked the same record whether the place is a mine; the margins, the reputation watch and
+  the save's name each had their own "last reading stands". Now mem_free_hook keeps each of the three whole as
+  the game frees it (KEPT_LST_SEG, KEPT_LOC_SEG, KEPT_CITY_SEG in runtime/hle.h: 39 KB of the 47 KB free under
+  the BIOS font), moves the pointers that led into it (the saints' and formulae's names too: 2e38:183e, 3bc4,
+  1736, 36ec), and refuses a free of what it keeps. 414 of 414 after, through a load into the battle, its sheet
+  and a load out. CK_PLACES watches the places beside CK_ITEMLIST; release_check's udefs step asks for both.
+  gamemodel.c's "not in memory in a battle" guard is gone. Corrected here: the entry above of the same day says
+  release_check "saves and loads there" in its battle; it does not (a fight allows no save): that door is tried
+  by hand only, still.

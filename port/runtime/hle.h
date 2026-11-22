@@ -3,7 +3,11 @@
 #include "cpu.h"
 #define HLE_SEG 0xF000          /* fake BIOS segment: IVT entries point to F000:(n*4) */
 #define EMS_SEG 0xF100          /* EMS driver: entry F100:0100, device name at F100:000A */
-#define ITEMLIST_SEG 0xF400     /* the game's item list kept while its own copy is freed (mods/nscreen.c) */
+/* the world's tables kept while the game has freed its own (mods/nscreen.c): free memory between the stubs above
+   (F000..F23F) and the BIOS font (F000:FA6E) */
+#define KEPT_LST_SEG  0xF400    /* DARKLAND.LST: 16 KB */
+#define KEPT_LOC_SEG  0xF800    /* the places (LOCS.TMP): 24 KB */
+#define KEPT_CITY_SEG 0xFDE0    /* the city's record: 1 KB */
 void hle_stub(u16 seg, u16 off);         /* a far call/jump landed in the fake BIOS */
 void (*driver_find(u16 seg, u16 off))(void);
 void hle_init(const char *gamedir, const char *exe, int argc, char **argv);

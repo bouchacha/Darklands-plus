@@ -203,28 +203,43 @@ static void safe_point_hook(void)           /* menu_bar_run(menus, once): a game
 }
 /* the end of an interface frame while the game is held (F12's window open: no rounds run) */
 void ns_defer_frame_end(int game_held) { if (dn && game_held) run_deferred(); }
-/* ---------------------------------------------------------------- the item list, kept
- * The game reads its item list (DARKLAND.LST: a count, then 46 bytes a thing) into a block of DOS memory
- * and keeps a far pointer to each thing's record at 2e38:0890 (world_load, s043 1462:0100; the loot
- * screen's s040 and the start's s001 the same). It frees the block when the cards close for a battle
- * (cards_shutdown), and again when the battle's sheet or loot screen that read it closes, but leaves the
- * pointers, into memory the battle then takes for itself. The game's own battle code never reads them
- * (s014-s028 call no function that does but the sheet and the loot screen, which read the list again);
- * Darklands+ does, through the game's item functions it calls in a battle: the potion tray's drink and
- * the pack's hand-over reach equip_weight, which summed whatever lay there (his Dietrich overloaded at
- * 198, 1.5.1-RC18). So when the game frees the block, its records are kept at ITEMLIST_SEG (memory the
- * game never uses) and the pointers moved there, until the game reads the list again and sets them. */
+/* ---------------------------------------------------------------- the world's tables, kept
+ * world_load (s043 1462:0100) reads three files into blocks of DOS memory and keeps far pointers into them:
+ * DARKLAND.LST (each thing's 46 bytes, 2e38:0890; the saints' and the formulae's names, 2e38:183e, 3bc4, 1736,
+ * 36ec), the places (LOCS.TMP: 0x19e records, 2e38:10be) and the city's record (DARKLAND.CTY: city_rec, DS:9785).
+ * cards_shutdown (1462:054e) frees all three for a battle; the battle's sheet (s031 1462:0000) reads them and
+ * frees them again, the loot (s040 1462:0000) the list; each time the pointers stay, into memory the battle then
+ * takes for itself. The game's own battle code reads none of them (s014-s028 call no function that does but
+ * the sheet and the loot, which read the files again). Darklands+ does: the game's item functions it calls in a
+ * battle (the potion tray's drink, the pack's hand-over) reach equip_weight, which summed whatever lay there (a
+ * load of 198, 1.5.1-RC18), and its own code that reads the places every frame (the fix offmap wrote through
+ * them, in every battle). So when the game frees one of the three, its bytes are kept in memory the game never
+ * uses (KEPT_*_SEG, runtime/hle.h) and the pointers into it moved there, until the game reads the file again and
+ * sets them anew. What is written into a kept block is lost then, as it was in the freed one. Watched: CK_ITEMLIST
+ * and CK_PLACES (mods/checks.c). */
+static const struct { u16 seg; unsigned room; } KEPT[3] = { { KEPT_LST_SEG, 0x4000 }, { KEPT_LOC_SEG, 0x5e00 }, { KEPT_CITY_SEG, 0x400 } };
+static void moved(u16 table, int n, u16 from, u16 to)       /* the far pointers of a table that led into from */
+{
+    for (int i = 0; i < n; i++) if (rw(G_FAR2E38, (u16)(table + 4 * i + 2)) == from) ww(G_FAR2E38, (u16)(table + 4 * i + 2), to);
+}
 static void mem_free_hook(void)            /* mem_free (seg, name), root 05ba:00c2 */
 {
     u16 seg = rw(SS, (u16)(SP + 4));
-    int n = seg && rw(G_FAR2E38, (u16)(G_ITEMDEFS + 2)) == seg && rw(G_FAR2E38, G_ITEMDEFS) == 3 ? rb(seg, 0) : 0;
-    for (int i = 0; i < 3 + 46 * n; i++) wb(ITEMLIST_SEG, (u16)i, rb(seg, (u16)i));
-    hook_call_original();
-    if (unw_active) return;
-    for (int i = 0; i < n; i++) {
-        ww(G_FAR2E38, (u16)(G_ITEMDEFS + 4 * i), (u16)(3 + 46 * i));
-        ww(G_FAR2E38, (u16)(G_ITEMDEFS + 4 * i + 2), ITEMLIST_SEG);
+    if (seg == KEPT_LST_SEG || seg == KEPT_LOC_SEG || seg == KEPT_CITY_SEG) { hook_return_far(0); return; }   /* (not DOS's to free) */
+    int which = !seg ? -1 : rw(G_FAR2E38, (u16)(G_ITEMDEFS + 2)) == seg ? 0 : rw(G_FAR2E38, 0x10be + 2) == seg ? 1 : g_rw(GV_city_rec + 2) == seg ? 2 : -1;
+    unsigned bytes = which >= 0 ? (unsigned)rw((u16)(seg - 1), 3) * 16 : 0;     /* (the block's size, from DOS's record before it) */
+    if (which >= 0 && bytes > KEPT[which].room) {
+        fprintf(stderr, "kept: no room for a block of %u bytes (%d), left as the game leaves it\n", bytes, which);
+        which = -1;
     }
+    int n = which == 0 ? rb(seg, 0) : 0, na = which == 0 ? rb(seg, 1) : 0, nb = which == 0 ? rb(seg, 2) : 0;
+    if (which >= 0) memcpy(M + (u32)KEPT[which].seg * 16, M + (u32)seg * 16, bytes);
+    hook_call_original();
+    if (unw_active || which < 0) return;
+    u16 to = KEPT[which].seg;
+    if (which == 0) { moved(G_ITEMDEFS, n, seg, to); moved(0x183e, na, seg, to); moved(0x3bc4, na, seg, to); moved(0x1736, nb, seg, to); moved(0x36ec, nb, seg, to); }
+    else if (which == 1) moved(0x10be, G_NLOC, seg, to);
+    else g_ww(GV_city_rec + 2, to);
 }
 
 void nscreen_init(void) { hook_install(GF_menu_bar_run, safe_point_hook); hook_install(GF_mem_free, mem_free_hook); }

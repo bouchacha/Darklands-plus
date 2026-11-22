@@ -345,8 +345,7 @@ std::string loc_common_noun(int loc)
 }
 
 /* (for C: a byte (size 1) or a word (size 2) of item id's record in DARKLAND.LST, a mod's if one replaces it; -1 if
-   unknown. The game's own copy is not in memory in a battle or a dungeon: what its pointers then point at is other
-   data, which made every thing an ingredient (mods/loot.c) - so the mods read the item list here) */
+   unknown) */
 extern "C" int gamedata_item_raw(int id, int off, int size)
 {
     if (id < 0 || id >= (int)gamedata.items.size() || off < 0 || off + size > 46) return -1;

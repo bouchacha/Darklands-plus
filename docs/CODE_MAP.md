@@ -37,7 +37,7 @@ The runtime: the CPU and DOS the game runs on, the window, sound, saves, the con
 | `runtime/sounddev.c` | 128 | which sound driver the game gets. |
 | `runtime/speaker.c` | 77 | the PC speaker, which the port had not made at all ("PC speaker" in F12 > Settings > Sound played nothing). |
 | `runtime/stb_impl.c` | 16 | the stb image reader and PNG writer (public domain, third_party/stb) for replacement art (mods/hdart.c, platform_sdl.c) |
-| `runtime/testcmds.c` | 636 | the test commands that look at or change the game's state, for the scripted sessions (port/tools/nctl.py "ucmd NAME:ARGS", release_check.py, soaktest.py): a battle at the next card, hits, items, saves, the native screens' actions, dumps of what the game holds ... |
+| `runtime/testcmds.c` | 643 | the test commands that look at or change the game's state, for the scripted sessions (port/tools/nctl.py "ucmd NAME:ARGS", release_check.py, soaktest.py): a battle at the next card, hits, items, saves, the native screens' actions, dumps of what the game holds ... |
 
 ## mods
 
@@ -58,7 +58,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/cachefile.c` | 228 | keep each inn's stored items when the cache file is rewritten. |
 | `mods/cacheview.c` | 288 | the store room as a native screen (nscreen.h; the view is ui/cacheview.cpp). |
 | `mods/cardview.c` | 668 | the card screen drawn by Darklands+ itself. |
-| `mods/checks.c` | 187 | things that must never happen, watched while the game runs. |
+| `mods/checks.c` | 196 | things that must never happen, watched while the game runs. |
 | `mods/choose.c` | 48 | a box asking which of the party's things (ui/choose.cpp draws it): the native screens' frame (mods/nscreen.h), a line clicked or its number pressed picks it, Esc or the way out's button picks none. |
 | `mods/createview.c` | 199 | making a character as a native screen (display.native_create; the view is ui/createview.cpp). |
 | `mods/cutcards.c` | 214 | encounters MicroProse wrote and never used, put back (rules.fehde, rules.hospice, rules.manor_rumor: F12 > Reconstructed Content, experimental, off by default; the catalogue of what the game holds unused is docs/cut_content.md). |
@@ -69,7 +69,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/fixgroups.c` | 35 | the fixes (fixes.c) sorted by kind, for the settings' list: from what the game plainly gets wrong to what is open to argument, as players have talked of them over the years (the GOG and Steam forums, the old Usenet posts and the patch notes MicroProse left). |
 | `mods/foefx.c` | 91 | what a thrown potion (or a trap's) is doing to each fighter now, and for how long: the battle's own records, read for ui/battleoverlay.cpp (a picture over the fighter, the words under the pointer). |
 | `mods/foesleft.c` | 130 | the foes a place still holds that the party has not met yet (battle.foes_left, on by default): shown under the battle margin's enemies, so a castle, dungeon or mine whose fight "does not end" says where the rest still wait (the game ends it only when they are all beaten, or the party walks out and counts as fled). |
-| `mods/gamemodel.c` | 519 | the game's state by name (gamemodel.h says what each function reads): where the party, the members, their things and their equipment are kept, and the shared pack's listing and "whom it goes to" (gm_pack_rows, gm_pack_target) for the sheet, the shop, the loot and the store room. |
+| `mods/gamemodel.c` | 518 | the game's state by name (gamemodel.h says what each function reads): where the party, the members, their things and their equipment are kept, and the shared pack's listing and "whom it goes to" (gm_pack_rows, gm_pack_target) for the sheet, the shop, the loot and the store room. |
 | `mods/hdart.c` | 1196 | replacement art. A picture file PICS\NAME.PIC can be replaced by art\NAME.png of any size (true colour, with transparency); it is drawn at window resolution wherever the game shows that picture, with the game's own pixel |
 | `mods/hdtext.c` | 769 | crisp text. Darklands draws its text with small bitmap fonts (FONTS.FNT; the card font is a 7-pixel blackletter) that players find hard to read once scaled up. Here every string the game draws on the visible page is note |
 | `mods/hirelings.c` | 55 | Companions stay (rules.hirelings_stay: experimental, off in every preset). |
@@ -87,7 +87,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/memberlooks.c` | 109 | characters keep their figure and colours when they rejoin the party (always, but in the original game), and newcomers at an inn get a look of their own. |
 | `mods/menuview.c` | 363 | the game's menu bar (Game, Orders, Attack, Party on the battle field; the menus of the map and the cards) drawn and used by Darklands+ (display.native_menu; the Full Original preset keeps the game's). |
 | `mods/musicpack.c` | 438 | music packs: recordings played in place of the game's synthesizer music. |
-| `mods/nscreen.c` | 267 | the frame for native screens (see nscreen.h). |
+| `mods/nscreen.c` | 282 | the frame for native screens (see nscreen.h). |
 | `mods/offices.c` | 150 | whether a town's task givers have work now, or when again (offices.h). |
 | `mods/opening.c` | 117 | the opening (the MicroProse logo, the animations, the music and the digitized speech), F12 > Settings > "At start": the whole opening (the default), its last scene alone (the lady of the Darklands and her welcome), or nothing. |
 | `mods/options.c` | 521 | the table of Darklands+'s switches and the presets (options.h). |
@@ -148,7 +148,7 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/effects.cpp` | 230 | what is at work on the party now (effects.h): the game's events of a saint's boost or the lowering some saints bring with it, a weapon potion and a companion's stay, read from the table in memory (or, in a battle, from the file the cards left), each with its picture and how long it lasts. |
 | `ui/enemyview.cpp` | 132 | the battle's Enemy Info drawn by Darklands+ (mods/enemyview.c runs it): every kind of foe on the field with its picture, how many and how many still fight, its armour, shield and weapons (with the game's word for its skill, but not at Expert), and what each of the party's weapons does against its body armour. |
 | `ui/figures.cpp` | 168 | the figure picker of the creation menus: Select Character Image (S) shows every figure at once (the game's own four and the enemies' fourteen, mods/looks.c), each in the colours the member would have; a click (or Enter) takes one, Esc keeps the old. |
-| `ui/gamedata.cpp` | 394 | see gamedata.h |
+| `ui/gamedata.cpp` | 393 | see gamedata.h |
 | `ui/gamepics.cpp` | 197 | the game's pictures as textures (see gamepics.h). |
 | `ui/guide.cpp` | 165 | WITHDRAWN (not shown since 2026-10-25): ui_guide_tab is called from nowhere. |
 | `ui/halloffame.cpp` | 188 | the Honor Roll of Glory, a part of the game MicroProse left unfinished: the picture (pics\hallfame.pic, "Honor Roll of Glory" ... |

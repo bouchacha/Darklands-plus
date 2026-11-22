@@ -476,8 +476,15 @@ int testcmd_run(const char *cmd, const char *arg)
                 for (int k = 0; ok && k < 46; k++) ok = rb((u16)(d >> 16), (u16)((u16)d + k)) == gamedata_item_raw(id, k, 1);
                 if (ok) same++; else if (first_bad < 0) first_bad = id;
             }
-            u32 d0 = g_itemdef(0);
+            u32 d0 = g_itemdef(0), l0 = g_location(0), cr = (u32)g_rw(GV_city_rec + 2) << 16 | g_rw(GV_city_rec);
+            int places = 0;                             /* (a place record as it can be: a kind 0..31, a tile of the map, a name in plain letters) */
+            for (int k = 0; k < G_NLOC; k++) {
+                u32 r = g_location(k); u16 sg = (u16)(r >> 16), of = (u16)r;
+                int ok = r && rw(sg, of) < 32 && rw(sg, (u16)(of + 4)) < 340 && rw(sg, (u16)(of + 6)) < 950 && rb(sg, (u16)(of + 0x26)) >= 'A' && rb(sg, (u16)(of + 0x26)) <= 'Z';
+                places += ok;
+            }
             fprintf(stderr, "defs: %d of %d as DARKLAND.LST (first not: %d), item 0 at %04x:%04x, in battle %d\n", same, n, first_bad, (unsigned)(d0 >> 16), (unsigned)(u16)d0, g_rb(GV_in_battle));
+            fprintf(stderr, "places: %d of %d as a place can be, place 0 at %04x:%04x; the city's record at %04x:%04x\n", places, G_NLOC, (unsigned)(l0 >> 16), (unsigned)(u16)l0, (unsigned)(cr >> 16), (unsigned)(u16)cr);
         }
         else if (!strcmp(cmd, "upause")) { int p = g_rb(0xa695) == 1; if (!p) { void bios_kbd_inject(u16); bios_kbd_inject(0x3920); } fprintf(stderr, "pause: %s\n", p ? "was paused" : "paused now"); }   /* test: a battle paused (Space only if it runs) */
         else if (!strcmp(cmd, "uunpause")) { int p = g_rb(0xa695) == 1; if (p) { void bios_kbd_inject(u16); bios_kbd_inject(0x3920); } fprintf(stderr, "unpause: %s\n", p ? "was paused" : "running"); }   /* test: a battle running (Space only if it is paused: ai_paused) */
