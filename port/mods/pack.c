@@ -16,6 +16,7 @@
 #include "../runtime/config.h"
 #include "gamemodel.h"
 #include "nscreen.h"
+#include "fixes.h"
 
 int sheetview_shared(void);
 extern int ammo_infinite;
@@ -214,16 +215,16 @@ static void ensure_ammo(void)
     }
 }
 
-static int in_battle;                     /* run_battle running */
-static void battle_hook(void)             /* run_battle (s029 0e76:2278) */
+/* every battle passes battle_run (s002 0e76:0000): a card's own fight through run_battle (s029 0e76:2278), a castle,
+   mine or dungeon and a battle taken up from a save through the main loop (root 03a1:000a), which never calls
+   run_battle. The cards are closed by then and stay so until the fallen are struck off (fixes_cards_down) */
+static void battle_hook(void)             /* battle_run (...) */
 {
     if (gm_ammo_hidden()) { ensure_ammo(); if (ns_unwinding) return; }
     else if (sheetview_shared() && gm_party_size() > 1) {
         hand_out_ammo(); if (ns_unwinding) return;
     }
-    in_battle++;
     hook_call_original();
-    if (in_battle > 0) in_battle--;
 }
 
 /* the horses: the game counts each member's own. The party is mounted only when every member
@@ -239,7 +240,7 @@ static int has_mount(int m)
 }
 static void horses_even(void)
 {
-    if (!sheetview_shared() || gm_party_size() < 2 || in_battle) return;
+    if (!sheetview_shared() || gm_party_size() < 2 || fixes_cards_down()) return;
     for (int m = 0; m < 5 && !ns_unwinding; m++) {
         if (!gm_member_present(m) || gm_member_status(m) != 1 || has_mount(m) || gm_item_count(m) >= 64) continue;
         int from = -1, rec = -1, q = -1;
@@ -281,7 +282,7 @@ static void roster_hook(void) { choosing++; hook_call_original(); if (choosing >
 static void spares_off(int p)
 {
     /* (most callers of party_delete have already set the member's status to 0: their records are still there) */
-    if (choosing || in_battle || !sheetview_shared() || p < 0 || p >= 5 || !gm_item_count(p)) return;
+    if (choosing || fixes_cards_down() || !sheetview_shared() || p < 0 || p >= 5 || !gm_item_count(p)) return;
     int moved = 0;
     for (int i = gm_item_count(p) - 1; i >= 0 && !ns_unwinding; i--) {
         GmItem g; if (!gm_item(p, i, &g)) continue;
@@ -339,7 +340,7 @@ void pack_init(void)
     hook_install(GF_saint_pray, pray_hook);
     hook_install(GF_saint_pray_party, pray_hook);
     hook_install(GF_count_items_flags, count_flags_hook);
-    hook_install(GF_run_battle, battle_hook);
+    hook_install(GF_battle_run, battle_hook);
     hook_install(GF_party_remove, leave_hook);
     hook_install(GF_party_delete, delete_hook);
     hook_install(GF_party_get, party_get_hook);

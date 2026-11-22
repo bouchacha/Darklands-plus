@@ -303,7 +303,6 @@ the files where each switch's key is read.
 | `fix.armorday` | Armor and fire protection from potions and saints last a day; Hardarmor works as the manual says | fix | fixes.c, saintinfo.c, sainttexts.c, nsdraw.cpp, saintchips.cpp |
 | `fix.greatpower` | Great Power raises the weapon's quality | fix | fixes.c, effects.cpp, nsdraw.cpp |
 | `fix.standings` | Saved games keep the party's standing with the Fugger, the Medici and the Hanse | fix | fixes.c |
-| `fix.battlesaints` | A saint's help or a potion's boost in a battle wears off | fix | fixes.c |
 | `fix.healboost` | Healing no longer takes a boost away | fix | fixes.c |
 | `fix.teachcap` | Teachers teach only up to their own ability | fix | fixes.c, teachers.c, teachers.h, citynav.cpp, lodgeview.cpp, margins.cpp, teachersui.cpp, worldmap.cpp |
 | `fix.oilweapons` | Each weapon oil works only with the weapons the manual names | fix | fixes.c, nsdraw.cpp |
@@ -368,6 +367,7 @@ the files where each switch's key is read.
 | `fix.onefloor` | The party keeps to one floor in a fight | fix | fixes.c, levelwalk.c |
 | `fix.altarroad` | Encounters by a pagan altar come one at a time | fix | fixes.c, travel.c |
 | `fix.bountybrief` | A robber-knight briefing names the right patron | fix | fixes.c |
+| `fix.loadsum` | Armor worn out or a last weapon thrown no longer weighs | fix | fixes.c |
 
 The fixes (`fix.<id>`) are listed with their explanations in `port/mods/fixes.c`; the built-in
 rule changes (`mod.<id>`) in `port/mods/builtin.c`.

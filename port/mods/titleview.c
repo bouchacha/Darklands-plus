@@ -18,6 +18,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "nscreen.h"
+#include "fixes.h"
 #include "savesview.h"
 #include "titleview.h"
 
@@ -72,6 +73,7 @@ static void screen_hook(void)                 /* title_screen (), s037 1e26:0008
     build();
     m->open = 1;
     fprintf(stderr, "title: open (%d saves)\n", m->nsaves);
+    fixes_title_opened();
     ns_enter(NS_TITLE);
     ns_clear();
     ns_input_begin();

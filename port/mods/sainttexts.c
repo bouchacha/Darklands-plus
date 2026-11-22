@@ -407,7 +407,7 @@ static void step_hook(void)                 /* s030 1462:2ac8 (terrain): the min
 }
 
 /* ---------------------------------------------------------------- St. Barbara: no death from wounds */
-static int barbara_running(int m) { return fixes_running(m, 0x179) > 0; }   /* (in a battle the events are put away: mods/fixes.c keeps them) */
+static int barbara_running(int m) { return fixes_running(m, 0x179) > 0; }
 static void damage_hook(void)               /* damage_apply(i): the queued damage taken (+0 endurance, +1 strength) */
 {
     int i = (s16)rw(SS, (u16)(SP + 4));

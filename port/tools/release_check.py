@@ -17,7 +17,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 TOP = os.path.abspath(os.path.join(HERE, '..', '..'))
 NCTL = [sys.executable, '-I', os.path.join(HERE, 'nctl.py')]
 NAME = 'relcheck'
-BAD = re.compile(r'ERROR: AddressSanitizer|runtime error:|FATAL|unmatched return|CRASH|hook: .*(hooked twice|too many|left the stack wrong)|nscreen: no game function|^check: |^cards: .* cut at|^goto: |^fix battlesaints: .*back to')
+BAD = re.compile(r'ERROR: AddressSanitizer|runtime error:|FATAL|unmatched return|CRASH|hook: .*(hooked twice|too many|left the stack wrong)|nscreen: no game function|^check: |^cards: .* cut at|^goto: |^mend: .*back to|^kept: ')
 
 # test hits on every enemy, 30 rounds (an unlucky battle, a slow build)
 HITS = '; '.join('; '.join('ucmd uhit:1,%d,40,0' % c for c in range(5, 13)) + '; wait 1' for _ in range(30))
@@ -38,12 +38,12 @@ STEPS = [
     ('enemy info (E, native)', 'key e; wait 2; wshot 6c_enemy; click; wait 2', [r'enemy info: open', r'enemy info: closed']),
     ('fast forward (Z) on and off', 'ucmd upause:; wait 1; ucmd usdlkey:z; wait 2; ucmd usdlkey:z; wait 1', [r'battle: fast forward on', r'battle: fast forward off']),   # (paused: a battle nearly won ended in the fast forward, and the loot came before its step)
     ('a boost drunk in the battle (Truesight)', 'ucmd upause:; ucmd upotion:0,6f,40; wait 2', [r'^potion 6f q40 for 0']),   # (carried over the battle's end: the loot step; a fight allows no save, a dungeon's walk does - checked by hand)
-    ('the item list and the places in the battle, after the sheet (kept: mods/nscreen.c)', 'ucmd udefs:; wait 1', [r'^defs: (\d+) of \1 as DARKLAND\.LST .*in battle 1$', r'^places: (\d+) of \1 as a place can be, place 0 at f800:']),   # (freed by the game with its pointers left: his Dietrich's load 198; offmap's writes through the places)
+    ('the item list and the places in the battle, after the sheet (kept: mods/nscreen.c)', 'ucmd udefs:; wait 1', [r'^defs: (\d+) of \1 as DARKLAND\.LST .*in battle 1$', r'^places: (\d+) of \1 as a place can be, place 0 at f980:']),   # (freed by the game with its pointers left: his Dietrich's load 198; offmap's writes through the places)
     ('win it (test hits) and the loot (native)', HITS + '; ucmd uunpause:; wait 25; wshot 7_loot', [r'loot screen: open'],
      '; '.join(['; '.join('ucmd uhit:1,%d,40,0' % c for c in range(5, 13)) + '; ucmd uunpause:; wait 3'] * 6) + '; ' +
      '; '.join(['; '.join('ucmd ukill:%d' % c for c in range(5, 13)) + '; ucmd uunpause:; wait 3'] * 4)),   # (a foe that came late: hit it too; the hits land as the battle runs; then, a battle whose foes shrug the test hits off: wounds that fell them)
-    ('share out and leave the loot', 'ucmd unspush:5; wait 2; ucmd unspush:6; wait 4', [r'loot screen: closed', r'battle end: "Victory! The battle is won."',
-     r"fix battlesaints: member 0's kind 0x48 \(3, \d+\) from the battle kept"]),   # (the Truesight drunk in it still running: his Jorg's Perception 60 of 33)
+    ('share out and leave the loot', 'ucmd unspush:5; wait 2; ucmd unspush:6; wait 4; ucmd uevents:72; wait 1', [r'loot screen: closed', r'battle end: "Victory! The battle is won."',
+     r'^event \d+: kind 0x48 type0 3 owner 0 ']),   # (the Truesight drunk in it still running, its end in the table: his Jorg's Perception 60 of 33)
     ('the alchemy screen (native)', 'ucmd ualchemy:0,8; at 30 190; wait 3; click; wait 3; click; wait 3; click; wait 3; click; wait 3', [r'alchemy: open']),
     ('leave the alchemy screen', 'wshot 8_alchemy; ucmd unspush:1,0; wait 1; ucmd unspush:5; wait 3', [r'alchemy: closed']),
     ('the store room (native)', 'ucmd ucache:; wait 4; wshot 9_store', [r'store room: open']),

@@ -44,22 +44,6 @@ static std::vector<EvRec> table_records(void)            /* the event table in m
     }
     return r;
 }
-/* the table as the cards left it when a battle closed them (cards_shutdown, s043 1462:054e: events.tmp in the
-   game's folder, a count and the records; cards_startup reads it back after the battle) */
-static std::vector<EvRec> file_records(void)
-{
-    std::vector<EvRec> r;
-    char p[1200]; dos_host_path("EVENTS.TMP", p, sizeof p);
-    FILE *f = fopen(p, "rb");
-    if (!f) return r;
-    unsigned char c[2];
-    if (fread(c, 1, 2, f) == 2) {
-        int n = c[0] | c[1] << 8;
-        for (int i = 0; i < n && i < G_NEVENTS; i++) { EvRec e; if (fread(e.data(), 1, 0x30, f) != 0x30) break; r.push_back(e); }
-    }
-    fclose(f);
-    return r;
-}
 static std::vector<Eff> effects_table(int size, const std::vector<EvRec> &recs)
 {
     std::vector<Eff> v;
@@ -172,49 +156,16 @@ static void boosts_in_force(std::vector<Eff> &v)
     v.erase(std::remove_if(v.begin(), v.end(), [](const Eff &e) { return e.kind == 0x48 && e.k >= 0 && e.amount == 0; }), v.end());
 }
 
-/* what is at work now. While a battle has closed the cards the event table holds only what the
-   battle made (mods/fixes.c): what was at work when it began is kept from then and shown with it
-   (its hours as they were; a battle takes minutes). A game loaded in a battle: what was at work is
-   read from the table the cards left (events.tmp), once */
-static std::vector<Eff> effects_recorded(int size)
-{
-    static std::vector<Eff> before; static int before_seed = -1;
-    int seed = (u16)g_rw(G_PARTY_SEED);
-    std::vector<Eff> v = effects_table(size, table_records());
-    if (!fixes_cards_down()) { before = v; before_seed = seed; return v; }
-    if (fixes_world_open()) return v;                   /* (a member's sheet in the battle: the table holds the cards' events as well) */
-    {   /* (the file as the cards left it, read again only when it changed: a save loaded in the battle) */
-        static long stamp = -2; static double checked = -10;
-        double t = ImGui::GetTime();
-        if (t - checked > 1.0 || seed != before_seed) {
-            checked = t;
-            char p[1200]; dos_host_path("EVENTS.TMP", p, sizeof p);
-            struct stat st; long now = stat(p, &st) == 0 ? (long)st.st_mtime ^ ((long)st.st_size << 20) : -1;
-            if (now != -1 && (now != stamp || seed != before_seed)) { before = effects_table(5, file_records()); stamp = now; before_seed = seed; }
-        }
-    }
-    if (seed != before_seed) return v;
-    for (const Eff &e : before) if (e.m < size) v.push_back(e);
-    return v;
-}
+/* what is at work now: the event table's, in a battle too (mods/fixes.c: the party's events over a battle) */
 std::vector<Eff> effects_now(int size)
 {
-    std::vector<Eff> v = effects_recorded(size);
-    boosts_in_force(v);
-    return v;
-}
-
-std::vector<Eff> effects_snapshot(int size)
-{
+    static std::vector<Eff> last;
+    if (!fixes_events_steady()) return last;            /* (the game is swapping the table with its file: as it was) */
     std::vector<Eff> v = effects_table(size, table_records());
-    if (fixes_cards_down() && !fixes_world_open()) {
-        /* The events on disk belong to this battle's world, even if no frame has drawn it yet. */
-        std::vector<Eff> world = effects_table(size, file_records());
-        v.insert(v.end(), world.begin(), world.end());
-    }
     boosts_in_force(v);
-    return v;
+    return last = v;
 }
+std::vector<Eff> effects_snapshot(int size) { return effects_now(size); }
 
 /* the roundels' names: in a text ({*Fire}: ui/richtext.h) and under the pointer, in the order of EI_* */
 static const char *const EFFECT_NAME[] = { "Fire", "Armor", "Armor Quality", "Missile Armor", "Weapon Quality", "Damage", "Penetration", "Travel", "Woods Travel", "No Death", "Stays" };

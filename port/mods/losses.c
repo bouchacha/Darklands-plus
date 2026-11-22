@@ -39,7 +39,7 @@ static int snap_seed;
    (was 99)" as the battle ended, a +41 boost still at work) */
 static int events_known(void)
 {
-    if (fixes_cards_down()) return 0;
+    if (!fixes_events_steady()) return 0;
     for (int i = 0; i < G_NEVENTS; i++) if (g_event(i)) return 1;
     return 0;
 }

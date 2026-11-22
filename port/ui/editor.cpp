@@ -24,6 +24,7 @@ extern "C" {
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "../mods/gamemodel.h"
+#include "../mods/checks.h"
 }
 
 static const char *FIGURES[] = { "F01", "F60", "C00", "A00" };      /* the game's own; then the enemies' (mods/looks.c) */
@@ -35,7 +36,7 @@ static void byte_slider(const char *label, u16 seg, u16 off, int lo, int hi)
 {
     int v = rb(seg, off);
     ImGui::SetNextItemWidth(UIS(160));
-    if (ImGui::SliderInt(label, &v, lo, hi)) wb(seg, off, (u8)v);
+    if (ImGui::SliderInt(label, &v, lo, hi)) { wb(seg, off, (u8)v); checks_edited(); }
 }
 
 static void name_edit(const char *label, u16 off, int n)
@@ -79,7 +80,7 @@ extern "C" void tab_editor(void)
         u16 r = rec(m);
         if (ImGui::CollapsingHeader("Name, age, crest and sprite", ImGuiTreeNodeFlags_DefaultOpen)) {
             name_edit("full name", (u16)(r + 0x25), 25);
-            name_edit("nickname", (u16)(r + 0x3e), 11);
+            name_edit("nickname", (u16)(r + 0x3e), 10);     /* (9 letters: the byte after the field is the weapon oils') */
             int age = (s16)g_rw((u16)(r + 0x12));
             ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("age", &age)) g_ww((u16)(r + 0x12), (u16)age);
             int sh = g_rb((u16)(r + 0x15)) - 'A';
@@ -155,7 +156,7 @@ extern "C" void tab_editor(void)
                 std::string nm = code < (int)gamedata.items.size() ? game_text(gamedata.items[code].name.c_str(), 64) : "#" + std::to_string(code);
                 ImGui::PushID(600 + i);
                 int q = rb(G_FAR2E38, (u16)(o + 3)), c = rb(G_FAR2E38, (u16)(o + 4));
-                ImGui::SetNextItemWidth(UIS(130)); if (ImGui::SliderInt("##q", &q, 1, 99, "quality %d")) wb(G_FAR2E38, (u16)(o + 3), (u8)q);
+                ImGui::SetNextItemWidth(UIS(130)); if (ImGui::SliderInt("##q", &q, 1, 99, "quality %d")) gm_item_set_quality(m, i, q);
                 ImGui::SameLine(); ImGui::SetNextItemWidth(UIS(110)); if (ImGui::InputInt("##n", &c)) wb(G_FAR2E38, (u16)(o + 4), (u8)(c < 1 ? 1 : c > 99 ? 99 : c));
                 ImGui::SameLine(); ImGui::TextUnformatted(nm.c_str());
                 ImGui::PopID();

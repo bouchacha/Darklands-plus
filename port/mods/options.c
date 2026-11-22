@@ -444,6 +444,36 @@ void options_sound_kept(void)
     config_save();
 }
 
+/* a switch that did not exist when the player chose a preset (a release adds some) takes that preset's value, not the
+   Darklands+ default: under "Play the original game" a fix added since stays off (fixes.c reads its key at the start),
+   on Purist a new addition stays off. The preset is told from the switches the settings do hold: all of them at a
+   preset's values (the original's flag for Full Original). Run once at the start, before anything reads a switch */
+void options_fill_new(void)
+{
+    static const char NONE[] = "";
+    int n = options_count(), p = -1, missing = 0, held = 0;
+    for (int i = 0; i < n; i++) if (config_get(options_get(i)->key, NONE) == NONE) missing++; else held++;
+    if (!missing || !held) return;
+    if (config_get_int("original", 0)) p = PRESET_BUGGY_PURIST;
+    else for (int q = PRESET_PURIST; q < PRESET_COUNT && p < 0; q++) {      /* (Darklands+ last: its values are the defaults anyway) */
+        int d = 0;
+        for (int i = 0; i < n && !d; i++) {
+            const Option *o = options_get(i);
+            int pv = preset_value(o, q);
+            if (pv != PRESET_KEEP && config_get(o->key, NONE) != NONE && option_value(o) != pv) d = 1;
+        }
+        if (!d) p = q;
+    }
+    if (p < 0 || p == PRESET_PLUS) return;
+    for (int i = 0; i < n; i++) {
+        const Option *o = options_get(i);
+        int pv = preset_value(o, p);
+        if (config_get(o->key, NONE) != NONE || pv == PRESET_KEEP || pv == o->def) continue;
+        config_set_int(o->key, pv);
+        fprintf(stderr, "settings: %s is new: %d, as the preset chosen has it\n", o->key, pv);
+    }
+}
+
 void preset_apply(int p)
 {
     if (p < 0 || p >= PRESET_COUNT) return;

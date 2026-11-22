@@ -12,8 +12,8 @@
  *    a card it could replace, 1.4.6-RC6);
  *  - values out of range: the place, the party's size, the money, the date going backwards
  *    without a load, the game's 300 notes nearly full ("EVENT Failure");
- *  - a boost whose end was lost: an attribute above its maximum and its running boosts (CK_BOOST,
- *    watched in mods/fixes.c boost_check_frame, beside the mend; his Jorg's Perception 60 of 33);
+ *  - a boost whose end was lost: an attribute above its maximum and its running boosts (CK_BOOST;
+ *    his Jorg's Perception 60 of 33);
  *  - the game reading memory it has freed: its item list's pointers leading anywhere but to
  *    DARKLAND.LST's records (CK_ITEMLIST), its places' to anything but a place (CK_PLACES;
  *    mods/nscreen.c keeps both over a battle), and what that spoilt: a member's load other than
@@ -105,6 +105,8 @@ static void party(void)
    never again once the mods in use have changed (the game reads a mod's item list at its next world load,
    Darklands+ at once: the two differ until then) */
 int gamedata_item_raw(int id, int off, int size);
+static u8 right[5][8]; static int edited;                 /* (below: an attribute 0..6 or the load, right once) */
+void checks_edited(void) { edited = 1; }                  /* (checks.h: F12's editor wrote a member) */
 static void items(void)
 {
     static u32 t; static int gen = -1;
@@ -113,7 +115,7 @@ static void items(void)
     int mode = game_mode(), size = (s16)g_rw(G_PARTY_SIZE);
     if (gen == -1) gen = datamods_generation();
     if ((mode != GM_CARD && mode != GM_MAP && mode != GM_BATTLE) || gen != datamods_generation() || size < 1 || size > 5 ||
-        saves_load_under_way() || (saves_loaded_ms && plat_ticks_ms() - saves_loaded_ms < 5000)) { lasting(CK_ITEMLIST, 0); lasting(CK_LOAD, 0); lasting(CK_PLACES, 0); return; }
+        saves_load_under_way() || (saves_loaded_ms && plat_ticks_ms() - saves_loaded_ms < 5000)) { lasting(CK_ITEMLIST, 0); lasting(CK_LOAD, 0); lasting(CK_PLACES, 0); lasting(CK_BOOST, 0); return; }
     int bad = -1;
     for (int id = 0; bad < 0 && gamedata_item_raw(id, 0, 1) >= 0; id++) {
         u32 d = g_itemdef(id);
@@ -132,23 +134,35 @@ static void items(void)
         u32 r = g_location(place);
         check_fail(CK_PLACES, "the game's record of place %d (at %04x:%04x) is no place (in a battle: %d): freed memory read?", place, (unsigned)(r >> 16), (unsigned)(u16)r, g_rb(GV_in_battle) == 1);
     }
-    /* (a load counts once it has been right for that member: the start's ready-made party comes with loads one
-       off its own sum - its first member's 57 for 56 - until something is equipped, and so may a member who joins) */
-    static u8 right[5]; static unsigned who[5], load_seen;
-    if (load_seen != saves_loaded_ms) { load_seen = saves_loaded_ms; memset(right, 0, sizeof right); }
-    int lm = -1;
+    /* a member's load is what is equipped, and no attribute stands above its maximum and its running boosts. Each
+       counts once it has been right for that member since the game was loaded or F12's editor last wrote: the
+       start's ready-made party comes with loads one off its own sum (its first member's 57 for 56) until something
+       is equipped, a companion joins with 10, and a member taken back from an inn may bring a boost whose end the
+       game left behind (party_remove, s037 1462:3b58) */
+    static unsigned who[5], load_seen;
+    if (load_seen != saves_loaded_ms || edited) { load_seen = saves_loaded_ms; edited = 0; memset(right, 0, sizeof right); }
+    int lm = -1, bm = -1, ba = 0, run[5][7], known = gm_boosts_running(run);
     for (int m = 0; m < 5; m++) {
         char nm[40]; unsigned h = 0;
         gm_member_name(m, nm, sizeof nm);
         for (const char *c = nm; *c; c++) h = h * 31 + (unsigned char)*c;
         int here = m < size && g_rb(G_MEMBER(m)), same = here && gm_member_load(m) == (gm_member_equip_load(m) & 0xff);
-        if (!here || h != who[m]) right[m] = 0;
+        if (!here || h != who[m]) memset(right[m], 0, sizeof right[m]);
         who[m] = h;
-        if (same) right[m] = 1;
-        else if (here && right[m] && lm < 0) lm = m;
+        if (same) right[m][7] = 1;
+        else if (here && right[m][7] && lm < 0) lm = m;
+        for (int a = 0; a < 7 && here && known; a++) {
+            int cur, max; gm_member_attr(m, a, &cur, &max);
+            if (max <= 0 || cur <= max + run[m][a]) right[m][a] = 1;
+            else if (right[m][a] && bm < 0) { bm = m; ba = a; }
+        }
     }
     if (bad < 0 && lasting(CK_LOAD, lm >= 0))
         check_fail(CK_LOAD, "member %d's load is %d, but the things equipped weigh %d", lm, gm_member_load(lm), gm_member_equip_load(lm));
+    if (lasting(CK_BOOST, bm >= 0)) {
+        int cur, max; gm_member_attr(bm, ba, &cur, &max);
+        check_fail(CK_BOOST, "member %d's %s is %d, above its maximum %d and its running boosts %d: a boost's end lost", bm, gm_attr_name(ba), cur, max, run[bm][ba]);
+    }
 }
 
 static void notes(void)

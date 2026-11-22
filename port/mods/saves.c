@@ -419,8 +419,12 @@ static void save_hook(void)                /* save_game () */
 {
     for (int i = 0; i < CARD_FILE_N; i++) keep_file[i] = g_rb((u16)(GV_msg_file + i));
     for (int i = 0; i < (int)sizeof keep_msg; i++) keep_msg[i] = g_rb((u16)(GV_msg_buf + i));
+    int assist_leader_own(void);
+    int own = assist_leader_own(); u8 speaks = g_rb(G_LEADER);    /* (mods/assist.c: the save holds the player's leader) */
+    if (own >= 0) g_wb(G_LEADER, (u8)own);
     save_hook_run();
     if (unw_active) return;
+    if (own >= 0 && (s8)g_rb(G_LEADER) == own) g_wb(G_LEADER, speaks);
     for (int i = 0; i < CARD_FILE_N; i++) g_wb((u16)(GV_msg_file + i), keep_file[i]);
     for (int i = 0; i < (int)sizeof keep_msg; i++) g_wb((u16)(GV_msg_buf + i), keep_msg[i]);
     saved_tell();

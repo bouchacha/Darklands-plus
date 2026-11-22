@@ -318,7 +318,8 @@ static void text_expand_hook(void)                                   /* text_exp
         for (char *r; (r = strstr(t, ", ?")); changed = 1) memmove(r, r + 2, strlen(r + 2) + 1);   /* (its boon names, if unset) */
         if (blk == 2) for (char *r = t; *r; r++) if (*r == 0x10 || *r == 0x16) { *r = 0x15; changed = 1; }   /* (the boons: plain options, below) */
     }
-    if (changed && (int)strlen(t) < n + 16) for (int i = 0; ; i++) { g_wb((u16)(out + i), (u8)t[i]); if (!t[i]) break; }
+    if (changed && (int)strlen(t) < n + 16 && strlen(t) < 900) for (int i = 0; ; i++)       /* (900: msg_buf's size; this hook runs outside cardview.c's guard on it) */
+        { g_wb((u16)(out + i), (u8)t[i]); if (!t[i]) break; }
 }
 
 /* ---------------------------------------------------------------- the cards */

@@ -217,7 +217,7 @@ void ns_defer_frame_end(int game_held) { if (dn && game_held) run_deferred(); }
  * uses (KEPT_*_SEG, runtime/hle.h) and the pointers into it moved there, until the game reads the file again and
  * sets them anew. What is written into a kept block is lost then, as it was in the freed one. Watched: CK_ITEMLIST
  * and CK_PLACES (mods/checks.c). */
-static const struct { u16 seg; unsigned room; } KEPT[3] = { { KEPT_LST_SEG, 0x4000 }, { KEPT_LOC_SEG, 0x5e00 }, { KEPT_CITY_SEG, 0x400 } };
+static const struct { u16 seg; unsigned room; } KEPT[3] = { { KEPT_LST_SEG, 0x5800 }, { KEPT_LOC_SEG, 0x5e00 }, { KEPT_CITY_SEG, 0x400 } };
 static void moved(u16 table, int n, u16 from, u16 to)       /* the far pointers of a table that led into from */
 {
     for (int i = 0; i < n; i++) if (rw(G_FAR2E38, (u16)(table + 4 * i + 2)) == from) ww(G_FAR2E38, (u16)(table + 4 * i + 2), to);
@@ -225,7 +225,9 @@ static void moved(u16 table, int n, u16 from, u16 to)       /* the far pointers 
 static void mem_free_hook(void)            /* mem_free (seg, name), root 05ba:00c2 */
 {
     u16 seg = rw(SS, (u16)(SP + 4));
-    if (seg == KEPT_LST_SEG || seg == KEPT_LOC_SEG || seg == KEPT_CITY_SEG) { hook_return_far(0); return; }   /* (not DOS's to free) */
+    if (seg == KEPT_LST_SEG || seg == KEPT_LOC_SEG || seg == KEPT_CITY_SEG || (seg >= EV_MIRROR_SEG && seg < EV_MIRROR_END)) {
+        hook_return_far(0); return;                    /* (Darklands+'s own, not DOS's to free: a kept block; an event of the battle's copy, mods/fixes.c) */
+    }
     int which = !seg ? -1 : rw(G_FAR2E38, (u16)(G_ITEMDEFS + 2)) == seg ? 0 : rw(G_FAR2E38, 0x10be + 2) == seg ? 1 : g_rw(GV_city_rec + 2) == seg ? 2 : -1;
     unsigned bytes = which >= 0 ? (unsigned)rw((u16)(seg - 1), 3) * 16 : 0;     /* (the block's size, from DOS's record before it) */
     if (which >= 0 && bytes > KEPT[which].room) {

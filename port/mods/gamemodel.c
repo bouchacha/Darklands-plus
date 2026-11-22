@@ -6,6 +6,7 @@
 #include "../runtime/cpu.h"
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
+#include "fixes.h"
 #include "gamemodel.h"
 #include "relics.h"
 #include "../runtime/config.h"
@@ -52,8 +53,23 @@ int gm_item_equipped(int m, int i)
     return 0;
 }
 
+/* the quality of record i set (F12's editor): a thing in use is known by its type and quality in the member's
+   record (item_unequip, s031 18e7:12e8, wants both to match), so that copy goes with it */
+void gm_item_set_quality(int m, int i, int q)
+{
+    GmItem it;
+    if (!gm_item(m, i, &it) || q < 0 || q > 99) return;
+    u16 b = G_MEMBER(m);
+    static const u8 T[5] = { 0x3d, 0x0e, 0x37, 0x38, 0x48 }, Q[5] = { 0x44, 0x46, 0x3b, 0x3c, 0x47 };
+    for (int k = 0; k < 5; k++) {
+        int t = (s8)g_rb((u16)(b + T[k]));
+        if (t >= 0 && t == it.type && g_rb((u16)(b + Q[k])) == it.qual) g_wb((u16)(b + Q[k]), (u8)q);
+    }
+    wb(G_FAR2E38, (u16)(G_ITEM(m, i) + 3), (u8)q);
+}
+
 /* the shared pack (inventory.shared): each member rides their best mount, a horse or mule (item
-   type 108, told by the record itself: in a battle the item definitions are not in memory). It is
+   type 108, told by the record itself). It is
    theirs and in use, like what they hold or wear, not one of the party's spares. */
 int sheetview_shared(void);
 int gm_item_riding(int m, int i)
@@ -373,6 +389,18 @@ static int equipped_id(int m, int kind, int q)
         if (rb(G_FAR2E38, (u16)(o + 3)) == (q & 0xff)) return last;
     }
     return last;
+}
+int gm_boosts_running(int run[5][7])
+{
+    if (!fixes_events_steady()) return 0;
+    memset(run, 0, sizeof(int) * 5 * 7);
+    for (int i = 0; i < G_NEVENTS; i++) {
+        u32 e = g_event(i);
+        if (!e || g_ev(e, G_EV_KIND) != 0x48) continue;
+        int m = g_ev(e, G_EV_OWNER), a = g_ev(e, G_EV_TYPE0), v = g_ev(e, G_EV_VALUE);
+        if (m >= 0 && m < 5 && a >= 0 && a < 7 && v > 0) run[m][a] += v;
+    }
+    return 1;
 }
 int gm_member_equip_load(int m)
 {

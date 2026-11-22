@@ -905,3 +905,60 @@ covered and found, and what it could not check.
   gamemodel.c's "not in memory in a battle" guard is gone. Corrected here: the entry above of the same day says
   release_check "saves and loads there" in its battle; it does not (a fight allows no save): that door is tried
   by hand only, still.
+- 2026-11-22 (the audit, second entry: the party's events over a battle). The third pass counted the doors of one
+  cause: the event table swapped with EVENTS.TMP for a battle, met at the battle's end (1.2), a dead member's
+  contract, a sheet in a battle (1.4.7), a save in a battle (1.5.1-RC7), each closed where it was met, by a list of
+  kinds (0x4a, later 0x48 and 0x49), 48 records at most; and it found the list itself losing what the original
+  keeps: a saint's help for the whole party prayed for from a sheet in a battle (kinds 0x4b, 0x4f, 0x5d, owner -2)
+  was taken out of the game's write and never carried over. Tried then with potions, armorday, greatpower,
+  battlesaints and sainttexts off: a Truesight drunk from the sheet in a battle is in EVENTS.TMP when the sheet
+  closes, in a save made there and loaded, and back in the table when the battle is over. The original loses
+  nothing: its battle code makes no event (s002..s028 call nothing of s029), and its sheet and its save bring the
+  file in and write it back. Every loss had been Darklands+'s own: events made in the battle's empty table outside
+  that bracket (the potion tray), then the keeping that was built round them. So the switch battlesaints claimed a
+  fault the original does not have, and is gone (retired key); 94 fixes with loadsum, below.
+  The cause named: Darklands+ reads and makes events while the game has them in a file. The fix at the cause
+  (mods/fixes.c, "the party's events over a battle"): while the cards are closed the table holds the party's
+  events, a copy of the file in memory of Darklands+'s own (EV_MIRROR_SEG, D000: no DOS block), brought in after
+  cards_shutdown, after battle_sheet and after the save in a battle, and written back to the file (the table
+  emptied, as the game's sheet does on closing) before world_load or that save reads it. Every reader and maker
+  finds the table as on a card. Taken out with it: the potions kept at cards_shutdown, battle_keeps / battle_kept /
+  battle_put_back and their 48, the sheet's taking aside, the save's rewriting of the file, the file readers in
+  boosts_running, the effects and the dwarf relic's note, fixes_world_open, the mend after every battle (the mend
+  once after a load stays, its notice no longer calling every leftover a bug fixed: the game's own roster leaves
+  one behind with a member left at an inn). While the game swaps, fixes_events_steady() is 0 and the readers that
+  draw conclusions wait (losses.c: the false "Lost permanently" of a frame inside cards_shutdown, pass 1's fourth).
+  Seen in his DKSAVEEY: 63 events in the table for the battle; an Ironarm from the tray the 64th; the sheet opened
+  and closed, a quicksave there and its load: 64 each time, the file the same. CK_BOOST is now in mods/checks.c,
+  armed as CK_LOAD is (right once since the load), so a member taken back from an inn or F12's editor raise no
+  false line; a mod's attrmax holds the current value as the game's cards do.
+- 2026-11-22 (the audit, third entry: what else the three passes found and what was done).
+  "A battle" was run_battle (s029 0e76:2278) to pack.c, loot.c and saves.c; a castle, mine or dungeon and every
+  battle taken up from a save start from the main loop (root 03a1:000a) and never pass it (passes 1 and 2, each on
+  its own). So the hidden ammunition was not handed out there (a shooter could not shoot), the thrown weapons not
+  noted, and a member fallen there had his spare things given to the living when struck off, though his pile held
+  them already. Now the ammunition and the note hang on battle_run (s002 0e76:0000: every battle), and "not in a
+  battle" is fixes_cards_down(). Not done: the autosave before a battle is still a card's fight only (a save at
+  every door of a dungeon is his to want or not).
+  A switch missing from the settings took its Darklands+ default whatever preset stood: under "Play the original
+  game" every fix added since was on (fixes.c reads the key at the start). options_fill_new gives a missing switch
+  the value of the preset the held switches agree on.
+  The stand-in leader (the best member speaks) was written into a save made meanwhile: saves.c save_hook, which
+  every save passes, writes the player's own.
+  The load: two paths of the original change what is in use without equip_weight (worn-out armour thrown away,
+  s019 1ef8:0914; the last thrown weapon, use_ammo s014 18bf:0c48): the new fix loadsum sums it again there, so
+  CK_LOAD has nothing true to complain of (the robbery's off-by-one is closed by itemcount).
+  The store's ingredients joined to 255 a row where the game holds a signed char: 127, as the store's other limits.
+  A card text grown by politics.c after the 900-byte guard: held under 900. thrown_last cleared at a load. F12's
+  editor: the nickname's 11th byte was the weapon oils' (10 now); a quality set on a thing in use takes the
+  member's copy along (gm_item_set_quality).
+  Left open, by the reports' own account or mine: (1) a save at a card's text starts the card again (the
+  original's; fruitonce and footpadsonce each close one handler of many): one rule in save_hook would close all,
+  and change how saving at a text works: his to decide. (2) events[-1] (bounty, teachers, bountybrief fixed at
+  three callers): no watch on the interrupt table yet. (3) noselection guards 7 of the 24 routines that read the
+  chosen member: the other 17 not read. (4) carditems: the stated cause does not follow from the game's code;
+  the true path unknown. (5) Fifteen tests under port/tools that no gate runs. (6) The save in a battle is tried
+  by hand, not by release_check (a fight allows no save). (7) Coverage: pass 1 read about 270 of 1064 entries line
+  by line and cleared 675 by the state they run in; pass 2 read 337 of 779 write sites in their whole function;
+  pass 3 traced 17 of the 95 fixes through the game's code and took 78 on their comments with the hook point
+  checked.

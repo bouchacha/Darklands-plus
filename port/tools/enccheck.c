@@ -33,7 +33,7 @@ void fixes_clamp_party_items(void) {}
 int fix_is_on(const char *id) { (void)id; return 0; } int sheetview_shared(void) { return 1; }   /* (saintinfo.c's texts, unused here) */
 int gm_member_present(int m) { (void)m; return 0; } int gm_member_status(int m) { (void)m; return 0; }
 void gm_member_name(int m, char *o, int n) { (void)m; if (n) o[0] = 0; }
-void gm_member_attr(int m, int k, int *c, int *x) { (void)m; (void)k; *c = *x = 0; } int gm_member_skill(int m, int k) { (void)m; (void)k; return 0; }
+void gm_member_attr(int m, int k, int *c, int *x) { (void)m; (void)k; *c = *x = 0; } int gm_boosts_running(int run[5][7]) { (void)run; return 0; } int gm_member_skill(int m, int k) { (void)m; (void)k; return 0; }
 int gm_item_count(int m) { (void)m; return 0; } int gm_item(int m, int i, GmItem *o) { (void)m; (void)i; (void)o; return 0; }
 int cutcards_restored_on(void) { return 0; } int cutcards_scripts(const char **id, const char **t, int i) { (void)id; (void)t; (void)i; return 0; }
 int main(int argc, char **argv)

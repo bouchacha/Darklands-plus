@@ -217,7 +217,16 @@ static int g_attr(int w, int k) { return G(GF_member_attr, 2, w, k); }
 static int g_attr_max(int w, int k) { return G(GF_member_attr_max, 2, w, k); }
 static void g_add_skill(int w, int k, int d) { G(GF_add_skill, 3, w, k, d); }
 static void g_add_attr(int w, int k, int d) { G(GF_add_attr, 3, w, k, d); }
-static void g_add_attr_max(int w, int k, int d) { G(GF_add_attr_max, 3, w, k, d); }
+/* (the maximum, then the current value held to it and what boosts are running, as the game's own cards do after it:
+   add_attr_max, s029 0e76:0bb6, leaves the current value above a lowered maximum) */
+static void g_add_attr_max(int w, int k, int d)
+{
+    G(GF_add_attr_max, 3, w, k, d);
+    int run[5][7], cur, max;
+    if (aborting || w < 0 || w >= 5 || k < 0 || k >= 7 || !gm_boosts_running(run)) return;
+    gm_member_attr(w, k, &cur, &max);
+    if (max > 0 && cur > max + run[w][k]) g_wb((u16)(G_MEMBER(w) + G_M_ATTR_CUR + k), (u8)(max + run[w][k]));
+}
 static void g_set_attr(int w, int k, int v) { G(GF_set_attr, 3, w, k, v); }
 static int g_party_q(u16 off, int k) { return G(29, 0x0e76, off, 1, k); }
 static int g_party_get(int what) { return G(GF_party_get, 1, what); }

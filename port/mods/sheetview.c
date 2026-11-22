@@ -637,10 +637,10 @@ static void sheet_run(void)
     AX = (u16)ns_call(GF_sheet_leave, 1, -1);
     hook_return_far(0);
 }
-static void sheet_hook(void)                /* member_sheet(who), s031 1462:0124: ours (or the original's), then the battle's events taken aside */
+static void sheet_hook(void)                /* member_sheet(who), s031 1462:0124: ours (or the original's) */
 {
     sheet_run();
-    u16 ax = AX; fixes_sheet_closed(); AX = ax;      /* (mods/fixes.c: in a battle, the cards' world goes back to its file without them) */
+    fixes_sheet_closed();                            /* (mods/fixes.c: in a battle the game now writes its event table to the file) */
 }
 
 void sheetview_init(void)

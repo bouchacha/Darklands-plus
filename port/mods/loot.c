@@ -160,7 +160,7 @@ static void thrown_note(void)
         }
     }
 }
-static void battle_hook(void)              /* run_battle (s029 0e76:2278): the thrown weapons each member carries */
+static void battle_hook(void)              /* battle_run (s002 0e76:0000: every battle passes it, a dungeon's and one taken up from a save too): the thrown weapons each member carries */
 {
     if (!battle_depth++) thrown_note();
     hook_call_original();
@@ -345,7 +345,7 @@ static void ingr_store_hook(void)          /* cache_first_draw (who, arg): the s
         wb(G_FAR2E38, (u16)(o + 2), ING_Q);
         for (int k = 0; k < i; k++) {
             u16 ok = (u16)(F_STORE + 4 * k);
-            if ((rw(G_FAR2E38, ok) & 0xfff) != code || rb(G_FAR2E38, (u16)(ok + 3)) + rb(G_FAR2E38, (u16)(o + 3)) > 255) continue;
+            if ((rw(G_FAR2E38, ok) & 0xfff) != code || rb(G_FAR2E38, (u16)(ok + 3)) + rb(G_FAR2E38, (u16)(o + 3)) > 127) continue;   /* (the game's count is a signed char: 127 a row, as the store's P and the shared store keep it) */
             wb(G_FAR2E38, (u16)(ok + 3), (u8)(rb(G_FAR2E38, (u16)(ok + 3)) + rb(G_FAR2E38, (u16)(o + 3))));
             int n = (s16)g_rw(GV_cache_n);
             for (int j = i; j + 1 < n; j++) for (int b = 0; b < 4; b++) wb(G_FAR2E38, (u16)(F_STORE + 4 * j + b), rb(G_FAR2E38, (u16)(F_STORE + 4 * (j + 1) + b)));
@@ -497,7 +497,7 @@ void loot_init(void)
     hook_install(40, 0x1462, 0x0c22, key_hook);
     hook_install(40, 0x1462, 0x01c8, screen_hook);
     hook_install(40, 0x1462, 0x06e2, first_draw_hook);
-    hook_install(GF_run_battle, battle_hook);
+    hook_install(GF_battle_run, battle_hook);
     loot_ingredients_one = config_get_int("rules.ingredients_one_quality", 1);
     hook_install(GF_add_item_rec_impl, ingr_add_hook);
     hook_install(GF_cache_first_draw, ingr_store_hook);

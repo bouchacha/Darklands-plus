@@ -161,6 +161,7 @@ static void restored_migrate(void)
 void mods_init(void)
 {
     hook_install(39, 0x1462, 0x1712, no_papers_hook);
+    { void options_fill_new(void); options_fill_new(); }
     restored_migrate();
     options_sound_kept();
     /* first of the hooks on menu_bar_run, so that it runs last, after the others' (the saves', the

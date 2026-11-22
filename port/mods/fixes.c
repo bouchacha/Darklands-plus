@@ -110,8 +110,6 @@
  *            and the fire saints' protection last a day (below).
  *  greatpower Greatpower raises the quality of the weapon, as the manual says (below, armourday).
  *  standings A saved game keeps the party's standing with the three companies (below, standings).
- *  battlesaints A saint's or a potion's boosts in a battle wear off (below, potions: the cards close),
- *            and an attribute a lost boost left above its maximum comes down (below, boost_mend).
  *  healboost Healing no longer lowers an attribute boosted above its maximum (below, healboost).
  *  teachcap  Lessons at the inn stop at the teacher's ability (below, teachcap).
  *  oilweapons Each weapon oil only with the weapons the manual names (below, oilweapons).
@@ -321,8 +319,6 @@ Fix FIXES[] = {
       "According to the manual, Great Power raises the quality of the weapon by 14, 22 or 30 (up to 99), and quality is what makes blows hit harder. The original added those points to the member's damage and penetration bonuses instead: +14 penetration, or +1 damage and +6 penetration, or +1 damage and +14 penetration. Now it raises the quality of the weapon in hand (bows and guns too), for about a day.", 1 },
     { "standings", "Saved games keep the party's standing with the Fugger, the Medici and the Hanse",
       "The companies' cards raise and lower the party's standing with them (if it, or the party's reputation in the town, is below zero, they give no quests), but a saved game did not keep it: after loading, it was whatever the previous game played had left, or zero after a restart. It is now kept in the save (the original game can still load such saves).", 1 },
-    { "battlesaints", "A saint's help or a potion's boost in a battle wears off",
-      "In the original, a saint called on in a battle, or a potion such as Truesight drunk in one, raised attributes and skills permanently (usually), and the price some saints ask (a lowered attribute) was never given back: the battle, and a game saved in a battle or a dungeon, lost track of what was to wear off. Both now wear off, as outside a battle, and an attribute such a lost boost left above its maximum comes back down when a game is loaded or a battle ends.", 1 },
     { "healboost", "Healing no longer takes a boost away",
       "Healing (Essence o'Grace, or a saint's) brings a wounded attribute part of the way back to its maximum, but the game also brought an attribute above its maximum part of the way down to it: a member whose Strength or Endurance stood above the maximum (Ironarm, New-wind, a saint) lost most of that boost to the potion meant to heal them. Healing now only raises an attribute, never lowers it.", 1 },
     { "teachcap", "Teachers teach only up to their own ability",
@@ -451,6 +447,8 @@ Fix FIXES[] = {
       "Beside a pagan altar the chance of an encounter is up to a hundred times the usual, tried at each small step of the party's marker, and the step that brings one leaves the party where it was: on the tile before the altar, encounter followed encounter. Now, after one there, the altar adds nothing to the chance until the party reaches it or walks away; the land's own chance stays.", 1 },
     { "bountybrief", "A robber-knight briefing names the right patron",
       "The briefing that follows a robber-knight bounty looked the quest up with the castle's number where the office's belongs, so it found another office's quest, or none (the game then read past the start of its table). It now reads the quest the offering office has just made, so the same person speaks throughout.", 1 },
+    { "loadsum", "Armor worn out or a last weapon thrown no longer weighs",
+      "A member's load is summed when something is readied or put away on the character sheet. A fight changes what is in use without summing it again: armor worn down to nothing is thrown away, and the last javelin, axe or dart leaves the hand, yet the load went on counting them, so the member stayed as burdened as before (the load band, and the Agility a shot counts with) until the next change on the sheet. The load is now summed again at once.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -1037,6 +1035,7 @@ static void greatpower_frame(void);
 static void rkcastle_frame(void);
 static void boost_mend_frame(void);
 static void load_mend(void);
+static int load_right(int m, const char *why);
 void fixes_frame(void)
 {
     colours_frame();
@@ -1056,17 +1055,11 @@ void fixes_frame(void)
  * member, +0x1e the amount (3..5 for the first two, 14/22/30 for Greatpower), +0x12 the end
  * (hour, day, month, year). The bonus byte is rebuilt from them every frame: it is nothing else
  * (only use_potion writes it), so saves spoilt by the old bug mend themselves.
- * A battle closes the cards (run_battle: cards_shutdown, s043 1462:054e, writes the events to
- * events.tmp and frees them; cards_startup, 1462:078e, reads them back after the battle and its
- * loot): in between the table holds only what the battle makes, a potion drunk there, and the
- * table read back over it loses it (but what lay past the slots read back). So the party's running potions are kept when the cards close and counted until
- * they open, and those drunk meanwhile are put back into the table when it is read back (as are
- * a saint's boosts called in a battle, with "battlesaints": the game never took them off). */
+ * In a battle the events are in the table too (below: the party's events over a battle). */
 typedef struct { int m, type0, t; s16 end[4]; } PotEv;   /* end: hour, day, month, year (+0x12 ..) */
-static PotEv pot_kept[64];
-static int pot_nkept, cards_down, world_open;
+static int cards_down;
 static void battledead_after(void);
-static void boost_mend(const char *when);
+static int boost_mend(const char *when);
 u32 plat_ticks_ms(void);
 
 static int pot_running(const s16 *end)
@@ -1075,8 +1068,8 @@ static int pot_running(const s16 *end)
     for (int k = 3; k >= 0; k--) { int n = (s16)g_rw(now[k]); if (end[k] != n) return end[k] > n; }
     return 0;
 }
-/* the party's running potions in the table now (kind 0x4a, a member, a sane amount) */
-static int pot_table(PotEv *out, int max)
+/* the party's running potions (kind 0x4a, a member, a sane amount) */
+static int pot_all(PotEv *out, int max)
 {
     int n = 0;
     for (int i = 0; i < 300 && n < max; i++) {
@@ -1090,261 +1083,166 @@ static int pot_table(PotEv *out, int max)
     }
     return n;
 }
-/* all the party's running potions: the table's (while the cards are closed: those drunk in the
-   battle), and while the cards are closed those kept from before */
-static int pot_all(PotEv *out, int max)
+
+/* ---------------------------------------------------------------- the party's events over a battle
+ * For a battle cards_shutdown (s043 1462:054e) writes the event table to EVENTS.TMP and frees it; cards_startup
+ * (1462:078e, through world_load, 1462:0100) reads it back when the battle and its loot are over. In between the game
+ * keeps the table empty and brings the events in for as long as it wants them: a member's sheet in the battle
+ * (battle_sheet, s031 1462:0000: world_load, the sheet, then the table written to the file and freed) and a save made
+ * there (s037 1462:2ace: the file read, the save written, the table freed). Its battle code neither makes nor reads an
+ * event (s002..s028 call nothing of s029), so the original loses none: a potion drunk or a saint called from the sheet
+ * is in the file when the sheet closes, in a save made there, and back in the table after the battle (tried with the
+ * fixes off, 2026-11-22).
+ * Darklands+ reads them in a battle (the potions' bonuses rebuilt every frame, the effects shown, the losses told) and
+ * makes them there outside a sheet (the potion tray: use_potion). Until 1.5.1-RC18 it did so by keeping some kinds aside
+ * and putting them back at each of the game's swaps; each swap not thought of lost them (a sheet in a battle, 1.4.7; a
+ * save in a battle, 1.5.1-RC6: his Jorg's Perception 60 of 33), and the kinds not listed were dropped (a saint's help
+ * for the whole party).
+ * Now one rule, and no list of kinds: while the cards are closed the table holds the party's events, as it does while
+ * they are open - a copy of the file, in memory of Darklands+'s own (EV_MIRROR_SEG, runtime/hle.h: no DOS block, the
+ * battle's memory stays the game's; mem_free leaves them alone, mods/nscreen.c) - and before the game reads or writes
+ * the file itself (world_load, the save) the table is written to the file and emptied, as the game's own sheet does on
+ * closing: the game finds the file and the table as it left them, with whatever was made meanwhile in the file. Not
+ * with "Play the original game", where nothing of Darklands+ reads them. While a swap is under way the table is not to
+ * be trusted (fixes_events_steady). */
+static int ev_mirrored, ev_flux;
+static void ev_set(int i, u32 p) { ww(G_FAR2E38, (u16)(G_EVENTS + i * 4), (u16)p); ww(G_FAR2E38, (u16)(G_EVENTS + i * 4 + 2), (u16)(p >> 16)); }
+static int ev_ours(u32 p) { return (u16)(p >> 16) >= EV_MIRROR_SEG && (u16)(p >> 16) < EV_MIRROR_END; }
+static void ev_bring(void)                 /* EVENTS.TMP into the table's free slots */
 {
-    int n = pot_table(out, max);
-    if (cards_down && !world_open)                     /* (the battle's sheet open: the table holds the cards' events too) */
-        for (int k = 0; k < pot_nkept && n < max; k++) if (pot_running(pot_kept[k].end)) out[n++] = pot_kept[k];
-    return n;
+    static int clean = -1;
+    if (clean < 0) {                       /* (once: that memory is nobody's) */
+        clean = 1;
+        for (u32 a = (u32)EV_MIRROR_SEG * 16; a < (u32)EV_MIRROR_END * 16 && clean; a++) clean = M[a] == 0;
+        if (!clean) fprintf(stderr, "kept: the memory at %04x is in use: the party's events stay in their file over a battle\n", EV_MIRROR_SEG);
+    }
+    if (!clean || config_get_int("original", 0)) return;
+    char p[1200]; dos_host_path("EVENTS.TMP", p, sizeof p);
+    FILE *f = fopen(p, "rb"); u8 c[2]; int n = 0, got = 0, j = 0;
+    if (f && fread(c, 1, 2, f) == 2) n = c[0] | c[1] << 8;
+    for (int k = 0; f && k < n; k++) {
+        while (j < G_NEVENTS && g_event(j)) j++;
+        if (j >= G_NEVENTS) break;
+        u16 seg = (u16)(EV_MIRROR_SEG + 3 * j);
+        if (fread(M + (u32)seg * 16, 1, 0x30, f) != 0x30) break;
+        ev_set(j, (u32)seg << 16); got++;
+    }
+    if (f) fclose(f);
+    ev_mirrored = 1;
+    if (got != n) fprintf(stderr, "kept: %d of the %d events of EVENTS.TMP brought in\n", got, n);
+    else if (getenv("DL_FIX_LOG")) fprintf(stderr, "events: %d in the table for the battle\n", got);
 }
-static int any_potion_fix(void) { return fix_on("potions") || fix_on("armorday") || fix_on("greatpower") || sainttexts_on; }   /* (their kind 0x4a events kept over a battle) */
+static void ev_send(void)                  /* the table into EVENTS.TMP, and emptied: as battle_sheet's end */
+{
+    char p[1200]; dos_host_path("EVENTS.TMP", p, sizeof p);
+    int n = 0; for (int i = 0; i < G_NEVENTS; i++) if (g_event(i)) n++;
+    FILE *f = fopen(p, "wb"); u8 c[2] = { (u8)n, (u8)(n >> 8) };
+    if (!f) { fprintf(stderr, "kept: EVENTS.TMP could not be written: the table left as it is\n"); return; }
+    fwrite(c, 1, 2, f);
+    for (int i = 0; i < G_NEVENTS; i++) { u32 e = g_event(i); if (e) fwrite(M + (u32)(e >> 16) * 16 + (u16)e, 1, 0x30, f); }
+    fclose(f);
+    for (int i = 0; i < G_NEVENTS && !ns_unwinding; i++) {
+        u32 e = g_event(i);
+        if (!e) continue;
+        ev_set(i, 0);
+        if (ev_ours(e)) memset(M + (u32)(e >> 16) * 16, 0, 0x30);
+        else { u16 sp = SP, nm = ns_stack_str("event"); ns_call(GF_mem_free, 2, (int)(e >> 16), (int)nm); if (!ns_unwinding) ns_stack_free(sp); }
+    }
+    ev_mirrored = 0;
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "events: %d written to EVENTS.TMP, the table the game's\n", n);
+}
 static void cards_down_hook(void)          /* cards_shutdown(), s043 1462:054e */
 {
-    pot_nkept = any_potion_fix() ? pot_table(pot_kept, 64) : 0;
+    ev_flux = 1;
     hook_call_original();
-    cards_down = 1; world_open = 0;
-    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix potions: the cards close, %d potions running kept\n", pot_nkept);
-}
-/* what a battle keeps of its own events, whole records: the members' potions (kind 0x4a: the
-   potion fixes) and a saint's help called in it (0x48 attribute, 0x49 skill, its price too:
-   battlesaints) - when it ends (cards_up_hook) and in a save made in it (battle_save_hook) */
-static int battle_keeps(u32 e)
-{
-    int kind = g_ev(e, G_EV_KIND), m = g_ev(e, G_EV_OWNER);
-    return m >= 0 && m <= 4 && ((kind == 0x4a && any_potion_fix()) || ((kind == 0x48 || kind == 0x49) && fix_on("battlesaints")));
-}
-static int battle_kept(u8 (*rec)[0x30], int max)   /* the battle's records kept, from the table */
-{
-    int n = 0;
-    for (int i = 0; i < G_NEVENTS && n < max; i++) {
-        u32 e = ev_ptr(i);
-        if (!e || !battle_keeps(e)) continue;
-        for (int k = 0; k < 0x30; k++) rec[n][k] = rb((u16)(e >> 16), (u16)((u16)e + k));
-        n++;
-    }
-    return n;
-}
-static void battle_put_back(const u8 (*rec)[0x30], int n, const char *why)   /* into the table, unless there */
-{
-    for (int r = 0; r < n && !ns_unwinding; r++) {
-        const u8 *b = rec[r];
-        int kind = b[0x22] | b[0x23] << 8, m = b[0x1a] | b[0x1b] << 8, there = 0;
-        for (int i = 0; i < G_NEVENTS && !there; i++) {
-            u32 e = ev_ptr(i);
-            if (!e) continue;
-            int k = 0; while (k < 0x30 && rb((u16)(e >> 16), (u16)((u16)e + k)) == b[k]) k++;
-            there = k == 0x30;
-        }
-        if (there) continue;
-        int i = (s16)ns_call(GF_event_new, 10, m, (s16)g_rw(G_CUR_LOC), 0x63, kind, b[0] | b[1] << 8, b[0x1e] | b[0x1f] << 8, 6, 24, 1, 0);
-        u32 e = ev_ptr(i);
-        if (!e) continue;
-        for (int k = 0; k < 0x30; k++) wb((u16)(e >> 16), (u16)((u16)e + k), b[k]);
-        if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix %s: member %d's kind %#x (%d, %d) %s (event %d)\n",
-                                          kind == 0x4a ? "potions" : "battlesaints", m, kind, (s16)(b[0] | b[1] << 8), (s16)(b[0x1e] | b[0x1f] << 8), why, i);
-    }
-}
-
-/* the cards open again after a battle: the table is read back into its first slots, so what the
-   battle put in it is lost (but what lay past them) unless it is carried over (battle_keeps) */
-static void cards_up_hook(void)            /* cards_startup(), s043 1462:078e */
-{
-    static u8 rec[48][0x30];
-    int n = cards_down ? battle_kept(rec, 48) : 0;
-    hook_call_original();
-    world_open = 0;
-    if (!cards_down) return;
+    if (unw_active) return;
     u16 ax = AX, dx = DX;
-    cards_down = 0; pot_nkept = 0;
-    battledead_after();
-    if (ns_unwinding) return;
-    battle_put_back((const u8 (*)[0x30])rec, n, "from the battle kept");
-    boost_mend("after a battle");
+    cards_down = 1;
+    ev_bring();
+    ev_flux = 0;
     AX = ax; DX = dx;
 }
-
-/* a member's sheet in a battle (F1..F5: battle_sheet, s031 1462:0000) loads the cards' world for its while - world_load
-   (s043 1462:0100) reads events.tmp into the event table's first slots - shows member_sheet, then writes every event in
-   the table to events.tmp and frees it. Over a battle the table holds only what the battle made (a potion drunk in it, a
-   saint's help called): the load wrote over those in its first slots, lost with their memory, and the write sent the
-   others to the file, where nothing counted them until the battle ended (a Deadly Blade drunk in the fight, then a look
-   at a sheet: its damage gone). Here the battle's events are moved past the slots the load fills, taken out of the
-   table as the sheet closes (fixes_sheet_closed, from ui's member_sheet) and put back once the rest is written: the
-   battle's table and the cards' file as they were, and what was made while the sheet was open (a potion drunk there,
-   a prayer's boost) the battle's. While the sheet is open the table holds both (world_open) */
-static u32 world_ev[G_NEVENTS];                  /* (the cards' events the load made, by their memory) */
-static u32 sheet_kept[G_NEVENTS]; static int sheet_nkept;   /* (the battle's, out of the table while the rest is written) */
-static int sheet_pending, world_keep;            /* (in battle_sheet; the battle's events kept: the potion fixes or battlesaints on) */
-static void ev_set(int i, u32 p) { ww(G_FAR2E38, (u16)(G_EVENTS + i * 4), (u16)p); ww(G_FAR2E38, (u16)(G_EVENTS + i * 4 + 2), (u16)(p >> 16)); }
-static int sheet_nev;                            /* (how many the load reads: events.tmp's count) */
-static void battle_sheet_hook(void)              /* battle_sheet(who), s031 1462:0000 */
+static void world_load_hook(void)          /* world_load(locfile), s043 1462:0100: reads EVENTS.TMP into the table's first slots */
 {
-    if (!cards_down || sheet_pending) { hook_call_original(); return; }
-    world_keep = any_potion_fix() || fix_on("battlesaints");   /* (the fixes that keep the battle's events, as cards_up_hook) */
-    int nev = 0;
-    { char p[1200]; dos_host_path("EVENTS.TMP", p, sizeof p); FILE *f = fopen(p, "rb"); unsigned char c[2];
-      if (f) { if (fread(c, 1, 2, f) == 2) nev = c[0] | c[1] << 8; fclose(f); } }
-    sheet_nev = nev = nev > G_NEVENTS ? G_NEVENTS : nev;
-    int moved = 0;
-    for (int i = 0; i < nev && world_keep; i++) {
-        u32 p = g_event(i);
-        if (!p) continue;
-        int j = nev; while (j < G_NEVENTS && g_event(j)) j++;
-        if (j >= G_NEVENTS) break;
-        ev_set(j, p); ev_set(i, 0); moved++;
-    }
-    if (getenv("DL_FIX_LOG") && world_keep) fprintf(stderr, "fix potions: a sheet in a battle: %d of the battle's events moved past the cards' %d\n", moved, nev);
-    sheet_pending = 1; sheet_nkept = 0;
+    if (ev_mirrored) { ev_flux = 1; ev_send(); if (ns_unwinding) return; }
     hook_call_original();
+    ev_flux = 0;
+}
+/* the cards open again after a battle (its world_load above) */
+static void cards_up_hook(void)            /* cards_startup(), s043 1462:078e */
+{
+    hook_call_original();
+    if (!cards_down) return;
     u16 ax = AX, dx = DX;
-    sheet_pending = world_open = 0;
-    for (int i = 0, k = 0; i < G_NEVENTS && k < sheet_nkept; i++) if (!g_event(i)) ev_set(i, sheet_kept[k++]);
-    if (getenv("DL_FIX_LOG") && sheet_nkept) fprintf(stderr, "fix potions: the sheet closed; %d of the battle's events kept\n", sheet_nkept);
-    sheet_nkept = 0;
+    cards_down = 0; ev_flux = 0;
+    battledead_after();
+    AX = ax; DX = dx;
+}
+/* a member's sheet in a battle: the game's own world_load (above) finds the file whole; when the sheet is over
+   (fixes_sheet_closed, from member_sheet's hook) the game writes the table to the file and frees it */
+void fixes_sheet_closed(void) { if (cards_down) ev_flux = 1; }
+static void battle_sheet_hook(void)        /* battle_sheet(who), s031 1462:0000 */
+{
+    hook_call_original();
+    if (!cards_down || unw_active) { ev_flux = 0; return; }
+    u16 ax = AX, dx = DX;
+    ev_bring();
+    ev_flux = 0;
     AX = ax; DX = dx;
 }
 /* a save in a battle (s037 1462:2ace, in_battle 1) reads the cards' events from events.tmp into the table's first
-   slots, over the battle's own, writes the save from the table and then frees every event in it: what the battle
-   had made was lost at once (a potion drunk in a dungeon gone as the game was saved there) and missing from the
-   save. The battle's events are taken out of the table for the save's while and put back after, untouched; and the
-   save reads events.tmp as it will be when the battle ends (battle_keeps: cards_up_hook carries them over), the
-   file put back after, so a save loaded has them running from the cards' events. While it is written the table
-   holds the cards' events and those kept, all the party's (world_open, as a sheet's while) */
-static u32 save_ev[G_NEVENTS];
-static int save_pending;
-static void battle_save_hook(void)               /* s037 1462:2ace (comment): write a save */
+   slots, writes the save from the table and frees every event in it */
+static void battle_save_hook(void)         /* s037 1462:2ace (comment): write a save */
 {
-    if (!cards_down || g_rb(GV_in_battle) != 1 || save_pending || !(any_potion_fix() || fix_on("battlesaints"))) { hook_call_original(); return; }
-    static u8 rec[48][0x30];
-    int n = battle_kept(rec, 48);
-    char p[1200]; dos_host_path("EVENTS.TMP", p, sizeof p);
-    u8 *was = 0; long size = 0;
-    FILE *f = n ? fopen(p, "rb") : 0;
-    if (f) {
-        if (fseek(f, 0, SEEK_END) == 0 && (size = ftell(f)) >= 2 && (was = malloc((size_t)size)) && fseek(f, 0, SEEK_SET) == 0
-            && fread(was, 1, (size_t)size, f) != (size_t)size) { free(was); was = 0; }
-        fclose(f);
-    }
-    int nev = was ? was[0] | was[1] << 8 : 0, put = was && 2 + nev * 0x30L == size && nev + n <= G_NEVENTS;
-    if (put && (f = fopen(p, "wb"))) {
-        u8 c[2] = { (u8)(nev + n), (u8)((nev + n) >> 8) };
-        put = fwrite(c, 1, 2, f) == 2 && fwrite(was + 2, 1, (size_t)size - 2, f) == (size_t)size - 2 && fwrite(rec, 0x30, (size_t)n, f) == (size_t)n;
-        fclose(f);
-    } else put = 0;
-    for (int i = 0; i < G_NEVENTS; i++) { save_ev[i] = g_event(i); ev_set(i, 0); }
-    int open = world_open;
-    save_pending = world_open = 1;
+    if (!cards_down || g_rb(GV_in_battle) != 1) { hook_call_original(); return; }
+    ev_flux = 1;
+    if (ev_mirrored) { ev_send(); if (ns_unwinding) return; }
     hook_call_original();
+    if (unw_active) return;
     u16 ax = AX, dx = DX;
-    save_pending = 0; world_open = open;
-    int back = 0;
-    for (int i = 0; i < G_NEVENTS; i++) if (save_ev[i] && !g_event(i)) { ev_set(i, save_ev[i]); back++; }
-    if (was && (f = fopen(p, "wb"))) { fwrite(was, 1, (size_t)size, f); fclose(f); }
-    free(was);
-    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix potions: saved in a battle: its %d events kept, %d of them in the save\n", back, put ? n : 0);
+    ev_bring();
+    ev_flux = 0;
     AX = ax; DX = dx;
 }
-/* an attribute left above its maximum by a boost whose record was lost: the game's own save in a battle (above; until
-   1.5.1-RC7 it lost the battle's events) and, without battlesaints, the end of a battle dropped the record of a potion's
-   or a saint's boost while the attribute stayed raised, so nothing ever took it off (his Jorg: Perception 60 of 33 after
-   a Truesight drunk in the Lugum dungeon and a save there, build 1281; not one of his 273 other saves has an attribute
-   above its maximum by more than its running boosts). With battlesaints every boost keeps its record, so whatever stands
-   above the maximum and the running boosts (kind 0x48, its amount at +0x1e) is such a leftover, and comes off: once a
-   game is loaded and has settled, and after every battle. In a battle the cards' events are in events.tmp (cards_down)
-   and are read from it; not while the table holds both (a sheet or a save in a battle) */
+int fixes_events_steady(void) { return !ev_flux; }   /* (fixes.h) */
+void fixes_title_opened(void)              /* (fixes.h: a party lost in a battle, the game left there: its copy is nobody's now) */
+{
+    for (int i = 0; i < G_NEVENTS; i++) { u32 e = g_event(i); if (e && ev_ours(e)) { ev_set(i, 0); memset(M + (u32)(e >> 16) * 16, 0, 0x30); } }
+    ev_mirrored = cards_down = ev_flux = 0;
+}
+
+/* an attribute left above its maximum by a boost whose record was lost: until 1.5.1-RC18 Darklands+'s own handling of
+   the battle's events could drop the record of a potion's or a saint's boost while the attribute stayed raised (above;
+   his Jorg: Perception 60 of 33 after a Truesight drunk in the Lugum dungeon and a save there, build 1281; not one of
+   his 273 other saves has an attribute above its maximum by more than its running boosts), and the game's own roster
+   does the same to a member left at an inn with a boost running (party_remove, s037 1462:3b58, writes him out raised
+   and leaves the event behind). Whatever stands above the maximum and the running boosts (kind 0x48, its amount at
+   +0x1e) is such a leftover, and comes off once a game is loaded and has settled. Watched after that: CK_BOOST
+   (mods/checks.c) */
 static int boost_mend_due;
 static void boost_mend_after_load(void) { boost_mend_due = 1; }   /* (saves_on_loaded) */
-/* the boosts running for each member and attribute (kind 0x48, its amount at +0x1e): the table's and, in a battle, the
-   cards' in events.tmp; 0 when they cannot all be known (the table holding both, a sheet or a save in a battle) */
-static int boosts_running(int run[5][7])
-{
-    if (world_open || sheet_pending || save_pending || ns_unwinding) return 0;
-    int battle = g_rb(GV_in_battle) == 1;
-    if (battle && !cards_down) return 0;                /* (the cards' events neither in the table nor known to be in the file) */
-    memset(run, 0, sizeof(int) * 5 * 7);
-    for (int i = 0; i < G_NEVENTS; i++) {
-        u32 e = ev_ptr(i);
-        if (!e || g_ev(e, G_EV_KIND) != 0x48) continue;
-        int m = g_ev(e, G_EV_OWNER), a = g_ev(e, G_EV_TYPE0), v = g_ev(e, G_EV_VALUE);
-        if (m >= 0 && m < 5 && a >= 0 && a < 7 && v > 0) run[m][a] += v;
-    }
-    if (battle) {
-        char p[1200]; dos_host_path("EVENTS.TMP", p, sizeof p);
-        FILE *f = fopen(p, "rb"); u8 b[0x30], c[2]; int n = 0;
-        if (!f) return 0;
-        if (fread(c, 1, 2, f) == 2) n = c[0] | c[1] << 8;
-        for (int k = 0; k < n && k < G_NEVENTS && fread(b, 1, 0x30, f) == 0x30; k++) {
-            int m = (s16)(b[G_EV_OWNER] | b[G_EV_OWNER + 1] << 8), a = (s16)(b[G_EV_TYPE0] | b[G_EV_TYPE0 + 1] << 8), v = (s16)(b[G_EV_VALUE] | b[G_EV_VALUE + 1] << 8);
-            if ((b[G_EV_KIND] | b[G_EV_KIND + 1] << 8) == 0x48 && m >= 0 && m < 5 && a >= 0 && a < 7 && v > 0) run[m][a] += v;
-        }
-        fclose(f);
-    }
-    return 1;
-}
-static void boost_mend(const char *when)
+static int boost_mend(const char *when)            /* 0: the events not to be read now */
 {
     int run[5][7];
-    if (!fix_on("battlesaints") || !boosts_running(run)) return;
+    if (config_get_int("original", 0) || !gm_boosts_running(run)) return 0;
     int size = (s16)g_rw(G_PARTY_SIZE);
     for (int m = 0; m < size && m < 5; m++)
         for (int a = 0; a < 7; a++) {
             int cur = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + a)), max = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + a)), top = max + run[m][a];
-            if (max <= 0 || cur <= top) continue;
+            if (!g_rb(G_MEMBER(m)) || max <= 0 || cur <= top) continue;
             g_wb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + a), (u8)top);
             char nm[24]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), nm, sizeof nm);
-            char t[200]; snprintf(t, sizeof t, "%s's %s stood %d above its maximum, left over from a boost whose end was lost (a bug now fixed): back to %d.", nm, gm_attr_name(a), cur - top, top);
+            char t[200]; snprintf(t, sizeof t, "%s's %s stood %d above its maximum with no boost running to account for it: back to %d.", nm, gm_attr_name(a), cur - top, top);
             void ui_notice(const char *msg); ui_notice(t);
-            fprintf(stderr, "fix battlesaints: %s: member %d attribute %d %d of %d with %d running: back to %d\n", when, m, a, cur, max, run[m][a], top);
+            fprintf(stderr, "mend: %s: member %d attribute %d %d of %d with %d running: back to %d\n", when, m, a, cur, max, run[m][a], top);
         }
-}
-/* and watched (mods/checks.h CK_BOOST), outside a battle, once a second: an attribute above its maximum by more than its
-   running boosts for two seconds on end is a boost whose end some other path lost - one more of the game's swaps of its
-   event table, the kind that made this (the end of a battle, a sheet in a battle, a save in a battle, each found only when
-   a player met it). The mend at a load or a battle's end puts it right; the check says where it began */
-static void boost_check_frame(void)
-{
-    static unsigned t; static u32 since;
-    if (++t % 60 || !fix_on("battlesaints")) return;
-    int mode = game_mode(), run[5][7];
-    if (g_rb(GV_in_battle) == 1 || (mode != GM_CARD && mode != GM_MAP) || (saves_loaded_ms && plat_ticks_ms() - saves_loaded_ms < 5000) || !boosts_running(run)) { since = 0; return; }
-    int size = (s16)g_rw(G_PARTY_SIZE), bm = -1, ba = 0, bc = 0, bt = 0;
-    for (int m = 0; m < size && m < 5 && bm < 0; m++)
-        for (int a = 0; a < 7 && bm < 0; a++) {
-            int cur = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + a)), max = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + a));
-            if (max > 0 && cur > max + run[m][a]) { bm = m; ba = a; bc = cur; bt = max + run[m][a]; }
-        }
-    if (bm < 0) { since = 0; return; }
-    if (!since) { since = plat_ticks_ms() | 1; return; }
-    if (plat_ticks_ms() - since < 2000) return;
-    check_fail(CK_BOOST, "member %d's %s is %d, above its maximum and its running boosts (%d): a boost's end lost", bm, gm_attr_name(ba), bc, bt);
+    return 1;
 }
 static void boost_mend_frame(void)
 {
-    if (boost_mend_due && saves_loaded_ms && plat_ticks_ms() - saves_loaded_ms > 1500) { boost_mend_due = 0; boost_mend("a game loaded"); load_mend(); }
-    if (!config_get_int("original", 0)) boost_check_frame();
+    if (!boost_mend_due || !saves_loaded_ms || plat_ticks_ms() - saves_loaded_ms <= 1500) return;
+    if (boost_mend("a game loaded")) { boost_mend_due = 0; load_mend(); }     /* (else at a later frame: the events being swapped) */
 }
-static void world_load_hook(void)                /* world_load(locfile), s043 1462:0100 */
-{
-    hook_call_original();
-    if (!sheet_pending) return;
-    for (int i = 0; i < G_NEVENTS; i++) world_ev[i] = i < sheet_nev ? g_event(i) : 0;
-    world_open = 1;
-}
-void fixes_sheet_closed(void)                    /* (fixes.h: member_sheet over) */
-{
-    if (!world_open) return;
-    world_open = 0;
-    if (!world_keep) return;
-    for (int i = 0; i < G_NEVENTS; i++) {
-        u32 p = g_event(i);
-        if (!p) continue;
-        int cards = 0; for (int k = 0; k < sheet_nev && !cards; k++) cards = world_ev[k] == p;
-        if (!cards && sheet_nkept < G_NEVENTS) { sheet_kept[sheet_nkept++] = p; ev_set(i, 0); }
-    }
-}
-int fixes_world_open(void) { return world_open; }   /* (fixes.h) */
 
 /* a running kind 0x4a event that is Greatpower's: marked 0x6b by greatpower, else (the original's)
    an inventory index with 14, 22 or 30 */
@@ -1420,7 +1318,7 @@ static int running_potions(int m, int k, int largest)
     return v;
 }
 int fixes_running(int m, int type0) { return running_potions(m, type0, 1); }
-int fixes_cards_down(void) { return cards_down; }   /* (fixes.h) */   /* (fixes.h: also over a battle, when the table holds only the battle's) */
+int fixes_cards_down(void) { return cards_down; }   /* (fixes.h) */
 
 static void potion_fixes_hook(void)        /* use_potion(who, idx), s031 1462:43b2 */
 {
@@ -1658,6 +1556,7 @@ static void bestweapon_hook(void)          /* member_best_skill(who), s029 0e76:
  * before the table is 0: Edged Weapons practised instead of Thrown Weapons (Darklands Restoration's register,
  * B-f19453). Here the weapon each member last spent is kept, and stands in for the missing one at the end. */
 static int thrown_last[5] = { -1, -1, -1, -1, -1 };
+static void thrown_after_load(void) { for (int m = 0; m < 5; m++) thrown_last[m] = -1; }   /* (saves_on_loaded: the battle left is another game's) */
 static void thrown_ammo_hook(void)          /* use_ammo (i), s014 18bf:0c48 */
 {
     int i = (s16)rw(SS, (u16)(SP + 4));
@@ -1826,6 +1725,7 @@ static void wornout_hook(void)             /* s019 1ef8:0914 (i): throw away wor
         }
         g_wb((u16)(cb + 0x4b + s), 0xff); g_wb((u16)(cb + 0x4d + s), 0); g_wb((u16)(cb + 0x4f + s), 0x19);
     }
+    if (fix_on("loadsum")) load_right(i, "fix loadsum");    /* (this hook stands for the function loadsum's own is on) */
     hook_return_far(0);
 }
 
@@ -3305,29 +3205,6 @@ static void minerelic_hook(void)            /* s009 182c:1146 (struct grp far *g
 #define DR_TAG 0x7c
 static int dr_pending, dr_chest;
 static int card_named(const char *n) { char nm[16]; g_str(G_DGROUP, GV_card_name, nm, sizeof nm); return !strcasecmp(nm, n); }
-/* the note of a relic waiting at loc in EVENTS.TMP (u16 count, then 0x30-byte records, as cards_shutdown wrote it): its relic,
-   the note made the game's own there (tag 0xc), as cards_startup will read it back after the battle; 0 none */
-static int dr_take_from_file(int loc)
-{
-    char p[1200]; dos_host_path("EVENTS.TMP", p, sizeof p);
-    FILE *f = fopen(p, "r+b");
-    if (!f) return 0;
-    unsigned char c[2], r[0x30]; int code = 0;
-    if (fread(c, 1, 2, f) == 2) {
-        int n = c[0] | c[1] << 8;
-        for (int i = 0; i < n && i < G_NEVENTS && !code; i++) {
-            long at = ftell(f);
-            if (fread(r, 1, 0x30, f) != 0x30) break;
-            int kind = (s16)(r[0x22] | r[0x23] << 8), t0 = (s16)(r[0] | r[1] << 8), tag = (s16)(r[0x28] | r[0x29] << 8), l = (s16)(r[0x1c] | r[0x1d] << 8);
-            if (kind != 0x1c || t0 != 7 || tag != DR_TAG || l != loc) continue;
-            code = r[0x2a] | r[0x2b] << 8;
-            r[0x28] = 0xc; r[0x29] = 0; r[0x2a] = 0; r[0x2b] = 0;
-            fseek(f, at, SEEK_SET); fwrite(r, 1, 0x30, f);
-        }
-    }
-    fclose(f);
-    return code;
-}
 static void dwarfrelic_item_hook(void)      /* add_item_impl (who, code), s031 18e7:0128 */
 {
     int code = (s16)rw(SS, (u16)(SP + 6));
@@ -3364,8 +3241,7 @@ static void dwarfrelic_screen_hook(void)    /* loot_distribute (items far, u8 *c
     u16 off = rw(SS, (u16)(SP + 4)), sg = rw(SS, (u16)(SP + 6)), cp = rw(SS, (u16)(SP + 8));
     int n = g_rb(cp), code = 0;
     if (!dr_chest && g_rb(GV_in_battle) == 1 && loc >= 0 && sg && n < 200) {
-        if (fixes_cards_down()) code = dr_take_from_file(loc);       /* (a battle has closed the cards: the party's notes are in EVENTS.TMP) */
-        else for (int i = 0; i < G_NEVENTS && !code; i++) {
+        for (int i = 0; i < G_NEVENTS && !code; i++) {
             u32 e = g_event(i);
             if (!e || g_ev(e, G_EV_KIND) != 0x1c || g_ev(e, G_EV_TYPE0) != 7 || g_ev(e, G_EV_TAG) != DR_TAG || g_ev(e, G_EV_LOC) != loc) continue;
             code = g_ev(e, G_EV_AUX);
@@ -4312,21 +4188,35 @@ static void dissolve_key_hook(void)         /* s016 1ef8:0f76 (), D or Disarm Tr
     if (!ns_unwinding) hook_return_far(0);
 }
 
-/* ---------------------------------------------------------------- the load, mended
- * A game saved by 1.5.1-RC18 or earlier may hold a load summed from freed memory (his Dietrich at 198 after
- * drinking his last Ironarm from the battle's potion tray; the cause: mods/nscreen.c, the item list kept): once
- * loaded, each member's load is put back to what equip_weight sums (CK_LOAD in mods/checks.c watches it after) */
+/* ---------------------------------------------------------------- loadsum, and the load mended
+ * A member's load (party +0x35: the load band of the sheet, the Agility a shot counts with) is written by equip_weight
+ * (s031 18e7:140a) alone, when a thing is readied or put away on a sheet. The battle changes what is in use without it:
+ * worn-out armour is thrown away (s019 1ef8:0914: the slot emptied) and the last of a thrown weapon leaves the hand
+ * (use_ammo, s014 18bf:0c48: the missile weapon -1), and the load still counts them until the next change on a sheet.
+ * Here it is summed again at both (gm_member_equip_load, as equip_weight sums).
+ * And a game saved by 1.5.1-RC18 or earlier may hold a load summed from freed memory (his Dietrich at 198 after drinking
+ * his last Ironarm from the battle's potion tray; the cause: mods/nscreen.c, the world's tables kept): once loaded, each
+ * member's load is put back to the sum (load_mend). CK_LOAD in mods/checks.c watches it. */
+static int load_right(int m, const char *why)
+{
+    if (m < 0 || m >= 5 || !g_rb(G_MEMBER(m))) return 0;
+    int load = gm_member_equip_load(m), was = g_rb((u16)(G_MEMBER(m) + G_M_LOAD));
+    if (was == (load & 0xff)) return 0;
+    g_wb((u16)(G_MEMBER(m) + G_M_LOAD), (u8)load);
+    fprintf(stderr, "%s: member %d's load %d, not %d\n", why, m, load & 0xff, was);
+    return 1;
+}
+static void loadsum_hook(void)             /* use_ammo (i), s014 18bf:0c48; s019 1ef8:0914 (i) */
+{
+    int i = (s16)rw(SS, (u16)(SP + 4));
+    hook_call_original();
+    if (!unw_active) load_right(i, "fix loadsum");
+}
 static void load_mend(void)
 {
     if (config_get_int("original", 0)) return;
     int size = (s16)g_rw(G_PARTY_SIZE);
-    for (int m = 0; m < size && m < 5; m++) {
-        if (!g_rb(G_MEMBER(m))) continue;
-        int load = gm_member_equip_load(m), was = g_rb((u16)(G_MEMBER(m) + G_M_LOAD));
-        if (was == (load & 0xff)) continue;
-        g_wb((u16)(G_MEMBER(m) + G_M_LOAD), (u8)load);
-        fprintf(stderr, "mend: member %d's load %d, not %d (a game loaded)\n", m, load & 0xff, was);
-    }
+    for (int m = 0; m < size && m < 5; m++) load_right(m, "mend: a game loaded");
 }
 
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
@@ -4339,7 +4229,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { GF_set_member_bit, patron_hook }, { 108, 0x1925, 0x0438, debtnote_hook }, { 29, 0x0e76, 0x3fb2, alchrisk_hook },
     { 56, 0x19c4, 0x0ac2, canon_hook }, { 30, 0x1462, 0x28f2, sites_hook }, { 108, 0x1838, 0x07ca, tomb_hook },
     { 50, 0x1a06, 0x026c, lord_hook }, { GF_use_potion, potion_fixes_hook }, { GF_use_potion, potion_fixes_hook },
-    { 37, 0x1462, 0x2ace, standings_save_hook }, { -2, 0, 0, 0 }, { GF_heal_attr_pct, healboost_hook },
+    { 37, 0x1462, 0x2ace, standings_save_hook }, { GF_heal_attr_pct, healboost_hook },
     { GF_camp_spend_day, teachcap_hook }, { GF_hit_damage, oils_hit_hook }, { 39, 0x165c, 0x5cca, paul_hook },
     { 39, 0x165c, 0x41fa, nepomuk_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x21aa, nightbowyer_hook },
     { 57, 0x1838, 0x03cc, confession_hook }, { 29, 0x0e76, 0x3f30, appointment_hook }, { GF_damage_queue, pileup_hook }, { 7, 0x15af, 0x1d78, castlefreeze_hook }, { 56, 0x18c0, 0x0494, university_hook }, { GF_add_item_rec_impl, partyitems_hook }, { GF_item_quality_flags_impl, itemflags_hook },
@@ -4350,7 +4240,8 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook },
     { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_add_item_rec_impl, carditems_rec_hook }, { GF_saint_finish, prayfor_hook }, { 30, 0x1462, 0x1c76, westedge_hook }, { GF_lock_pick, bestpick_hook },
     { 37, 0x1462, 0x2ace, save_records_hook }, { -2, 0, 0, 0 }, { 38, 0x1462, 0x02f8, innroster_key_hook }, { GF_party_remove, leaving_record_hook }, { -2, 0, 0, 0 }, { 37, 0x1c7d, 0x0d24, duplicate_load_hook }, { 16, 0x1ef8, 0x0f76, dissolve_key_hook }, { -2, 0, 0, 0 },
-    { 14, 0x0e76, 0x0694, thrown_end_hook }, { 14, 0x19cd, 0x0738, nosel_leave_hook }, { 18, 0x1f43, 0x0256, castsight_hook }, { GF_path_find, doorplan_hook }, { 30, 0x1462, 0x1dd4, maprows_hook }, { 87, 0x1986, 0x01e6, fruitonce_hook }, { 53, 0x1838, 0x02d6, footpadsonce_hook }, { 30, 0x1462, 0x25be, campwatch_hook }, { 14, 0x0e76, 0x0f58, exitleft_tick_hook }, { -2, 0, 0, 0 }, { -2, 0, 0, 0 }, { 80, 0x1838, 0x0000, bounty_briefing_hook } };   /* (hitsound: mods/sfx.c; savecheck: mods/saves.c; cachefile: mods/cachefile.c; stairsreturn: mods/stairsfix.c; onefloor: mods/levelwalk.c; altarroad: mods/travel.c) */
+    { 14, 0x0e76, 0x0694, thrown_end_hook }, { 14, 0x19cd, 0x0738, nosel_leave_hook }, { 18, 0x1f43, 0x0256, castsight_hook }, { GF_path_find, doorplan_hook }, { 30, 0x1462, 0x1dd4, maprows_hook }, { 87, 0x1986, 0x01e6, fruitonce_hook }, { 53, 0x1838, 0x02d6, footpadsonce_hook }, { 30, 0x1462, 0x25be, campwatch_hook }, { 14, 0x0e76, 0x0f58, exitleft_tick_hook }, { -2, 0, 0, 0 }, { -2, 0, 0, 0 }, { 80, 0x1838, 0x0000, bounty_briefing_hook }, { GF_use_ammo, loadsum_hook },
+};   /* (hitsound: mods/sfx.c; savecheck: mods/saves.c; cachefile: mods/cachefile.c; stairsreturn: mods/stairsfix.c; onefloor: mods/levelwalk.c; altarroad: mods/travel.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
 static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(void); } MORE[] = {
@@ -4401,7 +4292,7 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "cardslips", 67, 0x1a24, 0x08ca, sneakhall_hook }, { "cardslips", 88, 0x1859, 0x0230, devil_hook },
     { "cardslips", 46, 0x1838, 0x0000, nightmain_hook }, { "cardslips", 46, 0x194b, 0x0002, nightside_hook },
     { "fruitonce", 87, 0x1986, 0x0258, fruitonce_hook }, { "fruitonce", 87, 0x1986, 0x02ca, fruitonce_hook }, { "fruitonce", 87, 0x1986, 0x033c, fruitonce_hook },
-    { "alchemy", 36, 0x1462, 0x1ec2, unbrew_hook }, { "thrownskill", GF_use_ammo, thrown_ammo_hook },
+    { "alchemy", 36, 0x1462, 0x1ec2, unbrew_hook }, { "thrownskill", GF_use_ammo, thrown_ammo_hook }, { "loadsum", 19, 0x1ef8, 0x0914, loadsum_hook },
     { "noselection", 16, 0x1ef8, 0x156e, nosel_order_hook }, { "noselection", 16, 0x1ef8, 0x1590, nosel_order_hook },
     { "noselection", 16, 0x1ef8, 0x152e, nosel_order_hook }, { "noselection", 16, 0x1ef8, 0x13d4, nosel_order_hook },
     { "noselection", 16, 0x1ef8, 0x0000, nosel_keys_hook }, { "noselection", 16, 0x1ef8, 0x1384, nosel_stairs_hook },
@@ -4437,13 +4328,13 @@ static void copy_check_hook(void)
 
 void fixes_init(void)
 {
-    saves_on_loaded(colours_after_load); saves_on_loaded(alertonce_after_load); saves_on_loaded(boost_mend_after_load);
+    saves_on_loaded(colours_after_load); saves_on_loaded(alertonce_after_load); saves_on_loaded(boost_mend_after_load); saves_on_loaded(thrown_after_load);
     if (getenv("DL_CHECK_COPY")) hook_install(-1, 0x06a1, 0x2eb4, copy_check_hook);
-    hook_install(GF_cards_shutdown, cards_down_hook);   /* (the potions kept over a battle: they ask any_potion_fix) */
+    hook_install(GF_cards_shutdown, cards_down_hook);   /* (the party's events over a battle) */
     hook_install(GF_cards_startup, cards_up_hook);
-    hook_install(GF_battle_sheet, battle_sheet_hook);   /* (a sheet in a battle: the battle's events kept) */
+    hook_install(GF_battle_sheet, battle_sheet_hook);
     hook_install(GF_world_load, world_load_hook);
-    hook_install(37, 0x1462, 0x2ace, battle_save_hook);   /* (a save in a battle: the battle's events kept) */
+    hook_install(37, 0x1462, 0x2ace, battle_save_hook);
     for (int i = 0; i < FIX_COUNT; i++) {
         char key[64]; snprintf(key, sizeof key, "fix.%s", FIXES[i].id);
         fix_enable(i, config_get_int(key, FIXES[i].on));

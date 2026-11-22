@@ -3,11 +3,14 @@
 #include "cpu.h"
 #define HLE_SEG 0xF000          /* fake BIOS segment: IVT entries point to F000:(n*4) */
 #define EMS_SEG 0xF100          /* EMS driver: entry F100:0100, device name at F100:000A */
-/* the world's tables kept while the game has freed its own (mods/nscreen.c): free memory between the stubs above
-   (F000..F23F) and the BIOS font (F000:FA6E) */
-#define KEPT_LST_SEG  0xF400    /* DARKLAND.LST: 16 KB */
-#define KEPT_LOC_SEG  0xF800    /* the places (LOCS.TMP): 24 KB */
-#define KEPT_CITY_SEG 0xFDE0    /* the city's record: 1 KB */
+/* Darklands+'s own memory in the game's address space, for what the game frees and Darklands+ still reads
+   (mods/nscreen.c: the world's tables; mods/fixes.c: the party's events over a battle). Free memory between the
+   stubs above (F000..F23F) and the BIOS font (F000:FA6E), and the unused ROM area at D000 */
+#define KEPT_LST_SEG  0xF400    /* DARKLAND.LST: 22 KB */
+#define KEPT_LOC_SEG  0xF980    /* the places (LOCS.TMP): 24 KB */
+#define KEPT_CITY_SEG 0xFF60    /* the city's record: 1 KB */
+#define EV_MIRROR_SEG 0xD000    /* 300 events of 0x30 bytes, 3 paragraphs each: D000..D383 */
+#define EV_MIRROR_END 0xD384
 void hle_stub(u16 seg, u16 off);         /* a far call/jump landed in the fake BIOS */
 void (*driver_find(u16 seg, u16 off))(void);
 void hle_init(const char *gamedir, const char *exe, int argc, char **argv);

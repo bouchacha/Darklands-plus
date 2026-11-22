@@ -149,6 +149,7 @@ const char *const OPTIONS_RETIRED[] = {
     "display.idle_rest",             /* the game waits without spinning: always */
     "sound.hit_sounds",              /* hits make a sound: the fix "hitsound" */
     "assist.infinite_ammo", "assist.infinite_thrown", "assist.return_thrown",   /* one choice instead, Ammunition (assist.endless: 1 endless, 2 given back, 0 the original's) */
+    "fix.battlesaints",              /* (1.2 to 1.5.1-RC18) a boost made in a battle kept over its end: the original keeps it by itself; what lost it was Darklands+'s own handling, replaced (mods/fixes.c: the party's events over a battle) */
     "fix.battleload",                /* (1.5.1-RC18 only) the load after a last potion in a battle: Darklands+'s own fault, put right for all (mods/nscreen.c: the item list kept) */
     0 };
 

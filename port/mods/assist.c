@@ -63,6 +63,10 @@ int assist_best_at_attr(int k)
     return best >= 0 ? best : cur;
 }
 int assist_bargainer(void) { return assist_best_leader && !config_get_int("original", 0) ? assist_best_at_attr(5) : (s8)g_rb(G_LEADER); }
+/* the player's own leader while another speaks for the party (and the leader not changed since), else -1: a save made
+   meanwhile (the autosave before the fight an option leads to, a quicksave at its text) holds him, not the stand-in
+   (mods/saves.c save_hook, which every save passes) */
+int assist_leader_own(void) { return saved_leader >= 0 && stand_in >= 0 && (s8)g_rb(G_LEADER) == stand_in && leader_able(saved_leader) ? saved_leader : -1; }
 static void leader_after_load(void) { saved_leader = stand_in = -1; }   /* a game loaded (saves_on_loaded): its leader is its own */
 void assist_leader_restore(void)
 {
