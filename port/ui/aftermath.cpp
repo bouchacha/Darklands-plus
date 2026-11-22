@@ -1,5 +1,5 @@
-/* The victory loot shows what happened to the party, using the game's actual
- * recovery, practice rolls and armor wear. The report is frozen when loot opens.
+/* A victory report shows the game's actual recovery, practice rolls and armor
+ * wear, either above the loot or in a notice when there is nothing to collect.
  * Only what lasts: the effects still running are in the right margin with their
  * time left (his answer, 1.5.1). The notices of lasting changes (worn armour, a
  * lowered maximum) still pop up on their own as the settings say: this gathers
@@ -9,7 +9,9 @@
 #include <cstdlib>
 #include <cstdio>
 #include <string>
+#include <utility>
 #include <vector>
+#include "alerts.h"
 #include "effects.h"
 #include "nsdraw.h"
 #include "../mods/aftermath.h"
@@ -25,7 +27,6 @@ extern "C" {
 
 namespace {
 constexpr int MEMBERS = 5, SKILLS = 19, ATTRIBUTES = 7;
-constexpr u16 LOOT_EXISTS = 0x1b98, LOOT_UNDER_MEMBER = 0xc81c, LOOT_PILES = 0x59c8;
 constexpr u16 BATTLE_DRAWING = 0x07d8;
 using SkillBoosts = std::array<std::array<int, SKILLS>, MEMBERS>;
 
@@ -40,7 +41,8 @@ struct Wear {
 };
 struct Battle {
     bool tracking = false, checking_end = false, report_next_loot = false;
-    int deferred_loot = -1;
+    bool dungeon_practice_pending = false;
+    int victory_member = -1;    /* whose pile combat_over asked to open, even if empty */
     std::array<Member, MEMBERS> before;
     std::array<int, MEMBERS> fallen;
     SkillBoosts temporary_skill_writes;
@@ -143,19 +145,12 @@ void over_hook()
     battle.checking_end = false;
 }
 
-/* The same two early exits as the original loot_pile_open. Only a pile that
- * will really show the screen may take over the original practice messages. */
-bool pile_opens(int m)
-{
-    if (g_rb(LOOT_EXISTS) != 1) return false;
-    int pile = (s8)g_rb(LOOT_UNDER_MEMBER + m);
-    return pile < 0 || rb(G_FAR20A5, LOOT_PILES + 12 * pile + 2) != 0;
-}
+void report_if_no_loot(bool final);
 
 void pile_hook()
 {
     int m = (s16)rw(SS, SP + 4);
-    if (!battle.checking_end || !enabled() || m < 0 || m >= MEMBERS || !pile_opens(m)) {
+    if (!battle.checking_end || !enabled() || m < 0 || m >= MEMBERS) {
         hook_call_original();
         return;
     }
@@ -164,13 +159,13 @@ void pile_hook()
      * loot buffers and item handling are still live. A dungeon can resume
      * exploration here, so its intermediate victory piles stay where they are. */
     if (!(g_rb(GV_combat_flags) & 1) || g_rb(GV_place_won) == 1 || g_rb(GV_demo_mode)) {
-        battle.deferred_loot = m;
+        battle.victory_member = m;
         hook_return_far(0);
         return;
     }
     battle.report_next_loot = true;
     hook_call_original();
-    battle.report_next_loot = false;
+    report_if_no_loot(false);
     if (!unw_active) snapshot();
 }
 
@@ -229,6 +224,65 @@ void lasting_changes(ReportMember &row, const SkillBoosts &old_boost)
             row.entries.push_back({ with_shield(ATTRIBUTES + k, std::string(gm_skill_name(k)) + " " + delta(was, now)),
                                     now > was ? NsDraw::GREEN : NsDraw::RED });
     }
+}
+
+std::vector<ReportMember> collect_report()
+{
+    std::vector<ReportMember> report;
+    auto old_boost = skill_boosts(battle.effects);
+    for (int m = 0; m < MEMBERS; m++) {
+        const Member &member = battle.before[m];
+        if (!member.status) continue;
+        ReportMember lasting = { m, member.name };
+        lasting_changes(lasting, old_boost);
+        if (!lasting.entries.empty()) report.push_back(std::move(lasting));
+    }
+    std::stable_sort(report.begin(), report.end(), [](const ReportMember &a, const ReportMember &b) {
+        return battle.fallen[a.slot] > battle.fallen[b.slot];     /* casualties first, even in a long report */
+    });
+    if (getenv("DL_LOOT_LOG")) {
+        for (const auto &row : report) for (const Entry &entry : row.entries)
+            fprintf(stderr, "aftermath: %s: %s\n", row.name.c_str(), rich_plain(entry.text.c_str()).c_str());
+    }
+    return report;
+}
+
+void draw_no_loot_report(const std::vector<ReportMember> &report)
+{
+    if (!ImGui::BeginTable("##aftermath", 2)) return;
+    ImGui::TableSetupColumn("Member", ImGuiTableColumnFlags_WidthFixed);
+    ImGui::TableSetupColumn("Changes", ImGuiTableColumnFlags_WidthStretch);
+    for (const ReportMember &row : report) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ui_rich_text((rich_member(row.slot) + " " + row.name).c_str());
+        ImGui::TableNextColumn();
+        ImGui::PushTextWrapPos(0);
+        for (const Entry &entry : row.entries)
+            ui_rich_textf_c(ImGui::ColorConvertU32ToFloat4(entry.color), "%s", entry.text.c_str());
+        ImGui::PopTextWrapPos();
+    }
+    ImGui::EndTable();
+}
+
+void show_no_loot_report(bool show_empty)
+{
+    auto report = collect_report();
+    if (!report.empty())
+        ui_alert_custom("Battle aftermath", [report = std::move(report)] { draw_no_loot_report(report); });
+    else if (show_empty)
+        ui_alert("Battle aftermath", "No skill changes or lasting losses.", nullptr);
+}
+
+/* The native loot loop consumes report_next_loot only if the game actually
+ * opens a pile. Its normal early return leaves the report for this notice. */
+void report_if_no_loot(bool final)
+{
+    if (!battle.report_next_loot) return;
+    battle.report_next_loot = false;
+    if (unw_active || !enabled() || g_rb(GV_demo_mode)) return;
+    if (!final) battle.dungeon_practice_pending = true;
+    show_no_loot_report(final);
 }
 
 /* Pack whole entries across the page. A long entry wraps on its own line and
@@ -348,22 +402,28 @@ extern "C" void aftermath_begin(void)
 
 extern "C" void aftermath_end(void)
 {
-    if (!unw_active && battle.deferred_loot >= 0) {
+    if (!unw_active && battle.victory_member >= 0) {
         CPU registers = R;
         int tail = tail_pending;
         u8 drawing = g_rb(BATTLE_DRAWING);
         battle.report_next_loot = true;
-        ns_call(GF_loot_pile_open, 1, battle.deferred_loot);
+        ns_call(GF_loot_pile_open, 1, battle.victory_member);
         if (!ns_unwinding) {
             g_wb(BATTLE_DRAWING, drawing);   /* loot_pile_open turns battle drawing back on */
             R = registers;
             tail_pending = tail;
         }
+        report_if_no_loot(true);
+    } else if (!unw_active && battle.dungeon_practice_pending && enabled()) {
+        /* An intermediate victory resumed exploration. Leaving the cleared
+         * floor (8), or a scripted exit (7), has just settled its practice. */
+        int result = (s16)g_rw(GV_battle_result);
+        if (result == 7 || result == 8) show_no_loot_report(false);
     }
     battle = {};
 }
 
-extern "C" int aftermath_victory_loot_pending(void) { return battle.deferred_loot >= 0; }
+extern "C" int aftermath_victory_pending(void) { return battle.victory_member >= 0; }
 
 extern "C" void aftermath_armor_worn(int m, int id, int before, int after, int count)
 {
@@ -379,25 +439,9 @@ extern "C" void aftermath_armor_worn(int m, int id, int before, int after, int c
 
 extern "C" void aftermath_open(void)
 {
-    changes.clear();
+    changes = battle.report_next_loot && enabled() ? collect_report() : std::vector<ReportMember>{};
     changes_scroll = 0;
-    if (!battle.report_next_loot) return;
     battle.report_next_loot = false;
-    auto old_boost = skill_boosts(battle.effects);
-    for (int m = 0; m < MEMBERS; m++) {
-        const Member &member = battle.before[m];
-        if (!member.status) continue;
-        ReportMember lasting = { m, member.name };
-        lasting_changes(lasting, old_boost);
-        if (!lasting.entries.empty()) changes.push_back(lasting);
-    }
-    std::stable_sort(changes.begin(), changes.end(), [](const ReportMember &a, const ReportMember &b) {
-        return battle.fallen[a.slot] > battle.fallen[b.slot];     /* casualties first, even in a long report */
-    });
-    if (getenv("DL_LOOT_LOG")) {
-        for (const auto &row : changes) for (const Entry &entry : row.entries)
-            fprintf(stderr, "aftermath: %s: %s\n", row.name.c_str(), rich_plain(entry.text.c_str()).c_str());
-    }
 }
 
 extern "C" void aftermath_init(void)

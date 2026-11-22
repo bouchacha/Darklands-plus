@@ -64,6 +64,11 @@ STEPS = [
     ('Go to knows every street line', 'ucmd ucitylines:; wait 1', [r'citylines: \d+ lines, 0 unmatched']),   # (every option of every hub card, every text block)
     ("the saints' help in short (Saints page)", 'ucmd usaintchips:; wait 1', [r'saintchips: \d+ helps, 0 parts not understood']),   # (every saint, the saints' fixes on and off)
     ('the world map (M), Find a town', 'ucmd ukey:M; wait 2; ucmd ufind:Koln; wait 2; wshot 19_map; ucmd ukey:M; wait 2', [r'world map: open', r'world map: found K', r'world map: closed']),
+    ('fight two spiders in the wilds', 'ucmd ufight:47,5,57,1,2,-1,0,0,-1,0,0; ucmd ugoto:24; wait 12; ucmd umode:', [r'^mode 4$']),
+    # Mark thrown-weapon practice for the first member. Combat cleanup rolls the gain.
+    ('skill practice in a victory without loot',
+     'ucmd upause:; ucmd upoke:321a,d68d,4; ucmd ukill:5; ucmd ukill:6; ucmd urand:7; ucmd uunpause:; wait 8',
+     [r'^aftermath: .*Thrown Weapons \+\d+', r'^alert: Battle aftermath$', r'battle end: "Victory!']),
 ]
 
 

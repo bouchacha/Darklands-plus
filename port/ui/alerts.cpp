@@ -11,6 +11,7 @@
 #include <math.h>
 #include <string>
 #include <deque>
+#include <utility>
 #include "imgui.h"
 #include "layers.h"
 #include "ui.h"
@@ -22,7 +23,12 @@
 #include "../mods/gamemodel.h"
 
 namespace {
-struct Alert { std::string title, body, foot; std::vector<UiAlertRow> rows; double shown = -1; };
+struct Alert {
+    std::string title, body, foot;
+    std::vector<UiAlertRow> rows;
+    std::function<void()> draw_body;
+    double shown = -1;
+};
 std::deque<Alert> queue;
 bool auto_pass(void) { return getenv("DL_CTL") && !getenv("DL_ALERT_KEEP"); }
 }
@@ -42,6 +48,12 @@ extern "C" void ui_alert_rows(const char *title, const char *body, const UiAlert
     queue.push_back(a);
 }
 extern "C" int ui_alert_open(void) { return !queue.empty(); }
+
+void ui_alert_custom(const char *title, std::function<void()> draw_body)
+{
+    fprintf(stderr, "alert: %s\n", title);
+    if (!auto_pass()) queue.push_back({title, "", "", {}, std::move(draw_body)});
+}
 
 /* the rows: a member's name, the age, then each attribute's or skill's shield with was and now */
 static void alert_rows(const std::vector<UiAlertRow> &rows)
@@ -105,7 +117,11 @@ void ui_alert_draw(void)
         ImGui::TextColored(ImVec4(0.55f, 0.16f, 0.10f, 1), "%s", a.title.c_str());
         ImGui::PopFont();
         ImGui::Spacing();
-        if (a.rows.empty()) ImGui::TextWrapped("%s", a.body.c_str());
+        if (a.draw_body) {
+            ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, io.DisplaySize.y * 0.5f));
+            if (ImGui::BeginChild("##details", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY)) a.draw_body();
+            ImGui::EndChild();
+        } else if (a.rows.empty()) ImGui::TextWrapped("%s", a.body.c_str());
         else alert_rows(a.rows);
         if (!a.foot.empty()) { ImGui::Spacing(); ui_hint("%s", a.foot.c_str()); }
         ImGui::Spacing(); ImGui::Spacing();
