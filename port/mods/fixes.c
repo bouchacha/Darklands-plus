@@ -110,7 +110,8 @@
  *            and the fire saints' protection last a day (below).
  *  greatpower Greatpower raises the quality of the weapon, as the manual says (below, armourday).
  *  standings A saved game keeps the party's standing with the three companies (below, standings).
- *  battlesaints A saint's boosts called in a battle wear off (below, potions: the cards close).
+ *  battlesaints A saint's or a potion's boosts in a battle wear off (below, potions: the cards close),
+ *            and an attribute a lost boost left above its maximum comes down (below, boost_mend).
  *  healboost Healing no longer lowers an attribute boosted above its maximum (below, healboost).
  *  teachcap  Lessons at the inn stop at the teacher's ability (below, teachcap).
  *  oilweapons Each weapon oil only with the weapons the manual names (below, oilweapons).
@@ -319,8 +320,8 @@ Fix FIXES[] = {
       "According to the manual, Great Power raises the quality of the weapon by 14, 22 or 30 (up to 99), and quality is what makes blows hit harder. The original added those points to the member's damage and penetration bonuses instead: +14 penetration, or +1 damage and +6 penetration, or +1 damage and +14 penetration. Now it raises the quality of the weapon in hand (bows and guns too), for about a day.", 1 },
     { "standings", "Saved games keep the party's standing with the Fugger, the Medici and the Hanse",
       "The companies' cards raise and lower the party's standing with them (if it, or the party's reputation in the town, is below zero, they give no quests), but a saved game did not keep it: after loading, it was whatever the previous game played had left, or zero after a restart. It is now kept in the save (the original game can still load such saves).", 1 },
-    { "battlesaints", "A saint's help called in a battle wears off",
-      "In the original, a saint called on in a battle raised attributes and skills permanently (usually), and the price some saints ask (a lowered attribute) was never given back: the battle lost track of what was to wear off. Both now wear off, as with help called on outside a battle.", 1 },
+    { "battlesaints", "A saint's help or a potion's boost in a battle wears off",
+      "In the original, a saint called on in a battle, or a potion such as Truesight drunk in one, raised attributes and skills permanently (usually), and the price some saints ask (a lowered attribute) was never given back: the battle, and a game saved in a battle or a dungeon, lost track of what was to wear off. Both now wear off, as outside a battle, and an attribute such a lost boost left above its maximum comes back down when a game is loaded or a battle ends.", 1 },
     { "healboost", "Healing no longer takes a boost away",
       "Healing (Essence o'Grace, or a saint's) brings a wounded attribute part of the way back to its maximum, but the game also brought an attribute above its maximum part of the way down to it: a member whose Strength or Endurance stood above the maximum (Ironarm, New-wind, a saint) lost most of that boost to the potion meant to heal them. Healing now only raises an attribute, never lowers it.", 1 },
     { "teachcap", "Teachers teach only up to their own ability",
@@ -1033,6 +1034,7 @@ static void altar_frame(void);
 static void armourday_frame(void);
 static void greatpower_frame(void);
 static void rkcastle_frame(void);
+static void boost_mend_frame(void);
 void fixes_frame(void)
 {
     colours_frame();
@@ -1043,6 +1045,7 @@ void fixes_frame(void)
     if (fix_on("armorday")) armourday_frame();
     if (fix_on("greatpower") || sainttexts_on) greatpower_frame();
     if (fix_on("rkcastle")) rkcastle_frame();
+    boost_mend_frame();
 }
 
 /* ---------------------------------------------------------------- potions
@@ -1061,6 +1064,8 @@ typedef struct { int m, type0, t; s16 end[4]; } PotEv;   /* end: hour, day, mont
 static PotEv pot_kept[64];
 static int pot_nkept, cards_down, world_open;
 static void battledead_after(void);
+static void boost_mend(const char *when);
+u32 plat_ticks_ms(void);
 
 static int pot_running(const s16 *end)
 {
@@ -1154,6 +1159,7 @@ static void cards_up_hook(void)            /* cards_startup(), s043 1462:078e */
     battledead_after();
     if (ns_unwinding) return;
     battle_put_back((const u8 (*)[0x30])rec, n, "from the battle kept");
+    boost_mend("after a battle");
     AX = ax; DX = dx;
 }
 
@@ -1237,6 +1243,55 @@ static void battle_save_hook(void)               /* s037 1462:2ace (comment): wr
     free(was);
     if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix potions: saved in a battle: its %d events kept, %d of them in the save\n", back, put ? n : 0);
     AX = ax; DX = dx;
+}
+/* an attribute left above its maximum by a boost whose record was lost: the game's own save in a battle (above; until
+   1.5.1-RC7 it lost the battle's events) and, without battlesaints, the end of a battle dropped the record of a potion's
+   or a saint's boost while the attribute stayed raised, so nothing ever took it off (his Jorg: Perception 60 of 33 after
+   a Truesight drunk in the Lugum dungeon and a save there, build 1281; not one of his 273 other saves has an attribute
+   above its maximum by more than its running boosts). With battlesaints every boost keeps its record, so whatever stands
+   above the maximum and the running boosts (kind 0x48, its amount at +0x1e) is such a leftover, and comes off: once a
+   game is loaded and has settled, and after every battle. In a battle the cards' events are in events.tmp (cards_down)
+   and are read from it; not while the table holds both (a sheet or a save in a battle) */
+static int boost_mend_due;
+static void boost_mend_after_load(void) { boost_mend_due = 1; }   /* (saves_on_loaded) */
+static void boost_mend(const char *when)
+{
+    if (!fix_on("battlesaints") || world_open || sheet_pending || save_pending || ns_unwinding) return;
+    int battle = g_rb(GV_in_battle) == 1;
+    if (battle && !cards_down) return;                  /* (the cards' events neither in the table nor known to be in the file) */
+    int run[5][7]; memset(run, 0, sizeof run);
+    for (int i = 0; i < G_NEVENTS; i++) {
+        u32 e = ev_ptr(i);
+        if (!e || g_ev(e, G_EV_KIND) != 0x48) continue;
+        int m = g_ev(e, G_EV_OWNER), a = g_ev(e, G_EV_TYPE0), v = g_ev(e, G_EV_VALUE);
+        if (m >= 0 && m < 5 && a >= 0 && a < 7 && v > 0) run[m][a] += v;
+    }
+    if (battle) {
+        char p[1200]; dos_host_path("EVENTS.TMP", p, sizeof p);
+        FILE *f = fopen(p, "rb"); u8 b[0x30], c[2]; int n = 0;
+        if (!f) return;
+        if (fread(c, 1, 2, f) == 2) n = c[0] | c[1] << 8;
+        for (int k = 0; k < n && k < G_NEVENTS && fread(b, 1, 0x30, f) == 0x30; k++) {
+            int m = (s16)(b[G_EV_OWNER] | b[G_EV_OWNER + 1] << 8), a = (s16)(b[G_EV_TYPE0] | b[G_EV_TYPE0 + 1] << 8), v = (s16)(b[G_EV_VALUE] | b[G_EV_VALUE + 1] << 8);
+            if ((b[G_EV_KIND] | b[G_EV_KIND + 1] << 8) == 0x48 && m >= 0 && m < 5 && a >= 0 && a < 7 && v > 0) run[m][a] += v;
+        }
+        fclose(f);
+    }
+    int size = (s16)g_rw(G_PARTY_SIZE);
+    for (int m = 0; m < size && m < 5; m++)
+        for (int a = 0; a < 7; a++) {
+            int cur = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + a)), max = (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + a)), top = max + run[m][a];
+            if (max <= 0 || cur <= top) continue;
+            g_wb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + a), (u8)top);
+            char nm[24]; g_str(G_DGROUP, (u16)(G_MEMBER(m) + G_M_SHORTNAME), nm, sizeof nm);
+            char t[200]; snprintf(t, sizeof t, "%s's %s stood %d above its maximum, left over from a boost whose end was lost (a bug now fixed): back to %d.", nm, gm_attr_name(a), cur - top, top);
+            void ui_notice(const char *msg); ui_notice(t);
+            fprintf(stderr, "fix battlesaints: %s: member %d attribute %d %d of %d with %d running: back to %d\n", when, m, a, cur, max, run[m][a], top);
+        }
+}
+static void boost_mend_frame(void)
+{
+    if (boost_mend_due && saves_loaded_ms && plat_ticks_ms() - saves_loaded_ms > 1500) { boost_mend_due = 0; boost_mend("a game loaded"); }
 }
 static void world_load_hook(void)                /* world_load(locfile), s043 1462:0100 */
 {
@@ -4333,7 +4388,7 @@ static void copy_check_hook(void)
 
 void fixes_init(void)
 {
-    saves_on_loaded(colours_after_load); saves_on_loaded(alertonce_after_load);
+    saves_on_loaded(colours_after_load); saves_on_loaded(alertonce_after_load); saves_on_loaded(boost_mend_after_load);
     if (getenv("DL_CHECK_COPY")) hook_install(-1, 0x06a1, 0x2eb4, copy_check_hook);
     hook_install(GF_cards_shutdown, cards_down_hook);   /* (the potions kept over a battle: they ask any_potion_fix) */
     hook_install(GF_cards_startup, cards_up_hook);

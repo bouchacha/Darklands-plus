@@ -823,3 +823,17 @@ covered and found, and what it could not check.
   (UI_TIER_MENU), taking every click (over the picture through the game's pointer, beside it by closing the
   menu), with nothing under it seeing the pointer. (6) The game's hand is drawn last, over the game's own
   message. The matrix of every pair is published for him (the artifact "UI Layer Audit").
+- 2026-11-22 (his report: "permanent perception at 60 should NOT happen", with his 273 saves): found in
+  them where it began. dksaveep (Lugum dungeon, 11-17 09:34) has Jorg's Perception 33 of 33; dksaveeq, six
+  minutes later at the same hour of the game, 60 of 33 with no boost record. His log of that session
+  (build 1281, 1.5.1-RC6) has "Jorg drinks the Truesight" in the dungeon, then "Saved: Lugum 24 Dec
+  (dksaveeq.sav)" there: the game's own save in a battle (s037 1462:2ace) read events.tmp over the
+  battle's events and freed them, the boost's record lost and the attribute left raised. That save was
+  the cause of his "potions drunk in Lugum gone" report the same morning, and battle_save_hook (RC7, build
+  1289) keeps the battle's events through it; checked again on build 1319: a Truesight (+23) drunk in
+  dksaveep and saved there is in the save with its end (25 Dec 18:00) and comes back with it. Not one of
+  his other saves has an attribute above its maximum by more than its running boosts. What was missing
+  was the mend for saves already spoilt: boost_mend (battlesaints) takes off whatever stands above the
+  maximum and the running boosts (kind 0x48, in the table and, in a battle, in events.tmp) once a game is
+  loaded and after every battle, with a notice (his dksavees: back to 33; a running Truesight saved and
+  loaded in a battle left alone).
