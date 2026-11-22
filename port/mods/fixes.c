@@ -183,8 +183,9 @@
  *            name him: name_to_slot (7, vec_219d (), 0)); a robber
  *            knight's bounty ($Raubi01, s080 1870:000c) tells by a coin toss whether the Hanse's
  *            guide leaves (text 6) or there was none (7), and says the village's Schulz "departs
- *            from your party" (text 1) whether or not he came along; neither is let go (he stayed
- *            until his days were up). Now the texts follow who came, and he goes home. Also (below,
+ *            from your party" (text 1) whether or not he came along. The game lets the Hanse's guide
+ *            go at the next step out of town ($NPCEx00, by the notice its office made). Now the texts
+ *            follow who came, and he goes home there and then. Also (below,
  *            "more"): $Selec00's second gate fight, the docks' passage hint.
  *  campguard The risk of a night at camp (s036 1462:1b80) is lowered by each member on guard: by
  *            Woodwise, by Stealth, and by one if any weapon skill is 30 or more; the test lists
@@ -310,7 +311,7 @@ Fix FIXES[] = {
     { "altar", "No quests to a purged pagan altar",
       "A pagan altar the party has destroyed vanishes from the overland view, but quests could still send the party there, and could then never be done (nor could their giver offer another). Such altars are no longer chosen; quests already sent to one go to the nearest altar still standing.", 1 },
     { "tomb", "The item taken from a tomb is kept by a party that gets out with it",
-      "Taking the item a quest seeks from a tomb wakes its dead, and the party must get out with it. The game kept it for a party that got out alive, as its text says, but also gave it after a defeat (whose text has the party wake \"without\" it), and would have given nothing for a victory. Now it is kept by getting out or by beating every skeleton, and lost with the fight.", 1 },
+      "Taking the item a quest seeks from a tomb wakes its dead. The game then gave the item only to a party that lost the fight (whose text has the party wake \"without\" it); a party that won (its text: \"you scramble up with\" it) or got out by the way out left with nothing. Now it is kept by beating every skeleton or by getting out alive, and lost with the fight.", 1 },
     { "lordreward", "The lord and the council pay for their quests",
       "In a town without a council, the lord of the fortress gives robber knights to hunt, but the game pays such a quest's reward only at a council's hall, so in such a town it could never be collected. The lord now pays it at an audience, as a council does. And at a council's hall, calling on a saint to be let in gave the party a new robber knight to hunt instead of the reward waiting for it; now the saint's way pays it, as an audience does.", 1 },
     { "armorday", "Armor and fire protection from potions and saints last a day; Hardarmor works as the manual says",
@@ -350,7 +351,7 @@ Fix FIXES[] = {
     { "membervalue", "Cards pick the member they mean",
       "When the party gave a tenth in a town church, the Divine Favor meant first for the member best at Religion went to no member at all (the game took the skill's value for a member's number); and sneaking into a guild leader's house at night showed a garbled name instead of the member with the lowest Agility. Failing to get into the jewelers' guild at night likewise made the member whose number was the lowest Stealth's value practise Stealth, not the clumsiest member (or, with no such member, wrote the practice into the game's memory). All now use the right member.", 1 },
     { "cardslips", "Small mistakes in single cards",
-      "Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said \"Please accept this florin\" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both its options were switched off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armor, and clearing the spider warehouse, healed the party, though their texts say it is hurt; and the warehouse's owner had no name of his own (\"I am . Are ye hardy adventurers?\"), nor had the dwarf king when met again with his red hat (\"It is  again, king of the dwarfs\"). When the party was paid for a robber knight, the Hanse's guide or the village's Schulz who had come along was said to leave by the toss of a coin (or even when he had never come), and then stayed on. A second fight with a town's gate guards cost no standing (the card kept the standing it had found on arrival), the docks said \"You need a missile weapon\" to a party short of the fare, trouble on the way to a town's grove at night led to the grove's night card even after day had come, sneaking into a guild's quarters made the whole party practice once for each member, and a cell door in a fortress dungeon flashed its card and went back to the level without a word, though its text was written (\"This door is solid oak, with a rusty iron grating in the center...\"). In the peat bog a Rope did not switch on the line to throw one (a polearm, a bow or metal armour did). The horseman of famine took all the party's florins but left its groschen and pfennigs. Sneaking through a guild's hall kept the last card's picture and read its texts from the last card. Walking between a town's streets at night kept the party in the night's streets, and their encounters, after day had come. And fleeing the bridge's devil after winning the argument could make an empty party slot a member again, with no character behind it. Each now does what its text says.", 1 },
+      "Claiming friendship with a Hussite band succeeded one time in a hundred, whatever the chance shown. A potion thrown at footpads was never used up. The inn's stablemaster asked about selling the party's mounts only when it had none. A village Schulz said \"Please accept this florin\" and gave none. The Templars' writing desk taught formulae the reader already knew. The witches' ointment could not be used to escape the sabbat between waves (both its options were switched off). The tatzelwurm's death text came even when nobody was eaten. Crossing the Cavern of Fire and Hail under armor, and clearing the spider warehouse, healed the party, though their texts say it is hurt; and the warehouse's owner had no name of his own (\"I am . Are ye hardy adventurers?\"), nor had the dwarf king when met again with his red hat (\"It is  again, king of the dwarfs\"). When the party was paid for a robber knight, the Hanse's guide or the village's Schulz who had come along was said to leave by the toss of a coin (or even when he had never come); now the text follows who came, and he leaves then. A second fight with a town's gate guards cost no standing (the card kept the standing it had found on arrival), the docks said \"You need a missile weapon\" to a party short of the fare, trouble on the way to a town's grove at night led to the grove's night card even after day had come, sneaking into a guild's quarters made the whole party practice once for each member, and a cell door in a fortress dungeon flashed its card and went back to the level without a word, though its text was written (\"This door is solid oak, with a rusty iron grating in the center...\"). In the peat bog a Rope did not switch on the line to throw one (a polearm, a bow or metal armour did). The horseman of famine took all the party's florins but left its groschen and pfennigs. Sneaking through a guild's hall kept the last card's picture and read its texts from the last card. Walking between a town's streets at night kept the party in the night's streets, and their encounters, after day had come. And fleeing the bridge's devil after winning the argument could make an empty party slot a member again, with no character behind it. Each now does what its text says.", 1 },
     { "nightwall", "Climbing a city wall at night uses the climbers' own chances",
       "Along a city's walls at night, the best climber's chance with a rope was a number left over from the last failed climb by everyone (0 the first time: he always fell), and the chance of everyone climbing without one compared each member with that number instead of taking the weakest (certain the first time). The first member was never chosen as the climber. Now the climber is the best of all, his chance is his own, and the chance of everyone climbing is the weakest member's.", 1 },
     { "campguard", "A guard skilled with impact weapons keeps the camp safer",
@@ -1975,15 +1976,18 @@ static void altar_frame(void)
 /* ---------------------------------------------------------------- tomb
  * $McGuf08 (s108 1838), "take the $NamedOneName and leave" (1838:07ca): the dead wake (1838:02b0,
  * run_battle: battlefield 0x5f, 3 to 7 skeletons) and then vec_214d(cur_loc) (s039 1462:1ab0)
- * gives the thing if an errand (ev8_at(10, cur_loc)) is there, whatever the battle's result. The
- * game's design is an escape (card 7: "wondering how easy it will be to escape these catacombs"):
- * getting out by the way out (1, 2: cards 10 and 17) leaves cur_loc set, and the thing is given.
- * But a victory (0, card 8 "you scramble up with it") has set cur_loc to -1 already, so nothing is
- * given, and a defeat (3, 4: card 12, "you awaken ... without the $NamedOneName") leaves it set,
- * so the thing is given. Read the authoritative battle_result at the post-battle give call (the
- * return AX can be changed by another wrapper): after a victory or an escape, give with the place
- * for the moment of the call; after a defeat, nothing. (Until 1.5.1 this gave only after a
- * victory, which took away the escape; pull request #29 then warned at the way out.) */
+ * gives the thing if an errand (ev8_at(10, cur_loc)) is there. A victory (0: card 8, "you scramble
+ * up with the $NamedOneName") and getting out by the way out (1, 2: cards 17 and 10, "you clamber
+ * out of the deadly trap and flee") share one tail (L_18684: the text, then cur_loc = -1), so
+ * nothing is given after either; a defeat (3, 4: card 12, "you awaken ... without the
+ * $NamedOneName") leaves cur_loc set, so the thing is given: the wrong way round by the game's own
+ * texts for the victory and the defeat. The escape's text says neither; card 7 ("wondering how
+ * easy it will be to escape these catacombs") makes it the point of the place, and the maintainer
+ * chose to let it keep the thing (1.5.1; 1.5 gave it for a victory alone). Read the authoritative
+ * battle_result at the post-battle give call (the return AX can be changed by another wrapper):
+ * after a victory or an escape, give with the place for the moment of the call; after a defeat,
+ * nothing. (An earlier comment here said the original gave it after an escape: it did not; found
+ * by the audit of 2026-11-22.) */
 static int tomb_loc = -1;
 /* A tomb (battlefield 0x5f) is one floor whose skeletons wait in groups at activation spots, none of
  * them a master whose fall ends the place: each fight goes back to exploring, and the stairs then
@@ -2575,17 +2579,31 @@ static int guide_member(const char *shortname)
     }
     return -1;
 }
+/* the member an event of that kind names (+0, as s029 0e76:4aa4 writes it), or -1; m >= 0: only that member */
+static int hired_member(int kind, int m)
+{
+    for (int i = 0; i < G_NEVENTS; i++) {
+        u32 e = g_event(i);
+        int t = e && g_ev(e, G_EV_KIND) == kind ? g_ev(e, G_EV_TYPE0) : -1;
+        if (t >= 0 && t < 5 && g_rb(G_MEMBER(t)) && (m < 0 || t == m)) return t;
+    }
+    return -1;
+}
 static void raubi_hook(void)                /* $Raubi01, a robber knight's bounty paid (s080 1870:000c) */
 {
     int sc = (s16)g_rw(GV_saved_card);
     if (sc != 0x47 && sc != 0x86) { hook_call_original(); return; }
-    int guide = guide_member(sc == 0x47 ? "Hanse" : "Schulz"), was = slip;
+    /* who the guide is, by the game's own record, never by a name alone (a member of the player's may be called
+       Hanse): the Hanse's office has just turned his contract into the "has left" notice (s061: 0e76:4aa4 (7), a
+       kind 0x47 event naming his place in the party); the village's Schulz still has his contract (kind 0x43) */
+    int guide = sc == 0x47 ? hired_member(0x47, -1) : hired_member(0x43, guide_member("Schulz")), was = slip;
+    if (sc == 0x86 && guide_member("Schulz") < 0) guide = -1;
     slip = SLIP_RAUBI; raubi_card = sc; raubi_guide = guide;
     hook_install(GF_rand_mod, slip_rand_hook); hook_install(GF_card_text, slip_text_hook);
     hook_call_original();
     hook_remove(GF_card_text, slip_text_hook); hook_remove(GF_rand_mod, slip_rand_hook);
     slip = was;
-    if (ns_unwinding || guide < 0 || g_rb(G_MEMBER(guide)) == 0) return;
+    if (ns_unwinding || unw_active || guide < 0 || g_rb(G_MEMBER(guide)) == 0) return;
     u16 ax = AX, dx = DX;                   /* (the card's next) */
     g_wb(G_MEMBER(guide), 0);               /* the guide who came along goes home, as the text says */
     ns_call(GF_party_delete, 1, guide);

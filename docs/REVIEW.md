@@ -962,3 +962,17 @@ covered and found, and what it could not check.
   by line and cleared 675 by the state they run in; pass 2 read 337 of 779 write sites in their whole function;
   pass 3 traced 17 of the 95 fixes through the game's code and took 78 on their comments with the hook point
   checked.
+- 2026-11-22 (the audit, round 2: five more reviewers on what round 1 had not read line by line; the first back,
+  on the 78 fixes round 1 took on their comments: 43 true and fixed, 30 read only in part, each named in its
+  report). Found and put right: (1) tomb: the comment, the switch's text, the changelog and the answer given on
+  issue 29 said the original let a party that got out by the way out keep the thing. It did not: s108 1838:02b0
+  sends results 0, 1 and 2 through one tail (the text, then cur_loc = -1), so the original gave nothing after a
+  victory or an escape and gave the thing after a defeat. What the fix does (kept by a victory or an escape, lost
+  with the fight) stands as the maintainer's choice, told to him as such; the texts now say what the original did.
+  (2) cardslips' Hanse guide: the game does let him go, at the next step out of town ($NPCEx00, by the kind 0x47
+  notice the office makes: s029 0e76:4aa4 (7)); "and then stayed on" was false. And the hook found "the guide" by
+  the nickname Hanse alone: a member of the player's so called would have been struck off. Now by the game's own
+  record (hired_member: the notice, or the Schulz's contract). (3) Hooks asking ns_unwinding after
+  hook_call_original missed a load made from the game's own loop (the native cards off: only ns_call set it):
+  hooks.c now sets it whenever the original comes back unwinding. Left open: bounty may free the wrong patron's
+  reward when two wait in one town (plausible); armorday's text overstates with fireward off.

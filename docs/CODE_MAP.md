@@ -22,7 +22,7 @@ The runtime: the CPU and DOS the game runs on, the window, sound, saves, the con
 | `runtime/gamefind.c` | 193 | where the game is when darklands.exe is not in the Darklands folder: a folder chosen before (darklands_plus/game_folder.txt next to the program), the GOG and Steam installations the registry knows, the usual places, and on Windows a folder dialog. |
 | `runtime/gameload.c` | 92 | the program without the generated code (DL_RTSPLIT, see split.h) loads the game module the player's machine made from DARKLAND.EXE: darklands_game.dll (Windows) or libdarklands_game.so, in the game folder, or where DL_GAME_MODULE says. |
 | `runtime/gensplit.c` | 76 | the game module's side of split.h (compiled with DL_GENSPLIT, together with the generated code, cpu.c and overrides.c): the runtime's variables are pointers set here, its functions are reached through the stubs below, and dl_game_init hands the generated tables back. |
-| `runtime/hooks.c` | 142 | see hooks.h |
+| `runtime/hooks.c` | 145 | see hooks.h |
 | `runtime/interp.c` | 457 | fallback x86 real-mode interpreter. |
 | `runtime/main.c` | 395 | start-up of the native Darklands: load the original DARKLAND.EXE image into the emulated address space (the recompiled code reads its data, code-segment tables and overlay sections from there), set up DOS structures, and run the program. |
 | `runtime/mpu.c` | 166 | MPU-401 MIDI interface (ports 330h/331h). |
@@ -65,7 +65,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/datamods.c` | 429 | mod folders: game files replaced without touching the game's own. |
 | `mods/encounters.c` | 2094 | new encounters written as data. |
 | `mods/enemyview.c` | 129 | the battle's Enemy Info as a native page (display.native_enemyinfo; the view is ui/enemyview.cpp). |
-| `mods/fixes.c` | 4342 | fixes for bugs that are still in the last official version (483.07). |
+| `mods/fixes.c` | 4360 | fixes for bugs that are still in the last official version (483.07). |
 | `mods/fixgroups.c` | 35 | the fixes (fixes.c) sorted by kind, for the settings' list: from what the game plainly gets wrong to what is open to argument, as players have talked of them over the years (the GOG and Steam forums, the old Usenet posts and the patch notes MicroProse left). |
 | `mods/foefx.c` | 91 | what a thrown potion (or a trap's) is doing to each fighter now, and for how long: the battle's own records, read for ui/battleoverlay.cpp (a picture over the fighter, the words under the pointer). |
 | `mods/foesleft.c` | 130 | the foes a place still holds that the party has not met yet (battle.foes_left, on by default): shown under the battle margin's enemies, so a castle, dungeon or mine whose fight "does not end" says where the rest still wait (the game ends it only when they are all beaten, or the party walks out and counts as fled). |

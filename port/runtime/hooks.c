@@ -112,6 +112,9 @@ void hook_run(int idx)
 /* the next hook of the chain, or the game's function */
 static void unw_note(int idx, int d)            /* (debugging, DL_UNW_LOG: the hooks a game unwinding - a load, Quit - passes back through) */
 {
+    /* the original came back unwinding: ns_unwinding too, which is what most hooks ask after it (only ns_call set
+       it, so a load made from the game's own loop - the native cards off - went unseen: the audit, 2026-11-22) */
+    { extern int ns_unwinding; if (unw_active) ns_unwinding = 1; }
     static int on = -1; if (on < 0) on = getenv("DL_UNW_LOG") != 0;
     if (!on || !unw_active) return;
     unsigned lin = 0; int sect = -9;
