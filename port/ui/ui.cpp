@@ -616,10 +616,6 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     else { ui_pointer_hidden(true); VT(banner_draw()); VT(hdtext_draw()); VT(partypanel_draw()); VT(cardview_draw()); VT(barterview_draw()); VT(sheetview_draw()); VT(lootview_draw()); VT(alchemyview_draw()); VT(cacheview_draw()); VT(prayview_draw()); VT(createview_draw()); VT(rosterview_draw()); VT(infoview_draw()); VT(titleview_draw()); VT(marchview_draw()); VT(lodgeview_draw()); VT(enemyview_draw()); VT(mapmsg_draw()); VT(choose_draw()); VT(savesview_draw()); VT(menuview_draw()); }
     if (!open_menu && !open_map && !levelmap_is_open() && !halloffame_is_open()) VT(ui_overlay());
     ui_pointer_hidden(false);
-    {
-        if (!windows_up()) hdtext_draw_cursor();
-        else hdtext_pointer_off();
-        hdtext_pointer_frame_end(); }
     { void soundpreview_tick(void); soundpreview_tick(); }   /* (mods/soundpreview.c) */
     {   /* the music quiet while the settings are open, so that what a preview plays is what is heard */
         sound_music_hushed = open_menu && settings_shown && !soundpreview_active() && !settings_pack_preview;
@@ -749,6 +745,11 @@ extern "C" void ui_draw(SDL_Renderer *ren)
     if (open_menu || open_welcome || open_mt32 || tips_open()) ui_alert_hold();
     else VT(ui_alert_draw());
     if (!windows_up()) { void game_dialog_draw(void); game_dialog_draw(); }
+    {   /* the game's hand, last: over everything of ours (the game's message too), but not over the load's cover
+           (ui/layers.h) */
+        if (!windows_up() && !saves_loading_cover()) hdtext_draw_cursor();
+        else hdtext_pointer_off();
+        hdtext_pointer_frame_end(); }
     draw_icon_grid();
     if (vt_on > 0 && vt_frame % 120 == 0) fprintf(stderr, "vtx total %d\n", vt_total());
     dc_frame_end();

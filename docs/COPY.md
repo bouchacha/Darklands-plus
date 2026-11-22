@@ -2647,14 +2647,14 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/ui.cpp:467` | Items (for a mod) |
 | `ui/ui.cpp:519` | Darklands+: the potions and the alchemical ingredients |
 | `ui/ui.cpp:521` | Potions, grades 1, 2 and 3 (the gold dots on the neck) |
+| `ui/ui.cpp:645` | Reconstructed Content |
 | `ui/ui.cpp:649` | Reconstructed Content |
-| `ui/ui.cpp:653` | Reconstructed Content |
-| `ui/ui.cpp:675` |              |
-| `ui/ui.cpp:789` | an index past the vertices |
-| `ui/ui.cpp:789` | not a number |
-| `ui/ui.cpp:789` | far past the window |
-| `ui/ui.cpp:822` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
-| `ui/ui.cpp:828` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
+| `ui/ui.cpp:671` |              |
+| `ui/ui.cpp:790` | an index past the vertices |
+| `ui/ui.cpp:790` | not a number |
+| `ui/ui.cpp:790` | far past the window |
+| `ui/ui.cpp:823` | Darklands+ is preparing the game from your own DARKLAND.EXE. This happens only once and takes a minute or two. |
+| `ui/ui.cpp:829` | Nothing from the game is included in the Darklands+ download; it is built here from your own copy. |
 | `ui/ui_windows.cpp:75` | Darklands+ is made by Yassine Meskhout. |
 | `ui/ui_windows.cpp:76` | Darklands (c) 1992 MicroProse. This is the original game, rebuilt to run directly on today's computers, with the game files of your own copy. F12 > Settings has the Full Original preset, the game as it played, and switches for most of what Darklands+ adds. |
 | `ui/ui_windows.cpp:79` | F11: the keys for the current screen.  F12: this window (the game waits while it is open).  Alt+Enter: full screen.  Ctrl+F12: screenshot.  Ctrl+S: quick save.  F9 or Ctrl+L: quick load.  M: world map.  G: go to (in cities). |
