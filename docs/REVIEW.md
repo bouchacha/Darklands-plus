@@ -851,3 +851,13 @@ covered and found, and what it could not check.
   Truesight in its battle, saves and loads there, and fails on the mend's line. And the level map's doors
   (his screenshot): drawn when the centre of their record was in seen[], which takes every cell of the
   view's diamond, behind walls too; now, as the stairs, ways out and chests, only over floor known (rect_seen).
+- 2026-11-22 (his report: Dietrich overloaded at 198 after drinking his Ironarm): equip_weight (s031 18e7:140a)
+  sums the definitions' weights of what is equipped; item_unequip calls it when an item runs out, and in a battle
+  the definitions (far 2e38:0890) are not in memory unless a sheet has loaded the cards' world. The battle's potion
+  tray (sheetview.c battle_drink_now: use_potion then item_take_one, no sheet) drank his last Ironarm there:
+  reproduced with his DKSAVEEY (test command udrink, the tray's own path): Dietrich's load 61 became 37 (198 in his
+  game: whatever lay there). Fix battleload: in a battle its result is put right from the game's item list
+  (DARKLAND.LST through gm_itemdef_weight; the equipped record found as s031 18e7:14b6 finds it: the kind at +2,
+  that quality first): 61 and 58 kept, the same as before the drink; and a game saved with a wrong load is put right
+  once loaded. pack.c's own keeping of both loads around give_one (the same fault, found in RC9) stays for when
+  the switch is off.

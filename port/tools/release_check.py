@@ -37,12 +37,12 @@ STEPS = [
     ('a sheet in the battle (F2)', 'key F2; wait 5; wshot 6b_sheet; key Escape; wait 4; ucmd umode:; wait 1', [r'sheet: open', r'sheet: closed', r'^mode 4$']),
     ('enemy info (E, native)', 'key e; wait 2; wshot 6c_enemy; click; wait 2', [r'enemy info: open', r'enemy info: closed']),
     ('fast forward (Z) on and off', 'ucmd upause:; wait 1; ucmd usdlkey:z; wait 2; ucmd usdlkey:z; wait 1', [r'battle: fast forward on', r'battle: fast forward off']),   # (paused: a battle nearly won ended in the fast forward, and the loot came before its step)
-    ('a boost drunk in the battle, saved and loaded there, still running', 'ucmd upause:; ucmd upotion:0,6f,40; wait 2; ucmd uquicksave:; wait 4; ucmd uquickload:; wait 10; ucmd umode:; wait 1',
-     [r'fix potions: saved in a battle: its [1-9]\d* events kept, [1-9]\d* of them in the save', r'^mode 4$']),   # (his Jorg's Perception 60 of 33: a save in a dungeon lost the boost's end; a mend after the load would be a line BAD fails on)
+    ('a boost drunk in the battle (Truesight)', 'ucmd upause:; ucmd upotion:0,6f,40; wait 2', [r'^potion 6f q40 for 0']),   # (carried over the battle's end: the loot step; a fight allows no save, a dungeon's walk does - checked by hand)
     ('win it (test hits) and the loot (native)', HITS + '; ucmd uunpause:; wait 25; wshot 7_loot', [r'loot screen: open'],
      '; '.join(['; '.join('ucmd uhit:1,%d,40,0' % c for c in range(5, 13)) + '; ucmd uunpause:; wait 3'] * 6) + '; ' +
      '; '.join(['; '.join('ucmd ukill:%d' % c for c in range(5, 13)) + '; ucmd uunpause:; wait 3'] * 4)),   # (a foe that came late: hit it too; the hits land as the battle runs; then, a battle whose foes shrug the test hits off: wounds that fell them)
-    ('share out and leave the loot', 'ucmd unspush:5; wait 2; ucmd unspush:6; wait 4', [r'loot screen: closed', r'battle end: "Victory! The battle is won."']),
+    ('share out and leave the loot', 'ucmd unspush:5; wait 2; ucmd unspush:6; wait 4', [r'loot screen: closed', r'battle end: "Victory! The battle is won."',
+     r"fix battlesaints: member 0's kind 0x48 \(3, \d+\) from the battle kept"]),   # (the Truesight drunk in it still running: his Jorg's Perception 60 of 33)
     ('the alchemy screen (native)', 'ucmd ualchemy:0,8; at 30 190; wait 3; click; wait 3; click; wait 3; click; wait 3; click; wait 3', [r'alchemy: open']),
     ('leave the alchemy screen', 'wshot 8_alchemy; ucmd unspush:1,0; wait 1; ucmd unspush:5; wait 3', [r'alchemy: closed']),
     ('the store room (native)', 'ucmd ucache:; wait 4; wshot 9_store', [r'store room: open']),

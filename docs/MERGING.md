@@ -304,6 +304,7 @@ the files where each switch's key is read.
 | `fix.greatpower` | Great Power raises the weapon's quality | fix | fixes.c, effects.cpp, nsdraw.cpp |
 | `fix.standings` | Saved games keep the party's standing with the Fugger, the Medici and the Hanse | fix | fixes.c |
 | `fix.battlesaints` | A saint's help or a potion's boost in a battle wears off | fix | fixes.c |
+| `fix.battleload` | A potion drunk in a battle leaves the load as it was | fix | fixes.c |
 | `fix.healboost` | Healing no longer takes a boost away | fix | fixes.c |
 | `fix.teachcap` | Teachers teach only up to their own ability | fix | fixes.c, teachers.c, teachers.h, citynav.cpp, lodgeview.cpp, margins.cpp, teachersui.cpp, worldmap.cpp |
 | `fix.oilweapons` | Each weapon oil works only with the weapons the manual names | fix | fixes.c, nsdraw.cpp |

@@ -507,6 +507,13 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "ucache")) { extern int uscreen_pending; uscreen_pending = 3; }   /* test: the store room from the card menu up */
         else if (!strcmp(cmd, "usaint")) { extern int uscreen_pending, uscreen_a, uscreen_b; uscreen_a = 0; uscreen_b = 0; sscanf(arg, "%d,%d", &uscreen_a, &uscreen_b); uscreen_pending = 2; }   /* test: the prayer screen (member, saint) from the card menu up */
         else if (!strcmp(cmd, "unspush")) { int t = 0, x = 0, y = 0, z = 0; sscanf(arg, "%d,%d,%d,%d", &t, &x, &y, &z); void ns_push(int, int, int, int); ns_push(t, x, y, z); }   /* test: an action for the native screen up (mods/barterview.h BV_*, sheetview.h SV_*) */
+        else if (!strcmp(cmd, "udrink")) {              /* test: member m drinks potion id (its first quality held) as the battle's potion tray does (sheet_battle_drink) */
+            int m = 0, id = 0, q = -1; sscanf(arg, "%d,%d,%d", &m, &id, &q);
+            int sheet_battle_drink(int, int, int), gm_member_load(int);
+            int n = (s8)g_rb((u16)(G_MEMBER(m) + G_M_NITEMS));
+            for (int i = 0; q < 0 && i < n && i < 64; i++) { u16 o = G_ITEM(m, i); if ((s16)rw(G_FAR2E38, o) == id) q = rb(G_FAR2E38, (u16)(o + 3)); }
+            fprintf(stderr, "udrink %d %d q%d: %d (load %d)\n", m, id, q, q >= 0 ? sheet_battle_drink(m, id, q) : 0, gm_member_load(m));
+        }
         else if (!strcmp(cmd, "uitem")) {               /* test: member m gets n of item id at quality q (a new record; ready it with ucall:31,18e7,11b2,m,record) */
             int m = 0, id = 0, q = 25, n = 1; sscanf(arg, "%d,%d,%d,%d", &m, &id, &q, &n);
             int k = g_rb((u16)(G_MEMBER(m) + G_M_NITEMS)); u32 d = g_itemdef(id);
