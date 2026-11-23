@@ -2,6 +2,10 @@
  * emulated address space (the recompiled code reads its data, code-segment tables and
  * overlay sections from there), set up DOS structures, and run the program. */
 #include <stdio.h>
+#ifndef _WIN32
+#include <sys/file.h>
+#include <fcntl.h>
+#endif
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <string.h>
@@ -208,6 +212,30 @@ int main(int argc, char **argv)
         snprintf(shadow, sizeof shadow, "%s/game", dlp_data_dir);
     }
 #endif
+    /* one copy of the game on one folder: two shared the game's files between screens (EVENTS.TMP, LOCS.TMP, CHARACTR.TMP,
+       CACHE.TMP), the saves' numbering and the log, and each spoilt the other's game. A lock the system lets go when
+       the program ends, however it ends; a restart waits for the copy it replaces (the audit, 2026-11-22) */
+    {   char lk[1200]; snprintf(lk, sizeof lk, "%s/darklands_port.lock", dlp_data_dir);
+        int got = 0;
+        for (int t = 0; t < 60 && !got; t++) {
+#ifdef _WIN32
+            static HANDLE h = INVALID_HANDLE_VALUE;
+            h = CreateFileA(lk, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_DELETE_ON_CLOSE, NULL);
+            got = h != INVALID_HANDLE_VALUE;
+#else
+            static int fd = -1;
+            if (fd < 0) fd = open(lk, O_RDWR | O_CREAT, 0644);
+            got = fd >= 0 && flock(fd, LOCK_EX | LOCK_NB) == 0;
+            if (fd < 0) got = 1;                          /* (no file to be had: go on as before) */
+#endif
+            if (!got) SDL_Delay(100);
+        }
+        if (!got) {
+            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Darklands+",
+                "Darklands+ is already running on this game folder. Two copies at once would spoil each other's game, so this one closes.", NULL);
+            return 0;
+        }
+    }
 #ifdef _WIN32
     {   /* no console on Windows: keep a log next to the game */
         char lp[1100], pp[1100]; snprintf(lp, sizeof lp, "%s/darklands_port.log", dlp_data_dir);
