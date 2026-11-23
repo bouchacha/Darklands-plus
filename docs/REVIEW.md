@@ -1100,3 +1100,10 @@ covered and found, and what it could not check.
   dungeon report as its baseline. An empty victory uses the timed notice. The release check exercises a
   spider victory, a retreat, a dungeon exit after looting and a victory without practice. Defeats and
   surrenders keep their original result notices.
+- 2026-11-23, after RC23: savetext's state_fp is taken at a card's FIRST card_load only (card_fresh: set at
+  card_menu, off the cards, and at a load). The opening card $Party02 rolls the purse and the date between its two
+  card_loads (s054 18d3:0008), so a save at its choices was made at once and each load rolled again (seen: saved
+  on 24 May, loaded on 27). Tried: held there until the card is left; ten town cards in a row each saved at once.
+  Wine works again here with TMPDIR unset (nctl.py does it): Wine 9.0 aborts at start ("free(): invalid pointer")
+  with TMPDIR=/tmp. RC23 run under Wine from a folder named "Jürgen": the module made, a quickstart, a held
+  quicksave made at the text's close, loaded.

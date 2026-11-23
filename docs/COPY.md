@@ -3639,40 +3639,41 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/saves.c:128` | Cannot load %.15s because %s. |
 | `mods/saves.c:214` | Autosave before Prag |
 | `mods/saves.c:214` | Ironman run, day 1 |
-| `mods/saves.c:306` | the file is not there |
-| `mods/saves.c:312` | the store rooms at its end are incomplete |
-| `mods/saves.c:318` | its battle file is not there |
-| `mods/saves.c:326` | The save was not written whole (%.15s: %s). No older save was removed. Is the disk full? |
-| `mods/saves.c:340` | Could not save. |
-| `mods/saves.c:344` | Saved (an Ironman game keeps one save, saved over as you go) |
-| `mods/saves.c:390` | The game does not allow saving while staying at an inn or camping: leave first (the days already spent are not given back). |
-| `mods/saves.c:391` | The game does not allow saving during a battle. |
-| `mods/saves.c:392` | The game does not allow saving on this screen: leave it first (saving works on a card, in the overland view or in a town). |
-| `mods/saves.c:414` | The game does not allow loading here. |
-| `mods/saves.c:423` | Difficulty is now set to ... |
-| `mods/saves.c:437` | Loading is irreversable. Proceed? |
-| `mods/saves.c:480` | That save could not be read. |
-| `mods/saves.c:499` | Loaded %s: a battle, paused (Space resumes it) |
-| `mods/saves.c:553` | Saved: %s (%s), in place of the old save |
-| `mods/saves.c:554` | Saved: %s (%s) |
-| `mods/saves.c:564` | Could not save. |
-| `mods/saves.c:582` | Saved (an Ironman game keeps one save, saved over as you go) |
-| `mods/saves.c:624` | use your horses |
-| `mods/saves.c:644` | Autosave: battle |
-| `mods/saves.c:676` | Ironman %04x |
-| `mods/saves.c:678` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
-| `mods/saves.c:710` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:711` | Ironman: the game saves and closes once this text is closed. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:712` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:733` | Start or load a game first. |
-| `mods/saves.c:740` | Loading from here works once a game is running; until then, load from the start screen. |
-| `mods/saves.c:742` | Buffer dealloc error |
-| `mods/saves.c:744` | That save could not be read. |
-| `mods/saves.c:783` | No quicksave yet (Ctrl+S makes one). |
-| `mods/saves.c:830` | An Ironman game is saved as it is left, and a save waits until this text is closed: close the text, then quit. |
-| `mods/saves.c:845` | Buffer dealloc error |
-| `mods/saves.c:845` | Insufficient system memory |
-| `mods/saves.c:845` | Corrupt file- |
+| `mods/saves.c:281` | the card's start |
+| `mods/saves.c:314` | the file is not there |
+| `mods/saves.c:320` | the store rooms at its end are incomplete |
+| `mods/saves.c:326` | its battle file is not there |
+| `mods/saves.c:334` | The save was not written whole (%.15s: %s). No older save was removed. Is the disk full? |
+| `mods/saves.c:348` | Could not save. |
+| `mods/saves.c:352` | Saved (an Ironman game keeps one save, saved over as you go) |
+| `mods/saves.c:398` | The game does not allow saving while staying at an inn or camping: leave first (the days already spent are not given back). |
+| `mods/saves.c:399` | The game does not allow saving during a battle. |
+| `mods/saves.c:400` | The game does not allow saving on this screen: leave it first (saving works on a card, in the overland view or in a town). |
+| `mods/saves.c:422` | The game does not allow loading here. |
+| `mods/saves.c:431` | Difficulty is now set to ... |
+| `mods/saves.c:445` | Loading is irreversable. Proceed? |
+| `mods/saves.c:488` | That save could not be read. |
+| `mods/saves.c:507` | Loaded %s: a battle, paused (Space resumes it) |
+| `mods/saves.c:561` | Saved: %s (%s), in place of the old save |
+| `mods/saves.c:562` | Saved: %s (%s) |
+| `mods/saves.c:572` | Could not save. |
+| `mods/saves.c:590` | Saved (an Ironman game keeps one save, saved over as you go) |
+| `mods/saves.c:632` | use your horses |
+| `mods/saves.c:652` | Autosave: battle |
+| `mods/saves.c:684` | Ironman %04x |
+| `mods/saves.c:686` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
+| `mods/saves.c:718` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:719` | Ironman: the game saves and closes once this text is closed. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:720` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:741` | Start or load a game first. |
+| `mods/saves.c:748` | Loading from here works once a game is running; until then, load from the start screen. |
+| `mods/saves.c:750` | Buffer dealloc error |
+| `mods/saves.c:752` | That save could not be read. |
+| `mods/saves.c:791` | No quicksave yet (Ctrl+S makes one). |
+| `mods/saves.c:838` | An Ironman game is saved as it is left, and a save waits until this text is closed: close the text, then quit. |
+| `mods/saves.c:853` | Buffer dealloc error |
+| `mods/saves.c:853` | Insufficient system memory |
+| `mods/saves.c:853` | Corrupt file- |
 | `mods/savesview.c:51` | %.14s %d %.3s |
 | `mods/sfx.c:51` | an attack that misses |
 | `mods/sfx.c:51` | a parried or blocked blow |

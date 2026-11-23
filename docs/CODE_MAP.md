@@ -103,7 +103,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/saintinfo.c` | 518 | what each saint's help does in the game's code, beside the description the game shows (DARKLAND.SNT), for Darklands+'s screens (saintinfo.h). |
 | `mods/sainttexts.c` | 437 | the "sainttexts" fix: saints whose help, in the game's code, plainly falls short of or departs from their own description (DARKLAND.SNT) do what the description says. |
 | `mods/savecheck.c` | 147 | check saved games before the game's load discards the running session. |
-| `mods/saves.c` | 929 | quick save and quick load, autosaves, and loading any save from the Darklands+ menu. |
+| `mods/saves.c` | 939 | quick save and quick load, autosaves, and loading any save from the Darklands+ menu. |
 | `mods/savesview.c` | 170 | the game's Save and Load as native dialogs (display.native_saves; the Full Original preset keeps the game's). |
 | `mods/sfx.c` | 630 | battle sound effects. The battle driver (PSOUND.DB and the others) makes every combat sound on the FM chip or MIDI synthesizer ("random notes rather than clashing swords"). Here they are played as recorded-style sounds i |
 | `mods/sharedstore.c` | 231 | one store room for every inn (store.shared, F12 > Settings; on by default): what is left with one innkeeper (a town's inn, a village's old woman) is there at every other, like a chest that follows the party. |
@@ -235,7 +235,7 @@ Tools: tests, checks, the harness.
 | `tools/gen_gamevars.py` | 75 | port/runtime/gamevars.h from the decompilation's names. |
 | `tools/gotosweep.py` | 44 | Go to (G) to every place of a town and on from there, in a running game: the walk must arrive or stop for a reason the player is told (shut at night, not in this town), never fail for want of a way ("not found in this city", "cannot find the way", "the way is blocked"). |
 | `tools/make_icon.py` | 40 | make_icon.py OUT.ico [OUT.png] - the Darklands+ icon: a red shield with a gold rim and a Fraktur "D+" (DL Fraktur, SIL OFL). |
-| `tools/nctl.py` | 197 | interactive control of a headless native session (for automated play that needs to look at the screen between steps, e.g. |
+| `tools/nctl.py` | 198 | interactive control of a headless native session (for automated play that needs to look at the screen between steps, e.g. |
 | `tools/nfight.py` | 76 | nfight.py NAME [--max N]: in an nctl --x11 session on the travel map, travel about until a battle starts: on each card the option that leads to a fight is clicked (read from the crisp text runs), other cards are passed with their last option. |
 | `tools/nhunt.py` | 19 | nhunt.py NAME [--max N] [--pts x1,y1,x2,y2]: travel back and forth on the overland map of an nctl session until something other than the map shows (an encounter card). |
 | `tools/nplay.py` | 133 | run a tools/play.py-style script against the NATIVE build (headless) and save screenshots as PNG. |

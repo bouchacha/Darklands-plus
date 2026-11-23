@@ -276,15 +276,23 @@ static u32 state_fp(void)
     }
     return h;
 }
+/* (taken at a card's first card_load only: a card loads its text again for a second picture after it has given - the
+   opening card $Party02 rolls the purse and the date between its two loads (s054 18d3:0008), so taken at the second the
+   gift was part of "the card's start". A card's first load is the first after its choices were last shown, after the
+   map, or after a game was loaded) */
+static int card_fresh = 1;
 static void card_load_hook(void)
 {
     hook_call_original();
-    if (unw_active) return;
-    card_fp = state_fp(); card_fp_ok = 1;
+    if (unw_active || !card_fresh) return;
+    card_fp = state_fp(); card_fp_ok = 1; card_fresh = 0;
 }
+static void card_menu_hook(void) { card_fresh = 1; hook_call_original(); }
+static void card_after_load(void) { card_fresh = 1; card_fp_ok = 0; }
 static int text_now(void)
 {
     int encounters_past_start(void);
+    if (game_mode() != GM_CARD) card_fresh = 1;
     if (!fix_is_on("savetext") || config_get_int("original", 0) || game_mode() != GM_CARD || g_rb(D_IN_BATTLE) == 1) return 0;
     if (!assist_in_card_menu() || encounters_past_start()) return 1;
     if (card_fp_ok && state_fp() != card_fp) {
@@ -484,10 +492,10 @@ static void loadscreen_hook(void)
     hook_return_far(0);
 }
 
-static void (*on_loaded[32])(void); static int non_loaded;
+static void (*on_loaded[64])(void); static int non_loaded;
 static char menu_card[16];                         /* (the card whose menu's switches are kept: note_menu_flags) */
 unsigned saves_loaded_ms;
-void saves_on_loaded(void (*fn)(void)) { if (non_loaded < 32) on_loaded[non_loaded++] = fn; else fprintf(stderr, "saves: no room for another saves_on_loaded\n"); }
+void saves_on_loaded(void (*fn)(void)) { if (non_loaded < 64) on_loaded[non_loaded++] = fn; else fprintf(stderr, "saves: no room for another saves_on_loaded\n"); }
 static void loaded_hook(void)              /* the save is read (s037 1c7d:0d24): always installed, saves_on or not */
 {
     if (getenv("DL_SAVES_LOG")) {
@@ -890,6 +898,8 @@ void saves_init(void)
     hook_install(GF_save_game, save_hook);
     hook_install(GF_card_load, card_load_hook);
     hook_install(GF_card_load_near, card_load_hook);
+    hook_install(GF_card_menu, card_menu_hook);
+    saves_on_loaded(card_after_load);
     hook_install(GF_load_game, load_hook);
     savesview_init();
     saves_auto_arrive = config_get_int("saves.autosave_arrive", 1);

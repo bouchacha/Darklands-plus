@@ -60,6 +60,7 @@ def start(name, exe, game, x11=False):
         env['DISPLAY'] = ':%d' % disp
     if exe.lower().endswith('.exe'):        # a Windows build under Wine: its output goes to darklands_port.log
         env['WINEDEBUG'] = '-all'
+        env.pop('TMPDIR', None)             # (Wine 9.0 here aborts at once, "free(): invalid pointer", with TMPDIR set)
         os.symlink(os.path.join(d, 'game', 'darklands_port.log'), os.path.join(d, 'out.txt'))
         p = subprocess.Popen(['wine', exe, os.path.join(d, 'game')], env=env, stdout=subprocess.DEVNULL,
                              stderr=subprocess.DEVNULL, start_new_session=True)
