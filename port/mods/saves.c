@@ -221,6 +221,26 @@ static void textinput_hook(void)           /* text_input(char far *buf, char far
     hook_return_far(0);
 }
 
+/* ---------------------------------------------------------------- a save at a card's text (fix savetext)
+ * A save holds which card the party is at (DS:a772, with saved_card, saved_card2 and a few words) and nothing of how
+ * far into its routine the game stands; load_game (s037 1c7d:09c6) ends in a longjmp to the main loop (root 03a1:000a),
+ * which calls the card from its first statement. So a game saved while a card waits at a text - the answer to a
+ * choice just made, after what the choice gave - and loaded again stands at the card's choices with the gift in hand:
+ * a patron's payment, a reputation, a prayer's gift taken as often as wanted (some 180 routines give before their
+ * text: the audit of 2026-11-22), and the reward card for a thing fetched ($McGuf13, s128 19a2:0002) then takes an
+ * item and frees an event by a number that is another event's after the load. fruitonce and footpadsonce (mods/
+ * fixes.c) each closed one such routine. The rule for all: at a card a save is made only while the card's choices
+ * are up (card_menu waiting: a load brings the game back to exactly there); one asked for at any other moment at a
+ * card - a quicksave, an autosave, the menu's Save with its name already given - is made as soon as the choices or
+ * the map are back, and the player is told so. */
+static int quick_wait, named_due; static char named_c[48], named_old[16];
+#define SAVE_AFTER_TEXT "The game will be saved when this text is closed."
+static void save_named(const char *c, const char *old);
+static int text_now(void)
+{
+    return fix_is_on("savetext") && !config_get_int("original", 0) && game_mode() == GM_CARD && g_rb(D_IN_BATTLE) != 1 && !assist_in_card_menu();
+}
+
 static int do_save(const char *comment)
 {
     if (g_rb(D_SAVE_OK) != 1) return 0;
@@ -273,16 +293,22 @@ static int call_load_game(void)
 static void menubar_hook(void)             /* menu_bar_run(menu, once): with once 0 it calls hot_keys, which reads Alt-S, Alt-L ... */
 {
     if ((s16)rw(SS, (u16)(SP + 6)) != 0) { hook_call_original(); return; }
-    if (quick_due) {
-        quick_due = 0;
+    int wait = text_now();
+    if (quick_due && (wait || (quick_wait && g_rb(D_SAVE_OK) != 1))) {       /* (fix savetext, above: once the card's choices or the map are back) */
+        if (!quick_wait) { quick_wait = 1; ui_notice(SAVE_AFTER_TEXT); }
+    } else if (quick_due) {
+        quick_due = quick_wait = 0;
         if (g_rb(D_SAVE_OK) == 1) do_save("Quicksave");
         else ui_notice(ns_screen == NS_LODGE ? "The game does not allow saving while staying at an inn or camping: leave first (the days already spent are not given back)." :
                        g_rb(D_IN_BATTLE) == 1 ? "The game does not allow saving during a battle." :
                        "The game does not allow saving on this screen: leave it first (saving works on a card, in the overland view or in a town).");
-    } else if (auto_due[0] && g_rb(D_SAVE_OK) == 1 && g_rb(D_IN_BATTLE) != 1) {
+    } else if (auto_due[0] && g_rb(D_SAVE_OK) == 1 && g_rb(D_IN_BATTLE) != 1 && !wait) {
         char c[24]; snprintf(c, sizeof c, "%s", auto_due);
         auto_due[0] = 0;
         do_save(c);
+    } else if (named_due && g_rb(D_SAVE_OK) == 1 && g_rb(D_IN_BATTLE) != 1 && !wait) {
+        named_due = 0;
+        save_named(named_c, named_old);
     }
     if (close_due && iron[0] && g_rb(D_SAVE_OK) == 1 && g_rb(D_IN_BATTLE) != 1) {   /* (the window closed: saved, then gone) */
         void plat_quit(int code);
@@ -392,7 +418,7 @@ static void loaded_hook(void)              /* the save is read (s037 1c7d:0d24):
     load_stage = 0;
     loaded_t = plat_ticks_ms();
     saves_loaded_ms = loaded_t | 1;
-    auto_due[0] = 0;
+    auto_due[0] = 0; quick_due = quick_wait = named_due = 0;
     loaded_since_title = 1; iron_check = 1;          /* (an Ironman game's save, or not: saves_frame) */
     menu_card[0] = 0;                                /* (the old game's card menu: note_menu_flags) */
     for (int i = 0; i < non_loaded; i++) on_loaded[i]();   /* (what each module kept of the old game: saves_on_loaded) */
@@ -429,9 +455,34 @@ static void save_hook(void)                /* save_game () */
     for (int i = 0; i < (int)sizeof keep_msg; i++) g_wb((u16)(GV_msg_buf + i), keep_msg[i]);
     saved_tell();
 }
+static void named_told(const char *c, const char *old, const char *before, int ok)   /* a save under the player's name for it, made: the old one it replaces deleted, the notice */
+{
+    char name[16]; saves_cur_name(name, sizeof name);
+    SaveInfo now;
+    int written = ok && saves_read(name, &now) && strcasecmp(name, old) && (strcasecmp(name, before) || !before[0]);
+    char m[128];
+    if (old[0] && written && saves_delete(old)) snprintf(m, sizeof m, "Saved: %s (%s), in place of the old save", c, name);   /* (the save chosen to replace) */
+    else snprintf(m, sizeof m, "Saved: %s (%s)", c, name);
+    fprintf(stderr, "saves: %s\n", m);
+    ui_notice(m);
+}
+static void save_named(const char *c, const char *old)     /* (the menu's Save held back at a text: now) */
+{
+    char before[16]; saves_cur_name(before, sizeof before);
+    answer = c; in_save = 1;
+    int r = game_call_far(GF_save_game, 0, 0);
+    answer = 0; in_save = 0;
+    if (r < 0) { ui_notice("Could not save."); return; }
+    named_told(c, old, before, 1);
+}
 static void save_hook_run(void)
 {
     if (in_save) { hook_call_original(); return; }          /* (a quick- or autosave: do_save) */
+    if (iron[0] && text_now()) {                            /* (fix savetext: an Ironman game's save too, once the choices are back) */
+        snprintf(auto_due, sizeof auto_due, "Autosave");
+        ui_notice(SAVE_AFTER_TEXT);
+        AX = 0; hook_return_far(0); return;
+    }
     if (iron[0]) {                                          /* (an Ironman game: over its one save, no name to give) */
         answer = iron; in_save = 1;
         hook_call_original();
@@ -445,19 +496,18 @@ static void save_hook_run(void)
     int r = savesview_save(c, sizeof c, old, sizeof old);
     if (r < 0) { hook_call_original(); return; }
     if (r == 0) { AX = 0; hook_return_far(0); return; }
+    if (text_now()) {                                       /* (fix savetext: named now, written once the card's choices or the map are back) */
+        snprintf(named_c, sizeof named_c, "%s", c); snprintf(named_old, sizeof named_old, "%s", old);
+        named_due = 1;
+        ui_notice(SAVE_AFTER_TEXT);
+        AX = 0; hook_return_far(0); return;
+    }
     saves_cur_name(before, sizeof before);
     answer = c; in_save = 1;
     hook_call_original();
     answer = 0; in_save = 0;
     if (unw_active) return;
-    char name[16]; saves_cur_name(name, sizeof name);
-    SaveInfo now;
-    int written = (s16)AX >= 0 && saves_read(name, &now) && strcasecmp(name, old) && (strcasecmp(name, before) || !before[0]);
-    char m[128];
-    if (old[0] && written && saves_delete(old)) snprintf(m, sizeof m, "Saved: %s (%s), in place of the old save", c, name);   /* (the save chosen to replace) */
-    else snprintf(m, sizeof m, "Saved: %s (%s)", c, name);
-    fprintf(stderr, "saves: %s\n", m);
-    ui_notice(m);
+    named_told(c, old, before, (s16)AX >= 0);
 }
 
 static void load_hook(void)                /* load_game () */

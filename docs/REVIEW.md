@@ -1026,3 +1026,17 @@ covered and found, and what it could not check.
   not the default). The fifteen tests no gate runs. The save in a battle and the preset change in a battle are
   not tried by release_check. Not read by anyone: sainttexts.c's saints, travel.c's planner, encounters.c's
   loader, 188 writes of the native views and small files, 30 of the fixes' claims in part.
+- 2026-11-22 (his "do whatever you think is best" on the two things asked). (1) The save at a card's text: the
+  new fix savetext (93 fixes), in mods/saves.c where every save passes: at a card a save is made only while the
+  card's choices are up (assist_in_card_menu), the state a load brings back; a quicksave, an autosave, an Ironman
+  save or the menu's Save (its name taken at once) asked for at any other moment at a card waits for the choices
+  or the map, with a notice. Seen at the opening card: asked at its text, "The game will be saved when this text
+  is closed", then "Game saved" as its four choices came up; asked at the choices, saved at once; that save loaded
+  stands at the same card. fruitonce and footpadsonce stay (each also holds its gain back for a player with this
+  one off). Not closed by it: a save at the choices of a card whose first statements give something before the
+  choices are shown (none found; not searched for). (2) The tomb left as it is; the correction posted on pull
+  request 29. Also from the open list: bounty picks the reward of the office the party came from (saved_card, as
+  bountybrief tells the offices), not the last in the table; tools/run_tests.py builds and runs the ten C tests
+  by the command in each one's header, and release_check runs it first (all ten pass on today's code; the five
+  Python ones need a game folder and a save, by hand still); armorday's text no longer claims the fire
+  protection's leftover armour, which fireward leaves out.

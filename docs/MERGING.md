@@ -366,6 +366,7 @@ the files where each switch's key is read.
 | `fix.altarroad` | Encounters by a pagan altar come one at a time | fix | fixes.c, travel.c |
 | `fix.bountybrief` | A robber-knight briefing names the right patron | fix | fixes.c |
 | `fix.loadsum` | Armor worn out or a last weapon thrown no longer weighs | fix | checks.c, fixes.c |
+| `fix.savetext` | A save at a card's text is made when the text is closed | fix | fixes.c, saves.c |
 
 The fixes (`fix.<id>`) are listed with their explanations in `port/mods/fixes.c`; the built-in
 rule changes (`mod.<id>`) in `port/mods/builtin.c`.

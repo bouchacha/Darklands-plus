@@ -95,6 +95,12 @@ def main():
     r = subprocess.run([sys.executable, '-I', os.path.join(HERE, 'check_hooks.py')], capture_output=True, text=True)
     print('%-40s %s' % ('hooks keep to their own arguments', 'OK' if r.returncode == 0 else 'FAILED'))
     if r.returncode: print(r.stdout.rstrip()); failed += 1
+    # (the C tests under port/tools, each built by the command in its own header: tools/run_tests.py. Fifteen
+    # tests stood there that nothing ran: the audit of 2026-11-22)
+    r = subprocess.run([sys.executable, '-I', os.path.join(HERE, 'run_tests.py'), '--out', os.path.join(a.out, 'tests')], capture_output=True, text=True)
+    ok = r.returncode == 0
+    print('%-40s %s' % ('the C tests (port/tools/test_*.c)', 'OK' if ok else 'FAILED'))
+    if not ok: failed += 1; print('    ' + (r.stdout + r.stderr).strip().replace('\n', '\n    '))
     # (the new encounters load without errors and ask only for saints, potions and things the game's own cards
     # ask for too: tools/enccheck.c, built here)
     cont = os.path.join(HERE, '..', 'content', 'New encounters')

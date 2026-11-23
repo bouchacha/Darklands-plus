@@ -312,7 +312,7 @@ Fix FIXES[] = {
     { "lordreward", "The lord and the council pay for their quests",
       "In a town without a council, the lord of the fortress gives robber knights to hunt, but the game pays such a quest's reward only at a council's hall, so in such a town it could never be collected. The lord now pays it at an audience, as a council does. And at a council's hall, calling on a saint to be let in gave the party a new robber knight to hunt instead of the reward waiting for it; now the saint's way pays it, as an audience does.", 1 },
     { "armorday", "Armor and fire protection from potions and saints last a day; Hardarmor works as the manual says",
-      "Hardarmor (+1 to +3 armor), St. Dunstan's (+1) and St. Patrick's (+2) blessings, St. Crispin's (+10 to the quality of everyone's armor) and the protection against fire of Firewall and St. Polycarp never wore off, and each new one added to the last. They now last about a day, as the manual says, and what piled up this way in a saved game is dropped: only the ones still running count. St. Charity, St. Erasmus and St. Pantaleon (and St. Polycarp) gave their protection against fire as armor instead: +32 or +48 armor permanently (or nothing, with the fix \"No invulnerability from fire protection\" on); now the member gets fire protection 90 for a day, the same as St. Polycarp's. Hardarmor also does what the manual says: armor 20, 25 or 30 points better in quality and one or two levels thicker (the game gave 1 to 3 levels and no quality); a second used while one is still working keeps the stronger of the two.", 1 },
+      "Hardarmor (+1 to +3 armor), St. Dunstan's (+1) and St. Patrick's (+2) blessings, St. Crispin's (+10 to the quality of everyone's armor) and the protection against fire of Firewall and St. Polycarp never wore off, and each new one added to the last. They now last about a day, as the manual says, and what piled up this way in a saved game is dropped: only the ones still running count (the armor that fire protection left in a saved game is left out by the fix \"No invulnerability from fire protection\", not by this one). St. Charity, St. Erasmus and St. Pantaleon (and St. Polycarp) gave their protection against fire as armor instead: +32 or +48 armor permanently (or nothing, with the fix \"No invulnerability from fire protection\" on); now the member gets fire protection 90 for a day, the same as St. Polycarp's. Hardarmor also does what the manual says: armor 20, 25 or 30 points better in quality and one or two levels thicker (the game gave 1 to 3 levels and no quality); a second used while one is still working keeps the stronger of the two.", 1 },
     { "greatpower", "Great Power raises the weapon's quality",
       "According to the manual, Great Power raises the quality of the weapon by 14, 22 or 30 (up to 99), and quality is what makes blows hit harder. The original added those points to the member's damage and penetration bonuses instead: +14 penetration, or +1 damage and +6 penetration, or +1 damage and +14 penetration. Now it raises the quality of the weapon in hand (bows and guns too), for about a day.", 1 },
     { "standings", "Saved games keep the party's standing with the Fugger, the Medici and the Hanse",
@@ -443,6 +443,8 @@ Fix FIXES[] = {
       "The briefing that follows a robber-knight bounty looked the quest up with the castle's number where the office's belongs, so it found another office's quest, or none (the game then read past the start of its table). It now reads the quest the offering office has just made, so the same person speaks throughout.", 1 },
     { "loadsum", "Armor worn out or a last weapon thrown no longer weighs",
       "A member's load is summed when something is readied or put away on the character sheet. A fight changes what is in use without summing it again: armor worn down to nothing is thrown away, and the last javelin, axe or dart leaves the hand, yet the load went on counting them, so the member stayed as burdened as before (the load band, and the Agility a shot counts with) until the next change on the sheet. The load is now summed again at once, and when a game is loaded.", 1 },
+    { "savetext", "A save at a card's text is made when the text is closed",
+      "The game saves which card the party is at, but not how far into it. A game saved while a card's text was up (the answer to a choice just made) and loaded again started the card over: the choice still to make, and what it gave already in hand. So a patron's payment, a reputation or a prayer's gift could be taken again and again, and one card (the reward for a thing fetched) could strike out another task after such a load. Now a save asked for while a text is up (a quicksave, an autosave, the menu's Save) is made as soon as the card's choices or the map are back, and says so.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -622,9 +624,15 @@ static void castle_hook(void)              /* combat_over */
 }
 
 /* ---------------------------------------------------------------- bounty */
+static int bounty_briefing_office(int back, int owner);
 static void bounty_hook(void)              /* $Raubi01 card, s080 1870:000c */
 {
-    int giver = (s16)g_rw(GV_saved_card2), loc = (s16)g_rw(G_CUR_LOC), match = 0, only = -1, n = 0;
+    /* (which reward, when none is the giver's by number: one of the office the party came from - saved_card, as
+       bountybrief tells them; the merchants' $Merch03, s092 188f:0222, pays for owner 0 and passes the castle - and
+       only failing that the last at the place. By the table's order alone, with the council's and the merchants'
+       rewards both waiting in a town, the merchants' payment freed the council's and the merchants paid again:
+       the audit, 2026-11-22) */
+    int giver = (s16)g_rw(GV_saved_card2), back = (s16)g_rw(GV_saved_card), loc = (s16)g_rw(G_CUR_LOC), match = 0, only = -1, fit = -1, n = 0;
     for (int i = 0; i < 300; i++) {
         u32 e = ev_ptr(i);
         if (!e) continue;
@@ -632,9 +640,11 @@ static void bounty_hook(void)              /* $Raubi01 card, s080 1870:000c */
         if ((s16)rw(s, (u16)(o + 0x22)) != 0x24 || (s16)rw(s, (u16)(o + 0x28)) != 3 || (s16)rw(s, (u16)(o + 0x1c)) != loc) continue;
         int owner = (s16)rw(s, (u16)(o + 0x1a));
         if (owner == giver) match = 1;
+        if (bounty_briefing_office(back, owner) && (fit < 0 || owner == 0)) fit = owner;
         only = owner; n++;
     }
     if (!match && n >= 1) {
+        if (fit >= 0) only = fit;
         if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix bounty: giver %d -> %d\n", giver, only);
         g_ww(GV_saved_card2, (u16)only);
     }
@@ -4236,7 +4246,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook },
     { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_saint_finish, prayfor_hook }, { 30, 0x1462, 0x1c76, westedge_hook }, { GF_lock_pick, bestpick_hook },
     { 37, 0x1462, 0x2ace, save_records_hook }, { -2, 0, 0, 0 }, { 38, 0x1462, 0x02f8, innroster_key_hook }, { GF_party_remove, leaving_record_hook }, { -2, 0, 0, 0 }, { 37, 0x1c7d, 0x0d24, duplicate_load_hook }, { 16, 0x1ef8, 0x0f76, dissolve_key_hook }, { -2, 0, 0, 0 },
-    { 14, 0x0e76, 0x0694, thrown_end_hook }, { 14, 0x19cd, 0x0738, nosel_leave_hook }, { 18, 0x1f43, 0x0256, castsight_hook }, { GF_path_find, doorplan_hook }, { 30, 0x1462, 0x1dd4, maprows_hook }, { 87, 0x1986, 0x01e6, fruitonce_hook }, { 53, 0x1838, 0x02d6, footpadsonce_hook }, { 30, 0x1462, 0x25be, campwatch_hook }, { 14, 0x0e76, 0x0f58, exitleft_tick_hook }, { -2, 0, 0, 0 }, { -2, 0, 0, 0 }, { 80, 0x1838, 0x0000, bounty_briefing_hook }, { GF_use_ammo, loadsum_hook },
+    { 14, 0x0e76, 0x0694, thrown_end_hook }, { 14, 0x19cd, 0x0738, nosel_leave_hook }, { 18, 0x1f43, 0x0256, castsight_hook }, { GF_path_find, doorplan_hook }, { 30, 0x1462, 0x1dd4, maprows_hook }, { 87, 0x1986, 0x01e6, fruitonce_hook }, { 53, 0x1838, 0x02d6, footpadsonce_hook }, { 30, 0x1462, 0x25be, campwatch_hook }, { 14, 0x0e76, 0x0f58, exitleft_tick_hook }, { -2, 0, 0, 0 }, { -2, 0, 0, 0 }, { 80, 0x1838, 0x0000, bounty_briefing_hook }, { GF_use_ammo, loadsum_hook }, { -2, 0, 0, 0 },
 };   /* (hitsound: mods/sfx.c; savecheck: mods/saves.c; cachefile: mods/cachefile.c; stairsreturn: mods/stairsfix.c; onefloor: mods/levelwalk.c; altarroad: mods/travel.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */

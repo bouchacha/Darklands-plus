@@ -487,7 +487,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:312` | The lord and the council pay for their quests |
 | `mods/fixes.c:313` | In a town without a council, the lord of the fortress gives robber knights to hunt, but the game pays such a quest's reward only at a council's hall, so in such a town it could never be collected. The lord now pays it at an audience, as a council does. And at a council's hall, calling on a saint to be let in gave the party a new robber knight to hunt instead of the reward waiting for it; now the saint's way pays it, as an audience does. |
 | `mods/fixes.c:314` | Armor and fire protection from potions and saints last a day; Hardarmor works as the manual says |
-| `mods/fixes.c:315` | Hardarmor (+1 to +3 armor), St. Dunstan's (+1) and St. Patrick's (+2) blessings, St. Crispin's (+10 to the quality of everyone's armor) and the protection against fire of Firewall and St. Polycarp never wore off, and each new one added to the last. They now last about a day, as the manual says, and what piled up this way in a saved game is dropped: only the ones still running count. St. Charity, St. Erasmus and St. Pantaleon (and St. Polycarp) gave their protection against fire as armor instead: +32 or +48 armor permanently (or nothing, with the fix "No invulnerability from fire protection" on); now the member gets fire protection 90 for a day, the same as St. Polycarp's. Hardarmor also does what the manual says: armor 20, 25 or 30 points better in quality and one or two levels thicker (the game gave 1 to 3 levels and no quality); a second used while one is still working keeps the stronger of the two. |
+| `mods/fixes.c:315` | Hardarmor (+1 to +3 armor), St. Dunstan's (+1) and St. Patrick's (+2) blessings, St. Crispin's (+10 to the quality of everyone's armor) and the protection against fire of Firewall and St. Polycarp never wore off, and each new one added to the last. They now last about a day, as the manual says, and what piled up this way in a saved game is dropped: only the ones still running count (the armor that fire protection left in a saved game is left out by the fix "No invulnerability from fire protection", not by this one). St. Charity, St. Erasmus and St. Pantaleon (and St. Polycarp) gave their protection against fire as armor instead: +32 or +48 armor permanently (or nothing, with the fix "No invulnerability from fire protection" on); now the member gets fire protection 90 for a day, the same as St. Polycarp's. Hardarmor also does what the manual says: armor 20, 25 or 30 points better in quality and one or two levels thicker (the game gave 1 to 3 levels and no quality); a second used while one is still working keeps the stronger of the two. |
 | `mods/fixes.c:316` | Great Power raises the weapon's quality |
 | `mods/fixes.c:317` | According to the manual, Great Power raises the quality of the weapon by 14, 22 or 30 (up to 99), and quality is what makes blows hit harder. The original added those points to the member's damage and penetration bonuses instead: +14 penetration, or +1 damage and +6 penetration, or +1 damage and +14 penetration. Now it raises the quality of the weapon in hand (bows and guns too), for about a day. |
 | `mods/fixes.c:318` | Saved games keep the party's standing with the Fugger, the Medici and the Hanse |
@@ -618,23 +618,25 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:443` | The briefing that follows a robber-knight bounty looked the quest up with the castle's number where the office's belongs, so it found another office's quest, or none (the game then read past the start of its table). It now reads the quest the offering office has just made, so the same person speaks throughout. |
 | `mods/fixes.c:444` | Armor worn out or a last weapon thrown no longer weighs |
 | `mods/fixes.c:445` | A member's load is summed when something is readied or put away on the character sheet. A fight changes what is in use without summing it again: armor worn down to nothing is thrown away, and the last javelin, axe or dart leaves the hand, yet the load went on counting them, so the member stayed as burdened as before (the load band, and the Agility a shot counts with) until the next change on the sheet. The load is now summed again at once, and when a game is loaded. |
-| `mods/fixes.c:963` | if (col == 0) col = 1 |
-| `mods/fixes.c:1039` | Play the original game |
-| `mods/fixes.c:1246` | %s's %s stood %d above its maximum with no boost running to account for it: back to %d. |
-| `mods/fixes.c:1255` | a game loaded |
-| `mods/fixes.c:1618` | The store room keeps at most 127 of one item. |
-| `mods/fixes.c:1619` | The store room is full: it keeps 100 kinds of items. |
-| `mods/fixes.c:1790` | abandon the horses |
-| `mods/fixes.c:2254` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
-| `mods/fixes.c:2534` | claim friendship |
-| `mods/fixes.c:2586` | It is $NamedOneName again |
-| `mods/fixes.c:2863` | You need a missile weapon |
-| `mods/fixes.c:2958` | if the argument was won |
-| `mods/fixes.c:3021` | Not bought: nobody in the party has room for another kind of item. |
-| `mods/fixes.c:3039` | Nobody in the party has room for another kind of item. |
-| `mods/fixes.c:4147` | Dissolve Lock needs Eater-Water in this member's pack. |
-| `mods/fixes.c:4215` | mend: a game loaded |
-| `mods/fixes.c:4241` | a hook (or { -2 }) for each fix, in the same order |
+| `mods/fixes.c:446` | A save at a card's text is made when the text is closed |
+| `mods/fixes.c:447` | The game saves which card the party is at, but not how far into it. A game saved while a card's text was up (the answer to a choice just made) and loaded again started the card over: the choice still to make, and what it gave already in hand. So a patron's payment, a reputation or a prayer's gift could be taken again and again, and one card (the reward for a thing fetched) could strike out another task after such a load. Now a save asked for while a text is up (a quicksave, an autosave, the menu's Save) is made as soon as the card's choices or the map are back, and says so. |
+| `mods/fixes.c:973` | if (col == 0) col = 1 |
+| `mods/fixes.c:1049` | Play the original game |
+| `mods/fixes.c:1256` | %s's %s stood %d above its maximum with no boost running to account for it: back to %d. |
+| `mods/fixes.c:1265` | a game loaded |
+| `mods/fixes.c:1628` | The store room keeps at most 127 of one item. |
+| `mods/fixes.c:1629` | The store room is full: it keeps 100 kinds of items. |
+| `mods/fixes.c:1800` | abandon the horses |
+| `mods/fixes.c:2264` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
+| `mods/fixes.c:2544` | claim friendship |
+| `mods/fixes.c:2596` | It is $NamedOneName again |
+| `mods/fixes.c:2873` | You need a missile weapon |
+| `mods/fixes.c:2968` | if the argument was won |
+| `mods/fixes.c:3031` | Not bought: nobody in the party has room for another kind of item. |
+| `mods/fixes.c:3049` | Nobody in the party has room for another kind of item. |
+| `mods/fixes.c:4157` | Dissolve Lock needs Eater-Water in this member's pack. |
+| `mods/fixes.c:4225` | mend: a game loaded |
+| `mods/fixes.c:4251` | a hook (or { -2 }) for each fix, in the same order |
 
 ## The interface (ui/)
 
@@ -3605,30 +3607,31 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/saves.c:112` | the save could not be opened |
 | `mods/saves.c:123` | the battle file could not be opened |
 | `mods/saves.c:128` | Cannot load %.15s because %s. |
-| `mods/saves.c:233` | Could not save. |
-| `mods/saves.c:236` | Saved (an Ironman game keeps one save, saved over as you go) |
-| `mods/saves.c:279` | The game does not allow saving while staying at an inn or camping: leave first (the days already spent are not given back). |
-| `mods/saves.c:280` | The game does not allow saving during a battle. |
-| `mods/saves.c:281` | The game does not allow saving on this screen: leave it first (saving works on a card, in the overland view or in a town). |
-| `mods/saves.c:300` | The game does not allow loading here. |
-| `mods/saves.c:309` | Difficulty is now set to ... |
-| `mods/saves.c:323` | Loading is irreversable. Proceed? |
-| `mods/saves.c:366` | That save could not be read. |
-| `mods/saves.c:385` | Loaded %s: a battle, paused (Space resumes it) |
-| `mods/saves.c:441` | Saved (an Ironman game keeps one save, saved over as you go) |
-| `mods/saves.c:457` | Saved: %s (%s), in place of the old save |
-| `mods/saves.c:458` | Saved: %s (%s) |
-| `mods/saves.c:482` | use your horses |
-| `mods/saves.c:502` | Autosave: battle |
-| `mods/saves.c:534` | Ironman %04x |
-| `mods/saves.c:536` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
-| `mods/saves.c:568` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:569` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:590` | Start or load a game first. |
-| `mods/saves.c:597` | Loading from here works once a game is running; until then, load from the start screen. |
-| `mods/saves.c:599` | Buffer dealloc error |
-| `mods/saves.c:601` | That save could not be read. |
-| `mods/saves.c:640` | No quicksave yet (Ctrl+S makes one). |
+| `mods/saves.c:253` | Could not save. |
+| `mods/saves.c:256` | Saved (an Ironman game keeps one save, saved over as you go) |
+| `mods/saves.c:302` | The game does not allow saving while staying at an inn or camping: leave first (the days already spent are not given back). |
+| `mods/saves.c:303` | The game does not allow saving during a battle. |
+| `mods/saves.c:304` | The game does not allow saving on this screen: leave it first (saving works on a card, in the overland view or in a town). |
+| `mods/saves.c:326` | The game does not allow loading here. |
+| `mods/saves.c:335` | Difficulty is now set to ... |
+| `mods/saves.c:349` | Loading is irreversable. Proceed? |
+| `mods/saves.c:392` | That save could not be read. |
+| `mods/saves.c:411` | Loaded %s: a battle, paused (Space resumes it) |
+| `mods/saves.c:464` | Saved: %s (%s), in place of the old save |
+| `mods/saves.c:465` | Saved: %s (%s) |
+| `mods/saves.c:475` | Could not save. |
+| `mods/saves.c:492` | Saved (an Ironman game keeps one save, saved over as you go) |
+| `mods/saves.c:532` | use your horses |
+| `mods/saves.c:552` | Autosave: battle |
+| `mods/saves.c:584` | Ironman %04x |
+| `mods/saves.c:586` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
+| `mods/saves.c:618` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:619` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:640` | Start or load a game first. |
+| `mods/saves.c:647` | Loading from here works once a game is running; until then, load from the start screen. |
+| `mods/saves.c:649` | Buffer dealloc error |
+| `mods/saves.c:651` | That save could not be read. |
+| `mods/saves.c:690` | No quicksave yet (Ctrl+S makes one). |
 | `mods/savesview.c:51` | %.14s %d %.3s |
 | `mods/sfx.c:51` | an attack that misses |
 | `mods/sfx.c:51` | a parried or blocked blow |
