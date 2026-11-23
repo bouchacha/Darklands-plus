@@ -1107,3 +1107,13 @@ covered and found, and what it could not check.
   Wine works again here with TMPDIR unset (nctl.py does it): Wine 9.0 aborts at start ("free(): invalid pointer")
   with TMPDIR=/tmp. RC23 run under Wine from a folder named "Jürgen": the module made, a quickstart, a held
   quicksave made at the text's close, loaded.
+- 2026-11-23, round 4 (one reviewer on everything changed since RC21, report audit/round4_regressions.txt): no crash,
+  spoilt save or lasting wrong state; five findings, all fixed. saves.c: hold_why says why a save waits (a text, a
+  card that has given, an encounter past its first choice) in every notice, the Ironman quit and close among them;
+  menubar_hook asks text_now only with a save waiting (it runs at every poll, and state_fp hashes some 3 KB);
+  card_fresh also when the card number (DS:a772) changes. ways.c: Halt ends with the fight on the field
+  (real_combat off: a place is one battle_run). pack.c ensure_one takes ammunition only from giver_ok members. fixes.c
+  exitleft strikes the gone out of the marching order itself (exitleft_prune) instead of calling the game's rebuild,
+  which shows a message for a second with the gone shown as absent. MODDING.md: an option flag before the first menu
+  does nothing. Fuzzed under ASan/UBSan, nothing found: savecheck (32,000 mutated saves and battle files of his),
+  the encounter loader (300 rounds of mutated files), cache_rewrite (2 million random files).

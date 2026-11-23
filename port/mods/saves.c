@@ -250,7 +250,12 @@ static void textinput_hook(void)           /* text_input(char far *buf, char far
  * the map are back, and the player is told so. */
 static int quick_wait, named_due; static char named_c[48], named_old[16];
 int encounters_past_start(void);
-#define SAVE_AFTER_TEXT (encounters_past_start() ? "The game will be saved when this encounter is over." : assist_in_card_menu() ? "This card has already given or taken: the game will be saved when it is left." : "The game will be saved when this text is closed.")
+/* why text_now last held a save (1 a text up, 2 the card has given since it began, 3 an encounter of ours past its first
+   choice): the notices say it as it is, whenever they are shown (the Save page's own wait makes the card's choices read
+   as down afterwards: the audit, 2026-11-23) */
+static int hold_why;
+#define SAVE_AFTER_TEXT (hold_why == 3 ? "The game will be saved when this encounter is over." : hold_why == 2 ? "This card has already given or taken: the game will be saved when it is left." : "The game will be saved when this text is closed.")
+#define HOLD_UNTIL (hold_why == 3 ? "this encounter is over" : hold_why == 2 ? "you leave this card" : "this text is closed")
 static void save_named(const char *c, const char *old);
 /* A card's choices are where a load returns to only when nothing has changed since the card began: a save holds the card,
    and its load runs the card's routine from the start. Some cards give before their first choices - the new lord's
@@ -280,22 +285,26 @@ static u32 state_fp(void)
    opening card $Party02 rolls the purse and the date between its two loads (s054 18d3:0008), so taken at the second the
    gift was part of "the card's start". A card's first load is the first after its choices were last shown, after the
    map, or after a game was loaded) */
-static int card_fresh = 1;
+static int card_fresh = 1, fp_card = -1;
 static void card_load_hook(void)
 {
     hook_call_original();
+    int c = (s16)g_rw(0xa772);                               /* (the card running, DS:a772: another card is a fresh start) */
+    if (c != fp_card) card_fresh = 1;
     if (unw_active || !card_fresh) return;
-    card_fp = state_fp(); card_fp_ok = 1; card_fresh = 0;
+    card_fp = state_fp(); card_fp_ok = 1; card_fresh = 0; fp_card = c;
 }
 static void card_menu_hook(void) { card_fresh = 1; hook_call_original(); }
-static void card_after_load(void) { card_fresh = 1; card_fp_ok = 0; }
+static void card_after_load(void) { card_fresh = 1; card_fp_ok = 0; fp_card = -1; }
 static int text_now(void)
 {
     int encounters_past_start(void);
     if (game_mode() != GM_CARD) card_fresh = 1;
     if (!fix_is_on("savetext") || config_get_int("original", 0) || game_mode() != GM_CARD || g_rb(D_IN_BATTLE) == 1) return 0;
-    if (!assist_in_card_menu() || encounters_past_start()) return 1;
+    if (!assist_in_card_menu()) { hold_why = 1; return 1; }
+    if (encounters_past_start()) { hold_why = 3; return 1; }
     if (card_fp_ok && state_fp() != card_fp) {
+        hold_why = 2;
         static u32 told; if (getenv("DL_SAVES_LOG") && told != card_fp) { told = card_fp; fprintf(stderr, "saves: this card has changed the party since it began: a save waits until it is left\n"); }
         return 1;
     }
@@ -389,7 +398,10 @@ static int call_load_game(void)
 static void menubar_hook(void)             /* menu_bar_run(menu, once): with once 0 it calls hot_keys, which reads Alt-S, Alt-L ... */
 {
     if ((s16)rw(SS, (u16)(SP + 6)) != 0) { hook_call_original(); return; }
-    int wait = text_now();
+    /* (asked only with a save waiting: this runs at every poll of the menu bar, and at a card's choices text_now takes
+       the party's fingerprint, some 3 KB) */
+    if (game_mode() != GM_CARD) card_fresh = 1;
+    int wait = quick_due || auto_due[0] || named_due || close_due ? text_now() : 0;
     if (quick_due && (wait || (quick_wait && g_rb(D_SAVE_OK) != 1))) {       /* (fix savetext, above: once the card's choices or the map are back) */
         if (!quick_wait) { quick_wait = 1; ui_notice(SAVE_AFTER_TEXT); }
     } else if (quick_due) {
@@ -716,7 +728,9 @@ int saves_close_requested(void)
     if (!iron[0] || game_mode() == GM_OTHER || close_due) return 0;
     close_due = 1;
     ui_notice(g_rb(D_IN_BATTLE) == 1 ? "Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save)."
-              : text_now() ? "Ironman: the game saves and closes once this text is closed. Close again to quit at once (the game then goes back to the last save)."
+              : text_now() ? (hold_why == 3 ? "Ironman: the game saves and closes once this encounter is over. Close again to quit at once (the game then goes back to the last save)."
+                             : hold_why == 2 ? "Ironman: the game saves and closes once you leave this card. Close again to quit at once (the game then goes back to the last save)."
+                             : "Ironman: the game saves and closes once this text is closed. Close again to quit at once (the game then goes back to the last save).")
                                       : "Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save).");
     return 1;
 }
@@ -835,7 +849,8 @@ static void quit_hook(void)
        made (fix savetext): the quit waits for the text, or every gift a card gives before its text could be taken
        again by Alt-Q, N, the window closed and Continue: the audit, 2026-11-22) */
     if (iron[0] && text_now()) {
-        ui_notice("An Ironman game is saved as it is left, and a save waits until this text is closed: close the text, then quit.");
+        char m[160]; snprintf(m, sizeof m, "An Ironman game is saved as it is left, and a save waits until %s: then quit.", HOLD_UNTIL);
+        ui_notice(m);
         AX = 0; hook_return_far(0); return;
     }
     if (iron[0] && g_rb(D_SAVE_OK) == 1 && g_rb(D_IN_BATTLE) != 1) do_save("Autosave");   /* (an Ironman game: saved as it is left) */

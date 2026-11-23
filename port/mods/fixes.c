@@ -4108,22 +4108,26 @@ static void exitleft_stairs_hook(void)      /* take_exit (n, who), s023 1ef8:161
  * (marching_order_rebuild, s016 1ef8:0da6, at Group and Single file and a battle's start): a member gone out stands, so
  * he stayed in it - leading the line from off the field if he was its first. Here too the gone are set aside for the
  * call, and the battle's tick asks for the order anew once one of them is found in it. */
+static void exitleft_prune(void)            /* the gone out struck from the order, the rest kept in theirs */
+{
+    int len = (s8)g_rb(GV_marching_len), k2 = 0, on = 0;
+    for (int m = 0; m < 5; m++) if (g_rb(G_MEMBER(m)) == 1 && (s8)g_rb((u16)(GV_cbt_floor + m)) != -99) on = 1;
+    if (!on || len <= 0 || len > 5) return;              /* (all gone: the game's end test decides) */
+    for (int k = 0; k < len; k++) {
+        int m = (s8)g_rb((u16)(GV_marching_order + k));
+        if (m >= 0 && m < 5 && (s8)g_rb((u16)(GV_cbt_floor + m)) == -99) continue;
+        g_wb((u16)(GV_marching_order + k2++), (u8)m);
+    }
+    if (k2 == len) return;
+    g_wb(GV_marching_len, (u8)k2);
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix exitleft: the marching order without those gone out: %d first of %d\n", (s8)g_rb(GV_marching_order), k2);
+}
 static void exitleft_order_hook(void)       /* marching_order_rebuild (p) */
 {
-    u8 st[5], fl[5];
-    int n = exit_aside(st, fl);
     hook_call_original();
-    if (n && !unw_active) exit_back(st, fl);
+    if (!unw_active) exitleft_prune();
 }
-static void exitleft_order_check(void)
-{
-    int len = (s8)g_rb(GV_marching_len), gone = 0, on = 0;
-    for (int k = 0; k < len && k < 5; k++) { int m = (s8)g_rb((u16)(GV_marching_order + k)); if (m >= 0 && m < 5 && (s8)g_rb((u16)(GV_cbt_floor + m)) == -99) gone = 1; }
-    for (int m = 0; m < 5; m++) if (g_rb(G_MEMBER(m)) == 1 && (s8)g_rb((u16)(GV_cbt_floor + m)) != -99) on = 1;
-    if (!gone || !on) return;
-    ns_call(GF_marching_order_rebuild, 1, 0);
-    if (getenv("DL_FIX_LOG") && !ns_unwinding) fprintf(stderr, "fix exitleft: the marching order without those gone out: %d first of %d\n", (s8)g_rb(GV_marching_order), (s8)g_rb(GV_marching_len));
-}
+static void exitleft_order_check(void) { exitleft_prune(); }   /* (each tick: struck out without the game's own rebuild, which shows a message a second long) */
 
 /* ---------------------------------------------------------------- pilefull
  * The loot screen's Put (P: its key routine, s040 1462:0c22) lays the thing on the pile (1462:1242: one more on a row of

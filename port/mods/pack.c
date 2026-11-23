@@ -218,7 +218,7 @@ static void ensure_one(int m, int t)       /* member m carries one piece of ammu
     if (t < 0x40 || t > 0x42 || carried(m, t, NULL)) return;
     int from = -1, rec = -1;
     for (int h = 0; h < 5 && from < 0; h++) {
-        if (h == m || !gm_member_present(h) || gm_member_status(h) == 5) continue;
+        if (h == m || !giver_ok(h)) continue;                 /* (not one fallen: their things lie in a pile already) */
         int r = -1; if (carried(h, t, &r) > (ammo_of(h) == t ? 1 : 0)) { from = h; rec = r; }
     }
     if (from < 0 || (!give_safe(from, m, rec) && !ns_unwinding)) {

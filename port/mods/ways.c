@@ -673,6 +673,12 @@ static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchange
     if (ns_unwinding || g_rb(GV_ai_paused)) return;
     { extern int arena_log_every; void arena_tick(void); if (arena_log_every) arena_tick(); }   /* (the test arena's log: runtime/testcmds.c) */
     keep_kinds();
+    /* (Halt holds to the end of the fight: a castle, mine or dungeon is one battle_run, and the fight on its field ends
+       when real_combat goes off - the party exploring again, a halted member left standing for the next fight) */
+    {   static int was_fight;
+        int fight = g_rb(GV_real_combat) == 1;
+        if (was_fight && !fight) memset(halted, 0, sizeof halted);
+        was_fight = fight; }
     if (!combat_improved()) return;
     /* a member marked as walking with no order that does not move: the battle's start (a battle save loaded too)
        clears the orders but not cbt_moving, so one saved half way through a walk came back marked walking, order 0,
