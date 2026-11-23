@@ -59,6 +59,7 @@
 - **A modifier held as a Darklands+ window opened, or as the window lost focus,** is let go in the game too: a stuck Alt made plain S, L and Q the game's save, load and quit.
 - **Settings for a mod with a long folder name are kept** (the mod went off at every start), and the settings file is written whole or not at all.
 - **The night the clocks go back can no longer freeze the game for an hour:** the game was told the hour anew at each ask, and its pauses waited for a time that had moved back.
+- **AZERTY and QWERTZ keyboards:** the game's letter keys follow the letters on the keyboard (they went by where the keys sit on a US keyboard: A and Q, Z and W swapped), and 1 to 9 pick a card's option from the top row without Shift.
 - **The load preview weighs the thing actually worn:** a relic or the Sword of War weighed as the plain weapon of its kind.
 
 - **Tooltips and hints follow the pointer after a click on the level map:** a click there (or a double-click on the world map, or a click on the Honor Roll) closed the window while the button was still down, and Darklands+ kept the pointer where the click was. Until the next click in one of its windows the panels showed no tooltips, and a hint about the field could stand over the potion tray.

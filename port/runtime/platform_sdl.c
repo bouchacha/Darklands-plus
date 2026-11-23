@@ -139,6 +139,20 @@ static int xt_code(SDL_Scancode sc, int *ext)
    while Shift, Ctrl or Alt was held kept the release, the game's flags stayed set, and plain S, L or Q were then its
    Alt-S, Alt-L, Alt-Q: the audit, 2026-11-22) */
 static unsigned char game_down[SDL_NUM_SCANCODES];
+/* the game reads keys by where they sit on a US keyboard (the scan code). A letter goes to it by the letter the player's
+   layout gives (on AZERTY, A is where Q sits: the game's A for "Attack" was the Q key, its Q the A key, Z and W changed
+   places on QWERTZ too), everything else by place; the release goes as its press went. (The audit, 2026-11-22) */
+static SDL_Scancode pressed_as[SDL_NUM_SCANCODES];
+static SDL_Scancode as_game(const SDL_KeyboardEvent *k, int release)
+{
+    SDL_Scancode sc = k->keysym.scancode;
+    if ((unsigned)sc >= SDL_NUM_SCANCODES) return sc;
+    if (release) { SDL_Scancode g = pressed_as[sc] ? pressed_as[sc] : sc; pressed_as[sc] = 0; return g; }
+    SDL_Keycode c = k->keysym.sym;
+    SDL_Scancode g = c >= SDLK_a && c <= SDLK_z ? (SDL_Scancode)(SDL_SCANCODE_A + (c - SDLK_a)) : sc;
+    pressed_as[sc] = g;
+    return g;
+}
 static void key(SDL_Scancode sc, int release)
 {
     int ext, c = xt_code(sc, &ext);
@@ -1207,7 +1221,7 @@ void plat_events(void)
                    && (abs(e.motion.xrel) > 3 || abs(e.motion.yrel) > 3)) input_pad = 0;
         if (!headless && ui_event(&e)) {
             if (e.type == SDL_MOUSEBUTTONUP) swallow_click = 0;
-            if (e.type == SDL_KEYUP && (unsigned)e.key.keysym.scancode < SDL_NUM_SCANCODES && game_down[e.key.keysym.scancode]) key(e.key.keysym.scancode, 1);
+            if (e.type == SDL_KEYUP && (unsigned)e.key.keysym.scancode < SDL_NUM_SCANCODES) { SDL_Scancode g = as_game(&e.key, 1); if ((unsigned)g < SDL_NUM_SCANCODES && game_down[g]) key(g, 1); }
             continue;
         }   /* (a release taken by the interface ends the swallowing too) */
         if (swallow_click && (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP)) { if (e.type == SDL_MOUSEBUTTONUP) swallow_click = 0; continue; }
@@ -1268,12 +1282,14 @@ void plat_events(void)
             { int saves_key(int, int); if (!e.key.repeat && saves_key(e.key.keysym.sym, (e.key.keysym.mod & KMOD_CTRL) != 0)) break; }
             {   /* 1..9 on a card: that option (a click on its line); 0 the tenth */
                 SDL_Keycode k = e.key.keysym.sym; int d = k >= SDLK_1 && k <= SDLK_9 ? k - SDLK_0 : k >= SDLK_KP_1 && k <= SDLK_KP_9 ? k - SDLK_KP_1 + 1 : k == SDLK_0 || k == SDLK_KP_0 ? 10 : 0;
+                SDL_Scancode ps = e.key.keysym.scancode;   /* (the top row by place too: AZERTY's gives & é " ... unshifted) */
+                if (!d && ps >= SDL_SCANCODE_1 && ps <= SDL_SCANCODE_0 && !(e.key.keysym.mod & KMOD_SHIFT)) d = ps == SDL_SCANCODE_0 ? 10 : ps - SDL_SCANCODE_1 + 1;
                 int gx, gy, assist_card_key(int, int *, int *);
                 if (d && !e.key.repeat && !(e.key.keysym.mod & (KMOD_CTRL | KMOD_ALT)) && assist_card_key(d, &gx, &gy)) { click_at(gx, gy); break; }
             }
-            key(e.key.keysym.scancode, 0);
+            key(as_game(&e.key, 0), 0);
             break;
-        case SDL_KEYUP: if (swallow_key && e.key.keysym.scancode == swallow_key) { swallow_key = 0; break; } key(e.key.keysym.scancode, 1); break;
+        case SDL_KEYUP: if (swallow_key && e.key.keysym.scancode == swallow_key) { swallow_key = 0; break; } key(as_game(&e.key, 1), 1); break;
         case SDL_MOUSEWHEEL:
             if (menu_escape()) break;
             /* the wheel in the game's lists (the character sheet's equipment, formulae and saints,
