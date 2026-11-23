@@ -142,7 +142,9 @@ static void msg_load_hook(void)
     for (char *q = n; *q; q++) *q = (char)toupper((unsigned char)*q);
     loaded_name = n; loaded_blocks = live_blocks();
 }
-extern "C" void citynav_init(void) { hook_install(GF_msg_load, msg_load_hook); }
+static void nav_after_load(void);
+extern "C" void saves_on_loaded(void (*fn)(void));
+extern "C" void citynav_init(void) { hook_install(GF_msg_load, msg_load_hook); saves_on_loaded(nav_after_load); }
 /* card's text: as it was loaded (a mod's card, a restored one, the game's own: what is on show), else as
    MSGFILES has it */
 static std::vector<std::string> card_blocks(const std::string &card)
@@ -473,8 +475,27 @@ extern "C" { extern int hdtext_fast_fades; }
 
 extern "C" int encounters_card_active(void);
 extern "C" int encounters_builtin(int i);
+/* come from the map by a card that is not the town's: the step that brings an encounter makes the nearest place the
+   game's place (s030 1462:1300: a town's reach is five rows and three columns), so on the game's own encounter cards
+   beside a town "the place is a town and a card is up" held too, and Go to answered the encounter for the player with
+   its first line that had "leave" in it ("promptly hand over all components and potions, then leave": the audit,
+   2026-11-22). Set while the map is up, cleared at a card of the town's streets or gates (and at a load: the game
+   loaded is where its card says) */
+static bool from_map;
+static std::string card_now(void);
+static int hub_of(const std::string &card);
+static void watch_map(void)
+{
+    int gm = game_mode();
+    if (gm == GM_MAP) { from_map = true; return; }
+    if (gm != GM_CARD || !from_map) return;
+    std::string c = card_now();
+    if (hub_of(c) != H_NONE || c.compare(0, 5, "$CITY") == 0) from_map = false;
+}
+static void nav_after_load(void) { from_map = false; }
 static bool in_city(void)
 {
+    if (from_map) return false;
     int cur = (s16)g_rw(G_CUR_LOC);
     /* (a new encounter met on the way out, still on the town's square of the map, keeps the town
        as the game's place: the party is on the road, not in the streets; the restored hospice is
@@ -500,17 +521,29 @@ static bool leave_option(const std::string &t)
     return false;
 }
 
+/* a line with "leave" in it that is no way out of a place, or does more than leave: the inn's party card sends a
+   companion away for good ("ask $chosenonename to leave.", $Party00: the Hanse's man, a Schulz, a knight - and his task
+   with him), the gate tries the wall, a revolt's card calls a saint, the soldiers' leaves messages, the trading post's
+   takes the job on the way out. (All 298 option lists of the cards that are no street were read for it, the audit of
+   2026-11-22; these are the town's.) */
+static bool not_a_way_out(const std::string &t)
+{
+    static const char *const NO[] = { "leave messages", "by way of the wall", ", leave, and ", "hand over", "to leave while", "convince the guards" };
+    if (t.compare(0, 4, "ask ") == 0) return true;
+    for (const char *k : NO) if (t.find(k) != std::string::npos) return true;
+    return false;
+}
 static int choose_leave(const std::vector<std::string> &line)
 {
     for (size_t i = 0; i < line.size(); i++) if (leave_option(line[i])) return (int)i;
     for (size_t i = 0; i < line.size(); i++) if (line[i].find("return to") != std::string::npos && line[i].find("side") == std::string::npos) return (int)i;
     for (size_t i = 0; i < line.size(); i++)
         if ((line[i].find("leave") != std::string::npos || line[i].find("depart") != std::string::npos) && line[i].find("side") == std::string::npos
-            && line[i].find("alley") == std::string::npos) return (int)i;
+            && line[i].find("alley") == std::string::npos && !not_a_way_out(line[i])) return (int)i;
     for (size_t i = 0; i < line.size(); i++)                 /* the only way out may be a side street (the slums) or a step back */
-        if (line[i].find("leave") != std::string::npos || line[i].find("fall back") != std::string::npos || line[i].find("reconsider") != std::string::npos) return (int)i;
+        if (!not_a_way_out(line[i]) && (line[i].find("leave") != std::string::npos || line[i].find("fall back") != std::string::npos || line[i].find("reconsider your") != std::string::npos || line[i].find("reconsider the entire") != std::string::npos)) return (int)i;
     /* a polite way out of a place's second list (every place card's every list is checked: ucityplaces) */
-    static const char *const BACK[] = { "think better of it", "apologizes for disturbing", "not to get involved", "come back in the morning", "go on." };
+    static const char *const BACK[] = { "think better of it", "apologizes for disturbing", "not to get involved", "come back in the morning", "go on.", "finish this task" };
     for (const char *b : BACK) for (size_t i = 0; i < line.size(); i++) if (line[i].find(b) != std::string::npos) return (int)i;
     return -1;
 }
@@ -592,6 +625,7 @@ static void watch_hubs(void)
 
 extern "C" void citynav_tick(void)
 {
+    watch_map();
     watch_hubs();
     hdtext_fast_fades = goal >= 0 || leaving;              /* the cards' fades at once while walking */
     if (leaving && goal < 0) { if (!cards_loaded) load_cards(); leaving_tick(); return; }

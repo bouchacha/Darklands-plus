@@ -93,8 +93,10 @@ static void add(int kind, const std::string &t)
     }
 }
 
+int battlelog_serial;                                 /* counts the battles begun (ui/margins_battle.cpp: what it remembers of the foes is one battle's) */
 static void start_battle(void)
 {
+    battlelog_serial++;
     if (!lines.empty()) { prev_lines = lines; }       /* the battle before, for the journal */
     lines.clear();
     for (int i = 0; i < 13; i++) {
@@ -246,7 +248,12 @@ static void trap_spell_hook(void)          /* s023 1ef8:0d88 trap_spell(who, h, 
     if (!unw_active && ui_battle_log && who >= 0 && who < 13) { shot_by[who] = BY_TRAP; shot_t[who] = plat_ticks_ms(); }
     hook_call_original();
 }
-extern "C" void battlelog_init(void) { hook_install(GF_trap_spell, trap_spell_hook); hook_install(GF_missile_launch, launch_hook); hook_install(21, 0x1ef8, 0x01e2, sidemsg_hook); hook_install(43, 0x150b, 0x1f40, sidemsg_hook);   /* (the cards' own copy: add_skill, s029 via vec_1e91) */ }
+/* a game loaded: the battle it holds, if any, is another - its foes are named and counted anew (a load from one battle
+   into a battle save never shows a frame outside a battle, and the loaded battle's foes went by the old one's names,
+   with false "is hurt" and "wakes up" lines at the load: the audit, 2026-11-22) */
+static void after_load(void) { in_battle = false; }
+extern "C" void saves_on_loaded(void (*fn)(void));
+extern "C" void battlelog_init(void) { saves_on_loaded(after_load); hook_install(GF_trap_spell, trap_spell_hook); hook_install(GF_missile_launch, launch_hook); hook_install(21, 0x1ef8, 0x01e2, sidemsg_hook); hook_install(43, 0x150b, 0x1f40, sidemsg_hook);   /* (the cards' own copy: add_skill, s029 via vec_1e91) */ }
 
 /* every frame: falls, deaths and harm that came from no blow */
 extern "C" void battlelog_frame(void)

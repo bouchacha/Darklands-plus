@@ -74,7 +74,8 @@ int orders_member_mode(int m)
 /* the way member m fights, for the party panel (ui/partypanel.cpp) */
 int orders_member_style(int m) { return m >= 0 && m < 5 ? style_of(m) : ST_OFF; }
 /* a member may walk on its own (step aside for a line, go to help): not on Manual */
-int orders_may_move(int i) { return st(i) != ST_OFF && !in_line(i); }   /* (a follower in single file: the game keeps it in the line) */
+static signed char halted[5];                   /* (Halt: below, at leave_hook) */
+int orders_may_move(int i) { return st(i) != ST_OFF && !in_line(i) && !(i >= 0 && i < 5 && halted[i]); }   /* (a follower in single file: the game keeps it in the line) */
 
 /* the melee attack member i opens with against foe t: Vulnerable (0x0a: 1d4 more penetration, fewer
    and less guarded blows: s014 18bf hit_damage, attack_rate) when the default weapon's penetration
@@ -103,6 +104,12 @@ static unsigned char bow_flips[5];
 static u16 idle_since[5];             /* melee_hook: since when a shooter stood idle with its order */
 static signed char told[5];           /* a click of the player's taken in this order (a foe, a spot): click_hook, place_hook */
 static signed char pt[5] = { -1, -1, -1, -1, -1 };   /* the foe the player sent the member at hand to hand */
+static signed char ps[5] = { -1, -1, -1, -1, -1 };   /* the foe the player told the member to shoot: its mark while it stands (ways_players_mark) */
+/* Halt (the Orders menu, H): the game ends the member's order and stops it (order_mode_leave, s014 19cd:0738, order 0 and
+   the place's action 10; combat_actions 0e76:116e) - which is exactly a member "left without orders" below. So it is kept
+   here: a halted member stays where it stands until the player's next order - it shoots from there and fights a foe that
+   comes beside it, and walks nowhere of its own */
+static signed char halted[5];
 /* a Parry, Berserk or Vulnerable order kept: the game turns a member who is set upon on the way
    to its foe (or whose foe falls) to a Std Attack on whoever it fights; the kind the player chose
    is kept for that fight too, until the member is given another order. Parry and Berserk are the
@@ -120,6 +127,7 @@ static void leave_hook(void)                    /* s014 19cd:0738 order_mode_lea
 {
     int i = (s8)g_rb(D_SELECTED), act = (s16)g_rw(D_ORDER_ACTION);
     int was_told = i >= 0 && i < 5 && told[i];
+    int halt = act == 0x400 && g_rb(GV_order_special) == 10;
     for (int k = 0; k < 5; k++) told[k] = 0;
     hook_call_original();
     if (ns_unwinding || i < 0 || i > 4) return;
@@ -130,6 +138,8 @@ static void leave_hook(void)                    /* s014 19cd:0738 order_mode_lea
     int f = (s16)g_rw(CBF(i, CB_ORDER)), k = act != -1 ? act : f;   /* (an attack on a foe far off: walking to it, the attack queued) */
     int melee = k == STD_ATTACK || k == 0x0a || k == 0x22 || k == 6;
     pt[i] = melee ? (s8)g_rb(CBF(i, CB_TARGET)) : -1;
+    ps[i] = k == MISSILE ? (s8)g_rb(CBF(i, CB_TARGET)) : -1;
+    halted[i] = (signed char)halt;
     /* (the kind from the Orders menu or the buttons too, not only a click on a foe: mods/orders.c) */
     if (k == 0x22 || k == 6) kept_kind[i] = k; else if (k != 0x0a) kept_kind[i] = -1;
     auto_parry[i] = 0; own_order[i] = 1;            /* (the player's word stands while the member is beset: keep_kinds) */
@@ -146,6 +156,10 @@ int ways_blocked(int i)
 {
     return i >= 0 && i < 5 && blocked_at[i] && (u16)(g_rw(GV_combat_clock) - blocked_at[i]) < 30 && g_rw((u16)(D_CBT + i * 0x80 + CB_ORDER)) == 0;
 }
+/* a kind of attack written into a member's order: the game keeps each combatant's attack rate until told to work it out
+   again (attack_rate, s014 18bf:0002: only when DS:d493[i] is 255; Parry strikes more slowly, Berserk faster), so the
+   rate is asked for anew with the kind - or the member struck on at the last kind's rate until the next pause */
+static void set_kind(int i, int kind) { g_ww(CBF(i, CB_ORDER), (u16)kind); g_wb((u16)(GV_cbt_attack_rate + i), 0xff); }
 static void to_melee(int i, int t, int beside)
 {
     u16 c = (u16)(D_CBT + i * 0x80);
@@ -153,7 +167,7 @@ static void to_melee(int i, int t, int beside)
     ns_call(GF_weapon_ready, 3, i, (s8)g_rb((u16)(c + CB_MELEE)), 0);
     g_wb((u16)(c + CB_TARGET), (u8)t);
     int kind = stance(i) >= 0 ? stance(i) : auto_parry[i] ? 0x22 : ways_melee_kind(i, t);
-    if (beside) { g_ww((u16)(c + CB_ORDER), (u16)kind); g_wb((u16)(GV_cbt_action + i), 7); g_wb((u16)(GV_cbt_moving + i), 0); }   /* (fighting where it stands: no longer on its way to the last foe) */
+    if (beside) { set_kind(i, kind); g_wb((u16)(GV_cbt_action + i), 7); g_wb((u16)(GV_cbt_moving + i), 0); }   /* (fighting where it stands: no longer on its way to the last foe) */
     else {
         g_ww((u16)(c + CB_TO_X), g_rw(CBF(t, CB_X))); g_ww((u16)(c + CB_TO_Y), g_rw(CBF(t, CB_Y)));
         if (ns_call(GF_path_find, 1, i) != 1) {     /* (no way to it now: the member is free, and goes at another, or at this one when it comes) */
@@ -405,20 +419,20 @@ static int melee_pick(int i, int how, int *beside_out)
    or an order carried out), whose way is to shoot (Archer, Skirmisher): it opens fire at a foe
    it can see (shot_target) rather than stand with the bow until a foe reaches it - the volley before the
    lines meet. A Skirmisher with a friend set upon a few paces off goes to help instead (and fights hand
-   to hand from then on). Not one told to hold
-   (the game's Hold), walking, with a foe beside it (idle_fighters), or with nothing to loose */
+   to hand from then on; not one halted). Not one held fast (a potion's doing: cbt_mods +9), walking, with a
+   foe beside it (idle_fighters), or with nothing to loose */
 static void idle_shooters(void)
 {
     if (!combat_improved()) return;
     u16 now = g_rw(GV_combat_clock);
     for (int i = 0; i < 5; i++) {
         u16 c = (u16)(D_CBT + i * 0x80);
-        int act = g_rb((u16)(GV_cbt_action + i));             /* (0: the battle's start; 7: "ready", an order carried out. Halt keeps its order, 0x400) */
+        int act = g_rb((u16)(GV_cbt_action + i));             /* (0: the battle's start, or halted; 7: "ready", an order carried out) */
         if (g_rb((u16)(c + CB_STATUS)) != 1 || g_rw((u16)(c + CB_ORDER)) != 0 || g_rb((u16)(GV_cbt_moving + i)) || (act != 0 && act != 7)) continue;
-        if (!automated(i) || !shooter(i) || g_rb((u16)(GV_cbt_mods + 0x12 * i + 9)) == 1) continue;
+        if (!automated(i) || !shooter(i) || g_rb((u16)(GV_cbt_mods + 0x12 * i + 9)) == 1) continue;                 /* (held fast: a potion's doing) */
         int wm = (s8)g_rb((u16)(c + CB_MISSILE)), s0 = st(i);
         if (wm < 0 || wm > 62 || foes_beside(i)) continue;
-        if (s0 == ST_SKIRMISHER) {
+        if (s0 == ST_SKIRMISHER && !halted[i]) {
             int r = rescue_target(i);                                       /* (a friend fighting a few paces off: help it, not the bow) */
             if (ns_unwinding) return;
             if (r >= 0) { to_melee(i, r, 0); if (ns_unwinding) return; fprintf(stderr, "orders: member %d had no orders: goes to help: %d fights one of the party a few paces off\n", i, r); continue; }
@@ -433,8 +447,8 @@ static void idle_shooters(void)
 }
 /* a member left without orders who does not shoot now: it fights as its way has it (melee_pick) - a foe
    beside it; a friend's fight or a free foe once the lines meet (a Skirmisher hand to hand); the enemy's shooters and
-   free foes from the start (Charger); only a foe beside it (Archer). Not one told
-   to hold (the game's Hold); Halt keeps its own order (0x400) and is let be */
+   free foes from the start (Charger); only a foe beside it (Archer, and whoever the player halted). Not one
+   held fast (a potion's doing) */
 static void idle_fighters(void)
 {
     if (!combat_improved()) return;
@@ -442,7 +456,7 @@ static void idle_fighters(void)
         u16 c = (u16)(D_CBT + i * 0x80);
         int act = g_rb((u16)(GV_cbt_action + i));
         if (g_rb((u16)(c + CB_STATUS)) != 1 || g_rw((u16)(c + CB_ORDER)) != 0 || g_rb((u16)(GV_cbt_moving + i)) || (act != 0 && act != 7)) continue;
-        if (!automated(i) || g_rb((u16)(GV_cbt_mods + 0x12 * i + 9)) == 1) continue;                  /* (told to hold) */
+        if (!automated(i) || g_rb((u16)(GV_cbt_mods + 0x12 * i + 9)) == 1) continue;                  /* (held fast) */
         int wm = (s8)g_rb((u16)(c + CB_MISSILE)), s0 = st(i);
         int armed = wm >= 0 && wm <= 62 && has_ammo(i, wm);
         int how = PICK_FOOT;
@@ -450,6 +464,7 @@ static void idle_fighters(void)
         case ST_ARCHER: case ST_SKIRMISHER: how = armed ? PICK_BESIDE : PICK_FOOT; break;
         case ST_CHARGER: how = PICK_CHARGE; break;
         }
+        if (halted[i]) how = PICK_BESIDE;
         int beside = 0, t = melee_pick(i, how, &beside);
         if (ns_unwinding) return;
         if (t < 0) {                                              /* (none to go at: for want of a way to any? then it is blocked) */
@@ -471,10 +486,23 @@ static void stale_melee(void)
     for (int i = 0; i < 5; i++) {
         u16 c = (u16)(D_CBT + i * 0x80);
         int f = (s16)g_rw((u16)(c + CB_ORDER));
-        if (!(f == STD_ATTACK || f == 0x0a || f == 0x22 || f == 6)) continue;
         if (g_rb((u16)(c + CB_STATUS)) != 1 || !automated(i)) continue;
         int t = (s8)g_rb((u16)(c + CB_TARGET));
         int alive = t >= 5 && t < 13 && g_rb(CBF(t, CB_STATUS)) == 1;
+        /* on its way to a foe, the attack queued (order 1; to_melee, the game's ai_set_target and a click on a foe far off
+           all leave it so), and the foe has fallen: the game walks on to where it lay and only there takes up the attack.
+           The walk ends here, and the member is free for the next */
+        {   int q = (s16)g_rw((u16)(GV_order_queues + 6 * i));
+            if (f == 1 && g_rb((u16)(GV_cbt_moving + i)) && t >= 5 && t < 13 && !alive && (q == STD_ATTACK || q == 0x0a || q == 0x22 || q == 6)) {
+                ns_call(GF_order_queue_clear, 1, i);
+                if (ns_unwinding) return;
+                g_wb((u16)(GV_cbt_moving + i), 0); g_ww((u16)(c + CB_ORDER), 0); g_wb((u16)(GV_cbt_action + i), 7);
+                if (stance(i) >= 0 && !foes_beside(i)) kept_kind[i] = -1;
+                fprintf(stderr, "orders: member %d's foe %d fell while it walked there: free for the next\n", i, t);
+                continue;
+            }
+        }
+        if (!(f == STD_ATTACK || f == 0x0a || f == 0x22 || f == 6)) continue;
         if (alive && g_rb((u16)(GV_cbt_moving + i))) continue;                     /* (on its way to a foe still standing) */
         if (!alive) g_wb((u16)(GV_cbt_moving + i), 0);                              /* (on its way to one that fell: it stood there for good, a foe at it - RC11) */
         if (alive && adj(i, t)) continue;                                           /* (beside its foe: fighting) */
@@ -487,6 +515,7 @@ static void stale_melee(void)
             fprintf(stderr, "orders: member %d's foe %d %s: fights %d beside it\n", i, t, alive ? "is not beside it" : "fell", b);
         } else if (!alive) {
             g_ww((u16)(c + CB_ORDER), 0); g_wb((u16)(GV_cbt_action + i), 7);
+            kept_kind[i] = -1;                                                      /* (no foe beside it: a Parry or Berserk kept ends here, before the next foe is chosen) */
             fprintf(stderr, "orders: member %d's foe %d fell: free for the next\n", i, t);
         }
     }
@@ -568,15 +597,17 @@ void orders_style_changed(int m)
    cleared - the last battle's orders, kinds kept, marks, bow switches and ways given way to orders are
    not this one's (a member sent hand to hand there opened fire here no more) */
 void battlerules_battle_begins(void), pathfix_battle_begins(void), levelwalk_battle_begins(void);
+void battleend_battle_begins(void), autopause_battle_begins(void), orders_battle_begins(void);
 static void battle_begins(void)
 {
     for (int i = 0; i < 5; i++) {
         bow_given[i] = bow_hold[i] = 0; bow_flips[i] = 0;
         idle_since[i] = 0; shot_at[i] = -1; kept_kind[i] = -1; told[i] = 0; auto_parry[i] = own_order[i] = 0;
-        committed[i] = 0; pt[i] = -1; memset(noway_at[i], 0, sizeof noway_at[i]); blocked_at[i] = 0;
+        committed[i] = 0; pt[i] = ps[i] = -1; halted[i] = 0; memset(noway_at[i], 0, sizeof noway_at[i]); blocked_at[i] = 0;
     }
     lines_met = 0;
     battlerules_battle_begins(); pathfix_battle_begins(); levelwalk_battle_begins();   /* (every file's memory of a battle: forgotten at the next) */
+    battleend_battle_begins(); autopause_battle_begins(); orders_battle_begins();
     if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: a battle begins\n");
 }
 /* (and where a battle does begin: battle_run, s002 0e76:0000, which every battle passes, and a game loaded - a
@@ -606,11 +637,11 @@ static void keep_kinds(void)
             if (auto_parry[i] && (n == 0 || (u16)(now - beset_at[i]) >= 40)) {
                 auto_parry[i] = 0;
                 int t = (s8)g_rb((u16)(c + CB_TARGET));
-                if (f == 0x22) g_ww((u16)(c + CB_ORDER), (u16)ways_melee_kind(i, t));
+                if (f == 0x22) set_kind(i, ways_melee_kind(i, t));
                 fprintf(stderr, "orders: member %d no longer beset: fights on\n", i);
             }
         } else if (!auto_parry[i] && !own_order[i] && kept_kind[i] < 0 && (f == STD_ATTACK || f == 0x0a)) {
-            g_ww((u16)(c + CB_ORDER), 0x22); auto_parry[i] = 1;
+            set_kind(i, 0x22); auto_parry[i] = 1;
             fprintf(stderr, "orders: member %d has %d foes on it: parries\n", i, n);
         }
     }
@@ -619,7 +650,7 @@ static void keep_kinds(void)
         u16 c = (u16)(D_CBT + i * 0x80);
         if (g_rb((u16)(c + CB_STATUS)) != 1) { kept_kind[i] = -1; continue; }
         int f = (s16)g_rw((u16)(c + CB_ORDER));
-        if (f == STD_ATTACK || (f == 0x0a && stance(i) >= 0)) { g_ww((u16)(c + CB_ORDER), (u16)kept_kind[i]); if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d keeps its %#x\n", i, kept_kind[i]); }
+        if (f == STD_ATTACK || (f == 0x0a && stance(i) >= 0)) { set_kind(i, kept_kind[i]); if (getenv("DL_ORDERS_LOG")) fprintf(stderr, "orders: member %d keeps its %#x\n", i, kept_kind[i]); }
         else if (f == MISSILE || (f == 0 && (stance(i) < 0 || !foes_beside(i)))) kept_kind[i] = -1;   /* (another kind of order now; a stance outlasts a fallen foe while another is beside) */
     }
 }
@@ -689,12 +720,12 @@ static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchange
     for (int i = 0; i < 5; i++) {                   /* the shooters: a foe beside, a friend set upon, nothing left */
         u16 c = (u16)(D_CBT + i * 0x80);
         if (g_rb((u16)(c + CB_STATUS)) != 1 || g_rw((u16)(c + CB_ORDER)) != MISSILE || g_rb((u16)(GV_cbt_moving + i)) || !automated(i)) continue;
-        if (g_rb((u16)(GV_cbt_mods + 0x12 * i + 9)) == 1) continue;           /* (told to hold) */
+        if (g_rb((u16)(GV_cbt_mods + 0x12 * i + 9)) == 1) continue;           /* (held fast) */
         int t = (s8)g_rb((u16)(c + CB_TARGET)), near = -1, s0 = st(i);
         for (int j = 5; j < 13; j++)
             if (g_rb(CBF(j, CB_STATUS)) == 1 && adj(i, j)) { if (near < 0 || j == t) near = j; }
         if (near >= 0) { to_melee(i, near, 1); if (ns_unwinding) return; continue; }   /* (a foe that reaches it: hand to hand, whatever its way) */
-        if (s0 == ST_SKIRMISHER) {
+        if (s0 == ST_SKIRMISHER && !halted[i]) {
             int r = rescue_target(i);                                       /* a friend fighting a few paces off: help it */
             if (ns_unwinding) return;
             if (r >= 0) { fprintf(stderr, "orders: member %d goes to help: %d fights one of the party a few paces off\n", i, r); to_melee(i, r, 0); if (ns_unwinding) return; continue; }
@@ -704,7 +735,7 @@ static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchange
         int stt = g_rb((u16)(GV_cbt_state + i));
         if (stt == 2) {                                                     /* (nothing left to shoot) */
             int wm = (s8)g_rb((u16)(c + CB_MISSILE));
-            if (s0 == ST_SKIRMISHER) { to_melee(i, t, 0); if (ns_unwinding) return; }
+            if (s0 == ST_SKIRMISHER && !halted[i]) { to_melee(i, t, 0); if (ns_unwinding) return; }
             else if (wm < 0 || wm > 62 || !has_ammo(i, wm)) { g_ww((u16)(c + CB_ORDER), 0); g_wb((u16)(GV_cbt_action + i), 7); }   /* (its way's melee: idle_fighters) */
         }
     }
@@ -713,6 +744,14 @@ static void melee_hook(void)                    /* s014 0e76:2a4a melee_exchange
 /* what mods/orders.c tells of the player's clicks: the kind of attack chosen for an order (Parry, Berserk,
    Vulnerable: kept, keep_kinds), a click taken in the order being given (an order of the player's) */
 void ways_keep_kind(int i, int kind) { if (i >= 0 && i < 5) kept_kind[i] = kind; }
+/* the foe the player told member i to shoot, while it stands and the order is still that shot; -1 none (mods/battlerules.c:
+   with no line to it the member steps aside for it, and is not given another foe that happens to be in sight) */
+int ways_players_mark(int i)
+{
+    if (i < 0 || i > 4 || ps[i] < 5 || ps[i] > 12) return -1;
+    if (g_rb(CBF(ps[i], CB_STATUS)) != 1) { ps[i] = -1; return -1; }
+    return ps[i];
+}
 void ways_told(int i) { if (i >= 0 && i < 5) told[i] = 1; }
 void ways_untold(void) { for (int k = 0; k < 5; k++) told[k] = 0; }
 void ways_init(void)

@@ -110,11 +110,17 @@ int gm_item_spare(int m, int i)
     if (!gm_item(m, i, &g)) return 0;
     return g.count - (gm_item_in_use(m, i) ? 1 : 0);
 }
+/* a member whose records are part of the party's pack: with the party, not away (5), and not fallen (3). A member who
+   falls in a battle has their whole inventory copied into a pile on the field (cbt_dying, s014 0e76:2324) while the
+   records stay until the battle is left (a castle, mine or dungeon: the whole stay): listed as the pack's, a thing taken
+   from the pile could be had again from the fallen's record, and "Put" laid a second one down (mods/pack.c's own
+   hand-overs knew it - giver_ok; the listings did not: the audit, 2026-11-22) */
+int gm_pack_holder(int m) { int st = gm_member_status(m); return gm_member_present(m) && st != 5 && st != 3; }
 int gm_pack_find(int prefer, int id, int qual, int *m_out, int *i_out)
 {
     int bm = -1, bi = -1, bs = 0;
     for (int m = 0; m < 5; m++) {
-        if (!gm_member_present(m) || gm_member_status(m) == 5) continue;
+        if (!gm_pack_holder(m)) continue;
         for (int i = 0; i < gm_item_count(m); i++) {
             GmItem g; if (!gm_item(m, i, &g) || g.id != id || g.qual != qual) continue;
             int spare = gm_item_spare(m, i);
@@ -133,7 +139,7 @@ int gm_pack_rows(int who, GmPackRow *out, int max)
     int n = 0;
     for (int m = 0; m < 5; m++) {                                 /* the member's (or every member's) things */
         if (who >= 0 && m != who) continue;
-        if (!gm_member_present(m) || (who < 0 && gm_member_status(m) == 5)) continue;
+        if (!gm_member_present(m) || (who < 0 && !gm_pack_holder(m))) continue;
         for (int pass = who >= 0 ? 0 : 1; pass < 2; pass++)       /* (in use first, then their own) */
             for (int i = 0; i < gm_item_count(m) && n < max; i++) {
                 GmItem g; if (!gm_item(m, i, &g) || (gm_ammo_hidden() && gm_is_ammo(g.id))) continue;
@@ -146,7 +152,7 @@ int gm_pack_rows(int who, GmPackRow *out, int max)
     }
     int first = n;
     for (int m = 0; m < 5; m++) {                                 /* the pack */
-        if (!gm_member_present(m) || gm_member_status(m) == 5) continue;
+        if (!gm_pack_holder(m)) continue;
         for (int i = 0; i < gm_item_count(m); i++) {
             GmItem g; if (!gm_item(m, i, &g) || gm_member_own(g.id, g.type) || (gm_ammo_hidden() && gm_is_ammo(g.id))) continue;
             int spare = gm_item_spare(m, i);
@@ -175,7 +181,7 @@ int gm_pack_target(int id, int qual, int prefer, int allow)
     int best = -1, bm = -1, code = id;                            /* (a pile's code as it is, for gm_room_for) */
     id &= 0xfff;
     for (int k = 0; k < 5; k++) {
-        if (!(allow & (1 << k)) || !gm_member_present(k) || !gm_room_for(k, code, qual)) continue;
+        if (!(allow & (1 << k)) || !gm_pack_holder(k) || !gm_room_for(k, code, qual)) continue;   /* (nothing new to one fallen or away: it would go with them) */
         int stacks = 0;
         for (int j = 0; j < gm_item_count(k) && !stacks; j++) { GmItem g; if (gm_item(k, j, &g) && g.id == id && g.qual == qual && g.count < 255) stacks = 1; }
         int score = stacks ? 1000 : 2 * (64 - gm_item_count(k)) + (k == prefer);

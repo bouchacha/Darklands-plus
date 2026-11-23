@@ -41,8 +41,10 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 #include "nscreen.h"
+#include "fixes.h"
 #include "battlerules.h"
-int orders_may_move(int i);                     /* (mods/ways.c: not a Manual member, nor a follower in single file) */
+int orders_may_move(int i);                     /* (mods/ways.c: not a Manual member, a follower in single file, nor one halted) */
+int ways_players_mark(int i);                   /* (mods/ways.c: the foe the player told the member to shoot) */
 
 
 /* battle.improved: the rules of a fight in one switch (the shooters' ways, the next foe, the kinds of attack kept) */
@@ -155,8 +157,9 @@ static void step_aside_at(int i)
     int tx = (s16)g_rw(CBF(t, CB_X)), ty = (s16)g_rw(CBF(t, CB_Y));
     int otx = (s16)g_rw((u16)(c + CB_TO_X)), oty = (s16)g_rw((u16)(c + CB_TO_Y));
     /* another foe in plain sight from here: shoot it rather than walk (the mark has gone behind
-       someone; the nearest with a clear line) */
-    {   int best = -1; long bd = 0;
+       someone; the nearest with a clear line). Not when the mark is the player's own choice: for that
+       one the member steps aside, as the click's hint says */
+    if (ways_players_mark(i) != t) {   int best = -1; long bd = 0;
         u16 l0 = g_rw(GV_los_x0), l1 = g_rw(GV_los_y0), l2 = g_rw(GV_los_x1), l3 = g_rw(GV_los_y1);
         for (int j = 5; j < 13; j++) {
             if (j == t || g_rb(CBF(j, CB_STATUS)) != 1 || g_rb((u16)(GV_cbt_floor + j)) != g_rb((u16)(GV_cbt_floor + i))) continue;
@@ -346,10 +349,19 @@ void battlerules_test_missile(int i, int t)
 /* ---------------------------------------------------------------- the next foe within reach */
 #define AISEG ((u16)(LOADSEG + 0x20a5))
 static int on_near(void) { return combat_improved(); }
+/* fix costspill: the routine fills 13 words of 32000 at cost[i * 5] in a table of 65 (far 20a5:787e), and the table
+   after it is "who is within reach of whom" (20a5:7900, [13][13] bytes, rebuilt each AI tick by 1db7:09ae). For the
+   last two enemies (i = 11, 12) the fill runs 3 and 8 words past the end: reach[0][1], [0][3] .. [0][11] and [1][0],
+   [1][2] read 0x7d until the next tick's rebuild. The game's click (19cd:0dcc) and the enemy's shot (18bf:02a8) test
+   that table for non-zero, and so does every "foe beside" test of Darklands+ (mods/ways.c adj): the first member
+   had a foe "beside" it that was across the field. The bytes are kept over the call */
 static void costs_hook(void)                  /* s014 1db7:0028 (i, lo, hi), called by ai_rethink only */
 {
     int i = (s16)rw(SS, (u16)(SP + 4));
+    u8 keep[16]; int spill = i >= 11 && i < 13 && fix_is_on("costspill");
+    if (spill) for (int k = 0; k < 16; k++) keep[k] = rb(AISEG, (u16)(0x7900 + k));
     hook_call_original();
+    if (spill) for (int k = 0; k < 16; k++) wb(AISEG, (u16)(0x7900 + k), keep[k]);
     if (ns_unwinding || i < 0 || i >= 5 || !on_near()) return;
     int c[13], min = 32000;
     for (int j = 5; j < 13; j++) { c[j] = (s16)rw(AISEG, (u16)(0x787e + 2 * (i * 5 + j))); if (c[j] < min) min = c[j]; }

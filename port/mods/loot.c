@@ -105,12 +105,18 @@ static void key_hook(void)                 /* s040 1462:0c22 loot_key(key) */
 }
 
 static void ingr_pile(void), ingr_members(int join);
+static void thrown_note(void);
+static int battle_depth;
 static void screen_hook(void)              /* s040 1462:01c8 the loot screen's loop */
 {
     loot_active++;
-    ingr_pile(); ingr_members(g_rb(GV_in_battle) != 1);
+    ingr_members(g_rb(GV_in_battle) != 1);          /* (the pile itself: at the first draw, once the screen has it - ingr_pile) */
     hook_call_original();
     loot_active--;
+    /* (a castle, mine or dungeon is one battle_run with many fights: what each member carries as this screen closes is
+       what the next fight's loot is measured against. Until 1.5.1-RC21 the count taken at the door served once, for the
+       first chest or pile, and nothing was given back after the fights that followed) */
+    if (!ns_unwinding && battle_depth > 0) thrown_note();
 }
 
 /* ---------------------------------------------------------------- spent ammunition back
@@ -122,7 +128,7 @@ static void screen_hook(void)              /* s040 1462:01c8 the loot screen's l
  * through the game's own G, as many as they are missing (of the same quality first). */
 #define TH_MAX 12
 static struct { u16 id; u8 q; int n; } th[5][TH_MAX];
-static int th_n[5], th_valid, battle_depth;
+static int th_n[5], th_valid;
 int loot_return_thrown;                                                  /* (set by mods/ammo.c) */
 
 static int thrown_kind(u16 id)
@@ -236,6 +242,7 @@ static void sim_throw(void)
 }
 static void first_draw_hook(void)          /* s040 1462:06e2: the loot screen drawn the first time */
 {
+    ingr_pile();
     hook_call_original();
     if (loot_sim_m >= 0) sim_throw();
     if (!unw_active) give_back_thrown();
@@ -314,10 +321,18 @@ static void ingr_members(int join)          /* join: the stacks of a kind made o
     }
     if (merged) fprintf(stderr, "loot: ingredients and goods of one quality: %d stacks joined others of their kind\n", merged);
 }
+/* the pile about to be shown: its ingredients and goods of the one quality, equal ones joined. At the screen's first draw
+   (s040 1462:06e2), when the screen's loop (1462:01c8) has just taken the pile and the caller's count of it (DS:8db6 and
+   the near pointer at DS:8dc8) and not yet its own count (DS:8dbc, set at that draw's end). Until 1.5.1-RC21 this ran
+   before the loop, on what those held from the screen before: that screen's count, and a pile since freed - any six
+   bytes there that read as an ingredient had 25 written into them, a DOS block's header among them (its first byte 'M'
+   or 'Z' reads as item 77 or 90, both ingredients), and the pile opening was never tidied (the audit, 2026-11-22) */
 static void ingr_pile(void)
 {
-    if (!loot_ingredients_one) return;
-    u16 sg = pile_seg();
+    if (!loot_ingredients_one || config_get_int("original", 0)) return;
+    u16 sg = pile_seg(), cp = g_rw(GV_loot_count_ptr);
+    int n0 = g_rb(cp);
+    g_ww(L_N, (u16)n0);                                  /* (the loop's own count, for the walk below; the draw sets it again) */
     for (int i = 0; i < (s16)g_rw(L_N) && i < 200; i++) {
         u16 o = pile_off(i), code = rw(sg, o) & 0xfff;
         if (!is_ingredient(code)) continue;
@@ -332,6 +347,7 @@ static void ingr_pile(void)
             break;
         }
     }
+    if ((s16)g_rw(L_N) != n0) g_wb(cp, (u8)g_rw(L_N));   /* (the caller's count with it: a join left the last record twice) */
 }
 #define F_STORE 0x37f4                     /* the store room's things, far 2e38: { int id; char quality; char count; } (mods/cacheview.c) */
 static void ingr_store_hook(void)          /* cache_first_draw (who, arg): the store read */

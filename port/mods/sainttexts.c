@@ -67,7 +67,7 @@ static void each(void (*fn)(int m, int v), int v) { for (int m = 0; m < 5; m++) 
 static void fire(int m, int v) { record(m, 0x174, v, day()); }
 static void money_if_poor(void)             /* St. Alexis's: a party without florins and groschen gets 3..9 groschen */
 {
-    if (g_rw(G_MONEY) == 0 && g_rw((u16)(G_MONEY + 2)) == 0) g_ww((u16)(G_MONEY + 2), (u16)(rnd(7) + 3));
+    if (g_rw(G_MONEY) == 0 && g_rw((u16)(G_MONEY + 2)) == 0) { int g = rnd(7) + 3; if (!ns_unwinding) g_ww((u16)(G_MONEY + 2), (u16)g); }   /* (not into a game loaded at a saint's message) */
 }
 static void rep_in(const int *towns, int n, int a, int b)   /* the reputation where the party is, if it is one of these */
 {
@@ -139,7 +139,7 @@ static void aquinas(int w)                  /* Intelligence, Latin, Read & Write
 static void francis(int w)                  /* Endurance, Perception, Charisma, Speak Common, a very great Virtue; may cost a tenth of the cash */
 {
     attr(w, 0, 6, 6, 0x18); attr(w, 3, 6, 6, 0x18); attr(w, 5, 15, 15, 0x18); skill(w, 10, 10, 10, 0x18); skill(w, 9, 25, 25, 0x18);
-    if (rnd(2)) {
+    if (rnd(2) && !ns_unwinding) {
         long pf = (long)g_rw(G_MONEY) * 240 + (long)g_rw((u16)(G_MONEY + 2)) * 12 + g_rw((u16)(G_MONEY + 4));
         pf -= pf / 10;
         g_ww(G_MONEY, (u16)(pf / 240)); g_ww((u16)(G_MONEY + 2), (u16)(pf % 240 / 12)); g_ww((u16)(G_MONEY + 4), (u16)(pf % 12));
@@ -293,7 +293,7 @@ static void edward(int w)                   /* "heals a small amount of Enduranc
     for (int k = 0; k < 7; k++) skill(w, k, 6, 6, 0x18);
     int any = 0;
     for (int m = 0; m < 5; m++) if (present(m)) { if (ns_call(GF_member_skill, 2, m, 9) < 20) ns_call(GF_set_skill, 3, m, 9, 20); any = 1; }
-    if (any) { long pf = purse_pf(); purse_set(pf - pf / 4); }   /* (the code: a quarter of the purse's low word, (unsigned) pfennigs >> 2) */
+    if (any && !ns_unwinding) { long pf = purse_pf(); purse_set(pf - pf / 4); }   /* (the code: a quarter of the purse's low word, (unsigned) pfennigs >> 2) */
 }
 static void gerlac(int w)                   /* "a modest increase to Charisma, a good increase to all weapons skills" (the code: no Charisma, the weapons in hand) */
 {
@@ -343,6 +343,7 @@ static void saint_hook(void)                 /* a saint's function (who, x, what
                                                    the help as the text went to nobody and the game's own came instead) */
     if (what != 8 || k < 0 || !present(who) || (SAINTS[k].arm && !fix_is_on("armorday"))) { hook_call_original(); return; }
     SAINTS[k].fn(who);
+    if (ns_unwinding) return;                  /* (a game loaded at the message of a skill changed: nothing more is this prayer's) */
     if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix sainttexts: saint %d's help, as its text, for member %d\n", SAINTS[k].saint, who);
     AX = 0; DX = 0;
     hook_return_far(0);

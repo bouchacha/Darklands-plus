@@ -176,7 +176,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:194` | Enemies still waiting |
 | `mods/options.c:194` | under the enemy list, how many enemies the party has yet to meet in a castle, dungeon or mine, floor by floor, and which floor its master is on (knowledge the party could not have). |
 | `mods/options.c:195` | Shorter wait at the end of a battle |
-| `mods/options.c:195` | when the last enemy falls, the field stands still for one second instead of three and a half before the loot, and "Victory! The battle is won." (or the like) stays for three seconds instead of eight. The original's long waits looked like a freeze. |
+| `mods/options.c:195` | when the last enemy falls, the field stands still for a third of a second instead of one before the loot (after a defeat one second instead of four), and the box that follows says "Victory! The battle is won." (or the like) in place of the programmers' "BattleResults - victory" and stays for one second instead of two and a half. |
 | `mods/options.c:196` | Fighters find their way around obstacles |
 | `mods/options.c:196` | fighters plan their way around walls, furniture and each other; in the original they often give up on long or winding routes (members get stuck in mines). Enemies get it too, so battles are harder. In a crowd, a blocked fighter finds another way at once instead of standing still for seconds, and enemies at the back wait or pick another target rather than take a long detour. |
 | `mods/options.c:197` | Battle speed |
@@ -380,7 +380,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/optwhy.c:79` | (part of Easier battle controls) |
 | `mods/optwhy.c:80` | (part of Easier battle controls) |
 | `mods/optwhy.c:81` | (part of Easier battle controls) |
-| `mods/optwhy.c:82` | (part of Easier battle controls) The original's long wait at the end looked like a freeze. |
+| `mods/optwhy.c:82` | (part of Easier battle controls) The original's wait at the end, over a still field with a programmer's note for words, looked like a freeze. |
 | `mods/optwhy.c:83` | (part of Smooth, steady scrolling) |
 | `mods/optwhy.c:84` | (part of Smooth, steady scrolling) |
 | `mods/optwhy.c:85` | (part of Smooth, steady scrolling) |
@@ -620,23 +620,28 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:445` | A member's load is summed when something is readied or put away on the character sheet. A fight changes what is in use without summing it again: armor worn down to nothing is thrown away, and the last javelin, axe or dart leaves the hand, yet the load went on counting them, so the member stayed as burdened as before (the load band, and the Agility a shot counts with) until the next change on the sheet. The load is now summed again at once, and when a game is loaded. |
 | `mods/fixes.c:446` | A save at a card's text is made when the text is closed |
 | `mods/fixes.c:447` | The game saves which card the party is at, but not how far into it. A game saved while a card's text was up (the answer to a choice just made) and loaded again started the card over: the choice still to make, and what it gave already in hand. So a patron's payment, a reputation or a prayer's gift could be taken again and again, and one card (the reward for a thing fetched) could strike out another task after such a load. Now a save asked for while a text is up (a quicksave, an autosave, the menu's Save) is made as soon as the card's choices or the map are back, and says so. |
-| `mods/fixes.c:973` | if (col == 0) col = 1 |
-| `mods/fixes.c:1049` | Play the original game |
-| `mods/fixes.c:1256` | %s's %s stood %d above its maximum with no boost running to account for it: back to %d. |
-| `mods/fixes.c:1265` | a game loaded |
-| `mods/fixes.c:1628` | The store room keeps at most 127 of one item. |
-| `mods/fixes.c:1629` | The store room is full: it keeps 100 kinds of items. |
-| `mods/fixes.c:1800` | abandon the horses |
-| `mods/fixes.c:2264` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
-| `mods/fixes.c:2544` | claim friendship |
-| `mods/fixes.c:2596` | It is $NamedOneName again |
-| `mods/fixes.c:2873` | You need a missile weapon |
-| `mods/fixes.c:2968` | if the argument was won |
-| `mods/fixes.c:3031` | Not bought: nobody in the party has room for another kind of item. |
-| `mods/fixes.c:3049` | Nobody in the party has room for another kind of item. |
-| `mods/fixes.c:4157` | Dissolve Lock needs Eater-Water in this member's pack. |
-| `mods/fixes.c:4225` | mend: a game loaded |
-| `mods/fixes.c:4251` | a hook (or { -2 }) for each fix, in the same order |
+| `mods/fixes.c:448` | An enemy across the field no longer counts as beside the first member |
+| `mods/fixes.c:449` | When an enemy's target was knocked out or stood on stairs, the enemy looked for another, and for the last two of eight enemies the list the game fills for that search ran past its end, into its list of who stands within reach of whom. Until the next round the party's first member counted as within reach of every other enemy, wherever they stood: an attack ordered on one of them just then was taken as a blow from where the member stood, and came to nothing. Now the list of who is in reach is left as it was. |
+| `mods/fixes.c:450` | A full pile of loot no longer swallows what is put on it |
+| `mods/fixes.c:451` | A pile of loot holds 45 kinds of things. On the loot screen, a thing put on a pile that already held 45 kinds, none of them its own, was taken from the member and not laid down: it was gone. Now it stays with the member. |
+| `mods/fixes.c:977` | if (col == 0) col = 1 |
+| `mods/fixes.c:1053` | Play the original game |
+| `mods/fixes.c:1260` | %s's %s stood %d above its maximum with no boost running to account for it: back to %d. |
+| `mods/fixes.c:1269` | a game loaded |
+| `mods/fixes.c:1634` | The store room keeps at most 127 of one item. |
+| `mods/fixes.c:1635` | The store room is full: it keeps 100 kinds of items. |
+| `mods/fixes.c:1806` | abandon the horses |
+| `mods/fixes.c:2270` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
+| `mods/fixes.c:2553` | claim friendship |
+| `mods/fixes.c:2605` | It is $NamedOneName again |
+| `mods/fixes.c:2882` | You need a missile weapon |
+| `mods/fixes.c:2977` | if the argument was won |
+| `mods/fixes.c:3040` | Not bought: nobody in the party has room for another kind of item. |
+| `mods/fixes.c:3058` | Nobody in the party has room for another kind of item. |
+| `mods/fixes.c:4145` | The pile holds 45 kinds of things, its most: this one stays where it is. |
+| `mods/fixes.c:4218` | Dissolve Lock needs Eater-Water in this member's pack. |
+| `mods/fixes.c:4286` | mend: a game loaded |
+| `mods/fixes.c:4312` | a hook (or { -2 }) for each fix, in the same order |
 
 ## The interface (ui/)
 
@@ -725,33 +730,33 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/barterview.cpp:467` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  purchases go to the member picked above |
 | `ui/barterview.cpp:468` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  click a name to see their items |
 | `ui/barterview.cpp:469` | Shift+Buy: ten  -  Shift+Sell or All: the whole stack  -  click a name's coin to make that member pay |
-| `ui/battlelog.cpp:118` | , {Strength:- |
-| `ui/battlelog.cpp:133` | , the armor holds |
-| `ui/battlelog.cpp:133` | ; knocked back |
-| `ui/battlelog.cpp:134` | , knocked back |
-| `ui/battlelog.cpp:138` | , knocked back, misses  |
-| `ui/battlelog.cpp:191` | A dart from a trap misses  |
-| `ui/battlelog.cpp:215` | <skill> changed from X to Y |
-| `ui/battlelog.cpp:215` | Edged +3 (now 33) |
-| `ui/battlelog.cpp:217` |  changed from  |
-| `ui/battlelog.cpp:219` |  changed from %d to %d |
-| `ui/battlelog.cpp:220` | changed from 99 to 99 |
-| `ui/battlelog.cpp:230` | {%s:%+d (now %d)} |
-| `ui/battlelog.cpp:231` | %s %+d (now %d) |
-| `ui/battlelog.cpp:264` | The battle is over: the party has fallen. |
-| `ui/battlelog.cpp:264` | The battle is over: the enemies are beaten. |
-| `ui/battlelog.cpp:264` | The battle is over. |
-| `ui/battlelog.cpp:282` |  is wounded by  |
-| `ui/battlelog.cpp:282` | a dart from a trap |
-| `ui/battlelog.cpp:289` |  falls unconscious |
-| `ui/battlelog.cpp:291` |  leaves the field |
-| `ui/battlelog.cpp:295` | A dart from a trap hits  |
-| `ui/battlelog.cpp:295` | , the armor holds |
-| `ui/battlelog.cpp:296` | , the armor holds |
-| `ui/battlelog.cpp:330` | Each blow will be listed here. |
-| `ui/battlelog.cpp:375` | No battle yet: the battle log shows here, blow by blow, during each battle and after it. |
-| `ui/battlelog.cpp:378` | The last battle |
-| `ui/battlelog.cpp:379` | The battle before |
+| `ui/battlelog.cpp:120` | , {Strength:- |
+| `ui/battlelog.cpp:135` | , the armor holds |
+| `ui/battlelog.cpp:135` | ; knocked back |
+| `ui/battlelog.cpp:136` | , knocked back |
+| `ui/battlelog.cpp:140` | , knocked back, misses  |
+| `ui/battlelog.cpp:193` | A dart from a trap misses  |
+| `ui/battlelog.cpp:217` | <skill> changed from X to Y |
+| `ui/battlelog.cpp:217` | Edged +3 (now 33) |
+| `ui/battlelog.cpp:219` |  changed from  |
+| `ui/battlelog.cpp:221` |  changed from %d to %d |
+| `ui/battlelog.cpp:222` | changed from 99 to 99 |
+| `ui/battlelog.cpp:232` | {%s:%+d (now %d)} |
+| `ui/battlelog.cpp:233` | %s %+d (now %d) |
+| `ui/battlelog.cpp:271` | The battle is over: the party has fallen. |
+| `ui/battlelog.cpp:271` | The battle is over: the enemies are beaten. |
+| `ui/battlelog.cpp:271` | The battle is over. |
+| `ui/battlelog.cpp:289` |  is wounded by  |
+| `ui/battlelog.cpp:289` | a dart from a trap |
+| `ui/battlelog.cpp:296` |  falls unconscious |
+| `ui/battlelog.cpp:298` |  leaves the field |
+| `ui/battlelog.cpp:302` | A dart from a trap hits  |
+| `ui/battlelog.cpp:302` | , the armor holds |
+| `ui/battlelog.cpp:303` | , the armor holds |
+| `ui/battlelog.cpp:337` | Each blow will be listed here. |
+| `ui/battlelog.cpp:382` | No battle yet: the battle log shows here, blow by blow, during each battle and after it. |
+| `ui/battlelog.cpp:385` | The last battle |
+| `ui/battlelog.cpp:386` | The battle before |
 | `ui/battleoverlay.cpp:149` | weapon skills |
 | `ui/battleoverlay.cpp:149` | {Agility}, {Perception} and weapon skills |
 | `ui/battleoverlay.cpp:150` | %s: blinded (only parries; cannot shoot or throw), %d s more |
@@ -854,10 +859,10 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/cardview.cpp:632` | at the easiest difficulty, the leader need not know the saint |
 | `ui/cardview.cpp:632` | at the easiest difficulty, the leader needs none |
 | `ui/cardview.cpp:633` | knows this saint already |
-| `ui/cardview.cpp:657` | A 99%% chance takes {Divine Favor:%d}, of the %d %s has: more is spent for nothing. The prayer screen sets the favor. |
-| `ui/cardview.cpp:658` | A 99%% chance takes {Divine Favor:%d}; %s has %d, which gives %d%%. |
-| `ui/cardview.cpp:659` | A 99%% chance takes {Divine Favor:%d}; %s has %d, too little for this saint to hear them. |
-| `ui/cardview.cpp:660` | All of %s's {Divine Favor} (%d) gives a %d%% chance: no favor gives them 99%% with this saint. |
+| `ui/cardview.cpp:657` | To be heard for certain takes {Divine Favor:%d}, of the %d %s has: more is spent for nothing. The prayer screen sets the favor. |
+| `ui/cardview.cpp:658` | To be heard for certain takes {Divine Favor:%d}; %s has %d, which gives %d%%. |
+| `ui/cardview.cpp:659` | To be heard for certain takes {Divine Favor:%d}; %s has %d, too little for this saint to hear them. |
+| `ui/cardview.cpp:660` | All of %s's {Divine Favor} (%d) gives a %d%% chance: no favor makes it certain with this saint. |
 | `ui/cardview.cpp:677` | This saint asks a {Virtue} of %d of the one who prays. |
 | `ui/cardview.cpp:679` | %s: too low to call on this saint until it rises, however much {Divine Favor} is spent. |
 | `ui/cardview.cpp:680` | %s: too low to call on this saint, however much {Divine Favor} is spent. |
@@ -896,129 +901,140 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/cardview.cpp:881` | (click to choose who learns one; point at a formula there for its details) |
 | `ui/cardview.cpp:882` | (click to choose who) |
 | `ui/cardview.cpp:898` | ..., for 3 groschen. |
-| `ui/citynav.cpp:187` | Market stalls: everyday goods to buy and sell. |
-| `ui/citynav.cpp:188` | Foreign trader |
-| `ui/citynav.cpp:188` | Pavilions of traders from distant lands: goods to buy and sell. |
-| `ui/citynav.cpp:189` | Swordsmith's Lane: weapons, and the swordsmiths' guild. |
-| `ui/citynav.cpp:190` | Armorer's Way: armor and shields, and the armorers' guild. |
-| `ui/citynav.cpp:191` | The Square of Bowyers and Gunsmiths: bows, crossbows and guns, and their guild. |
-| `ui/citynav.cpp:192` | The Street of the Blacksmiths: weapons, and the blacksmiths' guild. |
-| `ui/citynav.cpp:193` | Soldiers' Road |
-| `ui/citynav.cpp:193` | Shops and push-carts crowded with soldiers and camp followers, and the street's leaders. |
-| `ui/citynav.cpp:195` | Tinkers' Square: hammers, maces, flails and polearms, and the artisans' guild. |
-| `ui/citynav.cpp:196` | Clothmakers' Street: clothing and soft armor (padded, leather, studded leather, cuir bouilli), and the clothmakers' guild. |
-| `ui/citynav.cpp:197` | Astrologists' Lane: formulae to buy or trade, a better Philosopher's Stone, lessons in Alchemy. |
-| `ui/citynav.cpp:199` | Stalls with herbs and rare materials: alchemical ingredients. |
-| `ui/citynav.cpp:200` | Wounds treated for a fee, lessons in Healing, alchemical ingredients bought and sold. |
-| `ui/citynav.cpp:201` | Heavy coin changed into bank notes that weigh nothing, and back, for a fee. |
-| `ui/citynav.cpp:202` | The Medici representative: bank notes, as at the Fugger bank. |
-| `ui/citynav.cpp:203` | Hanseatic League |
-| `ui/citynav.cpp:203` | The offices of the league of northern merchant towns: quests for pay. Asked politely, they judge the party by its standing with the Hanse; asked boldly, by its reputation here and its fame. Collecting a reward politely also raises that standing. |
-| `ui/citynav.cpp:204` | The Fuggers' Leihhaus: a wide choice of everyday goods, and money for almost anything you sell. |
-| `ui/citynav.cpp:205` | Mass (Divine Favor for everyone, more with Religion and Latin); a donation of a third of the purse (the leader's Divine Favor); the patron saint's story; an errand for the canon (a relic); sanctuary. |
-| `ui/citynav.cpp:206` | Mass at set hours (Divine Favor for everyone, more with Religion and Latin); confession (the leader's Divine Favor, a few hours); a tithe of a tenth of the purse (everyone's Divine Favor filled); sanctuary when the town is against you. |
-| `ui/citynav.cpp:207` | The monks' library (Religion, Latin) and prayers for Divine Favor. |
-| `ui/citynav.cpp:208` | New saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone. The staff expect Latin and a sharp mind. |
-| `ui/citynav.cpp:209` | Nuns tend the sick: alms, a day's work beside them (Healing), wounds tended for a fee, or free of charge if they accept you. Open by day only. |
-| `ui/citynav.cpp:210` | Meals and a bed, news and rumors, the stables, a store room; stay to study or train. |
-| `ui/citynav.cpp:211` | Notices, gossip and news. |
-| `ui/citynav.cpp:212` | The city council: an audience with the lord, prisoners in the dungeons. |
-| `ui/citynav.cpp:213` | The city's prison. |
-| `ui/citynav.cpp:214` | The city guard's headquarters: people to join the party, weapons training. |
-| `ui/citynav.cpp:215` | The lord's fortress: an audience with the lord, prisoners in the dungeons. |
-| `ui/citynav.cpp:216` | Boats to other towns, for a fee (each leaves on its own day). |
-| `ui/citynav.cpp:217` | A dangerous slum: rumors, and a room for next to nothing. |
-| `ui/citynav.cpp:218` | A quiet corner where the party can wait: an hour, three hours, or until nightfall. |
-| `ui/citynav.cpp:219` | An alley to a stretch of the wall: a way out when you cannot use the gates. |
-| `ui/citynav.cpp:220` | Leave the city by one of its gates. |
-| `ui/citynav.cpp:222` | Quest givers |
-| `ui/citynav.cpp:222` | Learning and healing |
-| `ui/citynav.cpp:245` | arms and armor |
-| `ui/citynav.cpp:245` | less violent |
-| `ui/citynav.cpp:250` | other crafts |
-| `ui/citynav.cpp:258` | city marketplace |
-| `ui/citynav.cpp:258` | central city square |
-| `ui/citynav.cpp:259` | crafts district |
-| `ui/citynav.cpp:259` | central fortress |
-| `ui/citynav.cpp:260` | crafts district |
-| `ui/citynav.cpp:260` | side streets and alleys |
-| `ui/citynav.cpp:263` | not found in this city |
-| `ui/citynav.cpp:264` | alchemical symbols |
-| `ui/citynav.cpp:264` | great churches |
+| `ui/citynav.cpp:189` | Market stalls: everyday goods to buy and sell. |
+| `ui/citynav.cpp:190` | Foreign trader |
+| `ui/citynav.cpp:190` | Pavilions of traders from distant lands: goods to buy and sell. |
+| `ui/citynav.cpp:191` | Swordsmith's Lane: weapons, and the swordsmiths' guild. |
+| `ui/citynav.cpp:192` | Armorer's Way: armor and shields, and the armorers' guild. |
+| `ui/citynav.cpp:193` | The Square of Bowyers and Gunsmiths: bows, crossbows and guns, and their guild. |
+| `ui/citynav.cpp:194` | The Street of the Blacksmiths: weapons, and the blacksmiths' guild. |
+| `ui/citynav.cpp:195` | Soldiers' Road |
+| `ui/citynav.cpp:195` | Shops and push-carts crowded with soldiers and camp followers, and the street's leaders. |
+| `ui/citynav.cpp:197` | Tinkers' Square: hammers, maces, flails and polearms, and the artisans' guild. |
+| `ui/citynav.cpp:198` | Clothmakers' Street: clothing and soft armor (padded, leather, studded leather, cuir bouilli), and the clothmakers' guild. |
+| `ui/citynav.cpp:199` | Astrologists' Lane: formulae to buy or trade, a better Philosopher's Stone, lessons in Alchemy. |
+| `ui/citynav.cpp:201` | Stalls with herbs and rare materials: alchemical ingredients. |
+| `ui/citynav.cpp:202` | Wounds treated for a fee, lessons in Healing, alchemical ingredients bought and sold. |
+| `ui/citynav.cpp:203` | Heavy coin changed into bank notes that weigh nothing, and back, for a fee. |
+| `ui/citynav.cpp:204` | The Medici representative: bank notes, as at the Fugger bank. |
+| `ui/citynav.cpp:205` | Hanseatic League |
+| `ui/citynav.cpp:205` | The offices of the league of northern merchant towns: quests for pay. Asked politely, they judge the party by its standing with the Hanse; asked boldly, by its reputation here and its fame. Collecting a reward politely also raises that standing. |
+| `ui/citynav.cpp:206` | The Fuggers' Leihhaus: a wide choice of everyday goods, and money for almost anything you sell. |
+| `ui/citynav.cpp:207` | Mass (Divine Favor for everyone, more with Religion and Latin); a donation of a third of the purse (the leader's Divine Favor); the patron saint's story; an errand for the canon (a relic); sanctuary. |
+| `ui/citynav.cpp:208` | Mass at set hours (Divine Favor for everyone, more with Religion and Latin); confession (the leader's Divine Favor, a few hours); a tithe of a tenth of the purse (everyone's Divine Favor filled); sanctuary when the town is against you. |
+| `ui/citynav.cpp:209` | The monks' library (Religion, Latin) and prayers for Divine Favor. |
+| `ui/citynav.cpp:210` | New saints and alchemical formulae to learn, rare alchemical materials, a better Philosopher's Stone. The staff expect Latin and a sharp mind. |
+| `ui/citynav.cpp:211` | Nuns tend the sick: alms, a day's work beside them (Healing), wounds tended for a fee, or free of charge if they accept you. Open by day only. |
+| `ui/citynav.cpp:212` | Meals and a bed, news and rumors, the stables, a store room; stay to study or train. |
+| `ui/citynav.cpp:213` | Notices, gossip and news. |
+| `ui/citynav.cpp:214` | The city council: an audience with the lord, prisoners in the dungeons. |
+| `ui/citynav.cpp:215` | The city's prison. |
+| `ui/citynav.cpp:216` | The city guard's headquarters: people to join the party, weapons training. |
+| `ui/citynav.cpp:217` | The lord's fortress: an audience with the lord, prisoners in the dungeons. |
+| `ui/citynav.cpp:218` | Boats to other towns, for a fee (each leaves on its own day). |
+| `ui/citynav.cpp:219` | A dangerous slum: rumors, and a room for next to nothing. |
+| `ui/citynav.cpp:220` | A quiet corner where the party can wait: an hour, three hours, or until nightfall. |
+| `ui/citynav.cpp:221` | An alley to a stretch of the wall: a way out when you cannot use the gates. |
+| `ui/citynav.cpp:222` | Leave the city by one of its gates. |
+| `ui/citynav.cpp:224` | Quest givers |
+| `ui/citynav.cpp:224` | Learning and healing |
+| `ui/citynav.cpp:247` | arms and armor |
+| `ui/citynav.cpp:247` | less violent |
+| `ui/citynav.cpp:252` | other crafts |
+| `ui/citynav.cpp:260` | city marketplace |
+| `ui/citynav.cpp:260` | central city square |
+| `ui/citynav.cpp:261` | crafts district |
+| `ui/citynav.cpp:261` | central fortress |
+| `ui/citynav.cpp:262` | crafts district |
+| `ui/citynav.cpp:262` | side streets and alleys |
+| `ui/citynav.cpp:265` | not found in this city |
+| `ui/citynav.cpp:266` | alchemical symbols |
 | `ui/citynav.cpp:266` | great churches |
-| `ui/citynav.cpp:266` | common districts |
-| `ui/citynav.cpp:266` | merchant and craft districts |
-| `ui/citynav.cpp:267` | gates leading out |
-| `ui/citynav.cpp:268` | posted notices |
-| `ui/citynav.cpp:274` | avoiding them |
-| `ui/citynav.cpp:274` | attack the guards |
-| `ui/citynav.cpp:275` | other locations you remember |
-| `ui/citynav.cpp:276` | connecting to important districts |
-| `ui/citynav.cpp:276` | to be determined |
-| `ui/citynav.cpp:441` | : the list follows the cards |
-| `ui/citynav.cpp:463` | a walk there found no path |
-| `ui/citynav.cpp:465` | Go to %s: %s |
-| `ui/citynav.cpp:513` | think better of it |
-| `ui/citynav.cpp:513` | apologizes for disturbing |
-| `ui/citynav.cpp:513` | not to get involved |
-| `ui/citynav.cpp:513` | come back in the morning |
-| `ui/citynav.cpp:532` | simply walk out |
-| `ui/citynav.cpp:540` | leave the city |
-| `ui/citynav.cpp:541` | out of the city |
-| `ui/citynav.cpp:563` | The gate: choose how to get out, and the journey begins in the overland view. |
-| `ui/citynav.cpp:603` | left the city. |
-| `ui/citynav.cpp:604` | too many steps; stopped. |
-| `ui/citynav.cpp:613` | something happened on the way. |
-| `ui/citynav.cpp:613` | leave this place first. |
-| `ui/citynav.cpp:621` | the way is blocked. |
-| `ui/citynav.cpp:627` | cannot find the way from this card. |
-| `ui/citynav.cpp:637` | leading merchant |
-| `ui/citynav.cpp:642` | something happened on the way. |
-| `ui/citynav.cpp:644` | something happened on the way. |
-| `ui/citynav.cpp:644` | leave this place first. |
-| `ui/citynav.cpp:654` | the marketplace by night: choose how to get past the guards to the offices upstairs (press G again there for the office). |
-| `ui/citynav.cpp:655` | the marketplace by night: its stalls are shut until 5:00. |
-| `ui/citynav.cpp:676` | not found in this city. |
-| `ui/citynav.cpp:686` | Going to: %s. Press any key or click to stop. |
-| `ui/citynav.cpp:716` | Walking to the city gate |
-| `ui/citynav.cpp:716` | Walking to: %s |
-| `ui/citynav.cpp:729` | Any key or click stops the walk. |
-| `ui/citynav.cpp:838` | May offer a quest |
-| `ui/citynav.cpp:839` | Audience chance %d%% |
-| `ui/citynav.cpp:840` | Quest chance %d%% |
-| `ui/citynav.cpp:844` | No quests until %d %s |
-| `ui/citynav.cpp:846` | On a quest for them |
-| `ui/citynav.cpp:847` | Your reward is waiting |
-| `ui/citynav.cpp:855` |  Until %d %s, %d:00. |
-| `ui/citynav.cpp:969` | leading merchant |
-| `ui/citynav.cpp:980` | avoiding them |
-| `ui/citynav.cpp:984` | request an audience |
-| `ui/citynav.cpp:1028` | Point at a place to read about it here: what it offers, its quests, its teachers. |
-| `ui/citynav.cpp:1039` | Click the tile and the party walks there. |
-| `ui/citynav.cpp:1078` | Pick a place and the party walks there through the streets. Press any key or click to stop them. |
-| `ui/citynav.cpp:1080` | Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out. |
-| `ui/citynav.cpp:1108` | Closed until 5:00 |
-| `ui/citynav.cpp:1108` | Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same. |
-| `ui/citynav.cpp:1112` | Turned away until %d %s |
-| `ui/citynav.cpp:1112` | The alchemists turned the party away; they will see you again from %d %s, %d:00. |
-| `ui/citynav.cpp:1113` | Library shut until %d %s |
-| `ui/citynav.cpp:1113` | The monks' library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:1114` | Prayers again from %d %s |
-| `ui/citynav.cpp:1114` | The party prayed with the monks; they may again from %d %s, %d:00. |
-| `ui/citynav.cpp:1115` | Library shut until %d %s |
-| `ui/citynav.cpp:1115` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
-| `ui/citynav.cpp:1141` | Your quest:  |
-| `ui/citynav.cpp:1141` | see the world map (M) |
-| `ui/citynav.cpp:1163` | Wares %dq, better than most |
-| `ui/citynav.cpp:1165` | Wares of %dq (most shops sell about 25q). |
-| `ui/citynav.cpp:1177` | What you learned |
-| `ui/citynav.cpp:1177` | The physician:  |
-| `ui/citynav.cpp:1183` | Philosopher's Stone %dq |
-| `ui/citynav.cpp:1183` | Stone %dq, no better |
-| `ui/citynav.cpp:1185` | A Philosopher's Stone of quality %d; the party's is %d. |
-| `ui/citynav.cpp:1185` | A Philosopher's Stone of quality %d; the party has none. |
-| `ui/citynav.cpp:1261` | A teacher to hire (faint: not available now) |
-| `ui/citynav.cpp:1262` | A quest of yours leads here |
+| `ui/citynav.cpp:268` | great churches |
+| `ui/citynav.cpp:268` | common districts |
+| `ui/citynav.cpp:268` | merchant and craft districts |
+| `ui/citynav.cpp:269` | gates leading out |
+| `ui/citynav.cpp:270` | posted notices |
+| `ui/citynav.cpp:276` | avoiding them |
+| `ui/citynav.cpp:276` | attack the guards |
+| `ui/citynav.cpp:277` | other locations you remember |
+| `ui/citynav.cpp:278` | connecting to important districts |
+| `ui/citynav.cpp:278` | to be determined |
+| `ui/citynav.cpp:443` | : the list follows the cards |
+| `ui/citynav.cpp:465` | a walk there found no path |
+| `ui/citynav.cpp:467` | Go to %s: %s |
+| `ui/citynav.cpp:480` | the place is a town and a card is up |
+| `ui/citynav.cpp:481` | promptly hand over all components and potions, then leave |
+| `ui/citynav.cpp:525` | ask $chosenonename to leave. |
+| `ui/citynav.cpp:531` | leave messages |
+| `ui/citynav.cpp:531` | by way of the wall |
+| `ui/citynav.cpp:531` | , leave, and  |
+| `ui/citynav.cpp:531` | to leave while |
+| `ui/citynav.cpp:531` | convince the guards |
+| `ui/citynav.cpp:544` | reconsider your |
+| `ui/citynav.cpp:544` | reconsider the entire |
+| `ui/citynav.cpp:546` | think better of it |
+| `ui/citynav.cpp:546` | apologizes for disturbing |
+| `ui/citynav.cpp:546` | not to get involved |
+| `ui/citynav.cpp:546` | come back in the morning |
+| `ui/citynav.cpp:546` | finish this task |
+| `ui/citynav.cpp:565` | simply walk out |
+| `ui/citynav.cpp:573` | leave the city |
+| `ui/citynav.cpp:574` | out of the city |
+| `ui/citynav.cpp:596` | The gate: choose how to get out, and the journey begins in the overland view. |
+| `ui/citynav.cpp:637` | left the city. |
+| `ui/citynav.cpp:638` | too many steps; stopped. |
+| `ui/citynav.cpp:647` | something happened on the way. |
+| `ui/citynav.cpp:647` | leave this place first. |
+| `ui/citynav.cpp:655` | the way is blocked. |
+| `ui/citynav.cpp:661` | cannot find the way from this card. |
+| `ui/citynav.cpp:671` | leading merchant |
+| `ui/citynav.cpp:676` | something happened on the way. |
+| `ui/citynav.cpp:678` | something happened on the way. |
+| `ui/citynav.cpp:678` | leave this place first. |
+| `ui/citynav.cpp:688` | the marketplace by night: choose how to get past the guards to the offices upstairs (press G again there for the office). |
+| `ui/citynav.cpp:689` | the marketplace by night: its stalls are shut until 5:00. |
+| `ui/citynav.cpp:710` | not found in this city. |
+| `ui/citynav.cpp:720` | Going to: %s. Press any key or click to stop. |
+| `ui/citynav.cpp:750` | Walking to the city gate |
+| `ui/citynav.cpp:750` | Walking to: %s |
+| `ui/citynav.cpp:763` | Any key or click stops the walk. |
+| `ui/citynav.cpp:872` | May offer a quest |
+| `ui/citynav.cpp:873` | Audience chance %d%% |
+| `ui/citynav.cpp:874` | Quest chance %d%% |
+| `ui/citynav.cpp:878` | No quests until %d %s |
+| `ui/citynav.cpp:880` | On a quest for them |
+| `ui/citynav.cpp:881` | Your reward is waiting |
+| `ui/citynav.cpp:889` |  Until %d %s, %d:00. |
+| `ui/citynav.cpp:1003` | leading merchant |
+| `ui/citynav.cpp:1014` | avoiding them |
+| `ui/citynav.cpp:1018` | request an audience |
+| `ui/citynav.cpp:1062` | Point at a place to read about it here: what it offers, its quests, its teachers. |
+| `ui/citynav.cpp:1073` | Click the tile and the party walks there. |
+| `ui/citynav.cpp:1112` | Pick a place and the party walks there through the streets. Press any key or click to stop them. |
+| `ui/citynav.cpp:1114` | Night (%d:00): the marketplace's stalls and offices are closed, and the watch is out. |
+| `ui/citynav.cpp:1142` | Closed until 5:00 |
+| `ui/citynav.cpp:1142` | Closed at night: the marketplace's stalls and offices open at 5:00. Going there takes the party to the marketplace all the same. |
+| `ui/citynav.cpp:1146` | Turned away until %d %s |
+| `ui/citynav.cpp:1146` | The alchemists turned the party away; they will see you again from %d %s, %d:00. |
+| `ui/citynav.cpp:1147` | Library shut until %d %s |
+| `ui/citynav.cpp:1147` | The monks' library (where saints are learned) is shut to the party until %d %s, %d:00. |
+| `ui/citynav.cpp:1148` | Prayers again from %d %s |
+| `ui/citynav.cpp:1148` | The party prayed with the monks; they may again from %d %s, %d:00. |
+| `ui/citynav.cpp:1149` | Library shut until %d %s |
+| `ui/citynav.cpp:1149` | The university's library (where saints are learned) is shut to the party until %d %s, %d:00. |
+| `ui/citynav.cpp:1175` | Your quest:  |
+| `ui/citynav.cpp:1175` | see the world map (M) |
+| `ui/citynav.cpp:1197` | Wares %dq, better than most |
+| `ui/citynav.cpp:1199` | Wares of %dq (most shops sell about 25q). |
+| `ui/citynav.cpp:1211` | What you learned |
+| `ui/citynav.cpp:1211` | The physician:  |
+| `ui/citynav.cpp:1217` | Philosopher's Stone %dq |
+| `ui/citynav.cpp:1217` | Stone %dq, no better |
+| `ui/citynav.cpp:1219` | A Philosopher's Stone of quality %d; the party's is %d. |
+| `ui/citynav.cpp:1219` | A Philosopher's Stone of quality %d; the party has none. |
+| `ui/citynav.cpp:1295` | A teacher to hire (faint: not available now) |
+| `ui/citynav.cpp:1296` | A quest of yours leads here |
 | `ui/combaticons.cpp:53` | padded or leather |
 | `ui/combaticons.cpp:53` | studded or cuir-bouilli |
 | `ui/combaticons.cpp:53` | chain or brigandine |
@@ -1675,12 +1691,12 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/margins_battle.cpp:472` | Elsewhere: %s. |
 | `ui/margins_battle.cpp:475` | The master of this place waits on this floor. |
 | `ui/margins_battle.cpp:476` | The master of this place waits on floor %d. |
-| `ui/margins_battle.cpp:529` | a little hurt |
-| `ui/margins_battle.cpp:530` | gravely wounded |
-| `ui/margins_battle.cpp:535` | The master of this place: once this one has fallen and the fight is over, the place is won. |
-| `ui/margins_battle.cpp:540` | None in sight yet. |
-| `ui/margins_battle.cpp:542` | To explore: in Single File (Q) or as a Group (G), click a passage and the party walks there. Click stairs and they take them; a shut door and they open it; a way out and they walk to it, its orders ready. A chest says under the pointer whether it is locked or trapped (once a member has stood at it): bring the member to open it there%s. |
-| `ui/margins_battle.cpp:543` | ; Tab shows the level map (as far as the party has seen it), and a click on it walks the party there |
+| `ui/margins_battle.cpp:531` | a little hurt |
+| `ui/margins_battle.cpp:532` | gravely wounded |
+| `ui/margins_battle.cpp:537` | The master of this place: once this one has fallen and the fight is over, the place is won. |
+| `ui/margins_battle.cpp:542` | None in sight yet. |
+| `ui/margins_battle.cpp:544` | To explore: in Single File (Q) or as a Group (G), click a passage and the party walks there. Click stairs and they take them; a shut door and they open it; a way out and they walk to it, its orders ready. A chest says under the pointer whether it is locked or trapped (once a member has stood at it): bring the member to open it there%s. |
+| `ui/margins_battle.cpp:545` | ; Tab shows the level map (as far as the party has seen it), and a click on it walks the party there |
 | `ui/menuview.cpp:107` | Arrows, Enter; Esc closes |
 | `ui/menuview.cpp:107` | Click to choose; Esc or a click elsewhere closes |
 | `ui/money.cpp:49` |  florin = 20 |
@@ -1992,12 +2008,12 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/prayview.cpp:77` | {Divine Favor} to spend |
 | `ui/prayview.cpp:116` | %s has {Divine Favor:%d}; %d will be left. Past the green mark the chance rises no more. |
 | `ui/prayview.cpp:116` | %s has {Divine Favor:%d}; %d will be left. |
-| `ui/prayview.cpp:119` | Chance the saint hears: %d%% |
-| `ui/prayview.cpp:122` | More {Divine Favor} gives a better chance (up to 99%); it is spent either way. |
-| `ui/prayview.cpp:143` | %s {Virtue:%d} is below the %d this saint asks: more {Divine Favor} will not help. |
-| `ui/prayview.cpp:144` | This saint asks at least {Divine Favor:%d}; %s has only %d. |
-| `ui/prayview.cpp:145` | This saint asks at least {Divine Favor:%d}: spend more. |
-| `ui/prayview.cpp:146` | No chance as it is: spend more {Divine Favor} (or the saint does not help here). |
+| `ui/prayview.cpp:121` | Chance the saint hears: %d%% |
+| `ui/prayview.cpp:124` | More {Divine Favor} gives a better chance. It is spent whether the saint hears or not; a prayer unheard at a chance above two in three may cost half as much again. |
+| `ui/prayview.cpp:145` | %s {Virtue:%d} is below the %d this saint asks: more {Divine Favor} will not help. |
+| `ui/prayview.cpp:146` | This saint asks at least {Divine Favor:%d}; %s has only %d. |
+| `ui/prayview.cpp:147` | This saint asks at least {Divine Favor:%d}: spend more. |
+| `ui/prayview.cpp:148` | No chance as it is: spend more {Divine Favor} (or the saint does not help here). |
 | `ui/professions.cpp:340` | Only for a man |
 | `ui/professions.cpp:345` | Not with this character's past |
 | `ui/professions.cpp:345` | , and not with this past |
@@ -2085,18 +2101,18 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/quests.cpp:387` | Sabbat now at  |
 | `ui/quests.cpp:387` | A witches' Sabbat is being held now at  |
 | `ui/quests.cpp:398` | ... in Erfurt. By 9 July 1405. |
-| `ui/quests.cpp:490` |  (The same giver asked twice.) |
-| `ui/quests.cpp:523` | %s, under a day away |
-| `ui/quests.cpp:524` | %s, about %d day%s away |
-| `ui/quests.cpp:569` |  on foot as the crow flies (roads and rivers make it longer) |
-| `ui/quests.cpp:581` | Start or load a game first. |
-| `ui/quests.cpp:588` | Rewards waiting |
-| `ui/quests.cpp:588` | Unwelcome or wanted |
-| `ui/quests.cpp:589` | In order of: |
-| `ui/quests.cpp:594` |   (click a quest to open it) |
-| `ui/quests.cpp:620` | Travel there |
-| `ui/quests.cpp:628` | No quests at the moment. Robber-knight bounties, errands and deliveries the party takes on are listed here with their deadlines. |
-| `ui/quests.cpp:630` | Show secrets (Sabbat dates and places, even before the party learns them) |
+| `ui/quests.cpp:493` |  (The same giver asked twice.) |
+| `ui/quests.cpp:526` | %s, under a day away |
+| `ui/quests.cpp:527` | %s, about %d day%s away |
+| `ui/quests.cpp:572` |  on foot as the crow flies (roads and rivers make it longer) |
+| `ui/quests.cpp:584` | Start or load a game first. |
+| `ui/quests.cpp:591` | Rewards waiting |
+| `ui/quests.cpp:591` | Unwelcome or wanted |
+| `ui/quests.cpp:592` | In order of: |
+| `ui/quests.cpp:597` |   (click a quest to open it) |
+| `ui/quests.cpp:623` | Travel there |
+| `ui/quests.cpp:631` | No quests at the moment. Robber-knight bounties, errands and deliveries the party takes on are listed here with their deadlines. |
+| `ui/quests.cpp:633` | Show secrets (Sabbat dates and places, even before the party learns them) |
 | `ui/report.cpp:130` | Linux (Wine or Proton  |
 | `ui/report.cpp:136` | Windows %s (build %lu) |
 | `ui/report.cpp:137` | Windows %lu.%lu |
@@ -2511,9 +2527,9 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/sheetview.cpp:1114` | , more than anyone in the party has |
 | `ui/sheetview.cpp:1129` | {~Virtue:%d} too low (it asks %d) |
 | `ui/sheetview.cpp:1129` | This saint asks a {Virtue} of %d: no prayer is heard below it. |
-| `ui/sheetview.cpp:1131` | {Divine Favor:%d} needed for a 99%% chance |
+| `ui/sheetview.cpp:1131` | {Divine Favor:%d} needed to be heard for certain |
 | `ui/sheetview.cpp:1132` | The least Divine Favor that gives the best chance of being heard (of the %d they have): more is spent for nothing. The prayer screen sets the favor. |
-| `ui/sheetview.cpp:1135` | All their Divine Favor gives this chance; a 99%% chance takes {Divine Favor:%d}. The prayer screen sets the favor. |
+| `ui/sheetview.cpp:1135` | All their Divine Favor gives this chance; to be heard for certain takes {Divine Favor:%d}. The prayer screen sets the favor. |
 | `ui/sheetview.cpp:1136` | All their Divine Favor gives this chance. The prayer screen sets the favor. |
 | `ui/sheetview.cpp:1138` | {Divine Favor:%d} needed at least, has %d |
 | `ui/sheetview.cpp:1139` | This saint hears no prayer of less than %d Divine Favor. |
@@ -2950,9 +2966,9 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/assist.c:475` | keys %d depth %d polled %u ms ago ee41 %d ee42 %d options %d |
 | `mods/assist.c:508` | the town is hostile: the guards stop the party |
 | `mods/assist.c:508` | on alert: the guards stop 2 in 5 |
-| `mods/autopause.c:73` | Paused: enemies come out to fight |
-| `mods/autopause.c:88` | Paused: %s has fallen |
-| `mods/autopause.c:88` | Paused: %s is badly hurt |
+| `mods/autopause.c:74` | Paused: enemies come out to fight |
+| `mods/autopause.c:89` | Paused: %s has fallen |
+| `mods/autopause.c:89` | Paused: %s is badly hurt |
 | `mods/barterview.c:132` | Not bought: the purse holds too little. |
 | `mods/barterview.c:132` | Not bought: %s has no room for another kind of item. |
 | `mods/barterview.c:133` | Bought %d %s. |
@@ -2964,12 +2980,13 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/barterview.c:181` | Not sold: this merchant pays nothing for it. |
 | `mods/barterview.c:277` | Nothing sold: this merchant pays nothing for those items. |
 | `mods/barterview.c:281` | Sold the spare gear (%d kind%s of items) for %s. |
-| `mods/battleend.c:30` | Victory! The battle is won. |
-| `mods/battleend.c:30` | The party has retreated. |
-| `mods/battleend.c:31` | The party is beaten. |
-| `mods/battleend.c:31` | The party has surrendered. |
-| `mods/battleend.c:32` | The whole party has fallen. |
-| `mods/battleend.c:32` | The party has left the field. |
+| `mods/battleend.c:33` | Victory! The battle is won. |
+| `mods/battleend.c:33` | The party has retreated. |
+| `mods/battleend.c:34` | The party is beaten. |
+| `mods/battleend.c:34` | The party has surrendered. |
+| `mods/battleend.c:35` | The whole party has fallen. |
+| `mods/battleend.c:35` | The party has left the field. |
+| `mods/battlerules.c:353` | who is within reach of whom |
 | `mods/builtin.c:129` | Faster overland travel |
 | `mods/builtin.c:129` | Overland travel takes a third of the time. |
 | `mods/builtin.c:130` | Half-price inns |
@@ -3057,73 +3074,75 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/cutcards.c:165` | ask about affairs elsewhere in the Empire |
 | `mods/datamods.c:380` | # right edge). Bytes the game uses for layout are written \\xx (hex): \\14 new paragraph, \\15 an option, # \\1d after the option's "...", \\16 an option opening the saints, \\10 the potions, \\06 a battle, # \\01 ... \\13 a part shown or hidden by the game. { is o-umlaut, \| u-umlaut, \\1f a-umlaut. # Put the edited file into mods/<your mod>/MSGFILES/ (keep the name); lines starting with # are ignored.  |
 | `mods/datamods.c:417` | Describe your mod here (these lines show in F12 > Mods).  Put files into this folder laid out like the game folder; while the mod is on, the game reads them instead of its own: DARKLAND.LST, DARKLAND.ENM, PICS/NAME.PIC, a folder MSGFILES/ with single card files (.MSG, or .TXT as written by "Export the card texts"), art/ and sounds/ as in the game folder, music/ with recordings named by the piece's number (10.ogg, "11 market.ogg"; see F12 > Settings > Sound).  |
-| `mods/encounters.c:249` | he will tell every market in Kuttenberg |
-| `mods/encounters.c:251` | Stop, thief! |
-| `mods/encounters.c:570` | A new encounter stopped because of a mistake in its file (see darklands_port.log); the party is back in the overland view. |
-| `mods/encounters.c:620` | '%s' expected |
-| `mods/encounters.c:680` | %s: %s out of range |
-| `mods/encounters.c:680` | an attribute |
-| `mods/encounters.c:741` | %s takes %d argument%s |
-| `mods/encounters.c:777` | %s: who, then an item (0 to 199) |
-| `mods/encounters.c:785` | wounds: an attribute |
-| `mods/encounters.c:792` | unknown function %s |
-| `mods/encounters.c:811` | unknown name %s |
-| `mods/encounters.c:814` | a value expected |
-| `mods/encounters.c:820` | nested too deeply |
-| `mods/encounters.c:878` | unexpected "%s" |
-| `mods/encounters.c:892` | %s takes %d to %d values |
-| `mods/encounters.c:903` | nested too deeply |
-| `mods/encounters.c:916` | no section [%s] |
-| `mods/encounters.c:944` | %s: %s expected |
-| `mods/encounters.c:950` | an action expected |
-| `mods/encounters.c:969` | 'then' or 'goto' expected |
-| `mods/encounters.c:979` | card: one of the game's cards, 1 to 0x16d |
-| `mods/encounters.c:996` | unknown variable %s |
-| `mods/encounters.c:1002` | picture names have at most 8 letters |
-| `mods/encounters.c:1011` | options are numbered 0 to 9 |
-| `mods/encounters.c:1017` | battle: a battlefield, then enemy, quality, count for each group |
-| `mods/encounters.c:1022` | battle: a wilderness battlefield (Wilds, Surrounded, Clearing, Cave, or 0x2e-0x55, 0x61-0x63, 0x6f-0x79), or in a town's streets MainStreet, SideStreet |
-| `mods/encounters.c:1024` | battle: MainStreet and SideStreet only in a town (where street) |
-| `mods/encounters.c:1051` | %s: who, then a %s |
-| `mods/encounters.c:1051` | skill (0 to 18) |
-| `mods/encounters.c:1051` | attribute (0 to 6) |
-| `mods/encounters.c:1073` | unknown action %s |
-| `mods/encounters.c:1077` | text %ld: %s has blocks 0 to %d |
-| `mods/encounters.c:1078` | text %ld: a card holds blocks 0 to 24 |
-| `mods/encounters.c:1131` | ';' expected |
-| `mods/encounters.c:1141` | unexpected "%s" |
-| `mods/encounters.c:1273` | where: wild, boat, street or camp |
-| `mods/encounters.c:1279` | unknown setting %s |
-| `mods/encounters.c:1285` | option: a number 0 to 9 |
-| `mods/encounters.c:1287` | option %d twice |
-| `mods/encounters.c:1290` | option %d: potion or saint |
-| `mods/encounters.c:1303` | at most 4 potions |
-| `mods/encounters.c:1305` | potion CODE, CHANCE |
-| `mods/encounters.c:1327` | unknown key %s |
-| `mods/encounters.c:1329` | no card (the MSGFILES text) given |
-| `mods/encounters.c:1330` | no picture given |
-| `mods/encounters.c:1331` | no [section] |
-| `mods/encounters.c:1434` | %s has %d text blocks: the game holds 25 |
-| `mods/encounters.c:1435` | %s is too long: %ld bytes as the game loads it, under 6000 fit |
-| `mods/encounters.c:1436` | %s has a block with %d option lines: at most %d |
-| `mods/encounters.c:1441` | %s block %d is too long: up to %d characters with its $variables filled in (%d as written), at most 899 fit |
-| `mods/encounters.c:1455` | [%s] has options but no block |
-| `mods/encounters.c:1458` | [%s] option %d: block %d of %s has %d option line%s |
-| `mods/encounters.c:1461` | [%s] option %d: %s |
-| `mods/encounters.c:1461` | its line (\\16) opens the saints: write option N saint |
-| `mods/encounters.c:1461` | a saint option needs a \\16 line |
-| `mods/encounters.c:1462` | [%s] option %d: %s |
-| `mods/encounters.c:1462` | its line (\\10) opens the potions: write option N potion |
-| `mods/encounters.c:1462` | a potion option needs a \\10 line |
-| `mods/encounters.c:1471` | [%s] option %d is a saint option, but there are no saints |
-| `mods/encounters.c:1472` | [%s] option %d is a potion option, but there are no items |
-| `mods/encounters.c:1474` | [%s] has a block but no options |
-| `mods/encounters.c:1476` | [%s] saints: numbers 0 to 135 (DARKLAND.LST), or -1 |
-| `mods/encounters.c:1477` | [%s] items: numbers 0 to 199 (DARKLAND.LST), or -1 |
-| `mods/encounters.c:1479` | [%s] block %d: the game holds 25 blocks (0 to 24) |
-| `mods/encounters.c:1526` | (Darklands+ %s) |
-| `mods/encounters.c:1552` | New encounters: %d file%s with errors left out (see darklands_port.log). |
-| `mods/encounters.c:2047` | on the screen |
+| `mods/encounters.c:156` |  failed, then  |
+| `mods/encounters.c:156` |  failed, and of the two lines left  |
+| `mods/encounters.c:255` | he will tell every market in Kuttenberg |
+| `mods/encounters.c:257` | Stop, thief! |
+| `mods/encounters.c:582` | A new encounter stopped because of a mistake in its file (see darklands_port.log); the party is back in the overland view. |
+| `mods/encounters.c:632` | '%s' expected |
+| `mods/encounters.c:692` | %s: %s out of range |
+| `mods/encounters.c:692` | an attribute |
+| `mods/encounters.c:753` | %s takes %d argument%s |
+| `mods/encounters.c:789` | %s: who, then an item (0 to 199) |
+| `mods/encounters.c:797` | wounds: an attribute |
+| `mods/encounters.c:804` | unknown function %s |
+| `mods/encounters.c:823` | unknown name %s |
+| `mods/encounters.c:826` | a value expected |
+| `mods/encounters.c:832` | nested too deeply |
+| `mods/encounters.c:890` | unexpected "%s" |
+| `mods/encounters.c:904` | %s takes %d to %d values |
+| `mods/encounters.c:915` | nested too deeply |
+| `mods/encounters.c:928` | no section [%s] |
+| `mods/encounters.c:956` | %s: %s expected |
+| `mods/encounters.c:962` | an action expected |
+| `mods/encounters.c:981` | 'then' or 'goto' expected |
+| `mods/encounters.c:991` | card: one of the game's cards, 1 to 0x16d |
+| `mods/encounters.c:1008` | unknown variable %s |
+| `mods/encounters.c:1014` | picture names have at most 8 letters |
+| `mods/encounters.c:1023` | options are numbered 0 to 9 |
+| `mods/encounters.c:1034` | battle: a battlefield, then enemy, quality, count for each group |
+| `mods/encounters.c:1039` | battle: a wilderness battlefield (Wilds, Surrounded, Clearing, Cave, or 0x2e-0x55, 0x61-0x63, 0x6f-0x79), or in a town's streets MainStreet, SideStreet |
+| `mods/encounters.c:1041` | battle: MainStreet and SideStreet only in a town (where street) |
+| `mods/encounters.c:1068` | %s: who, then a %s |
+| `mods/encounters.c:1068` | skill (0 to 18) |
+| `mods/encounters.c:1068` | attribute (0 to 6) |
+| `mods/encounters.c:1090` | unknown action %s |
+| `mods/encounters.c:1094` | text %ld: %s has blocks 0 to %d |
+| `mods/encounters.c:1095` | text %ld: a card holds blocks 0 to 24 |
+| `mods/encounters.c:1148` | ';' expected |
+| `mods/encounters.c:1158` | unexpected "%s" |
+| `mods/encounters.c:1290` | where: wild, boat, street or camp |
+| `mods/encounters.c:1296` | unknown setting %s |
+| `mods/encounters.c:1302` | option: a number 0 to 9 |
+| `mods/encounters.c:1304` | option %d twice |
+| `mods/encounters.c:1307` | option %d: potion or saint |
+| `mods/encounters.c:1320` | at most 4 potions |
+| `mods/encounters.c:1322` | potion CODE, CHANCE |
+| `mods/encounters.c:1344` | unknown key %s |
+| `mods/encounters.c:1346` | no card (the MSGFILES text) given |
+| `mods/encounters.c:1347` | no picture given |
+| `mods/encounters.c:1348` | no [section] |
+| `mods/encounters.c:1451` | %s has %d text blocks: the game holds 25 |
+| `mods/encounters.c:1452` | %s is too long: %ld bytes as the game loads it, under 6000 fit |
+| `mods/encounters.c:1453` | %s has a block with %d option lines: at most %d |
+| `mods/encounters.c:1458` | %s block %d is too long: up to %d characters with its $variables filled in (%d as written), at most 899 fit |
+| `mods/encounters.c:1472` | [%s] has options but no block |
+| `mods/encounters.c:1475` | [%s] option %d: block %d of %s has %d option line%s |
+| `mods/encounters.c:1478` | [%s] option %d: %s |
+| `mods/encounters.c:1478` | its line (\\16) opens the saints: write option N saint |
+| `mods/encounters.c:1478` | a saint option needs a \\16 line |
+| `mods/encounters.c:1479` | [%s] option %d: %s |
+| `mods/encounters.c:1479` | its line (\\10) opens the potions: write option N potion |
+| `mods/encounters.c:1479` | a potion option needs a \\10 line |
+| `mods/encounters.c:1488` | [%s] option %d is a saint option, but there are no saints |
+| `mods/encounters.c:1489` | [%s] option %d is a potion option, but there are no items |
+| `mods/encounters.c:1491` | [%s] has a block but no options |
+| `mods/encounters.c:1493` | [%s] saints: numbers 0 to 135 (DARKLAND.LST), or -1 |
+| `mods/encounters.c:1494` | [%s] items: numbers 0 to 199 (DARKLAND.LST), or -1 |
+| `mods/encounters.c:1496` | [%s] block %d: the game holds 25 blocks (0 to 24) |
+| `mods/encounters.c:1543` | (Darklands+ %s) |
+| `mods/encounters.c:1569` | New encounters: %d file%s with errors left out (see darklands_port.log). |
+| `mods/encounters.c:2068` | on the screen |
 | `mods/fixgroups.c:10` | Crashes, freezes, items or progress lost, saved games spoiled, quests that can never be finished. Nobody wants these. |
 | `mods/fixgroups.c:11` | Plain mistakes |
 | `mods/fixgroups.c:11` | Something the game sets out to do and gets wrong: the wrong member, the wrong town, a check on the wrong option, a number lost on the way. |
@@ -3133,14 +3152,14 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixgroups.c:13` | Bugs players have long used to their advantage (invulnerability from fire protection, confession's clock turned back, the same bounty again and again). Leave these off to keep the old tricks. |
 | `mods/fixgroups.c:14` | Left over from 1992 |
 | `mods/fixgroups.c:14` | Not bugs, but nobody misses them: the question from the printed manual before the party first sets out. |
-| `mods/gamemodel.c:519` | Divine Favor |
-| `mods/gamemodel.c:524` | Edged Weapons |
-| `mods/gamemodel.c:524` | Impact Weapons |
-| `mods/gamemodel.c:524` | Thrown Weapons |
-| `mods/gamemodel.c:524` | Missile Devices |
-| `mods/gamemodel.c:525` | Speak Common |
-| `mods/gamemodel.c:525` | Read & Write |
-| `mods/gamemodel.c:544` | Missile Devices |
+| `mods/gamemodel.c:525` | Divine Favor |
+| `mods/gamemodel.c:530` | Edged Weapons |
+| `mods/gamemodel.c:530` | Impact Weapons |
+| `mods/gamemodel.c:530` | Thrown Weapons |
+| `mods/gamemodel.c:530` | Missile Devices |
+| `mods/gamemodel.c:531` | Speak Common |
+| `mods/gamemodel.c:531` | Read & Write |
+| `mods/gamemodel.c:550` | Missile Devices |
 | `mods/hdart.c:851` | Create a New World |
 | `mods/hdart.c:852` | The Story Continues |
 | `mods/hdart.c:1028` | Replacement art for Darklands+\r  |
@@ -3179,22 +3198,24 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/keep.c:38` | formula %d %15s |
 | `mods/keep.c:57` | # potions first or last in the alchemy screen's list (potion k first\|last); an ingredient's stock to keep (stock item n)  |
 | `mods/levelwalk.c:61` | only works when you pick a tile that isn't next to a wall |
-| `mods/levelwalk.c:168` | The party could not get into the doorway. |
-| `mods/levelwalk.c:176` | The party could get no nearer to the place chosen on the level map. |
-| `mods/levelwalk.c:214` | The party cannot get there from where it stands. |
-| `mods/levelwalk.c:222` |  in single file (press G to move as a group again) |
-| `mods/levelwalk.c:222` |  (the others as they fight) |
-| `mods/levelwalk.c:225` | The party goes in single file (press G to move as a group again). |
-| `mods/levelwalk.c:228` | The party walks there%s. |
-| `mods/levelwalk.c:229` | The party will walk there%s: Space resumes the battle. |
-| `mods/levelwalk.c:230` | The party walks there%s. |
-| `mods/levelwalk.c:326` | There are no stairs on this floor that the party has found. |
-| `mods/levelwalk.c:340` | The party walks to the stairs and takes them. |
-| `mods/levelwalk.c:340` | The party walks to the stairs. |
-| `mods/levelwalk.c:469` | near an exit |
-| `mods/levelwalk.c:565` | The party walks to the way out: then Exit Battlefield (X) for each member to leave. |
-| `mods/levelwalk.c:572` | The party walks to the door to close it. |
-| `mods/levelwalk.c:572` | The party walks to the door to open it. |
+| `mods/levelwalk.c:158` | The door is locked. |
+| `mods/levelwalk.c:178` | The party could not get into the doorway. |
+| `mods/levelwalk.c:186` | The party could get no nearer to the place chosen on the level map. |
+| `mods/levelwalk.c:224` | The party cannot get there from where it stands. |
+| `mods/levelwalk.c:232` |  in single file (press G to move as a group again) |
+| `mods/levelwalk.c:232` |  (the others as they fight) |
+| `mods/levelwalk.c:235` | The party goes in single file (press G to move as a group again). |
+| `mods/levelwalk.c:238` | The party walks there%s. |
+| `mods/levelwalk.c:239` | The party will walk there%s: Space resumes the battle. |
+| `mods/levelwalk.c:240` | The party walks there%s. |
+| `mods/levelwalk.c:291` | arrived last |
+| `mods/levelwalk.c:377` | There are no stairs on this floor that the party has found. |
+| `mods/levelwalk.c:391` | The party walks to the stairs and takes them. |
+| `mods/levelwalk.c:391` | The party walks to the stairs. |
+| `mods/levelwalk.c:520` | near an exit |
+| `mods/levelwalk.c:616` | The party walks to the way out: then Exit Battlefield (X) for each member to leave. |
+| `mods/levelwalk.c:623` | The party walks to the door to close it. |
+| `mods/levelwalk.c:623` | The party walks to the door to open it. |
 | `mods/lodgeview.c:140` | Castle Guard |
 | `mods/lodgeview.c:143` | Castle Servant |
 | `mods/lodgeview.c:144` | Castle Steward |
@@ -3208,10 +3229,10 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/lodgeview.c:150` | Mendicant Friar |
 | `mods/lodgeview.c:150` | Hospital Helper |
 | `mods/lodgeview.c:151` | Town Militia |
-| `mods/lodgeview.c:533` | The days stop: %s's teacher has gone. |
-| `mods/lodgeview.c:535` | The days stop: what %s does each day has changed. |
-| `mods/lodgeview.c:537` | The days stop: %s has regained all {Strength}. |
-| `mods/lodgeview.c:538` | The days stop: %s's {Divine Favor} is full. |
+| `mods/lodgeview.c:542` | The days stop: %s's teacher has gone. |
+| `mods/lodgeview.c:544` | The days stop: what %s does each day has changed. |
+| `mods/lodgeview.c:546` | The days stop: %s has regained all {Strength}. |
+| `mods/lodgeview.c:547` | The days stop: %s's {Divine Favor} is full. |
 | `mods/looks.c:85` | Gray-haired fighter |
 | `mods/looks.c:85` | Brown-haired woman |
 | `mods/looks.c:85` | Blond fighter |
@@ -3231,11 +3252,11 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/loot.c:90` | %s %d; %d left in the pile (no room for more kinds of items). |
 | `mods/loot.c:91` | Shared out all %d. |
 | `mods/loot.c:91` | Took all %d. |
-| `mods/loot.c:204` | Ammunition and thrown weapons given back after the battle:  |
-| `mods/loot.c:443` | Point at one of the merchant's goods first (the upper list). |
-| `mods/loot.c:451` | Bought none: not enough money, or no room. |
-| `mods/loot.c:453` | Point at one of your own items first (the lower list). |
-| `mods/loot.c:469` | This merchant does not buy that. |
+| `mods/loot.c:210` | Ammunition and thrown weapons given back after the battle:  |
+| `mods/loot.c:459` | Point at one of the merchant's goods first (the upper list). |
+| `mods/loot.c:467` | Bought none: not enough money, or no room. |
+| `mods/loot.c:469` | Point at one of your own items first (the lower list). |
+| `mods/loot.c:485` | This merchant does not buy that. |
 | `mods/lootview.c:121` | %d %s to %s (to give it to another member, drag it from the character sheet onto them in the party panel). |
 | `mods/lootview.c:122` | %d %s into the party's pack. |
 | `mods/lootview.c:123` | No room: every member already carries 64 kinds of items. |
@@ -3325,7 +3346,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/orders.c:213` | Click: attack (Berserk) |
 | `mods/orders.c:214` | Click: parry its blows |
 | `mods/orders.c:218` | No clear shot: walks up to fight |
-| `mods/orders.c:370` | Paused: the orders given are carried out when the battle runs (Space). |
+| `mods/orders.c:371` | Paused: the orders given are carried out when the battle runs (Space). |
 | `mods/pathfix.c:432` | can't walk there |
 | `mods/pathfix.c:485` |  (stuck: around everyone) |
 | `mods/pathfix.c:683` | cells unreachable |
@@ -3342,11 +3363,11 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/politics.c:390` | there are some interesting rumours flying around |
 | `mods/politics.c:469` | Plans in place |
 | `mods/politics.c:541` | the rebellion was put down |
-| `mods/relics.c:198` | donate one of your relics |
-| `mods/relics.c:213` | %sprayers cost {Divine Favor:%d} less, with {Virtue:%d}%s |
-| `mods/relics.c:220` | Which relic do you lay on the altar? |
-| `mods/relics.c:221` | The relic stays with the cathedral. With a chance of 100 less the town's present opinion of you (for or against), that opinion rises by 30; every member's {Divine Favor} is restored in full, and three hours pass. |
-| `mods/relics.c:223` | Keep them all |
+| `mods/relics.c:213` | donate one of your relics |
+| `mods/relics.c:228` | %sprayers cost {Divine Favor:%d} less, with {Virtue:%d}%s |
+| `mods/relics.c:235` | Which relic do you lay on the altar? |
+| `mods/relics.c:236` | The relic stays with the cathedral. With a chance of 100 less the town's present opinion of you (for or against), that opinion rises by 30; every member's {Divine Favor} is restored in full, and three hours pass. |
+| `mods/relics.c:238` | Keep them all |
 | `mods/rosterview.c:97` | allow ... to retire |
 | `mods/rosterview.c:196` | %s joined the party at another inn, so cannot be left at this one. To part with them: Done, then "allow %s to retire". |
 | `mods/rosterview.c:201` | Add someone to the party first. |
@@ -3389,6 +3410,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/saintinfo.c:100` | Heals 25% of lost Endurance and 50% of lost Strength. Charisma +6 to 11, Healing +10 to 19. |
 | `mods/saintinfo.c:103` | Charisma +8 to 15, Speak Common +30 to 89, Latin +6 to 11, Read & Write +10 to 19. |
 | `mods/saintinfo.c:106` | Endurance +8 to 15, Strength +6 to 13, Charisma +4 to 7, Perception lowered by 5 to 9, the skills of the weapons in hand +10 to 19. |
+| `mods/saintinfo.c:107` | Only the skills of the weapons in hand, not all melee weapon skills. |
 | `mods/saintinfo.c:109` | Heals 10% of lost Endurance and 10% of lost Strength. Perception +4 to 7, Healing +40 to 79. Teaches St. Damian. |
 | `mods/saintinfo.c:113` | The text says non-metal armor; the game raises all armor. |
 | `mods/saintinfo.c:114` | Every member's leather and cloth armor counts 10 points better in quality. |
@@ -3400,6 +3422,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/saintinfo.c:126` | Heals all lost Strength and 10% of lost Endurance. Charisma +15 to 44, Speak Common +25 to 49. |
 | `mods/saintinfo.c:126` | No reputation in Paris and France, which are not in the game. |
 | `mods/saintinfo.c:127` | Heals 30% of lost Endurance. Strength +5 to 14, the skills of the weapons in hand +20 to 59. |
+| `mods/saintinfo.c:128` | Only the skills of the weapons in hand, not all weapon skills. |
 | `mods/saintinfo.c:130` | Heals all lost Endurance and 20% of lost Strength. Charisma +15 to 29. |
 | `mods/saintinfo.c:131` | No reputation in Corsica and Monaco, which are not in the game. |
 | `mods/saintinfo.c:133` | Agility +10 to 19, Woodwise and Stealth +10 to 19, Streetwise and Artifice +20 to 39. |
@@ -3433,6 +3456,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/saintinfo.c:178` | Agility +8 to 15, Charisma +6 to 11, Streetwise +4 to 7, Speak Common and Read & Write +6 to 11. The party can cross water as if it were land. |
 | `mods/saintinfo.c:181` | May raise the reputation by 15 to 24 in Passau, Salzburg, Linz, Steyr, Wien or Graz (nowhere else). The skills of the weapons in hand +6 to 11, Riding +6 to 11. The party can cross water as if it were land. |
 | `mods/saintinfo.c:183` | May raise the reputation by 15 to 24 in Passau, Salzburg, Linz, Steyr, Wien, Graz, Posen or Bromberg (nowhere else). The skills of the weapons in hand +6 to 11, Riding +6 to 11. The party can cross water as if it were land. |
+| `mods/saintinfo.c:183` | Only the skills of the weapons in hand, not all weapon skills. |
 | `mods/saintinfo.c:184` | Heals 30% of lost Endurance and 10% of lost Strength. Perception and Endurance +6 to 11, Charisma +15 to 29, Speak Common and Woodwise +4 to 7, Healing +10 to 19, Artifice +12 to 23. |
 | `mods/saintinfo.c:185` | No Virtue and no loss of money; instead Healing, Artifice and Woodwise. |
 | `mods/saintinfo.c:186` | Endurance and Perception +6 to 11, Charisma +15 to 29, Speak Common +10 to 19, Virtue +25 to 49. One time in two the party loses a tenth of its money. |
@@ -3485,6 +3509,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/saintinfo.c:271` | Woodwise +20 to 39, Riding +6 to 11. The party can cross water as if it were land. |
 | `mods/saintinfo.c:274` | Heals 40% of lost Endurance and 20% of lost Strength. Charisma +6 to 11, Speak Common +15 to 29, Riding +4 to 7, Healing +10 to 19. |
 | `mods/saintinfo.c:277` | Strength +4 to 7, Agility +3 to 5, the skills of the weapons in hand +15 to 24, Speak Common +6 to 11, Riding +10 to 19. |
+| `mods/saintinfo.c:278` | Only the skills of the weapons in hand, not all weapon skills. |
 | `mods/saintinfo.c:280` | Heals all lost Endurance. Charisma +12 to 19, Speak Common and Streetwise +10 to 19. |
 | `mods/saintinfo.c:283` | Heals 30% of lost Endurance and all lost Strength. |
 | `mods/saintinfo.c:286` | Every weapon skill +10 to 19. |
@@ -3507,6 +3532,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/saintinfo.c:316` | May raise the reputation in the nearest town by 20 to 39. Charisma +12 to 19, the skills of the weapons in hand +20, Healing +20 to 39. |
 | `mods/saintinfo.c:317` | In combat it raises the skills of the weapons in hand, not the quality of the weapons and armor. |
 | `mods/saintinfo.c:318` | Every member's weapon and armor count 10 points better in quality. May raise the reputation in the nearest town by 20 to 39. Charisma +12 to 19, the skills of the weapons in hand +20, Healing +20 to 39. |
+| `mods/saintinfo.c:318` | Only the skills of the weapons in hand, not all weapon skills. |
 | `mods/saintinfo.c:319` | Charisma +10 to 19, Healing +20 to 39. The party can cross water as if it were land. |
 | `mods/saintinfo.c:322` | Every weapon skill +15 to 29, Stealth +20 to 39, Woodwise and Streetwise +10 to 19. |
 | `mods/saintinfo.c:325` | May raise the reputation in the nearest town by 10 to 19. Charisma +6 to 11, Endurance +4 to 8, Flails +15 to 29. |
@@ -3541,23 +3567,26 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/saintinfo.c:384` | May raise the reputation by 10 to 19 in Posen or Bromberg (nowhere else). Heals 20% of lost Endurance and 10% of lost Strength. Charisma +6 to 11, Speak Common +30 to 59, Latin +20 to 39. |
 | `mods/saintinfo.c:384` | No reputation in Cracow, which is not in the game. |
 | `mods/saintinfo.c:385` | In Pressburg, may raise the reputation by 15 to 24. Charisma +6 to 11, Intelligence +8 to 15, the skills of the weapons in hand +15 to 24, Speak Common +6 to 11, Riding +10 to 19. |
+| `mods/saintinfo.c:386` | Only the skills of the weapons in hand, not all weapon skills. |
 | `mods/saintinfo.c:388` | Heals 20% of lost Endurance and 10% of lost Strength. Charisma +10 to 19, Speak Common +25 to 49. |
 | `mods/saintinfo.c:391` | Heals 40% of lost Endurance and 20% of lost Strength. Charisma +6 to 11. |
 | `mods/saintinfo.c:394` | Heals 40% of lost Endurance and 20% of lost Strength. Healing +30 to 59. |
 | `mods/saintinfo.c:397` | Charisma +6 to 11, Endurance +4 to 8, the skills of the weapons in hand +15 to 24, Flails +15 to 29. |
 | `mods/saintinfo.c:398` | Flails instead of Riding. |
 | `mods/saintinfo.c:399` | Charisma +6 to 11, the skills of the weapons in hand +15 to 24, Riding +25 to 49. |
+| `mods/saintinfo.c:399` | Only the skills of the weapons in hand, not all weapon skills. |
 | `mods/saintinfo.c:400` | Strength and Endurance +4 to 8, Speak Common and Woodwise +4 to 7, Healing +10 to 19, Artifice +12 to 23. |
 | `mods/saintinfo.c:403` | Intelligence +12 to 23, Speak Common and Latin +12 to 26, Read & Write +15 to 29, Healing +10 to 19. |
 | `mods/saintinfo.c:404` | No Religion and no reputation at monasteries and universities; instead Speak Common and Healing. |
 | `mods/saintinfo.c:405` | In a town with a monastery or a university, may raise its reputation by 10 to 19. Intelligence +12 to 23, Latin +12 to 26, Read & Write +15 to 29, Religion +25 to 49. |
 | `mods/saintinfo.c:406` | Heals 10% of lost Endurance and 10% of lost Strength. Charisma +10 to 19, Stealth, Healing and Speak Common +6 to 11. |
 | `mods/saintinfo.c:409` | Heals all lost Endurance and 20% of lost Strength. Charisma +8 to 15, the skills of the weapons in hand +15 to 24, Speak Common +10 to 19. |
+| `mods/saintinfo.c:410` | Only the skills of the weapons in hand, not all weapon skills. |
 | `mods/saintinfo.c:412` | Charisma +10 to 19, Agility +12 to 23. At the party's next step in the overland view it is carried to the nearest town. |
 | `mods/saintinfo.c:413` | No Endurance lost. |
 | `mods/saintinfo.c:414` | Charisma +10 to 19, Agility +12 to 23. One time in two, the one prayed for loses 3 to 8 Endurance (not below 1). At the party's next step in the overland view it is carried to the nearest town. |
 | `mods/saintinfo.c:415` | May raise the reputation by 15 to 24 in St. Joachimsthal, Bürglitz, Prag, Kuttenberg, Olmütz or Brünn (nowhere else). Perception and Strength +6 to 11, Intelligence +8 to 13, the skills of the weapons in hand +8 to 15, Riding +8 to 15. |
-| `mods/saintinfo.c:416` | No reputation with nobles in its help. |
+| `mods/saintinfo.c:416` | No reputation with nobles in its help, and only the skills of the weapons in hand, not all weapon skills. |
 | `mods/saintinfo.c:418` | Heals 20% of lost Endurance. Charisma +6 to 11, Artifice +6 to 11, Speak Common +20 to 39. For a week no ambush takes the party by surprise (bandits and the like). |
 | `mods/saintinfo.c:419` | No faster travel; instead, a week safe from ambushes. |
 | `mods/saintinfo.c:420` | The party travels twice as fast for a week. Heals 20% of lost Endurance. Charisma +6 to 11, Artifice +6 to 11, Speak Common +20 to 39. |
@@ -3596,42 +3625,53 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/savecheck.c:46` | the event records are incomplete |
 | `mods/savecheck.c:48` | the location count exceeds the game's table |
 | `mods/savecheck.c:49` | the location records are incomplete |
-| `mods/savecheck.c:97` | the battle-file header is incomplete |
-| `mods/savecheck.c:101` | there is not enough memory to check the battle file |
-| `mods/savecheck.c:106` | the battle variables are incomplete or corrupt |
-| `mods/savecheck.c:111` | the battle file has too many floors |
-| `mods/savecheck.c:116` | a saved battle floor is incomplete or corrupt |
-| `mods/savecheck.c:126` | a battle work file is incomplete or corrupt |
+| `mods/savecheck.c:111` | the battle-file header is incomplete |
+| `mods/savecheck.c:115` | there is not enough memory to check the battle file |
+| `mods/savecheck.c:120` | the battle variables are incomplete or corrupt |
+| `mods/savecheck.c:125` | the battle file has too many floors |
+| `mods/savecheck.c:130` | a saved battle floor is incomplete or corrupt |
+| `mods/savecheck.c:140` | a battle work file is incomplete or corrupt |
 | `mods/saves.c:78` | Ironman 3f2a |
 | `mods/saves.c:81` | An Ironman game cannot go back to a save. To load another game, quit to the start screen. |
 | `mods/saves.c:112` | the save could not be opened |
 | `mods/saves.c:123` | the battle file could not be opened |
 | `mods/saves.c:128` | Cannot load %.15s because %s. |
-| `mods/saves.c:253` | Could not save. |
-| `mods/saves.c:256` | Saved (an Ironman game keeps one save, saved over as you go) |
-| `mods/saves.c:302` | The game does not allow saving while staying at an inn or camping: leave first (the days already spent are not given back). |
-| `mods/saves.c:303` | The game does not allow saving during a battle. |
-| `mods/saves.c:304` | The game does not allow saving on this screen: leave it first (saving works on a card, in the overland view or in a town). |
-| `mods/saves.c:326` | The game does not allow loading here. |
-| `mods/saves.c:335` | Difficulty is now set to ... |
-| `mods/saves.c:349` | Loading is irreversable. Proceed? |
-| `mods/saves.c:392` | That save could not be read. |
-| `mods/saves.c:411` | Loaded %s: a battle, paused (Space resumes it) |
-| `mods/saves.c:464` | Saved: %s (%s), in place of the old save |
-| `mods/saves.c:465` | Saved: %s (%s) |
-| `mods/saves.c:475` | Could not save. |
-| `mods/saves.c:492` | Saved (an Ironman game keeps one save, saved over as you go) |
-| `mods/saves.c:532` | use your horses |
-| `mods/saves.c:552` | Autosave: battle |
-| `mods/saves.c:584` | Ironman %04x |
-| `mods/saves.c:586` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
-| `mods/saves.c:618` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:619` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
-| `mods/saves.c:640` | Start or load a game first. |
-| `mods/saves.c:647` | Loading from here works once a game is running; until then, load from the start screen. |
-| `mods/saves.c:649` | Buffer dealloc error |
-| `mods/saves.c:651` | That save could not be read. |
-| `mods/saves.c:690` | No quicksave yet (Ctrl+S makes one). |
+| `mods/saves.c:214` | Autosave before Prag |
+| `mods/saves.c:214` | Ironman run, day 1 |
+| `mods/saves.c:306` | the file is not there |
+| `mods/saves.c:312` | the store rooms at its end are incomplete |
+| `mods/saves.c:318` | its battle file is not there |
+| `mods/saves.c:326` | The save was not written whole (%.15s: %s). No older save was removed. Is the disk full? |
+| `mods/saves.c:340` | Could not save. |
+| `mods/saves.c:344` | Saved (an Ironman game keeps one save, saved over as you go) |
+| `mods/saves.c:390` | The game does not allow saving while staying at an inn or camping: leave first (the days already spent are not given back). |
+| `mods/saves.c:391` | The game does not allow saving during a battle. |
+| `mods/saves.c:392` | The game does not allow saving on this screen: leave it first (saving works on a card, in the overland view or in a town). |
+| `mods/saves.c:414` | The game does not allow loading here. |
+| `mods/saves.c:423` | Difficulty is now set to ... |
+| `mods/saves.c:437` | Loading is irreversable. Proceed? |
+| `mods/saves.c:480` | That save could not be read. |
+| `mods/saves.c:499` | Loaded %s: a battle, paused (Space resumes it) |
+| `mods/saves.c:553` | Saved: %s (%s), in place of the old save |
+| `mods/saves.c:554` | Saved: %s (%s) |
+| `mods/saves.c:564` | Could not save. |
+| `mods/saves.c:582` | Saved (an Ironman game keeps one save, saved over as you go) |
+| `mods/saves.c:624` | use your horses |
+| `mods/saves.c:644` | Autosave: battle |
+| `mods/saves.c:676` | Ironman %04x |
+| `mods/saves.c:678` | An Ironman game: it saves itself as you go, over one save. There is no going back. |
+| `mods/saves.c:710` | Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:711` | Ironman: the game saves and closes once this text is closed. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:712` | Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save). |
+| `mods/saves.c:733` | Start or load a game first. |
+| `mods/saves.c:740` | Loading from here works once a game is running; until then, load from the start screen. |
+| `mods/saves.c:742` | Buffer dealloc error |
+| `mods/saves.c:744` | That save could not be read. |
+| `mods/saves.c:783` | No quicksave yet (Ctrl+S makes one). |
+| `mods/saves.c:830` | An Ironman game is saved as it is left, and a save waits until this text is closed: close the text, then quit. |
+| `mods/saves.c:845` | Buffer dealloc error |
+| `mods/saves.c:845` | Insufficient system memory |
+| `mods/saves.c:845` | Corrupt file- |
 | `mods/savesview.c:51` | %.14s %d %.3s |
 | `mods/sfx.c:51` | an attack that misses |
 | `mods/sfx.c:51` | a parried or blocked blow |
@@ -3665,21 +3705,22 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/sheetview.c:447` | The %s is marked Keep: unmark it before dropping it. |
 | `mods/sheetview.c:463` | Left behind: the %s (%d). Undo takes them back. |
 | `mods/sheetview.c:463` | Left behind: a %s. Undo takes it back. |
-| `mods/sheetview.c:510` | Taken back: the %s (%d). |
-| `mods/sheetview.c:510` | Taken back: the %s. |
-| `mods/sheetview.c:511` | The %s cannot be taken back (no room). |
-| `mods/sheetview.c:516` | %s takes up %s%s. |
-| `mods/sheetview.c:517` | Wielding %s%s asks more Virtue than %s has. |
-| `mods/sheetview.c:518` | %s%s cannot be readied. |
-| `mods/sheetview.c:522` | %s puts %s%s away. |
-| `mods/sheetview.c:528` | %s cannot carry another kind of item. |
-| `mods/sheetview.c:530` | %s gives the %s to %s. |
-| `mods/sheetview.c:530` | %s gives a %s to %s. |
-| `mods/sheetview.c:531` | %s cannot take the %s. |
-| `mods/sheetview.c:535` | The %s is marked Keep: unmark it before dropping it. |
-| `mods/sheetview.c:542` | Left behind: the %s (%d). Undo takes them back. |
-| `mods/sheetview.c:542` | Left behind: a %s. Undo takes it back. |
-| `mods/sheetview.c:550` | %s drinks the %s. |
+| `mods/sheetview.c:515` | Taken back: the %s (%d); no room for the other %d: Undo again once there is. |
+| `mods/sheetview.c:516` | Taken back: the %s (%d). |
+| `mods/sheetview.c:516` | Taken back: the %s. |
+| `mods/sheetview.c:517` | The %s cannot be taken back yet (no room): Undo again once there is. |
+| `mods/sheetview.c:522` | %s takes up %s%s. |
+| `mods/sheetview.c:523` | Wielding %s%s asks more Virtue than %s has. |
+| `mods/sheetview.c:524` | %s%s cannot be readied. |
+| `mods/sheetview.c:528` | %s puts %s%s away. |
+| `mods/sheetview.c:534` | %s cannot carry another kind of item. |
+| `mods/sheetview.c:536` | %s gives the %s to %s. |
+| `mods/sheetview.c:536` | %s gives a %s to %s. |
+| `mods/sheetview.c:537` | %s cannot take the %s. |
+| `mods/sheetview.c:541` | The %s is marked Keep: unmark it before dropping it. |
+| `mods/sheetview.c:548` | Left behind: the %s (%d). Undo takes them back. |
+| `mods/sheetview.c:548` | Left behind: a %s. Undo takes it back. |
+| `mods/sheetview.c:556` | %s drinks the %s. |
 | `mods/stairsfix.c:158` | These stairs have no safe arrival. The member stays on this floor. |
 | `mods/styles.c:18` | Skirmisher, hand to hand |
 | `mods/styles.c:20` | As in the original game: they wait for your orders. |
@@ -3735,18 +3776,20 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/teachers.c:225` | Here: choose "inquire about special training". |
 | `mods/teachers.c:226` | They may say no (it depends on {Charisma}, reputation here and fame); they always agree if the guild owes the party a favor. |
 | `mods/teachers.c:229` | A bug in the original game: this guild's teacher teaches no skill at all. |
-| `mods/travel.c:290` | No route there from here. |
-| `mods/travel.c:316` | how far is it |
-| `mods/travel.c:444` | member %d: Strength %d of %d |
-| `mods/travel.c:447` | member %d: Divine Favor %d of %d, a night brings back %d |
-| `mods/travel.c:449` | nobody needs rest |
-| `mods/travel.c:466` | 20:00: the party makes camp (the campfire under the clock). A night in camp lasts until 5:00. |
-| `mods/travel.c:467` | The party makes camp before 20:00 (the campfire under the clock): the journey ahead would run past it. |
-| `mods/travel.c:502` | a long step ahead |
-| `mods/travel.c:550` | Travel stopped: the party could get no further along this route. |
-| `mods/travel.c:623` | the river acted as a wall |
-| `mods/travel.c:707` | the marked place |
+| `mods/travel.c:292` | No route there from here. |
+| `mods/travel.c:318` | how far is it |
+| `mods/travel.c:446` | member %d: Strength %d of %d |
+| `mods/travel.c:449` | member %d: Divine Favor %d of %d, a night brings back %d |
+| `mods/travel.c:451` | nobody needs rest |
+| `mods/travel.c:468` | 20:00: the party makes camp (the campfire under the clock). A night in camp lasts until 5:00. |
+| `mods/travel.c:469` | The party makes camp before 20:00 (the campfire under the clock): the journey ahead would run past it. |
+| `mods/travel.c:478` | Travel there |
+| `mods/travel.c:508` | a long step ahead |
+| `mods/travel.c:556` | Travel stopped: the party could get no further along this route. |
+| `mods/travel.c:635` | the river acted as a wall |
+| `mods/travel.c:719` | the marked place |
 | `mods/war.c:98` | pics\gate4.pic: No such file |
 | `mods/war.c:147` | ...hidden option |
-| `mods/ways.c:112` | often change to vulnerable |
+| `mods/ways.c:109` | left without orders |
+| `mods/ways.c:119` | often change to vulnerable |
 

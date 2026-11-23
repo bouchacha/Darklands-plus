@@ -25,6 +25,7 @@ static int state[5], in_battle, last_floor, last_groups;
 static u32 foes_seen, floor_changed;      /* a group stepped out (0 none); the floor shown last changed */
 static u32 last_pause;
 
+void autopause_battle_begins(void) { in_battle = 0; }       /* (mods/ways.c battle_begins: a battle begun or a game loaded) */
 static int member_state(int m)
 {
     u16 b = G_MEMBER(m);

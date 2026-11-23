@@ -104,7 +104,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "",
       0, 0, 0, 0 },   /* 25 St.Colman of Cloyne */
     { "Endurance +8 to 15, Strength +6 to 13, Charisma +4 to 7, Perception lowered by 5 to 9, the skills of the weapons in hand +10 to 19.",
-      "",
+      "Only the skills of the weapons in hand, not all melee weapon skills.",
       0, 0, 0, 0 },   /* 26 St.Columba */
     { "Heals 10% of lost Endurance and 10% of lost Strength. Perception +4 to 7, Healing +40 to 79. Teaches St. Damian.",
       "",
@@ -125,7 +125,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "No reputation in Paris and France, which are not in the game.",
       "Heals all lost Strength and 10% of lost Endurance. Charisma +15 to 44, Speak Common +25 to 49.", "No reputation in Paris and France, which are not in the game.", 0, 0 },   /* 32 St.Denis */
     { "Heals 30% of lost Endurance. Strength +5 to 14, the skills of the weapons in hand +20 to 59.",
-      "",
+      "Only the skills of the weapons in hand, not all weapon skills.",
       0, 0, 0, 0 },   /* 33 St.Derfel Gadarn */
     { "Heals all lost Endurance and 20% of lost Strength. Charisma +15 to 29.",
       "No reputation in Corsica and Monaco, which are not in the game.",
@@ -180,7 +180,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       0, 0, 0, 3 },   /* 50 St.Finnian */
     { "May raise the reputation by 15 to 24 in Passau, Salzburg, Linz, Steyr, Wien or Graz (nowhere else). The skills of the weapons in hand +6 to 11, Riding +6 to 11. The party can cross water as if it were land.",
       "",
-      "May raise the reputation by 15 to 24 in Passau, Salzburg, Linz, Steyr, Wien, Graz, Posen or Bromberg (nowhere else). The skills of the weapons in hand +6 to 11, Riding +6 to 11. The party can cross water as if it were land.", "", 0, 3 },   /* 51 St.Florian */
+      "May raise the reputation by 15 to 24 in Passau, Salzburg, Linz, Steyr, Wien, Graz, Posen or Bromberg (nowhere else). The skills of the weapons in hand +6 to 11, Riding +6 to 11. The party can cross water as if it were land.", "Only the skills of the weapons in hand, not all weapon skills.", 0, 3 },   /* 51 St.Florian */
     { "Heals 30% of lost Endurance and 10% of lost Strength. Perception and Endurance +6 to 11, Charisma +15 to 29, Speak Common and Woodwise +4 to 7, Healing +10 to 19, Artifice +12 to 23.",
       "No Virtue and no loss of money; instead Healing, Artifice and Woodwise.",
       "Endurance and Perception +6 to 11, Charisma +15 to 29, Speak Common +10 to 19, Virtue +25 to 49. One time in two the party loses a tenth of its money.", "", 0, 1 },   /* 52 St.Francis */
@@ -275,7 +275,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "",
       0, 0, 0, 0 },   /* 82 St.Kessog */
     { "Strength +4 to 7, Agility +3 to 5, the skills of the weapons in hand +15 to 24, Speak Common +6 to 11, Riding +10 to 19.",
-      "",
+      "Only the skills of the weapons in hand, not all weapon skills.",
       0, 0, 0, 0 },   /* 83 St.Lasdislaus */
     { "Heals all lost Endurance. Charisma +12 to 19, Speak Common and Streetwise +10 to 19.",
       "",
@@ -315,7 +315,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "An edged weapon of the one prayed for counts 10 points better in quality. Edged +20 to 39, Alchemy +10 to 19.", "", 0, 0 },   /* 95 St.Maurice */
     { "May raise the reputation in the nearest town by 20 to 39. Charisma +12 to 19, the skills of the weapons in hand +20, Healing +20 to 39.",
       "In combat it raises the skills of the weapons in hand, not the quality of the weapons and armor.",
-      "Every member's weapon and armor count 10 points better in quality. May raise the reputation in the nearest town by 20 to 39. Charisma +12 to 19, the skills of the weapons in hand +20, Healing +20 to 39.", "", 1, 0 },   /* 96 St.Michael */
+      "Every member's weapon and armor count 10 points better in quality. May raise the reputation in the nearest town by 20 to 39. Charisma +12 to 19, the skills of the weapons in hand +20, Healing +20 to 39.", "Only the skills of the weapons in hand, not all weapon skills.", 1, 0 },   /* 96 St.Michael */
     { "Charisma +10 to 19, Healing +20 to 39. The party can cross water as if it were land.",
       "",
       0, 0, 0, 53 },   /* 97 St.Milburga */
@@ -383,7 +383,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "No reputation in its help (Poland and Cracow: no such places in the game).",
       "May raise the reputation by 10 to 19 in Posen or Bromberg (nowhere else). Heals 20% of lost Endurance and 10% of lost Strength. Charisma +6 to 11, Speak Common +30 to 59, Latin +20 to 39.", "No reputation in Cracow, which is not in the game.", 0, 0 },   /* 118 St.Stanislaus */
     { "In Pressburg, may raise the reputation by 15 to 24. Charisma +6 to 11, Intelligence +8 to 15, the skills of the weapons in hand +15 to 24, Speak Common +6 to 11, Riding +10 to 19.",
-      "",
+      "Only the skills of the weapons in hand, not all weapon skills.",
       0, 0, 0, 0 },   /* 119 St.Stephen */
     { "Heals 20% of lost Endurance and 10% of lost Strength. Charisma +10 to 19, Speak Common +25 to 49.",
       "",
@@ -396,7 +396,7 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       0, 0, 0, 0 },   /* 122 St.Thalelaeus,Merciful */
     { "Charisma +6 to 11, Endurance +4 to 8, the skills of the weapons in hand +15 to 24, Flails +15 to 29.",
       "Flails instead of Riding.",
-      "Charisma +6 to 11, the skills of the weapons in hand +15 to 24, Riding +25 to 49.", "", 0, 0 },   /* 123 St.Theodore Tiro */
+      "Charisma +6 to 11, the skills of the weapons in hand +15 to 24, Riding +25 to 49.", "Only the skills of the weapons in hand, not all weapon skills.", 0, 0 },   /* 123 St.Theodore Tiro */
     { "Strength and Endurance +4 to 8, Speak Common and Woodwise +4 to 7, Healing +10 to 19, Artifice +12 to 23.",
       "",
       0, 0, 0, 0 },   /* 124 St.Thomas the Apostle */
@@ -407,13 +407,13 @@ static const struct { const char *does, *unlike, *st_does, *st_unlike; int st_ar
       "",
       0, 0, 0, 3 },   /* 126 St.Valentine */
     { "Heals all lost Endurance and 20% of lost Strength. Charisma +8 to 15, the skills of the weapons in hand +15 to 24, Speak Common +10 to 19.",
-      "",
+      "Only the skills of the weapons in hand, not all weapon skills.",
       0, 0, 0, 0 },   /* 127 St.Victor o'Marseilles */
     { "Charisma +10 to 19, Agility +12 to 23. At the party's next step in the overland view it is carried to the nearest town.",
       "No Endurance lost.",
       "Charisma +10 to 19, Agility +12 to 23. One time in two, the one prayed for loses 3 to 8 Endurance (not below 1). At the party's next step in the overland view it is carried to the nearest town.", "", 0, 40 },   /* 128 St.Vitus */
     { "May raise the reputation by 15 to 24 in St. Joachimsthal, Bürglitz, Prag, Kuttenberg, Olmütz or Brünn (nowhere else). Perception and Strength +6 to 11, Intelligence +8 to 13, the skills of the weapons in hand +8 to 15, Riding +8 to 15.",
-      "No reputation with nobles in its help.",
+      "No reputation with nobles in its help, and only the skills of the weapons in hand, not all weapon skills.",
       0, 0, 0, 3 },   /* 129 St.Wenceslaus */
     { "Heals 20% of lost Endurance. Charisma +6 to 11, Artifice +6 to 11, Speak Common +20 to 39. For a week no ambush takes the party by surprise (bandits and the like).",
       "No faster travel; instead, a week safe from ambushes.",

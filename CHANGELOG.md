@@ -25,6 +25,33 @@
 
 **Fixed**
 
+- **A save that fails is said to fail, and older saves stay:** a save written short (a full disk, a folder the system would not let be written) was reported saved, and the older quicksaves and autosaves, or an Ironman game's one save, were removed for it. Each save is now read back first.
+- **An error no longer ends an Ironman game:** when the game stopped itself on an error, Darklands+ took it for the party's end: the party went on the Honor Roll and an Ironman game's save was deleted. It is now told as an error.
+- **New games are new worlds:** the seed of a new game came from a clock that started at 0 with every start, so two games could share a world, and a new game could open with another's journal, notes, level maps and marks. The clock now starts at the time of day.
+- **A save named "Autosave …", "Quicksave …" or "Ironman …"** is the player's own: such a save was taken for one of Darklands+'s and rotated out, or turned the game loaded into an Ironman game.
+- **St. Paul the Simple no longer comes free with a relic:** the relic's help was counted twice for him, and with most relics his prayer took no Divine Favor at all.
+- **A save at a card that has already given waits until the card is left:** a few cards give before their first choices (the new lord's purse after a rising, the town's thanks for a dragon), and a save at those choices gave again at each load. The same holds past the first choice of a new encounter.
+- **An Ironman game is not saved at a card's text on leaving:** quitting or closing the window there saved where a load gives the card's reward again; the save now waits for the text.
+- **Go to no longer answers for the party:** from an encounter by a town's walls, or from the inn's party card, it could pick a line with "leave" in it: handing over every potion to a highwayman, or sending a companion home.
+- **A new encounter's line greyed in one menu stays greyed there only:** the night watch's encounter could leave a fight as the only way out.
+- **A new encounter's reputation goes to the town the party is in,** not the one it last left by land (after a boat trip, or in the streets).
+- **A locked door clicked on is not opened:** walking to it used it as an unlocked door, lock and all; the member is now chosen for orders there (Pick Lock, Eater-Water).
+- **U on stairs with the party together takes it through once,** not once a member (it could end where it started).
+- **Carried members stay with the party on stairs,** pursuers follow as they should, and the carried come to once no foe follows.
+- **Halt holds a member where they stand** until the next order, even under a fighting way.
+- **A shot ordered at a foe goes to that foe:** without a clear line the member steps aside for it, as the hint says, instead of shooting another.
+- **Missile weapons readied inside a castle, mine or dungeon shoot** with ammunition that never runs out, and spent ammunition is given back after every fight there, not only the first.
+- **A fallen member's things are not the party's twice:** with the shared pack, the things of one who fell could be taken from the pile and again from their records.
+- **Leaving a companion at the inn keeps the party's things:** their share of the shared pack went with them.
+- **Ingredients of one quality** no longer tidy the last loot screen's pile at a freed place in memory, which could crash; the pile that opens is tidied instead.
+- **A full pile of loot keeps what is put on it with the member** instead of swallowing it (a new fix).
+- **An enemy across the field no longer counts as beside the first member** for a round (a new fix).
+- **A data mod's longer item list or places file** no longer writes past the game's memory for it.
+- **The prayer's chance shows one point higher,** as the game rolls it (its 99 is certain), and nine saints whose texts promise all weapon skills say they raise only those of the weapons in hand.
+- **Days are counted as the game counts them,** without leap years: quest deadlines and the inn's teachers no longer read a day long.
+- **The battle log and the foes' list start over** when a battle save is loaded from another battle.
+- **The 20:00 camp is not skipped** when the hour strikes on a step that brings an encounter, and **"Travel there" works** while the party is walking to a clicked point.
+
 - **Tooltips and hints follow the pointer after a click on the level map:** a click there (or a double-click on the world map, or a click on the Honor Roll) closed the window while the button was still down, and Darklands+ kept the pointer where the click was. Until the next click in one of its windows the panels showed no tooltips, and a hint about the field could stand over the potion tray.
 - **What is on top takes the pointer, and is drawn on top:** in one order, from the top: the pointer, tooltips, the passing notices, a Darklands+ window (F12, the maps, an alert ...), the open menu bar, the panels (the margins, the party's boxes, the order strip, the potion tray ...), then the marks on the field. A hint about the field is placed clear of the panels; the notices, the foe arrow, the route and the camp button no longer cover a tooltip; the open menu lies over the potion tray, and a click beside it closes it; while a window that takes every event is up, nothing under it lights up or shows a tooltip.
 - **An attribute stuck above its maximum comes back down:** a game saved in a battle or a dungeon before 1.5.1-RC7 could lose the end of a boost drunk or prayed for there, so the attribute stayed raised for good (a Truesight drunk in a dungeon left a Perception of 60 against a maximum of 33). Loading such a game now takes off whatever stands above the maximum and the boosts still running, and says so. Saves made since RC7 keep their boosts' ends.

@@ -271,6 +271,7 @@ static int quick_on(void) { return config_get_int("battle.quick_orders", 1) && !
 static int resume_after;            /* choosing a member paused the battle: it runs on with the order */
 static int give_pending, foe_pending = -1, told_pause;   /* (told_pause: the pause's word given) */
 void ui_notice(const char *msg);
+void orders_battle_begins(void) { resume_after = 0; give_pending = 0; foe_pending = -1; told_pause = 0; }   /* (mods/ways.c battle_begins: a click or an order waiting is the last battle's) */
 
 /* the battle has been running (not paused, no one given orders) since run_since: a member chosen
    then paused it. (A battle starts with its leader chosen, s014 0e76 combat_main: vec_1c39 and
@@ -398,10 +399,11 @@ static void click_hook(void)                    /* s014 19cd:0dcc (x, y): a clic
     snap_to_foe();
     int x = (s16)rw(SS, (u16)(SP + 4)), y = (s16)rw(SS, (u16)(SP + 6));
     int set = wants_attack(x, y), m = topmost(x, y);
-    {   /* the kind of attack chosen for this order (Parry, Berserk, Vulnerable), kept (below) */
-        int sel = (s8)g_rb(D_SELECTED), act = set ? set : (s16)g_rw(D_ORDER_ACTION);
-        ways_keep_kind(sel, m >= 5 && (act == 0x22 || act == 6 || act == 0x0a) ? act : -1);
-    }
+    /* the kind of attack chosen for this order (Parry, Berserk, Vulnerable), kept once the click is taken (below).
+       A click that gives no order - on another member, on ground the game refuses - leaves what was kept: until
+       1.5.1-RC21 it forgot the stance, and the member parrying went on with a Std Attack at its foe's fall (when an
+       order is given, order_mode_leave's hook in mods/ways.c decides what is kept) */
+    int sel0 = (s8)g_rb(D_SELECTED), kind0 = set ? set : (s16)g_rw(D_ORDER_ACTION);
     u16 act_was = g_rw(D_ORDER_ACTION);
     if (set) {
         g_ww(D_ORDER_ACTION, (u16)set);                 /* as if the attack had been chosen first */
@@ -419,6 +421,8 @@ static void click_hook(void)                    /* s014 19cd:0dcc (x, y): a clic
     int ct = (s8)g_rb(GV_cursor_target);
     if (set && ct >= 5 && g_rw(D_BOX_COLOUR) == g_rw(D_REFUSED) && g_rw(D_ORDER_ACTION) == (u16)set) g_ww(D_ORDER_ACTION, act_was);   /* (the foe refused: the order as it was, or the next click on the ground, which the game takes only with no attack chosen, did nothing) */
     if (walk && (ct == -3 || ct == -4) && config_get_int("battle.click_hint", 1)) ui_notice(ct == -3 ? "Can't walk there." : "No path there: something stands in the way.");
+    if (ct >= 5 && g_rw(D_BOX_COLOUR) != g_rw(D_REFUSED) && m >= 5 && sel0 == (s8)g_rb(D_SELECTED))
+        ways_keep_kind(sel0, kind0 == 0x22 || kind0 == 6 || kind0 == 0x0a ? kind0 : -1);
     if ((ct >= 5 && g_rw(D_BOX_COLOUR) != g_rw(D_REFUSED)) || (ct == -2 && g_rw(GV_order_dest_x) != 0))
         ways_told((s8)g_rb(D_SELECTED));               /* (an order of the player's: the member's way gives way to it, mods/ways.c) */
     if (!quick) return;

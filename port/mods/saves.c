@@ -209,9 +209,24 @@ static void prune(const char *prefix, int keep)
 }
 
 /* ---------------------------------------------------------------- saving */
+/* Darklands+'s own saves are told by how their comment begins ("Quicksave", "Autosave", "Ironman xxxx": is_kind,
+   iron_from_save), and by that alone they are rotated out, or make the game loaded an Ironman game. A save the player
+   names so ("Autosave before Prag", "Ironman run, day 1") was taken for one of them: deleted in the rotation, or its
+   game turned into an Ironman game that then deleted the saves named alike (the audit, 2026-11-22). A name the player
+   gives never begins so: its first letter is made small */
+static void players_name(char *c)
+{
+    if (!strncmp(c, "Quicksave", 9) || !strncmp(c, "Autosave", 8) || !strncmp(c, "Ironman ", 8)) c[0] = (char)(c[0] + 32);
+}
+static int players_prompt;                  /* the game's own prompt for a save's name is up (the native Save page off) */
 static void textinput_hook(void)           /* text_input(char far *buf, char far *prompt, int max) */
 {
-    if (!answer) { hook_call_original(); return; }
+    if (!answer) {
+        u16 o = rw(SS, (u16)(SP + 4)), sg = rw(SS, (u16)(SP + 6));
+        hook_call_original();
+        if (players_prompt && !unw_active) { char c[48]; g_str(sg, o, c, sizeof c); char was = c[0]; players_name(c); if (c[0] != was) wb(sg, o, (u8)c[0]); }
+        return;
+    }
     u16 off = rw(SS, (u16)(SP + 4)), seg = rw(SS, (u16)(SP + 6));
     int max = (s16)rw(SS, (u16)(SP + 12)), i = 0;
     if (max < 2 || max > 0x4f) max = 0x17;
@@ -234,13 +249,85 @@ static void textinput_hook(void)           /* text_input(char far *buf, char far
  * card - a quicksave, an autosave, the menu's Save with its name already given - is made as soon as the choices or
  * the map are back, and the player is told so. */
 static int quick_wait, named_due; static char named_c[48], named_old[16];
-#define SAVE_AFTER_TEXT "The game will be saved when this text is closed."
+int encounters_past_start(void);
+#define SAVE_AFTER_TEXT (encounters_past_start() ? "The game will be saved when this encounter is over." : assist_in_card_menu() ? "This card has already given or taken: the game will be saved when it is left." : "The game will be saved when this text is closed.")
 static void save_named(const char *c, const char *old);
+/* A card's choices are where a load returns to only when nothing has changed since the card began: a save holds the card,
+   and its load runs the card's routine from the start. Some cards give before their first choices - the new lord's
+   purse, fame and regard after a rising ($Revol12), the town's thanks for a slain dragon ($Drago00), a rising's outcome
+   ($Revol11) - and a save held to those choices gave again at every load (the audit, 2026-11-22, all 325 menus of the
+   cards read). So the party's state is taken as each card is loaded (card_load, at its routine's start), and a save at
+   its choices is made only while it is the same: else it waits until the card is left. Time is not part of it (cards
+   that pass an hour as they open cost the party, not give). */
+static u32 card_fp, card_fp_ok;
+static u32 fp_add(u32 h, u16 seg, u16 off, unsigned n) { for (unsigned i = 0; i < n; i++) h = (h ^ rb(seg, (u16)(off + i))) * 16777619u; return h; }
+static u32 state_fp(void)
+{
+    u32 h = 2166136261u;
+    h = fp_add(h, G_DGROUP, G_MONEY, 6);
+    h = fp_add(h, G_DGROUP, GV_party_fame, 2);
+    for (int m = 0; m < 5; m++) h = fp_add(h, G_DGROUP, (u16)(G_MEMBER(m) + 0x1c), 0x1e);   /* (attributes and skills) */
+    h = fp_add(h, G_FAR2E38, G_INV, 5 * 0x180);
+    h = fp_add(h, G_FAR2E38, G_EVENTS, 300 * 4);
+    int l = (s16)g_rw(G_CUR_LOC);
+    if (l >= 0 && l < 0x19e) {
+        u16 o = rw(G_FAR2E38, (u16)(0x10be + l * 4)), sg = rw(G_FAR2E38, (u16)(0x10be + l * 4 + 2));
+        if (sg) h = fp_add(h, sg, o, 0x3a);
+    }
+    return h;
+}
+static void card_load_hook(void)
+{
+    hook_call_original();
+    if (unw_active) return;
+    card_fp = state_fp(); card_fp_ok = 1;
+}
 static int text_now(void)
 {
-    return fix_is_on("savetext") && !config_get_int("original", 0) && game_mode() == GM_CARD && g_rb(D_IN_BATTLE) != 1 && !assist_in_card_menu();
+    int encounters_past_start(void);
+    if (!fix_is_on("savetext") || config_get_int("original", 0) || game_mode() != GM_CARD || g_rb(D_IN_BATTLE) == 1) return 0;
+    if (!assist_in_card_menu() || encounters_past_start()) return 1;
+    if (card_fp_ok && state_fp() != card_fp) {
+        static u32 told; if (getenv("DL_SAVES_LOG") && told != card_fp) { told = card_fp; fprintf(stderr, "saves: this card has changed the party since it began: a save waits until it is left\n"); }
+        return 1;
+    }
+    return 0;
 }
 
+/* the save just made, read back (the game's save, s037 1462:2ace, checks no write of its own, and neither did anything
+   here: on a full disk, or a file the system would not let be made, "Game saved" was shown all the same and the older
+   saves were rotated out on the strength of it - an Ironman game's one whole save for a cut one; the audit, 2026-11-22).
+   What savecheck asks of a save before a load, it asks here of the file and its battle file; the problem, or 0 */
+void ui_notice_for(const char *msg, unsigned ms);
+static const char *written_bad(const char *name)
+{
+    if (config_get_int("original", 0)) return 0;
+    FILE *file = load_file(name);
+    const char *problem = file ? savecheck_sav(file) : "the file is not there";
+    if (file && !problem) {                            /* (its end is the store rooms' file, appended whole: no shorter than that file is now) */
+        char path[1200]; dos_host_path_read("CACHE.TMP", path, sizeof path);
+        FILE *cf = fopen(path, "rb"); long tail = savecheck_sav_tail(file), cs = -1;
+        if (cf) { if (!fseek(cf, 0, SEEK_END)) cs = ftell(cf); fclose(cf); }
+        if (getenv("DL_SAVES_LOG")) fprintf(stderr, "saves: %s ends with %ld bytes of store rooms, CACHE.TMP has %ld\n", name, tail, cs);
+        if (cs > 0 && tail < cs) problem = "the store rooms at its end are incomplete";
+    }
+    if (file) fclose(file);
+    if (!problem) {
+        char companion[20]; snprintf(companion, sizeof companion, "%s", name);
+        char *dot = strrchr(companion, '.');
+        if (dot) { strcpy(dot, ".BSV"); file = load_file(companion); problem = file ? savecheck_bsv(file) : "its battle file is not there"; if (file) fclose(file); }
+    }
+    return problem;
+}
+static int save_failed(const char *name)               /* 1: told, and nothing older is to be removed */
+{
+    const char *bad = written_bad(name);
+    if (!bad) return 0;
+    char m[200]; snprintf(m, sizeof m, "The save was not written whole (%.15s: %s). No older save was removed. Is the disk full?", name, bad);
+    fprintf(stderr, "saves: %s\n", m);
+    ui_notice_for(m, 20000);
+    return 1;
+}
 static int do_save(const char *comment)
 {
     if (g_rb(D_SAVE_OK) != 1) return 0;
@@ -253,6 +340,7 @@ static int do_save(const char *comment)
     if (r < 0) { ui_notice("Could not save."); return 0; }
     char name[16]; saves_cur_name(name, sizeof name);
     if (getenv("DL_SAVES_LOG")) fprintf(stderr, "saves: %s -> %s\n", comment, name);
+    if (save_failed(name)) return 0;
     if (iron[0]) { prune(iron, 1); if (asked) ui_notice("Saved (an Ironman game keeps one save, saved over as you go)"); return 1; }
     if (!strncmp(comment, "Quicksave", 9)) prune("Quicksave", saves_keep_quick);
     else if (!strncmp(comment, "Autosave", 8)) prune("Autosave", saves_keep_auto);
@@ -310,7 +398,7 @@ static void menubar_hook(void)             /* menu_bar_run(menu, once): with onc
         named_due = 0;
         save_named(named_c, named_old);
     }
-    if (close_due && iron[0] && g_rb(D_SAVE_OK) == 1 && g_rb(D_IN_BATTLE) != 1) {   /* (the window closed: saved, then gone) */
+    if (close_due && iron[0] && g_rb(D_SAVE_OK) == 1 && g_rb(D_IN_BATTLE) != 1 && !wait) {   /* (the window closed: saved, then gone; not at a card's text - fix savetext - but once it is closed) */
         void plat_quit(int code);
         do_save("Autosave");
         fprintf(stderr, "program exit: window closed (Ironman: saved first)\n");
@@ -459,6 +547,7 @@ static void named_told(const char *c, const char *old, const char *before, int o
 {
     char name[16]; saves_cur_name(name, sizeof name);
     SaveInfo now;
+    if (ok && save_failed(name)) return;
     int written = ok && saves_read(name, &now) && strcasecmp(name, old) && (strcasecmp(name, before) || !before[0]);
     char m[128];
     if (old[0] && written && saves_delete(old)) snprintf(m, sizeof m, "Saved: %s (%s), in place of the old save", c, name);   /* (the save chosen to replace) */
@@ -488,15 +577,18 @@ static void save_hook_run(void)
         hook_call_original();
         answer = 0; in_save = 0;
         if (unw_active) return;
+        { char name[16]; saves_cur_name(name, sizeof name); if (save_failed(name)) return; }
         prune(iron, 1);
         ui_notice("Saved (an Ironman game keeps one save, saved over as you go)");
         return;
     }
     char c[48], old[16], before[16];
+    int at_text = text_now();                               /* (asked before the Save page: while that is up nothing polls the card's choices, and they read as "not up" after it - every Save at the choices was held and told as at a text) */
     int r = savesview_save(c, sizeof c, old, sizeof old);
-    if (r < 0) { hook_call_original(); return; }
+    if (r < 0) { players_prompt = 1; hook_call_original(); players_prompt = 0; return; }
     if (r == 0) { AX = 0; hook_return_far(0); return; }
-    if (text_now()) {                                       /* (fix savetext: named now, written once the card's choices or the map are back) */
+    players_name(c);
+    if (at_text) {                                       /* (fix savetext: named now, written once the card's choices or the map are back) */
         snprintf(named_c, sizeof named_c, "%s", c); snprintf(named_old, sizeof named_old, "%s", old);
         named_due = 1;
         ui_notice(SAVE_AFTER_TEXT);
@@ -616,6 +708,7 @@ int saves_close_requested(void)
     if (!iron[0] || game_mode() == GM_OTHER || close_due) return 0;
     close_due = 1;
     ui_notice(g_rb(D_IN_BATTLE) == 1 ? "Ironman: the game closes once it can save, after this battle. Close again to quit at once (the game then goes back to the last save)."
+              : text_now() ? "Ironman: the game saves and closes once this text is closed. Close again to quit at once (the game then goes back to the last save)."
                                       : "Ironman: saving, then closing. Close again to quit at once (the game then goes back to the last save).");
     return 1;
 }
@@ -730,6 +823,13 @@ static int user_quit, game_seen;
 static void quit_hook(void)
 {
     fprintf(stderr, "quit_to_dos asked\n");
+    /* (an Ironman game is saved as it is left - before the question, so "no" was a save too. At a card's text no save is
+       made (fix savetext): the quit waits for the text, or every gift a card gives before its text could be taken
+       again by Alt-Q, N, the window closed and Continue: the audit, 2026-11-22) */
+    if (iron[0] && text_now()) {
+        ui_notice("An Ironman game is saved as it is left, and a save waits until this text is closed: close the text, then quit.");
+        AX = 0; hook_return_far(0); return;
+    }
     if (iron[0] && g_rb(D_SAVE_OK) == 1 && g_rb(D_IN_BATTLE) != 1) do_save("Autosave");   /* (an Ironman game: saved as it is left) */
     user_quit = 1; hook_call_original(); user_quit = 0;
 }
@@ -741,7 +841,19 @@ int saves_restart_on_exit(void)
     return 1;
 }
 void saves_note_game(void) { if (game_mode() != GM_OTHER) game_seen = 1; }
-int saves_party_ended(void) { return !user_quit && game_seen; }     /* the program ends for the party's end, not a quit */
+/* the program ends for the party's end, not a quit - and not one of the game's own fatal stops, which leave by exit (0)
+   as the party's end does ("Buffer dealloc error", "Insufficient system memory", a battle save's "Corrupt file-", root
+   05ba, s003, s020): the game ends a journey in three places (root 03a1:000a and s029's run_battle and its end of a card's
+   losses), each when no member is left, or the battle's result is 5, all dead. Until 1.5.1-RC21 any exit 0 in play was
+   taken for it: such a stop put a living party on the Honor Roll and deleted an Ironman game's save (the audit, 2026-11-22) */
+int saves_party_ended(void)
+{
+    if (user_quit || !game_seen) return 0;
+    int left = 0;
+    for (int m = 0; m < 5; m++) if (g_rb(G_MEMBER(m)) != 0) left++;
+    return left == 0 || (s16)g_rw(GV_battle_result) == 5;
+}
+int saves_stopped_in_play(void) { return !user_quit && game_seen && !saves_party_ended(); }   /* (an exit that is neither: the game stopped itself) */
 
 /* ---- battle saves made by Darklands+ up to 1.3: a castle's, mine's or dungeon's trigger areas came back
  * as pits. A battle save stores each level's trigger routines as numbers (s003 0e76:09b9..0a48: e->fn ==
@@ -776,6 +888,8 @@ void saves_init(void)
     saves_restart = config_get_int("saves.restart_on_end", 1);
     hook_install(GF_quit_to_dos, quit_hook);
     hook_install(GF_save_game, save_hook);
+    hook_install(GF_card_load, card_load_hook);
+    hook_install(GF_card_load_near, card_load_hook);
     hook_install(GF_load_game, load_hook);
     savesview_init();
     saves_auto_arrive = config_get_int("saves.autosave_arrive", 1);

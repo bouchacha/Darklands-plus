@@ -116,10 +116,12 @@ extern "C" void prayview_draw(void)
     snprintf(b, sizeof b, p.df99 >= 0 && p.df99 < p.maxdf ? "%s has {Divine Favor:%d}; %d will be left. Past the green mark the chance rises no more." : "%s has {Divine Favor:%d}; %d will be left.", who.c_str(), p.maxdf, p.maxdf - p.df);
     P.text(fo, NsDraw::FS_SMALL, x, yy, soft, b);
     yy += 7.5f;
-    snprintf(b, sizeof b, "Chance the saint hears: %d%%", p.chance);
+    /* (the game hears the prayer when its rand() % 100 is no more than the saint's number, s034 saint_pray: one in a hundred
+       more than the number, and its 99 is certain) */
+    snprintf(b, sizeof b, "Chance the saint hears: %d%%", p.chance > 0 ? p.chance + 1 : 0);
     P.text(f, NsDraw::FS_HEAD, x, yy, p.chance >= 50 ? NsDraw::GREEN : p.chance > 0 ? ink : NsDraw::RED, b);
     yy += 9;
-    if (p.why != 1) P.text(fo, NsDraw::FS_SMALL, x, yy, dim, "More {Divine Favor} gives a better chance (up to 99%); it is spent either way.");
+    if (p.why != 1) P.text(fo, NsDraw::FS_SMALL, x, yy, dim, "More {Divine Favor} gives a better chance. It is spent whether the saint hears or not; a prayer unheard at a chance above two in three may cost half as much again.");
     yy += 8;
     float bw = 40;
     if (P.button(316 - bw, 184, 316, 194, "Don't pray", IM_COL32(112, 40, 22, 235), NsDraw::FS_SMALL, PB_Y)) ns_push(PV_CANCEL, 0, 0, 0);

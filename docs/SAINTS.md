@@ -116,6 +116,10 @@ without it they keep the game's help.
 - **Reputation the help does not give** (it may come in encounters): Henry, Raymond Penafort (the
   Dominicans), Wolfgang, Wenceslaus (with nobles). Gottschalk raises it in exactly the seven towns
   his text names; Michael anywhere (the text: "Germany and Brussels": all of the game is Germany).
+- **"All weapon skills" that are the weapons in hand**: Columba, Derfel Gadarn, Florian, Lasdislaus,
+  Michael, Stephen, Theodore Tiro, Victor of Marseilles and Wenceslaus raise only the skills of the
+  melee and the missile weapon the member holds (the game's one routine for it, s029 0e76:0792),
+  where their texts say all. Their panels say so ("Unlike the text").
 - **St. Januarius** has no help of his own (his beasts are the encounters').
 - Everything a description promises in encounters (banishing demons, escaping prison, sensing evil,
   animals ...) stays the cards' business: the last column says how many call for the saint.

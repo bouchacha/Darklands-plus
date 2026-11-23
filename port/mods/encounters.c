@@ -150,7 +150,13 @@ static int pick_where(int where, int pct, int force);
 /* the encounter being run */
 static struct {
     int active, enc, card, sec, last_menu, jumped;
-    int flag[NOPT];                      /* option overrides: -1 none, 0 hidden, 1 on, 2 greyed */
+    /* option overrides (enable, disable, hide): 0 hidden, 1 on, 2 greyed - each for one option of one menu, the menu the
+       statement ran in (an actions-only section: the menu it came from). Until 1.5.1-RC21 they were kept by the option's
+       number alone, and "disable 0" of the first menu greyed option 0 of every later one: the night watch's "explain
+       yourselves" failed, then "slip away" failed, and of the two lines left "surrender" was grey - a fight with the
+       town's watch that nobody chose (nine more of the shipped encounters lost a line so: the audit, 2026-11-22) */
+    struct { short sec; signed char opt, val; } fl[64]; int nfl;
+    int acted;                           /* a choice has been made in it (encounters_past_start) */
     long var[24];
     int who, q, saint, item, result, cur_opt, opt_block;   /* (cur_opt -1 outside an option's actions; opt_block its menu's block) */
     int where, resume;                   /* where it came up; the card a street encounter goes back to */
@@ -279,6 +285,12 @@ static void g_injure(int w, int a, int b, int m) { G(VEC, 0, 0x2143, 4, w, a, b,
 static int g_present(void) { return G(VEC, 0, 0x2161, 0); }
 static void g_reward(int k) { G(VEC, 0, 0x1f31, 1, k); }
 static int g_nearest_city(void) { return G(VEC, 0, 0x1fa9, 2, (s16)g_rw(V_PARTY_X), (s16)g_rw(V_PARTY_Y)); }
+/* the town an encounter's `standing` and `reputation` speak of: the town the party is in, else the nearest to its place
+   on the map. (The party's place on the map is where it last stood there: after a boat trip, and in the streets until it
+   next walks out of a gate, that is by the town it LEFT - the docks' card, s051 19f2, sets the place and never the
+   position. `reputation` asked the position alone, so a street's or a boat's encounter changed the regard of the town
+   sailed from and its band named it: the audit, 2026-11-22.) */
+static int town_here(void) { int l = (s16)g_rw(G_CUR_LOC); return l >= 0 && l < 0x5c ? l : g_nearest_city(); }
 static void g_lose_items(int w) { G(VEC, 0, 0x1eb9, 1, w); }
 static int g_take_item(int w, int code) { return G(VEC, 0, 0x2085, 2, w, code); }
 static void g_add_item(int w, int code) { G(VEC, 0, 0x2067, 2, w, code); }
@@ -712,7 +724,7 @@ static int value_of(P *p, const char *n, long *v)
         return 0;
     }
     if (!strcasecmp(n, "lore")) { *v = g_lore(); return 1; }
-    if (!strcasecmp(n, "standing")) { int l = (s16)g_rw(G_CUR_LOC); *v = G(GF_loc_reputation, 1, l >= 0 && l < 0x5c ? l : g_nearest_city()); return 1; }   /* the reputation here (or in the nearest city) */
+    if (!strcasecmp(n, "standing")) { *v = G(GF_loc_reputation, 1, town_here()); return 1; }   /* the reputation here (or in the nearest city) */
     if (!strcasecmp(n, "fame")) { *v = g_party_get(4); return 1; }
     if (!strcasecmp(n, "mounted")) { *v = g_party_get(5) != 0; return 1; }
     if (!strcasecmp(n, "daylight")) { *v = g_daylight() != 0; return 1; }
@@ -1009,7 +1021,12 @@ static int exec_stmt(P *p)
     if (!strcasecmp(w, "disable") || !strcasecmp(w, "enable") || !strcasecmp(w, "hide")) {
         n = args(p, a, 1, 1, w);
         if (!p->err && (a[0] < 0 || a[0] >= NOPT)) perr(p, "options are numbered 0 to 9");
-        if (!dry && !p->err) rt.flag[a[0]] = w[0] == 'd' ? 2 : w[0] == 'e' ? 1 : 0;
+        if (!dry && !p->err) {
+            int v = w[0] == 'd' ? 2 : w[0] == 'e' ? 1 : 0, ms = encs[rt.enc].sec[rt.sec].block >= 0 ? rt.sec : rt.last_menu, k;
+            for (k = 0; k < rt.nfl; k++) if (rt.fl[k].sec == ms && rt.fl[k].opt == a[0]) break;
+            if (k == rt.nfl && rt.nfl < 64) rt.nfl++;
+            if (k < 64) { rt.fl[k].sec = (short)ms; rt.fl[k].opt = (signed char)a[0]; rt.fl[k].val = (signed char)v; }
+        }
         return 0;
     }
     if (!strcasecmp(w, "battle")) {             /* battle FIELD, ENEMY, QUALITY, COUNT [, ENEMY, QUALITY, COUNT [, ...]] */
@@ -1100,7 +1117,7 @@ static int exec_stmt(P *p)
     else if (!strcasecmp(w, "number1")) g_ww(V_NUMBER1, (u16)a[0]);
     else if (!strcasecmp(w, "number2")) g_ww(V_NUMBER2, (u16)a[0]);
     else if (!strcasecmp(w, "fame")) g_reward((int)a[0]);
-    else if (!strcasecmp(w, "reputation")) rep_change(g_nearest_city(), (int)a[0], (int)a[1]);
+    else if (!strcasecmp(w, "reputation")) rep_change(town_here(), (int)a[0], (int)a[1]);
     else if (!strcasecmp(w, "additem")) { int m = resolve_who((int)a[0]); if (n > 2) g_add_item_q(m, (int)a[1], (int)a[2]); else g_add_item(m, (int)a[1]); g_ww(V_ITEM, (u16)a[1]); }
     else if (!strcasecmp(w, "takeitem")) g_take_item(resolve_who((int)a[0]), (int)a[1]);
     else if (!strcasecmp(w, "loseitems")) { g_lose_items((int)a[0] == -1 ? leader() : (int)a[0]); fixes_clamp_party_items(); }   /* (the game's loss routines can leave -1 items) */
@@ -1624,7 +1641,7 @@ static int opt_flag(Enc *e, Sec *s, int k)
 {
     Opt *o = &s->opt[k];
     if (!o->defined) return 0;
-    if (rt.flag[k] >= 0) return rt.flag[k];
+    for (int i = 0; i < rt.nfl; i++) if (rt.fl[i].opt == k && rt.fl[i].sec == (int)(s - e->sec)) return rt.fl[i].val;
     if (o->only.s && !eval_src(e, &o->only, 0, 0)) return 0;
     int f = 1;
     if (o->need.s && !eval_src(e, &o->need, 0, 0)) f = 2;
@@ -1672,6 +1689,7 @@ static void menu_round(Enc *e, Sec *s)
     int k = g_card_menu();
     g_mouse_hide();
     if (aborting) return;
+    rt.acted = 1;
     int popup = (s16)g_rw(V_MENU_POPUP) || g_rb(V_IN_POPUP), m = (s16)g_rw(V_MENU_MEMBER), sl = (s16)g_rw(V_MENU_SLOT);   /* (a pick with Enter sets only the second) */
     if (k < 0 || k >= NOPT || !s->opt[k].defined) { LOG("menu: option %d has no actions\n", k); return; }
     Opt *o = &s->opt[k];
@@ -1721,7 +1739,6 @@ static int run_encounter(int card)
     Enc *e = &encs[i];
     int resume = run_resume;
     memset(&rt, 0, sizeof rt);
-    for (int k = 0; k < NOPT; k++) rt.flag[k] = -1;
     rt.cur_opt = -1;
     rt.active = 1; rt.enc = i; rt.card = card; rt.sec = 0; rt.last_menu = -1;
     rt.who = leader(); rt.result = -1;
@@ -2042,6 +2059,10 @@ int encounters_asks_saint(int s) { if (s < 0 || s >= 136) return 0; asks_count()
 int encounters_asks_item(int id) { if (id < 0 || id >= 200) return 0; asks_count(); return asks_item[id]; }
 const char *encounters_title(int i) { return i >= 0 && i < nenc ? encs[i].title : ""; }
 int encounters_card_active(void) { return rt.active ? rt.enc + 1 : 0; }
+/* an encounter of ours under way in which a choice has been made: a save holds its card and nothing of how far into it
+   the party is, so a game saved at a later menu and loaded began the encounter again, what it had given kept (mods/saves.c,
+   fix savetext, holds a save until the encounter is over; at its first menu a save is where a load returns to) */
+int encounters_past_start(void) { return rt.active && rt.acted; }
 int encounters_in_street(void) { return rt.active && rt.where == WH_STREET; }
 /* a save loaded: an encounter on the screen is gone with the game it was in (its native frame is left behind
    by the unwinding: it stayed "on the screen", and Go to, the margins and the mods' reload took the town for

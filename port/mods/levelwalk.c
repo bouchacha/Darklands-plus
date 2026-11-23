@@ -109,6 +109,10 @@ static int door_pending = -1, door_floor = -1, door_wx, door_wy, door_wait;   /*
 static int arrive_pending;                     /* a way out clicked: what the walk's arrival does (arrive_choose) */
 #define DOOR_REC(n) ((u16)(0x1f54 + 14 * (n)))      /* doors: count 20a5:1f52, 14-byte records (x, y, w, h map pixels; +12 the door paired with it, -1 none) */
 static int door_partner(int n) { return (s8)rb(G_FAR20A5, (u16)(DOOR_REC(n) + 12)); }
+/* a door's lock (record +7, its difficulty; 0 none): out of a fight the game offers Use Door only with none and Pick
+   Lock otherwise (s014 19cd:1ade), and door_toggle (s023 1ef8:00b8) itself asks nothing: it opens the door and writes
+   the lock away */
+static int door_lock(int n) { return n >= 0 && n < 40 ? rb(G_FAR20A5, (u16)(DOOR_REC(n) + 7)) : 0; }
 /* the door whose doorway member i stands in, as the game has it (s014 19cd:1ade, each round: D_a696[i] bit 2, the door D_c64c[i];
    with it what Use Door will do, D_c678[i] open or shut, and from which side, D_c6ef[i]), or -1 */
 static int in_doorway(int i) { return (g_rb((u16)(0xa696 + 2 * i)) & 2) ? (s8)g_rb((u16)(0xc64c + i)) : -1; }
@@ -146,10 +150,16 @@ static void goal_check(void)
     int lead = goal_lead;
     if (g_rb(GV_real_combat) || g_rb(CBF(lead, CB_STATUS)) != 1 || (s8)g_rb((u16)(GV_cbt_floor + lead)) != levelwalk_goal_floor) { goal_drop(); return; }
     int x = (s16)g_rw(CBF(lead, CB_X)), y = (s16)g_rw(CBF(lead, CB_Y));
-    if (door_pending >= 0) {                                       /* (a door clicked: used as Use Door, once the game has the leader in its doorway) */
+    if (door_pending >= 0) {                                       /* (a door clicked: used as Use Door, once the game has the leader in its doorway; not a locked one) */
         int gd = in_doorway(lead), d = door_pending;
         if (gd >= 0 && (gd == d || gd == door_partner(d)) && (s8)g_rb(GV_floor_shown) == door_floor) {
             goal_drop();
+            if (door_lock(gd)) {                                    /* (locked: the leader chosen there, the game's orders offer the lock) */
+                ui_notice("The door is locked.");
+                ns_call(16, 0x1ef8, 0x0a2c, 1, lead);
+                if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: door %d is locked: member %d chosen for orders\n", gd, lead);
+                return;
+            }
             ns_call(GF_door_toggle, 2, gd, lead);                   /* (then as the game's Use Door, s016: the view drawn anew - the room */
             if (!ns_unwinding) ns_call(GF_floor_view_draw, 1, -1);   /*  beyond an opened door shows at once - and the order ended) */
             if (!ns_unwinding) ns_call(GF_cbt_cancel_action, 1, lead);
@@ -251,12 +261,21 @@ extern int stairsfix_carrying;
 #define FLR_NSTAIRS 0x2fb6
 #define FLR_STAIRS  0x2fb8                 /* rect14[6]: x, y (map pixels), w, h (bytes) */
 static int following;
+static int in_keys, keys_took;             /* inside combat_keys; the party taken through stairs in this call of it */
 static void take_exit_hook(void)           /* take_exit (n, who) */
 {
     int n = (s16)rw(SS, (u16)(SP + 4)), who = (s16)rw(SS, (u16)(SP + 6));
     int from = (s8)g_rb((u16)(GV_cbt_floor + (who >= 0 && who < 13 ? who : 0)));
     int carry = fix_is_on("onefloor");
     int explore = (!g_rb(GV_real_combat) || carry) && who >= 0 && who < 5 && !following && !config_get_int("original", 0);
+    /* U as a group: the game calls take_exit with the leader's stairs once for every standing member (s016 1ef8:1182).
+       The first call has taken the party along (below), so the rest would be stairs n of the floor reached, for
+       everyone again: up and down once per member. They are no new order */
+    if (explore && in_keys && keys_took) {
+        if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: member %d: the party has taken the stairs already\n", who);
+        hook_return_far(0);
+        return;
+    }
     /* in single file only the leader takes the party to another floor: a follower steps onto stairs only on the leader's
        trail, which a floor change leaves on the floor left, and the game took it through them - the party ran through
        floor after floor on one U, five in his save (1.4.7-RC6, found testing his report of floor shown beyond the walls).
@@ -267,21 +286,49 @@ static void take_exit_hook(void)           /* take_exit (n, who) */
         if (!ns_unwinding) hook_return_far(0);
         return;
     }
+    /* the knocked-out are carried first: take_exit ends the fight on the floor left (leave_level, 1ef8:17d2) when the
+       last standing member arrives, once, with the fight still on - the foes who saw it follow. Carried after that
+       (as until 1.5.1-RC21) each one "arrived last" again: leave_level a second time, the fight already off, which
+       struck the pursuers off instead */
+    int carried = 0;
+    if (explore && carry) {
+        following = 1;
+        for (int i = 0; i < 5 && !ns_unwinding; i++) {
+            if (i == who || g_rb(CBF(i, CB_STATUS)) != 2 || (s8)g_rb((u16)(GV_cbt_floor + i)) != from) continue;
+            stairsfix_carrying = 1;
+            ns_call(GF_take_exit, 2, n, i);
+            stairsfix_carrying = 0;
+            if (ns_unwinding) break;
+            if ((s8)g_rb((u16)(GV_cbt_floor + i)) != from) carried++;
+            if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: member %d carried along the stairs with %d\n", i, who);
+        }
+        following = 0;
+        if (ns_unwinding) return;
+    }
     hook_call_original();
     if (ns_unwinding || !explore) return;
     following = 1;
-    for (int pass = 1; pass <= 2; pass++)                   /* (those standing, then the knocked-out, carried) */
-        for (int i = 0; i < 5 && !ns_unwinding; i++) {
-            if (i == who || g_rb(CBF(i, CB_STATUS)) != pass || (s8)g_rb((u16)(GV_cbt_floor + i)) != from) continue;
-            if (pass == 2 && !carry) continue;
-            stairsfix_carrying = pass == 2;
-            ns_call(GF_take_exit, 2, n, i);
-            stairsfix_carrying = 0;
-            if (!ns_unwinding) ns_call(GF_cbt_cancel_action, 1, i);
-            if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: member %d %s along the stairs with %d\n", i, pass == 2 ? "carried" : "goes", who);
-        }
+    for (int i = 0; i < 5 && !ns_unwinding; i++) {          /* (those standing) */
+        if (i == who || g_rb(CBF(i, CB_STATUS)) != 1 || (s8)g_rb((u16)(GV_cbt_floor + i)) != from) continue;
+        ns_call(GF_take_exit, 2, n, i);
+        if (!ns_unwinding) ns_call(GF_cbt_cancel_action, 1, i);
+        if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: member %d goes along the stairs with %d\n", i, who);
+    }
     following = 0;
-    if (!ns_unwinding) ns_call(GF_cbt_cancel_action, 1, who);
+    if (ns_unwinding) return;
+    if (in_keys) keys_took = 1;
+    ns_call(GF_cbt_cancel_action, 1, who);
+    /* the fight left for good (no foe standing: none followed) with someone carried: they come to, as the game has it
+       when a fight ends (combat_recover, s014 0e76:0dee: at a victory, and where the party is found on another floor) */
+    if (!ns_unwinding && carried && !g_rb(GV_real_combat)) {
+        int foes = 0;
+        for (int j = 5; j < 13; j++) if (g_rb(CBF(j, CB_STATUS)) == 1) foes = 1;
+        if (!foes) {
+            ns_call(GF_combat_recover, 0);
+            if (!ns_unwinding) ns_call(GF_floor_view_draw, 1, -1);
+            if (getenv("DL_LEVELWALK_LOG")) fprintf(stderr, "levelwalk: no foe follows: the carried come to\n");
+        }
+    }
 }
 static int stairs_under(int i)
 {
@@ -304,21 +351,25 @@ static int by_door(int i)                  /* member i within a few paces of a d
     }
     return 0;
 }
+static s32 lw_cell(int x, int y);
+static void keys_game(void) { int was = in_keys; if (!was) keys_took = 0; in_keys = 1; hook_call_original(); in_keys = was; }   /* (the game's own keys: take_exit_hook knows it is inside) */
 static void keys_hook(void)                /* combat_keys (): U with nobody on the stairs */
 {
     extern int bios_kbd_avail(void); extern u16 bios_kbd_get(int);
-    if (!bios_kbd_avail() || g_rb(GV_real_combat) || !!config_get_int("original", 0)) { hook_call_original(); return; }
+    if (!bios_kbd_avail() || g_rb(GV_real_combat) || !!config_get_int("original", 0)) { keys_game(); return; }
     u16 k = bios_kbd_get(0);
-    if (k != 0x1655 && k != 0x1675) { hook_call_original(); return; }
+    if (k != 0x1655 && k != 0x1675) { keys_game(); return; }
     int fl = (s8)g_rb(GV_floor_shown), lead = (s8)g_rb(GV_marching_order);
     for (int i = 0; i < 5; i++)
-        if (g_rb(CBF(i, CB_STATUS)) == 1 && (s8)g_rb((u16)(GV_cbt_floor + i)) == fl && (on_stairs(i) || by_door(i))) { hook_call_original(); return; }   /* (U there is the game's: the stairs, or Use Door) */
-    if (lead < 0 || lead > 4 || g_rb(CBF(lead, CB_STATUS)) != 1 || (s8)g_rb((u16)(GV_cbt_floor + lead)) != fl) { hook_call_original(); return; }
+        if (g_rb(CBF(i, CB_STATUS)) == 1 && (s8)g_rb((u16)(GV_cbt_floor + i)) == fl && (on_stairs(i) || by_door(i))) { keys_game(); return; }   /* (U there is the game's: the stairs, or Use Door) */
+    if (lead < 0 || lead > 4 || g_rb(CBF(lead, CB_STATUS)) != 1 || (s8)g_rb((u16)(GV_cbt_floor + lead)) != fl) { keys_game(); return; }
     int ns = (s8)rb(G_FAR20A5, FLR_NSTAIRS), best = -1, bd = 0x7fffffff;
     int x = (s16)g_rw(CBF(lead, CB_X)), y = (s16)g_rw(CBF(lead, CB_Y));
     for (int s = 0; s < ns && s < 6; s++) {
         u16 o = (u16)(FLR_STAIRS + 14 * s);
-        int cx = (s16)rw(G_FAR20A5, o) + rb(G_FAR20A5, (u16)(o + 4)) / 2, cy = (s16)rw(G_FAR20A5, (u16)(o + 2)) + rb(G_FAR20A5, (u16)(o + 5)) / 2;
+        int rx = (s16)rw(G_FAR20A5, o), ry = (s16)rw(G_FAR20A5, (u16)(o + 2));
+        if (rx < 0 || ry < 0 || rx / 32 >= 40 || ry / 16 >= 40 || lw_cell(rx / 32, ry / 16) < 0) continue;   /* (not seen yet: as levelwalk_stairs_at) */
+        int cx = rx + rb(G_FAR20A5, (u16)(o + 4)) / 2, cy = ry + rb(G_FAR20A5, (u16)(o + 5)) / 2;
         int d = (cx - x) * (cx - x) + 4 * (cy - y) * (cy - y);
         if (d < bd) { bd = d; best = s; }
     }
@@ -341,7 +392,7 @@ void levelwalk_stairs(int s)
     if (g_rb(GV_ai_paused) == 1) { extern void bios_kbd_inject(u16); bios_kbd_inject(0x3920); }   /* (on its way at once: Space) */
 }
 
-void levelwalk_battle_begins(void) { goal_drop(); stairs_pending = -1; }
+void levelwalk_battle_begins(void) { goal_drop(); stairs_pending = -1; levelwalk_x = levelwalk_y = levelwalk_floor = -1; arrive_pending = 0; in_keys = keys_took = 0; }   /* (a click not yet taken is the last battle's) */
 
 /* ---------------------------------------------------------------- doors on the field
  * Out of a fight a door is used by walking beside it and choosing Use Door, and nothing on the field told

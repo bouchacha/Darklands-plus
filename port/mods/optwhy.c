@@ -79,7 +79,7 @@ static const struct { const char *key, *why; } WHY[] = {
     { "battle.order_icons", "(part of Easier battle controls)" },
     { "battle.drag_pan", "(part of Easier battle controls)" },
     { "battle.select_stays", "(part of Easier battle controls)" },
-    { "battle.end_words", "(part of Easier battle controls) The original's long wait at the end looked like a freeze." },
+    { "battle.end_words", "(part of Easier battle controls) The original's wait at the end, over a still field with a programmer's note for words, looked like a freeze." },
     { "battle.smooth_scroll", "(part of Smooth, steady scrolling)" },
     { "battle.scroll_paced", "(part of Smooth, steady scrolling)" },
     { "battle.scroll_rest", "(part of Smooth, steady scrolling)" },

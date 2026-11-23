@@ -485,6 +485,8 @@ void battle_panel(float width, float fs)
     static bool seen[13]; static u16 last_tick = 0xffff;
     static int last_st[13]; static std::string last_name[13];      /* the fallen: the game clears their records */
     u16 tick = g_rw(GV_battle_tick);                        /* the battle's clock: back at 0 in a new battle */
+    extern int battlelog_serial; static int last_serial = -1;       /* (and a battle begun or loaded, whatever its clock: ui/battlelog.cpp) */
+    if (battlelog_serial != last_serial) { last_serial = battlelog_serial; last_tick = 0xffff; }
     if (tick < last_tick) for (int i = 0; i < 13; i++) { seen[i] = false; last_st[i] = 0; last_name[i].clear(); }
     last_tick = tick;
     int n = (s8)g_rb(GV_hotspot_count);

@@ -140,6 +140,9 @@ void hook_call_original(void)
     unw_note(idx, d);
 }
 
-void hook_return_far(unsigned n) { SP = (u16)(SP + 4 + n); }
-void hook_return_near(unsigned n) { SP = (u16)(SP + 2 + n); }
+/* a hook's own return in place of the game function's. Not while the game unwinds (a saved game loaded inside a call the
+   hook made): the stack pointer is the unwinding's then, on its way to load_game's landing, and a hook that went on to
+   "return" moved it (the audit of 2026-11-22: the saints' wrappers after a load at a saint's message) */
+void hook_return_far(unsigned n) { if (unw_active) return; SP = (u16)(SP + 4 + n); }
+void hook_return_near(unsigned n) { if (unw_active) return; SP = (u16)(SP + 2 + n); }
 

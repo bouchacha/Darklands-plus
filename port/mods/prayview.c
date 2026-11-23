@@ -45,8 +45,12 @@ static void build(void)
     p->maxdf = (s8)g_rb(D_MAXDF(p->who));
     p->chance = clamp99(H(p->saint, p->who, p->df, 7));
     {   /* the least favor that gives the best chance this member can have (the bar's mark) */
-        static int memo_who = -1, memo_saint = -1, memo_max = -1, memo = -1;
-        if (memo_who != p->who || memo_saint != p->saint || memo_max != p->maxdf) {
+        /* (kept by what decides it: the member, the saint, the favor held, and the chance at no favor and at all of it -
+           a Virtue raised or run out, a relic taken up or put down change those two) */
+        static int memo_who = -1, memo_saint = -1, memo_max = -1, memo = -1, memo_c0 = -1, memo_c1 = -1;
+        int c0 = clamp99(H(p->saint, p->who, 0, 7)), c1 = clamp99(H(p->saint, p->who, p->maxdf, 7));
+        if (memo_who != p->who || memo_saint != p->saint || memo_max != p->maxdf || memo_c0 != c0 || memo_c1 != c1) {
+            memo_c0 = c0; memo_c1 = c1;
             int best = -1, at = -1;
             for (int d = 0; d <= p->maxdf && !ns_unwinding; d++) { int c = clamp99(H(p->saint, p->who, d, 7)); if (c > best) { best = c; at = d; } if (c >= 99) break; }
             memo = best > 0 ? at : -1; memo_who = p->who; memo_saint = p->saint; memo_max = p->maxdf;

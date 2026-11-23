@@ -6,4 +6,5 @@
 /* A null result means the file can be read. The caller owns and closes the stream. */
 const char *savecheck_sav(FILE *file);
 const char *savecheck_bsv(FILE *file);
+long savecheck_sav_tail(FILE *file);
 #endif

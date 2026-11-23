@@ -1040,3 +1040,47 @@ covered and found, and what it could not check.
   by the command in each one's header, and release_check runs it first (all ten pass on today's code; the five
   Python ones need a game folder and a save, by hand still); armorday's text no longer claims the fire
   protection's leftover armour, which fireward leaves out.
+- 2026-11-23, round 3 of the audit (his "quash as many bugs as AI-ly possible"): eight reviewers on what no one had
+  read (the saints, travel and the encounter files, the native screens, the fixes' remaining claims, the interface
+  code, the runtime layer, saving and loading, the battle helpers' logic), three soak tests, a memory-checked build
+  through release_check (no error reported in Darklands+'s own code; only its drawing-time step fails, as that
+  build is slow). Reports in the session's scratchpad, audit/round3_*.txt. Fixed at the cause, each with its
+  reasoning at the code:
+  Saves: written_bad reads every save back before a notice or any prune (the game's save checks no write; a short
+  file rotated good saves out); saves_party_ended asks the party (no member left, or battle result 5), not the exit
+  code (the game's fatal stops leave by exit 0: Honor Roll and an Ironman save deleted); the BIOS tick word starts
+  at the time of day (the party's seed is its low word at the click; from 0 every seed fell in a few hundred, and
+  every companion file is keyed by the seed); a player's save name never begins as Darklands+'s kinds do
+  (players_name); Ironman's quit and close wait for a card's text; the menu's Save asks text_now before its page
+  (after it the choices read as down); state_fp, taken at card_load: a save at a card's choices waits until the
+  card is left when the party has changed since it began ($Revol12, $Revol11, $Drago00, $Dunge00 ...), and past an
+  encounter's first choice until it is over (encounters_past_start); savecheck_sav_tail: a fresh save's store-room
+  tail at least CACHE.TMP's size; battleend, autopause and orders forget a battle at battle_run and a load.
+  Battle: door_lock (a locked door clicked is not door_toggle'd: the leader is chosen there); take_exit_hook knows it
+  runs inside combat_keys and takes the party once (the game calls it once a member); the carried go first, so
+  leave_level runs once with the fight on (pursuers follow) and combat_recover wakes them when none follows; U picks
+  only stairs seen; a pending level-map click is the last battle's; costspill (new fix) keeps 20a5:7900 over
+  1db7:0028 for enemies 11 and 12; Halt kept (halted[]): a halted member walks nowhere of its own; set_kind resets
+  the attack rate cache (DS:d493) with every kind written; a foe fallen while a member walked to it ends the walk;
+  a kept stance survives a click that gives no order; ways_players_mark: no other foe for the player's own mark;
+  can_fire_hook hands hidden ammunition to a weapon readied inside a place; thrown_note after each loot screen of a
+  place; exitleft keeps the gone out of the marching order; battleend's ticks are 60 a second (its text said 18.2).
+  Saints: hook_return_far/near leave SP alone while unwinding; the saints' wrappers stop at an unwound call; relics
+  count one discount a question, for the saint asked (fix pauls answered Paul the Simple through Paul's hooked
+  function: 2d); saint_armour and fire_saint take the leader for "Pray now" with prayfor off; pot_all to 300;
+  the chance shown is the game's number + 1; nine saints' "all weapon skills" noted (saintinfo, SAINTS.md).
+  Screens: ingr_pile at the loot screen's first draw (it read the last screen's freed pile), the caller's count
+  lowered on a join; inn_key_hook (s038 02f8 strikes a member off by itself: spares_off); gm_pack_holder leaves
+  the fallen (status 3) out of the pack; pilefull (new fix); Undo keeps its entry until the things are back; the
+  inn's page steps its arrows itself.
+  Elsewhere: Go to stays off a card reached from the map (an encounter by a town) and off lines that do more than
+  leave; encounter option flags per menu; reputation to the town the party is in; a journey's first step may carry
+  the old click's key; the 20:00 camp after an encounter step; the step's AX put back; find-first gives the size
+  of the file a read will get (a data mod's); day counts without leap years (quests.cpp, lodgeview.c); the battle
+  log and the foes' list restart at a load; the timer rate the game sets is logged.
+  Open, by their reports: Windows paths with non-ASCII letters; the hour the clocks go back; settings keys of 64
+  characters; the keyboard layout; key releases lost under a Darklands+ window; two copies on one folder; the line
+  clipper's overflow; the cachefile layout the original rewrites wrongly; the Schulz's reward (cardslips);
+  oilweapons' and knightdead's wording; the native screens' shared queue; the tray's drink and Split without
+  give_safe's bookkeeping in a battle; the load preview's weight of relics; indexes kept across a mods reload;
+  hit chances shown without the rate gate; Simmern on Geldern's tile (the original's data).

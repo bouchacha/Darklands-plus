@@ -2,12 +2,15 @@
  * Settings > Battles).
  *
  * The game closes a battle (s002 0e76, after the loot) with show_message("BattleResults -
- * victory", 150): a box with the words of its programmers' log, held for 150 timer ticks
- * (about eight seconds) over the still battlefield - long enough to take for the game hanging,
- * and players clicked to get on. Here the box says how the battle ended ("Victory! The battle
- * is won." ...) and stays about three seconds. Before it, when the last foe falls, the game holds
- * the field still for 60 ticks of the battle clock (a defeat 240: some three and thirteen seconds)
- * before the loot; here a second (three for a defeat). */
+ * victory", 150): a box with the words of its programmers' log, held for 150 timer ticks over the
+ * still battlefield. Here the box says how the battle ended ("Victory! The battle is won." ...)
+ * and stays 55 ticks. Before it, when the last foe falls, the game holds the field still for 60
+ * ticks of the battle clock (a defeat 240) before the loot; here 18 (55 for a defeat).
+ * The ticks are the game's own timer's, which it sets to the screen's refresh, 60 a second (root
+ * 047c:02ac; its routine counts the message's wait, DS:07d2, and the battle clock, DS:07d4, alike):
+ * the original's box 2.5 seconds, ours 0.9; the field held 1 second (a defeat 4), ours 0.3 (0.9).
+ * (Until 1.5.1-RC21 this file and the setting's text took the ticks for the BIOS's 18.2 a second and
+ * told of eight seconds and three: found by the audit of 2026-11-22.) */
 #include <stdio.h>
 #include <string.h>
 #include "../runtime/cpu.h"
@@ -16,7 +19,7 @@
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
 
-#define END_TICKS 55                     /* (18.2 a second) */
+#define END_TICKS 55                     /* (60 a second) */
 
 static int on(void) { return config_get_int("battle.end_words", 1) && !config_get_int("original", 0); }
 
@@ -46,7 +49,7 @@ static void message_hook(void)          /* show_message (text, ticks) */
 }
 
 /* the field held still once the battle is decided (combat_over, s014 0e76:08fe: the last foe down
-   holds it 60 ticks of the battle clock, a defeat 240) before the loot or the defeat: a second, three */
+   holds it 60 ticks of the battle clock, a defeat 240) before the loot or the defeat: here 18 and 55 */
 #define HOLD_WON 18
 #define HOLD_LOST 55
 static u32 decided_t;                  /* when combat_over last said the battle is decided */
@@ -74,11 +77,14 @@ static void over_hook(void)
 /* a watchdog (each frame): once decided, a battle clock that stands still for more than a second
    (a pause from any side - a member chosen, a fall, Space - while the field waits to close) is set
    going again, so the victory and the loot come without a click */
+static int in_battle, seen_foes;
+/* (mods/ways.c battle_begins: battle_run and a game loaded - a load from one battle into a battle save may draw no frame
+   that sees "no battle", and "decided" a moment before the load set the loaded, paused battle running: the audit, 2026-11-22) */
+void battleend_battle_begins(void) { decided_t = 0; in_battle = 0; seen_foes = 0; }
 void battleend_frame(void)
 {
     u32 plat_ticks_ms(void); void bios_kbd_inject(u16);
     static u16 last_clock; static u32 still_since, last_kick;
-    static int in_battle, seen_foes;
     if (!on() || game_mode() != GM_BATTLE || !g_rb(GV_real_combat)) { still_since = 0; in_battle = 0; return; }
     if (!in_battle) { in_battle = 1; decided_t = 0; seen_foes = 0; }   /* (a new battle: not decided, whatever the last was) */
     u32 now = plat_ticks_ms();

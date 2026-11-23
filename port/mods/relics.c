@@ -107,25 +107,40 @@ int relic_discount(int who, int saint, int *code)
     return best;
 }
 
-/* ---------------------------------------------------------------- the saints' functions */
-static int saint_hook_at[NSAINT];
+/* ---------------------------------------------------------------- the saints' functions
+ * The game has one function per saint and this hook on each, the saint told by the function entered. Fix pauls answers
+ * two of them through another's (St. Paul by 165c:75d8, which no saint's vector leads to; Paul the Simple by Paul's own,
+ * 5cca), hooks and all - so one question could pass here twice and the relic count double: St. Paul the Simple asked no
+ * favor at all with most relics (the audit of 2026-11-22). The discount is one per question: at the first of these hooks
+ * the question reaches (inside counts the calls under it), for the saint the question is for (Paul's function entered
+ * for Paul the Simple is his; 75d8 is Paul's), whichever of the two fixes' hooks stands outermost. */
+#define PAUL 105
+#define PAUL_SIMPLE 106
+#define PAUL_FN 0x75d8
+int fixes_pauls_simple(void);
+static int saint_hook_at[NSAINT + 1], inside;
 static void saint_hook(void)                  /* a saint's function (who, favor, what), s039 165c */
 {
     int who = (s16)rw(SS, (u16)(SP + 4)), x = (s16)rw(SS, (u16)(SP + 6)), what = (s16)rw(SS, (u16)(SP + 8)), k = -1;
-    if ((what != 2 && what != 7) || asking) { hook_call_original(); return; }
-    for (int i = 0; i < NSAINT; i++) if (saint_hook_at[i] == hook_current) { k = i; break; }
+    if ((what != 2 && what != 7) || asking || inside) { hook_call_original(); return; }
+    for (int i = 0; i <= NSAINT; i++) if (saint_hook_at[i] == hook_current) { k = i; break; }
+    if (k == NSAINT) k = PAUL;
+    else if (k == PAUL && fixes_pauls_simple()) k = PAUL_SIMPLE;
     int d = k >= 0 ? relic_discount(who, k, 0) : 0;
-    if (!d) { hook_call_original(); return; }
+    if (!d) { inside++; hook_call_original(); inside--; return; }
+    inside++;
     if (what == 7) {                                         /* the chance: the favor spent counts that much more */
         u16 at = (u16)(SP + 6);                              /* (taken before: the call's return pops 4 bytes, and SP + 6 after it
                                                                 is the caller's saved BP - a prayer by a relic's bearer came back
                                                                 to saint_pray with BP the favor, and the game crashed) */
         ww(SS, at, (u16)(x + d));
         hook_call_original();
+        inside--;
         if (unw_active) return;
         ww(SS, at, (u16)x);
     } else {                                                 /* the least favor: that much less */
         hook_call_original();
+        inside--;
         if (unw_active) return;
         int least = (s16)AX - d;
         AX = (u16)(least < 0 ? 0 : least);
@@ -243,6 +258,8 @@ void relics_set(int v)
         if (v) { hook_install(39, 0x165c, SAINT_OFF[i], saint_hook); saint_hook_at[i] = hook_point(39, 0x165c, SAINT_OFF[i]); }
         else hook_remove(39, 0x165c, SAINT_OFF[i], saint_hook);
     }
+    if (v) { hook_install(39, 0x165c, PAUL_FN, saint_hook); saint_hook_at[NSAINT] = hook_point(39, 0x165c, PAUL_FN); }
+    else hook_remove(39, 0x165c, PAUL_FN, saint_hook);
     static const struct { int sect; u16 seg, off; void (*fn)(void); } H[] = {
         { 19, 0x1ef8, 0x0968, wear_hook }, { 56, 0x19c4, 0x0c6e, gift_hook }, { 31, 0x18e7, 0x0fac, find_hook },
         { 31, 0x18e7, 0x0e14, take_hook }, { 31, 0x18e7, 0x11b2, ready_hook } };

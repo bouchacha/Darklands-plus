@@ -445,6 +445,10 @@ Fix FIXES[] = {
       "A member's load is summed when something is readied or put away on the character sheet. A fight changes what is in use without summing it again: armor worn down to nothing is thrown away, and the last javelin, axe or dart leaves the hand, yet the load went on counting them, so the member stayed as burdened as before (the load band, and the Agility a shot counts with) until the next change on the sheet. The load is now summed again at once, and when a game is loaded.", 1 },
     { "savetext", "A save at a card's text is made when the text is closed",
       "The game saves which card the party is at, but not how far into it. A game saved while a card's text was up (the answer to a choice just made) and loaded again started the card over: the choice still to make, and what it gave already in hand. So a patron's payment, a reputation or a prayer's gift could be taken again and again, and one card (the reward for a thing fetched) could strike out another task after such a load. Now a save asked for while a text is up (a quicksave, an autosave, the menu's Save) is made as soon as the card's choices or the map are back, and says so.", 1 },
+    { "costspill", "An enemy across the field no longer counts as beside the first member",
+      "When an enemy's target was knocked out or stood on stairs, the enemy looked for another, and for the last two of eight enemies the list the game fills for that search ran past its end, into its list of who stands within reach of whom. Until the next round the party's first member counted as within reach of every other enemy, wherever they stood: an attack ordered on one of them just then was taken as a blow from where the member stood, and came to nothing. Now the list of who is in reach is left as it was.", 1 },
+    { "pilefull", "A full pile of loot no longer swallows what is put on it",
+      "A pile of loot holds 45 kinds of things. On the loot screen, a thing put on a pile that already held 45 kinds, none of them its own, was taken from the member and not laid down: it was gone. Now it stays with the member.", 1 },
 };
 int FIX_COUNT = (int)(sizeof FIXES / sizeof FIXES[0]);
 
@@ -1272,7 +1276,7 @@ static int gp_event(int type0, int t) { return type0 == 0x6b || (type0 >= 0 && t
 void potion_bonus(int m, int *dmg, int *pen)
 {
     *dmg = *pen = 0;
-    PotEv v[96]; int n = pot_all(v, 96);
+    PotEv v[300]; int n = pot_all(v, 300);   /* (as many as the table holds) */
     for (int i = 0; i < n; i++) {
         int type0 = v[i].type0, t = v[i].t;
         if (v[i].m != m) continue;
@@ -1331,7 +1335,7 @@ static void record_potion(int who, int type0, int t)
    kind 0x4a events of type0 k */
 static int running_potions(int m, int k, int largest)
 {
-    PotEv p[96]; int n = pot_all(p, 96), v = 0;
+    PotEv p[300]; int n = pot_all(p, 300), v = 0;
     for (int i = 0; i < n; i++) {
         if (p[i].m != m || (k == 0x6b ? !gp_event(p[i].type0, p[i].t) : p[i].type0 != k)) continue;
         if (largest) { if (p[i].t > v) v = p[i].t; } else v += p[i].t;
@@ -1380,6 +1384,7 @@ static void potion_fixes_hook(void)        /* use_potion(who, idx), s031 1462:43
 static void saint_armour(int add)          /* St. Dunstan's (1) or St. Patrick's (2) blessing, (who, x, what) */
 {
     int who = (s16)rw(SS, (u16)(SP + 4)), what = (s16)rw(SS, (u16)(SP + 8));
+    if (what == 8 && who == -1) { who = (s8)g_rb(G_LEADER); ww(SS, (u16)(SP + 4), (u16)who); }   /* ("Pray now" with fix prayfor off: nobody chosen is the leader, as the game's own routines take it - here and in the saint's own writes, which went to the member before the first) */
     if (what != 8 || who < 0 || who > 4 || sainttexts_handles(add == 1 ? 39 : 104)) { hook_call_original(); return; }   /* (sainttexts: theirs) */
     u16 mb = (u16)G_MEMBER(who);
     u8 a41 = g_rb((u16)(mb + 0x41));
@@ -1472,6 +1477,7 @@ static void crispin_hook(void)
 static void fire_saint(int whole, int saint)
 {
     int who = (s16)rw(SS, (u16)(SP + 4)), what = (s16)rw(SS, (u16)(SP + 8));
+    if (what == 8 && who == -1) { who = (s8)g_rb(G_LEADER); ww(SS, (u16)(SP + 4), (u16)who); }   /* (as saint_armour) */
     if (what != 8 || who < 0 || who > 4 || sainttexts_handles(saint)) { hook_call_original(); return; }
     u8 a41[5], f10[5];
     for (int m = 0; m < 5; m++) { a41[m] = g_rb((u16)(G_MEMBER(m) + 0x41)); f10[m] = g_rb((u16)(G_MEMBER(m) + 0x10)); }
@@ -2276,11 +2282,13 @@ static void teachcap_hook(void)            /* camp_spend_day(mode), s036 1462:14
  * Apostle's: Speak Common, Latin, Read & Write, Charisma, Endurance, a tenth of lost Strength,
  * virtue 19, as his text and the manual. Here Paul is answered by 75d8, Paul the Simple by 5cca. */
 static int pauls_inner;
+int fixes_pauls_simple(void) { return pauls_inner; }    /* (mods/relics.c: Paul's function is answering for Paul the Simple) */
 static void paul_hook(void)                /* 165c:5cca (who, x, what), reached for St. Paul */
 {
     if (pauls_inner) { hook_call_original(); return; }  /* (Paul the Simple's, below) */
     int who = (s16)rw(SS, (u16)(SP + 4)), x = (s16)rw(SS, (u16)(SP + 6)), what = (s16)rw(SS, (u16)(SP + 8));
     int v = ns_call(39, 0x165c, 0x75d8, 3, who, x, what);
+    if (ns_unwinding) return;
     AX = (u16)v; DX = (u16)ns_call_dx();
     if (getenv("DL_FIX_LOG") && what == 8) fprintf(stderr, "fix pauls: St. Paul the Apostle's help for member %d\n", who);
     hook_return_far(0);
@@ -2291,6 +2299,7 @@ static void paul_simple_hook(void)         /* 165c:5d6c, reached for St. Paul th
     pauls_inner = 1;
     int v = ns_call(39, 0x165c, 0x5cca, 3, who, x, what);
     pauls_inner = 0;
+    if (ns_unwinding) return;
     AX = (u16)v; DX = (u16)ns_call_dx();
     if (getenv("DL_FIX_LOG") && what == 8) fprintf(stderr, "fix pauls: St. Paul the Simple's help for member %d\n", who);
     hook_return_far(0);
@@ -4026,10 +4035,13 @@ static void footpadsonce_hook(void)         /* the footpads' fight, s053 1838:02
  * only while every standing member is on one floor (DS:d610): once one had left, the others were never all on
  * one floor and the two stayed greyed (Darklands Restoration's register, B-d94fc5). Here a member who left is
  * not counted, after each tick: those still on the field on one floor, out of a fight, may move as a group. */
+static void exitleft_order_check(void);
 static void exitleft_tick_hook(void)        /* the battle's tick, s014 0e76:0f58 */
 {
     hook_call_original();
-    if (unw_active || g_rb(0xd610) == 1 || g_rb(GV_real_combat) == 1) return;
+    if (unw_active) return;
+    exitleft_order_check();
+    if (ns_unwinding || g_rb(0xd610) == 1 || g_rb(GV_real_combat) == 1) return;
     int floor = -100, left = 0;
     for (int m = 0; m < 5; m++) {
         if (g_rb(G_MEMBER(m)) != 1) continue;
@@ -4079,6 +4091,7 @@ static void exitleft_over_hook(void)        /* combat_over (), s014 0e76:08fe */
     exit_aside(st, fl);
     if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix exitleft: %d gone out, %d standing on another floor than the foes': not fled\n", gone, elsewhere);
     hook_call_original();
+    if (unw_active) return;                 /* (a game loaded inside: the members are that game's) */
     exit_back(st, fl);
 }
 static void exitleft_stairs_hook(void)      /* take_exit (n, who), s023 1ef8:1618 */
@@ -4088,7 +4101,55 @@ static void exitleft_stairs_hook(void)      /* take_exit (n, who), s023 1ef8:161
     if (who < 0 || who > 4 || (s8)g_rb((u16)(GV_cbt_floor + who)) == -99) { hook_call_original(); return; }
     int n = exit_aside(st, fl);
     hook_call_original();
-    if (n) exit_back(st, fl);
+    if (n && !unw_active) exit_back(st, fl);
+}
+/* The marching order (DS:c624, its length c629: who leads the single file, whom a click on the level sends) is made of
+ * the standing members and made anew only when one in it no longer stands or a standing one is missing from it
+ * (marching_order_rebuild, s016 1ef8:0da6, at Group and Single file and a battle's start): a member gone out stands, so
+ * he stayed in it - leading the line from off the field if he was its first. Here too the gone are set aside for the
+ * call, and the battle's tick asks for the order anew once one of them is found in it. */
+static void exitleft_order_hook(void)       /* marching_order_rebuild (p) */
+{
+    u8 st[5], fl[5];
+    int n = exit_aside(st, fl);
+    hook_call_original();
+    if (n && !unw_active) exit_back(st, fl);
+}
+static void exitleft_order_check(void)
+{
+    int len = (s8)g_rb(GV_marching_len), gone = 0, on = 0;
+    for (int k = 0; k < len && k < 5; k++) { int m = (s8)g_rb((u16)(GV_marching_order + k)); if (m >= 0 && m < 5 && (s8)g_rb((u16)(GV_cbt_floor + m)) == -99) gone = 1; }
+    for (int m = 0; m < 5; m++) if (g_rb(G_MEMBER(m)) == 1 && (s8)g_rb((u16)(GV_cbt_floor + m)) != -99) on = 1;
+    if (!gone || !on) return;
+    ns_call(GF_marching_order_rebuild, 1, 0);
+    if (getenv("DL_FIX_LOG") && !ns_unwinding) fprintf(stderr, "fix exitleft: the marching order without those gone out: %d first of %d\n", (s8)g_rb(GV_marching_order), (s8)g_rb(GV_marching_len));
+}
+
+/* ---------------------------------------------------------------- pilefull
+ * The loot screen's Put (P: its key routine, s040 1462:0c22) lays the thing on the pile (1462:1242: one more on a row of
+ * the same thing and quality, else a new row "if (*count < 45)") and then takes it from the member whatever came of
+ * that: with 45 rows and none to add to, nothing was laid down and the thing was gone (the audit, 2026-11-22). Here
+ * such a Put is not made. */
+static void pilefull_hook(void)             /* the loot screen's key (key) */
+{
+    int key = rw(SS, (u16)(SP + 4)), w = (s16)g_rw(GV_loot_who);
+    if ((key == 0x1950 || key == 0x1970) && w >= 0 && w < 5 && !g_rw((u16)(GV_loot_side + 2 * w)) && g_rw((u16)(GV_loot_n_items + 2 * w))) {
+        int idx = (s16)g_rw((u16)(GV_loot_inv_top + 2 * w)) + (s16)g_rw((u16)(GV_loot_inv_sel + 2 * w));
+        int n = g_rb(g_rw(GV_loot_count_ptr));
+        if (idx >= 0 && idx < 64 && n >= 45) {
+            u16 o = G_ITEM(w, idx), ps = g_rw((u16)(GV_loot_pile + 2)), po = g_rw(GV_loot_pile);
+            int id = rw(G_FAR2E38, o) & 0xfff, q = rb(G_FAR2E38, (u16)(o + 3)), fits = 0;
+            for (int i = 0; i < n && !fits; i++)
+                if ((rw(ps, (u16)(po + 6 * i)) & 0xfff) == id && rb(ps, (u16)(po + 6 * i + 3)) == q && rb(ps, (u16)(po + 6 * i + 4)) < 255) fits = 1;
+            if (!fits) {
+                ui_notice("The pile holds 45 kinds of things, its most: this one stays where it is.");
+                if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix pilefull: item %d (q %d) of member %d not put on a pile of %d rows\n", id, q, w, n);
+                hook_return_far(0);
+                return;
+            }
+        }
+    }
+    hook_call_original();
 }
 
 /* ---------------------------------------------------------------- castsight
@@ -4246,7 +4307,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook },
     { 80, 0x1929, 0x0006, knightcard_hook }, { GF_event_here, alertonce_hook }, { 101, 0x189a, 0x0002, kingdoor_hook }, { 31, 0x18e7, 0x0128, dwarfrelic_item_hook }, { GF_level_switch, minechests_hook }, { GF_saint_finish, prayfor_hook }, { 30, 0x1462, 0x1c76, westedge_hook }, { GF_lock_pick, bestpick_hook },
     { 37, 0x1462, 0x2ace, save_records_hook }, { -2, 0, 0, 0 }, { 38, 0x1462, 0x02f8, innroster_key_hook }, { GF_party_remove, leaving_record_hook }, { -2, 0, 0, 0 }, { 37, 0x1c7d, 0x0d24, duplicate_load_hook }, { 16, 0x1ef8, 0x0f76, dissolve_key_hook }, { -2, 0, 0, 0 },
-    { 14, 0x0e76, 0x0694, thrown_end_hook }, { 14, 0x19cd, 0x0738, nosel_leave_hook }, { 18, 0x1f43, 0x0256, castsight_hook }, { GF_path_find, doorplan_hook }, { 30, 0x1462, 0x1dd4, maprows_hook }, { 87, 0x1986, 0x01e6, fruitonce_hook }, { 53, 0x1838, 0x02d6, footpadsonce_hook }, { 30, 0x1462, 0x25be, campwatch_hook }, { 14, 0x0e76, 0x0f58, exitleft_tick_hook }, { -2, 0, 0, 0 }, { -2, 0, 0, 0 }, { 80, 0x1838, 0x0000, bounty_briefing_hook }, { GF_use_ammo, loadsum_hook }, { -2, 0, 0, 0 },
+    { 14, 0x0e76, 0x0694, thrown_end_hook }, { 14, 0x19cd, 0x0738, nosel_leave_hook }, { 18, 0x1f43, 0x0256, castsight_hook }, { GF_path_find, doorplan_hook }, { 30, 0x1462, 0x1dd4, maprows_hook }, { 87, 0x1986, 0x01e6, fruitonce_hook }, { 53, 0x1838, 0x02d6, footpadsonce_hook }, { 30, 0x1462, 0x25be, campwatch_hook }, { 14, 0x0e76, 0x0f58, exitleft_tick_hook }, { -2, 0, 0, 0 }, { -2, 0, 0, 0 }, { 80, 0x1838, 0x0000, bounty_briefing_hook }, { GF_use_ammo, loadsum_hook }, { -2, 0, 0, 0 }, { -2, 0, 0, 0 }, { 40, 0x1462, 0x0c22, pilefull_hook },
 };   /* (hitsound: mods/sfx.c; savecheck: mods/saves.c; cachefile: mods/cachefile.c; stairsreturn: mods/stairsfix.c; onefloor: mods/levelwalk.c; altarroad: mods/travel.c) */
 _Static_assert(sizeof HOOKS / sizeof HOOKS[0] == sizeof FIXES / sizeof FIXES[0], "a hook (or { -2 }) for each fix, in the same order");
 /* further hooks that belong to a fix */
@@ -4302,7 +4363,8 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "noselection", 16, 0x1ef8, 0x156e, nosel_order_hook }, { "noselection", 16, 0x1ef8, 0x1590, nosel_order_hook },
     { "noselection", 16, 0x1ef8, 0x152e, nosel_order_hook }, { "noselection", 16, 0x1ef8, 0x13d4, nosel_order_hook },
     { "noselection", 16, 0x1ef8, 0x0000, nosel_keys_hook }, { "noselection", 16, 0x1ef8, 0x1384, nosel_stairs_hook },
-    { "exitleft", GF_combat_over, exitleft_over_hook }, { "exitleft", GF_take_exit, exitleft_stairs_hook } };
+    { "exitleft", GF_combat_over, exitleft_over_hook }, { "exitleft", GF_take_exit, exitleft_stairs_hook },
+    { "exitleft", GF_marching_order_rebuild, exitleft_order_hook } };
 
 void fix_enable(int i, int on)
 {

@@ -495,9 +495,13 @@ static void act(const NsAction *a, int *who)
     case SV_UNDO: {
         SheetModel *s = &sheet_model;
         if (s->ndrops <= 0) return;
-        SvDrop d = s->drops[--s->ndrops];
-        int got = 0;
+        /* (the entry stays until its things are back: taken off first, as until 1.5.1-RC21, a thing that found no room with
+           the member shown - or the rest of a stack only part of which fit - was gone with it. With the shared pack whoever
+           has room takes it) */
+        SvDrop d = s->drops[s->ndrops - 1];
+        int got = 0, shown = w;
         for (int k = 0; k < d.count && !ns_unwinding; k++) {
+            if (sheetview_shared()) { int to = gm_pack_target(d.id, d.qual, shown, 0x1f); if (to >= 0) w = to; }
             int before = gm_item_count(w), had = 0;
             for (int i = 0; i < before; i++) { GmItem g; if (gm_item(w, i, &g) && g.id == d.id && g.qual == d.qual) had += g.count; }
             ns_call(GF_add_item_q, 3, w, d.id, d.qual);
@@ -507,8 +511,10 @@ static void act(const NsAction *a, int *who)
             got++;
         }
         if (ns_unwinding) return;
-        if (got) snprintf(t, sizeof t, got > 1 ? "Taken back: the %s (%d)." : "Taken back: the %s.", d.name, got);
-        else snprintf(t, sizeof t, "The %s cannot be taken back (no room).", d.name);
+        if (got >= d.count) s->ndrops--; else s->drops[s->ndrops - 1].count = d.count - got;
+        if (got && got < d.count) snprintf(t, sizeof t, "Taken back: the %s (%d); no room for the other %d: Undo again once there is.", d.name, got, d.count - got);
+        else if (got) snprintf(t, sizeof t, got > 1 ? "Taken back: the %s (%d)." : "Taken back: the %s.", d.name, got);
+        else snprintf(t, sizeof t, "The %s cannot be taken back yet (no room): Undo again once there is.", d.name);
         note(t);
         return; }
     case SV_READY:

@@ -183,11 +183,11 @@ static void job_hook(void)                   /* s036 1462:197e (who) */
 static int call(u16 off, int n, int a, int b) { return n == 2 ? ns_call(36, 0x1462, off, 2, a, b) : ns_call(36, 0x1462, off, 1, a); }
 #define ev_ptr g_event
 
-static long days_of(int y, int mo, int d)       /* (a day count: month 0-11, the Julian calendar) */
+static long days_of(int y, int mo, int d)       /* (a day count: month 0-11, the game's calendar - every year 365 days, days_per_month s029 1367; the leap days counted here until 1.5.1-RC21 gave a teacher one day too many across the end of a February) */
 {
     static const int CUM[12] = { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
     if (mo < 0 || mo > 11) mo = 0;
-    return (long)y * 365 + y / 4 + CUM[mo] + (y % 4 == 0 && mo > 1) + d;
+    return (long)y * 365 + CUM[mo] + d;
 }
 /* the town's teachers that have begun, in the events' order */
 static void teachers(LodgeModel *m)
@@ -440,6 +440,15 @@ static void lodge_hook(void)               /* the lodging screen (mode), s036 14
         if (ns_call(GF_key_pressed, 0)) {                     /* the original's keys, all of them */
             int k = ns_get_key();
             if (k == 0x11b) leave = 1;
+            else if ((k & 0xff) == 0 && ((k >> 8) == 0x48 || (k >> 8) == 0x50 || (k >> 8) == 0x4b || (k >> 8) == 0x4d)) {
+                /* (the arrows - the wheel arrives as Up and Down - step through the members here, those with the party:
+                   the game's own routine, s036 1462:08ec, steps below the first to "member 5", which is the first enemy of
+                   the last battle - no member chosen on the page, and its letter keys then write past the five members'
+                   rows, as in the original: the audit, 2026-11-22) */
+                int dir = (k >> 8) == 0x50 || (k >> 8) == 0x4d ? 1 : -1, sel = m->sel;
+                for (int n = 0; n < 5; n++) { sel = (sel + dir + 5) % 5; if (gm_member_present(sel) && gm_member_status(sel) != 0) break; }
+                select_member(sel);
+            }
             else if (k) {
                 int nested = (k >> 8) >= 0x3b && (k >> 8) <= 0x3f;          /* F1..F5: a sheet */
                 nested |= k == 0x1e41 || k == 0x1e61;                       /* A: the formulae */

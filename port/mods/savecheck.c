@@ -50,6 +50,20 @@ const char *savecheck_sav(FILE *file)
     return NULL;
 }
 
+/* How many bytes follow the places: the store rooms' file (CACHE.TMP), which the game's save (s037 1462:2ace)
+ * appends last and its load copies back out. -1 when the save does not reach that far. */
+long savecheck_sav_tail(FILE *file)
+{
+    unsigned char header[0x189], count[2];
+    if (fseek(file, 0, SEEK_END)) return -1;
+    long size = ftell(file);
+    if (size < (long)sizeof header || fseek(file, 0, SEEK_SET) || fread(header, 1, sizeof header, file) != sizeof header) return -1;
+    long at = (long)sizeof header + (long)word(header + 0xf1) * 0x22a;
+    if (at > size - 2 || fseek(file, at, SEEK_SET) || fread(count, 1, 2, file) != 2) return -1;
+    at += 2 + (long)word(count) * 0x30 + 2 + 414L * 0x3a;
+    return at > size ? -1 : size - at;
+}
+
 typedef struct {
     unsigned char *data;
     unsigned size, capacity;

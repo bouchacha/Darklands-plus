@@ -16,7 +16,7 @@ const FixGroup FIX_GROUPS[FIX_NGROUPS] = {
 
 static const struct { const char *id; int g; } G[] = {
     /* game-breaking */
-    { "nullitem", 0 }, { "itemcount", 0 }, { "testcard", 0 }, { "fullpack", 0 }, { "castlefreeze", 0 }, { "lootcount", 0 },
+    { "nullitem", 0 }, { "itemcount", 0 }, { "testcard", 0 }, { "fullpack", 0 }, { "castlefreeze", 0 }, { "lootcount", 0 }, { "pilefull", 0 },
     { "innsave", 0 }, { "offmap", 0 }, { "altar", 0 }, { "castle", 0 }, { "armorwear", 0 }, { "potions", 0 }, { "standings", 0 },
     { "blessing", 0 }, { "colors", 0 }, { "ownplace", 0 }, { "saverecords", 0 }, { "leavingrecord", 0 }, { "cachefile", 0 }, { "duplicateload", 0 }, { "dissolve", 0 }, { "stairsreturn", 0 }, { "noselection", 0 },
     /* as the manual and the texts say */

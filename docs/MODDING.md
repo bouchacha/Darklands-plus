@@ -233,7 +233,7 @@ menu comes back unless its actions went elsewhere.
 | `rejoin`, `dropaway` | after fleeing: members left behind come back, or are lost |
 | `kill WHO` | a member is lost for good (as the game's harshest cards do; never the last one) |
 | `chosen WHO`, `chosen2 WHO`, `saintname S`, `itemname CODE` | `$ChosenOneName`, `$ChosenTwoName`, `$NamedOneName`, `$ItemName` |
-| `enable N`, `disable N`, `hide N` | an option of the menu, for the rest of the encounter |
+| `enable N`, `disable N`, `hide N` | option N of the menu the statement runs in (in a section of actions only: the menu it came from), for the rest of the encounter; other menus' options of the same number are not touched |
 | `music` | the game's ambush music |
 
 **Values.** Numbers (`0x54` too), `+ - * / %`, comparisons, `and or not`, and:

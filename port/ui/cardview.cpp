@@ -634,15 +634,15 @@ extern "C" void cardview_draw(void)
                     if (why) dl->AddText(fs, size * 0.78f, ImVec2(tx + f->CalcTextSizeA(size * 0.95f, FLT_MAX, 0, et.c_str()).x + 0.6f * size, ey + 0.12f * h), ink_soft, why);
                     /* a saint to call on, or to learn: the Virtue it asks of the one who prays, at the row's end - Virtue's
                        shield and the number, greyed when this member's is below it (more Divine Favor does not help then),
-                       as on the Saints page and the prayer screen; after it, for one to call on, the Divine Favor a 99%
+                       as on the Saints page and the prayer screen; after it, for one to call on, the Divine Favor a certain hearing (the game's 99: heard when rand() % 100 is no more)
                        chance takes (his wish, 2026-11-06), greyed when the member has less (their best chance then in its
-                       tooltip), or the best chance when no favor gives 99% */
+                       tooltip), or the best chance when no favor gives that */
                     float vs = size * 0.82f, ish = size * 0.8f, gap = 0.7f * size;
                     on_chip = false;                                 /* (the pointer on one of them: its own tooltip, not the saint's) */
                     char db[16] = "";
                     const bool dfrow = c.popup_kind == 2 && !saint_learning && en.dfbest >= 0 && (en.df99 > 0 || en.dfbest > 0);
                     const bool dfshort = dfrow && en.dfbest < 99;
-                    if (dfrow) { if (en.df99 > 0) snprintf(db, sizeof db, "%d", en.df99); else snprintf(db, sizeof db, "%d%%", en.dfbest); }
+                    if (dfrow) { if (en.df99 > 0) snprintf(db, sizeof db, "%d", en.df99); else snprintf(db, sizeof db, "%d%%", en.dfbest > 0 ? en.dfbest + 1 : 0); }   /* (heard when the game's rand() % 100 is no more than its number: one in a hundred more than the number) */
                     const float dw = dfrow ? UI_SHIELD_W * ish + ish * 0.2f + fs->CalcTextSizeA(vs, FLT_MAX, 0, db).x : 0;
                     if (dfrow) {
                         ImVec2 d0(X1 - 0.5f * size - dw, ey), d1(X1 - 0.5f * size, ey + h);
@@ -654,10 +654,10 @@ extern "C" void cardview_draw(void)
                             ui_tip_beside(d0, d1);
                             ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 22);
                             std::string who = ui_member_name(en.member);
-                            if (en.dfbest >= 99) ui_rich_textf("A 99%% chance takes {Divine Favor:%d}, of the %d %s has: more is spent for nothing. The prayer screen sets the favor.", en.df99, en.dfhave, who.c_str());
-                            else if (en.df99 > 0 && en.dfbest > 0) ui_rich_textf("A 99%% chance takes {Divine Favor:%d}; %s has %d, which gives %d%%.", en.df99, who.c_str(), en.dfhave, en.dfbest);
-                            else if (en.df99 > 0) ui_rich_textf("A 99%% chance takes {Divine Favor:%d}; %s has %d, too little for this saint to hear them.", en.df99, who.c_str(), en.dfhave);
-                            else ui_rich_textf("All of %s's {Divine Favor} (%d) gives a %d%% chance: no favor gives them 99%% with this saint.", who.c_str(), en.dfhave, en.dfbest);
+                            if (en.dfbest >= 99) ui_rich_textf("To be heard for certain takes {Divine Favor:%d}, of the %d %s has: more is spent for nothing. The prayer screen sets the favor.", en.df99, en.dfhave, who.c_str());
+                            else if (en.df99 > 0 && en.dfbest > 0) ui_rich_textf("To be heard for certain takes {Divine Favor:%d}; %s has %d, which gives %d%%.", en.df99, who.c_str(), en.dfhave, en.dfbest + 1);
+                            else if (en.df99 > 0) ui_rich_textf("To be heard for certain takes {Divine Favor:%d}; %s has %d, too little for this saint to hear them.", en.df99, who.c_str(), en.dfhave);
+                            else ui_rich_textf("All of %s's {Divine Favor} (%d) gives a %d%% chance: no favor makes it certain with this saint.", who.c_str(), en.dfhave, en.dfbest + 1);
                             ImGui::PopTextWrapPos(); ImGui::EndTooltip();
                         }
                     }

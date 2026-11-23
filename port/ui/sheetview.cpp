@@ -1120,7 +1120,7 @@ static void saints(NsDraw &P, const SheetModel &s)
         for (int m = 0; m < 5; m++) {
             if (!s.present[m] || !s.saint[m][t]) continue;
             float hx = tx + head_tag(P, m, tx + 6.5f, ty, bh + 0.6f, false, false) + 1.2f;
-            /* the favor a 99% chance takes, when they have it; else the best chance their favor gives; else what it asks */
+            /* the favor a certain hearing takes (the game's 99: heard when rand() % 100 is no more than its number, so each number is one in a hundred better than it reads), when they have it; else the best chance their favor gives; else what it asks */
             char b[120], tip[400];
             bool asked = s.pray_saint == t && s.pray_best[m] >= 0;
             bool vlow = t < s.nsaints && s.pskill[m][9] < s.saint_vmin[t];
@@ -1128,11 +1128,11 @@ static void saints(NsDraw &P, const SheetModel &s)
             if (!asked) ;
             else if (vlow) { snprintf(b, sizeof b, "{~Virtue:%d} too low (it asks %d)", s.pskill[m][9], s.saint_vmin[t]); snprintf(tip, sizeof tip, "This saint asks a {Virtue} of %d: no prayer is heard below it.", s.saint_vmin[t]); }
             else if (s.pray_best[m] >= 99) {
-                snprintf(b, sizeof b, "{Divine Favor:%d} needed for a 99%% chance", s.pray_df[m]);
+                snprintf(b, sizeof b, "{Divine Favor:%d} needed to be heard for certain", s.pray_df[m]);
                 snprintf(tip, sizeof tip, "The least Divine Favor that gives the best chance of being heard (of the %d they have): more is spent for nothing. The prayer screen sets the favor.", s.pray_have[m]);
             } else if (s.pray_best[m] > 0) {
-                snprintf(b, sizeof b, "Max %d%% with current {Divine Favor:%d}", s.pray_best[m], s.pray_have[m]);
-                if (s.pray_df99[m] > 0) snprintf(tip, sizeof tip, "All their Divine Favor gives this chance; a 99%% chance takes {Divine Favor:%d}. The prayer screen sets the favor.", s.pray_df99[m]);
+                snprintf(b, sizeof b, "Max %d%% with current {Divine Favor:%d}", s.pray_best[m] + 1, s.pray_have[m]);
+                if (s.pray_df99[m] > 0) snprintf(tip, sizeof tip, "All their Divine Favor gives this chance; to be heard for certain takes {Divine Favor:%d}. The prayer screen sets the favor.", s.pray_df99[m]);
                 else snprintf(tip, sizeof tip, "All their Divine Favor gives this chance. The prayer screen sets the favor.");
             } else {
                 snprintf(b, sizeof b, "{Divine Favor:%d} needed at least, has %d", s.pray_least[m], s.pray_have[m]);

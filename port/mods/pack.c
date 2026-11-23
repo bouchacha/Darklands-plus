@@ -34,6 +34,7 @@ static int carried(int m, int type, int *rec)
     return n;
 }
 
+static int give_safe(int from, int to, int rec);
 static void hand_out_ammo(void)
 {
     for (int m = 0; m < 5; m++) {
@@ -55,7 +56,7 @@ static void hand_out_ammo(void)
         if (!bshoots && give == bn) ns_call(GF_give_stack, 4, best, m, brec, 9);
         else for (int k = 0; k < give && !ns_unwinding; k++) {
             int rec = -1; if (!carried(best, t, &rec)) break;
-            ns_call(GF_give_one, 4, best, m, rec, 9);
+            if (!give_safe(best, m, rec)) break;
         }
         if (ns_unwinding) return;
         fprintf(stderr, "pack: member %d gets %d of ammunition %#x from member %d for the battle\n", m, give, t, best);
@@ -198,21 +199,39 @@ static void use_ammo_hook(void)
 /* arrows, quarrels and balls that never run out are not shown (gm_ammo_hidden), but a bow, crossbow
    or gun shoots only while its bearer carries one: each shooter is given one of the party's, or a
    new one if the party has none */
+static void ensure_one(int m, int t)       /* member m carries one piece of ammunition type t (0x40 arrows, 0x41 quarrels, 0x42 balls) */
+{
+    if (t < 0x40 || t > 0x42 || carried(m, t, NULL)) return;
+    int from = -1, rec = -1;
+    for (int h = 0; h < 5 && from < 0; h++) {
+        if (h == m || !gm_member_present(h) || gm_member_status(h) == 5) continue;
+        int r = -1; if (carried(h, t, &r) > (ammo_of(h) == t ? 1 : 0)) { from = h; rec = r; }
+    }
+    if (from < 0 || (!give_safe(from, m, rec) && !ns_unwinding)) {
+        if (gm_item_count(m) >= 64) return;
+        ns_call(GF_add_item_q, 3, m, 33 + (t - 0x40), 25);
+    }
+    if (!ns_unwinding) fprintf(stderr, "pack: member %d carries the ammunition %#x the game wants to see\n", m, t);
+}
 static void ensure_ammo(void)
 {
     for (int m = 0; m < 5 && !ns_unwinding; m++) {
         if (!gm_member_present(m) || gm_member_status(m) != 1) continue;
-        int t = ammo_of(m);
-        if (t < 0x40 || t > 0x42 || carried(m, t, NULL)) continue;
-        int from = -1, rec = -1;
-        for (int h = 0; h < 5 && from < 0; h++) {
-            if (h == m || !gm_member_present(h) || gm_member_status(h) == 5) continue;
-            int r = -1; if (carried(h, t, &r) > (ammo_of(h) == t ? 1 : 0)) { from = h; rec = r; }
-        }
-        if (from >= 0) ns_call(GF_give_one, 4, from, m, rec, 9);
-        else ns_call(GF_add_item_q, 3, m, 33 + (t - 0x40), 25);
-        if (!ns_unwinding) fprintf(stderr, "pack: member %d carries the ammunition %#x the game wants to see\n", m, t);
+        ensure_one(m, ammo_of(m));
     }
+}
+/* ... and whenever the game asks whether a member has something to shoot (can_fire, s014 18bf:0c02: the member's orders, a
+   shot about to be loosed, the members' ways): a castle, mine or dungeon is one battle_run for the whole stay, and a missile
+   weapon of another kind readied inside it - a crossbow from the loot, a handgun for the bow - had no ammunition, none
+   was shown anywhere to take, and the weapon could not be used until the party had left the place */
+static void can_fire_hook(void)            /* can_fire (i) */
+{
+    int i = (s16)rw(SS, (u16)(SP + 4));
+    if (i >= 0 && i < 5 && gm_ammo_hidden() && gm_member_present(i) && gm_member_status(i) == 1) {
+        int w = (s8)g_rb((u16)(0x9c55 + 0x80 * i + CB_MISSILE));
+        if (w >= 0 && w < 0x40) { ensure_one(i, rb(G_FAR20A5, (u16)(0x7822 + w))); if (ns_unwinding) return; }
+    }
+    hook_call_original();
 }
 
 /* every battle passes battle_run (s002 0e76:0000): a card's own fight through run_battle (s029 0e76:2278), a castle,
@@ -300,6 +319,24 @@ static void spares_off(int p)
     }
     if (moved && !ns_unwinding) fprintf(stderr, "pack: member %d leaves; %d spare things stay in the pack\n", p, moved);
 }
+/* the inn's own screen of who travels on (s038 1462:02f8): its A on a member who joined at this inn within the week
+   strikes the member off by itself (status 0, the event of the joining removed), through neither party_remove nor
+   party_delete - so the spares went with them, and the next character added to the slot wrote over them. The shared pack
+   makes that bite: a member added at an inn arrives with nothing and is the first to be handed every new kind of thing
+   bought, looted or taken from the store room (the audit, 2026-11-22). Whoever stood in the party before the key and
+   does not after it leaves their spares (the records are still there: 02f8 writes the status alone) */
+static void inn_key_hook(void)             /* the inn's roster key (key) */
+{
+    u8 st[5];
+    for (int m = 0; m < 5; m++) st[m] = g_rb(G_MEMBER(m));
+    hook_call_original();
+    if (unw_active || !sheetview_shared()) return;
+    u16 ax = AX, dx = DX;
+    int was = choosing; choosing = 0;
+    for (int m = 0; m < 5 && !ns_unwinding; m++) if (st[m] != 0 && g_rb(G_MEMBER(m)) == 0) spares_off(m);
+    choosing = was;
+    if (!ns_unwinding) { AX = ax; DX = dx; }
+}
 static void leave_hook(void)              /* party_remove (p) */
 {
     spares_off((s16)rw(SS, (u16)(SP + 4)));
@@ -351,4 +388,6 @@ void pack_init(void)
     hook_install(GF_order_menu_build, orders_hook);
     hook_install(GF_lock_pick, lockpick_hook);
     hook_install(GF_use_ammo, use_ammo_hook);
+    hook_install(GF_can_fire, can_fire_hook);
+    hook_install(38, 0x1462, 0x02f8, inn_key_hook);
 }

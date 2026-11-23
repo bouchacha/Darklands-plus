@@ -258,6 +258,7 @@ static int plan(int tx, int ty)
     return 1;
 }
 
+static int fresh;                          /* a journey asked for, its first step not yet taken */
 int travel_to_tile(int x, int y, int loc, const char *name)
 {
     if (!map_ready()) return 0;
@@ -266,6 +267,7 @@ int travel_to_tile(int x, int y, int loc, const char *name)
     field(px, py);
     if (!plan(x, y)) return 0;
     travel.active = 1; travel.loc = loc; travel.tx = x; travel.ty = y; camp_resume = 0;
+    fresh = 1;                                           /* (its first step may still carry the key of a walk to a clicked point: step_hook) */
     snprintf(travel.name, sizeof travel.name, "%s", name ? name : "");
     travel.replan = 0; travel_min_left = -1; travel_stall = 0;
     fprintf(stderr, "travel: to %s (%d,%d) from (%d,%d): %d tiles, %d minutes\n", travel.name, x, y, px, py, travel.n, travel.minutes);
@@ -471,6 +473,10 @@ static int camp_now(const char *why)
 static void step_hook(void)                 /* s030 1462:0c44 (key): one step of the overland loop */
 {
     int started = pending_check();                  /* (this step's key was read before: not the player's taking over) */
+    /* (nor is the first step after a journey was asked for: the game's loop goes on making direction keys from a point
+       clicked before, s030 overland_loop, until a key is pressed - the journey's own first key ends that. Until
+       1.5.1-RC21 such a step called the journey off, and "Travel there" did nothing while the party was walking) */
+    if (fresh) { fresh = 0; if (travel.active) started = 1; }
     { static int lg = -1; if (lg < 0) lg = getenv("DL_MAP_POLL_LOG") != 0; u32 t = plat_ticks_ms(); if (lg && t - map_polled > 200) fprintf(stderr, "map poll gap %u ms\n", t - map_polled); }
     map_polled = plat_ticks_ms();
     if (camp_resume && !travel.active && lodge_entered != camp_seen) {   /* back from the camp at 20:00: on with the journey */
@@ -556,7 +562,7 @@ static void step_hook(void)                 /* s030 1462:0c44 (key): one step of
     int x0 = (s16)g_rw(GV_map_marker_x), v0 = (s16)g_rw(GV_map_view_col), h0 = (s16)g_rw(GV_cur_hour);
     hook_call_original();
     if (unw_active) return;                                  /* (a load from the map's menu bar: AX is not this step's) */
-    int r = (s16)AX;
+    int r = (s16)AX; u16 dx_r = DX;
     foot_fix(e0, c0, y0);
     travel_step_result = r;
     if (r == 1000 || r == 2000) {                            /* (fix altarroad: an encounter beside a pagan altar) */
@@ -568,9 +574,12 @@ static void step_hook(void)                 /* s030 1462:0c44 (key): one step of
                     || x0 != (s16)g_rw(GV_map_marker_x) || v0 != (s16)g_rw(GV_map_view_col);
         checks_map_step(r, moved);
         if (moved && !travel.active && camp_resume) camp_resume = 0;   /* (walked by hand meanwhile: no journey taken up later) */
-        if (moved && (s16)g_rw(GV_cur_hour) == 20 && (h0 == 19 || camp_due == today())) {
+        /* (a step that brings an encounter or a place leaves the marker where it was - "not moved" - with the hour struck:
+           the camp is due all the same, on the next step. Asked only of steps that moved, until 1.5.1-RC21, that night's
+           camp was lost) */
+        if ((s16)g_rw(GV_cur_hour) == 20 && (h0 == 19 || camp_due == today())) {
             if (r >= 0) camp_due = today();               /* an encounter, a place: on the next step */
-            else camp_now("20:00");
+            else if (moved) camp_now("20:00");
         }
     }
     if (travel.active && r >= 0 && getenv("DL_TRAVEL_LOG")) { int px, py; travel_party_tile(&px, &py); fprintf(stderr, "travel: step result %d at (%d,%d), route %d/%d\n", r, px, py, travel.i, travel.n); }
@@ -579,6 +588,9 @@ static void step_hook(void)                 /* s030 1462:0c44 (key): one step of
         else if (r < G_NLOC) travel.active = 0;               /* entered a location (the destination or not) */
         /* 1000 / 2000: an encounter; the walk goes on when the map is back */
     }
+    /* the step's own result back in AX: the map's loop reads it (overland_loop: a value of 0 or more is a place to enter
+       or a card to run), and what was called above after the step (foot_fix's redraw, the camp) leaves its own there */
+    if (!unw_active) { AX = (u16)r; DX = dx_r; }
 }
 
 static void delay_hook(void)                /* s030 1767:0046: the pause between steps */

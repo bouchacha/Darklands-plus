@@ -2,6 +2,7 @@
  * keyboard controller, PIC), plus the safe-point dl_poll() that delivers timer and keyboard
  * interrupts to the game's own handlers and refreshes the screen. */
 #include <stdio.h>
+#include <time.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
@@ -585,7 +586,8 @@ void hle_out8(u16 port, u8 v)
     case 0x40:
         if (!pit_write_hi) { pit_new = v; pit_write_hi = 1; }
         else { pit_new |= (u16)(v << 8); pit_div = pit_new; pit_write_hi = 0;
-               if (bios_trace) fprintf(stderr, "PIT divisor %u\n", pit_div); }
+               if (bios_trace) fprintf(stderr, "PIT divisor %u\n", pit_div);
+               { static u16 told; if (pit_div != told) { told = pit_div; fprintf(stderr, "timer: the game sets %.1f ticks a second (divisor %u)\n", 1193182.0 / (pit_div ? pit_div : 65536), pit_div); } } }
         break;
     case 0x61: spk_out(port, v); break;
     case 0x20: case 0x21: case 0x60: case 0x64: break;
@@ -876,6 +878,21 @@ void bios_init(void)
     ems_init();
     ww(0x40, 0x10, 0x0063);
     ww(0x40, 0x13, 640);
+    /* the BIOS's count of timer ticks since midnight (0040:006c), as a PC has it: the game takes a new party's seed from
+       its low word at the click on Quickstart or Create a New World (s037 1e26), and that seed makes the world (names,
+       stock, the dungeons' plans) and names every file Darklands+ keeps beside a game. Counted from 0 at each start, as
+       until 1.5.1-RC21, the seeds of all games fell within the few hundred ticks a player takes to click: worlds alike,
+       and a new game opening with another's journal, notes and marks (the audit, 2026-11-22). Under the test harness
+       (DL_CTL) it stays 0, so a run can be repeated; DL_BIOS_TICKS sets it */
+    {   u32 t = 0; const char *e = getenv("DL_BIOS_TICKS");
+        if (e) t = (u32)strtoul(e, 0, 0);
+        else if (!getenv("DL_CTL") && !getenv("DL_HEADLESS") && !getenv("DL_SCRIPT")) {
+            time_t now = time(0); struct tm *lt = localtime(&now);
+            if (lt) t = (u32)((lt->tm_hour * 3600L + lt->tm_min * 60L + lt->tm_sec) * 1193182.0 / 65536.0);
+        }
+        t &= 0xffff;                    /* (the low word, which is what the game reads; the high word from 0, so the count's
+                                           return to 0 at "midnight", 0x1800b0, stays a day of play away as it was) */
+        ww(0x40, 0x6c, (u16)t); ww(0x40, 0x6e, 0); }
     ww(0x40, 0x1a, 0x1e); ww(0x40, 0x1c, 0x1e);
     ww(0x40, 0x80, 0x1e); ww(0x40, 0x82, 0x3e);
     wb(0x40, 0x49, 3); wb(0x40, 0x4a, 80); wb(0x40, 0x84, 24);

@@ -414,11 +414,14 @@ void town_marks(std::vector<TownMark> &out)
 
 const char *QSORT_NAME[QSORT_N] = { "deadline", "nearest", "date taken" };
 
-static int day_number(int day, int month, int year)          /* days since a fixed day (the real month lengths) */
+/* days since a fixed day, by the game's calendar: twelve months of 31, 28, 31 ... days, every year 365 (days_per_month,
+   s029 1367: it has no leap years. Until 1.5.1-RC21 this added them, and a deadline in a year after one that "leaps"
+   read a day too long: the audit, 2026-11-22) */
+static int day_number(int day, int month, int year)
 {
     static const int CUM[12] = { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
     month = (month % 12 + 12) % 12;
-    return year * 365 + year / 4 - year / 100 + year / 400 + CUM[month] + day;
+    return year * 365 + CUM[month] + day;
 }
 
 /* the party's place on the map: the town or site it is at, else its tile (quests.h) */

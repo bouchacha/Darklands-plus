@@ -546,7 +546,24 @@ int dos_list(const char *dir, const char *pat, FindEnt **out)
 }
 /* the files of a DOS folder as the game sees them: the game folder's (less the deleted ones)
  * and the shadow folder's, the shadow's copy winning */
+static int dos_list_dos0(const char *dosdir, const char *pat, FindEnt **out);
+/* ... each with the size of the file an open of that name reads: a data mod's file stands in for the game's (dos_host_path_read),
+   and the game sizes its buffer by what the search tells it, then reads the file by name to its end (world_load, s043
+   1462:0100, DARKLAND.LST; the places, the alchemy file, the battle's item list the same). Told the game folder's size, a
+   mod's longer file was read over the end of the block, into the next block's header and beyond (the audit, 2026-11-22) */
 int dos_list_dos(const char *dosdir, const char *pat, FindEnt **out)
+{
+    int n = dos_list_dos0(dosdir, pat, out);
+    int here = !dosdir[0] || !strcmp(dosdir, ".");
+    for (int i = 0; i < n; i++) {
+        char dn[300], hp[1200]; struct stat st;
+        if (here) snprintf(dn, sizeof dn, "%s", (*out)[i].name); else snprintf(dn, sizeof dn, "%s\\%s", dosdir, (*out)[i].name);
+        dos_host_path_read(dn, hp, sizeof hp);
+        if (!stat(hp, &st) && S_ISREG(st.st_mode)) (*out)[i].size = (long)st.st_size;
+    }
+    return n;
+}
+static int dos_list_dos0(const char *dosdir, const char *pat, FindEnt **out)
 {
     char g[1100]; host_path(dosdir, g, sizeof g);
     int n = dos_list(g, pat, out);              /* (real: the name on disk, in whichever folder; dos_host_path finds it) */
@@ -778,10 +795,11 @@ void dos_int21(void)
               if (w2 >= LOADSEG && w2 < LOADSEG + 0x3000) n += snprintf(at + n, sizeof at - n, " %04x:%04x", (u16)(w2 - LOADSEG), w); }
           fprintf(stderr, "program exit: int 21h 4Ch %s\n", at);
           void plat_setenv(const char *, const char *);
-          if (AL) plat_setenv("DL_ERROR_AT", at); }     /* (into the next session's log too, after a restart: GitHub issue 25's was lost) */
-        { int saves_party_ended(void), halloffame_record(void);          /* the Honor Roll of Glory (ui/halloffame.cpp) */
+          { int saves_stopped_in_play(void); if (AL || saves_stopped_in_play()) plat_setenv("DL_ERROR_AT", at); } }     /* (into the next session's log too, after a restart: GitHub issue 25's was lost) */
+        { int saves_party_ended(void), saves_stopped_in_play(void), halloffame_record(void);          /* the Honor Roll of Glory (ui/halloffame.cpp) */
           void plat_setenv(const char *, const char *);
-          if (AL) { char c[16]; snprintf(c, sizeof c, "%d", AL); plat_setenv("DL_ERROR_EXIT", c); }   /* an error (99: a file missing, 1: out of memory ...), not the party's end */
+          if (!AL && saves_stopped_in_play()) { plat_setenv("DL_ERROR_EXIT", "256"); fprintf(stderr, "program exit: code 0 with the party alive and no quit asked: one of the game's own stops, told as an error\n"); }   /* (256: no DOS exit code) */
+          else if (AL) { char c[16]; snprintf(c, sizeof c, "%d", AL); plat_setenv("DL_ERROR_EXIT", c); }   /* an error (99: a file missing, 1: out of memory ...), not the party's end */
           else { plat_setenv("DL_ERROR_EXIT", "0"); if (saves_party_ended()) { void saves_journey_over(void); if (halloffame_record()) plat_setenv("DL_HALL", "1"); saves_journey_over(); } } }
         { int saves_restart_on_exit(void); void plat_restart(void); if (saves_restart_on_exit()) plat_restart(); }
         plat_quit(AL); break;
