@@ -20,13 +20,14 @@ static char path[1100];
    the file - the default - which a search along the list answered only after comparing every key) */
 #define HSIZE 4096                                  /* (a power of two, well above MAXE) */
 static short hidx[HSIZE];                           /* entry + 1; 0 empty */
-static unsigned hkey(const char *k) { unsigned h = 2166136261u; while (*k) h = (h ^ (unsigned char)*k++) * 16777619u; return h; }
+#define KEYMAX ((int)sizeof entries[0].key - 1)     /* (a longer key is kept, and found, by its first KEYMAX characters) */
+static unsigned hkey(const char *k) { unsigned h = 2166136261u; for (int i = 0; *k && i < KEYMAX; i++) h = (h ^ (unsigned char)*k++) * 16777619u; return h; }
 static void hput(int i) { unsigned h = hkey(entries[i].key) & (HSIZE - 1); while (hidx[h]) h = (h + 1) & (HSIZE - 1); hidx[h] = (short)(i + 1); }
 static void hbuild(void) { memset(hidx, 0, sizeof hidx); for (int i = 0; i < n; i++) hput(i); }
 static int hfind(const char *key)
 {
     for (unsigned h = hkey(key) & (HSIZE - 1); hidx[h]; h = (h + 1) & (HSIZE - 1))
-        if (!strcmp(entries[hidx[h] - 1].key, key)) return hidx[h] - 1;
+        if (!strncmp(entries[hidx[h] - 1].key, key, KEYMAX)) return hidx[h] - 1;
     return -1;
 }
 
