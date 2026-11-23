@@ -40,8 +40,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/options.c:118` | in the original, each member carries their own items; with this (Darklands+ only), the party shares one pack. Each member keeps only their equipped items and their own potions; everything else goes into the party's pack. Equip and Drink take from the pack, and a shop buys from it. As in the original, only equipped items count toward the load. When the game needs a particular member to have an item (lock picks at a lock, a mount, arrows before a battle), Darklands+ first moves it from the pack to that member. Keep marks an item so it is never sold or dropped. |
 | `mods/options.c:119` | New loot screen |
 | `mods/options.c:119` | the whole pile and each member's items in two lists; a whole stack moves in one click. The original keys G and P still move every item. |
-| `mods/options.c:120` | Battle aftermath on the loot screen |
-| `mods/options.c:120` | above the lists after a won fight: who went down, skills gained or lost, and lasting losses such as a lowered maximum or worn armor (their notices still come too). |
+| `mods/options.c:120` | Battle aftermath |
+| `mods/options.c:120` | see who went down, which skills changed and any lasting losses. Victories show the report with the loot or in its own window. Retreating or leaving a dungeon also shows changes earned since the last report. |
 | `mods/options.c:121` | Shop value in the loot screen |
 | `mods/options.c:121` | under the lists, about what a shop would pay for the item under the pointer. |
 | `mods/options.c:122` | New alchemy screen |
@@ -647,11 +647,12 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 
 | Where | Text |
 |---|---|
-| `ui/aftermath.cpp:201` | Died in battle |
-| `ui/aftermath.cpp:203` | Fell unconscious, recovered |
-| `ui/aftermath.cpp:203` | Fell unconscious |
-| `ui/aftermath.cpp:211` |  destroyed (was  |
-| `ui/aftermath.cpp:327` | Battle aftermath |
+| `ui/aftermath.cpp:203` | Died in battle |
+| `ui/aftermath.cpp:205` | Fell unconscious, recovered |
+| `ui/aftermath.cpp:205` | Fell unconscious |
+| `ui/aftermath.cpp:213` |  destroyed (was  |
+| `ui/aftermath.cpp:279` | Battle aftermath |
+| `ui/aftermath.cpp:387` | Battle aftermath |
 | `ui/alchemyicons.cpp:201` | and sometimes appears to make more gold |
 | `ui/alchemyview.cpp:97` |  mixes; the whole party's ingredients count. |
 | `ui/alchemyview.cpp:101` | The party's Philosopher's Stone |
@@ -697,11 +698,11 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/alchemyview.cpp:455` | Start mixing |
 | `ui/alchemyview.cpp:456` | Start mixing |
 | `ui/alchemyview.cpp:464` | The mystic number: the higher, the harder the formula is to brew. The risk is what a failed batch can cause. At an inn, in a village or a hideout, one failure in two ends in a mishap: %s in %s it is an explosion (the party hurt, damages to pay, no room at the inn for four months), otherwise a stink (no room for a month). In a camp in the wild a failure only costs the ingredients. |
-| `ui/alerts.cpp:76` | %s: %d, was %d |
-| `ui/alerts.cpp:112` |   OK (%d more)   |
-| `ui/alerts.cpp:153` |  - what comes before  |
-| `ui/alerts.cpp:179` | Y: yes     N: no |
-| `ui/alerts.cpp:179` | Any key or click: continue |
+| `ui/alerts.cpp:88` | %s: %d, was %d |
+| `ui/alerts.cpp:128` |   OK (%d more)   |
+| `ui/alerts.cpp:169` |  - what comes before  |
+| `ui/alerts.cpp:195` | Y: yes     N: no |
+| `ui/alerts.cpp:195` | Any key or click: continue |
 | `ui/barterview.cpp:139` | Click to have %s pay from now on |
 | `ui/barterview.cpp:171` | Missile weapons |
 | `ui/barterview.cpp:171` | Tools and other goods |
@@ -2980,12 +2981,13 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/barterview.c:181` | Not sold: this merchant pays nothing for it. |
 | `mods/barterview.c:277` | Nothing sold: this merchant pays nothing for those items. |
 | `mods/barterview.c:281` | Sold the spare gear (%d kind%s of items) for %s. |
-| `mods/battleend.c:33` | Victory! The battle is won. |
-| `mods/battleend.c:33` | The party has retreated. |
-| `mods/battleend.c:34` | The party is beaten. |
-| `mods/battleend.c:34` | The party has surrendered. |
-| `mods/battleend.c:35` | The whole party has fallen. |
-| `mods/battleend.c:35` | The party has left the field. |
+| `mods/battleend.c:34` | Victory! The battle is won. |
+| `mods/battleend.c:34` | The party has retreated. |
+| `mods/battleend.c:35` | The party is beaten. |
+| `mods/battleend.c:35` | The party has surrendered. |
+| `mods/battleend.c:36` | The whole party has fallen. |
+| `mods/battleend.c:36` | The party has left the field. |
+| `mods/battleend.c:45` | Victory! No skill changes. |
 | `mods/battlerules.c:353` | who is within reach of whom |
 | `mods/builtin.c:129` | Faster overland travel |
 | `mods/builtin.c:129` | Overland travel takes a third of the time. |

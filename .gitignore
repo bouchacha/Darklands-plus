@@ -13,3 +13,6 @@ darklands_game.dll
 libdarklands_game.so
 *.dll.new
 *.so.new
+
+# made from the game files by port/tools/gen_art_checklist.py: never in the repository
+darklands_art_checklist.json

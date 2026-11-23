@@ -101,6 +101,13 @@ later). So a fix, to the game's code or to Darklands+'s own, is finished when:
 4. **`docs/REVIEW.md`'s log says all of it**: the cause, the ways in found, the check, what was
    not done. Guards made redundant by the fix are taken out.
 
+### Pictures an art pack can replace
+
+When the port adds, renames or removes a picture that art packs can replace (an animation frame,
+a scenery variant, a filename pattern), update [gen_art_checklist.py](port/tools/gen_art_checklist.py)
+in the same pull request, so the checklist it makes from a player's game (`check_art_pack.py --game`)
+names it. Never commit the checklist itself: it is made from the game's files.
+
 ## Pull requests
 
 Thank you for them. To make them quick to take:

@@ -51,7 +51,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/assist.c` | 521 | playing aids of the native port that watch the game through hooks: |
 | `mods/autopause.c` | 105 | battles pause themselves (as if Space were pressed) when a member of the party falls, or is badly hurt, or when foes waiting in a castle, dungeon or mine come out to fight (a group of the shown floor's activations steps out: their count, DS:d6cc, falls while the floor stays the same; see mods/foesleft.c), so the player can give new orders in time. |
 | `mods/barterview.c` | 299 | the shop screen as a native screen (nscreen.h). |
-| `mods/battleend.c` | 108 | the end of a battle said in words (battle.end_words, on by default; F12 > Settings > Battles). |
+| `mods/battleend.c` | 113 | the end of a battle said in words (battle.end_words, on by default; F12 > Settings > Battles). |
 | `mods/battlerules.c` | 432 | rules of the battles, switches (F12 > Settings > Battles). |
 | `mods/battlescroll.c` | 171 | scrolling the battle map at a pace a person can follow. |
 | `mods/builtin.c` | 224 | the built-in mods. The same changes as the source mods in mods/ (built into a DOS executable there), done here as run-time hooks on the recompiled game. |
@@ -124,11 +124,11 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 
 | File | Lines | What it is |
 |---|---:|---|
-| `ui/aftermath.cpp` | 420 | The victory loot shows what happened to the party, using the game's actual recovery, practice rolls and armor wear. |
+| `ui/aftermath.cpp` | 478 | The aftermath shows the game's actual recovery, practice rolls and armor wear, either above the loot or in a notice after combat settles. |
 | `ui/alchemydesk.cpp` | 230 | the alchemy screen's workbench (ui/alchemyview.cpp writes on it; where each thing lies: ui/alchemydesk.h): an oak table; the formulary open on it, bound in red leather with gilt tooling and brass corners, its ribbon out of the gutter; an apothecary's chest of walnut, open, 8 x 3 compartments for the ingredients, a label inside its lid; a wax tablet in a wooden frame with its stylus, for the reckoning; a small brick furnace with fire in its mouth and a brass plate for Start. |
 | `ui/alchemyicons.cpp` | 348 | the pictures of the potions and of the alchemical ingredients, drawn with ImGui's shapes (no image files). |
 | `ui/alchemyview.cpp` | 469 | draws the alchemy screen (mods/alchemyview.c runs it; docs/NATIVE_SCREENS.md) on an alchemist's workbench (ui/alchemydesk.cpp): the formulary open, its left page the index of the potions the alchemist knows a formula of, a row each with its three formulae (the grades) as seals (how many batches the party's ingredients make; a star puts a potion first, a mark puts it aside, last), its right page the chosen formula written out (what it does, its mystic number and risk, its ingredients needed and at hand); the apothecary's chest beside it, a compartment for each of the 23 ingredients with what the party carries, those the formula needs tagged; the wax tablet below: the batches (- and +), the chance for every number of them the ingredients allow (a click there sets it), what may come of the brew and what the chance is made of, in pictures; Start on the furnace. |
-| `ui/alerts.cpp` | 209 | news the player must read: a window to click through, the game waiting meanwhile (ui_is_open). |
+| `ui/alerts.cpp` | 225 | news the player must read: a window to click through, the game waiting meanwhile (ui_is_open). |
 | `ui/banner.cpp` | 156 | the travel map's banner drawn anew (with the period ornaments, display.ornate): the plaited band across the top (MAPHEADA, 229 x 16 at (60, 0): two strands, a light copper one and a dark brown one, over and under, on grey) and the sky box at its right end (MAPHEADB and its eight frames MAPBRS00..21 at (289, 0): the game shows the hour as a sun eclipsed by a dark disc). |
 | `ui/barterview.cpp` | 470 | draws the shop screen (mods/barterview.c runs it; docs/NATIVE_SCREENS.md). |
 | `ui/battlelog.cpp` | 395 | what happens in a battle, line by line. |
@@ -224,12 +224,14 @@ Tools: tests, checks, the harness.
 | `tools/artpack.py` | 204 | make a replacement-art mod from the game's own pictures. |
 | `tools/battletrace.py` | 156 | stress tests of battle movement (pathfinding in a melee crowd), on your own game files. |
 | `tools/bin2c.py` | 13 | bin2c.py OUT.c NAME=FILE ...: embed files as const byte arrays (NAME, NAME_SIZE). |
+| `tools/check_art_pack.py` | 177 | List replacement art, plan a set of pictures, or check a Darklands+ mod's art folder. |
 | `tools/check_docs.py` | 200 | what the player-facing texts say against the code, so that no text drifts from it. |
 | `tools/check_hooks.py` | 65 | a hook that reads or writes its arguments by SP after calling the game's function. |
 | `tools/check_switches.py` | 24 | check_switches.py OLD.md NEW.md - fails if a switch key in OLD (docs/SWITCHES.md as committed) is missing from NEW (as the game now writes it) without being listed under "Retired keys" there: a switch's key is its name for good (saved settings, presets and other engines know it by it). |
 | `tools/code_map.py` | 38 | writes docs/CODE_MAP.md: every source file of the port with the first sentence of its header comment (each file starts with one saying what it is), by folder, with its size. |
 | `tools/copy_catalog.py` | 61 | every text a player can read that Darklands+ itself writes (not the game's own), by file and line: docs/COPY.md. |
 | `tools/encfuzz.py` | 48 | encfuzz.py ENCCHECK [SEED] [CASES]: feeds build/enccheck (port/tools/enccheck.c, built with -fsanitize=address,undefined) mutated copies of the shipped encounter scripts; a batch whose run fails (a sanitizer report, a crash) is kept in encfuzz-crash/ with its log. |
+| `tools/gen_art_checklist.py` | 392 | Build the replacement-art checklist from a player's Darklands 483.07 files. |
 | `tools/gen_gamevars.py` | 75 | port/runtime/gamevars.h from the decompilation's names. |
 | `tools/gotosweep.py` | 44 | Go to (G) to every place of a town and on from there, in a running game: the walk must arrive or stop for a reason the player is told (shut at night, not in this town), never fail for want of a way ("not found in this city", "cannot find the way", "the way is blocked"). |
 | `tools/make_icon.py` | 40 | make_icon.py OUT.ico [OUT.png] - the Darklands+ icon: a red shield with a gold rim and a Fraktur "D+" (DL Fraktur, SIL OFL). |
@@ -240,7 +242,7 @@ Tools: tests, checks, the harness.
 | `tools/package.py` | 152 | the Windows release of Darklands+: only our own code and the tools that make the game module on the player's machine (runtime/split.h). |
 | `tools/perfcheck.py` | 78 | how long the interface takes to draw on each screen (run after every new feature). |
 | `tools/prepare.py` | 137 | make the game module (runtime/split.h) from the player's own DARKLAND.EXE. |
-| `tools/release_check.py` | 186 | a scripted session through the parts of Darklands+ that a release must not break, in a window (native screens are drawn only there), on your own game files. |
+| `tools/release_check.py` | 208 | a scripted session through the parts of Darklands+ that a release must not break, in a window (native screens are drawn only there), on your own game files. |
 | `tools/reloc_check.py` | 54 | every segment the DOS loader would have fixed up in DARKLAND.EXE's code, and whether the translation (port/recomp/recomp16.py) adds the load segment there too. |
 | `tools/run_tests.py` | 49 | build and run every C test under port/tools (test_*.c), each by the gcc command its own header gives, from the repository root. |
 | `tools/smoke.py` | 52 | quick checks of a Darklands+ build against your own game files, before a release. |

@@ -46,6 +46,7 @@ An open-world role-playing game from 1992. You lead a party of up to five throug
 
 ## Questions
 
+- **Which pictures can I replace?** The [art pack checklist](docs/MODDING.md#art-pack-checklist) lists filenames and sizes and can check a folder of replacement pictures.
 - **Do my saved games work?** Yes. They stay where they are, in the game's own format, and still load in the original game (unless a character uses one of the extra sprites Darklands+ offers). The first start of each version also copies them into a "Darklands+ save backups" folder.
 - **Does it go online?** No. Darklands+ never connects to the internet and collects nothing.
 - **My antivirus complains.** On the first start Darklands+ builds the game module, `darklands_game.dll`, from your own `DARKLAND.EXE`; some antivirus programs distrust files that were just compiled. Allow it.
