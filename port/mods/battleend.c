@@ -18,6 +18,7 @@
 #include "../runtime/game.h"
 #include "../runtime/gamevars.h"
 #include "../runtime/config.h"
+#include "aftermath.h"
 
 #define END_TICKS 55                     /* (60 a second) */
 
@@ -34,12 +35,16 @@ static void message_hook(void)          /* show_message (text, ticks) */
         { "defeat", "The party is beaten." }, { "surrender", "The party has surrendered." },
         { "all dead", "The whole party has fallen." }, { "leave", "The party has left the field." },
     };
-    if (on() && t == GV_msg_buf && !strncmp(s, "BattleResults - ", 16)) {
+    if (t == GV_msg_buf && !strncmp(s, "BattleResults - ", 16)) {
+        int shorter = on();
+        int empty = !strcmp(s + 16, "victory") && aftermath_take_empty_victory() && shorter;   /* (taken either way; with the battle's end as the original's, its words are left as they are) */
         for (unsigned k = 0; k < sizeof W / sizeof W[0]; k++) {
             if (strcmp(s + 16, W[k][0])) continue;
+            if (!shorter && !empty) break;
             const char *w = W[k][1];
+            if (empty) w = "Victory! No skill changes.";
             for (int i = 0; ; i++) { g_wb((u16)(t + i), (u8)w[i]); if (!w[i]) break; }
-            if ((s16)rw(SS, (u16)(SP + 6)) > END_TICKS) ww(SS, (u16)(SP + 6), END_TICKS);
+            if (shorter && (s16)rw(SS, (u16)(SP + 6)) > END_TICKS) ww(SS, (u16)(SP + 6), END_TICKS);
             snprintf(shown, sizeof shown, "%s", w);
             fprintf(stderr, "battle end: \"%s\"\n", w);
             break;

@@ -1094,3 +1094,9 @@ covered and found, and what it could not check.
   config.c: keys 200, values 520, the file written beside and renamed. dos.c dos_local: a fixed offset from UTC
   taken at the start. gm_member_worn_id for ns_load_with. overlay.cpp rebuilds its keys at datamods_generation and
   bounds the saint and formula indexes; ui_town_offers bounds the town.
+- 2026-11-22 (skill gains missing after a spider fight or on leaving the field): the aftermath was built only
+  when victory opened a loot pile. Weapon practice can also settle on retreat or when the party leaves a
+  dungeon after collecting its loot. The report now reads the party after combat settles, using the last
+  dungeon report as its baseline. An empty victory uses the timed notice. The release check exercises a
+  spider victory, a retreat, a dungeon exit after looting and a victory without practice. Defeats and
+  surrenders keep their original result notices.

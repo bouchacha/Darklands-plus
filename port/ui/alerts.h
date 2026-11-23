@@ -13,5 +13,8 @@ typedef struct { char name[40]; int age, n; UiAlertChange ch[26]; } UiAlertRow;
 void ui_alert_rows(const char *title, const char *body, const UiAlertRow *rows, int nrows, const char *foot);
 #ifdef __cplusplus
 }
+#include <functional>
+/* The queue owns draw_body until dismissal. Capture the report as it was when issued. */
+void ui_alert_custom(const char *title, std::function<void()> draw_body);
 #endif
 #endif
