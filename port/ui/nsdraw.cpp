@@ -873,8 +873,9 @@ int ns_load_with(int id, int m)
     int sl = ns_slot_of(id);
     if (!sl || m < 0 || m >= 5 || !gm_member_present(m)) return -1;
     static const u16 TOFF[6] = { 0, 0x37, 0x38, 0x48, 0x3d, 0x0e };
-    int t = (s8)g_rb((u16)(G_MEMBER(m) + TOFF[sl])), old = 0;
-    if (t >= 0) for (int k = 0; k < (int)gamedata.items.size(); k++) if (gamedata.items[k].type == t) { old = gm_itemdef_weight(k); break; }
+    /* (what is there now: the thing itself, as the game sums the load - the first item of its kind weighed a relic or the
+       Sword of War as the plain weapon, up to 20 off: the audit, 2026-11-22) */
+    int w = gm_member_worn_id(m, TOFF[sl]), old = w >= 0 ? gm_itemdef_weight(w) : 0;
     int v = gm_member_load(m) - old + gm_itemdef_weight(id);
     return v < 0 ? 0 : v;
 }

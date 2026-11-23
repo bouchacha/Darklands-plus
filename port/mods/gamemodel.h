@@ -123,6 +123,7 @@ int gm_room_for(int m, int id, int qual);         /* one more fits: a free recor
 /* the shared pack (inventory.shared): a member's spares of record i (its count, less the one in use);
    who carries a spare (id, qual) - `prefer` first, else whoever has the most - 0 if nobody */
 int gm_item_spare(int m, int i);
+int gm_member_worn_id(int m, int kind_off);   /* the item worn in a slot (its kind byte's offset in the member record), -1 none */
 int gm_pack_holder(int m);                 /* member m's records count as the party's pack (not away, not fallen) */
 int gm_pack_find(int prefer, int id, int qual, int *m_out, int *i_out);
 /* the shared pack (inventory.shared) as every screen lists it - the character sheet, the shop, the

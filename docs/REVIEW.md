@@ -1084,3 +1084,13 @@ covered and found, and what it could not check.
   oilweapons' and knightdead's wording; the native screens' shared queue; the tray's drink and Split without
   give_safe's bookkeeping in a battle; the load preview's weight of relics; indexes kept across a mods reload;
   hit chances shown without the rate gate; Simmern on Geldern's tile (the original's data).
+- 2026-11-23, the same round, second part (release_check passed on dbff504 first). cachefile writes the original's
+  own header (99, the count, offsets, zeros to 101, stores in order) up to 49 stores, so cache_save's walk by the
+  first offset's low byte as a signed char is right (0x65; 198's 0xC6 is -58), and an unreadable store is written
+  back empty (cache_dropped) instead of refusing every write; test_cachefile.c checks both. pack.c record_gone_hook
+  on item_delete (every record lost goes through it) keeps DS:c7cd, the Eater-Water's record number, in a battle;
+  give_safe no longer adjusts it itself. Windows: res/darklands.manifest, activeCodePage UTF-8. platform_sdl.c
+  game_down[]: a key the game was told is down gets its release whoever takes the event, and all at focus loss.
+  config.c: keys 200, values 520, the file written beside and renamed. dos.c dos_local: a fixed offset from UTC
+  taken at the start. gm_member_worn_id for ns_load_with. overlay.cpp rebuilds its keys at datamods_generation and
+  bounds the saint and formula indexes; ui_town_offers bounds the town.

@@ -106,7 +106,7 @@ $(OUT)/mt32emu/%.o: $(MT32)/%.cpp | $(OUT)
 	$(CXX) $(SANFL) -O2 -DMT32EMU_WITH_INTERNAL_RESAMPLER -DMT32EMU_WITH_STD_SNPRINTF -I$(MT32) -c -o $@ $<
 $(OUT)/gen_%.o: $(GEN)/%.c runtime/cpu.h runtime/strops.h | $(OUT)
 	$(CC) $(CFLAGS) -c -o $@ $<
-$(OUT)/res.o: res/darklands.rc res/darklands.ico $(OUT)/version.c | $(OUT)
+$(OUT)/res.o: res/darklands.rc res/darklands.ico res/darklands.manifest $(OUT)/version.c | $(OUT)
 	x86_64-w64-mingw32-windres -DDLP_VERSION='\"$(VERSION)\"' -I res -i res/darklands.rc -o $@
 $(OUT):
 	mkdir -p $@

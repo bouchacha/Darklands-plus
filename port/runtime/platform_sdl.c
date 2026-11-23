@@ -135,10 +135,15 @@ static int xt_code(SDL_Scancode sc, int *ext)
     }
 }
 
+/* the keys the game has been told are down: their release reaches it whoever takes the event (a Darklands+ window opened
+   while Shift, Ctrl or Alt was held kept the release, the game's flags stayed set, and plain S, L or Q were then its
+   Alt-S, Alt-L, Alt-Q: the audit, 2026-11-22) */
+static unsigned char game_down[SDL_NUM_SCANCODES];
 static void key(SDL_Scancode sc, int release)
 {
     int ext, c = xt_code(sc, &ext);
     if (c < 0) return;
+    if ((unsigned)sc < SDL_NUM_SCANCODES) game_down[sc] = (unsigned char)!release;
     if (ext) kbd_push_scancode(0xe0, 0);
     kbd_push_scancode((u8)c, release);
 }
@@ -1200,13 +1205,19 @@ void plat_events(void)
             else if (e.type == SDL_KEYDOWN || e.type == SDL_MOUSEBUTTONDOWN) input_pad = 0;
         } else if (e.type == SDL_MOUSEMOTION && input_pad && (abs(e.motion.x - pad_warp_x) > 2 || abs(e.motion.y - pad_warp_y) > 2)
                    && (abs(e.motion.xrel) > 3 || abs(e.motion.yrel) > 3)) input_pad = 0;
-        if (!headless && ui_event(&e)) { if (e.type == SDL_MOUSEBUTTONUP) swallow_click = 0; continue; }   /* (a release taken by the interface ends the swallowing too) */
+        if (!headless && ui_event(&e)) {
+            if (e.type == SDL_MOUSEBUTTONUP) swallow_click = 0;
+            if (e.type == SDL_KEYUP && (unsigned)e.key.keysym.scancode < SDL_NUM_SCANCODES && game_down[e.key.keysym.scancode]) key(e.key.keysym.scancode, 1);
+            continue;
+        }   /* (a release taken by the interface ends the swallowing too) */
         if (swallow_click && (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP)) { if (e.type == SDL_MOUSEBUTTONUP) swallow_click = 0; continue; }
         if (drag_filter(&e)) continue;
         switch (e.type) {
         case SDL_QUIT: { int saves_close_requested(void); if (saves_close_requested()) break; }   /* (an Ironman game: saved first) */
             fprintf(stderr, "program exit: window closed\n"); plat_quit(0); break;
         case SDL_WINDOWEVENT:
+            if (e.window.event == SDL_WINDOWEVENT_FOCUS_LOST)            /* (keys let go in another window: Alt-Tab's Alt above all) */
+                for (int sc = 0; sc < SDL_NUM_SCANCODES; sc++) if (game_down[sc]) key((SDL_Scancode)sc, 1);
             if (e.window.event == SDL_WINDOWEVENT_FOCUS_LOST && !getenv("DL_SCRIPT") && !getenv("DL_CTL") && config_get_int("display.pause_unfocused", 1)) {
                 bg_paused = 1; fprintf(stderr, "window in the background: the game waits\n");
                 menu_escape();                      /* a menu left open by a click closes, choosing nothing */

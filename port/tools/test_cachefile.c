@@ -92,7 +92,9 @@ int main(void)
     const u8 replacement[] = { 56, 0, 33, 7 };
     size_t size = fixture(old, 2, 1), result = 0;
     assert(!cache_rewrite(old, size, 1, 0, replacement, 1, out, &result));
-    assert(result == size && out[1] == 2);
+    /* up to 49 stores, the original's own form: 99, the count, the offsets, zeros to 101, the stores in order */
+    assert(result == size - 97 && out[0] == 99 && out[1] == 2 && read_word(out + 2) == 101);
+    assert((signed char)out[2] == 101);                       /* (what the original's rewrite steps by) */
     assert(!memcmp(record(out, 1) + 1, replacement, 4));
     assert(!memcmp(record(out, 2), record(old, 2), 5));
     /* Reordered, gapped offsets are followed independently. */
@@ -120,8 +122,13 @@ int main(void)
     size = fixture(old, 65, 250);
     assert(cache_rewrite(old, size, -1, 0, old + 199, 100, out, &result));
     assert(cache_rewrite(old, 3, 1, 0, replacement, 1, out, &result));
+    /* a store that cannot be read is written back empty, the others kept (the one being written is replaced) */
     size = fixture(old, 2, 1); write_word(old + 2, 65000);
-    assert(cache_rewrite(old, size, 1, 0, replacement, 1, out, &result));
+    assert(!cache_rewrite(old, size, 1, 0, replacement, 1, out, &result) && !cache_dropped);
+    assert(!memcmp(record(out, 1) + 1, replacement, 4) && !memcmp(record(out, 2), record(old, 2), 5));
+    size = fixture(old, 3, 1); write_word(old + 4, 65000);
+    assert(!cache_rewrite(old, size, 1, 0, replacement, 1, out, &result) && cache_dropped == 1);
+    assert(record(out, 2)[0] == 0 && !memcmp(record(out, 3), record(old, 3), 5));
 
     /* Replacement failure leaves the original file and all transferred items intact. */
     state(); size = fixture(old, 0, 0); write_fixture(old, size);

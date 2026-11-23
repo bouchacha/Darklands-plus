@@ -408,6 +408,16 @@ int gm_boosts_running(int run[5][7])
     }
     return 1;
 }
+/* the thing member m wears or holds by its slot's kind byte (0x37 body, 0x38 legs, 0x48 shield, 0x3d weapon, 0x0e
+   missile weapon): the item it is, by kind and quality as the game sums the load; -1 none */
+int gm_member_worn_id(int m, int kind_off)
+{
+    static const u8 KIND[5] = { 0x3d, 0x37, 0x38, 0x48, 0x0e }, QUAL[5] = { 0x44, 0x3b, 0x3c, 0x47, 0x46 };
+    if (m < 0 || m >= 5) return -1;
+    for (int k = 0; k < 5; k++)
+        if (KIND[k] == kind_off) return equipped_id(m, (s8)g_rb((u16)(G_MEMBER(m) + KIND[k])), g_rb((u16)(G_MEMBER(m) + QUAL[k])));
+    return -1;
+}
 int gm_member_equip_load(int m)
 {
     static const u8 KIND[5] = { 0x3d, 0x37, 0x38, 0x48, 0x0e }, QUAL[5] = { 0x44, 0x3b, 0x3c, 0x47, 0x46 };

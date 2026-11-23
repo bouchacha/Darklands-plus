@@ -41,18 +41,26 @@ static void write_word(u8 *data, unsigned value)
 }
 
 /* Only the table and its records are interpreted. Unused gaps or old trailing bytes
- * are discarded, while empty stores and every handle retain their position. */
+ * are discarded, while empty stores and every handle retain their position.
+ * A store whose offset or length cannot be (a file the original's own rewrite garbled:
+ * below) is written back empty, counted in cache_dropped, rather than blocking every
+ * store of every inn for good, as until 1.5.1-RC21. */
+static int cache_dropped;
 static const char *cache_rewrite(const u8 *old, size_t old_size, int handle, int clear,
                                 const u8 *items, unsigned count, u8 *out, size_t *out_size)
 {
     if (old_size < 2 || count > CACHE_ENTRIES) return "the store file is incomplete";
     unsigned stores = old[1], offsets[256], lengths[256];
     if (old_size < 2 + 2 * stores) return "the store offset table is incomplete";
+    cache_dropped = 0;
     for (unsigned h = 1; h <= stores; h++) {
         unsigned at = read_word(old + 2 * h);
-        if (at < 2 + 2 * stores || at >= old_size) return "a store has an invalid offset";
-        unsigned size = 1 + 4 * (unsigned)old[at];
-        if (size > old_size - at) return "a stored item list is incomplete";
+        unsigned size = at >= 2 + 2 * stores && at < old_size ? 1 + 4 * (unsigned)old[at] : 0;
+        if (!size || size > old_size - at) {
+            if (h != (unsigned)handle) { cache_dropped++; fprintf(stderr, "cachefile: store %u unreadable (offset %u of %u bytes): written back empty\n", h, at, (unsigned)old_size); }
+            offsets[h] = 0; lengths[h] = 1;
+            continue;
+        }
         offsets[h] = at; lengths[h] = size;
     }
     if (handle == -1) {
@@ -62,10 +70,20 @@ static const char *cache_rewrite(const u8 *old, size_t old_size, int handle, int
     if (clear && (clear < 1 || clear > (int)stores || clear == handle))
         return "the stores to combine are invalid";
 
-    /* The standard 198-byte header has room for 98 offset words. Keep any larger
-     * legacy table readable, but never append past the original table's capacity. */
+    /* The header: its first byte 99, then the count and the offset words. The original
+     * rewrites a store (cache_save, s035 1462:1468) by writing 99 zero bytes after the
+     * first two and the stores from offset 101 on, in handle order; and it finds the
+     * first store to copy by the low byte of its offset read as a signed char - right
+     * for 101 (0x65), wrong for 198 (0xC6: 58 bytes before the file), the length of a
+     * new game's file. So up to 49 stores (2 + 2 * 49 = 100) this writes the original's
+     * own form, which the original can go on rewriting (a save made here and played with
+     * this fix off, under "Play the original", or in the DOS game: until 1.5.1-RC21 the
+     * 198-byte form was written always, and the first rewrite by the original garbled
+     * every other inn's store: the audit, 2026-11-22). Past 49 no form is the original's
+     * (its table runs into its first store): 198 bytes, or the table's own length. */
     unsigned header = 2 + 2 * stores;
-    if (header < 198) header = 198;
+    if (header <= 101) header = 101;
+    else if (header < 198) header = 198;
     size_t total = header;
     for (unsigned h = 1; h <= stores; h++) {
         unsigned size = h == (unsigned)handle ? 1 + 4 * count : h == (unsigned)clear ? 1 : lengths[h];
@@ -73,7 +91,7 @@ static const char *cache_rewrite(const u8 *old, size_t old_size, int handle, int
         total += size;
     }
     memset(out, 0, header);
-    out[0] = (u8)(header / 2 > 255 ? 255 : header / 2);
+    out[0] = (u8)(header <= 198 ? 99 : header / 2 > 255 ? 255 : header / 2);
     out[1] = (u8)stores;
     size_t at = header;
     for (unsigned h = 1; h <= stores; h++) {
@@ -81,7 +99,7 @@ static const char *cache_rewrite(const u8 *old, size_t old_size, int handle, int
         if (h == (unsigned)handle) {
             out[at++] = (u8)count;
             memcpy(out + at, items, count * 4); at += count * 4;
-        } else if (h == (unsigned)clear) out[at++] = 0;
+        } else if (h == (unsigned)clear || !offsets[h]) out[at++] = 0;
         else { memcpy(out + at, old + offsets[h], lengths[h]); at += lengths[h]; }
     }
     *out_size = at;
@@ -128,6 +146,10 @@ static const char *save_cache(int handle, int clear)
         if (!ok) { if (created) remove(temporary); problem = "the store file could not be written"; }
         else if (handle == -1)
             ww((u16)(location >> 16), (u16)((u16)location + LOCATION_CACHE), out[1]);
+        if (!problem && cache_dropped) {
+            char text[160]; snprintf(text, sizeof text, "%d store room%s could not be read (spoilt by an earlier save) and %s now empty.", cache_dropped, cache_dropped > 1 ? "s" : "", cache_dropped > 1 ? "are" : "is");
+            ui_notice(text);
+        }
     }
     free(old); free(out);
     return problem;

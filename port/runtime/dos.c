@@ -659,6 +659,22 @@ static time_t dos_now(unsigned *ms)
     return base + (time_t)(d / 1000);
 }
 
+/* the date and time the game is told: local time as it was at the start, carried on by the steady clock above. Asked of
+   localtime each time, as until 1.5.1-RC21, the night the clocks went back told the game an hour earlier, and its pauses
+   (delay_ticks, s030 1767:0046: "while clock() < until") waited that hour out: the audit, 2026-11-22 */
+static struct tm *dos_local(time_t t)
+{
+    static long off; static int init;
+    if (!init) {
+        time_t t0 = time(0); struct tm l = *localtime(&t0), g = *gmtime(&t0);
+        off = (long)(l.tm_hour - g.tm_hour) * 3600 + (long)(l.tm_min - g.tm_min) * 60 + (l.tm_sec - g.tm_sec);
+        int dd = l.tm_yday - g.tm_yday; if (dd > 1) dd = -1; else if (dd < -1) dd = 1;
+        off += dd * 86400L; init = 1;
+    }
+    time_t u = t + off;
+    return gmtime(&u);
+}
+
 void dos_int21(void)
 {
     char name[256], hp[1024];
@@ -684,9 +700,9 @@ void dos_int21(void)
     case 0x19: AL = 2; break;                                   /* C: */
     case 0x1a: dta_seg = DS; dta_off = DX; break;
     case 0x25: ww(0, (u16)(AL * 4), DX); ww(0, (u16)(AL * 4 + 2), DS); break;
-    case 0x2a: { extern int spin_polls; spin_polls++; unsigned ms; time_t t = dos_now(&ms); struct tm *tm = localtime(&t);
+    case 0x2a: { extern int spin_polls; spin_polls++; unsigned ms; time_t t = dos_now(&ms); struct tm *tm = dos_local(t);
         CX = (u16)(tm->tm_year + 1900); DH = (u8)(tm->tm_mon + 1); DL = (u8)tm->tm_mday; AL = (u8)tm->tm_wday; break; }
-    case 0x2c: { extern int spin_polls; spin_polls++; unsigned ms; time_t t = dos_now(&ms); struct tm *tm = localtime(&t);
+    case 0x2c: { extern int spin_polls; spin_polls++; unsigned ms; time_t t = dos_now(&ms); struct tm *tm = dos_local(t);
         CH = (u8)tm->tm_hour; CL = (u8)tm->tm_min; DH = (u8)tm->tm_sec; DL = (u8)(ms / 10); break; }
     case 0x2f: ES = dta_seg; BX = dta_off; break;
     case 0x2b: case 0x2d: AL = 0; break;        /* set date / time: accepted, not applied */

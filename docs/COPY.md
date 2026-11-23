@@ -585,7 +585,7 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:410` | Store a departing companion's full record |
 | `mods/fixes.c:411` | When the game stored a departing companion, it saved their current attributes and item count but kept old saints, formulas and item entries. It now stores all of those together, after spare items are handed to the shared pack. |
 | `mods/fixes.c:412` | Inn stores keep their items when saved |
-| `mods/fixes.c:413` | Revisiting an inn's store could erase items stored at another inn because the cache file was rewritten from the wrong offsets. Each store is now kept under its own handle. If an item transfer cannot be saved, the item stays where it was; combining shared stores writes both stores together. |
+| `mods/fixes.c:413` | Revisiting an inn's store could erase items stored at another inn because the cache file was rewritten from the wrong offsets. Each store is now kept under its own handle. If an item transfer cannot be saved, the item stays where it was; combining shared stores writes both stores together. The file is written in the layout the game's own rewrite expects (up to 49 stores), so a game saved with this fix can be played on without it. |
 | `mods/fixes.c:414` | A character appears only once when loading |
 | `mods/fixes.c:415` | A save that names the same character in two party slots could end the game while loading a missing shield picture. Loading now keeps that character in the first slot and empties the repeated slots. The roster keeps every character record, and the next save records the corrected party. |
 | `mods/fixes.c:416` | Dissolving a lock uses the acting member's Eater-Water |
@@ -1593,59 +1593,59 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/margins.cpp:319` |  The party's is %d%s. |
 | `ui/margins.cpp:319` |  The party has none. |
 | `ui/margins.cpp:319` | : nothing to gain here |
-| `ui/margins.cpp:359` | Notable shops |
-| `ui/margins.cpp:359` | Notable shops |
-| `ui/margins.cpp:361` | %s: %s of %dq (most shops sell about 25q). |
-| `ui/margins.cpp:366` | St.Edward, Confessor |
-| `ui/margins.cpp:374` | Saints taught here |
-| `ui/margins.cpp:391` |  (someone in the party knows this saint):  |
-| `ui/margins.cpp:391` |  (nobody in the party knows this saint):  |
-| `ui/margins.cpp:406` | Formulae sold here |
-| `ui/margins.cpp:425` | Someone in the party knows this formula. |
-| `ui/margins.cpp:425` | Nobody in the party knows this formula. |
-| `ui/margins.cpp:442` | Teachers to be hired |
-| `ui/margins.cpp:452` | %s: %s, up to %d |
-| `ui/margins.cpp:452` | %s: %s (their skill %d) |
-| `ui/margins.cpp:454` | A lesson a day at the inn, for a fee. Who would learn, and their skill now: |
-| `ui/margins.cpp:563` | Blessings and potions |
-| `ui/margins.cpp:638` | The first of these ends in  |
-| `ui/margins.cpp:638` | , the last in  |
-| `ui/margins.cpp:658` | Every member alike. |
-| `ui/margins.cpp:660` | Every member:  |
-| `ui/margins.cpp:696` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
-| `ui/margins.cpp:705` | Reputation %d |
-| `ui/margins.cpp:723` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
-| `ui/margins.cpp:723` | Below 0 its shops ask more and pay less: 1% for every 2 points below 0, up to 9%. |
-| `ui/margins.cpp:727` |   Changes seen since this game was loaded: |
-| `ui/margins.cpp:730` | the overland view |
-| `ui/margins.cpp:730` | , after choosing " |
-| `ui/margins.cpp:748` | The town counts as hostile: its gates and people turn the party away. |
-| `ui/margins.cpp:750` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
-| `ui/margins.cpp:761` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
-| `ui/margins.cpp:773` | Preparing for war |
-| `ui/margins.cpp:774` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
-| `ui/margins.cpp:776` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
-| `ui/margins.cpp:800` | The party has goods stored here (F12 > Journal > Stored). |
-| `ui/margins.cpp:805` | No blessings or potions at work. |
-| `ui/margins.cpp:814` | C: camp here |
-| `ui/margins.cpp:815` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
-| `ui/margins.cpp:819` | Go to a place here |
-| `ui/margins.cpp:819` | G: go to a place here |
-| `ui/margins.cpp:825` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
-| `ui/margins.cpp:874` | None taken on. |
-| `ui/margins.cpp:906` | Travel there |
-| `ui/margins.cpp:923` | ... %d more on the world map (M) |
-| `ui/margins.cpp:940` | Night in the streets |
-| `ui/margins.cpp:944` | almost always |
-| `ui/margins.cpp:945` | about %d time%s in 10 |
-| `ui/margins.cpp:946` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's {Stealth} and {Streetwise})%s. An inn is the safe place to wait for morning. |
-| `ui/margins.cpp:949` | , as set in F12 > Mods (Night encounters in the streets) |
-| `ui/margins.cpp:988` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
-| `ui/margins.cpp:988` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
-| `ui/margins.cpp:990` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
-| `ui/margins.cpp:990` | It is day (from 5:00 to 19:00). |
-| `ui/margins.cpp:1017` | %s in bank notes |
-| `ui/margins.cpp:1031` | F11: the keys and clicks of this screen. |
+| `ui/margins.cpp:360` | Notable shops |
+| `ui/margins.cpp:360` | Notable shops |
+| `ui/margins.cpp:362` | %s: %s of %dq (most shops sell about 25q). |
+| `ui/margins.cpp:367` | St.Edward, Confessor |
+| `ui/margins.cpp:375` | Saints taught here |
+| `ui/margins.cpp:392` |  (someone in the party knows this saint):  |
+| `ui/margins.cpp:392` |  (nobody in the party knows this saint):  |
+| `ui/margins.cpp:407` | Formulae sold here |
+| `ui/margins.cpp:426` | Someone in the party knows this formula. |
+| `ui/margins.cpp:426` | Nobody in the party knows this formula. |
+| `ui/margins.cpp:443` | Teachers to be hired |
+| `ui/margins.cpp:453` | %s: %s, up to %d |
+| `ui/margins.cpp:453` | %s: %s (their skill %d) |
+| `ui/margins.cpp:455` | A lesson a day at the inn, for a fee. Who would learn, and their skill now: |
+| `ui/margins.cpp:564` | Blessings and potions |
+| `ui/margins.cpp:639` | The first of these ends in  |
+| `ui/margins.cpp:639` | , the last in  |
+| `ui/margins.cpp:659` | Every member alike. |
+| `ui/margins.cpp:661` | Every member:  |
+| `ui/margins.cpp:697` | The party's fame: the same in every town (the town's own opinion of the party is its Reputation, under its name). |
+| `ui/margins.cpp:706` | Reputation %d |
+| `ui/margins.cpp:724` | The town's opinion of the party; what the party does here moves it (the cards say when), and many of the town's cards weigh it.  |
+| `ui/margins.cpp:724` | Below 0 its shops ask more and pay less: 1% for every 2 points below 0, up to 9%. |
+| `ui/margins.cpp:728` |   Changes seen since this game was loaded: |
+| `ui/margins.cpp:731` | the overland view |
+| `ui/margins.cpp:731` | , after choosing " |
+| `ui/margins.cpp:749` | The town counts as hostile: its gates and people turn the party away. |
+| `ui/margins.cpp:751` | The watch is after the party: guards who recognize the party try to arrest it, and talking or bribing your way out is harder. |
+| `ui/margins.cpp:762` | Rebels and the government's men are hiring in this town. The news (the posted notices and gossip) and its rumors of special jobs lead to them; so does the guild where the agitators meet. |
+| `ui/margins.cpp:774` | Preparing for war |
+| `ui/margins.cpp:775` | Prices are a quarter higher, the gate turns travelers away and patrols watch the walls; Soldiers' Road and its market are open, and few boats take passengers. |
+| `ui/margins.cpp:777` | Prices are 50% higher, food is short and the docks are barricaded; the gate turns travelers away and patrols watch the walls. Soldiers' Road and its market are open. |
+| `ui/margins.cpp:801` | The party has goods stored here (F12 > Journal > Stored). |
+| `ui/margins.cpp:806` | No blessings or potions at work. |
+| `ui/margins.cpp:815` | C: camp here |
+| `ui/margins.cpp:816` | Click (or press C) to make camp in the wild: rest, heal, brew potions, pray. Someone should guard the camp. |
+| `ui/margins.cpp:820` | Go to a place here |
+| `ui/margins.cpp:820` | G: go to a place here |
+| `ui/margins.cpp:826` | Click (or press G) to open Go to: a list of the places in this town; pick one and the party walks there. |
+| `ui/margins.cpp:875` | None taken on. |
+| `ui/margins.cpp:907` | Travel there |
+| `ui/margins.cpp:924` | ... %d more on the world map (M) |
+| `ui/margins.cpp:941` | Night in the streets |
+| `ui/margins.cpp:945` | almost always |
+| `ui/margins.cpp:946` | about %d time%s in 10 |
+| `ui/margins.cpp:947` | From 19:00 to 5:00 the town is dark. Each move through its streets may run into the night watch (more often on the main street, and where the town is on its guard). When leaving a side street, the party slips past cutthroats %s (depending on the party's {Stealth} and {Streetwise})%s. An inn is the safe place to wait for morning. |
+| `ui/margins.cpp:950` | , as set in F12 > Mods (Night encounters in the streets) |
+| `ui/margins.cpp:989` | The canonical hours, as people in the game tell the time: Matins 0-2, Lauds 3-5, Prime 6-8, Terce 9-11,  |
+| `ui/margins.cpp:989` | Sexts 12-14, Nones 15-17, Vespers 18-20, Compline 21-23.  |
+| `ui/margins.cpp:991` | It is night (from 19:00 to 5:00): town gates may be shut, and the streets have the watch and cutthroats. |
+| `ui/margins.cpp:991` | It is day (from 5:00 to 19:00). |
+| `ui/margins.cpp:1018` | %s in bank notes |
+| `ui/margins.cpp:1032` | F11: the keys and clicks of this screen. |
 | `ui/margins_battle.cpp:85` | The battle runs again (the key: Space). Any order being given is given first. |
 | `ui/margins_battle.cpp:86` | This member's order is given; the battle stays paused, to give others theirs (the key: Enter). |
 | `ui/margins_battle.cpp:87` | Every kind of enemy on the field: attributes, weapons, armor (the key: E). |
@@ -1831,11 +1831,11 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/nsdraw.cpp:825` | a heavy load: blows at the usual pace, dodging hampered |
 | `ui/nsdraw.cpp:825` | overloaded: blows two thirds slower, little or no dodging |
 | `ui/nsdraw.cpp:828` | Worn by %s: load %d \xc2\xbb %d of %d, %s%s |
-| `ui/nsdraw.cpp:892` | Load %d \xc2\xbb %d of %d |
-| `ui/nsdraw.cpp:893` | Load %d of %d |
-| `ui/nsdraw.cpp:949` | Spare equipment |
-| `ui/nsdraw.cpp:949` | Tools and other goods |
-| `ui/nsdraw.cpp:949` | Trophies and quest items |
+| `ui/nsdraw.cpp:893` | Load %d \xc2\xbb %d of %d |
+| `ui/nsdraw.cpp:894` | Load %d of %d |
+| `ui/nsdraw.cpp:950` | Spare equipment |
+| `ui/nsdraw.cpp:950` | Tools and other goods |
+| `ui/nsdraw.cpp:950` | Trophies and quest items |
 | `ui/optpreview.cpp:43` | The gate is barred. You... |
 | `ui/optpreview.cpp:45` | ...climb the wall |
 | `ui/optpreview.cpp:46` | ...pray to a saint |
@@ -1886,23 +1886,23 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `ui/overlay.cpp:416` | Items that help here |
 | `ui/overlay.cpp:446` | nobody knows |
 | `ui/overlay.cpp:446` | nobody has one |
-| `ui/overlay.cpp:501` |  learned of  |
-| `ui/overlay.cpp:552` |  sells what the party keeps a stock of |
-| `ui/overlay.cpp:717` | Nobody in the party knows this saint |
-| `ui/overlay.cpp:726` | %s - mystic number %d, %s |
-| `ui/overlay.cpp:738` | %s of the three formulae for %s (the others: %s). |
-| `ui/overlay.cpp:746` | Nobody in the party knows this formula. |
-| `ui/overlay.cpp:761` | (carried: %d) |
-| `ui/overlay.cpp:763` | Enough for %d batch%s. |
-| `ui/overlay.cpp:763` | Not enough ingredients for a batch. |
-| `ui/overlay.cpp:787` |   Take all of it |
-| `ui/overlay.cpp:787` |   Share it out among the party |
-| `ui/overlay.cpp:788` |   Sell the whole stack |
-| `ui/overlay.cpp:823` | Making a character: name and gender first, then the family background, the attributes, and one profession after another, five years each, until you begin adventuring. Older characters know more, but age costs attributes. |
-| `ui/overlay.cpp:826` | The family decides the first attributes and skills. The right side shows what the background under the pointer would give; EP (top right) are the points to spend next. |
-| `ui/overlay.cpp:828` | Spend the EP on attributes: pick one, then + or -. Endurance and Strength are the hit points (and together set how much a character can carry); Agility counts in battle; Perception, Intelligence and Charisma serve many skills. |
-| `ui/overlay.cpp:829` | Choose the profession for the next five years. The right side shows the one under the pointer: the EP it gives (top), the attributes after it, and for each skill gain:room, that is, what it adds at once and how many EP that skill can still take. Some professions open only after others, or need certain attributes. |
-| `ui/overlay.cpp:830` | Spend the EP on skills: pick one, then + or -. A skill takes at most the room shown after the colon. Then choose the next profession, or begin adventuring. |
+| `ui/overlay.cpp:503` |  learned of  |
+| `ui/overlay.cpp:554` |  sells what the party keeps a stock of |
+| `ui/overlay.cpp:723` | Nobody in the party knows this saint |
+| `ui/overlay.cpp:732` | %s - mystic number %d, %s |
+| `ui/overlay.cpp:744` | %s of the three formulae for %s (the others: %s). |
+| `ui/overlay.cpp:752` | Nobody in the party knows this formula. |
+| `ui/overlay.cpp:767` | (carried: %d) |
+| `ui/overlay.cpp:769` | Enough for %d batch%s. |
+| `ui/overlay.cpp:769` | Not enough ingredients for a batch. |
+| `ui/overlay.cpp:793` |   Take all of it |
+| `ui/overlay.cpp:793` |   Share it out among the party |
+| `ui/overlay.cpp:794` |   Sell the whole stack |
+| `ui/overlay.cpp:829` | Making a character: name and gender first, then the family background, the attributes, and one profession after another, five years each, until you begin adventuring. Older characters know more, but age costs attributes. |
+| `ui/overlay.cpp:832` | The family decides the first attributes and skills. The right side shows what the background under the pointer would give; EP (top right) are the points to spend next. |
+| `ui/overlay.cpp:834` | Spend the EP on attributes: pick one, then + or -. Endurance and Strength are the hit points (and together set how much a character can carry); Agility counts in battle; Perception, Intelligence and Charisma serve many skills. |
+| `ui/overlay.cpp:835` | Choose the profession for the next five years. The right side shows the one under the pointer: the EP it gives (top), the attributes after it, and for each skill gain:room, that is, what it adds at once and how many EP that skill can still take. Some professions open only after others, or need certain attributes. |
+| `ui/overlay.cpp:836` | Spend the EP on skills: pick one, then + or -. A skill takes at most the room shown after the colon. Then choose the next profession, or begin adventuring. |
 | `ui/overlay_text.cpp:178` | This option tests %s: %s %d%% chance of success. The original game shows this number while you hold Shift over an option; it rises with the skills and attributes tested. |
 | `ui/overlay_text.cpp:179` | This option tests the whole party: %s %d%% chance of success. The original game shows this number while you hold Shift over an option; it rises with the skills and attributes tested. |
 | `ui/overlay_text.cpp:213` | Edged Weapons |
@@ -2998,20 +2998,19 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/builtin.c:133` | Strong Quickstart party |
 | `mods/builtin.c:133` | The four members of the Quickstart party start with 60 in every attribute and 75 in every skill. |
 | `mods/builtin.c:134` | A party made with Create a New World starts with 5000 florins instead of 200. |
-| `mods/cachefile.c:48` | the store file is incomplete |
-| `mods/cachefile.c:50` | the store offset table is incomplete |
-| `mods/cachefile.c:53` | a store has an invalid offset |
-| `mods/cachefile.c:55` | a stored item list is incomplete |
-| `mods/cachefile.c:59` | the file already holds 98 stores |
-| `mods/cachefile.c:61` | this inn has no valid store handle |
-| `mods/cachefile.c:63` | the stores to combine are invalid |
-| `mods/cachefile.c:72` | the store file has no room for another item |
-| `mods/cachefile.c:105` | the inn has no location |
-| `mods/cachefile.c:107` | the store exceeds its 100-entry working table |
-| `mods/cachefile.c:109` | there is not enough memory |
-| `mods/cachefile.c:115` | the store file could not be read |
-| `mods/cachefile.c:128` | the store file could not be written |
-| `mods/cachefile.c:138` | The items stay where they were because %s. |
+| `mods/cachefile.c:52` | the store file is incomplete |
+| `mods/cachefile.c:54` | the store offset table is incomplete |
+| `mods/cachefile.c:67` | the file already holds 98 stores |
+| `mods/cachefile.c:69` | this inn has no valid store handle |
+| `mods/cachefile.c:71` | the stores to combine are invalid |
+| `mods/cachefile.c:90` | the store file has no room for another item |
+| `mods/cachefile.c:123` | the inn has no location |
+| `mods/cachefile.c:125` | the store exceeds its 100-entry working table |
+| `mods/cachefile.c:127` | there is not enough memory |
+| `mods/cachefile.c:133` | the store file could not be read |
+| `mods/cachefile.c:146` | the store file could not be written |
+| `mods/cachefile.c:150` | %d store room%s could not be read (spoilt by an earlier save) and %s now empty. |
+| `mods/cachefile.c:160` | The items stay where they were because %s. |
 | `mods/cacheview.c:115` | %d %s to %s (to give it to another member, drag it from the character sheet onto them in the party panel). |
 | `mods/cacheview.c:116` | %d %s into the party's pack. |
 | `mods/cacheview.c:117` | No room: every member already carries 64 kinds of items. |
@@ -3152,14 +3151,14 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixgroups.c:13` | Bugs players have long used to their advantage (invulnerability from fire protection, confession's clock turned back, the same bounty again and again). Leave these off to keep the old tricks. |
 | `mods/fixgroups.c:14` | Left over from 1992 |
 | `mods/fixgroups.c:14` | Not bugs, but nobody misses them: the question from the printed manual before the party first sets out. |
-| `mods/gamemodel.c:525` | Divine Favor |
-| `mods/gamemodel.c:530` | Edged Weapons |
-| `mods/gamemodel.c:530` | Impact Weapons |
-| `mods/gamemodel.c:530` | Thrown Weapons |
-| `mods/gamemodel.c:530` | Missile Devices |
-| `mods/gamemodel.c:531` | Speak Common |
-| `mods/gamemodel.c:531` | Read & Write |
-| `mods/gamemodel.c:550` | Missile Devices |
+| `mods/gamemodel.c:535` | Divine Favor |
+| `mods/gamemodel.c:540` | Edged Weapons |
+| `mods/gamemodel.c:540` | Impact Weapons |
+| `mods/gamemodel.c:540` | Thrown Weapons |
+| `mods/gamemodel.c:540` | Missile Devices |
+| `mods/gamemodel.c:541` | Speak Common |
+| `mods/gamemodel.c:541` | Read & Write |
+| `mods/gamemodel.c:560` | Missile Devices |
 | `mods/hdart.c:851` | Create a New World |
 | `mods/hdart.c:852` | The Story Continues |
 | `mods/hdart.c:1028` | Replacement art for Darklands+\r  |

@@ -410,7 +410,7 @@ Fix FIXES[] = {
     { "leavingrecord", "Store a departing companion's full record",
       "When the game stored a departing companion, it saved their current attributes and item count but kept old saints, formulas and item entries. It now stores all of those together, after spare items are handed to the shared pack.", 1 },
     { "cachefile", "Inn stores keep their items when saved",
-      "Revisiting an inn's store could erase items stored at another inn because the cache file was rewritten from the wrong offsets. Each store is now kept under its own handle. If an item transfer cannot be saved, the item stays where it was; combining shared stores writes both stores together.", 1 },
+      "Revisiting an inn's store could erase items stored at another inn because the cache file was rewritten from the wrong offsets. Each store is now kept under its own handle. If an item transfer cannot be saved, the item stays where it was; combining shared stores writes both stores together. The file is written in the layout the game's own rewrite expects (up to 49 stores), so a game saved with this fix can be played on without it.", 1 },
     { "duplicateload", "A character appears only once when loading",
       "A save that names the same character in two party slots could end the game while loading a missing shield picture. Loading now keeps that character in the first slot and empties the repeated slots. The roster keeps every character record, and the next save records the corrected party.", 1 },
     { "dissolve", "Dissolving a lock uses the acting member's Eater-Water",

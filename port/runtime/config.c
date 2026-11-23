@@ -3,8 +3,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include "config.h"
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
-typedef struct { char key[64]; char val[192]; } Entry;
+/* (keys hold a mod's folder name - mods.<name> - and values a path: until 1.5.1-RC21 a key of 64 characters or more was
+   kept cut and never found again, so such a mod went off at every start, and every set added it once more: the audit,
+   2026-11-22) */
+typedef struct { char key[200]; char val[520]; } Entry;
 #define MAXE 1024
 static Entry entries[MAXE];
 static int n;
@@ -30,7 +36,7 @@ void config_load(const char *dir)
     FILE *f = fopen(path, "r");
     n = 0; memset(hidx, 0, sizeof hidx);
     if (!f) return;
-    char line[300];
+    char line[800];
     while (fgets(line, sizeof line, f) && n < MAXE) {
         char *eq = strchr(line, '=');
         if (!eq || line[0] == '#' || line[0] == ';') continue;
@@ -49,14 +55,23 @@ void config_load(const char *dir)
     fclose(f);
 }
 
+/* written whole beside it and then put in its place, so a crash or a full disk mid-write leaves the old settings, not
+   an empty file (every setting back at its default at the next start) */
 void config_save(void)
 {
     if (!path[0]) return;
-    FILE *f = fopen(path, "w");
+    char tmp[1120]; snprintf(tmp, sizeof tmp, "%s.new", path);
+    FILE *f = fopen(tmp, "w");
     if (!f) return;
-    fprintf(f, "# Darklands native port settings (written by the game; edit while it is not running)\n");
-    for (int i = 0; i < n; i++) fprintf(f, "%s = %s\n", entries[i].key, entries[i].val);
-    fclose(f);
+    int ok = fprintf(f, "# Darklands native port settings (written by the game; edit while it is not running)\n") > 0;
+    for (int i = 0; i < n && ok; i++) ok = fprintf(f, "%s = %s\n", entries[i].key, entries[i].val) > 0;
+    if (fclose(f)) ok = 0;
+    if (!ok) { remove(tmp); fprintf(stderr, "config: the settings could not be written\n"); return; }
+#ifdef _WIN32
+    if (!MoveFileExA(tmp, path, MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) { remove(tmp); fprintf(stderr, "config: the settings could not be replaced\n"); }
+#else
+    if (rename(tmp, path)) { remove(tmp); fprintf(stderr, "config: the settings could not be replaced\n"); }
+#endif
 }
 
 const char *config_get(const char *key, const char *def)

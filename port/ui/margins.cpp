@@ -323,6 +323,7 @@ static void stone_chip(int loc, bool &first, float isz, float gap, float x0, flo
 
 void ui_town_offers(int loc, bool tables, float width, bool words)
 {
+    if (loc < 0 || loc >= (int)gamedata.cities.size()) return;   /* (the towns are the data's, not 92: a mod's DARKLAND.CTY may hold fewer) */
     static int seen_loc = -1; static bool has[2];
     if (tables || seen_loc != loc) { for (int k = 0; k < 2; k++) has[k] = citynav_town_offers(loc, k); seen_loc = loc; }
     const City &c = gamedata.cities[loc];

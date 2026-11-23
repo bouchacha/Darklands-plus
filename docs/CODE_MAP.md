@@ -11,11 +11,11 @@ The runtime: the CPU and DOS the game runs on, the window, sound, saves, the con
 | File | Lines | What it is |
 |---|---:|---|
 | `runtime/bios.c` | 905 | interrupts, BIOS services and the PC hardware the game talks to (VGA DAC, PIT, keyboard controller, PIC), plus the safe-point dl_poll() that delivers timer and keyboard interrupts to the game's own handlers and refreshes the screen. |
-| `runtime/config.c` | 96 | settings kept in darklands_port.ini next to the game (key = value lines) |
+| `runtime/config.c` | 111 | settings kept in darklands_port.ini next to the game (key = value lines) |
 | `runtime/cpu.c` | 202 | flags and arithmetic helpers for recompiled code |
 | `runtime/crt.c` | 126 | the screen effect over the game's picture (display.crt, F12 > Settings > Screen): 0 none, 1 scanlines, 2 CRT, 3 curved CRT. |
 | `runtime/dispatch.c` | 192 | calls and jumps to computed addresses |
-| `runtime/dos.c` | 855 | high-level emulation of the DOS services the game uses (int 21h) |
+| `runtime/dos.c` | 871 | high-level emulation of the DOS services the game uses (int 21h) |
 | `runtime/drivers.c` | 110 | the run-time loaded driver images (MGRAPHIC.EXE, MISC.EXE, *SOUND.DLC). |
 | `runtime/ems.c` | 211 | LIM EMS 4.0 expanded memory (int 67h), which Darklands requires. |
 | `runtime/gamecall.c` | 192 | calling the game's own functions from native code (the new interface uses the game's inventory routines so equipment, weights and stacks stay consistent). |
@@ -30,7 +30,7 @@ The runtime: the CPU and DOS the game runs on, the window, sound, saves, the con
 | `runtime/native.c` | 35 | native functions the game calls through far pointers (native.h) |
 | `runtime/overrides.c` | 31 | hand-written replacements for the few original routines whose tricks the static recompiler cannot express (listed in port/recomp/overrides.txt). |
 | `runtime/ovl.c` | 208 | RTLink/Plus overlay sections: loaded into memory on demand, as RTLink does. |
-| `runtime/platform_sdl.c` | 1449 | window, screen, input and time on SDL2. |
+| `runtime/platform_sdl.c` | 1460 | window, screen, input and time on SDL2. |
 | `runtime/prepare_run.c` | 154 | the first start of a release (DL_RTSPLIT): the game module is made from the player's DARKLAND.EXE by port/tools/prepare.py (the bundled Python and TinyCC), with a progress window. |
 | `runtime/sb.c` | 218 | the digital half of a Sound Blaster Pro: DSP (ports base+6/A/C/E), 8237 DMA controller and the transfer-complete interrupt. |
 | `runtime/sound.c` | 200 | AdLib / OPL music through an emulated OPL chip (Nuked OPL3) on SDL audio. |
@@ -55,7 +55,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/battlerules.c` | 432 | rules of the battles, switches (F12 > Settings > Battles). |
 | `mods/battlescroll.c` | 171 | scrolling the battle map at a pace a person can follow. |
 | `mods/builtin.c` | 224 | the built-in mods. The same changes as the source mods in mods/ (built into a DOS executable there), done here as run-time hooks on the recompiled game. |
-| `mods/cachefile.c` | 228 | keep each inn's stored items when the cache file is rewritten. |
+| `mods/cachefile.c` | 250 | keep each inn's stored items when the cache file is rewritten. |
 | `mods/cacheview.c` | 288 | the store room as a native screen (nscreen.h; the view is ui/cacheview.cpp). |
 | `mods/cardview.c` | 668 | the card screen drawn by Darklands+ itself. |
 | `mods/checks.c` | 211 | things that must never happen, watched while the game runs. |
@@ -69,7 +69,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/fixgroups.c` | 35 | the fixes (fixes.c) sorted by kind, for the settings' list: from what the game plainly gets wrong to what is open to argument, as players have talked of them over the years (the GOG and Steam forums, the old Usenet posts and the patch notes MicroProse left). |
 | `mods/foefx.c` | 91 | what a thrown potion (or a trap's) is doing to each fighter now, and for how long: the battle's own records, read for ui/battleoverlay.cpp (a picture over the fighter, the words under the pointer). |
 | `mods/foesleft.c` | 130 | the foes a place still holds that the party has not met yet (battle.foes_left, on by default): shown under the battle margin's enemies, so a castle, dungeon or mine whose fight "does not end" says where the rest still wait (the game ends it only when they are all beaten, or the party walks out and counts as fled). |
-| `mods/gamemodel.c` | 552 | the game's state by name (gamemodel.h says what each function reads): where the party, the members, their things and their equipment are kept, and the shared pack's listing and "whom it goes to" (gm_pack_rows, gm_pack_target) for the sheet, the shop, the loot and the store room. |
+| `mods/gamemodel.c` | 562 | the game's state by name (gamemodel.h says what each function reads): where the party, the members, their things and their equipment are kept, and the shared pack's listing and "whom it goes to" (gm_pack_rows, gm_pack_target) for the sheet, the shop, the loot and the store room. |
 | `mods/hdart.c` | 1196 | replacement art. A picture file PICS\NAME.PIC can be replaced by art\NAME.png of any size (true colour, with transparency); it is drawn at window resolution wherever the game shows that picture, with the game's own pixel |
 | `mods/hdtext.c` | 769 | crisp text. Darklands draws its text with small bitmap fonts (FONTS.FNT; the card font is a 7-pixel blackletter) that players find hard to read once scaled up. Here every string the game draws on the visible page is note |
 | `mods/hirelings.c` | 55 | Companions stay (rules.hirelings_stay: experimental, off in every preset). |
@@ -93,7 +93,7 @@ The game side: hooks into the game's code, its rules and fixes, the models the s
 | `mods/options.c` | 557 | the table of Darklands+'s switches and the presets (options.h). |
 | `mods/optwhy.c` | 165 | why each switch exists, one line each: beside what it does (the table's description, mods/options.c), the reason for it, for whoever carries a feature into another engine (the list docs/SWITCHES.md is made from both: DL_DUMP_SWITCHES, runtime/main.c). |
 | `mods/orders.c` | 446 | in a battle, a member who is not yet fighting can be sent at an enemy with a click on it (F12 > Settings; the Full Original preset leaves the game's way). |
-| `mods/pack.c` | 393 | the shared pack's housekeeping (inventory.shared, mods/sheetview.c): the party's spare things are one pack in Darklands+'s screens, but the game still keeps each thing with a member, and in a battle a bow, a crossbow or a gun shoots only what its bearer carries (can_fire, s014 18bf:0c02: the ammunition of the weapon's kind, far 20a5:7822[type]). |
+| `mods/pack.c` | 408 | the shared pack's housekeeping (inventory.shared, mods/sheetview.c): the party's spare things are one pack in Darklands+'s screens, but the game still keeps each thing with a member, and in a battle a bow, a crossbow or a gun shoots only what its bearer carries (can_fire, s014 18bf:0c02: the ammunition of the weapon's kind, far 20a5:7822[type]). |
 | `mods/pathfix.c` | 829 | better pathfinding in battles and dungeons. |
 | `mods/playlist.c` | 201 | the soundtrack, piece by piece, in F12 > Settings > Sound (ui/settings_setup.cpp): each piece of the game's music (8 ... |
 | `mods/politics.c` | 748 | the political campaign MicroProse wrote and never switched on (docs/cut_politics.md), restored as an experimental option (rules.politics, off in every preset). |
@@ -165,17 +165,17 @@ The interface: everything drawn (Dear ImGui), the new screens, margins, maps, se
 | `ui/lootview.cpp` | 197 | draws the loot screen (mods/lootview.c runs it; docs/NATIVE_SCREENS.md). |
 | `ui/mapmsg.cpp` | 43 | a message of the travel map (mods/mapmsg.c runs it) in the cards' style: the text in the game's typeface on parchment over the map, and what goes on. |
 | `ui/marchview.cpp` | 90 | Change Marching Order drawn by Darklands+ (mods/marchview.c runs it): a dialog with the members in their order, each with its figure and a handle to drag it to its place; Done keeps the new order, Cancel the old. |
-| `ui/margins.cpp` | 1058 | on a wide screen the 4:3 picture leaves dark margins; they can show what the game otherwise keeps behind menus: the date and hour, where the party is, the purse, the tasks the party has taken on (with their deadlines), and on the other side the town the party is in, the blessings and potions working on the party, and who carries too much. |
+| `ui/margins.cpp` | 1059 | on a wide screen the 4:3 picture leaves dark margins; they can show what the game otherwise keeps behind menus: the date and hour, where the party is, the purse, the tasks the party has taken on (with their deadlines), and on the other side the town the party is in, the blessings and potions working on the party, and who carries too much. |
 | `ui/margins_battle.cpp` | 589 | the margins in a battle: the right margin's fighters, their orders as buttons (with the potions' pictures), the enemies still waiting; the order buttons at the foot of the field when the window has no margin. |
 | `ui/marks.cpp` | 105 | small signs drawn with ImGui shapes (marks.h) |
 | `ui/menuview.cpp` | 173 | the game's menu bar drawn by Darklands+ (mods/menuview.c runs it): the bar over the top of the picture, the open menu under its title, a sub-menu beside its item. |
 | `ui/money.cpp` | 189 | see money.h. |
 | `ui/niche.cpp` | 272 | the character sheet's stone niche drawn anew (with the period ornaments): the game's ARMSBACK.PIC (136 x 170) at the window's resolution. |
-| `ui/nsdraw.cpp` | 1030 | see nsdraw.h |
+| `ui/nsdraw.cpp` | 1031 | see nsdraw.h |
 | `ui/optpreview.cpp` | 185 | small pictures of what a switch in the settings turns on, up to four in a row under the switch, each with a word (ui/settings.cpp option_row). |
 | `ui/ordericons.cpp` | 290 | the pictures on the battle's order buttons (ui/margins.cpp: the game's Orders and Attack menus as buttons): a sword for Std Attack, a shield for Parry, footprints for Walk towards, a white flag for Surrender ... |
 | `ui/ornament.cpp` | 546 | the period ornaments (ornament.h) |
-| `ui/overlay.cpp` | 893 | things the port draws over the running game when the Darklands+ menu is closed: the chances of success next to card options (mods/assist.c computes them). |
+| `ui/overlay.cpp` | 899 | things the port draws over the running game when the Darklands+ menu is closed: the chances of success next to card options (mods/assist.c computes them). |
 | `ui/overlay_text.cpp` | 510 | crisp text over the game's own screens (mods/hdtext.c finds the game's text runs; here they are drawn again at the window's resolution in the chosen typeface, with the abbreviations spelled out and the skills' pictures), the chances beside the original cards' options, and the pointer drawn live. |
 | `ui/padglyphs.cpp` | 180 | a game controller's buttons drawn on screen (padglyphs.h) |
 | `ui/panelcheck.cpp` | 72 | the checks, every frame, that no two of Darklands+'s panels lie over each other, and that the game's hand never shows over a Darklands+ window (two pointers). |

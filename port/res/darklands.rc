@@ -1,6 +1,10 @@
 /* darklands.rc - the Windows program's icon (tools/make_icon.py) and version information */
 #include <winver.h>
 1 ICON "darklands.ico"
+/* the program's code page UTF-8 (Windows 10 1903 and later): the paths SDL gives are UTF-8 and every file call is the
+   ANSI one, so a folder with a letter outside the system's code page (C:\Users\Jürgen on many systems) was not found:
+   the game module could not be made and nothing started (the audit, 2026-11-22) */
+1 24 "darklands.manifest"
 1 VERSIONINFO
 FILEVERSION 1,0,0,0
 PRODUCTVERSION 1,0,0,0

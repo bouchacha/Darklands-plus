@@ -464,6 +464,7 @@ static void draw_card_help(void)
  * some seconds. saints_known (far 2e38:082c, 20 bytes per member) is watched; a bit or two
  * appearing while no game is being loaded or made is a saint learned. */
 #include "../runtime/dispatch.h"
+extern "C" int datamods_generation(void);
 static u8 sk_prev[5][20]; static int sk_have, learned_saint = -1, learned_by = -1; static u32 learned_t;
 static char learned_card[16];                                   /* (the card it was learned on; "" none) */
 static void watch_saints(void)
@@ -496,6 +497,7 @@ static void draw_learned(void)
         if (age > 2500 && strcmp(cn, learned_card)) { learned_saint = -1; return; }   /* (at least a moment: a card after it shown at once) */
     } else if (age > 12500) { learned_saint = -1; return; }
     float a = learned_card[0] || age < 11500 ? 1.0f : (12500 - age) / 1000.0f;
+    if (learned_saint >= (int)gamedata.saints.size()) { learned_saint = -1; return; }
     const Saint &t = gamedata.saints[learned_saint];
     char who[16] = ""; if (learned_by >= 0) g_str(G_DGROUP, (u16)(G_MEMBER(learned_by) + G_M_SHORTNAME), who, sizeof who);
     std::string head = (who[0] ? game_text(who, sizeof who) + " learned of " : std::string("Learned of ")) + t.name;
@@ -610,7 +612,11 @@ static void draw_shop_info(void)
     auto tlog = [&](const std::string &m) { if (tip_log && m != last_log) { last_log = m; fprintf(stderr, "tip: %s\n", m.c_str()); } };
     if (!ui_shop_info || (gm != GM_SCREEN && gm != GM_CARD) || !hdtext_mode || !gamedata.loaded || config_get_int("original", 0)) { tlog("off, mode " + std::to_string(gm)); return; }
     static std::vector<std::string> item_keys, short_keys, saint_keys, formula_keys;
-    if (item_keys.size() != gamedata.items.size()) {
+    /* (made anew with the lists: a mod ticked or unticked in play reloads them, items 200 either way but its saints and
+       formulae maybe fewer - an old key's index then read past the new lists: the audit, 2026-11-22) */
+    static int keys_gen = -1;
+    if (item_keys.size() != gamedata.items.size() || saint_keys.size() != gamedata.saints.size() || formula_keys.size() != gamedata.formula_game_names.size() || keys_gen != datamods_generation()) {
+        keys_gen = datamods_generation();
         item_keys.clear(); short_keys.clear();
         for (const ItemDef &d : gamedata.items) { item_keys.push_back(squash(d.game_name)); short_keys.push_back(squash(d.shortname)); }   /* (the game's names: matched in the game's text) */
         saint_keys.clear(); for (const Saint &t : gamedata.saints) saint_keys.push_back(squash(t.game_name));
@@ -705,7 +711,7 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
             const ItemDef *d = &gamedata.items[item];
             ui_item_tip_head(d, item, tip_q);              /* (as every item tooltip: ui/inventory.cpp) */
             ui_item_details(d, item, tip_q);
-        } else if (saint >= 0) {
+        } else if (saint >= 0 && saint < (int)gamedata.saints.size()) {
             const Saint &st = gamedata.saints[saint];
             ImGui::TextUnformatted(st.name.c_str());
             std::string who; int npar = (s16)g_rw(G_PARTY_SIZE);
@@ -717,7 +723,7 @@ static void show_tip(ImVec2 pos, ImVec2 pivot, int item, int saint, int formula)
             ImGui::TextDisabled("%s", who.empty() ? "Nobody in the party knows this saint" : ("Known to " + who).c_str());
             ImGui::Separator();
             ui_saint_info(saint);
-        } else {
+        } else if (formula >= 0 && formula < (int)gamedata.formula_names.size()) {
             ImGui::TextUnformatted(gamedata.formula_names[formula].c_str());
             if (formula < (int)gamedata.formulas.size()) {
                 const Formula &F = gamedata.formulas[formula];

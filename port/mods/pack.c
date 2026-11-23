@@ -115,8 +115,22 @@ static int give_safe(int from, int to, int rec)
     ns_call(GF_give_one, 4, from, to, rec, 9);
     if (ns_unwinding) return 0;
     g_wb(D_BEST_SKILL, bs);
-    if (empties && eat != 0xff && eat > rec) g_wb((u16)(D_EATER_SLOT + from), (u8)(eat - 1));
-    return 1;
+    return 1;                                       /* (the Eater-Water's record number follows: record_gone_hook) */
+}
+/* Every record a member loses goes through item_delete (s031 18e7:0406: the records after it move down one), and the
+   battle keeps a member's Eater-Water for a lock as a record number (DS:c7cd[m], set as the order is given, spent at the
+   lock by consume_item, s014 18bf:0fa4, which asks nothing of what the record now is). A record before it emptied on
+   the way there - a last potion drunk from the tray, a thing handed over on the sheet, an arrow shot, by the game's own
+   screens too - and the lock took one from the record after the Eater-Water (the audit, 2026-11-22: give_safe alone
+   kept the number, for its own hand-overs). Here the number follows every deletion. */
+static void record_gone_hook(void)            /* item_delete (who, idx) */
+{
+    int who = (s16)rw(SS, (u16)(SP + 4)), idx = (s16)rw(SS, (u16)(SP + 6));
+    int eat = who >= 0 && who < 5 && engine_on() && !config_get_int("original", 0) ? g_rb((u16)(D_EATER_SLOT + who)) : 0xff;
+    hook_call_original();
+    if (unw_active || eat == 0xff || idx < 0 || eat <= idx) return;
+    g_wb((u16)(D_EATER_SLOT + who), (u8)(eat - 1));
+    if (getenv("DL_PACK_LOG")) fprintf(stderr, "pack: member %d's record %d gone: the Eater-Water's number %d -> %d\n", who, idx, eat, eat - 1);
 }
 /* one of id (the best quality, or exactly q) to member a from whoever else has one to spare; 1 if handed */
 static int fetch(int a, int id, int q)
@@ -389,5 +403,6 @@ void pack_init(void)
     hook_install(GF_lock_pick, lockpick_hook);
     hook_install(GF_use_ammo, use_ammo_hook);
     hook_install(GF_can_fire, can_fire_hook);
+    hook_install(GF_item_delete, record_gone_hook);
     hook_install(38, 0x1462, 0x02f8, inn_key_hook);
 }
