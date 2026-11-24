@@ -32,6 +32,10 @@ SPIDER_FIGHT = 'ucmd ufight:47,5,57,1,2,-1,0,0,-1,0,0; ucmd ugoto:24; wait 12; u
 STEPS = [
     ('start and Quickstart', 'QUICKSTART; key Return; wait 12; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; key Return; wait 3; wshot 1_card',
      [r'title: closed \(the game begins\)', r'cardview: card \$', r'^card \$\S+ n \d+ menu 1'], 'TITLE'),   # (a first click in a new window may be lost)
+    ('original sheet skill columns', 'ucmd uoption:display.native_sheet=0; ucmd uoption:fix.skillcolumn=1; key F1; wait 3; ucmd usheetcolumns:; key Escape; wait 2; '
+     'ucmd uoption:fix.skillcolumn=0; key F1; wait 3; ucmd usheetcolumns:; key Escape; wait 2; '
+     'ucmd uoption:fix.skillcolumn=1; ucmd uoption:display.native_sheet=1',
+     [r'^original sheet skill columns: 268 268 268$', r'^original sheet skill columns: 268 268 265$']),
     ('Go to the merchants (native cards)', 'ucmd urand:7; ucmd ugoto:0; wait 18; wshot 2_shop', [r'cardview: chose option', r'shop: open']),   # (a fixed seed: no street encounter on the way)
     ('sell (native shop)', 'ucmd unspush:2,0,1; wait 2; wshot 3_sold', [r'shop: (Sold|Not sold)']),
     ('buy (native shop)', 'ucmd unspush:1,0,1; wait 2', [r'shop: (Bought|Not bought)']),

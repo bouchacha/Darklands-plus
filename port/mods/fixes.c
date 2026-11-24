@@ -275,6 +275,8 @@ Fix FIXES[] = {
       "Leaving the inn's lodging screen in some ways (e.g. a click on an empty party slot) left Save and Load disabled until a character sheet was opened. They are now enabled again on leaving.", 1 },
     { "colors", "Members keep their colors (the \"neon hair\" bug)",
       "In the original, members' colors and sprites sometimes changed to garish ones after an encounter. Their own colors are now kept and put back.", 1 },
+    { "skillcolumn", "Skill numbers line up on the original character sheet",
+      "The numbers from Healing through Woodwise are drawn under the other skill numbers on the original sheet, three pixels to the right of where the game drew them.", 1 },
     { "copyprot", "Skip the manual check",
       "The game no longer asks for an alchemical symbol from the printed manual when the party first sets out.", 1 },
     { "potions", "Weapon potions wear off and don't ruin weapons",
@@ -797,6 +799,25 @@ static void unbrew_hook(void)               /* s036 1462:1ec2 (who) */
             }
     }
     hook_remove(GF_add_item_rec_impl, unbrew_rec_hook);
+}
+
+/* The original sheet prints the values for Healing through Woodwise at box 7's
+   left edge + 3 (265). Both preceding groups use x 268. Correct the x argument
+   of that group's number draw, including redraws, before the bitmap or HD text
+   hook sees it (s031 1462:41bf; Darklands Restoration B-c26daf). */
+static void sheet_skill_text(void)
+{
+    if (rw(SS, SP) == 0x41c4 && rw(SS, (u16)(SP + 2)) == LOADSEG + 0x1462)
+        ww(SS, (u16)(SP + 6), 268);
+    hook_call_original();
+}
+
+static void sheet_skill_column_hook(void)
+{
+    if (rw(SS, (u16)(SP + 4)) != 7 || config_get_int("original", 0)) { hook_call_original(); return; }
+    hook_install(GF_gfx_text, sheet_skill_text);
+    hook_call_original();
+    hook_remove(GF_gfx_text, sheet_skill_text);
 }
 
 /* ---------------------------------------------------------------- colours
@@ -4314,7 +4335,8 @@ static void load_mend(void)
 static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] = {
     { 29, 0x0e76, 0x4c04, blessing_hook }, { 14, 0x18bf, 0x0778, hitdamage_hook }, { 31, 0x18e7, 0x01b4, additem_hook },
     { 14, 0x0e76, 0x08fe, castle_hook }, { 80, 0x1870, 0x000c, bounty_hook }, { 33, 0x1462, 0x1630, alchemy_hook },
-    { 31, 0x18e7, 0x01b4, additem_hook }, { 36, 0x1462, 0x0082, innsave_hook }, { -2, 0, 0, 0 }, { 41, 0x1462, 0x0000, copyprot_hook },
+    { 31, 0x18e7, 0x01b4, additem_hook }, { 36, 0x1462, 0x0082, innsave_hook }, { -2, 0, 0, 0 },
+    { 31, 0x1462, 0x39c6, sheet_skill_column_hook }, { 41, 0x1462, 0x0000, copyprot_hook },
     { 14, 0x18bf, 0x0778, hitdamage_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x1c76, offmap_hook }, { 29, 0x0e76, 0x01c0, bestweapon_hook }, { 31, 0x18e7, 0x0406, removeitem_hook },
     { 35, 0x1462, 0x0a46, storeroom_hook }, { 44, 0x1838, 0x0000, testcard_hook },
     { 19, 0x1ef8, 0x0968, armourwear_hook }, { 36, 0x1462, 0x0082, teachers_lodging_hook }, { GF_card_options, cardopts_hook },
