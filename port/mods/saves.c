@@ -43,6 +43,8 @@ void ovl_changed(void);
 #include "savesview.h"
 #include "savecheck.h"
 #include "fixes.h"
+#include "hdtext.h"
+#include "hdart.h"
 
 int saves_on = 1;                /* quick keys and autosaves (off: the original's saving only) */
 int saves_auto_arrive = 1;       /* autosave on arriving at a place */
@@ -74,6 +76,8 @@ static int load_stage;           /* 1 asked for, 2 load_game called, 3 confirmed
 /* a load waits for the game's own card screen (mods/cardview.c: from inside the native one, a card a castle, mine or
    dungeon brought up left the battle the save resumed corrupt) */
 static u32 load_t, loaded_t;
+enum { CLASSIC_IDLE, CLASSIC_CONFIRM, CLASSIC_PICK };
+static int classic_load;       /* in-game classic picker, before load_game is allowed to discard the session */
 static int in_save;
 static char iron[16];            /* the running game's save comment when it is an Ironman game ("Ironman 3f2a"), else "" */
 static int close_due;            /* Ironman: the window was closed: save at the next chance, then quit */
@@ -94,9 +98,7 @@ static int real_path(const char *name, char *p, size_t n)
     return stat(p, &st) == 0;
 }
 
-/* The native chooser picks a file before load_game frees the current party and events.
- * Validate at that point, also for Continue and queued quickloads. The original in-game
- * chooser picks after teardown; its different ordering is deliberately left alone here. */
+/* Check the selected file before the running game is released. */
 static FILE *load_file(const char *name)
 {
     char dos[64], path[1200];
@@ -441,15 +443,48 @@ static void menubar_hook(void)             /* menu_bar_run(menu, once): with onc
 /* the cover over the game's load screen: while it opens and reads the save, and after, until that
    screen (s037) is gone and the place saved in has had a moment to be drawn (it showed for a few
    frames as the save was read: "Difficulty is now set to ...", the list) */
-int saves_load_under_way(void) { return load_stage != 0; }   /* (a load of ours asked for, or the save being read: mods/checks.c) */
+int saves_load_under_way(void) { return load_stage != 0 || classic_load == CLASSIC_PICK; }   /* (a load of ours asked for, or the save being read: mods/checks.c) */
 int saves_loading_cover(void)
 {
     static u32 gone_t;
+    if (classic_load == CLASSIC_PICK) return 0;
     if (load_stage == 2 || load_stage == 3) { gone_t = 0; return 1; }
     if (!loaded_t || plat_ticks_ms() - loaded_t > 4000) return 0;
     if (ovl_loaded[37]) { gone_t = 0; return 1; }
     if (!gone_t) gone_t = plat_ticks_ms();
     return plat_ticks_ms() - gone_t < 200;
+}
+
+/* The original picker draws over the current pages, palette and scratch space.
+ * Keep those until the player chooses a file. The L handler returns its filename
+ * without reading it; a confirmed Delete still acts on disk. */
+static int classic_choose(void)
+{
+    void *text = hdtext_begin_screen(), *art = hdart_begin_screen();
+    if (!text || !art) {
+        hdart_end_screen(art);
+        hdtext_end_screen(text);
+        ui_notice("Not enough memory to open the Load screen.");
+        return 0;
+    }
+    void *before = eval_snapshot();
+    plat_remember_held_keys();
+    int nested = ns_nested;
+    ns_nested = 1;
+    classic_load = CLASSIC_PICK;
+    load_name[0] = 0;
+    fprintf(stderr, "saves: the original Load page\n");
+    int picked = ns_call(37, 0x1c7d, 0x0002, 0);
+    ns_nested = nested;
+    classic_load = CLASSIC_IDLE;
+    if (!unw_active) {
+        eval_restore(before);
+        plat_resume_game_input();
+    }
+    eval_free(before);
+    hdart_end_screen(art);
+    hdtext_end_screen(text);
+    return !unw_active && picked == 1 && load_name[0];
 }
 
 static void askyesno_hook(void)            /* ask_yes_no(question) */
@@ -460,7 +495,15 @@ static void askyesno_hook(void)            /* ask_yes_no(question) */
         hook_return_far(0);
         return;
     }
+    if (classic_load != CLASSIC_CONFIRM) { hook_call_original(); return; }
+    classic_load = CLASSIC_IDLE;            /* only the question at the start of load_game */
     hook_call_original();
+    if (unw_active || !AX) return;
+    int picked = classic_choose();
+    if (unw_active) return;
+    AX = (u16)picked;                       /* No returns before the original teardown */
+    if (picked) { load_stage = 3; load_t = plat_ticks_ms(); }
+    else fprintf(stderr, "saves: original Load cancelled\n");
 }
 
 static void loadlist_hook(void)            /* the load screen's list (s037 1c7d:06e6): from our save on */
@@ -624,11 +667,17 @@ static void save_hook_run(void)
 
 static void load_hook(void)                /* load_game () */
 {
+    if (classic_load == CLASSIC_PICK) { hook_return_far(0); return; }
     if (iron[0] && !load_stage) { ui_notice(IRON_NO_LOAD); hook_return_far(0); return; }
-    if (load_stage || !saves_on) { hook_call_original(); return; }   /* (ours under way; or the original's list and question) */
+    if (load_stage) { hook_call_original(); return; }
     char f[16];
-    int r = savesview_load(f, sizeof f);
-    if (r < 0) { hook_call_original(); return; }
+    int r = saves_on ? savesview_load(f, sizeof f) : -1;
+    if (r < 0) {
+        if (fix_is_on("savecheck")) classic_load = CLASSIC_CONFIRM;
+        hook_call_original();
+        classic_load = CLASSIC_IDLE;
+        return;
+    }
     if (r == 0) { hook_return_far(0); return; }
     if (!load_allowed(f)) { hook_return_far(0); return; }
     snprintf(load_name, sizeof load_name, "%s", f);
@@ -758,6 +807,7 @@ void saves_quick_save(void)
 
 int saves_load(const char *name)
 {
+    if (classic_load == CLASSIC_PICK) return 0;
     if (iron[0]) { ui_notice(IRON_NO_LOAD); return 0; }
     if (game_mode() == GM_OTHER) { ui_notice("Loading from here works once a game is running; until then, load from the start screen."); return 0; }
     /* only a save that is there and can be read: once the game's load_game has torn the game down,
@@ -781,18 +831,24 @@ int saves_title_load(const char *name)
     return 1;
 }
 
-/* The original title's Load button reaches the reader without load_game's teardown.
- * Returning zero from its key handler leaves that chooser open after a refusal. */
-static void title_load_key_hook(void)
+/* A click or L reaches this handler with the selected row on the current page. */
+static void classic_load_key_hook(void)
 {
     extern int title_screen_up;
     int key = (u16)rw(SS, (u16)(SP + 4));
     int row = (s16)g_rw(0x8c50), count = (s16)g_rw(0x8c54);
-    if (title_screen_up && fix_is_on("savecheck") && (key == 0x264c || key == 0x266c)
-        && row >= 0 && row < count && row < 9) {
+    if ((classic_load == CLASSIC_PICK || (title_screen_up && fix_is_on("savecheck")))
+        && (key == 0x264c || key == 0x266c)) {
+        if (row < 0 || row >= count || row >= 9) { AX = 0; hook_return_far(0); return; }
         char name[16];
         g_str(G_FAR2E38, (u16)(0x3b2e + 15 * row), name, sizeof name);
         if (!load_allowed(name)) { AX = 0; hook_return_far(0); return; }
+        if (classic_load == CLASSIC_PICK) {
+            snprintf(load_name, sizeof load_name, "%s", name);
+            AX = 0x11b;                    /* close the original picker as a selection */
+            hook_return_far(0);
+            return;
+        }
     }
     hook_call_original();
 }
@@ -817,8 +873,7 @@ int saves_key(int sym, int ctrl)
 }
 
 static struct { int sect; unsigned seg, off; void (*fn)(void); } HK[] = {
-    { 37, 0x1462, 0x43e6, textinput_hook }, { -1, 0x0000, 0x0000, menubar_hook }, { -1, 0x0000, 0x2522, askyesno_hook },
-    { 37, 0x1c7d, 0x06e6, loadlist_hook }, { 37, 0x1c7d, 0x0002, loadscreen_hook }, { 29, 0x0e76, 0x2278, battle_hook } };
+    { 37, 0x1462, 0x43e6, textinput_hook }, { -1, 0x0000, 0x0000, menubar_hook }, { 29, 0x0e76, 0x2278, battle_hook } };
 
 static void hooks_set(int on)
 {
@@ -905,7 +960,11 @@ static void bsv_level_hook(void)
 
 void saves_init(void)
 {
-    hook_install(37, 0x1c7d, 0x030a, title_load_key_hook);
+    /* Classic loading also works with quick saves switched off. */
+    hook_install(GF_ask_yes_no, askyesno_hook);
+    hook_install(37, 0x1c7d, 0x06e6, loadlist_hook);
+    hook_install(37, 0x1c7d, 0x0002, loadscreen_hook);
+    hook_install(37, 0x1c7d, 0x030a, classic_load_key_hook);
     hook_install(3, 0x1016, 0x0d07, bsv_level_hook);
     hook_install(37, 0x1c7d, 0x0d24, loaded_hook);   /* (always: saves_on_loaded) */
     saves_restart = config_get_int("saves.restart_on_end", 1);

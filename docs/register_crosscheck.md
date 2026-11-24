@@ -169,7 +169,7 @@ fixes are described in `port/mods/fixes.c` (its header and each hook), the saint
 | B-3cc78a | 1EC9:0142 | EffectField.LineCrossesCloud | fixed now | fix.cloudline |
 | B-bfb04e | 1EC9:0142 | EffectField.LineCrossesCloud | fixed now | fix.cloudline |
 | B-61f351 | 0E76:00DC; 1EF8:059A; 0E76:0694 | TacticalBattle.WriteBattleFile | fixed | fix.castle |
-| B-14d327 | 1C7D:09C6 | DarklandsGame.LoadInGame | avoided | saves.quick,  display.native_saves |
+| B-14d327 | 1C7D:09C6 | DarklandsGame.LoadInGame | fixed (original in-game picker); avoided by the native picker | fix.savecheck, display.native_saves |
 | B-f7799c | 03A1:000A | DarklandsGame.FightTheBattle | fixed | no switch since 1.5.1: the party's events are in the table over a battle (mods/fixes.c), so party_delete cancels them itself |
 | B-d7cb44 | 14F7:31E6 | CombatantSetup.BackToMember | confirmed, harmless (never read as a location; see uncertain_crosscheck.md) |  |
 | B-85e0e4 | 1462:04BC; 1462:1468 | ItemStores.Close | fixed now (woodk123) | fix.cachefile |

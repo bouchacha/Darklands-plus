@@ -1056,6 +1056,15 @@ covered and found, and what it could not check.
   card is left when the party has changed since it began ($Revol12, $Revol11, $Drago00, $Dunge00 ...), and past an
   encounter's first choice until it is over (encounters_past_start); savecheck_sav_tail: a fresh save's store-room
   tail at least CACHE.TMP's size; battleend, autopause and orders forget a battle at battle_run and a load.
+  Follow-up, 2026-11-24 (Restoration B-14d327): Alt-L with the original Load screen freed the running party,
+  events, and map or battle before the player selected a file. With savecheck on, its confirmation now lets the
+  original picker choose and validate the file before teardown. Escape restores the guest, the live controls,
+  HD lettering and replacement art. A confirmed selection goes through the same reader as Continue and the
+  native picker. Tried in copied Windows games: four members and four events survived Escape, the original
+  inn card's rendered frame was identical, a paused battle could resume, and a bad first row could be refused
+  and a valid second row loaded by key or click. test_save_load.py compares the members and events and tries
+  with quick saves both off and on; release_check.py also cancels the classic list. Full Original keeps the DOS
+  path. An existing damaged file is refused rather than modified.
   Battle: door_lock (a locked door clicked is not door_toggle'd: the leader is chosen there); take_exit_hook knows it
   runs inside combat_keys and takes the party once (the game calls it once a member); the carried go first, so
   leave_level runs once with the fight on (pursuers follow) and combat_recover wakes them when none follows; U picks

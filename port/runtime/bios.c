@@ -374,6 +374,15 @@ void mouse_update(int x, int y, int buttons)
     ms_b = mouse_hold_left ? (buttons & ~1) | (ms_b & 1) : buttons;
 }
 
+void bios_resume_game_input(void)
+{
+    bios_kbd_drop_pending();                          /* no buffered selection keys for the old screen */
+    ww(0x40, 0x1a, rw(0x40, 0x1c));
+    ms_b = ms_host_b;
+    ms_pending = 1;                                   /* tell the restored callback where the pointer is */
+    mouse_update(ms_hostx, ms_hosty, ms_host_b);
+}
+
 static void int33(void)
 {
     { static int tr = -1; static u32 lt, n[16]; if (tr < 0) tr = getenv("DL_TRACE_MPOLL") != 0;

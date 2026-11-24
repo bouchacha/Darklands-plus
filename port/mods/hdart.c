@@ -580,6 +580,84 @@ static void frame_set(u16 seg, const char *name, int n)
 typedef struct { int on, page, x, y, w, h, rows, cap; char name[64]; u8 *px; } Cap;
 static Cap cap;
 
+/* The classic Load page replaces page rectangles and reuses guest sprite
+   handles. Keep their live entries with the guest pages. The picture catalogue
+   is shared: these tables refer to stable picture numbers. */
+typedef struct { int pic; double brightness; u32 colors[256]; } ArtPalette;
+typedef struct {
+    int regions[NPAGES], sprites, next_sprite, frames, next_frame, draws, palettes;
+    u8 crests[5];
+    Cap capture;
+    ArtPalette palette[];
+} ArtScreen;
+
+static void screen_bytes(u8 **next, void *live, size_t n, int restore)
+{
+    if (restore) memcpy(live, *next, n); else memcpy(*next, live, n);
+    *next += n;
+}
+
+static void screen_tables(ArtScreen *s, int restore)
+{
+    u8 *next = (u8 *)(s->palette + s->palettes);
+    for (int i = 0; i < NPAGES; i++)
+        screen_bytes(&next, reg[i], (size_t)s->regions[i] * sizeof(Reg), restore);
+    screen_bytes(&next, spr, (size_t)s->sprites * sizeof(Spr), restore);
+    screen_bytes(&next, frame, (size_t)s->frames * sizeof(Frame), restore);
+    screen_bytes(&next, hdart_draws, (size_t)s->draws * sizeof(HdDraw), restore);
+}
+
+void *hdart_begin_screen(void)
+{
+    size_t n = (size_t)nspr * sizeof(Spr) + (size_t)nframe * sizeof(Frame) + (size_t)hdart_ndraws * sizeof(HdDraw);
+    for (int i = 0; i < NPAGES; i++) n += (size_t)nreg[i] * sizeof(Reg);
+    /* hdart_prepare learns a brighter reference palette for a replacement.
+       A shared button may be shown with a different palette in the picker. */
+    for (int i = 0; i < npics; i++) if (pics[i].art) n += sizeof(ArtPalette);
+    ArtScreen *s = malloc(sizeof *s + n);
+    if (!s) return NULL;
+    memcpy(s->regions, nreg, sizeof nreg);
+    memcpy(s->crests, crest_last, sizeof crest_last);
+    s->sprites = nspr; s->next_sprite = spr_next;
+    s->frames = nframe; s->next_frame = frame_next; s->draws = hdart_ndraws;
+    s->capture = cap;
+    s->palettes = 0;
+    for (int i = 0; i < npics; i++) if (pics[i].art) {
+        ArtPalette *a = &s->palette[s->palettes++];
+        a->pic = i; a->brightness = pics[i].refb;
+        memcpy(a->colors, pics[i].ref, sizeof a->colors);
+    }
+    screen_tables(s, 0);
+    memset(nreg, 0, sizeof nreg);
+    memset(spr_index, 0, sizeof spr_index);
+    memset(frame_index, 0, sizeof frame_index);
+    nspr = spr_next = nframe = frame_next = hdart_ndraws = 0;
+    memset(&cap, 0, sizeof cap);
+    return s;
+}
+
+void hdart_end_screen(void *saved)
+{
+    ArtScreen *s = saved;
+    if (!s) return;
+    free(cap.px); cap = s->capture;
+    memcpy(nreg, s->regions, sizeof nreg);
+    memcpy(crest_last, s->crests, sizeof crest_last);
+    nspr = s->sprites; spr_next = s->next_sprite;
+    nframe = s->frames; frame_next = s->next_frame; hdart_ndraws = s->draws;
+    for (int i = 0; i < s->palettes; i++) {
+        const ArtPalette *a = &s->palette[i];
+        pics[a->pic].refb = a->brightness;
+        memcpy(pics[a->pic].ref, a->colors, sizeof a->colors);
+    }
+    screen_tables(s, 1);
+    memset(spr_index, 0, sizeof spr_index);
+    memset(frame_index, 0, sizeof frame_index);
+    for (int i = 0; i < nspr; i++) spr_index[spr[i].key] = (short)(i + 1);
+    for (int i = 0; i < nframe; i++) frame_index[frame[i].seg] = (short)(i + 1);
+    free(s);
+}
+
 static void cap_begin(u16 name_off)
 {
     cap.on = 1; cap.page = -1; cap.x = cap.y = cap.w = cap.h = cap.rows = 0;

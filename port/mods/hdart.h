@@ -10,6 +10,8 @@ typedef struct { int pic, sx, sy, x, y, w, h; unsigned char mod[3]; } HdDraw;
 extern HdDraw hdart_draws[HDART_MAXDRAWS];
 extern int hdart_ndraws, hdart_on, hdart_generation;
 void hdart_prepare(unsigned *rgb, const unsigned char *idx, const unsigned *lut);
+void *hdart_begin_screen(void);             /* keep the current page regions and sprite handles, NULL on failure */
+void hdart_end_screen(void *saved);         /* after the game's pages are restored; accepts NULL */
 const char *hdart_file(int pic);
 const char *hdart_name(int pic);
 void hdart_size(int pic, int *w, int *h);
