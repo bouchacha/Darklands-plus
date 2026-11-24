@@ -484,8 +484,8 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:309` | A pagan altar the party has destroyed vanishes from the overland view, but quests could still send the party there, and could then never be done (nor could their giver offer another). Such altars are no longer chosen; quests already sent to one go to the nearest altar still standing. |
 | `mods/fixes.c:310` | The item taken from a tomb is kept by a party that gets out with it |
 | `mods/fixes.c:311` | Taking the item a quest seeks from a tomb wakes its dead. The game then gave the item only to a party that lost the fight (whose text has the party wake "without" it); a party that won (its text: "you scramble up with" it) or got out by the way out left with nothing. Now it is kept by beating every skeleton or by getting out alive, and lost with the fight. |
-| `mods/fixes.c:312` | The lord and the council pay for their quests |
-| `mods/fixes.c:313` | In a town without a council, the lord of the fortress gives robber knights to hunt, but the game pays such a quest's reward only at a council's hall, so in such a town it could never be collected. The lord now pays it at an audience, as a council does. And at a council's hall, calling on a saint to be let in gave the party a new robber knight to hunt instead of the reward waiting for it; now the saint's way pays it, as an audience does. |
+| `mods/fixes.c:312` | The lord, the council and the village pay for their quests |
+| `mods/fixes.c:313` | A village's Schulz gives a robber knight to hunt, but no card of the game ever asked for that reward: the quest stayed open, and a Schulz who came along never went home. Now, once the knight has fallen, asking the Schulz for news closes it: he thanks the party, and a Schulz who came along leaves it. In a town without a council, the lord of the fortress gives robber knights to hunt, but the game pays such a quest's reward only at a council's hall, so in such a town it could never be collected. The lord now pays it at an audience, as a council does. And at a council's hall, calling on a saint to be let in gave the party a new robber knight to hunt instead of the reward waiting for it; now the saint's way pays it, as an audience does. |
 | `mods/fixes.c:314` | Armor and fire protection from potions and saints last a day; Hardarmor works as the manual says |
 | `mods/fixes.c:315` | Hardarmor (+1 to +3 armor), St. Dunstan's (+1) and St. Patrick's (+2) blessings, St. Crispin's (+10 to the quality of everyone's armor) and the protection against fire of Firewall and St. Polycarp never wore off, and each new one added to the last. They now last about a day, as the manual says, and what piled up this way in a saved game is dropped: only the ones still running count (the armor that fire protection left in a saved game is left out by the fix "No invulnerability from fire protection", not by this one). St. Charity, St. Erasmus and St. Pantaleon (and St. Polycarp) gave their protection against fire as armor instead: +32 or +48 armor permanently (or nothing, with the fix "No invulnerability from fire protection" on); now the member gets fire protection 90 for a day, the same as St. Polycarp's. Hardarmor also does what the manual says: armor 20, 25 or 30 points better in quality and one or two levels thicker (the game gave 1 to 3 levels and no quality); a second used while one is still working keeps the stronger of the two. |
 | `mods/fixes.c:316` | Great Power raises the weapon's quality |
@@ -631,17 +631,17 @@ in its files). One row a text, with where it is. Words in **Terms** below are us
 | `mods/fixes.c:1634` | The store room keeps at most 127 of one item. |
 | `mods/fixes.c:1635` | The store room is full: it keeps 100 kinds of items. |
 | `mods/fixes.c:1806` | abandon the horses |
-| `mods/fixes.c:2270` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
-| `mods/fixes.c:2553` | claim friendship |
-| `mods/fixes.c:2605` | It is $NamedOneName again |
-| `mods/fixes.c:2882` | You need a missile weapon |
-| `mods/fixes.c:2977` | if the argument was won |
-| `mods/fixes.c:3040` | Not bought: nobody in the party has room for another kind of item. |
-| `mods/fixes.c:3058` | Nobody in the party has room for another kind of item. |
-| `mods/fixes.c:4149` | The pile holds 45 kinds of things, its most: this one stays where it is. |
-| `mods/fixes.c:4222` | Dissolve Lock needs Eater-Water in this member's pack. |
-| `mods/fixes.c:4290` | mend: a game loaded |
-| `mods/fixes.c:4316` | a hook (or { -2 }) for each fix, in the same order |
+| `mods/fixes.c:2291` | %s has learned all the teacher of %s can teach (ability %d), and rests instead. |
+| `mods/fixes.c:2574` | claim friendship |
+| `mods/fixes.c:2626` | It is $NamedOneName again |
+| `mods/fixes.c:2903` | You need a missile weapon |
+| `mods/fixes.c:2998` | if the argument was won |
+| `mods/fixes.c:3061` | Not bought: nobody in the party has room for another kind of item. |
+| `mods/fixes.c:3079` | Nobody in the party has room for another kind of item. |
+| `mods/fixes.c:4170` | The pile holds 45 kinds of things, its most: this one stays where it is. |
+| `mods/fixes.c:4243` | Dissolve Lock needs Eater-Water in this member's pack. |
+| `mods/fixes.c:4311` | mend: a game loaded |
+| `mods/fixes.c:4337` | a hook (or { -2 }) for each fix, in the same order |
 
 ## The interface (ui/)
 

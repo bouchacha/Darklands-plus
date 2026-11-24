@@ -1117,3 +1117,10 @@ covered and found, and what it could not check.
   which shows a message for a second with the gone shown as absent. MODDING.md: an option flag before the first menu
   does nothing. Fuzzed under ASan/UBSan, nothing found: savecheck (32,000 mutated saves and battle files of his),
   the encounter loader (300 rounds of mutated files), cache_rewrite (2 million random files).
+- 2026-11-23, the village's robber knight (round 3's fix_claims finding 8): lordreward's village_reward_hook on
+  $Villa02 option 0 (s077 1996:01ae): with ev24_at_owner (3, 9, the village) it sends the card to $Raubi01 with
+  saved_card 0x86 and saved_card2 9, as the council's 19df:0298 does for giver 10. Tried in a session (DKSAVED5,
+  Nürnberg as the village): the quest given by the game's own 1462:10b6 (9, castle 100, ...), the knight's fall by
+  ev8_resolve (3, 100) - a kind 0x24 reward for owner 9 at the village; a member named Schulz with a kind 0x43
+  contract; ujumpcard 0x86, the news asked: $Raubi01's text 1, the reward freed, the Schulz gone (raubi_hook's
+  branch, unreachable until now), the village's card back, a second ask the plain news.

@@ -309,8 +309,8 @@ Fix FIXES[] = {
       "A pagan altar the party has destroyed vanishes from the overland view, but quests could still send the party there, and could then never be done (nor could their giver offer another). Such altars are no longer chosen; quests already sent to one go to the nearest altar still standing.", 1 },
     { "tomb", "The item taken from a tomb is kept by a party that gets out with it",
       "Taking the item a quest seeks from a tomb wakes its dead. The game then gave the item only to a party that lost the fight (whose text has the party wake \"without\" it); a party that won (its text: \"you scramble up with\" it) or got out by the way out left with nothing. Now it is kept by beating every skeleton or by getting out alive, and lost with the fight.", 1 },
-    { "lordreward", "The lord and the council pay for their quests",
-      "In a town without a council, the lord of the fortress gives robber knights to hunt, but the game pays such a quest's reward only at a council's hall, so in such a town it could never be collected. The lord now pays it at an audience, as a council does. And at a council's hall, calling on a saint to be let in gave the party a new robber knight to hunt instead of the reward waiting for it; now the saint's way pays it, as an audience does.", 1 },
+    { "lordreward", "The lord, the council and the village pay for their quests",
+      "A village's Schulz gives a robber knight to hunt, but no card of the game ever asked for that reward: the quest stayed open, and a Schulz who came along never went home. Now, once the knight has fallen, asking the Schulz for news closes it: he thanks the party, and a Schulz who came along leaves it. In a town without a council, the lord of the fortress gives robber knights to hunt, but the game pays such a quest's reward only at a council's hall, so in such a town it could never be collected. The lord now pays it at an audience, as a council does. And at a council's hall, calling on a saint to be let in gave the party a new robber knight to hunt instead of the reward waiting for it; now the saint's way pays it, as an audience does.", 1 },
     { "armorday", "Armor and fire protection from potions and saints last a day; Hardarmor works as the manual says",
       "Hardarmor (+1 to +3 armor), St. Dunstan's (+1) and St. Patrick's (+2) blessings, St. Crispin's (+10 to the quality of everyone's armor) and the protection against fire of Firewall and St. Polycarp never wore off, and each new one added to the last. They now last about a day, as the manual says, and what piled up this way in a saved game is dropped: only the ones still running count (the armor that fire protection left in a saved game is left out by the fix \"No invulnerability from fire protection\", not by this one). St. Charity, St. Erasmus and St. Pantaleon (and St. Polycarp) gave their protection against fire as armor instead: +32 or +48 armor permanently (or nothing, with the fix \"No invulnerability from fire protection\" on); now the member gets fire protection 90 for a day, the same as St. Polycarp's. Hardarmor also does what the manual says: armor 20, 25 or 30 points better in quality and one or two levels thicker (the game gave 1 to 3 levels and no quality); a second used while one is still working keeps the stronger of the two.", 1 },
     { "greatpower", "Great Power raises the weapon's quality",
@@ -2113,6 +2113,27 @@ static void lord_hook(void)                 /* $CityF00 option 0, s050 1a06:026c
     if (!waits || !(s16)rw(SS, (u16)(SP + 4))) { hook_call_original(); return; }
     if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix lordreward: the lord pays the reward waiting at %d\n", loc);
     ns_call(54, 0x19df, 0x0298, 1, 0);
+    hook_return_far(0);
+}
+/* ---------------------------------------------------------------- the village's Schulz
+ * A village's Schulz gives a robber knight to hunt (asking for news, $Villa02 option 0, s077 1996:01ae: giver 9,
+ * vec_2175 (9, ...)), and the knight's fall makes his reward (ev8_resolve: kind 0x24, tag 3, owner 9, the village).
+ * No card of the game ever asks for that reward (every ev24_at_owner and event_find (0x24, ...) of the cards names
+ * other givers): the quest stayed open for good, the Schulz who had come along never went home, and $Raubi01's
+ * text for him ("I must return now to my tasks as Schulz", its case 0x86) was never shown (the audit, 2026-11-22).
+ * Here, with the reward waiting, asking the Schulz for news goes where the council's routine sends its own
+ * (s054 19df:0298): to $Raubi01 with the village's card to come back to and the giver, which takes the reward,
+ * thanks the party, and lets the Schulz go (raubi_hook). The village's regard and the fame came at the knight's
+ * fall already; the village promised no money. */
+static void village_reward_hook(void)       /* $Villa02 option 0 (news), s077 1996:01ae */
+{
+    int loc = (s16)g_rw(G_CUR_LOC);
+    int waits = ns_call(GF_ev24_at_owner, 3, 3, 9, loc);
+    if (ns_unwinding) return;
+    if (!waits) { hook_call_original(); return; }
+    if (getenv("DL_FIX_LOG")) fprintf(stderr, "fix lordreward: the village's Schulz takes the reward waiting at %d\n", loc);
+    g_ww(GV_saved_card, 0x86); g_ww(GV_saved_card2, 9); g_ww(GV_next_card, 0x91);
+    AX = 0;
     hook_return_far(0);
 }
 /* ---------------------------------------------------------------- councilsaint
@@ -4358,6 +4379,7 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "westedge", 30, 0x1462, 0x20d2, westedge_view_hook }, { "maprows", 30, 0x1462, 0x20d2, mapicons_hook }, { "cardslips", 134, 0x1a25, 0x000a, celldoor_hook },
     { "knightdead", 81, 0x1838, 0x01b8, knightpaid_hook }, { "knightdead", 81, 0x18bb, 0x01a0, knightpaid_hook },
     { "lordreward", 54, 0x19df, 0x0b56, councilsaint_hook },
+    { "lordreward", 77, 0x1996, 0x01ae, village_reward_hook },
     { "membervalue", 67, 0x1954, 0x059a, mvmin_wrap_hook }, { "membervalue", 67, 0x1954, 0x06a8, mvmin_wrap_hook }, { "membervalue", 67, 0x1954, 0x07a2, mvmin_wrap_hook },
     { "cardslips", 113, 0x18f0, 0x000c, peatbog_hook }, { "cardslips", 133, 0x1838, 0x049c, famine_hook },
     { "cardslips", 67, 0x1a24, 0x08ca, sneakhall_hook }, { "cardslips", 88, 0x1859, 0x0230, devil_hook },
