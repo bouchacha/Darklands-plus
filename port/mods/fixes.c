@@ -341,6 +341,8 @@ Fix FIXES[] = {
       "To place the party on some levels of a castle, the game draws rooms at random until one is not the gate room; when the gate room was the only one to draw, it drew for ever and the game froze. It now takes the first room in that case.", 1 },
     { "university", "A failed search for formulae at a university shuts that search, not the saints'",
       "Asking a university about alchemical formulae and failing marked the question about saints as asked instead: asking about saints was refused for a week, and the formulae could be asked about again at once. It now marks the question about formulae.", 1 },
+    { "monasteryprayer", "Businesslike monasteries give their own blessing",
+      "Paying the abbot's clerk for prayers at a businesslike monastery now restores Divine Favor according to each member's Religion. The original gave just one point there, as at a corrupt monastery.", 1 },
     { "partyitems", "An item given to the whole party is given once",
       "Where a card gives every member something (out of a dungeon, from footpads), each member who had one already got it twice: added to his stack, and again as a new stack. Now each gets it once.", 1 },
     { "itemflags", "Fleeing on horseback counts the poorest rider's mount",
@@ -2431,6 +2433,45 @@ static void university_hook(void)           /* s056 18c0:0494 (chance) */
     hook_remove(GF_event_here_type, uni_mark_hook);
 }
 
+/* $Count04, prayers at the abbot's clerk (Restoration R-dc78c7). The clerk already
+   distinguishes houses 0..4, 5..8 and 9 by the last digit of their place number.
+   The donation tests <5 a second time at 1a12:063c, skipping its middle blessing.
+   For 5..8 replace just the text and reward of the branch it took. The same option
+   still collects the quoted price, shows the pictures and passes the hours. */
+static void monastery_prayer_text(void)
+{
+    if (rw(SS, SP) == 0x068b && rw(SS, (u16)(SP + 2)) == LOADSEG + 0x1a12)
+        ww(SS, (u16)(SP + 4), 4);
+    hook_call_original();
+}
+
+static void monastery_prayer_favor(void)
+{
+    if (rw(SS, SP) != 0x0699 || rw(SS, (u16)(SP + 2)) != LOADSEG + 0x1a12) {
+        hook_call_original();
+        return;
+    }
+    for (int m = 0; m < 5; m++) {
+        if (!g_rb(G_MEMBER(m))) continue;
+        int religion = ns_call(GF_member_skill, 2, m, 8);
+        if (ns_unwinding) return;
+        ns_call(GF_add_attr, 3, m, 6, religion / 6 + 2);
+        if (ns_unwinding) return;
+    }
+    hook_return_far(0);
+}
+
+static void monastery_prayer_hook(void)
+{
+    int tier = (s16)g_rw(G_CUR_LOC) % 10;
+    if (tier < 5 || tier > 8 || config_get_int("original", 0)) { hook_call_original(); return; }
+    hook_install(GF_card_text, monastery_prayer_text);
+    hook_install(GF_add_attr, monastery_prayer_favor);
+    hook_call_original();
+    hook_remove(GF_add_attr, monastery_prayer_favor);
+    hook_remove(GF_card_text, monastery_prayer_text);
+}
+
 /* ---------------------------------------------------------------- partyitems, itemflags */
 static void partyitems_hook(void)           /* add_item_rec_impl (who, struct item) */
 {
@@ -4324,7 +4365,8 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 37, 0x1462, 0x2ace, standings_save_hook }, { GF_heal_attr_pct, healboost_hook },
     { GF_camp_spend_day, teachcap_hook }, { GF_hit_damage, oils_hit_hook }, { 39, 0x165c, 0x5cca, paul_hook },
     { 39, 0x165c, 0x41fa, nepomuk_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x21aa, nightbowyer_hook },
-    { 57, 0x1838, 0x03cc, confession_hook }, { 29, 0x0e76, 0x3f30, appointment_hook }, { GF_damage_queue, pileup_hook }, { 7, 0x15af, 0x1d78, castlefreeze_hook }, { 56, 0x18c0, 0x0494, university_hook }, { GF_add_item_rec_impl, partyitems_hook }, { GF_item_quality_flags_impl, itemflags_hook },
+    { 57, 0x1838, 0x03cc, confession_hook }, { 29, 0x0e76, 0x3f30, appointment_hook }, { GF_damage_queue, pileup_hook }, { 7, 0x15af, 0x1d78, castlefreeze_hook }, { 56, 0x18c0, 0x0494, university_hook },
+    { 105, 0x1a12, 0x05ac, monastery_prayer_hook }, { GF_add_item_rec_impl, partyitems_hook }, { GF_item_quality_flags_impl, itemflags_hook },
     { 57, 0x1838, 0x067c, mv_wrap_hook }, { 114, 0x18d3, 0x041c, hussite_hook }, { 47, 0x1a44, 0x05f0, nightwall_all_hook },
     { 36, 0x1462, 0x1b80, campguard_hook }, { GF_groups_fixup, enemygroups_hook }, { GF_loc_hostile_impl, cityalert_hook },
     { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook },

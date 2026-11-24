@@ -27,6 +27,7 @@
 
 **Fixed**
 
+- Paying the abbot's clerk for prayers at a businesslike monastery restores Divine Favor according to each member's Religion. A member with Religion 30 can recover seven points there. The original gave only one.
 - **A village's robber-knight quest can be finished:** the original never asked for that reward, so the quest stayed open for good and a Schulz who came along never went home. Once the knight has fallen, asking the Schulz for news closes it: he thanks the party and a Schulz who came along leaves it (part of the fix "The lord, the council and the village pay for their quests").
 - **A save that fails is said to fail, and older saves stay:** a save written short (a full disk, a folder the system would not let be written) was reported saved, and the older quicksaves and autosaves, or an Ironman game's one save, were removed for it. Each save is now read back first.
 - **An error no longer ends an Ironman game:** when the game stopped itself on an error, Darklands+ took it for the party's end: the party went on the Honor Roll and an Ironman game's save was deleted. It is now told as an error.
