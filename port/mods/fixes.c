@@ -329,6 +329,8 @@ Fix FIXES[] = {
       "Called on in Prag, St. John Nepomuk raised the reputation of some unrelated place (or of no real place) instead of Prag's; St. Cecilia, called on away from any town (in the overland view), raised the reputation of no real place at all. Now Nepomuk's bonus goes to Prag and Cecilia's to the nearest town, as with the other saints.", 1 },
     { "sainttexts", "Saints do what their texts say",
       "For 43 saints, the help the game gives falls short of or strays from the saint's own description: St. Christopher, St. Drogo and St. Wilfrid never sped the party's travel (now faster travel for a week: fewer days on the road), nor St. Eustace through woods; St. Nicholas and St. Theodore gave Flails instead of Riding; St. Charity, St. Erasmus and St. Pantaleon gave the party no protection against fire; St. Lutgardis's ecstasies gave Endurance instead of costing it; St. George, St. Michael, St. Longinius, St. Maurice and St. Eligius never improved a weapon or armor; St. Crispin improved metal armor, St. Dunstan none; reputation went to the wrong lands or none ... Now each does what its text says (the new character sheet and the new prayer screen describe each one). The armor and fire saints need the fix \"Armor and fire protection from potions and saints last a day\".", 1 },
+    { "floodsaints", "The tidal flood offers all three lists of saints",
+      "In a storm tide the first page hid both choices to consider other saints, and the second page led back to itself. All three lists can now be reached. The party can pray to any of the twelve saints it knows.", 1 },
     { "nightbowyer", "The bowyer sells bows at night too",
       "Woken at night, a bowyer opened a shop of the smiths' weapons and armor and no bows: the night card hands the shop the smiths' goods. It now sells what the bowyer sells by day.", 1 },
     { "confession", "Confession always takes at least an hour",
@@ -2351,6 +2353,25 @@ static void repadj_hook(void)              /* loc_reputation_adj(loc, a, b) */
     hook_call_original();
 }
 
+/* ---------------------------------------------------------------- floodsaints
+ * $MeetS01 (s114 1a3f:000a) sets flags 3/4 to zero before its popup setup. Both choices,
+ * their hints and their destination cards already exist. Enable the links before the script
+ * copies the flags into opt_on; each page runs its own saints_usable test for the prayer.
+ * $MeetS02 option 2 (s115 1838:0336) is the other link to $MeetS03, misdirected at itself. */
+static void flood_lists_hook(void)
+{
+    hook_call_original();
+    if (ns_unwinding || config_get_int("original", 0)) return;
+    g_ww(GV_opt_flag_3, 1);
+    g_ww(GV_opt_flag_4, 1);
+}
+
+static void flood_third_hook(void)
+{
+    hook_call_original();
+    if (!ns_unwinding && !config_get_int("original", 0)) g_ww(GV_next_card, 0x11d);
+}
+
 /* ---------------------------------------------------------------- nightbowyer
  * The card call that opens a shop, s029 0e76:21aa (shop, name far, cats lo, cats hi): the night
  * bowyer's (barter shop 5) comes with the smiths' categories, the day bowyer's with its own. */
@@ -4323,7 +4344,8 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 50, 0x1a06, 0x026c, lord_hook }, { GF_use_potion, potion_fixes_hook }, { GF_use_potion, potion_fixes_hook },
     { 37, 0x1462, 0x2ace, standings_save_hook }, { GF_heal_attr_pct, healboost_hook },
     { GF_camp_spend_day, teachcap_hook }, { GF_hit_damage, oils_hit_hook }, { 39, 0x165c, 0x5cca, paul_hook },
-    { 39, 0x165c, 0x41fa, nepomuk_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x21aa, nightbowyer_hook },
+    { 39, 0x165c, 0x41fa, nepomuk_hook }, { -2, 0, 0, 0 },
+    { 114, 0x1a3f, 0x051c, flood_lists_hook }, { 29, 0x0e76, 0x21aa, nightbowyer_hook },
     { 57, 0x1838, 0x03cc, confession_hook }, { 29, 0x0e76, 0x3f30, appointment_hook }, { GF_damage_queue, pileup_hook }, { 7, 0x15af, 0x1d78, castlefreeze_hook }, { 56, 0x18c0, 0x0494, university_hook }, { GF_add_item_rec_impl, partyitems_hook }, { GF_item_quality_flags_impl, itemflags_hook },
     { 57, 0x1838, 0x067c, mv_wrap_hook }, { 114, 0x18d3, 0x041c, hussite_hook }, { 47, 0x1a44, 0x05f0, nightwall_all_hook },
     { 36, 0x1462, 0x1b80, campguard_hook }, { GF_groups_fixup, enemygroups_hook }, { GF_loc_hostile_impl, cityalert_hook },
@@ -4381,6 +4403,7 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "lordreward", 54, 0x19df, 0x0b56, councilsaint_hook },
     { "lordreward", 77, 0x1996, 0x01ae, village_reward_hook },
     { "membervalue", 67, 0x1954, 0x059a, mvmin_wrap_hook }, { "membervalue", 67, 0x1954, 0x06a8, mvmin_wrap_hook }, { "membervalue", 67, 0x1954, 0x07a2, mvmin_wrap_hook },
+    { "floodsaints", 115, 0x1838, 0x0336, flood_third_hook },
     { "cardslips", 113, 0x18f0, 0x000c, peatbog_hook }, { "cardslips", 133, 0x1838, 0x049c, famine_hook },
     { "cardslips", 67, 0x1a24, 0x08ca, sneakhall_hook }, { "cardslips", 88, 0x1859, 0x0230, devil_hook },
     { "cardslips", 46, 0x1838, 0x0000, nightmain_hook }, { "cardslips", 46, 0x194b, 0x0002, nightside_hook },
