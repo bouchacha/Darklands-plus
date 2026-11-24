@@ -359,6 +359,18 @@ covered and found, and what it could not check.
   a modded city of size 10+); the encounters' enemy names are ENM indexes as the game ships them (a mod that
   reorders ENM would mislead); cardhints_data.h's 283 reasons, offices.c's rules and the place-type labels are
   not checked against the cards.
+- 2026-11-24, town stock (Darklands Restoration B-700b91): the barter screen's stock roll (s032 1462:1d18)
+  tests its unwritten local size as a town number. A return address left on the stack can select row 1 for
+  the first eligible ware and after each of the first four wares drawn. Both barter screens use this routine.
+  fix.shopstock supplies the town number at entry; country traders keep their original rule. The journal
+  uses the game's own chance table, including row 9, and counts the price draws for the first four wares at
+  a place with flag 8. Forecasts follow the switch. Visits under each rule are kept separately in the same
+  journal; older entries belong to the original rule. A visit replaces the corresponding estimate.
+  Copied saves on Windows, seed 687: Magdeburg's goods merchant had 7 wares with the fix and 5 without it;
+  Leipzig's swordsmith had 22 and 19. All four forecasts matched the shop item by item. Revisited after a
+  switch, reopened both saved lists, and checked the 5 original goods under Full Original. Copied fixtures
+  with flag 8 and with a size-10 city also matched the game's lists under both settings. The release check
+  runs test_shop_stock.c and checks the journal's forecast against a merchant's actual listing.
 - 2026-11-04 (1.4.6-RC10): asked how to find bugs before a release rather than after it. Two tools, both kept:
   mods/checks.c watches each frame for what must never happen (the menu bar's title pointers changed, a member's
   item count out of range, money below 0, the place or party size out of range, the date going back without a

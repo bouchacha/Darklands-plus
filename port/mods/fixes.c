@@ -357,6 +357,8 @@ Fix FIXES[] = {
       "When setting up a battle, the game drops the groups of enemies that turned out empty, but a mistake dropped every group after the first empty one too: some battles had fewer enemies than they were built with. Now only the empty groups are dropped.", 1 },
     { "cityalert", "A town on alert remembers the trouble",
       "After a fight with the guards at the gate (and for weeks after a rising) a town is on alert, during which a standing of -10 or worse is meant to make it hostile (the guards at the gate, the docks, the town hall) instead of only -75 or worse. The original's test for the alert was the wrong way around, so the alert never counted. Now it does.", 1 },
+    { "shopstock", "Town shops use the town's size for every stock roll",
+      "The game's first stock roll and rolls after it draws the first four wares can use a small town's chances in any town. Every roll now uses the size of the town where the party is shopping. Turn this off to keep the original assortment in an existing game.", 1 },
     { "dayjobs", "The friars' day jobs are offered",
       "Two of the day jobs a member can find from the inn, preaching friar and mendicant friar, are meant to be open except in towns of a certain kind (which no town is); a mistake in the test closed them everywhere. Now a member who qualifies can be offered them.", 1 },
     { "cloudline", "Clouds stop only the shots that pass through them",
@@ -2800,6 +2802,16 @@ static void cityalert_hook(void)
     }
 }
 
+/* s032 1462:1d18 tests [bp-2] for a town number before it has set it. After
+ * the opening push bp, that word is at entry SP-4. Give the stock routine its
+ * town there; keep its original category, quality and random-number rules. */
+static void shopstock_hook(void)
+{
+    u16 loc = g_rw(G_CUR_LOC);
+    if (loc < 92 && !config_get_int("original", 0)) ww(SS, (u16)(SP - 4), loc);
+    hook_call_original();
+}
+
 /* ---------------------------------------------------------------- dayjobs
  * The best day job of a member (s036 1462:197e): the table at DS:3ace, 31 jobs of 18 bytes (+2 the
  * town kinds it needs, +6 the kinds it is closed in, +0x0a the place's flags it needs). The second
@@ -4327,6 +4339,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { 57, 0x1838, 0x03cc, confession_hook }, { 29, 0x0e76, 0x3f30, appointment_hook }, { GF_damage_queue, pileup_hook }, { 7, 0x15af, 0x1d78, castlefreeze_hook }, { 56, 0x18c0, 0x0494, university_hook }, { GF_add_item_rec_impl, partyitems_hook }, { GF_item_quality_flags_impl, itemflags_hook },
     { 57, 0x1838, 0x067c, mv_wrap_hook }, { 114, 0x18d3, 0x041c, hussite_hook }, { 47, 0x1a44, 0x05f0, nightwall_all_hook },
     { 36, 0x1462, 0x1b80, campguard_hook }, { GF_groups_fixup, enemygroups_hook }, { GF_loc_hostile_impl, cityalert_hook },
+    { GF_shop_has_item, shopstock_hook },
     { 36, 0x1462, 0x197e, dayjobs_hook }, { GF_cloud_blocks_line, cloudline_hook }, { GF_party_max_attr_sum, attrsum_hook },
     { 14, 0x19cd, 0x33c0, lootcount_hook }, { 7, 0x15af, 0x0698, corridors_hook },
     { GF_create_draw, createback_hook }, { 129, 0x1942, 0x021c, ruinkeep_hook }, { 39, 0x1462, 0x10b6, rkonce_hook }, { GF_event_find, bestteacher_hook }, { 9, 0x182c, 0x1146, minerelic_hook }, { 30, 0x1462, 0x1300, ownplace_hook }, { -2, 0, 0, 0 }, { 30, 0x1462, 0x2842, rkcastle_hook }, { 81, 0x19bc, 0x0a40, dragonhide_hook },

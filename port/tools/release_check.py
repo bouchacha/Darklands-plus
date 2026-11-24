@@ -98,7 +98,7 @@ def main():
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
     subprocess.run(NCTL + ['stop', NAME], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    env = dict(os.environ, DL_CARDVIEW_LOG='1', DL_LOOT_LOG='1')
+    env = dict(os.environ, DL_CARDVIEW_LOG='1', DL_LOOT_LOG='1', DL_JOURNAL_LOG='1')
     subprocess.run(NCTL + ['start', NAME, '--x11', '--exe', a.exe, '--game', a.game], stdout=subprocess.DEVNULL, check=True, env=env)
     log = os.path.join(os.environ.get('NCTL_DIR', '/tmp/nctl'), NAME, 'out.txt')
     t0 = time.time()                                # (a first start makes the game module first: minutes)
@@ -160,7 +160,7 @@ def main():
                 elif probe:
                     subprocess.run(NCTL + ['do', NAME, probe], capture_output=True, text=True, timeout=120)
             seen = len(text)
-            bad = [l for l in lines if BAD.search(l)]
+            bad = [l for l in lines if BAD.search(l) or re.search(r'^journal: predicted .*: DIFFERENT ', l)]
             ended = 'SESSION ENDED' in r.stdout
             ok = not miss and not bad and not ended
             failed += not ok
