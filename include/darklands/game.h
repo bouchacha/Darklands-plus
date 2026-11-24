@@ -453,6 +453,8 @@
 #define order_special            D_a6d1               /* the action at a place being ordered (with order_action 0x400) */
 #define order_dest_x             D_c652               /* int: a spot on the ground clicked in this order (0 none): where order_mode_leave sends the member */
 #define order_dest_y             D_c67d               /* int: its y */
+#define order_foe_clicked        D_c7cc               /* byte: the current order accepted a click on a foe */
+#define order_prior_flee         D_d6ea               /* byte: selected member's flee bit on entering order mode */
 #define cbt_state                D_a3d8               /* [5] a member's special state (1 'b', 2 'e' on the panel) */
 #define insid_office             D_eeb4               /* $Insid00 (s108 1925): the office chosen above the marketplace (0 the leading merchant, 1 the Medici, 2 the Fugger, 3 the Hanse) */
 #define cbt_path_step            D_d6fb               /* char[13]: the step a walk has reached in its path */

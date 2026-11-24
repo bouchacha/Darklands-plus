@@ -33,7 +33,6 @@
 #define D_HOT_Y0       0xd8bd
 #define D_HOT_Y1       0xd8a3
 #define D_HOT_N        GV_hotspot_count   /* char: hot spots */
-#define D_FOE_CLICKED  0xc7cc   /* char: a foe was taken in this order */
 #define D_BOX_COLOUR   0xe1bc   /* int: the colour of the box around the order's target (D_c2bd: refused) */
 #define D_REFUSED      0xc2bd
 
@@ -415,7 +414,7 @@ static void click_hook(void)                    /* s014 19cd:0dcc (x, y): a clic
     if (m >= 5 && orders_click_attack && !config_get_int("original", 0) && g_rw(GV_order_dest_x)) { g_ww(GV_order_dest_x, 0); g_ww(GV_order_dest_y, 0); }
     int quick = quick_on() && m >= 5 ? 1 : quick_on() && m < 0 ? 2 : 0;   /* (on a member: the game leaves the order and chooses them) */
     int walk = m < 0 && (s16)g_rw(D_ORDER_ACTION) != 0x100 && (s16)g_rw(D_ORDER_ACTION) != MISSILE;
-    if (quick) g_wb(D_FOE_CLICKED, 0);
+    if (quick) g_wb(GV_order_foe_clicked, 0);
     hook_call_original();
     if (!selected_ok()) return;
     int ct = (s8)g_rb(GV_cursor_target);
@@ -426,7 +425,7 @@ static void click_hook(void)                    /* s014 19cd:0dcc (x, y): a clic
     if ((ct >= 5 && g_rw(D_BOX_COLOUR) != g_rw(D_REFUSED)) || (ct == -2 && g_rw(GV_order_dest_x) != 0))
         ways_told((s8)g_rb(D_SELECTED));               /* (an order of the player's: the member's way gives way to it, mods/ways.c) */
     if (!quick) return;
-    if ((ct >= 5 && g_rb(D_FOE_CLICKED) == 1 && g_rw(D_BOX_COLOUR) != g_rw(D_REFUSED)) || (ct == -2 && g_rw(GV_order_dest_x) != 0))
+    if ((ct >= 5 && g_rb(GV_order_foe_clicked) == 1 && g_rw(D_BOX_COLOUR) != g_rw(D_REFUSED)) || (ct == -2 && g_rw(GV_order_dest_x) != 0))
         give_pending = 1;                               /* (taken: a foe within reach or in the line of fire, or a spot to walk to) */
 }
 

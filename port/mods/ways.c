@@ -25,6 +25,7 @@
 #include "battlerules.h"
 #include "styles.h"
 #include "ways.h"
+#include "fixes.h"
 #include "saves.h"
 
 #define D_ORDER_ACTION GV_order_action   /* int: the attack chosen in order mode (-1 none, 1 walk ...) */
@@ -127,6 +128,18 @@ static void leave_hook(void)                    /* s014 19cd:0738 order_mode_lea
 {
     int i = (s8)g_rb(D_SELECTED), act = (s16)g_rw(D_ORDER_ACTION);
     int was_told = i >= 0 && i < 5 && told[i];
+    /* Walk and Flee both use action 1. With no click, order_mode_leave can reuse a shooter's
+       target, ready the hand weapon and leave the missile order running (Restoration B-dd294a).
+       Treat the unfinished order as an empty selection before the game or the fighting style
+       records it. Restore the flee bit saved on entry, as the game's Cancel does. */
+    if (i >= 0 && i < 5 && act == 1 && !g_rw(GV_order_dest_x) && !g_rb(GV_order_foe_clicked)
+        && fix_is_on("movedestination")) {
+        u16 flags = (u16)(GV_cbt_flags + 2 * i);
+        g_ww(flags, (g_rw(flags) & ~0x1000u) | (g_rb(GV_order_prior_flee) ? 0x1000u : 0));
+        g_ww(D_ORDER_ACTION, (u16)-1);
+        act = -1;
+        was_told = 0;
+    }
     int halt = act == 0x400 && g_rb(GV_order_special) == 10;
     for (int k = 0; k < 5; k++) told[k] = 0;
     hook_call_original();

@@ -1124,3 +1124,14 @@ covered and found, and what it could not check.
   ev8_resolve (3, 100) - a kind 0x24 reward for owner 9 at the village; a member named Schulz with a kind 0x43
   contract; ujumpcard 0x86, the news asked: $Raubi01's text 1, the reward freed, the Schulz gone (raubi_hook's
   branch, unreachable until now), the village's card back, a second ask the plain news.
+- 2026-11-24, Walk/Flee without a destination (Restoration B-dd294a). At s014 19cd:0738 the
+  current target is still the shooter's, so the game readies the hand weapon then rejects the
+  move, leaving the missile order at the hand weapon's rate. Normalize an unplaced move on
+  entry to order_mode_leave: its normal no-order cleanup keeps the weapon, the old flee bit
+  and the fighting style's remembered target. Space, Enter, picking another member and the
+  immediate-click controls all commit here. A clicked destination or a pending target still
+  goes to the game. test_move_destination.c checks these cases and the off switch.
+  Windows copied-game check: an arbalest, a short sword and 30 quarrels against a bandit.
+  With the fix on, F then Space fired once in the first 600 combat ticks; switched off it
+  fired three times. Walk, Enter and selecting another member kept the arbalest ready; a
+  ground click gave the flee order. Original retained the hand weapon's rate.
