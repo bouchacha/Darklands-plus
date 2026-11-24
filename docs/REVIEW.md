@@ -199,6 +199,12 @@ covered and found, and what it could not check.
   flickered: a recording of a drag had frames with nobody on the field). Card chances one look everywhere (the
   alchemist's formulae showed every member's chip). gamevars.h had three names added by hand, which the next
   run of its generator would have dropped: made from the headers again, and check_docs.py checks it.
+- 2026-11-24, quest cave lookout ($McGuf02, Darklands Restoration R-fda1bf):
+  s106 19bc:000a assigns guardian 3 for bandits, but its only lookout (058a) tests for 2. Under cardslips,
+  the lookout shows the bandit sighting for 3. The original action still advances three hours and returns to the cave.
+  Tested two watches each on Windows at cave 376 with a copied save: with a tag-10 quest, the sighting both times;
+  without the quest, quiet both times; with the fix disabled and bandits present, quiet both times. The release
+  checks run test_cave_watch.c for every guardian and original mode. The battle and prayer outcomes are separate.
 - 2026-10-26 (evening, 1.4 under way): the release check's inn step failed three runs running (Go to Inn "not
   found": the market's options read empty). Go to read the card's text from the game's buffer (msg_file, DS:a895),
   which the loot, a level's enemy table and screens opened from the menus share: after Party Info and the

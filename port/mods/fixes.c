@@ -2528,7 +2528,7 @@ static void mvmin_wrap_hook(void)           /* $Jewel's failures, s067 1954:059a
 
 /* ---------------------------------------------------------------- cardslips
  * Each card routine below is wrapped; while it runs (slip), a call it makes is put right. */
-enum { SLIP_NONE, SLIP_HUSSITE, SLIP_STABLES, SLIP_SCHULZ, SLIP_TATZEL, SLIP_HURT, SLIP_RAUBI };
+enum { SLIP_NONE, SLIP_HUSSITE, SLIP_STABLES, SLIP_SCHULZ, SLIP_TATZEL, SLIP_HURT, SLIP_RAUBI, SLIP_CAVE_WATCH };
 static int slip, slip_p, slip_saw, raubi_card, raubi_guide;
 static void slip_rand_hook(void)            /* rand_mod (n): the Hussites' == made <=; $Raubi01's coin */
 {
@@ -2546,6 +2546,7 @@ static void slip_text_hook(void)            /* card_text (block, how) */
     int b = (s16)rw(SS, (u16)(SP + 4));
     if (slip == SLIP_STABLES && (b == 1 || b == 7)) ww(SS, (u16)(SP + 4), (u16)(b == 1 ? 7 : 1));
     if (slip == SLIP_SCHULZ && b == 6) slip_saw = 1;
+    if (slip == SLIP_CAVE_WATCH && b == 12) ww(SS, (u16)(SP + 4), 13);
     if (slip == SLIP_RAUBI && raubi_card == 0x86 && raubi_guide < 0 && b == 1) ww(SS, (u16)(SP + 4), 2);   /* (no Schulz came along) */
     hook_call_original();
 }
@@ -2622,6 +2623,14 @@ static void templar_hook(void)              /* $Witcd02, the writing desk read (
     hook_return_far(0);
 }
 static void tatzel_hook(void) { slip_run(SLIP_TATZEL, 29, 0x0e76, 0x2474, slip_away_hook); }   /* $McGuf02's tatzelwurm (s106 19bc:03e8) */
+
+/* $McGuf02 assigns guardian 3 to bandits on entry. Watching tests for 2, a value
+ * the cave never assigns. Keep the three hours and show the band's own text. */
+static void cave_watch_hook(void)
+{
+    if (g_rw(GV_saved_card) == 3 && !config_get_int("original", 0)) slip_run(SLIP_CAVE_WATCH, GF_card_text, slip_text_hook);
+    else hook_call_original();
+}
 static void hurt_hook(void) { slip_run(SLIP_HURT, GF_add_attr, slip_attr_hook); }              /* the cavern (s130 190c:033e), the spiders (s134 1838:0550, 0692) */
 static void kingname_hook(void)             /* $MineB03 (s101 18bd:0000): "It is $NamedOneName again", never set there */
 {
@@ -4364,6 +4373,7 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "cardslips", 53, 0x1838, 0x0aa8, footpads_potion_hook }, { "cardslips", 51, 0x18c9, 0x05d0, stables_hook },
     { "cardslips", 77, 0x1996, 0x0378, schulz_hook }, { "cardslips", 118, 0x1a2b, 0x02ac, templar_hook },
     { "cardslips", 106, 0x19bc, 0x03e8, tatzel_hook }, { "cardslips", 130, 0x190c, 0x033e, hurt_hook },
+    { "cardslips", 106, 0x19bc, 0x058a, cave_watch_hook },
     { "nightwall", 47, 0x1a44, 0x03e2, nightwall_rope_hook },
     { "cardslips", 80, 0x1870, 0x000c, raubi_hook }, { "cardslips", 134, 0x1838, 0x0000, spider_man_hook }, { "cardslips", 101, 0x18bd, 0x0000, kingname_hook }, { "cardslips", 134, 0x1838, 0x0550, hurt_hook }, { "cardslips", 134, 0x1838, 0x0692, hurt_hook },
     { "cardslips", 58, 0x191a, 0x01f4, gate_rep_hook }, { "cardslips", 58, 0x191a, 0x09ba, gate_rep_hook },
