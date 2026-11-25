@@ -6,35 +6,36 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 
 **New in 1.6** (what changed since 1.5)
 
-**Added**
+**New**
 
-- **Who should carry a weapon, in chances:** a weapon's tooltip has a column for each member: the chance to hit a typical foe and to dodge his blow, the damage through each armor tier, the time per blow. Shields and armor say what they stop. In a battle, pointing at a foe shows each member against him. From woodk123's pull request #34.
-- **Battle aftermath:** after every fight, who went down, the skills gained or lost and lasting losses such as worn armor. By woodk123 (#27, #40).
-- **New encounters on by default:** the 160 encounters that come with Darklands+, with a note at the start to turn them off.
-- **Find teachers and Quest givers** on the world map: every teacher and quest giver in the towns the party knows, with the journey, who in the party would learn, today's quest chance and what it rests on. By and from woodk123 (#23, #26, #31).
-- **Potions, one row each** on the sheet and the loot screen, their grades as Roman numerals; **Share all** splits every potion evenly among the members on their feet.
-- **Custom character portraits** from a PNG or JPEG. By woodk123 (#24).
-- **Art packs** can replace a battlefield's scenery, the start menu's picture and the pointer, and a checklist lists every picture a pack can replace. From woodk123 (#36, #39) and Seb-Zee (#33, issue #22).
-- **Smaller additions:** shops warn of a short stock, mounts explain their quality, the world map's place card uses its width, and "No papers to steal" (off at first) spares the party office break-ins.
+- **See who should carry a weapon.** Point at a weapon on the character sheet, in a shop or in the loot, and the tooltip shows, for each party member, the chance to hit and to dodge, how much damage gets through each kind of armor, and how fast they swing. Shield and armor tooltips say what they stop. In a battle, point at an enemy to see each member's chances against him. From woodk123 (#34).
+- **Battle aftermath.** After every fight, a summary shows who went down, which skills went up or down, and lasting damage such as worn-out armor. By woodk123 (#27, #40).
+- **Find quest givers and teachers on the world map** (M, then Find...). Quest givers lists the offices in the towns you have visited, nearest first, with today's chance of a quest and what that chance depends on. Teachers lists every teacher, the skill and level they teach, and who in your party would actually learn something. By and from woodk123 (#23, #26, #31).
+- **160 new encounters are on by default.** A note at the first start offers to turn them off, and F12 > Mods turns them off at any time.
+- **One row per potion** on the character sheet and the loot screen; point at one to see its grades, now marked I, II and III. **Share all** splits every potion evenly among the party.
+- **Your own portraits:** "Choose portrait..." on the character sheet takes any PNG or JPEG. By woodk123 (#24).
+- **More for art packs:** they can replace the battlefield scenery, the start menu's picture and the mouse pointer, and a checklist names every picture a pack can replace. From woodk123 (#36, #39) and Seb-Zee (#33, issue #22).
+- **Smaller things:** an ingredient turns red in shops when you have fewer than the stock you set for it; a horse's tooltip explains what its quality does; the world map's town card is easier to read; and a setting (F12 > Settings > Cards and towns, off at first) stops quest givers from sending you to steal papers.
 
 **Fixed**
 
-- **Stairs in a fight take the whole party along,** the knocked-out carried. A party split across floors was behind 16 known bugs: members walking through walls, opening the wrong doors and chests, seen by enemies not there.
-- **Saves:** a save asked for at a card's text waits until the text is closed (a reward could be taken again at each load); a save in a dungeon or battle keeps the potions and saints' help running there, and an attribute left stuck above its maximum that way comes back down; a save that fails says so and keeps the older ones; damaged saves are refused before loading; cancelling the original Load screen keeps the game (woodk123, #14 to #21, #47).
-- **Battles no longer read memory the game has freed:** a member could show overloaded after a last potion, and a saint's help prayed for in a battle ended with it.
-- **Quests that could not be finished:** a robber knight is paid for however he fell, a council pays a party that prayed its way in, a village's quest is closed by its Schulz, and a quest tomb's item is kept by escaping with it.
-- **Encounter mishaps** take a share of each stack instead of whole stacks, never what is equipped or ridden, and with the shared pack only the member's part of the pack.
-- **Restored from the original's own code:** the monastery's middle blessing, the bandits seen from a watched cave, the tidal flood's two lists of saints, and town shops stocked by the town's size. By woodk123 (#42, #43, #45, #46).
-- **Orders in battle:** Halt holds, a shot goes to the foe chosen, a locked door clicked is not forced open, U takes a group through stairs once, Walk or Flee with no destination keeps the order (woodk123, #41), and bows, crossbows and guns shoot inside castles and dungeons.
-- **Items:** inn stores keep each one's own, a companion who leaves takes only their own things, a full loot pile no longer swallows what is put on it, Eater-Water and Dissolve Lock use the right flask.
-- **New games are new worlds:** two games could share a world and journal.
-- **Windows:** a second copy on the same game folder closes with a message; folder names like "Jürgen" work; AZERTY and QWERTZ keys follow their letters; a stuck Alt no longer turns S, L and Q into save, load and quit; the log of a session that stopped on an error is kept (issue #25).
-- **Clicks and the pointer:** a click goes to what is on top, tooltips follow the pointer after a click on the level map, and the Find teachers list scrolls smoothly.
-- **From Arkana Mechanika's Darklands Restoration register,** besides those above: brews called off give their ingredients back, the travel map's rows after moving north, a camp's risk at the view's edge, doors flipping back, the last thrown weapon training Edged, enemy casters' sight, the jewelers' guild at night, the inn's roster, and a robber knight's bounty explained by the right patron (woodk123, #35).
+- **Taking stairs during a fight brings the whole party,** carrying anyone knocked out. Splitting up between floors caused at least 16 bugs: members walking through walls, opening the wrong doors and chests, or attacked by enemies who weren't there. A note at the first start explains the change.
+- **Saving can no longer repeat a reward.** A save made while a text is showing now waits until you close it; before, loading it let you collect the same reward again.
+- **Potions and saints' blessings survive a save in a dungeon or a battle.** Before, they ended at once, and some boosts got stuck for good; a stuck boost is corrected when you load.
+- **Safer saves:** a save that fails to write tells you so and keeps your older saves; damaged saves are refused instead of crashing the game; Esc on the original Load screen takes you back to your game. By woodk123 (#14 to #21, #47).
+- **Quests that couldn't be finished now can:** a robber knight is paid for however he died; a town council pays even if you prayed your way into its hall; a village's robber-knight quest ends when you ask the village headman (the Schulz) for news; and escaping a tomb with its treasure keeps it.
+- **Losing things in an encounter is no longer all or nothing.** A fall, a bog or a river takes part of each stack instead of whole stacks, never what is worn or ridden, and with the shared pack only that member's share of it.
+- **Lost content restored from the original game:** the monastery's middle blessing when you pay for prayers, bandits spotted when you watch a cave, two hidden lists of saints in the tidal flood, and shops stocked by the size of their town. By woodk123 (#42, #43, #45, #46).
+- **Battle orders do what you asked:** Halt keeps a member in place, a shot goes to the enemy you picked, clicking a locked door no longer walks through it, U on stairs moves the group once, Walk or Flee without a destination no longer lets an archer shoot faster (woodk123, #41), and bows, crossbows and guns work in castles and dungeons.
+- **Items no longer go missing:** each inn's storeroom keeps its own items, a companion who leaves takes only their own things, a full loot pile no longer swallows items, and Eater-Water used on a lock comes from the member using it.
+- **Each new game is a new world.** Two new games could start with the same world and journal.
+- **Windows:** a second copy started on the same game folder now shows a message instead of spoiling both games; folders with accented names (like "Jürgen") work; AZERTY and QWERTZ keyboards work; a stuck Alt key no longer turns S, L and Q into save, load and quit; and the log is kept when the game restarts after an error (issue #25).
+- **Mouse:** a click goes to whatever is on top, tooltips work again after a click on the level map, and the teachers list scrolls smoothly.
+- **More bugs of the original game fixed,** found by Arkana Mechanika's Darklands Restoration: calling off a brew gives its ingredients back; the travel map no longer scrambles after going north; a camp's risk counts the right villages; battle doors no longer flip by themselves; the last javelin or axe thrown trains Thrown Weapons; enemy spellcasters judge their line of sight correctly; the jewelers' guild at night tests the right member; choosing a member low on the inn's list no longer ends the game; and a robber knight's bounty is explained by the right patron (woodk123, #35).
 
 **Changed**
 
-- **Full Original and Purist stay as chosen after an update:** a switch new in a release takes the preset's value.
+- **Full Original and Purist stay faithful after an update:** settings added in a new version follow the preset you chose.
 
 ### What it adds
 
