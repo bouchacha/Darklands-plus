@@ -412,7 +412,7 @@ Fix FIXES[] = {
     { "saverecords", "Every character record is kept when saving",
       "After losing a member to the Wild Hunt, a party slot can be empty while its character is still in the roster. Saving skipped that character's record but counted it in the header, so loading read the rest of the file in the wrong places. Every roster record is now written, including an empty member's, with its status kept.", 1 },
     { "savecheck", "Damaged saves are refused before loading",
-      "A truncated save or corrupt battle file could end the game or replace the party with incomplete data. Continue, quickload, the new Load page and the original title screen now check the files before loading. The original in-game Load screen still discards the current game before the player chooses a file.", 1 },
+      "A truncated save or corrupt battle file could end the game or replace the party with incomplete data. Continue, quickload and both Load screens check the chosen file first. Cancelling the original in-game Load screen keeps the current party, events and battle.", 1 },
     { "innroster", "The inn's roster selects the character shown",
       "At an inn, a character left elsewhere shifts the visible rows. The color keys then changed another member, and selecting a party member on the fifth row or later could end the game while loading a missing portrait. The roster now follows the character on each visible row and shows that member's own figure.", 1 },
     { "leavingrecord", "Store a departing companion's full record",

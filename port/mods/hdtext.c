@@ -76,7 +76,7 @@ typedef struct {
     u8 *under;                         /* the picture under the box before the text */
     u8 *bg;                            /* what the box shows now where there is no text (recolours applied) */
 } Rec;
-static Rec rec[MAXREC];
+static Rec game_records[MAXREC], *rec = game_records;
 static u32 stamp;
 
 static u8 *page0(void) { return M + 0xa0000; }
@@ -93,6 +93,39 @@ static u8 *page_mem(int page)
     return M + ((u32)seg << 4);
 }
 static void rec_free(Rec *r) { r->used = 0; free(r->under); r->under = 0; free(r->bg); r->bg = 0; }
+
+/* The original Load page redraws from scratch. Give it its own records: a
+   covered glyph frees the two pixel buffers owned by that record. */
+typedef struct {
+    Rec *previous;
+    u32 previous_stamp;
+    int nruns;
+    Rec records[MAXREC];
+    HdRun runs[];
+} TextScreen;
+
+void *hdtext_begin_screen(void)
+{
+    TextScreen *s = calloc(1, sizeof *s + (size_t)hdtext_nruns * sizeof(HdRun));
+    if (!s) return NULL;
+    s->previous = rec;
+    s->previous_stamp = stamp;
+    s->nruns = hdtext_nruns;
+    memcpy(s->runs, hdtext_runs, (size_t)s->nruns * sizeof(HdRun));
+    rec = s->records; stamp = 0; hdtext_nruns = 0;
+    return s;
+}
+
+void hdtext_end_screen(void *saved)
+{
+    TextScreen *s = saved;
+    if (!s) return;
+    for (int i = 0; i < MAXREC; i++) if (rec[i].used) rec_free(&rec[i]);
+    rec = s->previous; stamp = s->previous_stamp;
+    hdtext_nruns = s->nruns;
+    memcpy(hdtext_runs, s->runs, (size_t)s->nruns * sizeof(HdRun));
+    free(s);
+}
 
 /* new text over old: the old record goes only when it is the same line drawn again (same
  * place, font and length). Other covered text is kept: the newer record claims the pixels

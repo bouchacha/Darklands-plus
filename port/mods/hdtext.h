@@ -9,6 +9,8 @@ typedef struct { char text[100]; int x, y, w, h, font, center; unsigned rgb, bgr
 extern HdRun hdtext_runs[HD_MAXRUNS];
 extern int hdtext_nruns, hdtext_mode;
 void hdtext_prepare(unsigned *rgb, const unsigned *lut, unsigned char *idx);
+void *hdtext_begin_screen(void);            /* a temporary full-screen view, NULL on allocation failure */
+void hdtext_end_screen(void *saved);        /* after the game's pages are restored; accepts NULL */
 void hdtext_set(int mode);
 int hdtext_lettering(int font, const char *s, unsigned char *out, int w, int h);   /* the game's own letters, for a picture of them */
 int hdtext_font_height(int font);

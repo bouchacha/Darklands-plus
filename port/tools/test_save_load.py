@@ -73,9 +73,9 @@ class Session:
         self.wait("title: closed (the game begins)")
         time.sleep(0.5)
 
-    def dump(self, name):
+    def dump(self, name, full=False):
         file = self.root / (name + ".bin")
-        self.command("udsdump:" + file.as_posix())
+        self.command(("umemdump:" if full else "udsdump:") + file.as_posix())
         end = time.monotonic() + 5
         while not file.exists() and time.monotonic() < end:
             time.sleep(0.1)
@@ -145,6 +145,66 @@ def running_case(args, sav, bsv, kind):
         session.close()
 
 
+def classic_in_game(args, sav, bsv, quick):
+    case = f"classic-in-game-quick-{quick}"
+    session = Session(args, case, sav, bsv)
+
+    def open_picker(hold_shift=False):
+        at = len(session.log())
+        session.command("down:Left Alt")
+        session.command("key:L")
+        session.command("up:Left Alt")
+        if hold_shift:
+            session.command("down:Left Shift")
+        session.command("key:Y")
+        session.wait("saves: the original Load page", at)
+
+    def events():
+        at = len(session.log())
+        session.command("uevents:-1")
+        return [line for line in session.log()[at:].splitlines() if line.startswith("event ")]
+
+    try:
+        session.start()
+        session.command("uoption:display.native_saves=0")
+        session.command(f"uoption:saves.quick={quick}")
+        before = session.dump("before")
+        original_events = events()
+        assert original_events and any(before[0x9c69 + 0x80 * m] for m in range(5))
+        open_picker(hold_shift=True)
+        assert session.dump("shift-down", full=True)[0x417] & 2
+        session.command("up:Left Shift")
+        at = len(session.log())
+        session.command("key:Escape")
+        session.wait("saves: original Load cancelled", at)
+        after = session.dump("cancelled")
+        assert before[0x9c69:0x9ee9] == after[0x9c69:0x9ee9], "Party changed on Escape"
+        assert events() == original_events, "Events changed on Escape"
+        assert not session.dump("shift-released", full=True)[0x417] & 2, "Shift stuck after cancelling"
+
+        # The original list is newest first. Refuse its damaged first row, then
+        # choose the valid second row in the same list and verify its own purse.
+        marked = bytearray(sav)
+        struct.pack_into("<H", marked, 0x70, 137)
+        session.put_save(1, marked, bsv)
+        session.put_save(2, changed(sav, "short-sav"), bsv)
+        for number in range(3):
+            file = session.game / "SAVES" / f"dksave{number}.sav"
+            os.utime(file, (1700000000 + number * 10,) * 2)
+        open_picker()
+        at = len(session.log())
+        session.command("key:L")
+        session.wait("Cannot load", at)
+        session.command("key:Down")
+        session.command("key:L" if quick else "click:100,51")
+        session.wait("Loaded DKSAVE1.SAV", at)
+        loaded = session.dump("loaded")
+        assert struct.unpack_from("<H", loaded, 0x906b)[0] == 137, "Wrong save loaded"
+        print(case, "PASS", flush=True)
+    finally:
+        session.close()
+
+
 def title_case(args, sav, kind):
     original = kind == "original-title"
     settings = "display.native_screens = 0\n" if original else ""
@@ -186,6 +246,8 @@ def main():
     for kind in cases:
         running_case(args, sav, bsv, kind)
     if not args.expect_unfixed:
+        for quick in (0, 1):
+            classic_in_game(args, sav, bsv, quick)
         title_case(args, sav, "native-title")
         title_case(args, sav, "original-title")
 

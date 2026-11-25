@@ -162,6 +162,26 @@ static void key(SDL_Scancode sc, int release)
     kbd_push_scancode((u8)c, release);
 }
 
+/* A classic Load picker runs on a restorable guest screen. A key released
+ * while it was open must still be released for the resumed keyboard driver. */
+static unsigned char held_before_picker[SDL_NUM_SCANCODES];
+void plat_remember_held_keys(void)
+{
+    memcpy(held_before_picker, game_down, sizeof held_before_picker);
+}
+void plat_resume_game_input(void)
+{
+    bios_resume_game_input();
+    for (int sc = 0; sc < SDL_NUM_SCANCODES; sc++)
+        if (held_before_picker[sc] && !game_down[sc]) key((SDL_Scancode)sc, 1);
+    /* The two sides of Alt and Ctrl share modifier bits in the DOS driver.
+       Apply the still-held modifiers after the releases, without replaying letters. */
+    const SDL_Scancode mods[] = { SDL_SCANCODE_LSHIFT, SDL_SCANCODE_RSHIFT, SDL_SCANCODE_LCTRL,
+                                  SDL_SCANCODE_RCTRL, SDL_SCANCODE_LALT, SDL_SCANCODE_RALT };
+    for (unsigned i = 0; i < sizeof mods / sizeof mods[0]; i++)
+        if (game_down[mods[i]]) key(mods[i], 0);
+}
+
 static void send_mouse(void)
 {
     { static int tr = -1; if (tr < 0) tr = getenv("DL_TRACE_MOUSE") != 0; if (tr) fprintf(stderr, "mouse %u: %d,%d buttons %d\n", plat_ticks_ms(), mouse_x, mouse_y, mouse_b); }
