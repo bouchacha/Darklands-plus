@@ -309,6 +309,13 @@ covered and found, and what it could not check.
   Also $MineB03 never set $NamedOneName ("It is  again"): cardslips. Not checked: whether a random mine level
   ever holds the disabled enemy group that $MineB00's "his minions charge forward" (-4) wakes; in his mine
   there was none (one group, not disabled), so that card would bring no fight there.
+- Follow-up, 2026-11-24. The abbot's clerk takes a donation for prayers in $Count04, reached from the rural
+  monastery gate and its infirmary. At s105 1a12:063c the donation repeats the test for a devout house.
+  The second branch already has the businesslike house's text and each member's Religion / 6 + 2 reward.
+  fix.monasteryprayer uses the clerk's own three tiers (last digit 0–4, 5–8, 9) and the usual attribute cap.
+  test_monastery_prayer.c checks the tiers, including absent members, and the setting for original play.
+  In the Windows game a member at 10/50 Divine Favor and Religion 30 reached 17 at Vechta (207) and
+  Virneburg (218), and 11 at Vechta with the fix off. The quoted donation and time to Vespers were checked.
 - 2026-11-03 (1.4.6-RC6): every prayer by a relic's bearer crashed, since 1.4.5 (his dksavebe: "interp: opcode
   df"). relics.c's saint hook wrote the favor back by SP after hook_call_original, when the call's return had
   moved SP up 4: the word it hit was saint_finish's saved BP, so BP came back as the favor and saint_pray
