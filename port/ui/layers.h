@@ -1,6 +1,6 @@
 /* layers.h - one order for everything drawn over the game's picture, the same for the pointer and for
  * the eye: what is drawn on top takes the click and the hover, and nothing under it reacts (his asks,
- * 1.5.1: "obstructed clicks", a click taken by what lay under the thing clicked - the menu bar's Game
+ * 1.6: "obstructed clicks", a click taken by what lay under the thing clicked - the menu bar's Game
  * over a way out walked the party there; RC15: a hint about the field over the potion tray, and the
  * potion's tooltip not shown).
  *

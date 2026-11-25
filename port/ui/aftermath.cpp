@@ -1,7 +1,7 @@
 /* The aftermath shows the game's actual recovery, practice rolls and armor
  * wear, either above the loot or in a notice after combat settles.
  * Only what lasts: the effects still running are in the right margin with their
- * time left (his answer, 1.5.1). The notices of lasting changes (worn armour, a
+ * time left (his answer, 1.6). The notices of lasting changes (worn armour, a
  * lowered maximum) still pop up on their own as the settings say: this gathers
  * them, it does not replace them. */
 #include <algorithm>

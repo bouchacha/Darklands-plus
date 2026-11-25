@@ -451,7 +451,7 @@ static void draw_icon(ImDrawList *dl, ImVec2 c, float s, const ItemDef *d, int i
         dl->AddRectFilled(P(-5, -4), P(5, -1.6f), col(0.85f, 0.65f, 0.15f));
         break;
     case K_HORSE: {
-        /* a mount: its head in profile (the horseshoe is the Riding skill's; his ask, 1.5.1: the arc read as a
+        /* a mount: its head in profile (the horseshoe is the Riding skill's; his ask, 1.6: the arc read as a
            half circle). The coat by the mount's quality, as the list sorts them (Superb 70: a dark bay, Fast 40:
            chestnut, Average 25: bay, Pack 15: dun); a mule grey, with its long ears and a short mane */
         int q = d ? d->quality : 25;

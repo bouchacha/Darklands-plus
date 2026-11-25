@@ -282,6 +282,7 @@ the files where each switch's key is read.
 | `fix.fullpack` | No more items lost to a member with no room | fix | fixes.c |
 | `fix.innsave` | Saving and loading stay possible after the inn | fix | fixes.c |
 | `fix.colors` | Members keep their colors (the "neon hair" bug) | fix | fixes.c |
+| `fix.skillcolumn` | Skill numbers line up on the original character sheet | fix | fixes.c |
 | `fix.copyprot` | Skip the manual check | fix | fixes.c |
 | `fix.potions` | Weapon potions wear off and don't ruin weapons | fix | fixes.c, lodgeview.h, alchemyview.cpp, nsdraw.cpp |
 | `fix.mapfoot` | No jump at the foot of the travel map | fix | fixes.c, travel.c |
@@ -302,6 +303,7 @@ the files where each switch's key is read.
 | `fix.lordreward` | The lord, the council and the village pay for their quests | fix | fixes.c, citynav.cpp |
 | `fix.armorday` | Armor and fire protection from potions and saints last a day; Hardarmor works as the manual says | fix | fixes.c, saintinfo.c, sainttexts.c, nsdraw.cpp, saintchips.cpp |
 | `fix.greatpower` | Great Power raises the weapon's quality | fix | fixes.c, effects.cpp, nsdraw.cpp |
+| `fix.floodsaints` | The tidal flood offers all three lists of saints | fix | fixes.c |
 | `fix.standings` | Saved games keep the party's standing with the Fugger, the Medici and the Hanse | fix | fixes.c |
 | `fix.healboost` | Healing no longer takes a boost away | fix | fixes.c |
 | `fix.teachcap` | Teachers teach only up to their own ability | fix | fixes.c, teachers.c, teachers.h, citynav.cpp, lodgeview.cpp, margins.cpp, teachersui.cpp, worldmap.cpp |
@@ -315,6 +317,7 @@ the files where each switch's key is read.
 | `fix.pileup` | Many blows at once on one fighter all count | fix | fixes.c |
 | `fix.castlefreeze` | No freeze when placing the party in a castle | fix | fixes.c |
 | `fix.university` | A failed search for formulae at a university shuts that search, not the saints' | fix | fixes.c, cardhints.cpp, citynav.cpp |
+| `fix.monasteryprayer` | Businesslike monasteries give their own blessing | fix | fixes.c |
 | `fix.partyitems` | An item given to the whole party is given once | fix | fixes.c |
 | `fix.itemflags` | Fleeing on horseback counts the poorest rider's mount | fix | fixes.c |
 | `fix.membervalue` | Cards pick the member they mean | fix | fixes.c |
@@ -323,6 +326,7 @@ the files where each switch's key is read.
 | `fix.campguard` | A guard skilled with impact weapons keeps the camp safer | fix | fixes.c, lodgeview.c |
 | `fix.enemygroups` | No group of enemies goes missing from a battle | fix | fixes.c |
 | `fix.cityalert` | A town on alert remembers the trouble | fix | fixes.c, quests.cpp |
+| `fix.shopstock` | Town shops use the town's size for every stock roll | fix | fixes.c, journal.cpp |
 | `fix.dayjobs` | The friars' day jobs are offered | fix | fixes.c |
 | `fix.cloudline` | Clouds stop only the shots that pass through them | fix | fixes.c |
 | `fix.attrsum` | Cards that test two attributes add both | fix | fixes.c |
@@ -354,6 +358,7 @@ the files where each switch's key is read.
 | `fix.dissolve` | Dissolving a lock uses the acting member's Eater-Water | fix | fixes.c |
 | `fix.stairsreturn` | Stairs use the member's own floor and a safe arrival | fix | fixes.c, stairsfix.c |
 | `fix.thrownskill` | The last weapon thrown trains Thrown Weapons | fix | fixes.c |
+| `fix.movedestination` | Walk and Flee need a destination | fix | fixes.c, ways.c |
 | `fix.noselection` | Orders with nobody chosen change nothing | fix | fixes.c |
 | `fix.castsight` | An enemy caster sees each target from where he stands | fix | fixes.c |
 | `fix.doorplan` | Doors stay as they were left when an enemy plans its way | fix | fixes.c |

@@ -536,7 +536,7 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
     /* with the shared pack: what is in use, then the member's own things not in use (the potions
        kept with them: SvItem.potion) in their sections, then the pack under its own heading */
     /* the sections not in use fold away: a click on the heading (sheet.folded, kept; the pack's in bits 0-6, the
-       member's own beside the shared pack in bits 8-14 (his ask, 1.5.1: his potions as the pack's); the ingredients
+       member's own beside the shared pack in bits 8-14 (his ask, 1.6: his potions as the pack's); the ingredients
        folded at first: a long list, rarely looked through) */
     const int folded = config_get_int("sheet.folded", 1 << 5);
     std::vector<int> nsec(2 * NS_NSECT, 0);                /* (a folded section: how many things in it; the member's own after the pack's) */
@@ -552,7 +552,7 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
             if (in) { if (fold) nsec[cnt] += it.count > 1 ? it.count : 1; else rows.push_back(i); }
         }
         if (rows.size() == head + 1 && !(fold && nsec[cnt])) rows.pop_back(); else tidy(head + 1);
-        /* the potions: one row a potion, its grades on it (his ask, 1.5.1: a row a grade said each name two or three times) */
+        /* the potions: one row a potion, its grades on it (his ask, 1.6: a row a grade said each name two or three times) */
         if (sec == 1 && rows.size() > head + 1) {
             std::vector<int> one(rows.begin(), rows.begin() + head + 1);
             for (size_t r = head + 1; r < rows.size(); r++) {
@@ -626,7 +626,7 @@ static void things(NsDraw &P, const SheetModel &s, int &new_what, int &new_which
             }
             float hx = RX0 + 3;
             /* the Potions heading: Share all, every potion of every member split evenly among those on their feet (his ask,
-               1.5.1: pool and share out all potions; each potion as its own row's Split does it) */
+               1.6: pool and share out all potions; each potion as its own row's Split does it) */
             const bool share_all = sec == 1 && i != -2 && share_n >= 2;
             const float fx1 = share_all ? RX1 - 28 : RX1;      /* (the heading's fold click stops short of the button) */
             if (foldable) {                                   /* a triangle, pointing down when open; folded: how many under it */

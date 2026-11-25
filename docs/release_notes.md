@@ -4,45 +4,37 @@ Darklands+ runs Darklands (MicroProse, 1992) natively on Windows, without DOSBox
 
 **Install:** unpack the zip anywhere and start `darklands.exe`. It finds a GOG or Steam installation by itself or asks for the folder once. The first start takes about two minutes while Darklands+ translates the game program from your `DARKLAND.EXE`; after that it starts at once. Your saved games stay where they always were. `Darklands+ README.txt` in the zip has the details.
 
-**New in 1.5** (what changed since 1.4.6)
+**New in 1.6** (what changed since 1.5)
 
 **Added**
 
-- **Potions, clear everywhere:** in the shops, the character sheet, the alchemy screen and the tooltips, a potion shows how it is used (drunk, thrown or put on) and what it does in short: the shields it strikes, "-50%", the hourglass for how long, its numbers by grade.
-- **Potions in battle:** the potions tray has two rows, to drink (a click drinks it) and to throw or use. A fighter under Fleadust, Noxious Aroma, Eyeburn or Sunburst wears its picture above the head, a dial darkening as it wears off.
-- **Split potions:** Split, on a potion's row of the character sheet, shares it evenly among the members on their feet.
-- **A stock of ingredients:** a click on an ingredient keeps 20, 50, 100 or 200 of it (Shift+click: every ingredient). Arriving in a town that sells one the party is short of, a box shows what to buy. An ingredient's tooltip lists the nearest towns that sell it, with the days away.
-- **Shop wares under headings** (Weapons, Armor, Ingredients ...), each folded away with a click.
-- **Things on the field are named:** stairs, doors, chests (locked or trapped, once a member has stood at one) and ways out. Out of a fight a click on stairs, a door or a way out walks the party there and uses it.
-- **The level map shows the ways out and the chests seen,** drawn on parchment as a plan.
-- **The manor rumor** (F12 > Reconstructed Content, off unless ticked): a town-news text MicroProse wrote and never showed.
+- **Who should carry a weapon, in chances:** a weapon's tooltip has a column for each member: the chance to hit a typical foe and to dodge his blow, the damage through each armor tier, the time per blow. Shields and armor say what they stop. In a battle, pointing at a foe shows each member against him. From woodk123's pull request #34.
+- **Battle aftermath:** after every fight, who went down, the skills gained or lost and lasting losses such as worn armor. By woodk123 (#27, #40).
+- **New encounters on by default:** the 160 encounters that come with Darklands+, with a note at the start to turn them off.
+- **Find teachers and Quest givers** on the world map: every teacher and quest giver in the towns the party knows, with the journey, who in the party would learn, today's quest chance and what it rests on. By and from woodk123 (#23, #26, #31).
+- **Potions, one row each** on the sheet and the loot screen, their grades as Roman numerals; **Share all** splits every potion evenly among the members on their feet.
+- **Custom character portraits** from a PNG or JPEG. By woodk123 (#24).
+- **Art packs** can replace a battlefield's scenery, the start menu's picture and the pointer, and a checklist lists every picture a pack can replace. From woodk123 (#36, #39) and Seb-Zee (#33, issue #22).
+- **Smaller additions:** shops warn of a short stock, mounts explain their quality, the world map's place card uses its width, and "No papers to steal" (off at first) spares the party office break-ins.
 
 **Fixed**
 
-- **A crash selling spare gear:** the game's timer ran data as code, most likely through an address overwritten. The addresses it calls are now checked at each tick and put back.
-- **A tomb's quest item** is given once every group of skeletons is beaten; leaving by the stairs had counted as fleeing. (A pull request from woodk123.)
-- **Parry holds:** Parry and Berserk no longer drop when a foe falls. With Improved combat, a member attacked by two or more parries by itself.
-- **A character sheet opened in a battle** undid the potions drunk in it.
-- **One U ran the party through floor after floor** in single file: only the leader now takes the stairs.
-- **The level map** showed floor beyond the walls, and after loading an earlier save showed what was explored later (now kept with each save).
-- **What came of it** missed what a card gave after its battle, find or shop.
-- **A fortress cell door** flashed its card without a word.
-- **A member with no path to any enemy** went back and forth; they now hold ("no path").
-- **Orders at a pause** out of a fight are carried out at once.
-- **Lock picks:** the best a member carries are used, not the first (a new fix).
-- **Potion boosts that only healed** showed as huge bonuses in the margin; a potion's effect on a foe showed twice.
-- **At an inn,** a member with nothing left to regain lost a day before going to work.
-- **The learned saint** stayed on the screen long after its card.
+- **Stairs in a fight take the whole party along,** the knocked-out carried. A party split across floors was behind 16 known bugs: members walking through walls, opening the wrong doors and chests, seen by enemies not there.
+- **Saves:** a save asked for at a card's text waits until the text is closed (a reward could be taken again at each load); a save in a dungeon or battle keeps the potions and saints' help running there, and an attribute left stuck above its maximum that way comes back down; a save that fails says so and keeps the older ones; damaged saves are refused before loading; cancelling the original Load screen keeps the game (woodk123, #14 to #21, #47).
+- **Battles no longer read memory the game has freed:** a member could show overloaded after a last potion, and a saint's help prayed for in a battle ended with it.
+- **Quests that could not be finished:** a robber knight is paid for however he fell, a council pays a party that prayed its way in, a village's quest is closed by its Schulz, and a quest tomb's item is kept by escaping with it.
+- **Encounter mishaps** take a share of each stack instead of whole stacks, never what is equipped or ridden, and with the shared pack only the member's part of the pack.
+- **Restored from the original's own code:** the monastery's middle blessing, the bandits seen from a watched cave, the tidal flood's two lists of saints, and town shops stocked by the town's size. By woodk123 (#42, #43, #45, #46).
+- **Orders in battle:** Halt holds, a shot goes to the foe chosen, a locked door clicked is not forced open, U takes a group through stairs once, Walk or Flee with no destination keeps the order (woodk123, #41), and bows, crossbows and guns shoot inside castles and dungeons.
+- **Items:** inn stores keep each one's own, a companion who leaves takes only their own things, a full loot pile no longer swallows what is put on it, Eater-Water and Dissolve Lock use the right flask.
+- **New games are new worlds:** two games could share a world and journal.
+- **Windows:** a second copy on the same game folder closes with a message; folder names like "Jürgen" work; AZERTY and QWERTZ keys follow their letters; a stuck Alt no longer turns S, L and Q into save, load and quit; the log of a session that stopped on an error is kept (issue #25).
+- **Clicks and the pointer:** a click goes to what is on top, tooltips follow the pointer after a click on the level map, and the Find teachers list scrolls smoothly.
+- **From Arkana Mechanika's Darklands Restoration register,** besides those above: brews called off give their ingredients back, the travel map's rows after moving north, a camp's risk at the view's edge, doors flipping back, the last thrown weapon training Edged, enemy casters' sight, the jewelers' guild at night, the inn's roster, and a robber knight's bounty explained by the right patron (woodk123, #35).
 
 **Changed**
 
-- **The sheet's Formulae list a potion a row,** its three grades as seals, as on the alchemy screen.
-- **The alchemy screen's chance by batches** always has ten bars, those past the ingredients hollow.
-- **Notices stack** (up to three) instead of replacing each other.
-- **Full Original keeps your sound device** instead of switching to the original's INSTALL setup (on GOG, the Roland driver, stray notes without MT-32 ROMs).
-- **Goods of one quality:** torches, rope, lanterns and the other goods whose quality only changes their price are quality 25 and stack (with "Ingredients of one quality"). Lock picks keep theirs.
-- **Tooltips keep out of the way,** and a weapon's tooltip is in plain words ("Needs Edged 16: each point below, -2 to attack and defense").
-- **One look across the screens:** parchment panels on the level map; shields in the battle log, the inn and camp, and Party Info; plainer quest and travel words.
+- **Full Original and Purist stay as chosen after an update:** a switch new in a release takes the preset's value.
 
 ### What it adds
 

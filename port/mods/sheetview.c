@@ -384,7 +384,7 @@ static void act(const NsAction *a, int *who)
             break; }
         case SV_SHARE: {                                 /* a potion split evenly among the members on their feet, every quality of it (his ask, RC9:
                                                             "split all potions of one type"); id -1: every potion, one after another (his
-                                                            ask, 1.5.1: pool and share out all potions) */
+                                                            ask, 1.6: pool and share out all potions) */
             int ms[5], n = 0;
             for (int m = 0; m < gm_party_size(); m++)
                 if (gm_member_present(m) && gm_member_status(m) == 1 && !(g_rb(GV_in_battle) == 1 && (u8)g_rb((u16)(GV_cbt_floor + m)) == 0x9d)) ms[n++] = m;   /* (not one on another floor of a battle) */

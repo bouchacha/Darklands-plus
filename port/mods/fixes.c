@@ -2056,7 +2056,7 @@ static void altar_frame(void)
  * $NamedOneName") leaves cur_loc set, so the thing is given: the wrong way round by the game's own
  * texts for the victory and the defeat. The escape's text says neither; card 7 ("wondering how
  * easy it will be to escape these catacombs") makes it the point of the place, and the maintainer
- * chose to let it keep the thing (1.5.1; 1.5 gave it for a victory alone). Read the authoritative
+ * chose to let it keep the thing (1.6; 1.5 gave it for a victory alone). Read the authoritative
  * battle_result at the post-battle give call (the return AX can be changed by another wrapper):
  * after a victory or an escape, give with the place for the moment of the call; after a defeat,
  * nothing. (An earlier comment here said the original gave it after an escape: it did not; found

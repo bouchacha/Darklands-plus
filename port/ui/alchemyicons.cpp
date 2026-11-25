@@ -68,7 +68,7 @@ void flask(const Pen &p, ImU32 liq, float fill = 1.0f)
     p.rect(-2.5f, -11.6f, 2.5f, -9.2f, C(0.55f, 0.36f, 0.20f), 0.6f);   // the cork
     p.disc(-3.4f, 0.0f, 1.3f, C(1, 1, 1, 0.65f));                     // a gleam
 }
-/* the grade on the flask: I, II or III on a badge in the corner (his choice, 1.5.1: a numeral is read as a grade, never
+/* the grade on the flask: I, II or III on a badge in the corner (his choice, 1.6: a numeral is read as a grade, never
    as a count, and the chevrons are the saints' raises); or the earlier looks: chevrons, gold dots down the neck's side */
 void grade_dots(const Pen &p, int tier)
 {

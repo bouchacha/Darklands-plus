@@ -321,7 +321,7 @@ static void nearby_work_window(const std::vector<NearbyTownWork> &towns, float s
     ImGui::End();
 }
 
-/* Find teachers (his design, 1.5.1, after woodk123's pull request #31): every teacher of the towns whose offers are
+/* Find teachers (his design, 1.6, after woodk123's pull request #31): every teacher of the towns whose offers are
    known, a row a skill taught - its shield, how far it is taught, who teaches and where, the journey, and who would
    learn (the margin's rule, ui_teach_learners: a row nobody would learn from is dim, as the lectern there). The skills'
    shields above it filter (as the saints' "what it raises"); the columns sort; a click shows the town on the map.
@@ -900,7 +900,7 @@ extern "C" void worldmap_draw(void)
         }
         ImGui::SameLine(); ImGui::Dummy(ImVec2(0, 0));
         ImGui::Separator();
-        /* the rest, the width used across (his ask, 1.5.1: the boats had a column of their own, half of it empty): what
+        /* the rest, the width used across (his ask, 1.6: the boats had a column of their own, half of it empty): what
            it offers and its boats; then its saints, formulae and teachers side by side; then the wares noted, whether
            visited, and the party's marks. A fade and "Scroll for more" at the foot while more is below */
         if (p.loc < 92) ui_town_offers(p.loc, true, ImGui::GetFontSize() * 16, true);

@@ -102,7 +102,7 @@ static void quick_learning(int on)
     else { hook_remove(GF_practice_skill_impl, quick_learn_cards_hook); hook_remove(GF_skill_try_improve, quick_learn_battle_hook); }
 }
 
-/* ---- no papers to steal (his ask, 1.5.1): a merchant's errand (s039 1462:1712 (t): kind 8, tag 10) sends the party
+/* ---- no papers to steal (his ask, 1.6): a merchant's errand (s039 1462:1712 (t): kind 8, tag 10) sends the party
  * for papers (Treason Plan 0x78, Sworn Statement 0x7f, Debt Note 0x89, Love Letters 0x8a, at +0x2e) held in a town
  * office, reached at night by breaking in ($Marke01, then $Insid00). With this the errand is drawn again until it is
  * one of the others (every kind of giver has some): what was drawn is freed (event_free). The switch quests.no_papers,

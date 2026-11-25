@@ -467,7 +467,7 @@ void ui_town_lists_panel(int loc)
     if (loc >= 0 && loc < (int)gamedata.cities.size()) { formulae_line(loc); teacher_rows(loc); }
     lists_panel = false;
 }
-/* the same one at a time, for the world map's place card, side by side (his ask, 1.5.1): 0 the saints taught,
+/* the same one at a time, for the world map's place card, side by side (his ask, 1.6): 0 the saints taught,
    1 the formulae sold, 2 the teachers. ui_town_list_has: whether the place has that list */
 bool ui_town_list_has(int loc, int which)
 {

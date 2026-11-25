@@ -36,8 +36,8 @@ enum { TIP_NONE, TIP_GUIDE, TIP_BATTLE, TIP_ENCOUNTERS, TIP_VERSION };
 static int open_tip, launches, battle_seen, title_seen, encounters_due, version_due;
 
 /* a word to those who played an earlier version on what this one asks them to watch, once (ui.version_note keeps
-   the version it was shown for). Each release sets its own, or "" for none (his ask, 1.5.1: stairs in a fight) */
-static const char VERSION_NOTE_FOR[] = "1.5.1";
+   the version it was shown for). Each release sets its own, or "" for none (his ask, 1.6: stairs in a fight) */
+static const char VERSION_NOTE_FOR[] = "1.6";
 static const char VERSION_NOTE[] =
     "Stairs and ladders now work differently in a fight: instead of one member going through at a time, the whole "
     "party comes along, wherever they stand on the floor, the knocked-out carried. A party split across floors caused "
@@ -164,7 +164,7 @@ static void battle_tip(void)
 }
 
 /* New encounters, the mod that comes with Darklands+, ticked until unticked (mods/datamods.c): said once, at the
-   start screen after the welcome, with the choice to turn it off (his ask, 1.5.1). The complaint: Dragon magazine's
+   start screen after the welcome, with the choice to turn it off (his ask, 1.6). The complaint: Dragon magazine's
    review found "the repetitiveness of some encounters", and the CRPG Addict's (2019) that they become repetitive */
 static void encounters_tip(void)
 {

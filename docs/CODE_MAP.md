@@ -252,7 +252,7 @@ Tools: tests, checks, the harness.
 | `tools/test_dissolve.py` | 252 | Exercise Dissolve Lock through a copied Windows game with SDL's dummy video driver. |
 | `tools/test_duplicate_load.py` | 228 | Check duplicate party IDs through headless native/original loads and re-saving. |
 | `tools/test_leaving_record.py` | 226 | Check departure, rejoin and save/load with the fix on and off, in copied games. |
-| `tools/test_save_load.py` | 256 | Test load refusal and recovery using a copied licensed game and a copied save. |
+| `tools/test_save_load.py` | 257 | Test load refusal and recovery using a copied licensed game and a copied save. |
 | `tools/test_stairs.py` | 229 | Check stairs in a generated mine using disposable game copies and SDL dummy video. |
 | `tools/uitour.py` | 70 | every tooltip beside what it describes (never over it nor over the pointer), and no two of Darklands+'s panels over each other. |
 

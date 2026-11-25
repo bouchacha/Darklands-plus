@@ -187,7 +187,7 @@ std::string ns_item_encounters(int id, ImU32 *col)
 /* what a thing is good for, where that is not plain from its kind (ingredients: the potions made
  * with it; the general goods: what in the game asks for them, mods/saintinfo.h item_unasked_game;
  * the cards count the party's, so one is enough) */
-/* a mount: what its quality does (his ask, 1.5.1: what the difference between them is). The game adds a mount's
+/* a mount: what its quality does (his ask, 1.6: what the difference between them is). The game adds a mount's
    quality (DARKLAND.LST +38) to the chance of a chase or a flight on horseback: the best rider's to catch up
    (party_max_eff_attr2_bonus, s029 0e76:072e: the thief caught "because of his horse's quality and his own riding
    skill", $Drago08), the poorest rider's when everyone must get away (0e76:088e: the Wild Hunt, a wolf pack) */
