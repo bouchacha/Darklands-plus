@@ -317,6 +317,8 @@ Fix FIXES[] = {
       "Hardarmor (+1 to +3 armor), St. Dunstan's (+1) and St. Patrick's (+2) blessings, St. Crispin's (+10 to the quality of everyone's armor) and the protection against fire of Firewall and St. Polycarp never wore off, and each new one added to the last. They now last about a day, as the manual says, and what piled up this way in a saved game is dropped: only the ones still running count (the armor that fire protection left in a saved game is left out by the fix \"No invulnerability from fire protection\", not by this one). St. Charity, St. Erasmus and St. Pantaleon (and St. Polycarp) gave their protection against fire as armor instead: +32 or +48 armor permanently (or nothing, with the fix \"No invulnerability from fire protection\" on); now the member gets fire protection 90 for a day, the same as St. Polycarp's. Hardarmor also does what the manual says: armor 20, 25 or 30 points better in quality and one or two levels thicker (the game gave 1 to 3 levels and no quality); a second used while one is still working keeps the stronger of the two.", 1 },
     { "greatpower", "Great Power raises the weapon's quality",
       "According to the manual, Great Power raises the quality of the weapon by 14, 22 or 30 (up to 99), and quality is what makes blows hit harder. The original added those points to the member's damage and penetration bonuses instead: +14 penetration, or +1 damage and +6 penetration, or +1 damage and +14 penetration. Now it raises the quality of the weapon in hand (bows and guns too), for about a day.", 1 },
+    { "floodsaints", "The tidal flood offers all three lists of saints",
+      "In a storm tide the first page hid both choices to consider other saints, and the second page led back to itself. All three lists can now be reached. The party can pray to any of the twelve saints it knows.", 1 },
     { "standings", "Saved games keep the party's standing with the Fugger, the Medici and the Hanse",
       "The companies' cards raise and lower the party's standing with them (if it, or the party's reputation in the town, is below zero, they give no quests), but a saved game did not keep it: after loading, it was whatever the previous game played had left, or zero after a restart. It is now kept in the save (the original game can still load such saves).", 1 },
     { "healboost", "Healing no longer takes a boost away",
@@ -2376,6 +2378,25 @@ static void repadj_hook(void)              /* loc_reputation_adj(loc, a, b) */
     hook_call_original();
 }
 
+/* ---------------------------------------------------------------- floodsaints
+ * $MeetS01 (s114 1a3f:000a) sets flags 3/4 to zero before its popup setup. Both choices,
+ * their hints and their destination cards already exist. Enable the links before the script
+ * copies the flags into opt_on; each page runs its own saints_usable test for the prayer.
+ * $MeetS02 option 2 (s115 1838:0336) is the other link to $MeetS03, misdirected at itself. */
+static void flood_lists_hook(void)
+{
+    hook_call_original();
+    if (ns_unwinding || config_get_int("original", 0)) return;
+    g_ww(GV_opt_flag_3, 1);
+    g_ww(GV_opt_flag_4, 1);
+}
+
+static void flood_third_hook(void)
+{
+    hook_call_original();
+    if (!ns_unwinding && !config_get_int("original", 0)) g_ww(GV_next_card, 0x11d);
+}
+
 /* ---------------------------------------------------------------- nightbowyer
  * The card call that opens a shop, s029 0e76:21aa (shop, name far, cats lo, cats hi): the night
  * bowyer's (barter shop 5) comes with the smiths' categories, the day bowyer's with its own. */
@@ -4395,6 +4416,7 @@ static const struct { int sect; unsigned seg, off; void (*fn)(void); } HOOKS[] =
     { GF_set_member_bit, patron_hook }, { 108, 0x1925, 0x0438, debtnote_hook }, { 29, 0x0e76, 0x3fb2, alchrisk_hook },
     { 56, 0x19c4, 0x0ac2, canon_hook }, { 30, 0x1462, 0x28f2, sites_hook }, { 108, 0x1838, 0x07ca, tomb_hook },
     { 50, 0x1a06, 0x026c, lord_hook }, { GF_use_potion, potion_fixes_hook }, { GF_use_potion, potion_fixes_hook },
+    { 114, 0x1a3f, 0x051c, flood_lists_hook },
     { 37, 0x1462, 0x2ace, standings_save_hook }, { GF_heal_attr_pct, healboost_hook },
     { GF_camp_spend_day, teachcap_hook }, { GF_hit_damage, oils_hit_hook }, { 39, 0x165c, 0x5cca, paul_hook },
     { 39, 0x165c, 0x41fa, nepomuk_hook }, { -2, 0, 0, 0 }, { 29, 0x0e76, 0x21aa, nightbowyer_hook },
@@ -4458,6 +4480,7 @@ static const struct { const char *fix; int sect; unsigned seg, off; void (*fn)(v
     { "lordreward", 54, 0x19df, 0x0b56, councilsaint_hook },
     { "lordreward", 77, 0x1996, 0x01ae, village_reward_hook },
     { "membervalue", 67, 0x1954, 0x059a, mvmin_wrap_hook }, { "membervalue", 67, 0x1954, 0x06a8, mvmin_wrap_hook }, { "membervalue", 67, 0x1954, 0x07a2, mvmin_wrap_hook },
+    { "floodsaints", 115, 0x1838, 0x0336, flood_third_hook },
     { "cardslips", 113, 0x18f0, 0x000c, peatbog_hook }, { "cardslips", 133, 0x1838, 0x049c, famine_hook },
     { "cardslips", 67, 0x1a24, 0x08ca, sneakhall_hook }, { "cardslips", 88, 0x1859, 0x0230, devil_hook },
     { "cardslips", 46, 0x1838, 0x0000, nightmain_hook }, { "cardslips", 46, 0x194b, 0x0002, nightside_hook },

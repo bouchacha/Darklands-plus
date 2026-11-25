@@ -113,6 +113,7 @@ From Arkana Mechanika's Darklands Restoration register:
 - **The last javelin or axe thrown** trained Edged Weapons; it now trains Thrown Weapons.
 - **Enemy casters** judged whether they could see each member from the member counted before, not from where they stood.
 - **The jewelers' guild at night** made the member numbered by the lowest Stealth practise, not the clumsiest member.
+- **The tidal flood in the marshes** offers the two additional lists of saints written for the encounter. The party can try eight more saints it knows. Found from Arkana Mechanika's Darklands Restoration.
 - **Single cards:** a Rope now works in the peat bog; the horseman of famine takes the small coins too; sneaking through a guild's hall shows its own picture and texts; the night streets give way to the day's once day has come; fleeing the bridge's devil no longer makes a ghost member.
 - **Two old tricks closed** (under "Old tricks closed"): a won fight with footpads, and the schrat's fruit, could be had again and again by saving at the text after them.
 - **Politics (experimental):** a pact with the government or the rebels now counts when the season ends.

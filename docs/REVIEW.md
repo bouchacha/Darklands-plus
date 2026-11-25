@@ -721,6 +721,17 @@ covered and found, and what it could not check.
   checked equal to the original's at 16 places of the view; maprows: the edge icons left out while drawing).
   Tested in a session: famine, the sneak hall's card (its own texts; the old one read the gate's), the night
   street by day, the fruit's Strength after its text, footpads' resume card after the fight, quicksave there.
+- 2026-11-24 follow-up to the card audit, the tidal flood (Arkana Mechanika's $MeetS01/02/03).
+  The first card hid its two links to the other saint lists in both the opening and the
+  failed-prayer block. The second card's link to the third set next_card to itself. The
+  floodsaints hooks enable flags 3/4 at the first card's own popup setup (s114 1a3f:051c)
+  and correct the second card's option 2 (s115 1838:0336). All twelve saints, their
+  permission checks, favor costs and outcomes are the game's. test_flood_saints.c checks
+  both hooks, the Original setting and unwinding. Copied Windows saves: all six links in
+  both card interfaces, all lists with and without known saints, both old behaviours with
+  the fix off. With only one of the eight additional saints known at a time, every prayer
+  opened for the right saint and returned the party to the map on success. Cancel returned
+  to the same list. Original kept the first card's two links hidden.
 - 2026-11-15 (his ask: "work on whatever is still open, easiest to hardest; address pull requests and issues"):
   pull request #23 (woodk123, Nearby work) merged, then made one with Go to: a giver's state in one function
   (citynav_office_line/_tip) for both lists, the list called Quest givers like the other finders, its picture
