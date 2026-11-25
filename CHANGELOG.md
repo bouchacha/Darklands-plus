@@ -101,6 +101,7 @@
 
 From Arkana Mechanika's Darklands Restoration register:
 
+- **Town shops use the town's size for every ware.** Some rolls used small-town odds even in a large city. The journal now forecasts the same wares as the shop. Turn off "Town shops use the town's size for every stock roll" to keep the original assortment.
 - **Stairs in a fight take the whole floor's party along,** the knocked-out carried, as outside a fight. A member who went alone left the others on a floor the game no longer kept in memory: they walked through walls that were not there, opened the wrong doors and chests, set off the wrong traps and were seen by enemies who were not there. A note at the first start of this version says so and asks for a report if anything goes wrong on stairs.
 - **A robber knight slain is paid for:** when he fell in a fight that did not end as a plain victory (after sneaking up on his tower, or let in by a saint), his keep burnt but no patron ever paid. The quest is now done however he fell.
 - **A council's reward** was never paid to a party that prayed its way into the hall: it got a new robber knight instead. The saint's way now pays.

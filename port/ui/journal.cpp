@@ -19,6 +19,9 @@
 #include <set>
 #include <algorithm>
 #include <math.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include "imgui.h"
 #include "ornament.h"
 #include "tablesort.h"
@@ -33,6 +36,7 @@ extern "C" {
 #include "../runtime/gamevars.h"
 #include "../runtime/hooks.h"
 #include "../runtime/config.h"
+#include "../mods/fixes.h"
 #include "../mods/hdtext.h"
 #include "money.h"
 #include "../mods/gamemodel.h"
@@ -47,12 +51,17 @@ void ui_item_icon(ImDrawList *dl, ImVec2 c, float s, int id);
 
 struct SeenItem { int id, q, price; };
 struct Shop { std::string name, date; int shop = 0, shopq = 0; u32 cats = 0; bool seen = false; std::vector<SeenItem> items; };
-struct Town { bool visited = false; int visits = 0; std::string first, last; std::vector<Shop> shops; };
+struct Town {
+    bool visited = false; int visits = 0; std::string first, last;
+    std::vector<Shop> shops, other_stock;    /* city shops under the active and alternate stock rules */
+};
 
 static std::map<int, Town> towns;
 static std::set<int> places;               /* the other places the party has been to (a monastery, a castle ...: "P loc") */
 static int journal_on = 1;
 static int cur_seed = -1, last_loc = -2;
+static bool fixed_stock;
+static std::set<int> restock;               /* visited towns whose forecasts need rebuilding */
 
 /* ---------------------------------------------------------------- helpers */
 
@@ -95,42 +104,55 @@ static void save(void)
     for (auto &kv : towns) {
         const Town &t = kv.second;
         fprintf(f, "T %d %d %d|%s|%s\n", kv.first, t.visited, t.visits, t.first.c_str(), t.last.c_str());
-        for (const Shop &s : t.shops) {
-            fprintf(f, "S %d %d %08x %d|%s|%s\n", s.shop, s.shopq, (unsigned)s.cats, s.seen, s.date.c_str(), s.name.c_str());
-            for (const SeenItem &i : s.items) fprintf(f, "I %d %d %d\n", i.id, i.q, i.price);
+        for (int other = 0; other <= 1; other++) {
+            bool rule = kv.first >= 0 && kv.first < 92 && (other ? !fixed_stock : fixed_stock);
+            for (const Shop &s : other ? t.other_stock : t.shops) {
+                /* Older builds read S/I only, and get their original listings. */
+                fprintf(f, "%c %d %d %08x %d|%s|%s\n", rule ? 's' : 'S', s.shop, s.shopq,
+                        (unsigned)s.cats, s.seen, s.date.c_str(), s.name.c_str());
+                for (const SeenItem &i : s.items) fprintf(f, "%c %d %d %d\n", rule ? 'i' : 'I', i.id, i.q, i.price);
+            }
         }
     }
     for (int loc : places) fprintf(f, "P %d\n", loc);
-    fclose(f);
-    remove(p.c_str());
-    rename(tmp.c_str(), p.c_str());
+    bool ok = !ferror(f);
+    if (fclose(f) != 0) ok = false;
+#ifdef _WIN32
+    if (ok) ok = MoveFileExA(tmp.c_str(), p.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0;
+#else
+    if (ok) ok = rename(tmp.c_str(), p.c_str()) == 0;
+#endif
+    if (!ok) { remove(tmp.c_str()); fprintf(stderr, "journal: could not replace %s\n", p.c_str()); }
 }
 
 static void tidy_guesses(void);
 static void load(int seed)
 {
-    towns.clear(); places.clear();
+    towns.clear(); places.clear(); restock.clear();
     FILE *f = fopen(path_for(seed).c_str(), "r");
     if (!f) return;
     char line[512];
-    Town *t = nullptr; Shop *s = nullptr;
+    Town *t = nullptr; Shop *s = nullptr; int loc = -1;
     while (fgets(line, sizeof line, f)) {
         line[strcspn(line, "\r\n")] = 0;
         char *bar = strchr(line, '|');
         if (line[0] == 'T' && bar) {
-            int loc, vis, n;
+            int vis, n;
             if (sscanf(line + 2, "%d %d %d", &loc, &vis, &n) != 3) continue;
             t = &towns[loc]; t->visited = vis; t->visits = n; s = nullptr;
             char *bar2 = strchr(bar + 1, '|');
             if (bar2) { t->first.assign(bar + 1, bar2 - bar - 1); t->last = bar2 + 1; }
-        } else if (line[0] == 'S' && bar && t) {
+        } else if ((line[0] == 'S' || line[0] == 's') && bar && t) {
             Shop sh; unsigned cats; int seen = 1;
+            bool rule = line[0] == 's';
             if (sscanf(line + 2, "%d %d %x %d", &sh.shop, &sh.shopq, &cats, &seen) < 3) continue;
             sh.cats = cats; sh.seen = seen;
             char *bar2 = strchr(bar + 1, '|');
             if (bar2) { sh.date.assign(bar + 1, bar2 - bar - 1); sh.name = bar2 + 1; }
-            t->shops.push_back(sh); s = &t->shops.back();
-        } else if (line[0] == 'I' && s) {
+            bool other = loc >= 0 && loc < 92 && rule != fixed_stock;
+            auto &list = other ? t->other_stock : t->shops;
+            list.push_back(sh); s = &list.back();
+        } else if ((line[0] == 'I' || line[0] == 'i') && s) {
             SeenItem i;
             if (sscanf(line + 2, "%d %d %d", &i.id, &i.q, &i.price) == 3) s->items.push_back(i);
         } else if (line[0] == 'P') {
@@ -141,23 +163,12 @@ static void load(int seed)
     tidy_guesses();
 }
 
-static void ensure_game(void)
-{
-    int seed = g_rw(G_PARTY_SEED);
-    if (seed != cur_seed) { cur_seed = seed; last_loc = -2; load(seed); }
-}
-
 /* ---------------------------------------------------------------- shop stock
  * A shop's wares are not stored: the barter screen (s032 1462:078e) rebuilds the list each
  * time from srand(city seed + party_seed), so they are the same for the whole game and can be
  * worked out as soon as the party reaches a town. This is that loop (shop_has_item, 1d18),
- * including its quirk: it reads its city size from an uninitialised stack slot, which holds
- * a stale value at the first candidate and after each of the first four rows it draws. */
-static const unsigned char CHANCE[9][12] = {
-    {50,20,15,10,5,1,1,0,0,0,0,0}, {75,50,35,25,15,10,5,1,1,0,0,0}, {99,75,65,60,45,30,20,10,7,4,2,1},
-    {99,99,90,80,65,50,35,20,15,7,4,2}, {100,99,99,99,85,70,50,35,25,15,7,3}, {100,100,99,99,90,80,65,55,40,30,15,6},
-    {100,100,100,100,99,99,85,75,60,50,20,12}, {100,100,100,100,100,100,100,100,85,75,30,20},
-    {100,100,100,100,100,100,100,100,99,99,50,30} };
+ * including the original size slot when fix.shopstock is off. The first candidate and those
+ * following the first four drawn wares can see an old code segment in that slot. */
 
 struct MsRand {                          /* Microsoft C rand() */
     u32 h;
@@ -180,6 +191,8 @@ static std::vector<SeenItem> predict_stock(int city, int seed, int shopq, u32 ma
     const City &c = gamedata.cities[city];
     MsRand rng((unsigned)(c.seed + seed));
     int slot = 0x1000;
+    u32 place = g_location(city);
+    bool price_roll = place && (rb((u16)(place >> 16), (u16)(place + 0x14)) & 0x4b) == 8;
     int n = (int)gamedata.items.size(); if (n > 200) n = 200;
     for (int k = 0; k < n; k++) {
         const ItemDef &d = gamedata.items[k];
@@ -188,16 +201,18 @@ static std::vector<SeenItem> predict_stock(int city, int seed, int shopq, u32 ma
         bool hit;
         if (d.type == 0x40 || d.type == 0x41 || d.type == 0x42) hit = true;      /* ammunition: always */
         else {
-            int size = (slot < 0x5c && slot != -1) ? c.size - 1 : 1;
-            if (size > 8) size = 8;
-            if (size < 0) size = 0;
+            int size = fixed_stock || (slot < 0x5c && slot != -1) ? (s16)c.size - 1 : 1;
+            if (size > 9) size = 9;
             slot = size;
             int rr = (s8)d.rarity + (q < 23 ? 1 : q > 29 ? -2 : q > 26 ? -1 : 0);
             rr = rr < 0 ? 0 : rr > 11 ? 11 : rr;
-            hit = rng.random_n(100) <= CHANCE[size][rr];
+            hit = rng.random_n(100) <= rb((u16)(LOADSEG + 0x290e), (u16)(0x399b + 12 * size + rr));
         }
         if (hit) {
-            if (out.size() < 4) slot = 0x1000;
+            if (out.size() < 4) {
+                if (price_roll) rng.rand();    /* buy_price is called while drawing these four */
+                slot = 0x1000;
+            }
             out.push_back({ k, q, 0 });
         }
     }
@@ -217,16 +232,17 @@ static const ShopKind SHOPS[] = {
 
 /* the worked-out lists of an older journal: a town shop's guessed with wares no longer guessed
    (the swordsmith's and armorer's, before 1.3), and any guess for a shop whose list has been seen */
-static std::set<int> restock;               /* towns whose guesses tidy_guesses dropped: worked out again (card_load_hook) */
 static void tidy_guesses(void)
 {
     for (auto &kv : towns) {
         std::vector<Shop> &v = kv.second.shops;
+        if (v.empty() && kv.second.visited && !kv.second.other_stock.empty()) restock.insert(kv.first);
         for (size_t b = v.size(); b-- > 0;) {
             const Shop &o = v[b];
             if (o.seen || o.shop < 0) continue;
             bool known = false, seen = false;
             for (const ShopKind &k : SHOPS) if (k.shop == o.shop && k.cats == o.cats) known = true;
+            for (const Shop &x : kv.second.other_stock) if (x.seen && x.shop == o.shop && x.cats == o.cats) known = true;
             for (const Shop &x : v) if (x.seen && x.shop == o.shop) seen = true;
             if (!known && !seen) restock.insert(kv.first);
             if (!known || seen) v.erase(v.begin() + b);
@@ -239,39 +255,69 @@ static void tidy_guesses(void)
  * asked in a side-effect-free evaluation */
 static void record_town_stock(int loc)
 {
-    if (loc < 0 || loc >= (int)gamedata.cities.size() || gamedata.items.empty()) return;
+    if (loc < 0 || loc >= (int)gamedata.cities.size() || gamedata.items.empty() || !g_rw(GV_city_rec + 2)) return;
     const City &c = gamedata.cities[loc];
     int seed = g_rw(G_PARTY_SEED);
     Town &t = towns[loc];
     std::string d = game_date();
     void *snap = eval_snapshot();
     ovl_enter(32);
+    /* A rule change can rebuild forecasts for several visited towns at once. buy_price
+       consults the current place and city size; give it the town being forecast. */
+    g_ww(G_CUR_LOC, (u16)loc);
+    ww(g_rw(GV_city_rec + 2), (u16)(g_rw(GV_city_rec) + 0x40), (u16)c.size);
+    std::vector<Shop> offers;
+    for (const Shop &old : t.other_stock) {
+        if (!old.seen) continue;
+        Shop offer;
+        offer.name = old.name; offer.shop = old.shop; offer.cats = old.cats; offer.shopq = old.shopq;
+        offers.push_back(offer);
+    }
     for (const ShopKind &k : SHOPS) {
         int shopq = k.shop < 0 ? 25 : c.shopq[k.shop];
         if (k.shop >= 0 && !shopq) continue;
+        if (std::any_of(offers.begin(), offers.end(), [&](const Shop &o) { return o.shop == k.shop && (k.shop >= 0 || o.cats == k.cats); })) continue;
         Shop sh;
-        sh.shop = k.shop; sh.shopq = shopq; sh.cats = k.cats; sh.name = k.name; sh.date = d;
-        sh.items = predict_stock(loc, seed, shopq, k.cats);
-        g_ww(GV_barter_quality, (u16)shopq); g_ww(GV_barter_shop, (u16)k.shop);
+        sh.shop = k.shop; sh.shopq = shopq; sh.cats = k.cats; sh.name = k.name;
+        offers.push_back(sh);
+    }
+    for (Shop &sh : offers) {
+        auto same = [&](const Shop &o) { return o.shop == sh.shop && o.cats == sh.cats; };
+        if (std::any_of(t.shops.begin(), t.shops.end(), [&](const Shop &o) {
+            return o.seen && o.shop == sh.shop && (sh.shop >= 0 || o.cats == sh.cats);
+        })) continue;
+        sh.date = d;
+        sh.items = predict_stock(loc, seed, sh.shopq, sh.cats);
+        g_ww(GV_barter_quality, (u16)sh.shopq); g_ww(GV_barter_shop, (u16)sh.shop);
         for (SeenItem &i : sh.items) { u16 id = (u16)i.id; i.price = (u16)(game_call_link(GF_buy_price, 1, &id) & 0xffff); }
-        /* (a town shop: one worked-out list, none once a list of that shop has been seen; the
-           pharmacist and the other shops numbered -1 by their wares) */
-        bool have = false;
-        std::vector<Shop> keep;
-        for (Shop &o : t.shops) {
-            bool same = o.shop == sh.shop && (sh.shop >= 0 || o.cats == sh.cats);
-            if (same && o.seen) have = true;
-            if (same && !o.seen) { if (!have) { keep.push_back(sh); have = true; } continue; }
-            keep.push_back(o);
-        }
-        if (!have) keep.push_back(sh);
-        for (size_t a = 0; a < keep.size(); a++)             /* (a list seen after a worked-out one was kept: the guess goes) */
-            if (keep[a].seen && keep[a].shop >= 0)
-                for (size_t b = keep.size(); b-- > 0;) if (!keep[b].seen && keep[b].shop == keep[a].shop) keep.erase(keep.begin() + b);
-        t.shops = keep;
+        auto guess = std::find_if(t.shops.begin(), t.shops.end(), same);
+        if (guess == t.shops.end()) t.shops.push_back(sh);
+        else *guess = sh;
     }
     eval_restore(snap);
     eval_free(snap);
+}
+
+static void ensure_game(void)
+{
+    int seed = g_rw(G_PARTY_SEED);
+    bool rule = fix_is_on("shopstock") != 0;
+    if (seed != cur_seed) {
+        cur_seed = seed; last_loc = -2; fixed_stock = rule;
+        load(seed);
+    } else if (rule != fixed_stock) {
+        fixed_stock = rule;
+        restock.clear();
+        for (auto &kv : towns) if (kv.first >= 0 && kv.first < 92) kv.second.shops.swap(kv.second.other_stock);
+        tidy_guesses();
+    }
+    if (!journal_on || restock.empty() || !g_rw(GV_city_rec + 2) || gamedata.items.empty()) return;
+    int mode = game_mode();
+    if (mode == GM_OTHER || mode == GM_BATTLE) return;
+    std::set<int> pending;
+    pending.swap(restock);
+    for (int c : pending) record_town_stock(c);
+    save();
 }
 
 /* ---------------------------------------------------------------- hooks */
@@ -728,7 +774,6 @@ static void card_load_hook(void)
     if (!journal_on) { hook_call_original(); return; }
     ensure_game();
     int loc = (s16)g_rw(G_CUR_LOC);
-    if (!restock.empty()) { for (int c : restock) record_town_stock(c); restock.clear(); save(); }   /* (an older journal's guesses: tidy_guesses) */
     if (loc != last_loc) {
         last_loc = loc;
         if (loc >= 0 && loc < (int)gamedata.cities.size()) {
@@ -869,7 +914,7 @@ extern "C" void journal_town_wares(int loc)
     for (size_t k = 0; k < t.shops.size(); k++) {
         const Shop &s = t.shops[k];
         ImGui::PushID((int)k);
-        char hd[160]; snprintf(hd, sizeof hd, "%s  (%d wares, noted %s)", s.name.c_str(), (int)s.items.size(), s.date.c_str());
+        char hd[160]; snprintf(hd, sizeof hd, "%s  (%d wares, %s %s)", s.name.c_str(), (int)s.items.size(), s.seen ? "seen" : "expected", s.date.c_str());
         if (ImGui::TreeNodeEx(hd, ImGuiTreeNodeFlags_SpanAvailWidth)) {
             if (ImGui::BeginTable("wares", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_Sortable)) {
                 ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch);
@@ -916,26 +961,35 @@ std::vector<WhereSold> journal_where_sold_rows(int id, int n)
     auto far_of = [&](int loc) { int m = travel_min_to(loc); return m >= 0 ? m : (here ? loc_distance(loc, px, py) * 600 : 1 << 29); };
     auto row = [&](int loc, bool at, bool exp, const std::string &shop) { WhereSold w; w.loc = loc; w.name = loc_name(loc); w.min = at ? 0 : travel_min_to(loc); w.here = at; w.expected = exp; w.shop = shop; return w; };
     std::vector<std::pair<int, int>> seen;                  /* (how far, town) */
-    std::set<int> listed;
+    std::set<int> listed, expected;
     for (auto &kv : towns) {
-        std::string shop; bool has = false;
-        for (const Shop &sh : kv.second.shops) for (const SeenItem &i : sh.items) if (i.id == id && !has) { has = true; shop = sh.name; }
-        if (!has) continue;
+        const Shop *seller = nullptr;
+        for (const Shop &sh : kv.second.shops) {
+            if (seller && !sh.seen) continue;
+            if (std::any_of(sh.items.begin(), sh.items.end(), [&](const SeenItem &i) { return i.id == id; })) {
+                seller = &sh;
+                if (sh.seen) break;
+            }
+        }
+        if (!seller) continue;
+        if (!seller->seen) expected.insert(kv.first);
         if (kv.first == cur) {
+            std::string shop = seller->name;
             for (char &c : shop) c = (char)tolower((unsigned char)c);
-            out.insert(out.begin(), row(kv.first, true, false, shop)); listed.insert(kv.first);
+            out.insert(out.begin(), row(kv.first, true, !seller->seen, shop)); listed.insert(kv.first);
             continue;
         }
         seen.push_back({ far_of(kv.first), kv.first });
     }
     std::sort(seen.begin(), seen.end());
-    for (const auto &d : seen) { if ((int)out.size() >= n) break; out.push_back(row(d.second, false, false, "")); listed.insert(d.second); }
+    for (const auto &d : seen) { if ((int)out.size() >= n) break; out.push_back(row(d.second, false, expected.count(d.second) != 0, "")); listed.insert(d.second); }
     if ((int)out.size() >= n || !config_get_int("map.offers_unvisited", 0)) return out;
     if (id < 0 || id >= (int)gamedata.items.size()) return out;
     static int pseed = -1; static std::map<int, std::vector<int>> sold_at;      /* item -> towns */
+    static bool forecast_rule;
     int seed = g_rw(G_PARTY_SEED);
-    if (seed != pseed) {
-        pseed = seed; sold_at.clear();
+    if (seed != pseed || forecast_rule != fixed_stock) {
+        pseed = seed; forecast_rule = fixed_stock; sold_at.clear();
         for (int c = 0; c < (int)gamedata.cities.size(); c++)
             for (const ShopKind &k : SHOPS) {
                 int shopq = k.shop < 0 ? 25 : gamedata.cities[c].shopq[k.shop];
@@ -958,7 +1012,7 @@ std::vector<std::string> journal_where_sold_list(int id, int n)
 {
     std::vector<std::string> out;
     for (const WhereSold &w : journal_where_sold_rows(id, n)) {
-        if (w.here) out.push_back(w.expected ? "sold here (expected)" : w.shop.empty() ? "sold here" : "sold here (" + w.shop + ")");
+        if (w.here) out.push_back(w.shop.empty() ? (w.expected ? "sold here (expected)" : "sold here") : "sold here (" + w.shop + (w.expected ? ", expected)" : ")"));
         else { std::string t = travel_days(w.min); out.push_back(w.name + (t.empty() ? "" : ", " + t + " away") + (w.expected ? " (expected)" : "")); }
     }
     return out;
@@ -1064,7 +1118,7 @@ extern "C" void halloffame_open(void);
 extern "C" int halloffame_record(void);
 extern "C" void tab_journal(void)
 {
-    if (cur_seed < 0 && game_mode() != GM_OTHER) ensure_game();
+    if (game_mode() != GM_OTHER) ensure_game();
     int want = ui_want_subtab; ui_want_subtab = -1;
     ImGui::TextDisabled("The quests and every town (its shops, the wares noted, where to buy an item) are on the world map (M).");
     {   /* the two switches of what is noted (on unless switched off here) */

@@ -106,6 +106,10 @@ F12 > Editor > "Items (for a mod)" lists every item of DARKLAND.LST with its nam
 quality, rarity and value, all editable; "Save the list into this mod folder" writes the whole
 list as the mod's `DARKLAND.LST`. The game reads the list when it starts.
 
+With `fix.shopstock` on, a town shop rolls each item's availability using that town's size
+from `DARKLAND.CTY`, the item's rarity, and the quality the shop offers. Ammunition that
+matches the shop's categories is always offered. Turn the fix off to compare the original stock.
+
 ## Foes
 
 F12 > Appendices > Enemies lists every foe of `DARKLAND.ENM` (71 kinds, 82 named foes) with
