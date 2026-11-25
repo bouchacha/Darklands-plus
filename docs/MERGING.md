@@ -119,7 +119,7 @@ the files where each switch's key is read.
 | `display.native_cards` | New card screens | show | cardview.c |
 | `display.native_shops` | New shop screen | show | barterview.c |
 | `display.native_sheet` | New character sheet | show | sheetview.c |
-| `inventory.shared` | One shared pack for the party | plus | sheetview.c |
+| `inventory.shared` | One shared pack for the party | plus | encounters.c, sheetview.c |
 | `display.native_loot` | New loot screen | show | lootview.c |
 | `battle.aftermath` | Battle aftermath | show | aftermath.cpp |
 | `assist.loot_worth` | Shop value in the loot screen | show | lootview.cpp |

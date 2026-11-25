@@ -15,6 +15,7 @@
 #include "game.h"
 #include "gamevars.h"
 #include "../mods/losaim.h"
+#include "../mods/gamemodel.h"
 #include "config.h"
 
 void plat_mouse_game(int *x, int *y);
@@ -359,6 +360,15 @@ int testcmd_run(const char *cmd, const char *arg)
         }
         else if (!strcmp(cmd, "utextdump")) { extern int hdtext_dump; hdtext_dump = 1; }     /* test: as Ctrl+F12, the text verdicts of the next frame */
         else if (!strcmp(cmd, "ulooks")) { int looks_count(void), looks_usable(int); int n = looks_count(), u = 0; for (int k = 0; k < n; k++) u += looks_usable(k); fprintf(stderr, "looks: %d of %d usable\n", u, n); }   /* test: analyse every figure (DL_LOOKS_DUMP) */
+        else if (!strcmp(cmd, "ukeepitems")) {          /* test: an encounter's keepitems (who, p): who -2 the party; each member's things before and after */
+            void encounters_test_keep(int, int); int w = 0, p = 50; sscanf(arg, "%d,%d", &w, &p);
+            for (int pass = 0; pass < 2; pass++) {
+                if (pass) encounters_test_keep(w, p);
+                for (int m = 0; m < 5; m++) { fprintf(stderr, "keepitems %s m%d:", pass ? "after" : "before", m);
+                    for (int i = 0; i < gm_item_count(m); i++) { GmItem x; if (gm_item(m, i, &x)) fprintf(stderr, " %d:%d", x.id, x.count); }
+                    fprintf(stderr, "\n"); }
+            }
+        }
         else if (!strcmp(cmd, "uenc")) {                /* test: the next wilderness encounter is new encounter N (mods/encounters.c) */
             void encounters_force(int); int encounters_count(void); const char *encounters_title(int);
             if (!arg[0]) { int n = encounters_count(); for (int k = 0; k < n + 8 && k < 256; k++) if (*encounters_title(k)) fprintf(stderr, "encounter %d: %s\n", k, encounters_title(k)); }

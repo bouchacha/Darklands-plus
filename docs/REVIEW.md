@@ -1132,3 +1132,13 @@ covered and found, and what it could not check.
   while the wheel turns). ui_teach_who words the nobody case itself (margins.cpp shared it). Tried in a session
   (DKSAVE32, map.offers_unvisited, new test command uteachers): hovered row intact, header clean after six wheel
   notches, tooltip at the window's right.
+- 2026-11-24, keepitems (his report: a sleepwalker's bog took 237 Melancholic Base, every ingredient, 12 Sunbursts and
+  2 Tarnhelms): encounters.c keep_items rolled once a stack and removed the stack, as keep_items_pct (s031 18e7:0ab8)
+  does; with the shared pack the game keeps the party's spare things wherever they fell, so one member "had on her" the
+  whole store of a kind. The cause is the all-or-nothing roll on a stack and the pack's placement standing for
+  ownership. Now lose_share takes 100 - p in 100 of each stack by item_take_one (18e7:0474), the odd part rolled, and a
+  single member's loss under inventory.shared reaches the pack's stacks (any holder) at 1/present of that, their own
+  things (gm_member_own) in full, another member's own not at all. Tried in a session (DKSAVE32, new test command
+  ukeepitems:0,60): the pack's stacks lost about 10% (144 -> 129, 171 -> 154), member 0's own potions 2 -> 1, the
+  other members' potions untouched. Every encounter using keepitems (SLEEPWLK, ICEFLOE, COINERS, PILATSEE, WASSERMN,
+  BORDKEEP, RAUBRITR, SHALLOWS, OVERBRD) keeps its odds on average.

@@ -296,25 +296,47 @@ static int g_take_item(int w, int code) { return G(VEC, 0, 0x2085, 2, w, code); 
 static void g_add_item(int w, int code) { G(VEC, 0, 0x2067, 2, w, code); }
 static void g_add_item_q(int w, int code, int q) { G(VEC, 0, 0x1f8b, 3, w, code, q); }
 static int g_item_quality(int w, int code) { return G(VEC, 0, 0x205d, 2, w, code); }
-/* keepitems: the game's loss (keep_items_pct, s031 18e7:0ab8: each stack kept with p %, from the last one down,
-   item_remove_stack), but not what a member has in use: the things equipped and the mount ridden (his asks
-   2026-11-16: the ferry's rope lost a Superb Horse with the potions; "don't lose horses but also nothing
-   equipped": a fall in the river or a stumble in the dark loses what is carried, not what is worn or ridden).
-   The same rolls, the same removal, here so the things in use can be passed over */
+/* keepitems: what a member had on them is lost with the chance 100 - p, but not what they have in use: the things
+   equipped and the mount ridden (his asks 2026-11-16: the ferry's rope lost a Superb Horse with the potions; "don't lose
+   horses but also nothing equipped": a fall in the river or a stumble in the dark loses what is carried, not what is worn
+   or ridden). The game's own loss (keep_items_pct, s031 18e7:0ab8) rolls once a stack and takes the whole stack: with the
+   shared pack (inventory.shared) a member may be carrying the party's whole store of an ingredient, and one roll took 237
+   Melancholic Base, every other ingredient and two Tarnhelms off one sleepwalker (his report 2026-11-24: "there should
+   probably be some upper limit"). So each stack loses its share, 100 - p in 100 of it (the odd part by a roll): the same
+   loss on average, no lottery. And with the shared pack, one member's loss reaches the pack only for their part of it
+   (one in as many members as there are): the pack is the party's, wherever the game happens to keep its things; their
+   own things (potions...) are theirs in full. item_take_one (18e7:0474) from the last record down, as the game removes */
+static void lose_share(int m, int r, int n, int lost100)    /* lost100: the share lost, in hundredths of a percent */
+{
+    long want = (long)n * lost100;
+    int k = (int)(want / 10000) + (g_rand(10000) < (int)(want % 10000) ? 1 : 0);
+    for (int j = 0; j < k && !aborting; j++) G(GF_item_take_one, 2, m, r);
+}
 static void keep_items(int w, int p)
 {
-    int ms[5], n = 0;
+    int ms[5], n = 0, present = 0;
+    for (int m = 0; m < 5; m++) if (gm_member_present(m)) present++;
     if (w == -2) { for (int m = 0; m < 5; m++) if (gm_member_present(m)) ms[n++] = m; }
     else if (w >= 0 && w < 5) ms[n++] = w;
-    for (int k = 0; k < n && !aborting; k++) {
-        int m = ms[k], ride = -1, rq = -1; GmItem x;      /* (the mount ridden: the best, as the game has it) */
+    if (p < 0) p = 0;
+    if (p > 100) p = 100;
+    const int lost = (100 - p) * 100, shared = config_get_int("inventory.shared", 1) != 0;
+    const int one = w >= 0 && shared && present > 1;           /* (one member, the shared pack: the pack's stacks by their part) */
+    for (int m = 0; m < 5 && !aborting; m++) {
+        int mine = 0;
+        for (int k = 0; k < n; k++) if (ms[k] == m) mine = 1;
+        if (!mine && !(one && gm_pack_holder(m))) continue;
+        int ride = -1, rq = -1; GmItem x;                       /* (the mount ridden: the best, as the game has it) */
         for (int r = 0; r < gm_item_count(m); r++) if (gm_item(m, r, &x) && x.type == 108 && x.qual > rq) { ride = r; rq = x.qual; }
         for (int r = gm_item_count(m) - 1; r >= 0 && !aborting; r--) {
-            if (r == ride || gm_item_equipped(m, r)) continue;
-            if (g_rand(100) > p) G(GF_item_remove_stack, 2, m, r);
+            if (r == ride || gm_item_equipped(m, r) || !gm_item(m, r, &x) || x.count <= 0) continue;
+            int own = shared && gm_member_own(x.id, x.type);
+            if (one && own && !mine) continue;                  /* (another member's own things) */
+            lose_share(m, r, x.count, one && !own ? lost / present : lost);
         }
     }
 }
+void encounters_test_keep(int w, int p) { keep_items(w, p); }   /* (the test command ukeepitems) */
 static void g_remove_flags(int w, long mask) { G(VEC, 0, 0x202b, 3, w, (int)(mask & 0xffff), (int)((mask >> 16) & 0xffff)); }
 static void g_party_delete(int m) { G(VEC, 0, 0x18b5, 1, m); }
 
