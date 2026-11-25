@@ -50,6 +50,7 @@
 - **Leaving a companion at the inn keeps the party's things:** their share of the shared pack went with them.
 - **Ingredients of one quality** no longer tidy the last loot screen's pile at a freed place in memory, which could crash; the pile that opens is tidied instead.
 - **A full pile of loot keeps what is put on it with the member** instead of swallowing it (a new fix).
+- **Walk or Flee without a destination** keeps the previous order. A shooter given Flee and resumed before choosing a spot could keep firing a bow or arbalest at the speed of their hand weapon. Found from Arkana Mechanika's Darklands Restoration.
 - **An enemy across the field no longer counts as beside the first member** for a round (a new fix).
 - **A data mod's longer item list or places file** no longer writes past the game's memory for it.
 - **The prayer's chance shows one point higher,** as the game rolls it (its 99 is certain), and nine saints whose texts promise all weapon skills say they raise only those of the weapons in hand.

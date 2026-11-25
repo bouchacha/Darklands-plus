@@ -22,7 +22,7 @@ static const struct { const char *id; int g; } G[] = {
     /* as the manual and the texts say */
     { "greatpower", 2 }, { "oilweapons", 2 }, { "armorday", 2 }, { "pauls", 2 }, { "sainttexts", 2 }, { "teachcap", 2 }, { "alchrisk", 2 },
     /* exploits */
-    { "fireward", 3 }, { "confession", 3 }, { "rkonce", 3 }, { "bounty", 3 }, { "fruitonce", 3 }, { "footpadsonce", 3 },
+    { "fireward", 3 }, { "confession", 3 }, { "rkonce", 3 }, { "bounty", 3 }, { "fruitonce", 3 }, { "footpadsonce", 3 }, { "movedestination", 3 },
     /* not a bug */
     { "copyprot", 4 },
     /* (hitsound: a plain mistake, the default) */

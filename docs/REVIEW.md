@@ -1142,3 +1142,14 @@ covered and found, and what it could not check.
   ukeepitems:0,60): the pack's stacks lost about 10% (144 -> 129, 171 -> 154), member 0's own potions 2 -> 1, the
   other members' potions untouched. Every encounter using keepitems (SLEEPWLK, ICEFLOE, COINERS, PILATSEE, WASSERMN,
   BORDKEEP, RAUBRITR, SHALLOWS, OVERBRD) keeps its odds on average.
+- 2026-11-24, Walk/Flee without a destination (Restoration B-dd294a). At s014 19cd:0738 the
+  current target is still the shooter's, so the game readies the hand weapon then rejects the
+  move, leaving the missile order at the hand weapon's rate. Normalize an unplaced move on
+  entry to order_mode_leave: its normal no-order cleanup keeps the weapon, the old flee bit
+  and the fighting style's remembered target. Space, Enter, picking another member and the
+  immediate-click controls all commit here. A clicked destination or a pending target still
+  goes to the game. test_move_destination.c checks these cases and the off switch.
+  Windows copied-game check: an arbalest, a short sword and 30 quarrels against a bandit.
+  With the fix on, F then Space fired once in the first 600 combat ticks; switched off it
+  fired three times. Walk, Enter and selecting another member kept the arbalest ready; a
+  ground click gave the flee order. Original retained the hand weapon's rate.
