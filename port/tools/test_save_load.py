@@ -40,7 +40,8 @@ class Session:
         flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
         self.process = subprocess.Popen([str(args.exe), str(self.game)], env=env,
                                         creationflags=flags, stdout=subprocess.DEVNULL,
-                                        stderr=subprocess.DEVNULL)
+                                        stderr=subprocess.DEVNULL if os.name == "nt" else self.logfile.open("wb"))
+        # (only the Windows build writes darklands_port.log itself; elsewhere the log is stderr)
 
     def put_save(self, number, sav, bsv):
         file = self.game / "SAVES" / f"dksave{number}.sav"
