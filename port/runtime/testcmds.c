@@ -574,6 +574,15 @@ int testcmd_run(const char *cmd, const char *arg)
             for (int m = 0; m < 5; m++) fprintf(stderr, " %d/%d,%d/%d", (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR)), (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_MAX)), (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_CUR + 1)), (s8)g_rb((u16)(G_MEMBER(m) + G_M_ATTR_MAX + 1)));
             fprintf(stderr, "\n");
         }
+        else if (!strcmp(cmd, "usheetcolumns")) {      /* first ink pixel in each of the original sheet's three number columns */
+            const int tops[] = { 18, 85, 145 }, rows[] = { 7, 6, 6 };
+            int first[] = { -1, -1, -1 };
+            for (int g = 0; g < 3; g++)
+                for (int x = 264; x <= 280 && first[g] < 0; x++)
+                    for (int y = tops[g]; y < tops[g] + rows[g] * 8; y++)
+                        if (M[0xa0000 + y * 320 + x] == 0xbf) { first[g] = x; break; }
+            fprintf(stderr, "original sheet skill columns: %d %d %d\n", first[0], first[1], first[2]);
+        }
         else if (!strcmp(cmd, "uattrs")) {             /* test: member m's attributes (current/max) and skills */
             int m = atoi(arg); if (m < 0 || m > 4) m = 0;
             fprintf(stderr, "attrs %d:", m);

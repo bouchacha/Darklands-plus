@@ -118,6 +118,12 @@ covered and found, and what it could not check.
   timing on a real sound card and display (this machine renders in software); the CM-32L's battle sounds
   differ from the MT-32's only slightly in the recordings (its settings line said "chimes and odd noises": now
   "some battle sounds a little different").
+- Follow-up, 2026-11-24. The original character sheet's third group drew its numbers at the box's left edge
+  plus three pixels. The other two groups draw them at x 268. fix.skillcolumn corrects the number draw in
+  box 7 at s031 1462:41bf whenever the original sheet draws or redraws it. release_check opens the F1
+  sheet with the fix on and off and measures all three columns in the frame. The Windows check found
+  x 268 for all three groups, and x 265 for the bottom group in Full Original. Only the six values'
+  pixels moved. The native Skills page was pixel-identical with the switch on and off.
 - 2026-10-25 (afternoon): after a player's reports on RC26. Fixed on the way: the battle tooltip's melee weapons
   (it read the combatant's +0x23 since 1.2; the weapon is +0x51), a false "Lost for good" after every battle for a
   member with a saint's boost to a skill (the events are out of memory at a battle's end), horses on the sheet
