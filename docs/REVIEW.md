@@ -1124,3 +1124,11 @@ covered and found, and what it could not check.
   ev8_resolve (3, 100) - a kind 0x24 reward for owner 9 at the village; a member named Schulz with a kind 0x43
   contract; ujumpcard 0x86, the news asked: $Raubi01's text 1, the reward freed, the Schulz gone (raubi_hook's
   branch, unreachable until now), the village's card back, a second ask the plain news.
+- 2026-11-24, Find teachers (his report, two pictures): the rows drew their icons with the outer window's draw list, but a
+  ScrollY table is a child window: the icons were unclipped (over the header) and under the child (gone beneath the
+  hovered row's highlight); ui_dim_since ran on that list's indexes, so other columns' text was never dimmed. Now the
+  table's own list, dimmed per cell (each column is a channel of its own), an ImGuiListClipper over the filtered rows
+  (every row's rich text was laid out each frame), the tooltip beside the window level with the row (DelayShort, none
+  while the wheel turns). ui_teach_who words the nobody case itself (margins.cpp shared it). Tried in a session
+  (DKSAVE32, map.offers_unvisited, new test command uteachers): hovered row intact, header clean after six wheel
+  notches, tooltip at the window's right.

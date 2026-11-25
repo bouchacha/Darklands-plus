@@ -251,7 +251,7 @@ static void teacher_row(const TchSource &t, float is, bool lines)
         ImVec2 b = ImGui::GetCursorScreenPos(); float s2 = lh * 1.1f;
         ui_skill_icon(dl, ImVec2(b.x + s2 * 0.45f, b.y + lh * 0.5f), s2 * 0.9f, t.skill[j]);
         ImGui::Dummy(ImVec2(s2, lh)); ImGui::SameLine(0, gap);
-        if (!anyone) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); ui_rich_textf("nobody would learn: %s", w.c_str()); ImGui::PopStyleColor(); }
+        if (!anyone) { ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)); ui_rich_text(w.c_str()); ImGui::PopStyleColor(); }
         else ui_rich_textf_c(ImVec4(0.15f, 0.42f, 0.15f, 1), "%s", w.c_str());
     }
     ImGui::Unindent(is + gap);

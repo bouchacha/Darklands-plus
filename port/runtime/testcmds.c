@@ -596,6 +596,7 @@ int testcmd_run(const char *cmd, const char *arg)
         else if (!strcmp(cmd, "ugoto")) { void citynav_go(int); citynav_go(atoi(arg)); }   /* test: Go to place N in the city */
         else if (!strcmp(cmd, "uhelp")) { void ui_toggle_help(void); ui_toggle_help(); }
         else if (!strcmp(cmd, "ugotowin")) { void ui_open_goto(void); ui_open_goto(); }       /* test: the Go to window (G) */
+        else if (!strcmp(cmd, "uteachers")) { void ui_test_teachers(void); ui_test_teachers(); }   /* test: the world map's Find teachers window (with umap) */
         else if (!strcmp(cmd, "umap")) { void ui_toggle_map(void); ui_toggle_map(); }
         else if (!strcmp(cmd, "uterrain")) { void travel_test_terrain(int, int, int); int x = 0, y = 0, t = 24; sscanf(arg, "%d,%d,%d", &x, &y, &t); travel_test_terrain(x, y, t); }   /* test: tile x, y of the travel planner's map made terrain t (the game's own unchanged: a way it refuses) */
         else if (!strcmp(cmd, "utraveltile")) { int travel_to_tile(int, int, int, const char *); int x = 0, y = 0; sscanf(arg, "%d,%d", &x, &y); fprintf(stderr, "utraveltile %d,%d: %d\n", x, y, travel_to_tile(x, y, -1, "test tile")); }   /* test: auto-travel to map tile x, y (as a Ctrl+click) */

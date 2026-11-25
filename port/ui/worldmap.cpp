@@ -349,6 +349,8 @@ static std::vector<TeachRow> teach_rows(const std::vector<Place> &places)
     }
     return rows;
 }
+static int teachers_test;                                    /* (the test command uteachers: the window opened, Find... unfolded) */
+extern "C" void ui_test_teachers(void) { teachers_test = 1; config_set_int("map.folded", config_get_int("map.folded", 0) & ~FOLD_FIND); }
 static void teachers_window(std::vector<TeachRow> &rows, const std::vector<Place> &places, float scale, float pad)
 {
     static int only = -1;                                    /* (the skill shown, -1 all) */
@@ -386,6 +388,7 @@ static void teachers_window(std::vector<TeachRow> &rows, const std::vector<Place
                                "party, so only the party's best counts. Dim: nobody is below the teacher, or the teacher can't be had now "
                                "(the last column says which). A click on a row shows the town; under the pointer, how to hire them.");
             ImGui::PopStyleColor();
+            const float win_right = ImGui::GetWindowPos().x + ImGui::GetWindowWidth();
             if (ImGui::BeginTable("##teach", 6, ImGuiTableFlags_Sortable | ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp)) {
                 ImGui::TableSetupScrollFreeze(0, 1);
                 ImGui::TableSetupColumn("Skill", ImGuiTableColumnFlags_WidthStretch, 0.16f);
@@ -405,30 +408,50 @@ static void teachers_window(std::vector<TeachRow> &rows, const std::vector<Place
                         return c.SortDirection == ImGuiSortDirection_Ascending ? lt : gt; });
                     ss->SpecsDirty = false;
                 }
-                for (size_t i = 0; i < rows.size(); i++) {
+                /* (drawn into the table's own list, which scrolls and clips: the window's list was under the
+                   table, so icons showed over the header and vanished under a highlighted row; dimmed cell by
+                   cell, since each column draws on a channel of its own; only the rows in view are drawn) */
+                ImDrawList *tl = ImGui::GetWindowDrawList();
+                std::vector<int> shown;
+                for (size_t i = 0; i < rows.size(); i++) if (only < 0 || rows[i].skill == only) shown.push_back((int)i);
+                const bool wheel = ImGui::GetIO().MouseWheel != 0.0f;
+                ImGuiListClipper clip;
+                clip.Begin((int)shown.size());
+                while (clip.Step()) for (int n = clip.DisplayStart; n < clip.DisplayEnd; n++) {
+                    const int i = shown[n];
                     const TeachRow &r = rows[i];
-                    if (only >= 0 && r.skill != only) continue;
-                    ImGui::PushID((int)i);
+                    const bool dim = !r.learn || r.off;
+                    ImGui::PushID(i);
                     ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-                    int v0 = dl->VtxBuffer.Size;
+                    int v0 = 0;
+                    auto cell = [&]() { if (v0 >= 0 && dim) ui_dim_since(tl, v0, 0.42f); ImGui::TableNextColumn(); v0 = tl->VtxBuffer.Size; };
+                    ImGui::TableNextColumn(); v0 = tl->VtxBuffer.Size;
                     ImVec2 a = ImGui::GetCursorScreenPos();
                     bool pick = ImGui::Selectable("##row", false, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap, ImVec2(0, lh));
-                    bool hov = ImGui::IsItemHovered();
-                    ui_skill_icon(dl, ImVec2(a.x + lh * 0.5f, a.y + lh * 0.5f), lh * 1.0f, r.skill);
-                    dl->AddText(ImVec2(a.x + lh * 1.25f, a.y), ImGui::GetColorU32(ImGuiCol_Text), ui_skill_short(r.skill));
-                    ImGui::TableNextColumn(); ImGui::Text("%d", r.to);
-                    ImGui::TableNextColumn();
-                    { ImVec2 b = ImGui::GetCursorScreenPos(); ui_draw_town_icon(dl, ImVec2(b.x + lh * 0.5f, b.y + lh * 0.5f), lh, ui_teacher_icon(r.src));
+                    bool hov = !wheel && ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort | ImGuiHoveredFlags_NoSharedDelay);
+                    v0 = tl->VtxBuffer.Size;                     /* (the highlight stays as it is) */
+                    ui_skill_icon(tl, ImVec2(a.x + lh * 0.5f, a.y + lh * 0.5f), lh * 1.0f, r.skill);
+                    tl->AddText(ImVec2(a.x + lh * 1.25f, a.y), ImGui::GetColorU32(ImGuiCol_Text), ui_skill_short(r.skill));
+                    cell(); ImGui::Text("%d", r.to);
+                    cell();
+                    { ImVec2 b = ImGui::GetCursorScreenPos(); ui_draw_town_icon(tl, ImVec2(b.x + lh * 0.5f, b.y + lh * 0.5f), lh, ui_teacher_icon(r.src));
                       ImGui::Dummy(ImVec2(lh, lh)); ImGui::SameLine(0, lh * 0.25f); ImGui::TextUnformatted(ui_teacher_short(r.src)); }
-                    ImGui::TableNextColumn(); ImGui::TextUnformatted(r.town.c_str());
-                    ImGui::TableNextColumn(); ImGui::TextUnformatted(r.minutes < 0 ? "no land route" : r.minutes == 0 ? "here" : hhmm(r.minutes).c_str());
-                    ImGui::TableNextColumn();
-                    if (r.off) ImGui::TextDisabled("not now: %s", r.t.why ? r.t.why : "ask in town");
-                    else if (!r.learn) ui_rich_textf("nobody: %s", r.learners.c_str());
+                    cell(); ImGui::TextUnformatted(r.town.c_str());
+                    cell(); ImGui::TextUnformatted(r.minutes < 0 ? "no land route" : r.minutes == 0 ? "here" : hhmm(r.minutes).c_str());
+                    cell();
+                    if (r.off) ImGui::TextUnformatted((std::string("not now: ") + (r.t.why ? r.t.why : "ask in town")).c_str());
                     else ui_rich_text(r.learners.c_str());
-                    if (!r.learn || r.off) ui_dim_since(dl, v0, 0.42f);
-                    if (hov) {                                    /* the teacher: what it takes, how to hire them, how it stands */
+                    if (dim) ui_dim_since(tl, v0, 0.42f);
+                    if (hov) {                                    /* the teacher: beside the window, level with the row, so no row is covered
+                                                                     (no room there: under the row, or above it low on the screen) */
+                        const ImVec2 ds = ImGui::GetIO().DisplaySize, mp = ImGui::GetMousePos();
+                        const float tip_w = ImGui::GetFontSize() * 27;
+                        if (win_right + lh * 0.5f + tip_w < ds.x)
+                            ImGui::SetNextWindowPos(ImVec2(win_right + lh * 0.5f, a.y + lh * 0.5f), ImGuiCond_Always, ImVec2(0.0f, a.y < ds.y * 0.5f ? 0.0f : 1.0f));
+                        else {
+                            const bool below = a.y + lh < ds.y * 0.55f;
+                            ImGui::SetNextWindowPos(ImVec2(mp.x, below ? a.y + lh + lh * 0.3f : a.y - lh * 0.3f), ImGuiCond_Always, ImVec2(mp.x > ds.x * 0.6f ? 1.0f : 0.0f, below ? 0.0f : 1.0f));
+                        }
                         ImGui::BeginTooltip(); ImGui::PushTextWrapPos(ImGui::GetFontSize() * 26);
                         ui_rich_text(ui_teacher_text(r.t).c_str());
                         ImGui::PopTextWrapPos(); ImGui::EndTooltip();
@@ -1246,6 +1269,7 @@ extern "C" void worldmap_draw(void)
     ImGui::End();
     if (find_open && work_enabled && nearby_work_open) nearby_work_window(work_towns, pk, pad);
     else nearby_work_open = false;
+    if (find_open && teachers_test) { teachers_test = 0; teachers_open = true; teach_list = teach_rows(P); }
     if (find_open && teachers_open) teachers_window(teach_list, P, pk, pad);
     else teachers_open = false;
     {   /* the lower right: the party's mark, pulsing as on the map; a click centres the map on it */

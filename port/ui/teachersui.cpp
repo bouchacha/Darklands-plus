@@ -74,7 +74,8 @@ std::string ui_teach_who(int k, int to, bool *anyone)
     std::string w;
     for (const TchLearner &l : L) w += (w.empty() ? "" : " ") + rich_member(l.m, std::to_string(l.v)) + (l.party ? " for the party" : "");
     if (any) return w;
-    /* nobody: the skills that count, so the list shows why (each member's, or the party's best) */
+    /* nobody: said as such, then the skills that put everyone past the teacher (each member's, or the
+       party's best), so the numbers read as the reason and not as learners */
     int best = -1, bm = -1;
     for (int m = 0; m < 5; m++) {
         if (!gm_member_present(m)) continue;
@@ -82,7 +83,8 @@ std::string ui_teach_who(int k, int to, bool *anyone)
         if (ui_teach_each(k)) w += (w.empty() ? "" : " ") + rich_member(m, std::to_string(v));
         else if (v > best) { best = v; bm = m; }
     }
-    return bm < 0 ? w : rich_member(bm, std::to_string(best)) + " for the party";
+    if (bm >= 0) return "nobody: the party's best is " + rich_member(bm, std::to_string(best));
+    return w.empty() ? "nobody" : "nobody: all at " + std::to_string(to) + "+ (" + w + ")";
 }
 
 const char *ui_teacher_short(int src)
